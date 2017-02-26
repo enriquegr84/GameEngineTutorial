@@ -177,6 +177,11 @@ BundleArtifacts/
 !*.[Cc]ache/
 
 # Others
+bin/
+obj/
+packages/
+Temp/
+Lib/
 ClientBin/
 [Ss]tyle[Cc]op.*
 ~$*
