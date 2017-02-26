@@ -86,7 +86,7 @@ int main(int numArguments, char* arguments[])
 
 //----------------------------------------------------------------------------
 TriangleDemoApplication::TriangleDemoApplication()
-:	WindowApplication("TriangleDemo", 0, 0, 1200, 800, { 0.392f, 0.584f, 0.929f, 1.0f }),
+:	WindowApplication("TriangleDemo", 0, 0, 800, 600, { 0.392f, 0.584f, 0.929f, 1.0f }),
 	mCamera(eastl::make_shared<Camera>(true, true))
 {
 	Environment::InsertDirectory(ProjectApplicationPath + "Effects/");
@@ -119,7 +119,7 @@ void TriangleDemoApplication::InitializeCamera(
 bool TriangleDemoApplication::CreateScene()
 {
 	mScene = eastl::make_shared<Node>();
-
+	/*
 	eastl::string path = Environment::GetPathR("BasicEffect.fx");
 	eastl::shared_ptr<TriangleEffect> effect = 
 		eastl::make_shared<TriangleEffect>(mProgramFactory, path);
@@ -148,7 +148,7 @@ bool TriangleDemoApplication::CreateScene()
 
 	mScene->AttachChild(mTriangle);
 	mTriangle->Update();
-
+	*/
 	return true;
 }
 
@@ -187,7 +187,7 @@ void TriangleDemoApplication::OnIdle()
 	mRenderer->ClearBuffers();
 	for (auto const& visual : mCuller.GetVisibleSet())
 		mRenderer->Draw(visual);
-	
+
 	char message[256];
 	sprintf(message, "fps: %i", mFramesPerSecond);
 	mRenderer->Draw(8, mHeight - 8, { 1.0f, 1.0f, 1.0f, 1.0f }, message);
