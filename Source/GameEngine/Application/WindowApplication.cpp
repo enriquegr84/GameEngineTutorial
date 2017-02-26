@@ -33,6 +33,7 @@ WindowApplication::WindowApplication(const char* windowTitle, int xPosition,
 {
 	ProjectApplicationPath = Environment::GetAbsolutePath("../");
 
+
 	mQuitRequested = false;
 	mQuitting = false;
 }
