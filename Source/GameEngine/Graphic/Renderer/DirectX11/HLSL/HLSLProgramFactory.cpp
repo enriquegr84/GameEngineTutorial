@@ -18,6 +18,7 @@ eastl::string HLSLProgramFactory::defaultPSEntry = "PSMain";
 eastl::string HLSLProgramFactory::defaultGSEntry = "GSMain";
 eastl::string HLSLProgramFactory::defaultCSEntry = "CSMain";
 unsigned int HLSLProgramFactory::defaultFlags = (
+	D3DCOMPILE_DEBUG |
     D3DCOMPILE_ENABLE_STRICTNESS |
     D3DCOMPILE_IEEE_STRICTNESS |
     D3DCOMPILE_OPTIMIZATION_LEVEL3);
@@ -182,7 +183,7 @@ eastl::shared_ptr<VisualProgram> HLSLProgramFactory::CreateFromNamedFiles(
 		return nullptr;
 	}
 
-	HLSLShader hlslPShader = HLSLShaderFactory::CreateFromString(psName,
+	HLSLShader hlslPShader = HLSLShaderFactory::CreateFromFile(psName,
 		psFile, psEntry, eastl::string("ps_") + version, defines, flags);
 	if (hlslPShader.IsValid())
 	{
@@ -197,7 +198,7 @@ eastl::shared_ptr<VisualProgram> HLSLProgramFactory::CreateFromNamedFiles(
 	HLSLShader hlslGShader;
 	if (gsFile != "")
 	{
-		hlslGShader = HLSLShaderFactory::CreateFromString(gsName,
+		hlslGShader = HLSLShaderFactory::CreateFromFile(gsName,
 			gsFile, gsEntry, eastl::string("gs_") + version, defines, flags);
 		if (hlslGShader.IsValid())
 		{

@@ -18,6 +18,7 @@
 #include "Effect/Font.h"
 #include "Effect/FontArialW400H18.h"
 #include "Effect/TextEffect.h"
+#include "Effect/TriangleEffect.h"
 #include "Effect/VisualEffect.h"
 
 // Resources

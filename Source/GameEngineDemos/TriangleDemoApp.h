@@ -63,7 +63,7 @@ protected:
 
 	Culler mCuller;
 	eastl::shared_ptr<Node> mScene;
-	eastl::shared_ptr<Visual> mMesh;
+	eastl::shared_ptr<Visual> mTriangle;
 	eastl::shared_ptr<Camera> mCamera;
 	BufferUpdater mUpdater;
 	CameraRig mCameraRig;

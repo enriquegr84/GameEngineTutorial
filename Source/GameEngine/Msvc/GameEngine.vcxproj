@@ -95,6 +95,7 @@
     <ClCompile Include="..\Graphic\Effect\Font.cpp" />
     <ClCompile Include="..\Graphic\Effect\FontArialW400H18.cpp" />
     <ClCompile Include="..\Graphic\Effect\TextEffect.cpp" />
+    <ClCompile Include="..\Graphic\Effect\TriangleEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\VisualEffect.cpp" />
     <ClCompile Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.cpp" />
     <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLBaseBuffer.cpp" />
@@ -365,6 +366,7 @@
     <ClInclude Include="..\Graphic\Effect\Font.h" />
     <ClInclude Include="..\Graphic\Effect\FontArialW400H18.h" />
     <ClInclude Include="..\Graphic\Effect\TextEffect.h" />
+    <ClInclude Include="..\Graphic\Effect\TriangleEffect.h" />
     <ClInclude Include="..\Graphic\Effect\VisualEffect.h" />
     <ClInclude Include="..\Graphic\Graphic.h" />
     <ClInclude Include="..\Graphic\GraphicStd.h" />

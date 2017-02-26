@@ -26,7 +26,7 @@ RasterizerState DisableCulling
 
 /************* Vertex Shader *************/
 
-VS_OUTPUT vertex_shader(VS_INPUT IN)
+VS_OUTPUT VSMain(VS_INPUT IN)
 {
     VS_OUTPUT OUT = (VS_OUTPUT)0;
     
@@ -38,7 +38,7 @@ VS_OUTPUT vertex_shader(VS_INPUT IN)
 
 /************* Pixel Shader *************/
 
-float4 pixel_shader(VS_OUTPUT IN) : SV_Target
+float4 PSMain(VS_OUTPUT IN) : SV_Target
 {
     return IN.Color;
 }
@@ -49,9 +49,9 @@ technique11 main11
 {
     pass p0
     {
-        SetVertexShader(CompileShader(vs_5_0, vertex_shader()));
+        SetVertexShader(CompileShader(vs_5_0, VSMain()));
         SetGeometryShader(NULL);
-        SetPixelShader(CompileShader(ps_5_0, pixel_shader()));
+        SetPixelShader(CompileShader(ps_5_0, PSMain()));
 
         SetRasterizerState(DisableCulling);
     }

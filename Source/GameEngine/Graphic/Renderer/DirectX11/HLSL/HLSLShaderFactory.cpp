@@ -140,9 +140,10 @@ ID3DBlob* HLSLShaderFactory::CompileShader(eastl::string const& filepath,
 #endif
 	}
 
-	eastl::wstring file(filepath.c_str());
-	HRESULT hr = D3DCompileFromFile(file.c_str(), localDefinitions.data(), 
-		include, entry.c_str(), target.c_str(), compileFlags, 0, &compiledCode, &errors);
+	std::string file(filepath.c_str());
+	HRESULT hr = D3DCompileFromFile(std::wstring(file.begin(), file.end()).c_str(), 
+		localDefinitions.data(), include, entry.c_str(), target.c_str(), compileFlags, 
+		0, &compiledCode, &errors);
 	if (SUCCEEDED(hr))
 	{
 		if (errors)

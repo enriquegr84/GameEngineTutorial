@@ -120,37 +120,34 @@ bool TriangleDemoApplication::CreateScene()
 {
 	mScene = eastl::make_shared<Node>();
 
-	eastl::string path;
+	eastl::string path = Environment::GetPathR("BasicEffect.fx");
+	eastl::shared_ptr<TriangleEffect> effect = 
+		eastl::make_shared<TriangleEffect>(mProgramFactory, path);
 
-	eastl::shared_ptr<VisualProgram> program = nullptr;
-	#ifdef USE_DX11
-		path = Environment::GetPathR("BasicEffect.fx");
-		program = mProgramFactory->CreateFromFiles(path, path, "");
-	#endif
-
-	if (!program) 
-		return false;
-	/*
-	eastl::shared_ptr<ConstantBuffer> cbuffer = 
-		eastl::make_shared<ConstantBuffer>(sizeof(Matrix4x4<float>), true);
-	program->GetVShader()->Set("PVWMatrix", cbuffer);
-	*/
-
-	eastl::shared_ptr<VisualEffect> effect = eastl::make_shared<VisualEffect>(program);
-
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);
-	int const numSamples = 64;
-	mMesh = mf.CreateTriangle(numSamples, 1.0f, 1.0f);
-	//mMesh->culling = CULL_NEVER;
-	mMesh->SetEffect(effect);
-	mMesh->Update();
 
-	mScene->AttachChild(mMesh);
+	// Create the rectangle representation of the model triangle
+	int const numSamples = 64;
+	mTriangle = mf.CreateTriangle(numSamples, 1.0f, 1.0f);
+	auto vbuffer = mTriangle->GetVertexBuffer().get();
+	Vertex* vertex = vbuffer->Get<Vertex>();
+	//mTriangle->culling = CULL_NEVER;
+	mTriangle->SetEffect(effect);
+	//mPVWMatrices.Subscribe(
+	//mRectangle[i]->worldTransform, mVCEffect[i]->GetPVWMatrixConstant());
+
+	mScene->AttachChild(mTriangle);
+	mTriangle->Update();
 
 	return true;
 }

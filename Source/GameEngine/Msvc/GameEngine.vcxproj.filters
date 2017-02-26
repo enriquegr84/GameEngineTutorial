@@ -697,6 +697,9 @@
     <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp">
       <Filter>Graphic\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\TriangleEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -1572,6 +1575,9 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\MeshFactory.h">
       <Filter>Graphic\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\TriangleEffect.h">
+      <Filter>Graphic\Effect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
