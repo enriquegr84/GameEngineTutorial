@@ -1,0 +1,1582 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{290384e2-defc-4863-940d-17b65c60b6f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic">
+      <UniqueIdentifier>{d4c29b82-13c9-4a49-b238-19cd0bce7a5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\IO">
+      <UniqueIdentifier>{49eccc66-1e3a-4f36-a4ea-35da25b3987b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\OS">
+      <UniqueIdentifier>{e7892ddc-7f3e-46a3-ab10-8e4307a2b1cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Threading">
+      <UniqueIdentifier>{68d38653-eabb-4904-a4c8-eb78d41cea2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer">
+      <UniqueIdentifier>{48994a13-8cf0-4762-885e-29c9adcffd91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty">
+      <UniqueIdentifier>{0f4fe529-9c5f-4545-936b-0c94aa07612e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\3rdParty">
+      <UniqueIdentifier>{f34ba84c-8d49-4668-837c-62ae871decb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\3rdParty\libjpeg">
+      <UniqueIdentifier>{32e9ed3a-e4b1-4a5a-900b-e54e684a36db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Logger">
+      <UniqueIdentifier>{18a134e6-cf05-46de-a31e-e329f0796a00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL">
+      <UniqueIdentifier>{113e767e-c718-4924-b3b7-ec3ca3bde69f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\source">
+      <UniqueIdentifier>{59c29148-ee07-4428-8f29-468682952a14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include">
+      <UniqueIdentifier>{aaf70dfc-c548-4da1-a8c1-0b9b262b9b1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EASTL">
+      <UniqueIdentifier>{03f4c913-86f5-44ee-986b-7131606cbc78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EASTL\bonus">
+      <UniqueIdentifier>{6ce58d83-c41f-4216-a65e-25557f96676e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EASTL\internal">
+      <UniqueIdentifier>{e0bd0980-9021-42e9-900e-542f4f2bea20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EABase">
+      <UniqueIdentifier>{7ac8b162-d27a-4d81-a5de-76b497764bd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EABase\config">
+      <UniqueIdentifier>{e42dfb48-471c-4471-b2b3-a3ab28d32524}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAAssert">
+      <UniqueIdentifier>{8c3857a1-7267-474c-855f-854a52488f1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAMain">
+      <UniqueIdentifier>{6a3e48ab-3f7e-427d-b1d0-cba8a500b0c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAStdC">
+      <UniqueIdentifier>{a7776c3e-f8cc-49eb-b7c8-9603aba472b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAThread">
+      <UniqueIdentifier>{baecd70d-fbd2-4943-983f-da6fabcfc703}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAStdC\source">
+      <UniqueIdentifier>{2cb36bf2-06e1-4151-b946-7d6822eed469}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Logger\Windows">
+      <UniqueIdentifier>{076334d5-ab3f-44b9-a023-758216dc7ea4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Effect">
+      <UniqueIdentifier>{02cef402-0505-431e-a850-caecb44ca503}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Scene">
+      <UniqueIdentifier>{1770e744-13ea-453f-8e53-e935f4f6a953}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Resource">
+      <UniqueIdentifier>{2173d73c-1e6a-4d2f-a775-e85196f0a327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Resource\Buffer">
+      <UniqueIdentifier>{28164f10-2da9-4728-af84-abbe94c613f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Resource\Texture">
+      <UniqueIdentifier>{7e790f47-056c-4b4f-b297-1e3e05f52ae2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Shader">
+      <UniqueIdentifier>{aaeacc81-f793-44aa-b031-5a7262139888}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\State">
+      <UniqueIdentifier>{9fbacf7d-e224-4e30-bb39-dfdb96ee1ce9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mathematic">
+      <UniqueIdentifier>{5645ec0c-0928-4c24-8431-62a26a94aee0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mathematic\Algebra">
+      <UniqueIdentifier>{d9462257-ce2b-4c0c-a602-e98352b6c4b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mathematic\Arithmetic">
+      <UniqueIdentifier>{51d2582a-44c5-4419-9391-6ebbc077969e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mathematic\Function">
+      <UniqueIdentifier>{c3db1c1a-ce1f-48b2-82e0-085621078a1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\DirectX11">
+      <UniqueIdentifier>{a0838213-927c-4e8b-929d-c8e5e82e0e97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\DirectX11\HLSL">
+      <UniqueIdentifier>{fe4bc723-86ac-4564-8421-04e45b99ebb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\DirectX11\Resource">
+      <UniqueIdentifier>{93837589-d22d-4151-808e-c64704ad877b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\DirectX11\Resource\Buffer">
+      <UniqueIdentifier>{7a55ab4a-dec7-4900-b70d-71b789a38e4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\DirectX11\Shader">
+      <UniqueIdentifier>{7512bfd5-31b7-40ef-a3ff-df93d5f2e74a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\DirectX11\InputLayout">
+      <UniqueIdentifier>{85f4ff26-d47d-4fea-ac9d-65033579cd8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application">
+      <UniqueIdentifier>{6a5731d7-d516-40dc-afb2-a007d640ded6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\System">
+      <UniqueIdentifier>{a164ff89-ea5f-44a5-a5e3-b21c091be3d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\DirectX11\Resource\Texture">
+      <UniqueIdentifier>{24d2fd78-5f2b-4252-839b-f879047896b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\InputLayout">
+      <UniqueIdentifier>{bab69934-3b80-4b35-a31d-acd4df1b2971}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\DirectX11\State">
+      <UniqueIdentifier>{47412ff6-dca6-4fa9-a5ec-14e3bdbae666}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Scene\Visibility">
+      <UniqueIdentifier>{1b3a4d8b-5c5b-4040-90d5-748643f5faed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Scene\Controller">
+      <UniqueIdentifier>{1b804654-66a7-4faf-9482-fcfe6b2e9786}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Scene\Element">
+      <UniqueIdentifier>{5cc6d868-9c00-41cc-96d4-5235c78a0051}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mathematic\Surface">
+      <UniqueIdentifier>{cc1dbbbd-6a5c-465c-bd31-e1c5b9ffb5bd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\GameEngineStd.cpp" />
+    <ClCompile Include="..\Core\IO\Environment.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\Renderer.cpp">
+      <Filter>Graphic\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\FileIO.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jaricom.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcapimin.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcapistd.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcarith.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jccoefct.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jccolor.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcdctmgr.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jchuff.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcinit.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmainct.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmarker.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmaster.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcomapi.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcparam.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcprepct.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcsample.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jctrans.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdapimin.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdapistd.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdarith.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdatadst.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdatasrc.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdcoefct.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdcolor.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jddctmgr.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdhuff.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdinput.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmainct.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmarker.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmaster.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmerge.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdpostct.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdsample.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdtrans.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jerror.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctflt.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctfst.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctint.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctflt.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctfst.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctint.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jmemmgr.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jmemnobs.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jquant1.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jquant2.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jutils.c">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\allocator_eastl.cpp">
+      <Filter>Core\3rdParty\EASTL\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\assert.cpp">
+      <Filter>Core\3rdParty\EASTL\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\fixed_pool.cpp">
+      <Filter>Core\3rdParty\EASTL\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\hashtable.cpp">
+      <Filter>Core\3rdParty\EASTL\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\intrusive_list.cpp">
+      <Filter>Core\3rdParty\EASTL\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\numeric_limits.cpp">
+      <Filter>Core\3rdParty\EASTL\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\red_black_tree.cpp">
+      <Filter>Core\3rdParty\EASTL\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\string.cpp">
+      <Filter>Core\3rdParty\EASTL\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\thread_support.cpp">
+      <Filter>Core\3rdParty\EASTL\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Logger\Logger.cpp">
+      <Filter>Core\Logger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Logger\LogReporter.cpp">
+      <Filter>Core\Logger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Logger\LogToFile.cpp">
+      <Filter>Core\Logger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Logger\LogToStdout.cpp">
+      <Filter>Core\Logger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Logger\LogToStringArray.cpp">
+      <Filter>Core\Logger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\include\EAStdC\source\EAMemory.cpp">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\EASTL\include\EAStdC\source\EASprintf.cpp">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\OS\OS.cpp">
+      <Filter>Core\OS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Logger\Windows\LogToMessageBox.cpp">
+      <Filter>Core\Logger\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Logger\Windows\LogToOutputWindow.cpp">
+      <Filter>Core\Logger\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\Font.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Resource.cpp">
+      <Filter>Graphic\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\GraphicObject.cpp">
+      <Filter>Graphic\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\VisualEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Buffer\Buffer.cpp">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Buffer\ConstantBuffer.cpp">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Buffer\IndexBuffer.cpp">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Buffer\VertexBuffer.cpp">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\State\SamplerState.cpp">
+      <Filter>Graphic\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Shader\ComputeShader.cpp">
+      <Filter>Graphic\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Shader\GeometryShader.cpp">
+      <Filter>Graphic\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Shader\PixelShader.cpp">
+      <Filter>Graphic\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Shader\ProgramDefines.cpp">
+      <Filter>Graphic\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Shader\ProgramFactory.cpp">
+      <Filter>Graphic\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Shader\VertexShader.cpp">
+      <Filter>Graphic\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Shader\ComputeProgram.cpp">
+      <Filter>Graphic\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Shader\Shader.cpp">
+      <Filter>Graphic\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Buffer\RawBuffer.cpp">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Buffer\StructuredBuffer.cpp">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture1.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture1Array.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture2.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture2Array.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture3.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureCubeArray.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureSingle.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\State\DrawingState.cpp">
+      <Filter>Graphic\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Shader\VisualProgram.cpp">
+      <Filter>Graphic\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\TextEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\DataFormat.cpp">
+      <Filter>Graphic\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureArray.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureCube.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Mathematic\Arithmetic\BitHacks.cpp">
+      <Filter>Mathematic\Arithmetic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.cpp">
+      <Filter>Graphic\Renderer\DirectX11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11Buffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11ConstantBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11IndexBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11RawBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11StructuredBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11TextureBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11VertexBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\DX11Resource.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\DX11GraphicObject.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Buffer\TextureBuffer.cpp">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11ComputeShader.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11GeometryShader.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11PixelShader.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11Shader.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11VertexShader.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\InputLayout\DX11InputLayout.cpp">
+      <Filter>Graphic\Renderer\DirectX11\InputLayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\InputLayout\DX11InputLayoutManager.cpp">
+      <Filter>Graphic\Renderer\DirectX11\InputLayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\FontArialW400H18.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Application\Application.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Application\ConsoleApplication.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Application\WindowApplication.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Application\System\System.cpp">
+      <Filter>Application\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Application\System\WindowsSystem.cpp">
+      <Filter>Application\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Buffer\VertexFormat.cpp">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLSamplerState.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShader.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderFactory.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderType.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderVariable.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTexture.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTextureArray.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTextureBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLVisualProgram.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLBaseBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLByteAddressBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLComputeProgram.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLConstantBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLParameter.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLProgramFactory.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLResource.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLResourceBindInfo.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLStructuredBuffer.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture1.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture1Array.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture2.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture2Array.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture3.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureArray.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureCube.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureCubeArray.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureSingle.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\State\RasterizerState.cpp">
+      <Filter>Graphic\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11BlendState.cpp">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11DepthStencilState.cpp">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11DrawingState.cpp">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11RasterizerState.cpp">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11SamplerState.cpp">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\State\BlendState.cpp">
+      <Filter>Graphic\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\State\DepthStencilState.cpp">
+      <Filter>Graphic\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureDS.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureRT.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Texture\DrawTarget.cpp">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11DrawTarget.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureDS.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureRT.cpp">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Visibility\Culler.cpp">
+      <Filter>Graphic\Scene\Visibility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Visibility\CullingPlane.cpp">
+      <Filter>Graphic\Scene\Visibility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Controller\ControlledObject.cpp">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Controller\Controller.cpp">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Camera.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Node.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Spatial.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\ViewVolume.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Visual.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\BoundingSphere.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Transform.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp">
+      <Filter>Graphic\Scene</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\GameEngineStd.h" />
+    <ClInclude Include="..\Core\Core.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\CoreStd.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\Environment.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\Renderer.h">
+      <Filter>Graphic\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Graphic.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\GraphicStd.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\FileIO.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\cderror.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jconfig.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jdct.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jerror.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jinclude.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jmemsys.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jmorecfg.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jpegint.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jpeglib.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jversion.h">
+      <Filter>Graphic\3rdParty\libjpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Threading\ThreadSafeMap.h">
+      <Filter>Core\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Threading\ThreadSafeQueue.h">
+      <Filter>Core\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\weak_ptr.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\algorithm.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\allocator.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\allocator_malloc.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\any.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\array.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bitset.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bitvector.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\chrono.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\core_allocator.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\core_allocator_adapter.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\deque.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_allocator.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_hash_map.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_hash_set.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_list.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_map.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_set.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_slist.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_string.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_substring.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_vector.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\functional.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\hash_map.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\hash_set.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\heap.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\initializer_list.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\intrusive_hash_map.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\intrusive_hash_set.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\intrusive_list.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\intrusive_ptr.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\iterator.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\linked_array.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\linked_ptr.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\list.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\map.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\memory.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\numeric.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\numeric_limits.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\optional.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\priority_queue.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\queue.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\random.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\ratio.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\safe_ptr.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\scoped_array.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\scoped_ptr.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\segmented_vector.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\set.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\shared_array.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\shared_ptr.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\slist.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\sort.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\stack.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string_hash_map.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string_map.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string_view.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\tuple.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\type_traits.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\unique_ptr.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\utility.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_map.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_multimap.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_multiset.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_set.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\version.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\adaptors.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\call_traits.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\compressed_pair.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\fixed_string_abstract.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\intrusive_sdlist.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\intrusive_slist.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\list_map.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\ring_buffer.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\sort_extra.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\sparse_matrix.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\string_abstract.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\bonus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\allocator_traits.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\allocator_traits_fwd_decls.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\char_traits.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\config.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\copy_help.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\enable_shared.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\fill_help.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\fixed_pool.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\function.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\functional_base.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\generic_iterator.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\hashtable.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\in_place_t.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\integer_sequence.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\intrusive_hashtable.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\mem_fn.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\move_help.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\pair_fwd_decls.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\red_black_tree.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\smart_ptr.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\thread_support.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\tuple_fwd_decls.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_compound.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_fundamental.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_pod.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_properties.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_transformations.h">
+      <Filter>Core\3rdParty\EASTL\include\EASTL\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Logger\Logger.h">
+      <Filter>Core\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\eabase.h">
+      <Filter>Core\3rdParty\EASTL\include\EABase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\eahave.h">
+      <Filter>Core\3rdParty\EASTL\include\EABase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\earesult.h">
+      <Filter>Core\3rdParty\EASTL\include\EABase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\eastdarg.h">
+      <Filter>Core\3rdParty\EASTL\include\EABase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\nullptr.h">
+      <Filter>Core\3rdParty\EASTL\include\EABase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\version.h">
+      <Filter>Core\3rdParty\EASTL\include\EABase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\config\eacompiler.h">
+      <Filter>Core\3rdParty\EASTL\include\EABase\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\config\eacompilertraits.h">
+      <Filter>Core\3rdParty\EASTL\include\EABase\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\config\eaplatform.h">
+      <Filter>Core\3rdParty\EASTL\include\EABase\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Logger\LogReporter.h">
+      <Filter>Core\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Logger\LogToFile.h">
+      <Filter>Core\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Logger\LogToStdout.h">
+      <Filter>Core\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Logger\LogToStringArray.h">
+      <Filter>Core\Logger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAAssert\eaassert.h">
+      <Filter>Core\3rdParty\EASTL\include\EAAssert</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAMain\EAMain.h">
+      <Filter>Core\3rdParty\EASTL\include\EAMain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAAlignment.h">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EADateTime.h">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAMemory.h">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAProcess.h">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EASprintf.h">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAStopwatch.h">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAString.h">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EATextUtil.h">
+      <Filter>Core\3rdParty\EASTL\include\EAStdC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread.h">
+      <Filter>Core\3rdParty\EASTL\include\EAThread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_atomic.h">
+      <Filter>Core\3rdParty\EASTL\include\EAThread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_thread.h">
+      <Filter>Core\3rdParty\EASTL\include\EAThread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\OS\OS.h">
+      <Filter>Core\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Logger\Windows\LogToMessageBox.h">
+      <Filter>Core\Logger\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Logger\Windows\LogToOutputWindow.h">
+      <Filter>Core\Logger\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\Font.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Resource.h">
+      <Filter>Graphic\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\GraphicObject.h">
+      <Filter>Graphic\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\VisualEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\Buffer.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\ConstantBuffer.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\IndexBuffer.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\IndexFormat.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\VertexBuffer.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\VertexFormat.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\State\SamplerState.h">
+      <Filter>Graphic\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Shader\ComputeShader.h">
+      <Filter>Graphic\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Shader\GeometryShader.h">
+      <Filter>Graphic\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Shader\PixelShader.h">
+      <Filter>Graphic\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Shader\ProgramDefines.h">
+      <Filter>Graphic\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Shader\ProgramFactory.h">
+      <Filter>Graphic\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Shader\VertexShader.h">
+      <Filter>Graphic\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Shader\ComputeProgram.h">
+      <Filter>Graphic\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Shader\Shader.h">
+      <Filter>Graphic\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\RawBuffer.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\StructuredBuffer.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture1.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture1Array.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture2.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture2Array.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture3.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureCube.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureCubeArray.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureSingle.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\State\DrawingState.h">
+      <Filter>Graphic\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Shader\VisualProgram.h">
+      <Filter>Graphic\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\TextEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\DataFormat.h">
+      <Filter>Graphic\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\MemberLayout.h">
+      <Filter>Graphic\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureArray.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Arithmetic\BitHacks.h">
+      <Filter>Mathematic\Arithmetic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Mathematic.h">
+      <Filter>Mathematic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\MathematicStd.h">
+      <Filter>Mathematic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Function\Constants.h">
+      <Filter>Mathematic\Function</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.h">
+      <Filter>Graphic\Renderer\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11Buffer.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11ConstantBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11IndexBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11RawBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11StructuredBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11TextureBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11VertexBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\DX11Resource.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\DX11GraphicObject.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\TextureBuffer.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11ComputeShader.h">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11GeometryShader.h">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11PixelShader.h">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11Shader.h">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11VertexShader.h">
+      <Filter>Graphic\Renderer\DirectX11\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\InputLayout\DX11InputLayout.h">
+      <Filter>Graphic\Renderer\DirectX11\InputLayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\InputLayout\DX11InputLayoutManager.h">
+      <Filter>Graphic\Renderer\DirectX11\InputLayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\FontArialW400H18.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Application\Application.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Application\ConsoleApplication.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Application\WindowApplication.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Application\System\EventSystem.h">
+      <Filter>Application\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Application\System\System.h">
+      <Filter>Application\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Application\System\WindowsSystem.h">
+      <Filter>Application\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\AxisAngle.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\EulerAngles.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Matrix.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Matrix2x2.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Matrix3x3.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Matrix4x4.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Quaternion.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Rotation.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Vector.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Vector2.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Vector3.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Vector4.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLSamplerState.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShader.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderFactory.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderType.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderVariable.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLStructuredBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTexture.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTextureArray.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTextureBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLVisualProgram.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLBaseBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLByteAddressBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLComputeProgram.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLConstantBuffer.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLFactory.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLParameter.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLProgramFactory.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLResource.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLResourceBindInfo.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture1.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture1Array.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture2.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture2Array.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture3.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureArray.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureCube.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureCubeArray.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureSingle.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\InputLayout\InputLayoutManager.h">
+      <Filter>Graphic\InputLayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\State\RasterizerState.h">
+      <Filter>Graphic\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11BlendState.h">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11DepthStencilState.h">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11DrawingState.h">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11RasterizerState.h">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11SamplerState.h">
+      <Filter>Graphic\Renderer\DirectX11\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\State\BlendState.h">
+      <Filter>Graphic\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\State\DepthStencilState.h">
+      <Filter>Graphic\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureDS.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureRT.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Texture\DrawTarget.h">
+      <Filter>Graphic\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11DrawTarget.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureDS.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureRT.h">
+      <Filter>Graphic\Renderer\DirectX11\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Visibility\Culler.h">
+      <Filter>Graphic\Scene\Visibility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Visibility\CullingPlane.h">
+      <Filter>Graphic\Scene\Visibility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Controller\ControlledObject.h">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Controller\Controller.h">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Camera.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Node.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Spatial.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\ViewVolume.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Visual.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\BoundingSphere.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Transform.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Surface\IndexAttribute.h">
+      <Filter>Mathematic\Surface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Surface\Mesh.h">
+      <Filter>Mathematic\Surface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Surface\VertexAttribute.h">
+      <Filter>Mathematic\Surface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\MeshFactory.h">
+      <Filter>Graphic\Scene</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl">
+      <Filter>Core\3rdParty\EASTL\include\EAMain</Filter>
+    </None>
+  </ItemGroup>
+</Project>

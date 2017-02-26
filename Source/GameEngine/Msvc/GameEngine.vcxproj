@@ -1,0 +1,711 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Application\Application.cpp" />
+    <ClCompile Include="..\Application\ConsoleApplication.cpp" />
+    <ClCompile Include="..\Application\System\System.cpp" />
+    <ClCompile Include="..\Application\System\WindowsSystem.cpp" />
+    <ClCompile Include="..\Application\WindowApplication.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\include\EAStdC\source\EAMemory.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\include\EAStdC\source\EASprintf.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\allocator_eastl.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\assert.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\fixed_pool.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\hashtable.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\intrusive_list.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\numeric_limits.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\red_black_tree.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\string.cpp" />
+    <ClCompile Include="..\Core\3rdParty\EASTL\source\thread_support.cpp" />
+    <ClCompile Include="..\Core\IO\Environment.cpp" />
+    <ClCompile Include="..\Core\IO\FileIO.cpp" />
+    <ClCompile Include="..\Core\Logger\Logger.cpp" />
+    <ClCompile Include="..\Core\Logger\LogReporter.cpp" />
+    <ClCompile Include="..\Core\Logger\LogToFile.cpp" />
+    <ClCompile Include="..\Core\Logger\LogToStdout.cpp" />
+    <ClCompile Include="..\Core\Logger\LogToStringArray.cpp" />
+    <ClCompile Include="..\Core\Logger\Windows\LogToMessageBox.cpp" />
+    <ClCompile Include="..\Core\Logger\Windows\LogToOutputWindow.cpp" />
+    <ClCompile Include="..\Core\OS\OS.cpp" />
+    <ClCompile Include="..\GameEngineStd.cpp" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jaricom.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcapimin.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcapistd.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcarith.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jccoefct.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jccolor.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcdctmgr.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jchuff.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcinit.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmainct.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmarker.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmaster.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcomapi.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcparam.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcprepct.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcsample.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jctrans.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdapimin.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdapistd.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdarith.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdatadst.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdatasrc.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdcoefct.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdcolor.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jddctmgr.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdhuff.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdinput.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmainct.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmarker.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmaster.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmerge.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdpostct.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdsample.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdtrans.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jerror.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctflt.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctfst.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctint.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctflt.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctfst.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctint.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jmemmgr.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jmemnobs.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jquant1.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jquant2.c" />
+    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jutils.c" />
+    <ClCompile Include="..\Graphic\Effect\Font.cpp" />
+    <ClCompile Include="..\Graphic\Effect\FontArialW400H18.cpp" />
+    <ClCompile Include="..\Graphic\Effect\TextEffect.cpp" />
+    <ClCompile Include="..\Graphic\Effect\VisualEffect.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLBaseBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLByteAddressBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLComputeProgram.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLConstantBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLParameter.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLProgramFactory.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLResource.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLResourceBindInfo.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLSamplerState.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShader.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderFactory.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderType.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderVariable.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLStructuredBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTexture.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTextureArray.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTextureBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLVisualProgram.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\InputLayout\DX11InputLayout.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\InputLayout\DX11InputLayoutManager.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11Buffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11ConstantBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11IndexBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11RawBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11StructuredBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11TextureBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11VertexBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\DX11GraphicObject.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\DX11Resource.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11DrawTarget.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture1.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture1Array.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture2.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture2Array.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture3.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureArray.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureCube.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureCubeArray.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureDS.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureRT.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureSingle.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11ComputeShader.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11GeometryShader.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11PixelShader.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11Shader.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\Shader\DX11VertexShader.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11BlendState.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11DepthStencilState.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11DrawingState.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11RasterizerState.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\State\DX11SamplerState.cpp" />
+    <ClCompile Include="..\Graphic\Renderer\Renderer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\Buffer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\ConstantBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\IndexBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\RawBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\StructuredBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\TextureBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\VertexBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\VertexFormat.cpp" />
+    <ClCompile Include="..\Graphic\Resource\DataFormat.cpp" />
+    <ClCompile Include="..\Graphic\Resource\GraphicObject.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Resource.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\DrawTarget.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture1.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture1Array.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture2.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture2Array.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\Texture3.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureArray.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureCube.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureCubeArray.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureDS.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureRT.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Texture\TextureSingle.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Controller\ControlledObject.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Controller\Controller.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\BoundingSphere.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Camera.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Node.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Spatial.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Transform.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\ViewVolume.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Visual.cpp" />
+    <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Visibility\Culler.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Visibility\CullingPlane.cpp" />
+    <ClCompile Include="..\Graphic\Shader\ComputeProgram.cpp" />
+    <ClCompile Include="..\Graphic\Shader\ComputeShader.cpp" />
+    <ClCompile Include="..\Graphic\Shader\GeometryShader.cpp" />
+    <ClCompile Include="..\Graphic\Shader\PixelShader.cpp" />
+    <ClCompile Include="..\Graphic\Shader\ProgramDefines.cpp" />
+    <ClCompile Include="..\Graphic\Shader\ProgramFactory.cpp" />
+    <ClCompile Include="..\Graphic\Shader\Shader.cpp" />
+    <ClCompile Include="..\Graphic\Shader\VertexShader.cpp" />
+    <ClCompile Include="..\Graphic\Shader\VisualProgram.cpp" />
+    <ClCompile Include="..\Graphic\State\BlendState.cpp" />
+    <ClCompile Include="..\Graphic\State\DepthStencilState.cpp" />
+    <ClCompile Include="..\Graphic\State\DrawingState.cpp" />
+    <ClCompile Include="..\Graphic\State\RasterizerState.cpp" />
+    <ClCompile Include="..\Graphic\State\SamplerState.cpp" />
+    <ClCompile Include="..\Mathematic\Arithmetic\BitHacks.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Application\Application.h" />
+    <ClInclude Include="..\Application\ConsoleApplication.h" />
+    <ClInclude Include="..\Application\System\EventSystem.h" />
+    <ClInclude Include="..\Application\System\System.h" />
+    <ClInclude Include="..\Application\System\WindowsSystem.h" />
+    <ClInclude Include="..\Application\WindowApplication.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAAssert\eaassert.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\config\eacompiler.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\config\eacompilertraits.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\config\eaplatform.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\eabase.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\eahave.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\earesult.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\eastdarg.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\nullptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\version.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAMain\EAMain.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAAlignment.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EADateTime.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAMemory.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAProcess.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EASprintf.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAStopwatch.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAString.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EATextUtil.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\algorithm.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\allocator.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\allocator_malloc.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\any.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\array.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bitset.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bitvector.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\adaptors.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\call_traits.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\compressed_pair.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\fixed_string_abstract.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\intrusive_sdlist.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\intrusive_slist.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\list_map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\ring_buffer.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\sort_extra.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\sparse_matrix.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\string_abstract.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\chrono.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\core_allocator.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\core_allocator_adapter.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\deque.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_allocator.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_hash_map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_hash_set.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_list.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_set.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_slist.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_string.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_substring.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_vector.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\functional.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\hash_map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\hash_set.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\heap.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\initializer_list.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\allocator_traits.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\allocator_traits_fwd_decls.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\char_traits.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\config.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\copy_help.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\enable_shared.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\fill_help.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\fixed_pool.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\function.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\functional_base.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\generic_iterator.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\hashtable.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\integer_sequence.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\intrusive_hashtable.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\in_place_t.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\mem_fn.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\move_help.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\pair_fwd_decls.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\red_black_tree.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\smart_ptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\thread_support.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\tuple_fwd_decls.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_compound.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_fundamental.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_pod.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_properties.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\type_transformations.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\intrusive_hash_map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\intrusive_hash_set.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\intrusive_list.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\intrusive_ptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\iterator.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\linked_array.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\linked_ptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\list.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\memory.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\numeric.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\numeric_limits.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\optional.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\priority_queue.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\queue.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\random.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\ratio.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\safe_ptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\scoped_array.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\scoped_ptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\segmented_vector.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\set.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\shared_array.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\shared_ptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\slist.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\sort.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\stack.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string_hash_map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string_map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string_view.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\tuple.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\type_traits.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\unique_ptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\utility.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_multimap.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_multiset.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_set.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\version.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\weak_ptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_atomic.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_thread.h" />
+    <ClInclude Include="..\Core\Core.h" />
+    <ClInclude Include="..\Core\CoreStd.h" />
+    <ClInclude Include="..\Core\IO\Environment.h" />
+    <ClInclude Include="..\Core\IO\FileIO.h" />
+    <ClInclude Include="..\Core\Logger\Logger.h" />
+    <ClInclude Include="..\Core\Logger\LogReporter.h" />
+    <ClInclude Include="..\Core\Logger\LogToFile.h" />
+    <ClInclude Include="..\Core\Logger\LogToStdout.h" />
+    <ClInclude Include="..\Core\Logger\LogToStringArray.h" />
+    <ClInclude Include="..\Core\Logger\Windows\LogToMessageBox.h" />
+    <ClInclude Include="..\Core\Logger\Windows\LogToOutputWindow.h" />
+    <ClInclude Include="..\Core\OS\OS.h" />
+    <ClInclude Include="..\Core\Threading\ThreadSafeMap.h" />
+    <ClInclude Include="..\Core\Threading\ThreadSafeQueue.h" />
+    <ClInclude Include="..\GameEngineStd.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\cderror.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jconfig.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jdct.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jerror.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jinclude.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jmemsys.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jmorecfg.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jpegint.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jpeglib.h" />
+    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jversion.h" />
+    <ClInclude Include="..\Graphic\Effect\Font.h" />
+    <ClInclude Include="..\Graphic\Effect\FontArialW400H18.h" />
+    <ClInclude Include="..\Graphic\Effect\TextEffect.h" />
+    <ClInclude Include="..\Graphic\Effect\VisualEffect.h" />
+    <ClInclude Include="..\Graphic\Graphic.h" />
+    <ClInclude Include="..\Graphic\GraphicStd.h" />
+    <ClInclude Include="..\Graphic\InputLayout\InputLayoutManager.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLBaseBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLByteAddressBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLComputeProgram.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLConstantBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLFactory.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLParameter.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLProgramFactory.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLResource.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLResourceBindInfo.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLSamplerState.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShader.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderFactory.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderType.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderVariable.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLStructuredBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTexture.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTextureArray.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLTextureBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLVisualProgram.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\InputLayout\DX11InputLayout.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\InputLayout\DX11InputLayoutManager.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11Buffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11ConstantBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11IndexBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11RawBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11StructuredBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11TextureBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Buffer\DX11VertexBuffer.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\DX11GraphicObject.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\DX11Resource.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11DrawTarget.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture1.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture1Array.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture2.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture2Array.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11Texture3.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureArray.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureCube.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureCubeArray.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureDS.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureRT.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Resource\Texture\DX11TextureSingle.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11ComputeShader.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11GeometryShader.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11PixelShader.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11Shader.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\Shader\DX11VertexShader.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11BlendState.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11DepthStencilState.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11DrawingState.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11RasterizerState.h" />
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\State\DX11SamplerState.h" />
+    <ClInclude Include="..\Graphic\Renderer\Renderer.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\Buffer.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\ConstantBuffer.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\IndexBuffer.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\IndexFormat.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\RawBuffer.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\StructuredBuffer.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\TextureBuffer.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\VertexBuffer.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\VertexFormat.h" />
+    <ClInclude Include="..\Graphic\Resource\DataFormat.h" />
+    <ClInclude Include="..\Graphic\Resource\GraphicObject.h" />
+    <ClInclude Include="..\Graphic\Resource\MemberLayout.h" />
+    <ClInclude Include="..\Graphic\Resource\Resource.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\DrawTarget.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture1.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture1Array.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture2.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture2Array.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\Texture3.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureArray.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureCube.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureCubeArray.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureDS.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureRT.h" />
+    <ClInclude Include="..\Graphic\Resource\Texture\TextureSingle.h" />
+    <ClInclude Include="..\Graphic\Scene\Controller\ControlledObject.h" />
+    <ClInclude Include="..\Graphic\Scene\Controller\Controller.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\BoundingSphere.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Camera.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Node.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Spatial.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Transform.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\ViewVolume.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Visual.h" />
+    <ClInclude Include="..\Graphic\Scene\MeshFactory.h" />
+    <ClInclude Include="..\Graphic\Scene\Visibility\Culler.h" />
+    <ClInclude Include="..\Graphic\Scene\Visibility\CullingPlane.h" />
+    <ClInclude Include="..\Graphic\Shader\ComputeProgram.h" />
+    <ClInclude Include="..\Graphic\Shader\ComputeShader.h" />
+    <ClInclude Include="..\Graphic\Shader\GeometryShader.h" />
+    <ClInclude Include="..\Graphic\Shader\PixelShader.h" />
+    <ClInclude Include="..\Graphic\Shader\ProgramDefines.h" />
+    <ClInclude Include="..\Graphic\Shader\ProgramFactory.h" />
+    <ClInclude Include="..\Graphic\Shader\Shader.h" />
+    <ClInclude Include="..\Graphic\Shader\VertexShader.h" />
+    <ClInclude Include="..\Graphic\Shader\VisualProgram.h" />
+    <ClInclude Include="..\Graphic\State\BlendState.h" />
+    <ClInclude Include="..\Graphic\State\DepthStencilState.h" />
+    <ClInclude Include="..\Graphic\State\DrawingState.h" />
+    <ClInclude Include="..\Graphic\State\RasterizerState.h" />
+    <ClInclude Include="..\Graphic\State\SamplerState.h" />
+    <ClInclude Include="..\Mathematic\Algebra\AxisAngle.h" />
+    <ClInclude Include="..\Mathematic\Algebra\EulerAngles.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Matrix.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Matrix2x2.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Matrix3x3.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Matrix4x4.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Quaternion.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Rotation.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Vector.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Vector2.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Vector3.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Vector4.h" />
+    <ClInclude Include="..\Mathematic\Arithmetic\BitHacks.h" />
+    <ClInclude Include="..\Mathematic\Function\Constants.h" />
+    <ClInclude Include="..\Mathematic\Mathematic.h" />
+    <ClInclude Include="..\Mathematic\MathematicStd.h" />
+    <ClInclude Include="..\Mathematic\Surface\IndexAttribute.h" />
+    <ClInclude Include="..\Mathematic\Surface\Mesh.h" />
+    <ClInclude Include="..\Mathematic\Surface\VertexAttribute.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5F8DE669-F90C-498F-891B-EE6ACE0CA1BD}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>GameEngine</RootNamespace>
+    <ProjectName>GameEngine</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(ProjectDir)..\..\Lib\$(Configuration)$(PlatformName)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\Temp\$(ProjectName)$(Configuration)$(PlatformName)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(ProjectDir)..\..\Lib\$(Configuration)$(PlatformName)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\Temp\$(ProjectName)$(Configuration)$(PlatformName)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NOMINMAX;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <RuntimeTypeInfo>
+      </RuntimeTypeInfo>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\Lib\$(PlatformName)$(Configuration)\</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;NOMINMAX;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeTypeInfo>
+      </RuntimeTypeInfo>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\Lib\$(PlatformName)$(Configuration)\</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
