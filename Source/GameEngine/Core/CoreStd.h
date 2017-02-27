@@ -181,7 +181,7 @@
 #include "EASTL/unique_ptr.h"
 #include "EASTL/shared_ptr.h"
 
-//#include <tinyxml.h>
+#include "tinyxml2.h"
 
 #ifdef _WINDOWS_
 

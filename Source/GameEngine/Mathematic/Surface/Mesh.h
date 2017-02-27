@@ -102,6 +102,13 @@ public:
     bool constructed;
 };
 
+/*
+	A mesh is a group of vertices, edges, and faces that describe the shape of a
+	3D object. By describing a model as a set of meshes, you allow for multiple
+	subobjects to be treated both separately and as a whole. A mesh can be
+	minimally described by a set of vertices, but it can also include indices,
+	normals, tangents, binormals, texture coordinates, and vertex colors.
+*/
 template <typename Real>
 class Mesh
 {

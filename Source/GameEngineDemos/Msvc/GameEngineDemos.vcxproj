@@ -46,16 +46,16 @@
     <OutDir>$(SolutionDir)..\..\..\bin\$(PlatformName)$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)$(PlatformName)$(Configuration)</TargetName>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\..\GameEngine\Core\3rdParty\EASTL\include;$(ProjectDir)..\..\GameEngine\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\..\GameEngine\Graphic\3rdParty\assimp\include;$(ProjectDir)..\..\GameEngine\Core\3rdParty\EASTL\include;$(ProjectDir)..\..\GameEngine\Core\3rdParty\EASTL\source;$(ProjectDir)..\..\GameEngine\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(ProjectDir)..\..\GameEngine\Graphic\3rdParty\assimp\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\..\..\bin\$(PlatformName)$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)$(PlatformName)$(Configuration)</TargetName>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\..\GameEngine\Core\3rdParty\EASTL\include;$(ProjectDir)..\..\GameEngine\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\..\GameEngine\Graphic\3rdParty\assimp\include;$(ProjectDir)..\..\GameEngine\Core\3rdParty\EASTL\include;$(ProjectDir)..\..\GameEngine\Core\3rdParty\EASTL\source;$(ProjectDir)..\..\GameEngine\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(ProjectDir)..\..\GameEngine\Graphic\3rdParty\assimp\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

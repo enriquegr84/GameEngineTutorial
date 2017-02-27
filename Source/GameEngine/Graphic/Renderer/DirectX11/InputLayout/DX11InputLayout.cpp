@@ -57,6 +57,7 @@ DX11InputLayout::DX11InputLayout(ID3D11Device* device,
 
 void DX11InputLayout::Enable(ID3D11DeviceContext* context)
 {
+	//	Binding input layout to the input-assembler stage
     if (mLayout)
     {
         context->IASetInputLayout(mLayout);

@@ -25,9 +25,6 @@
     <Filter Include="Graphic\3rdParty">
       <UniqueIdentifier>{f34ba84c-8d49-4668-837c-62ae871decb8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphic\3rdParty\libjpeg">
-      <UniqueIdentifier>{32e9ed3a-e4b1-4a5a-900b-e54e684a36db}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Logger">
       <UniqueIdentifier>{18a134e6-cf05-46de-a31e-e329f0796a00}</UniqueIdentifier>
     </Filter>
@@ -151,6 +148,15 @@
     <Filter Include="Mathematic\Surface">
       <UniqueIdentifier>{cc1dbbbd-6a5c-465c-bd31-e1c5b9ffb5bd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphic\3rdParty\assimp">
+      <UniqueIdentifier>{afee0616-03d5-4628-9c62-53216aec825c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\3rdParty\assimp\include">
+      <UniqueIdentifier>{c4232dda-d6f2-4189-b574-386ccedfa34d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\tinyxml2">
+      <UniqueIdentifier>{bc86b628-39df-48f6-aa1b-5a139cc7ee70}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -162,144 +168,6 @@
     </ClCompile>
     <ClCompile Include="..\Core\IO\FileIO.cpp">
       <Filter>Core\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jaricom.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcapimin.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcapistd.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcarith.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jccoefct.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jccolor.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcdctmgr.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jchuff.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcinit.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmainct.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmarker.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmaster.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcomapi.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcparam.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcprepct.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcsample.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jctrans.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdapimin.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdapistd.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdarith.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdatadst.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdatasrc.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdcoefct.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdcolor.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jddctmgr.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdhuff.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdinput.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmainct.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmarker.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmaster.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmerge.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdpostct.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdsample.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdtrans.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jerror.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctflt.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctfst.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctint.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctflt.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctfst.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctint.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jmemmgr.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jmemnobs.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jquant1.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jquant2.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jutils.c">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
     </ClCompile>
     <ClCompile Include="..\Core\3rdParty\EASTL\source\allocator_eastl.cpp">
       <Filter>Core\3rdParty\EASTL\source</Filter>
@@ -700,6 +568,9 @@
     <ClCompile Include="..\Graphic\Effect\TriangleEffect.cpp">
       <Filter>Graphic\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="..\Core\3rdParty\tinyxml2\tinyxml2.cpp">
+      <Filter>Core\3rdParty\tinyxml2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -723,36 +594,6 @@
     </ClInclude>
     <ClInclude Include="..\Core\IO\FileIO.h">
       <Filter>Core\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\cderror.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jconfig.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jdct.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jerror.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jinclude.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jmemsys.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jmorecfg.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jpegint.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jpeglib.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jversion.h">
-      <Filter>Graphic\3rdParty\libjpeg</Filter>
     </ClInclude>
     <ClInclude Include="..\Core\Threading\ThreadSafeMap.h">
       <Filter>Core\Threading</Filter>
@@ -1579,10 +1420,133 @@
     <ClInclude Include="..\Graphic\Effect\TriangleEffect.h">
       <Filter>Graphic\Effect</Filter>
     </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\ai_assert.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\anim.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\camera.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\cexport.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\cfileio.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\cimport.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\color4.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\config.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\DefaultLogger.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\defs.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Exporter.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Importer.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\importerdesc.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\IOStream.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\IOSystem.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\light.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Logger.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\LogStream.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\material.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\matrix3x3.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\matrix4x4.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\mesh.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\metadata.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\NullLogger.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\postprocess.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\ProgressHandler.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\quaternion.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\scene.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\texture.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\types.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\vector2.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\vector3.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\version.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\tinyxml2\tinyxml2.h">
+      <Filter>Core\3rdParty\tinyxml2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl">
       <Filter>Core\3rdParty\EASTL\include\EAMain</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\color4.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\material.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\matrix3x3.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\matrix4x4.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\quaternion.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\vector2.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\vector3.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
     </None>
   </ItemGroup>
 </Project>

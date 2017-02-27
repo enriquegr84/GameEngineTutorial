@@ -83,6 +83,8 @@ eastl::shared_ptr<GraphicObject> DX11VertexBuffer::Create(
 
 void DX11VertexBuffer::Enable(ID3D11DeviceContext* context)
 {
+	//	Binding the vertex buffer to the input-assembler stage which establishes
+	//	the CPU-to-GPU vertex input stream
     if (mDXObject)
     {
         // The MSDN documentation for ID3D11DeviceContext::IASetVertexBuffers
@@ -91,10 +93,7 @@ void DX11VertexBuffer::Enable(ID3D11DeviceContext* context)
         // passed to IASetVertexBuffers.  If you set the offsets[0] here, you
         // should call Draw(numVertices,0).  If you instead call
         // Draw(numVertices, startVertex), then you should set offsets[0]
-        // to 0. The latter choice is made for GameEngine. TODO:  Is there a
-        // performance issue by setting offsets[0] to zero?  This depends on
-        // what the input assembly stage does with the buffers when you
-        // enable them using IASetVertexBuffers.
+        // to 0. The latter choice is made for GameEngine.
         ID3D11Buffer* buffers[1] = { GetDXBuffer() };
         VertexBuffer* vbuffer = GetVertexBuffer();
         UINT strides[1] = { vbuffer->GetElementSize() };

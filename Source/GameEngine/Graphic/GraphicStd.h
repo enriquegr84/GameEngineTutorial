@@ -117,12 +117,6 @@ and this to the linker settings: -ld3dx11
     #endif
 #endif
 
-//! Define COMPILE_JPEGLIB to enable compiling the engine using libjpeg.
-/** This enables the engine to read jpeg images. If you comment this out,
-the engine will no longer read .jpeg images. */
-#define COMPILE_LIBJPEG
-#ifdef NO_COMPILE_LIBJPEG
-#undef COMPILE_LIBJPEG
-#endif
+#include <cimport.h>
 
 #endif

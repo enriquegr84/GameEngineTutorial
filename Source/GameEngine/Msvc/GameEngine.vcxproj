@@ -35,6 +35,7 @@
     <ClCompile Include="..\Core\3rdParty\EASTL\source\red_black_tree.cpp" />
     <ClCompile Include="..\Core\3rdParty\EASTL\source\string.cpp" />
     <ClCompile Include="..\Core\3rdParty\EASTL\source\thread_support.cpp" />
+    <ClCompile Include="..\Core\3rdParty\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\Core\IO\Environment.cpp" />
     <ClCompile Include="..\Core\IO\FileIO.cpp" />
     <ClCompile Include="..\Core\Logger\Logger.cpp" />
@@ -46,52 +47,6 @@
     <ClCompile Include="..\Core\Logger\Windows\LogToOutputWindow.cpp" />
     <ClCompile Include="..\Core\OS\OS.cpp" />
     <ClCompile Include="..\GameEngineStd.cpp" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jaricom.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcapimin.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcapistd.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcarith.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jccoefct.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jccolor.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcdctmgr.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jchuff.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcinit.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmainct.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmarker.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcmaster.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcomapi.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcparam.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcprepct.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jcsample.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jctrans.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdapimin.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdapistd.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdarith.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdatadst.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdatasrc.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdcoefct.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdcolor.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jddctmgr.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdhuff.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdinput.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmainct.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmarker.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmaster.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdmerge.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdpostct.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdsample.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jdtrans.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jerror.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctflt.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctfst.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jfdctint.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctflt.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctfst.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jidctint.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jmemmgr.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jmemnobs.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jquant1.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jquant2.c" />
-    <ClCompile Include="..\Graphic\3rdParty\libjpeg\jutils.c" />
     <ClCompile Include="..\Graphic\Effect\Font.cpp" />
     <ClCompile Include="..\Graphic\Effect\FontArialW400H18.cpp" />
     <ClCompile Include="..\Graphic\Effect\TextEffect.cpp" />
@@ -338,6 +293,7 @@
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_atomic.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_thread.h" />
+    <ClInclude Include="..\Core\3rdParty\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\Core\Core.h" />
     <ClInclude Include="..\Core\CoreStd.h" />
     <ClInclude Include="..\Core\IO\Environment.h" />
@@ -353,16 +309,39 @@
     <ClInclude Include="..\Core\Threading\ThreadSafeMap.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeQueue.h" />
     <ClInclude Include="..\GameEngineStd.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\cderror.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jconfig.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jdct.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jerror.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jinclude.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jmemsys.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jmorecfg.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jpegint.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jpeglib.h" />
-    <ClInclude Include="..\Graphic\3rdParty\libjpeg\jversion.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\ai_assert.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\anim.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\camera.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\cexport.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\cfileio.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\cimport.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\color4.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\config.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\DefaultLogger.hpp" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\defs.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Exporter.hpp" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Importer.hpp" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\importerdesc.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\IOStream.hpp" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\IOSystem.hpp" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\light.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Logger.hpp" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\LogStream.hpp" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\material.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\matrix3x3.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\matrix4x4.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\mesh.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\metadata.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\NullLogger.hpp" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\postprocess.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\ProgressHandler.hpp" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\quaternion.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\scene.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\texture.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\types.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\vector2.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\vector3.h" />
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\version.h" />
     <ClInclude Include="..\Graphic\Effect\Font.h" />
     <ClInclude Include="..\Graphic\Effect\FontArialW400H18.h" />
     <ClInclude Include="..\Graphic\Effect\TextEffect.h" />
@@ -500,6 +479,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl" />
+    <None Include="..\Graphic\3rdParty\assimp\include\color4.inl" />
+    <None Include="..\Graphic\3rdParty\assimp\include\material.inl" />
+    <None Include="..\Graphic\3rdParty\assimp\include\matrix3x3.inl" />
+    <None Include="..\Graphic\3rdParty\assimp\include\matrix4x4.inl" />
+    <None Include="..\Graphic\3rdParty\assimp\include\quaternion.inl" />
+    <None Include="..\Graphic\3rdParty\assimp\include\vector2.inl" />
+    <None Include="..\Graphic\3rdParty\assimp\include\vector3.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5F8DE669-F90C-498F-891B-EE6ACE0CA1BD}</ProjectGuid>
@@ -557,16 +543,16 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)..\..\Lib\$(Configuration)$(PlatformName)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\Temp\$(ProjectName)$(Configuration)$(PlatformName)\</IntDir>
+    <OutDir>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -575,16 +561,16 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(ProjectDir)..\..\Lib\$(Configuration)$(PlatformName)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\Temp\$(ProjectName)$(Configuration)$(PlatformName)\</IntDir>
+    <OutDir>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

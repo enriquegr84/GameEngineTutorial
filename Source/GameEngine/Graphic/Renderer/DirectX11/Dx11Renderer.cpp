@@ -627,6 +627,9 @@ uint64_t Dx11Renderer::DrawPrimitive(VertexBuffer const* vbuffer, IndexBuffer co
 	UINT firstIndex = ibuffer->GetFirstIndex();
 	IPType type = ibuffer->GetPrimitiveType();
 
+
+	//	First step for rendering is to tell the input-assembler stage what topology to use
+	//	for the incoming vertices
 	switch (type)
 	{
 		case IPType::IP_POLYPOINT:
