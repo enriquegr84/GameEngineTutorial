@@ -157,6 +157,39 @@
     <Filter Include="Core\3rdParty\tinyxml2">
       <UniqueIdentifier>{bc86b628-39df-48f6-aa1b-5a139cc7ee70}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{478bd394-acf3-43cf-bdd5-4c78bed22aad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Actor">
+      <UniqueIdentifier>{aaca09d6-6317-4d59-be4e-c82cb9d09ee2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Level">
+      <UniqueIdentifier>{ec7562c9-8a0f-48e9-9725-2a11fb029358}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\View">
+      <UniqueIdentifier>{b9908e7e-b9ab-417a-b80a-a7d6a5d0e50c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Process">
+      <UniqueIdentifier>{f6b5c843-4046-452d-87b6-71f387c42540}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Event">
+      <UniqueIdentifier>{c5549a0e-5b7c-4098-94ea-d0cf32b4214d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AI">
+      <UniqueIdentifier>{38a0fda1-8c1b-42bd-81e3-c89a0c015554}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Audio">
+      <UniqueIdentifier>{f7d365a9-4555-47d5-9ef5-362b52dd37db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physic">
+      <UniqueIdentifier>{a6326d8f-4e35-41a1-bdc3-1b47a8b83f91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{db25fdac-9f4c-434b-aff4-25917167a048}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\View\UI">
+      <UniqueIdentifier>{64c46103-8c16-4966-ad94-86e6b6f4b0e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -570,6 +603,99 @@
     </ClCompile>
     <ClCompile Include="..\Core\3rdParty\tinyxml2\tinyxml2.cpp">
       <Filter>Core\3rdParty\tinyxml2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Actor\Actor.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Actor\ActorFactory.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Actor\AudioComponent.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Actor\BaseRenderComponent.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Actor\BaseScriptComponent.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Actor\PhysicsComponent.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Actor\RenderComponent.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Actor\TransformComponent.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Level\Level.cpp">
+      <Filter>Game\Level</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Level\LevelManager.cpp">
+      <Filter>Game\Level</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\BaseGameLogic.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\GameOption.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\HumanView.cpp">
+      <Filter>Game\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\ResourceCache.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\XmlResource.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Process\Process.cpp">
+      <Filter>Core\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Process\ProcessManager.cpp">
+      <Filter>Core\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Event\Event.cpp">
+      <Filter>Core\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Event\EventManager.cpp">
+      <Filter>Core\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AI\Pathing.cpp">
+      <Filter>AI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Audio\Audio.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Audio\DirectSoundAudio.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Audio\SoundProcess.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Audio\SoundResource.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Network\Network.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Physic\Physic.cpp">
+      <Filter>Physic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Physic\PhysicDebugDrawer.cpp">
+      <Filter>Physic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Physic\PhysicEventListener.cpp">
+      <Filter>Physic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Application\GameApplication.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UserInterface.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIRoot.cpp">
+      <Filter>Game\View\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1521,6 +1647,126 @@
     </ClInclude>
     <ClInclude Include="..\Core\3rdParty\tinyxml2\tinyxml2.h">
       <Filter>Core\3rdParty\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\Actor.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\ActorComponent.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\ActorFactory.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\AudioComponent.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\BaseRenderComponent.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\BaseScriptComponent.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\PhysicsComponent.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\RenderComponent.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\RenderComponentInterface.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\ScriptComponentInterface.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\TransformComponent.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Level\Level.h">
+      <Filter>Game\Level</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Level\LevelManager.h">
+      <Filter>Game\Level</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\BaseGameLogic.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Game.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\GameOption.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\HumanView.h">
+      <Filter>Game\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\ResourceCache.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\XmlResource.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Process\Process.h">
+      <Filter>Core\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Process\ProcessManager.h">
+      <Filter>Core\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Event\Event.h">
+      <Filter>Core\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Event\EventManager.h">
+      <Filter>Core\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AI\Pathing.h">
+      <Filter>AI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Audio\Audio.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Audio\DirectSoundAudio.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Audio\SoundProcess.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Audio\SoundResource.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Network\Network.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Physic\Physic.h">
+      <Filter>Physic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Physic\PhysicDebugDrawer.h">
+      <Filter>Physic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Physic\PhysicEventListener.h">
+      <Filter>Physic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Application\GameApplication.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UserInterface.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIElement.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIElementFactory.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIFont.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIRoot.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UISkin.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIElementTypes.h">
+      <Filter>Game\View\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

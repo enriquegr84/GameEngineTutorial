@@ -1,0 +1,443 @@
+//========================================================================
+// ResCache.cpp : Defines a simple resource cache
+//
+// Part of the GameEngine Application
+//
+// GameEngine is the sample application that encapsulates much of the source code
+// discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
+// "Rez" Graham, published by Charles River Media. 
+// ISBN-10: 1133776574 | ISBN-13: 978-1133776574
+//
+// If this source code has found it's way to you, and you think it has helped you
+// in any way, do the authors a favor and buy a new copy of the book - there are 
+// detailed explanations in it that compliment this code well. Buy a copy at Amazon.com
+// by clicking here: 
+//    http://www.amazon.com/gp/product/1133776574/ref=olp_product_details?ie=UTF8&me=&seller=
+//
+// There's a companion web site at http://www.mcshaffry.com/GameCode/
+// 
+// The source code is managed and maintained through Google Code: 
+//    http://code.google.com/p/GameEngine/
+//
+// (c) Copyright 2012 Michael L. McShaffry and David Graham
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser GPL v3
+// as published by the Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See 
+// http://www.gnu.org/licenses/lgpl-3.0.txt for more details.
+//
+// You should have received a copy of the GNU Lesser GPL v3
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+//
+//========================================================================
+
+#include "ResourceCache.h"
+#include "FileSystem/ReadFile.h"
+
+#include "GameEngine/GameEngine.h"
+
+#include "Utilities/util.h"
+
+//
+//  Resource::Resource
+//
+Resource::Resource(const eastl::string &resourceName) 
+{
+	m_name = eastl::string(resourceName.c_str());
+}
+
+//
+// ResHandle::ResHandle							- Chapter 8, page 223
+//
+ResHandle::ResHandle(Resource & resource, void *buffer, unsigned int size, bool isRawBuffer, ResCache *pResCache)
+: m_resource(resource)
+{
+	m_buffer = buffer;
+	m_isRawBuffer = isRawBuffer;
+	m_size = size;
+	m_extra = NULL;
+	m_pResCache = pResCache;
+}
+
+//
+// ResHandle::ResHandle							- Chapter 8, page 223
+//
+ResHandle::~ResHandle()
+{
+	if (m_isRawBuffer) { SAFE_DELETE(m_buffer); }
+	else { SAFE_DELETE_ARRAY(m_buffer); }
+	
+	m_pResCache->MemoryHasBeenFreed(m_size);
+}
+
+
+//
+// ResCache::ResCache							- Chapter 8, page 227
+//
+ResCache::ResCache(const unsigned int sizeInMb, BaseResourceFile *resFile )
+{
+	m_cacheSize = sizeInMb * 1024 * 1024;				// total memory size
+	m_allocated = 0;									// total memory allocated
+	m_File = resFile;
+}
+
+//
+// ResCache::~ResCache							- Chapter 8, page 227
+//
+ResCache::~ResCache()
+{
+	while (!m_lru.empty())
+	{
+		FreeOneResource();
+	}
+	SAFE_DELETE(m_File);
+}
+
+//
+// ResCache::Init								- Chapter 8, page 227
+//
+bool ResCache::Init()
+{ 
+	bool retValue = false;
+	if ( m_File->Open() )
+	{
+		RegisterLoader(shared_ptr<BaseResourceLoader>(new DefaultResourceLoader()));
+		retValue = true;
+	}
+	return retValue;
+}
+
+//
+// ResCache::RegisterLoader						- Chapter 8, page 225
+// 
+//    The loaders are discussed on the page refereced above - this method simply adds the loader
+//    to the resource cache.
+//
+void ResCache::RegisterLoader(const shared_ptr<BaseResourceLoader>& loader )
+{
+	m_resourceLoaders.push_front(loader);
+}
+
+
+//
+// ResCache::GetHandle							- Chapter 8, page 227
+//
+shared_ptr<ResHandle> ResCache::GetHandle(Resource * r)
+{
+	shared_ptr<ResHandle> handle(Find(r));
+	if (handle==NULL)
+	{
+		handle = Load(r);
+		//GE_ASSERT(handle);
+	}
+	else
+	{
+		Update(handle);
+	}
+	return handle;
+}
+
+//
+// ResCache::Load								- Chapter 8, page 228-230
+//
+shared_ptr<ResHandle> ResCache::Load(Resource *r)
+{
+	// Create a new resource and add it to the lru list and map
+	BaseResourceLoader* loader = 0;
+	shared_ptr<ResHandle> handle = 0;
+
+	for (ResourceLoaders::iterator it = m_resourceLoaders.begin(); it != m_resourceLoaders.end(); ++it)
+	{
+		BaseResourceLoader* testLoader = (*it).get();
+
+		if (testLoader->MatchResourceFormat(r->m_name))
+		{
+			loader = testLoader;
+			break;
+		}
+	}
+
+	if (!loader)
+	{
+		GE_ASSERT(loader && _GE_TEXT("Default resource loader not found!"));
+		return 0;		// Resource not loaded!
+	}
+
+	void* rawBuffer = NULL;
+	int rawSize = m_File->GetRawResource(*r, &rawBuffer);
+	if (rawBuffer == NULL || rawSize < 0)
+	{
+		// resource cache out of memory
+		GE_WARNING(eastl::string("Resource not found ") + r->m_name);
+		return 0;
+	}
+	/*
+	if (loader->UseRawFile())
+	{
+		rawBuffer = new char[rawSize];
+		memset(rawBuffer, 0, rawSize);
+	}
+	*/
+
+	void *buffer = rawBuffer;
+	unsigned int size = rawSize;
+
+	{
+		handle = shared_ptr<ResHandle>(new ResHandle(*r, buffer, size, true, this));
+		bool success = loader->LoadResource(buffer, size, handle);
+
+		// [mrmike] - This was added after the chapter went to copy edit. It is used for those
+		//            resoruces that are converted to a useable format upon load, such as a compressed
+		//            file. If the raw buffer from the resource file isn't needed, it shouldn't take up
+		//            any additional memory, so we release it.
+		//
+		/*
+		if (loader->DiscardRawBufferAfterLoad())
+		{
+			SAFE_DELETE_ARRAY(buffer);
+		}
+		*/
+
+		if (!success)
+		{
+			// resource cache out of memory
+			return 0;
+		}
+	}
+
+	if (handle)
+	{
+		m_lru.push_front(shared_ptr<ResHandle>(handle));
+		m_resources[r->m_name] = m_lru.front();
+	}
+
+	GE_ASSERT(loader && _GE_TEXT("Default resource loader not found!"));
+	return handle;		// ResCache is out of memory!
+}
+
+bool ResCache::ExistResource(Resource * r) 
+{ 
+	if (Find(r))
+		return true;
+
+	return m_File->ExistFile(r->m_name);
+}
+
+bool ResCache::ExistDirectory(const path& dirname) 
+{ 
+	return m_File->ExistDirectory(dirname);
+}
+
+int ResCache::GetResource(Resource * r, void** buffer) 
+{ 
+	int size = m_File->GetRawResource(r->m_name, buffer);
+	if (buffer == NULL || size < 0)
+	{
+		// resource cache out of memory
+		GE_ASSERT(size < 0 && "Resource size returned -1 - Resource not found");
+		return 0;
+	}
+	return size;
+}
+
+//
+// ResCache::Find									- Chapter 8, page 228
+//
+shared_ptr<ResHandle> ResCache::Find(Resource * r)
+{
+	ResHandleMap::iterator i = m_resources.find(eastl::string(r->m_name.c_str()));
+	if (i==m_resources.end())
+		return 0;
+
+	return i->second;
+}
+
+//
+// ResCache::Update									- Chapter 8, page 228
+//
+void ResCache::Update(const shared_ptr<ResHandle>& handle)
+{
+	m_lru.remove(handle);
+	m_lru.push_front(handle);
+}
+
+
+
+//
+// ResCache::Allocate								- Chapter 8, page 230
+//
+char* ResCache::Allocate(unsigned int size)
+{
+	if (!MakeRoom(size))
+		return NULL;
+
+	char *mem = new char[size];
+	if (mem)
+	{
+		m_allocated += size;
+	}
+
+	return mem;
+}
+
+
+//
+// ResCache::FreeOneResource						- Chapter 8, page 231
+//
+void ResCache::FreeOneResource()
+{
+	ResHandleList::iterator gonner = m_lru.end();
+	gonner--;
+
+	shared_ptr<ResHandle> handle = *gonner;
+
+	m_lru.pop_back();							
+	m_resources.erase(eastl::string(handle->m_resource.m_name.c_str()));
+	// Note - you can't change the resource cache size yet - the resource bits could still actually be
+	// used by some sybsystem holding onto the ResHandle. Only when it goes out of scope can the memory
+	// be actually free again.
+}
+
+
+
+//
+// ResCache::Flush									- not described in the book
+//
+//    Frees every handle in the cache - this would be good to call if you are loading a new
+//    level, or if you wanted to force a refresh of all the data in the cache - which might be 
+//    good in a development environment.
+//
+void ResCache::Flush()
+{
+	while (!m_lru.empty())
+	{
+		Free(*(m_lru.begin()));
+		m_lru.pop_front();
+	}
+}
+
+
+//
+// ResCache::MakeRoom									- Chapter 8, page 231
+//
+bool ResCache::MakeRoom(unsigned int size)
+{
+	if (size > m_cacheSize)
+	{
+		return false;
+	}
+
+	// return null if there's no possible way to allocate the memory
+	while (size > (m_cacheSize - m_allocated))
+	{
+		// The cache is empty, and there's still not enough room.
+		if (m_lru.empty())
+			return false;
+
+		FreeOneResource();
+	}
+
+	return true;
+}
+
+//
+//	ResCache::Free									- Chapter 8, page 228
+//
+void ResCache::Free(const shared_ptr<ResHandle>& gonner)
+{
+	m_lru.remove(gonner);
+	m_resources.erase(eastl::string(gonner->m_resource.m_name.c_str()));
+	// Note - the resource might still be in use by something,
+	// so the cache can't actually count the memory freed until the
+	// ResHandle pointing to it is destroyed.
+
+	//m_allocated -= gonner->m_resource.m_size;
+	//delete gonner;
+}
+
+//
+//  ResCache::MemoryHasBeenFreed					- not described in the book
+//
+//     This is called whenever the memory associated with a resource is actually freed
+//
+void ResCache::MemoryHasBeenFreed(unsigned int size)
+{
+	m_allocated -= size;
+}
+
+//
+// ResCache::Match									- not described in the book
+//
+//   Searches the resource cache assets for files matching the pattern. Useful for providing a 
+//   a list of levels for a main menu screen, for example.
+//
+eastl::vector<eastl::wstring> ResCache::Match(const eastl::string pattern)
+{
+	eastl::vector<eastl::wstring> matchingNames;
+	if (m_File==NULL)
+		return matchingNames;
+
+	/*
+	const shared_ptr<IFileSystem>& fileSystem = g_pGameApp->m_pFileSystem;
+	bool searchDirectory = false;
+	eastl::string directory = fileSystem->GetFileDir(pattern);
+	eastl::string filePattern = Utils::GetFileBasename(pattern);
+	eastl::string currentDirectory = ".";
+	if ( directory != ".")
+		searchDirectory = true;
+	*/
+
+	int numFiles = m_File->GetNumResources();
+	for (int i=0; i<numFiles; ++i)
+	{
+		eastl::string name = m_File->GetResourceName(i);
+		/*
+		if (searchDirectory)
+			if (name.findLast ( '.' ) < 0)
+				currentDirectory = name;
+
+		if (!StringUtils::WildcardMatch(directory.c_str(), currentDirectory.c_str()))
+			continue;
+		*/
+		if (StringUtils::WildcardMatch(pattern.c_str(), name.c_str()))
+		{
+			matchingNames.push_back(eastl::wstring(name.c_str()));
+		}
+	}
+	return matchingNames;
+}
+
+
+//
+// ResCache::Preload								- Chapter 8, page 236
+//
+int ResCache::Preload(const eastl::string pattern, void (*progressCallback)(int, bool &))
+{
+	if (m_File==NULL)
+		return 0;
+
+	int numFiles = m_File->GetNumResources();
+	int loaded = 0;
+	bool cancel = false;
+	for (int i=0; i<numFiles; ++i)
+	{
+		Resource resource(m_File->GetResourceName(i));
+
+		if (StringUtils::WildcardMatch(pattern.c_str(), resource.m_name.c_str()))
+		{
+			const shared_ptr<ResHandle>& handle = g_pGameApp->m_ResCache->GetHandle(&resource);
+			++loaded;
+		}
+
+		if (progressCallback != NULL)
+		{
+			progressCallback(i * 100/numFiles, cancel);
+		}
+	}
+	return loaded;
+}

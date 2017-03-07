@@ -330,18 +330,18 @@ enum KeyCode
 enum CORE_ITEM EventType
 {
 	/*
-	GUI events are created by the GUI environment or the GUI elements in response to mouse
-	or keyboard events. When a GUI element receives an event it will either process it and
+	UI events are created by the UI environment or the UI elements in response to mouse
+	or keyboard events. When a UI element receives an event it will either process it and
 	return true, or pass the event to its parent. If an event is not absorbed before it
 	reaches the root element then it will then be passed to the user receiver.
 	*/
 	//! An event of the graphical user interface.
-	ET_GUI_EVENT = 0,
+	ET_UI_EVENT = 0,
 
 	/*
 	Mouse events are created by the device and passed to Device::PostEvent in response to
 	mouse input received from the operating system. Mouse events are first passed to the user
-	receiver, then to the GUI environment and its elements, then finally the input receiving
+	receiver, then to the UI environment and its elements, then finally the input receiving
 	scene manager where it is passed to the active camera.
 	*/
 	//! A mouse input event.
@@ -458,7 +458,7 @@ enum MouseButtonStateMask
 	MBSM_FORCE_32_BIT = 0x7fffffff
 };
 
-class GUIElement;
+class UIElement;
 
 //! Enumeration for all events which are sendable by the gui system
 enum GuiEventType
@@ -470,16 +470,16 @@ enum GuiEventType
 //! Events hold information about an event. See EventReceiver for details on event handling.
 struct Event
 {
-	//! Any kind of GUI event.
-	struct GUIEvent
+	//! Any kind of UI event.
+	struct UIEvent
 	{
-		//! IGUIElement who called the event
-		GUIElement* mCaller;
+		//! BaseUIElement who called the event
+		UIElement* mCaller;
 
 		//! If the event has something to do with another element, it will be held here.
-		GUIElement* mElement;
+		UIElement* mElement;
 
-		//! Type of GUI Event
+		//! Type of UI Event
 		GuiEventType mEventType;
 
 	};
@@ -553,7 +553,7 @@ struct Event
 	EventType mEventType;
 	union
 	{
-		struct GUIEvent		mGUIEvent;
+		struct UIEvent		mUIEvent;
 		struct MouseInput	mMouseInput;
 		struct KeyInput		mKeyInput;
 		struct UserEvent	mUserEvent;

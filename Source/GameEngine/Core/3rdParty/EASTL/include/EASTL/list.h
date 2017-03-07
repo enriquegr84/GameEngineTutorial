@@ -120,7 +120,7 @@ namespace eastl
 		/// In debug builds, we define ListNodeBaseProxy to be the same thing as
 		/// ListNodeBase, except it is templated on the parent ListNode class.
 		/// We do this because we want users in debug builds to be able to easily
-		/// view the list's contents in a debugger GUI. We do this only in a debug
+		/// view the list's contents in a debugger UI. We do this only in a debug
 		/// build for the reasons described above: that ListNodeBase needs to be
 		/// as efficient as possible and not cause code bloat or extra function 
 		/// calls (inlined or not).

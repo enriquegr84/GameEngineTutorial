@@ -715,12 +715,12 @@ void WindowsSystem::ResizeIfNecessary()
 	if (r.right < 2 || r.bottom < 2)
 	{
 		sprintf(tmp, "Ignoring resize operation to (%ld %ld)", r.right, r.bottom);
-		//GE_INFO(tmp);
+		//LogInformation(tmp);
 	}
 	else
 	{
 		sprintf(tmp, "Resizing window (%ld %ld)", r.right, r.bottom);
-		//GE_INFO(tmp);
+		//LogInformation(tmp);
 
 		//g_pGameApp->m_pRenderer->OnResize(Dimension2u((unsigned int)r.right, (unsigned int)r.bottom));
 		//GetWindowsCursorControl()->OnResize(g_pGameApp->m_pRenderer->GetScreenSize());

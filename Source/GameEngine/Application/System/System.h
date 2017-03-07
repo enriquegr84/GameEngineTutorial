@@ -30,7 +30,7 @@ public:
 	/** Is is usually not necessary to use this. However, if you are using an own input library
 	for example for doing joystick input, you can use this to post key or mouse input events to
 	the engine. Internally, this method only delegates the events further to the scene manager
-	and the GUI environment. */
+	and the UI environment. */
 	bool OnPostEvent(const Event& event);
 
 	//! Sets a new user event listener which will receive events from the engine.
