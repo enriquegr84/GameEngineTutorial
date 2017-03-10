@@ -43,7 +43,6 @@
 #include "GameEngineStd.h"
 
 #include "RenderComponentInterface.h"
-#include "Scenes/SceneNodes.h"
 
 //---------------------------------------------------------------------------------------------------------------------
 // RenderComponent base class.  This class does most of the work except actually creating the scene, which is 
@@ -54,28 +53,29 @@
 class BaseRenderComponent : public RenderComponentInterface
 {
 protected:
-    Color m_color;
-    eastl::shared_ptr<SceneNode> m_pSceneNode;
+    //Color m_color;
+    //eastl::shared_ptr<SceneNode> m_pSceneNode;
 
 public:
-    virtual bool Init(XmlElement* pData) override;
+    virtual bool Init(XMLElement* pData) override;
     virtual void PostInit(void) override;
 	virtual void OnChanged(void) override;
-    virtual XmlElement* GenerateXml(void) override;
-	const Color GetColor() const { return m_color; }
+    virtual XMLElement* GenerateXml(void) override;
+	//const Color GetColor() const { return m_color; }
 
 protected:
     // loads the SceneNode specific data (represented in the <SceneNode> tag)
-    virtual bool DelegateInit(XmlElement* pData) { return true; }
-    virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) = 0;  // factory method to create the appropriate scene node
-    Color LoadColor(XmlElement* pData);
+    virtual bool DelegateInit(XMLElement* pData) { return true; }
+	// factory method to create the appropriate scene node
+    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) = 0;  
+    //Color LoadColor(XMLElement* pData);
 
     // editor stuff
-	virtual XmlElement* CreateBaseElement(void) { return new XmlElement(GetName()); }
-    virtual void CreateInheritedXmlElements(XmlElement* pBaseElement) = 0;
+	virtual XMLElement* CreateBaseElement(XMLDocument doc) { return doc.NewElement(GetName()); }
+    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement) = 0;
 
 private:
-    virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) override;
+    //virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) override;
 };
 
 

@@ -45,52 +45,60 @@
 // RenderComponent
 //---------------------------------------------------------------------------------------------------------------------
 
-bool BaseRenderComponent::Init(XmlElement* pData)
+bool BaseRenderComponent::Init(XMLElement* pData)
 {
     // color
-    XmlElement* pColorNode = pData->FirstChildElement("Color");
+    XMLElement* pColorNode = pData->FirstChildElement("Color");
+	/*
     if (pColorNode)
         m_color = LoadColor(pColorNode);
-
+	*/
     return DelegateInit(pData);
 }
 
 
 void BaseRenderComponent::PostInit(void)
 {
+	/*
 	eastl::shared_ptr<SceneNode> pSceneNode(GetSceneNode());
 	eastl::shared_ptr<EvtData_New_Render_Component> pEvent(
 		new EvtData_New_Render_Component(m_pOwner->GetId(), pSceneNode));
     BaseEventManager::Get()->TriggerEvent(pEvent);
+	*/
 }
 
 
 void BaseRenderComponent::OnChanged(void)
 {
+	/*
 	eastl::shared_ptr<EvtData_Modified_Render_Component> pEvent(
 		new EvtData_Modified_Render_Component(m_pOwner->GetId()));
     BaseEventManager::Get()->TriggerEvent(pEvent);
+	*/
 }
 
 
-XmlElement* BaseRenderComponent::GenerateXml(void)
+XMLElement* BaseRenderComponent::GenerateXml(void)
 {
-    XmlElement* pBaseElement = CreateBaseElement();
+	XMLDocument doc;
+    XMLElement* pBaseElement = CreateBaseElement(doc);
 
     // color
-    XmlElement* pColor = new XmlElement("Color");
+    XMLElement* pColor = doc.NewElement("Color");
+	/*
     pColor->SetAttribute("r", eastl::string(m_color.GetRed()).c_str());
     pColor->SetAttribute("g", eastl::string(m_color.GetGreen()).c_str());
     pColor->SetAttribute("b", eastl::string(m_color.GetBlue()).c_str());
     pColor->SetAttribute("a", eastl::string(m_color.GetAlpha()).c_str());
+	*/
     pBaseElement->LinkEndChild(pColor);
 
     // create XML for inherited classes
-    CreateInheritedXmlElements(pBaseElement);
+    CreateInheritedXMLElements(pBaseElement);
 
     return pBaseElement;
 }
-
+/*
 const eastl::shared_ptr<SceneNode>& BaseRenderComponent::GetSceneNode(void)
 {
     if (!m_pSceneNode)
@@ -98,7 +106,7 @@ const eastl::shared_ptr<SceneNode>& BaseRenderComponent::GetSceneNode(void)
     return m_pSceneNode;
 }
 
-Color BaseRenderComponent::LoadColor(XmlElement* pData)
+Color BaseRenderComponent::LoadColor(XMLElement* pData)
 {
 	Color color;
 
@@ -119,3 +127,4 @@ Color BaseRenderComponent::LoadColor(XmlElement* pData)
 
 	return color;
 }
+*/

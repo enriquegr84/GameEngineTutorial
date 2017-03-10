@@ -177,6 +177,7 @@ BundleArtifacts/
 !*.[Cc]ache/
 
 # Others
+Assets/
 bin/
 obj/
 packages/

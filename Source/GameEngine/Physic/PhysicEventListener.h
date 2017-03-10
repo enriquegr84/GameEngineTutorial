@@ -41,9 +41,9 @@
 
 #include "GameEngineStd.h"
 
-#include "Events/EventManager.h"
-#include "GameEngine/GameEngine.h"
-#include "Scripting/ScriptEvent.h"
+#include "Core/Event/EventManager.h"
+
+#include "Mathematic/Algebra/Vector3.h"
 
 //
 // Physics event implementation 
@@ -55,9 +55,9 @@ class EvtData_PhysTrigger_Enter : public BaseEventData
     ActorId m_other;
 
 public:
-	static const EventType sk_EventType;
+	static const BaseEventType sk_EventType;
 
-	virtual const EventType & GetEventType( void ) const
+	virtual const BaseEventType & GetEventType( void ) const
 	{
 		return sk_EventType;
 	}
@@ -100,9 +100,9 @@ class EvtData_PhysTrigger_Leave : public BaseEventData
     ActorId m_other;
 
 public:
-	static const EventType sk_EventType;
+	static const BaseEventType sk_EventType;
 
-	virtual const EventType & GetEventType( void ) const
+	virtual const BaseEventType & GetEventType( void ) const
 	{
 		return sk_EventType;
 	}
@@ -143,14 +143,14 @@ class EvtData_PhysCollision : public BaseEventData
 {
 	ActorId m_ActorA;
     ActorId m_ActorB;
-	Vector3f m_SumNormalForce;
-    Vector3f m_SumFrictionForce;
-    eastl::list<Vector3f> m_CollisionPoints;
+	Vector3<float> m_SumNormalForce;
+    Vector3<float> m_SumFrictionForce;
+    eastl::list<Vector3<float>> m_CollisionPoints;
 
 public:
-	static const EventType sk_EventType;
+	static const BaseEventType sk_EventType;
 
-	virtual const EventType & GetEventType( void ) const
+	virtual const BaseEventType & GetEventType( void ) const
 	{
 		return sk_EventType;
 	}
@@ -159,15 +159,12 @@ public:
 	{
 		m_ActorA = INVALID_ACTOR_ID;
 		m_ActorB = INVALID_ACTOR_ID;
-		m_SumNormalForce = Vector3f(0.0f, 0.0f, 0.0f);
-		m_SumFrictionForce = Vector3f(0.0f, 0.0f, 0.0f);
+		m_SumNormalForce.MakeZero();
+		m_SumFrictionForce.MakeZero();
 	}
 
-	explicit EvtData_PhysCollision(ActorId actorA,
-								ActorId actorB,
-								Vector3f sumNormalForce,
-								Vector3f sumFrictionForce,
-								eastl::list<Vector3f> collisionPoints )
+	explicit EvtData_PhysCollision(ActorId actorA, ActorId actorB,
+		Vector3<float> sumNormalForce, Vector3<float> sumFrictionForce, eastl::list<Vector3<float>> collisionPoints )
 	:	m_ActorA(actorA),
 		m_ActorB(actorB),
 		m_SumNormalForce(sumNormalForce),
@@ -177,7 +174,8 @@ public:
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr ( new EvtData_PhysCollision(m_ActorA, m_ActorB, m_SumNormalForce, m_SumFrictionForce, m_CollisionPoints));
+		return BaseEventDataPtr ( new EvtData_PhysCollision(
+			m_ActorA, m_ActorB, m_SumNormalForce, m_SumFrictionForce, m_CollisionPoints));
 	}
 
     virtual const char* GetName(void) const
@@ -195,24 +193,20 @@ public:
         return m_ActorB;
     }
 
-    const Vector3f& GetSumNormalForce(void) const
+    const Vector3<float>& GetSumNormalForce(void) const
     {
         return m_SumNormalForce;
     }
 
-    const Vector3f& GetSumFrictionForce(void) const
+    const Vector3<float>& GetSumFrictionForce(void) const
     {
         return m_SumFrictionForce;
     }
 
-    const eastl::list<Vector3f>& GetCollisionPoints(void) const
+    const eastl::list<Vector3<float>>& GetCollisionPoints(void) const
     {
         return m_CollisionPoints;
     }
-
-    virtual void BuildEventData(void);
-
-    EXPORT_FOR_SCRIPT_EVENT(EvtData_PhysCollision);
 };
 
 
@@ -222,9 +216,9 @@ class EvtData_PhysSeparation : public BaseEventData
     ActorId m_ActorB;
 
 public:
-	static const EventType sk_EventType;
+	static const BaseEventType sk_EventType;
 
-	virtual const EventType & GetEventType( void ) const
+	virtual const BaseEventType & GetEventType( void ) const
 	{
 		return sk_EventType;
 	}

@@ -14,7 +14,7 @@ eastl::vector<eastl::string>* Environment::msDirectories = 0;
 //----------------------------------------------------------------------------
 // Initialization/termination support.
 //----------------------------------------------------------------------------
-void Environment::OnInitialize ()
+void Environment::OnInitialize()
 {
     if (!msDirectories)
     {
@@ -25,7 +25,7 @@ void Environment::OnInitialize ()
     LogError("Directory list already allocated.\n");
 }
 //----------------------------------------------------------------------------
-void Environment::OnTerminate ()
+void Environment::OnTerminate()
 {
     if (msDirectories)
     {
@@ -38,12 +38,12 @@ void Environment::OnTerminate ()
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-const eastl::string Environment::GetWorkingDirectory ()
+const eastl::wstring Environment::GetWorkingDirectory()
 {
-	eastl::string wdir;
+	eastl::wstring wdir;
 	#if defined(_WINDOWS_API_)
-		char tmp[_MAX_PATH];
-		_getcwd(tmp, _MAX_PATH);
+		wchar_t tmp[_MAX_PATH];
+		_wgetcwd(tmp, _MAX_PATH);
 		wdir = tmp;
 		eastl::replace(wdir.begin(), wdir.end(), '\\', '/');
 
@@ -71,7 +71,7 @@ eastl::string Environment::GetAbsolutePath(const eastl::string& filename)
 }
 
 //----------------------------------------------------------------------------
-bool Environment::InsertDirectory (const eastl::string& directory)
+bool Environment::InsertDirectory(const eastl::string& directory)
 {
     if (!msDirectories)
     {
@@ -91,7 +91,7 @@ bool Environment::InsertDirectory (const eastl::string& directory)
     return true;
 }
 //----------------------------------------------------------------------------
-bool Environment::RemoveDirectory (const eastl::string& directory)
+bool Environment::RemoveDirectory(const eastl::string& directory)
 {
     if (!msDirectories)
     {
@@ -111,7 +111,7 @@ bool Environment::RemoveDirectory (const eastl::string& directory)
     return false;
 }
 //----------------------------------------------------------------------------
-void Environment::RemoveAllDirectories ()
+void Environment::RemoveAllDirectories()
 {
     if (!msDirectories)
     {
@@ -121,22 +121,22 @@ void Environment::RemoveAllDirectories ()
     msDirectories->clear();
 }
 //----------------------------------------------------------------------------
-eastl::string Environment::GetPathR (const eastl::string& fileName)
+eastl::string Environment::GetPathR(const eastl::string& fileName)
 {
     return GetPath(fileName, "r");
 }
 //----------------------------------------------------------------------------
-eastl::string Environment::GetPathW (const eastl::string& fileName)
+eastl::string Environment::GetPathW(const eastl::string& fileName)
 {
     return GetPath(fileName, "w");
 }
 //----------------------------------------------------------------------------
-eastl::string Environment::GetPathRW (const eastl::string& fileName)
+eastl::string Environment::GetPathRW(const eastl::string& fileName)
 {
     return GetPath(fileName, "r+");
 }
 //----------------------------------------------------------------------------
-eastl::string Environment::GetPath (const eastl::string& fileName, const char* attributes)
+eastl::string Environment::GetPath(const eastl::string& fileName, const char* attributes)
 {
     if (!msDirectories)
     {

@@ -36,17 +36,17 @@ public:
 		const c8* typeName, const eastl::shared_ptr<UIElement>& parent=0) = 0;
 
 	//! Get amount of UI element types this factory is able to create
-	virtual s32 GetCreatableUIElementTypeCount() const = 0;
+	virtual int GetCreatableUIElementTypeCount() const = 0;
 
 	//! Get type of a createable element type
 	/** \param idx: Index of the element type in this factory. Must be a value between 0 and
 	getCreatableUIElementTypeCount() */
-	virtual EUI_ELEMENT_TYPE GetCreateableUIElementType(s32 idx) const = 0;
+	virtual EUI_ELEMENT_TYPE GetCreateableUIElementType(int idx) const = 0;
 
 	//! Get type name of a createable UI element type by index
 	/** \param idx: Index of the type in this factory. Must be a value between 0 and
 	getCreatableUIElementTypeCount() */
-	virtual const c8* GetCreateableUIElementTypeName(s32 idx) const = 0;
+	virtual const c8* GetCreateableUIElementTypeName(int idx) const = 0;
 
 	//! returns type name of a createable UI element
 	/** \param type: Type of UI element.

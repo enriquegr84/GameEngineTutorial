@@ -1,0 +1,349 @@
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
+// This file is part of the "Irrlicht Engine".
+// For conditions of distribution and use, see copyright notice in irrlicht.h
+
+#include "FileSystem.h"
+#include "FileList.h"
+
+#include "MemoryFile.h"
+#include "LimitReadFile.h"
+#include "MountPointReader.h"
+
+#if !defined (_WINDOWS_API_)
+	#if (defined(_POSIX_API_) || defined(_OSX_PLATFORM_))
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <string.h>
+		#include <limits.h>
+		#include <sys/types.h>
+		#include <dirent.h>
+		#include <sys/stat.h>
+		#include <unistd.h>
+	#endif
+#endif
+
+
+//! constructor
+FileSystem::FileSystem()
+{
+	SetFileSystemType(FILESYSTEM_NATIVE);
+	//! reset current working directory
+	GetWorkingDirectory();
+}
+
+//! destructor
+FileSystem::~FileSystem()
+{
+
+}
+
+//! Creates an ReadFile interface for treating memory like a file.
+BaseReadFile* FileSystem::CreateMemoryReadFile(const void* memory, int len, 
+	const eastl::wstring& fileName, bool deleteMemoryWhenDropped)
+{
+	if (memory)
+		return new MemoryReadFile(memory, len, fileName, deleteMemoryWhenDropped);
+	
+	return 0;
+}
+
+
+//! Creates an ReadFile interface for reading files inside files
+BaseReadFile* FileSystem::CreateLimitReadFile(const eastl::wstring& fileName, 
+	BaseReadFile* alreadyOpenedFile, long pos, long areaSize)
+{
+	if (alreadyOpenedFile)
+		return new LimitReadFile(alreadyOpenedFile, pos, areaSize, fileName);
+
+	return 0;
+}
+
+//! Creates a list of files and directories in the current working directory
+BaseFileList* FileSystem::CreateFileList()
+{
+	BaseFileList* r = 0;
+	eastl::wstring filesPath = GetWorkingDirectory();
+	eastl::replace(filesPath.begin(), filesPath.end(), '\\', '/');
+	if (filesPath[filesPath.size() - 1] != '/') filesPath += '/';
+
+	//! Construct from native filesystem
+	if (m_FileSystemType == FILESYSTEM_NATIVE)
+	{
+		// --------------------------------------------
+		//! Windows version
+		#ifdef _WINDOWS_API_
+		#if !defined ( _WIN32_WCE )
+
+		r = new FileList(filesPath, true, false);
+
+		// TODO: Should be unified once mingw adapts the proper types
+#if defined(__GNUC__)
+		long hFile; //mingw return type declaration
+#else
+		intptr_t hFile;
+#endif
+
+		struct _tfinddata_t c_file;
+		if( (hFile = _tfindfirst( _T("*"), &c_file )) != -1L )
+		{
+			do
+			{
+				r->AddItem(
+					filesPath + c_file.name, 0, c_file.size, (_A_SUBDIR & c_file.attrib) != 0, 0);
+			}
+			while( _tfindnext( hFile, &c_file ) == 0 );
+
+			_findclose( hFile );
+		}
+		#endif
+
+		#endif
+
+		// --------------------------------------------
+		//! Linux version
+		#if (defined(_POSIX_API_) || defined(_OSX_PLATFORM_))
+
+		r = new FileList(FilesPath, false, false);
+		r->addItem(FilesPath + _GE_TEXT(".."), 0, 0, true, 0);
+
+		//! We use the POSIX compliant methods instead of scandir
+		DIR* dirHandle=opendir(FilesPath.c_str());
+		if (dirHandle)
+		{
+			struct dirent *dirEntry;
+			while ((dirEntry=readdir(dirHandle)))
+			{
+				unsigned int size = 0;
+				bool isDirectory = false;
+
+				if((strcmp(dirEntry->d_name, ".")==0) ||
+				   (strcmp(dirEntry->d_name, "..")==0))
+				{
+					continue;
+				}
+				struct stat buf;
+				if (stat(dirEntry->d_name, &buf)==0)
+				{
+					size = buf.st_size;
+					isDirectory = S_ISDIR(buf.st_mode);
+				}
+				#if !defined(_SOLARIS_PLATFORM_) && !defined(__CYGWIN__)
+				// only available on some systems
+				else
+				{
+					isDirectory = dirEntry->d_type == DT_DIR;
+				}
+				#endif
+
+				r->addItem(FilesPath + dirEntry->d_name, 0, size, isDirectory, 0);
+			}
+			closedir(dirHandle);
+		}
+		#endif
+	}
+	else
+	{
+		//! create file list for the virtual filesystem
+		r = new FileList(filesPath, false, false);
+
+		//! add relative navigation
+		FileListEntry e2;
+		FileListEntry e3;
+
+		//! PWD
+		r->AddItem(filesPath + L".", 0, 0, true, 0);
+
+		//! parent
+		r->AddItem(filesPath + L"..", 0, 0, true, 0);
+	}
+
+	if (r)
+		r->Sort();
+	return r;
+}
+
+//! Creates an empty filelist
+BaseFileList* FileSystem::CreateEmptyFileList(const eastl::wstring& filesPath, bool ignoreCase, bool ignorePaths)
+{
+	return new FileList(filesPath, ignoreCase, ignorePaths);
+}
+
+//! Creates an archive file.
+BaseFileArchive* FileSystem::CreateMountPointFileArchive(const eastl::wstring& filename, bool ignoreCase, bool ignorePaths)
+{
+	BaseFileArchive *archive = 0;
+	E_FILESYSTEM_TYPE current = SetFileSystemType(FILESYSTEM_NATIVE);
+
+	const eastl::wstring save = GetWorkingDirectory();
+	eastl::wstring fullPath = GetAbsolutePath(filename);
+
+	if (ChangeWorkingDirectoryTo(fullPath))
+		archive = new MountPointReader(fullPath, ignoreCase, ignorePaths);
+
+	ChangeWorkingDirectoryTo(save);
+	SetFileSystemType(current);
+
+	return archive;
+}
+
+//! Returns the string of the current working directory
+const eastl::wstring& FileSystem::GetWorkingDirectory()
+{
+	E_FILESYSTEM_TYPE type = m_FileSystemType;
+
+	if (type != FILESYSTEM_NATIVE)
+	{
+		type = FILESYSTEM_VIRTUAL;
+	}
+	else
+	{
+		#if defined(_WINDOWS_API_)
+			wchar_t tmp[_MAX_PATH];
+			_wgetcwd(tmp, _MAX_PATH);
+			m_WorkingDirectory[FILESYSTEM_NATIVE] = tmp;
+			eastl::replace(
+				m_WorkingDirectory[FILESYSTEM_NATIVE].begin(), 
+				m_WorkingDirectory[FILESYSTEM_NATIVE].end(), L'\\', L'/');
+		#endif
+
+		#if (defined(_POSIX_API_) || defined(_OSX_PLATFORM_))
+
+			// getting the CWD is rather complex as we do not know the size
+			// so try it until the call was successful
+			// Note that neither the first nor the second parameter may be 0 according to POSIX
+			unsigned int pathSize=256;
+			wchar_t *tmpPath = new wchar_t[pathSize];
+			while ((pathSize < (1<<16)) && !(wgetcwd(tmpPath,pathSize)))
+			{
+				SAFE_DELETE_ARRAY( tmpPath );
+				pathSize *= 2;
+				tmpPath = new char[pathSize];
+			}
+			if (tmpPath)
+			{
+				WorkingDirectory[FILESYSTEM_NATIVE] = tmpPath;
+				delete[] tmpPath;
+			}
+		#endif
+
+		m_WorkingDirectory[type].validate();
+	}
+
+	return m_WorkingDirectory[type];
+}
+
+//! Changes the current Working Directory to the given string.
+bool FileSystem::ChangeWorkingDirectoryTo(const eastl::wstring& newDirectory)
+{
+	bool success=false;
+
+	if (m_FileSystemType != FILESYSTEM_NATIVE)
+	{
+		m_WorkingDirectory[FILESYSTEM_VIRTUAL] = newDirectory;
+		success = true;
+	}
+	else
+	{
+		m_WorkingDirectory[FILESYSTEM_NATIVE] = newDirectory;
+		success = (_wchdir(newDirectory.c_str()) == 0);
+	}
+
+	return success;
+}
+
+eastl::wstring FileSystem::GetAbsolutePath(const eastl::wstring& filename) const
+{
+#if defined(_WINDOWS_API_)
+	wchar_t *p=0;
+	wchar_t fpath[_MAX_PATH];
+	p = _wfullpath(fpath, filename.c_str(), _MAX_PATH);
+	eastl::wstring tmp(p);
+	eastl::replace(tmp.begin(), tmp.end(), L'\\', L'/');
+	return tmp;
+#elif (defined(_POSIX_API_) || defined(_OSX_PLATFORM_))
+	wchar_t* p=0;
+	wchar_t fpath[4096];
+	fpath[0]=0;
+	p = realpath(filename.c_str(), fpath);
+	if (!p)
+	{
+		// content in fpath is unclear at this point
+		if (!fpath[0]) // seems like fpath wasn't altered, use our best guess
+		{
+			path tmp(filename);
+			return tmp
+		}
+		else
+			return eastl::wstring(fpath);
+	}
+	if (filename[filename.size()-1]=='/')
+		return eastl::wstring(p)+ L"/";
+	else
+		return eastl::wstring(p);
+#else
+	return eastl::wstring(filename);
+#endif
+}
+
+//! returns the directory part of a filename, i.e. all until the first
+//! slash or backslash, excluding it. If no directory path is prefixed, a '.'
+//! is returned.
+eastl::wstring FileSystem::GetFileDir(const eastl::wstring& filename) const
+{
+	// find last forward or backslash
+	if (filename.rfind('/') != eastl::string::npos)
+		return filename.substr(0, filename.rfind('/'));
+	else 
+		return L".";
+}
+
+//! determines if a directory exists and would be able to be opened.
+bool FileSystem::ExistDirectory(const eastl::wstring& dirname) const
+{
+	return false;
+}
+
+//! determines if a file exists and would be able to be opened.
+bool FileSystem::ExistFile(const eastl::wstring& filename) const
+{
+	return false;
+}
+
+//! Get the current file systen type
+E_FILESYSTEM_TYPE FileSystem::GetFileSystemType( )
+{
+	return m_FileSystemType;
+}
+
+//! Sets the current file systen type
+E_FILESYSTEM_TYPE FileSystem::SetFileSystemType(E_FILESYSTEM_TYPE listType)
+{
+	E_FILESYSTEM_TYPE current = m_FileSystemType;
+	m_FileSystemType = listType;
+	return current;
+}
+
+
+// Returns a list of files in a given directory.
+void FileSystem::ListFiles(eastl::set<eastl::wstring>& result, 
+	const eastl::wstring& dir, bool makeFullPath)
+{
+    result.clear();
+    eastl::wstring previous_cwd = GetWorkingDirectory();
+
+    if(!ChangeWorkingDirectoryTo( dir.c_str() ))
+    {
+        LogError("FileManager listFiles : Could not change CWD!");
+        return;
+    }
+
+    BaseFileList* files = CreateFileList();
+    for(int n=0; n<(int)files->GetFileCount(); n++)
+    {
+        result.insert(makeFullPath ? dir + L"/" + 
+			files->GetFileName(n).c_str() : files->GetFileName(n).c_str());
+    }
+
+	ChangeWorkingDirectoryTo( previous_cwd );
+	delete files;
+}   // listFiles

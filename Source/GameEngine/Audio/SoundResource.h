@@ -80,11 +80,12 @@ public:
 	virtual bool UseRawFile() { return true; }
 	virtual bool DiscardRawBufferAfterLoad() { return true; }
 	virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize);
-	virtual bool LoadResource(void *rawBuffer, unsigned int rawSize, const shared_ptr<ResHandle>& handle);
-	virtual bool MatchResourceFormat(eastl::string name) { return Utils::HasFileExtension(name, "wav"); }
+	virtual bool LoadResource(
+		void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
+	virtual bool MatchResourceFormat(eastl::wstring name) { return Utils::HasFileExtension(name, "wav"); }
 
 protected:
-	bool ParseWave(char *wavStream, size_t length, shared_ptr<ResHandle> handle);
+	bool ParseWave(char *wavStream, size_t length, eastl::shared_ptr<ResHandle> handle);
 };
 
 
@@ -97,12 +98,13 @@ public:
 	virtual bool UseRawFile() { return true; }
 	virtual bool DiscardRawBufferAfterLoad() { return true; }
 	virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize);
-	virtual bool LoadResource(void *rawBuffer, unsigned int rawSize, const shared_ptr<ResHandle>& handle);
-	virtual bool MatchResourceFormat(eastl::string name) { return Utils::HasFileExtension(name, "ogg"); }
+	virtual bool LoadResource(
+		void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
+	virtual bool MatchResourceFormat(eastl::wstring name) { return Utils::HasFileExtension(name, "ogg"); }
 
 
 protected:
-	bool ParseOgg(char *oggStream, size_t length, shared_ptr<ResHandle> handle);
+	bool ParseOgg(char *oggStream, size_t length, eastl::shared_ptr<ResHandle> handle);
 };
 
 #endif

@@ -36,23 +36,21 @@
 //
 //========================================================================
 
-#ifndef _XMLRESOURCE_H_INCLUDED_
-#define _XMLRESOURCE_H_INCLUDED_
+#ifndef XMLRESOURCE_H
+#define XMLRESOURCE_H
 
 #include "GameEngineStd.h"
 
-#include "ResCache.h"
-#include <tinyxml.h>
-
+#include "ResourceCache.h"
 
 class XmlResourceExtraData : public BaseResourceExtraData
 {
-    XmlDocument m_xmlDocument;
+	XMLDocument m_xmlDocument;
 
 public:
-    virtual eastl::string ToString() { return "XmlResourceExtraData"; }
+    virtual eastl::wstring ToString() { return L"XmlResourceExtraData"; }
     void ParseXml(char* pRawBuffer);
-    XmlElement* GetRoot(void) { return m_xmlDocument.RootElement(); }
+    XMLElement* GetRoot(void) { return m_xmlDocument.RootElement(); }
 
 };
 
@@ -63,15 +61,15 @@ public:
     virtual bool UseRawFile() { return false; }
 	virtual bool DiscardRawBufferAfterLoad() { return false; }
     virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize) { return rawSize; }
-    virtual bool LoadResource(void *rawBuffer, unsigned int rawSize, const shared_ptr<ResHandle>& handle);
-	virtual bool MatchResourceFormat(eastl::string name) { return IsALoadableFileExtension(path(name.c_str())); }
+    virtual bool LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
+	virtual bool MatchResourceFormat(eastl::wstring name) { return IsALoadableFileExtension(name.c_str()); }
 
     // convenience function
-    static XmlElement* LoadAndReturnRootXmlElement(const wchar_t* resourceString);
+    static XMLElement* LoadAndReturnRootXMLElement(const wchar_t* resourceString);
 
 protected:
 
-	virtual bool IsALoadableFileExtension(const path& filename) const;
+	virtual bool IsALoadableFileExtension(const eastl::wstring& filename) const;
 };
 
 

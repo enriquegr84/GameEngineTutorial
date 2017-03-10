@@ -36,29 +36,39 @@
 //
 //========================================================================
 
-#ifndef PHYSICSCOMPONENT_H
-#define PHYSICSCOMPONENT_H
+#ifndef PHYSICCOMPONENT_H
+#define PHYSICCOMPONENT_H
 
-class PhysicsComponent : public ActorComponent
+#include "GameEngineStd.h"
+
+#include "ActorComponent.h"
+
+#include "Physic/Physic.h"
+
+#include "Mathematic/Algebra/Vector2.h"
+#include "Mathematic/Algebra/Vector3.h"
+#include "Mathematic/Algebra/Transform.h"
+
+class PhysicComponent : public ActorComponent
 {
 public:
 	const static char *g_Name;
-	virtual const char *GetName() const override { return PhysicsComponent::g_Name; }
+	virtual const char *GetName() const override { return PhysicComponent::g_Name; }
 
 public:
-    PhysicsComponent(void);
-    virtual ~PhysicsComponent(void);
-    virtual XmlElement* GenerateXml(void) override;
+	PhysicComponent(void);
+    virtual ~PhysicComponent(void);
+    virtual XMLElement* GenerateXml(void) override;
 
     // ActorComponent interface
-    virtual bool Init(XmlElement* pData) override;
+    virtual bool Init(XMLElement* pData) override;
     virtual void PostInit(void) override;
     virtual void Update(int deltaMs) override;
 
     // Physics functions
-    void ApplyForce(const Vector3& direction, float forceNewtons);
-    void ApplyTorque(const Vector3& direction, float forceNewtons);
-	bool KinematicMove(const Matrix4x4& transform);
+    void ApplyForce(const Vector3<float>& direction, float forceNewtons);
+    void ApplyTorque(const Vector3<float>& direction, float forceNewtons);
+	bool KinematicMove(const Transform& transform);
 
     // acceleration
     void ApplyAcceleration(float acceleration);
@@ -67,8 +77,8 @@ public:
     void RemoveAngularAcceleration(void);
 
 	//void RotateY(float angleRadians);
-    Vector3 GetVelocity(void);
-    void SetVelocity(const Vector3& velocity);
+    Vector3<float> GetVelocity(void);
+    void SetVelocity(const Vector3<float>& velocity);
     void RotateY(float angleRadians);
     void SetPosition(float x, float y, float z);
     void Stop(void);
@@ -76,7 +86,7 @@ public:
 
 protected:
     void CreateShape();
-    void BuildRigidBodyTransform(XmlElement* pTransformElement);
+    void BuildRigidBodyTransform(XMLElement* pTransformElement);
 
     float m_acceleration, m_angularAcceleration;
     float m_maxVelocity, m_maxAngularVelocity;
@@ -85,9 +95,9 @@ protected:
     eastl::string m_density;
     eastl::string m_material;
 	
-	Vector3 m_RigidBodyLocation;		// this isn't world position! This is how the rigid body is offset from the position of the actor.
-	Vector3 m_RigidBodyOrientation;	// ditto, orientation
-	Vector3 m_RigidBodyScale;			// ditto, scale
+	Vector3<float> m_RigidBodyLocation; // rigid body is offset from the position of the actor.
+	Vector3<float> m_RigidBodyOrientation;	// ditto, orientation
+	Vector3<float> m_RigidBodyScale;			// ditto, scale
 	
     eastl::shared_ptr<BaseGamePhysic> m_pGamePhysics;  // might be better as a weak ptr...
 };

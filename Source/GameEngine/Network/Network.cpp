@@ -38,12 +38,11 @@
 //========================================================================
 
  
-#include "GameEngine/GameEngine.h"
-
 #include <errno.h>
 #include "Network.h"
-#include "Events/Events.h"
-#include "Events/EventManagerImpl.h"
+
+#include "Core/Event/Event.h"
+#include "Core/Event/EventManager.h"
 
 #pragma comment(lib, "Ws2_32")
 
@@ -212,7 +211,7 @@ bool NetSocket::Connect(unsigned int ip, unsigned int port, bool forceCoalesce)
 //
 // NetSocket::Send								- Chapter 19, page 670
 //
-void NetSocket::Send(shared_ptr<IPacket> pkt, bool clearTimeOut)
+void NetSocket::Send(shared_ptr<BasePacket> pkt, bool clearTimeOut)
 {
 	if (clearTimeOut)
 		m_timeOut = 0;
@@ -251,7 +250,7 @@ void NetSocket::HandleOutput()
 		GE_ASSERT(!m_OutList.empty());
 		PacketList::iterator i = m_OutList.begin();
 
-		shared_ptr<IPacket> pkt = *i;
+		shared_ptr<BasePacket> pkt = *i;
 		const char *buf = pkt->GetData();
 		int len = static_cast<int>(pkt->GetSize());
 
@@ -644,7 +643,7 @@ int BaseSocketManager::GetIpAddress(int sockId)
 //
 // BaseSocketManager::Send						- Chapter 19, page 679
 //
-bool BaseSocketManager::Send(int sockId, shared_ptr<IPacket> packet)
+bool BaseSocketManager::Send(int sockId, shared_ptr<BasePacket> packet)
 {
 	NetSocket *sock = FindSocket(sockId);
 	if (!sock)
@@ -909,7 +908,7 @@ void RemoteEventSocket::HandleInput()
 	// traverse the list of m_InList packets and do something useful with them
 	while (!m_InList.empty())
 	{
-		shared_ptr<IPacket> packet = *m_InList.begin();
+		shared_ptr<BasePacket> packet = *m_InList.begin();
 		m_InList.pop_front();
 		if (!strcmp(packet->GetType(), BinaryPacket::g_Type))
 		{

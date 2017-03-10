@@ -40,7 +40,7 @@
 
 const char* TransformComponent::g_Name = "TransformComponent";
 
-bool TransformComponent::Init(XmlElement* pData)
+bool TransformComponent::Init(XMLElement* pData)
 {
     LogAssert(pData);
 
@@ -54,7 +54,7 @@ bool TransformComponent::Init(XmlElement* pData)
 
 	Vector3 position = m_transform.GetTranslation();	
 
-    XmlElement* pPositionElement = pData->FirstChildElement("Position");
+    XMLElement* pPositionElement = pData->FirstChildElement("Position");
     if (pPositionElement)
     {
         double x = 0;
@@ -66,7 +66,7 @@ bool TransformComponent::Init(XmlElement* pData)
         position = Vector3(x, y, z);
     }
 
-    XmlElement* pOrientationElement = pData->FirstChildElement("YawPitchRoll");
+    XMLElement* pOrientationElement = pData->FirstChildElement("YawPitchRoll");
     if (pOrientationElement)
     {
         double yaw = 0;
@@ -85,7 +85,7 @@ bool TransformComponent::Init(XmlElement* pData)
 	rotation.SetRotationDegrees(yawPitchRoll);
 
 	// This is not supported yet.
-    XmlElement* pLookAtElement = pData->FirstChildElement("LookAt");
+    XMLElement* pLookAtElement = pData->FirstChildElement("LookAt");
     if (pLookAtElement)
     {
         double x = 0;
@@ -99,7 +99,7 @@ bool TransformComponent::Init(XmlElement* pData)
 		//rotation.buildCameraLookAtMatrixLH(translation.getTranslation(), lookAt, g_Up);
     }
 
-    XmlElement* pScaleElement = pData->FirstChildElement("Scale");
+    XMLElement* pScaleElement = pData->FirstChildElement("Scale");
     if (pScaleElement)
     {
         double x = 0;
@@ -116,12 +116,12 @@ bool TransformComponent::Init(XmlElement* pData)
     return true;
 }
 
-XmlElement* TransformComponent::GenerateXml(void)
+XMLElement* TransformComponent::GenerateXml(void)
 {
-    XmlElement* pBaseElement = new XmlElement(GetName());
+    XMLElement* pBaseElement = new XMLElement(GetName());
 
     // initial transform -> position
-    XmlElement* pPosition = new XmlElement("Position");
+    XMLElement* pPosition = new XMLElement("Position");
     Vector3 pos(m_transform.GetTranslation());
     pPosition->SetAttribute("x", eastl::string(pos.X).c_str());
     pPosition->SetAttribute("y", eastl::string(pos.Y).c_str());
@@ -129,7 +129,7 @@ XmlElement* TransformComponent::GenerateXml(void)
     pBaseElement->LinkEndChild(pPosition);
 
     // initial transform -> LookAt
-    XmlElement* pDirection = new XmlElement("YawPitchRoll");
+    XMLElement* pDirection = new XMLElement("YawPitchRoll");
 	Vector3 orient(m_transform.GetRotationDegrees());
     pDirection->SetAttribute("x", eastl::string(orient.X).c_str());
     pDirection->SetAttribute("y", eastl::string(orient.Y).c_str());
@@ -138,7 +138,7 @@ XmlElement* TransformComponent::GenerateXml(void)
 
 	// This is not supported yet
     // initial transform -> position
-    XmlElement* pScale = new XmlElement("Scale");
+    XMLElement* pScale = new XMLElement("Scale");
 	Vector3 scale(m_transform.GetScale());
     pPosition->SetAttribute("x", eastl::string(scale.X).c_str());
     pPosition->SetAttribute("y", eastl::string(scale.Y).c_str());

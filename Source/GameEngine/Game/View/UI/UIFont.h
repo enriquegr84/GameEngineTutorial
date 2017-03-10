@@ -42,26 +42,26 @@ public:
 	\param vcenter: Specifies if the text should be centered vertically into the rectangle.
 	\param clip: Optional pointer to a rectangle against which the text will be clipped.
 	If the pointer is null, no clipping will be done. */
-	virtual void Draw(const eastl::wstring& text, const Rect<s32>& position,
-		Color color, bool hcenter=false, bool vcenter=false, const Rect<s32>* clip=0) = 0;
+	virtual void Draw(const eastl::wstring& text, const Rectangle<2, int>& position,
+		Color color, bool hcenter=false, bool vcenter=false, const Rectangle<2, int>* clip=0) = 0;
 
 	//! Calculates the width and height of a given string of text.
 	/** \return Returns width and height of the area covered by the text if
 	it would be drawn. */
-	virtual Dimension2<u32> GetDimension(const wchar_t* text) = 0;
+	virtual Dimension2<unsigned int> GetDimension(const wchar_t* text) = 0;
 
 	//! Calculates the index of the character in the text which is on a specific position.
 	/** \param text: Text string.
 	\param pixel_x: X pixel position of which the index of the character will be returned.
 	\return Returns zero based index of the character in the text, and -1 if no no character
 	is on this position. (=the text is too short). */
-	virtual s32 GetCharacterFromPos(const wchar_t* text, s32 pixel_x) = 0;
+	virtual int GetCharacterFromPos(const wchar_t* text, int pixel_x) = 0;
 
 	//! Sets global kerning width for the font.
-	virtual void SetKerningWidth (s32 kerning) = 0;
+	virtual void SetKerningWidth (int kerning) = 0;
 
 	//! Sets global kerning height for the font.
-	virtual void SetKerningHeight (s32 kerning) = 0;
+	virtual void SetKerningHeight (int kerning) = 0;
 
 	//! Gets kerning values (distance between letters) for the font. If no parameters are provided,
 	/** the global kerning distance is returned.
@@ -74,10 +74,10 @@ public:
 	which supports kerning pairs a string such as 'Wo' may have the 'o'
 	tucked neatly under the 'W'.
 	*/
-	virtual s32 GetKerningWidth(const wchar_t* thisLetter=0, const wchar_t* previousLetter=0) = 0;
+	virtual int GetKerningWidth(const wchar_t* thisLetter=0, const wchar_t* previousLetter=0) = 0;
 
 	//! Returns the distance between letters
-	virtual s32 GetKerningHeight() = 0;
+	virtual int GetKerningHeight() = 0;
 
 	//! Define which characters should not be drawn by the font.
 	/** For example " " would not draw any space which is usually blank in

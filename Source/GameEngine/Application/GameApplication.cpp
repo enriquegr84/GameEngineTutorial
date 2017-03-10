@@ -202,29 +202,12 @@ bool GameApplication::OnInitialize()
 
 	mFileSystem = eastl::shared_ptr<FileSystem>(new FileSystem());
 
-	//
-	// Initialize the ResCache - Chapter 5, page 141
-	//
-	//	Note - this is a little different from the book. Here we have a speccial 
-	//	resource ZIP file class, DevelopmentResourceZipFile, that actually reads 
-	//	directly from the source asset files, rather than the ZIP file. This is 
-	//	MUCH better during development, since you don't want to have to rebuild 
-	//	the ZIP file every time you make a minor change to an asset.
-	//
-	/*
-	BaseResourceFile *zipFile =
-	(mIsEditorRunning || m_Options.m_useDevelopmentDirectories) ?
-	new DevelopmentResourceZipFile("../../../Game/Assets.zip",
-	DevelopmentResourceZipFile::Editor) :
-	new ResourceZipFile("../../../Game/Assets.zip");
-	*/
-
-	BaseResourceFile *mountPointFile = new ResourceMountPointFile("../../../Assets/SuperTuxKart");
+	BaseResourceFile *mountPointFile = new ResourceMountPointFile("../../../Assets");
 	mResCache = eastl::shared_ptr<ResCache>(new ResCache(50, mountPointFile));
 
 	if (!mResCache->Init())
 	{
-		GE_ERROR("Failed to initialize resource cache!\
+		LogError("Failed to initialize resource cache!\
 				 Are your paths set up correctly?");
 		return false;
 	}
@@ -298,23 +281,23 @@ bool GameApplication::OnInitialize()
 	// Init the minimum managers so that user config exists, then
 	// handle all command line options that do not need (or must
 	// not have) other managers initialised:
-	initUserConfig();
+	//InitUserConfig();
 
-	//	Load the preinit file.  This is within braces to create a scope and destroy 
+	//	Load the preinit file. This is within braces to create a scope and destroy 
 	//	the resource once it's loaded.  We don't need to do anything with it, 
 	//	we just need to load it.
 	{
-		Resource resource(SCRIPT_PREINIT_FILE);
+		//Resource resource(SCRIPT_PREINIT_FILE);
 		// this actually loads the XML file from the zip file
-		eastl::shared_ptr<ResHandle> pResourceHandle = mResCache->GetHandle(&resource);
+		//eastl::shared_ptr<ResHandle> pResourceHandle = mResCache->GetHandle(&resource);
 	}
 
 	// The event manager should be created next so that subsystems can hook in as desired.
 	// Discussed in Chapter 5, page 144
-	mEventManager = new EventManager("GameEngine Event Mgr", true);
+	mEventManager = eastl::shared_ptr<EventManager>(new EventManager("GameEngine Event Mgr", true));
 	if (!mEventManager)
 	{
-		GE_ERROR("Failed to create EventManager.");
+		LogError("Failed to create EventManager.");
 		return false;
 	}
 
@@ -614,7 +597,7 @@ HumanView* GameApplication::GetHumanView()
 	return pView;
 }
 
-void GameApplication::InitHumanViews(XmlElement* pRoot)
+void GameApplication::InitHumanViews(XMLElement* pRoot)
 {
 	for (auto it = mGameViews.begin(); it != mGameViews.end(); ++it)
 	{

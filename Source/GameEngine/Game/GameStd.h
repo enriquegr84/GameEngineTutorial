@@ -1,9 +1,9 @@
 //========================================================================
-// PickupInterface.h - Interface class for all pickups
+// GameStd.h : Defines interface classes defined throughout the book
 //
-// Part of the GameCode4 Application
+// Part of the GameEngine Application
 //
-// GameCode4 is the sample application that encapsulates much of the source code
+// GameEngine is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
 // "Rez" Graham, published by Charles River Media. 
 // ISBN-10: 1133776574 | ISBN-13: 978-1133776574
@@ -17,7 +17,7 @@
 // There's a companion web site at http://www.mcshaffry.com/GameCode/
 // 
 // The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/gamecode4/
+//    http://code.google.com/p/GameEngine/
 //
 // (c) Copyright 2012 Michael L. McShaffry and David Graham
 //
@@ -36,21 +36,41 @@
 //
 //========================================================================
 
-#ifndef _PICKUPINTERFACE_H_INCLUDED_
-#define _PICKUPINTERFACE_H_INCLUDED_
+#ifndef GAMESTD_H
+#define GAMESTD_H
 
-#include "GameEngineStd.h"
+// Begin Microsoft Windows DLL support.
+#if defined(GAME_DLL_EXPORT)
+// For the DLL library.
+#define GAME_ITEM __declspec(dllexport)
+#elif defined(GAME_DLL_EXPORT)
+// For a client of the DLL library.
+#define GAME_ITEM __declspec(dllimport)
+#else
+// For the static library and for Apple/Linux.
+#define GAME_ITEM
+#endif
+// End Microsoft Windows DLL support.
 
-#include "ActorComponent.h"
+class Actor;
+class ActorComponent;
 
-class PickupInterface : public ActorComponent
+typedef unsigned int ActorId;
+typedef unsigned int ComponentId;
+
+const ActorId INVALID_ACTOR_ID = 0;
+const ComponentId INVALID_COMPONENT_ID = 0;
+
+enum GameViewType
 {
-public:
-//    static ComponentId COMPONENT_ID;  // unique ID for this component type
-//    virtual ComponentId VGetComponentId(void) const override { return COMPONENT_ID; }
-
-    // Pickup interface
-    virtual void Apply(eastl::weak_ptr<Actor> pActor) = 0;
+	GameView_Human,
+	GameView_Remote,
+	GameView_AI,
+	GameView_Recorder,
+	GameView_Other
 };
+
+typedef unsigned int GameViewId;
+extern const GameViewId InvalidGameViewId;
 
 #endif

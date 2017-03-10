@@ -132,7 +132,7 @@ eastl::string BaseGameLogic::GetActorXml(const ActorId id)
 bool BaseGameLogic::LoadGame(const wchar_t* levelResource)
 {
     // Grab the root XML node
-    XmlElement* pRoot = XmlResourceLoader::LoadAndReturnRootXmlElement(levelResource);
+    XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(levelResource);
     if (!pRoot)
     {
         GE_ERROR(eastl::string("Failed to find level resource file: ") + eastl::string(levelResource));
@@ -144,7 +144,7 @@ bool BaseGameLogic::LoadGame(const wchar_t* levelResource)
     const char* postLoadScript = NULL;
 
     // parse the pre & post script attributes
-    XmlElement* pScriptElement = pRoot->FirstChildElement("Script");
+    XMLElement* pScriptElement = pRoot->FirstChildElement("Script");
     if (pScriptElement)
     {
         preLoadScript = pScriptElement->Attribute("preLoad");
@@ -154,17 +154,17 @@ bool BaseGameLogic::LoadGame(const wchar_t* levelResource)
     // load the pre-load script if there is one
     if (preLoadScript)
     {
-        Resource resource(preLoadScript);
+        BaseResource resource(preLoadScript);
 		// this actually loads the XML file from the zip file
         shared_ptr<ResHandle> pResourceHandle = 
 			g_pGameApp->m_ResCache->GetHandle(&resource);  
     }
 
     // load all initial actors
-    XmlElement* pActorsNode = pRoot->FirstChildElement("StaticActors");
+    XMLElement* pActorsNode = pRoot->FirstChildElement("StaticActors");
     if (pActorsNode)
     {
-		XmlElement* pNode = pActorsNode->FirstChildElement();
+		XMLElement* pNode = pActorsNode->FirstChildElement();
         for (; pNode; pNode = pNode->NextSiblingElement())
         {
             const char* actorResource = pNode->Attribute("resource");
@@ -195,7 +195,7 @@ bool BaseGameLogic::LoadGame(const wchar_t* levelResource)
     // load the post-load script if there is one
     if (postLoadScript)
     {
-        Resource resource(postLoadScript);
+        BaseResource resource(postLoadScript);
 		// this actually loads the XML file from the zip file
         const shared_ptr<ResHandle>& pResourceHandle = 
 			g_pGameApp->m_ResCache->GetHandle(&resource);
@@ -232,7 +232,7 @@ void BaseGameLogic::SetProxy()
 	m_pPhysics.reset(CreateNullPhysics());
 }
 
-StrongActorPtr BaseGameLogic::CreateActor(const eastl::string &actorResource, XmlElement *overrides, 
+StrongActorPtr BaseGameLogic::CreateActor(const eastl::string &actorResource, XMLElement *overrides, 
 	const matrix4 *initialTransform, const ActorId serversActorId)
 {
     GE_ASSERT(m_pActorFactory);
@@ -286,7 +286,7 @@ WeakActorPtr BaseGameLogic::GetActor(const ActorId actorId)
     return WeakActorPtr();
 }
 
-void BaseGameLogic::ModifyActor(const ActorId actorId, XmlElement* overrides)
+void BaseGameLogic::ModifyActor(const ActorId actorId, XMLElement* overrides)
 {
     GE_ASSERT(m_pActorFactory);
 	if (!m_pActorFactory)

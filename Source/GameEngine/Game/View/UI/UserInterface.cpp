@@ -49,8 +49,8 @@ BaseUI::BaseUI()
 	#endif
 
 	Root = eastl::shared_ptr<BaseUIElement>( 
-		new UIRoot( this, EUIET_ROOT, 0,  Rect<s32>(Position2<s32>(0,0), 
-		renderer ? Dimension2<s32>(renderer->GetScreenSize()) : Dimension2<s32>(0,0))));
+		new UIRoot( this, EUIET_ROOT, 0,  Rectangle<2, int>(Position2<int>(0,0), 
+		renderer ? Dimension2<int>(renderer->GetScreenSize()) : Dimension2<int>(0,0))));
 
 	//set tooltip default
 	UIToolTip.LastTime = 0;
@@ -83,8 +83,8 @@ bool BaseUI::OnInit()
 void BaseUI::LoadBuiltInFont()
 {	
 	/*
-	const eastl::shared_ptr<IFileSystem>& fileSystem = g_pGameApp->m_pFileSystem;
-	IReadFile* file = fileSystem->CreateMemoryReadFile(
+	const eastl::shared_ptr<BaseFileSystem>& fileSystem = g_pGameApp->m_pFileSystem;
+	BaseReadFile* file = fileSystem->CreateMemoryReadFile(
 		BuiltInFontData, BuiltInFontDataSize, DefaultFontName, false);
 
 	eastl::shared_ptr<UIFont> font(new UIFont(this, DefaultFontName ));
@@ -108,7 +108,7 @@ void BaseUI::LoadBuiltInFont()
 //! draws all gui elements
 bool BaseUI::OnRender(double fTime, float fElapsedTime)
 {
-	Dimension2<s32> dim(renderer->GetScreenSize());
+	Dimension2<int> dim(renderer->GetScreenSize());
 	if (Root->AbsoluteRect.LowerRightCorner.X != dim.Width ||
 		Root->AbsoluteRect.LowerRightCorner.Y != dim.Height)
 	{
@@ -151,7 +151,7 @@ void BaseUI::Clear()
 }
 
 //
-bool BaseUI::OnPostRender( u32 time )
+bool BaseUI::OnPostRender( unsigned int time )
 {
 	// launch tooltip
 	if (UIToolTip.Element == 0 &&
@@ -162,10 +162,10 @@ bool BaseUI::OnPostRender( u32 time )
 		HoveredNoSubelement->GetToolTipText().size() &&
 		GetSkin() && GetSkin()->GetFont(EGDF_TOOLTIP) )
 	{
-		Rect<s32> pos;
+		Rectangle<2, int> pos;
 
 		pos.UpperLeftCorner = LastHoveredMousePos;
-		Dimension2u dim = GetSkin()->GetFont(EGDF_TOOLTIP)->
+		Vector2<unsigned int> dim = GetSkin()->GetFont(EGDF_TOOLTIP)->
 			GetDimension(HoveredNoSubelement->GetToolTipText().c_str());
 		dim.Width += GetSkin()->GetSize(EGDS_TEXT_DISTANCE_X)*2;
 		dim.Height += GetSkin()->GetSize(EGDS_TEXT_DISTANCE_Y)*2;
@@ -183,7 +183,7 @@ bool BaseUI::OnPostRender( u32 time )
 		UIToolTip.Element->SetOverrideFont(GetSkin()->GetFont(EGDF_TOOLTIP));
 		UIToolTip.Element->SetSubElement(true);
 
-		s32 textHeight = UIToolTip.Element->GetTextHeight();
+		int textHeight = UIToolTip.Element->GetTextHeight();
 		pos = UIToolTip.Element->GetRelativePosition();
 		pos.LowerRightCorner.Y = pos.UpperLeftCorner.Y + textHeight;
 		UIToolTip.Element->SetRelativePosition(pos);
@@ -211,7 +211,7 @@ bool BaseUI::OnPostRender( u32 time )
 
 
 //
-void BaseUI::UpdateHoveredElement(Position2<s32> mousePos)
+void BaseUI::UpdateHoveredElement(Position2<int> mousePos)
 {
 	shared_ptr<BaseUIElement> lastHovered = Hovered;
 	shared_ptr<BaseUIElement> lastHoveredNoSubelement = HoveredNoSubelement;
@@ -269,7 +269,7 @@ void BaseUI::UpdateHoveredElement(Position2<s32> mousePos)
 
 		if ( HoveredNoSubelement )
 		{
-			u32 now = Timer::GetTime();
+			unsigned int now = Timer::GetTime();
 			UIToolTip.EnterTime = now;
 		}
 	}
@@ -285,7 +285,7 @@ bool BaseUI::OnMsgProc(const Event& ev)
 		break;
 	case EET_MOUSE_INPUT_EVENT:
 
-		UpdateHoveredElement(Position2<s32>(ev.m_MouseInput.X, ev.m_MouseInput.Y));
+		UpdateHoveredElement(Position2<int>(ev.m_MouseInput.X, ev.m_MouseInput.Y));
 
 		if (ev.m_MouseInput.m_Event == EMIE_LMOUSE_PRESSED_DOWN)
 			if ( (Hovered && Hovered != Focus) || !Focus )
@@ -478,7 +478,7 @@ eastl::shared_ptr<BaseUISkin> BaseUI::CreateSkin(EUI_SKIN_THEME_TYPE type)
 }
 
 //! returns the font
-eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const path& filename)
+eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 {
 	// search existing font
 	eastl::vector<Font>::iterator itFont = Fonts.begin();
@@ -507,7 +507,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const path& filename)
 	return font;
 
 	/*
-	XmlElement* pRoot = XmlResourceLoader::LoadAndReturnRootXmlElement(filename.c_str());
+	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(filename.c_str());
     // font doesn't exist, attempt to load it
 	if (!pRoot)
     {
@@ -519,7 +519,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const path& filename)
 	// this is an XML font, but we need to know what type
 	EUI_FONT_TYPE t = EGFT_CUSTOM;
 	// Loop through each child element and load the component
-    for (XmlElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
+    for (XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
     {
 		if (eastl::string("font") == eastl::string(pNode->Value()))
 		{
@@ -543,7 +543,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const path& filename)
 	eastl::shared_ptr<BaseUIFont> font=0;
 	if (t==EGFT_BITMAP)
 	{
-		const eastl::shared_ptr<IFileSystem>& fileSystem = g_pGameApp->m_pFileSystem;
+		const eastl::shared_ptr<BaseFileSystem>& fileSystem = g_pGameApp->m_pFileSystem;
 		font = eastl::shared_ptr<BaseUIFont>(new UIFont(shared_from_this(), filename));
 		// change working directory, for loading textures
 		path workingDir = fileSystem->GetWorkingDirectory();
@@ -589,7 +589,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const path& filename)
 
 
 //! add an externally loaded font
-const shared_ptr<BaseUIFont>& BaseUI::AddFont(const path& name, const shared_ptr<BaseUIFont>& font)
+const shared_ptr<BaseUIFont>& BaseUI::AddFont(const eastl::string& name, const shared_ptr<BaseUIFont>& font)
 {
 	if (font)
 	{
@@ -636,7 +636,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetBuiltInFont() const
 }
 
 
-eastl::shared_ptr<BaseUISpriteBank> BaseUI::GetSpriteBank(const path& filename)
+eastl::shared_ptr<BaseUISpriteBank> BaseUI::GetSpriteBank(const eastl::string& filename)
 {
 	// search for the file name
 	eastl::vector<SpriteBank>::iterator itBank = Banks.begin();
@@ -646,7 +646,7 @@ eastl::shared_ptr<BaseUISpriteBank> BaseUI::GetSpriteBank(const path& filename)
 			return (*itBank).Bank;
 	}
 
-	const eastl::shared_ptr<IFileSystem>& fileSystem = g_pGameApp->m_pFileSystem;
+	const eastl::shared_ptr<BaseFileSystem>& fileSystem = g_pGameApp->m_pFileSystem;
 	// we don't have this sprite bank, we should load it
 	if (!fileSystem->ExistFile(filename))
 	{

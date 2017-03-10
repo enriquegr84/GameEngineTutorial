@@ -38,21 +38,19 @@
 
 #include "HumanView.h"
 
-#include "GameEngine/GameEngine.h"
-
-#include "Actors/AudioComponent.h"
-#include "Actors/RenderComponentInterface.h"
+#include "Game/Actor/AudioComponent.h"
+#include "Game/Actor/RenderComponentInterface.h"
 
 //events related
 #include "Audio/DirectSoundAudio.h"
 #include "Audio/SoundProcess.h"
-#include "Events/Events.h"
-#include "Events/EventManagerImpl.h"
 
-#include "Graphics/IRenderer.h"
-#include "Scenes/Scene.h"
-#include "Process/Process.h"
-#include "Scripting/LUAScripting/LuaStateManager.h"
+#include "Core/Event/Event.h"
+#include "Core/Event/EventManager.h"
+
+#include "Graphic/Renderer/Renderer.h"
+
+#include "Core/Process/Process.h"
 
 const unsigned int SCREEN_REFRESH_RATE(1000/60);
 const GameViewId InvalidGameViewId = 0xffffffff;
@@ -60,14 +58,13 @@ const GameViewId InvalidGameViewId = 0xffffffff;
 //
 // HumanView::HumanView - Chapter 10, page 272
 //
-HumanView::HumanView(const shared_ptr<IRenderer>& renderer)
+HumanView::HumanView(const eastl::shared_ptr<Renderer>& renderer)
 {
 	InitAudio(); 
 
 	m_pProcessManager = new ProcessManager;
 
 	m_runFullSpeed = true;
-	m_PointerRadius = 1;	// we assume we are on a mouse enabled machine - if this were a tablet we should detect it here.
 	m_ViewId = InvalidGameViewId;
 
 	// Added post press for move, new, and destroy actor events and others
@@ -81,7 +78,7 @@ HumanView::HumanView(const shared_ptr<IRenderer>& renderer)
 
 		m_pCamera.reset(new CameraSceneNode(
 			g_pGameApp->GetGameLogic()->GetNewActorID(), m_pScene.get(), &g_IdentityMatrix4));
-		GE_ASSERT(m_pScene && m_pCamera && _GE_TEXT("Out of memory"));
+		LogAssert(m_pScene && m_pCamera, "Out of memory");
 		m_pCamera->SetFarValue(20000.f); // this increase a shadow visible range.
 
 		m_pScene->AddChild(m_pCamera->Get()->GetId(), m_pCamera);
@@ -100,19 +97,18 @@ HumanView::~HumanView()
 		m_ScreenElements.pop_front();		
 	}
 
-	SAFE_DELETE(m_pProcessManager);
-
-	SAFE_DELETE(g_pAudio);
+	delete m_pProcessManager;
+	delete g_pAudio;
 }
 
 
-bool HumanView::LoadGameDelegate(XmlElement* pLevelData) 
+bool HumanView::LoadGameDelegate(XMLElement* pLevelData) 
 { 
 	PushElement(m_pScene);  
 	return true; 
 }
 
-bool HumanView::LoadGame(XmlElement* pLevelData)
+bool HumanView::LoadGame(XMLElement* pLevelData)
 {
     // call the delegate method
     return LoadGameDelegate(pLevelData);
@@ -132,7 +128,8 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 		{
 			m_ScreenElements.sort(SortBy_SharedPtr_Content<BaseScreenElement>());
 
-			for(ScreenElementList::iterator i=m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
+			for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+				m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
 			{
 				if ( (*i)->IsVisible() )
 				{
@@ -158,7 +155,8 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 bool HumanView::OnRestore()
 {
 	bool hr = true;
-	for(ScreenElementList::iterator i=m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
+	for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+		m_ScreenElements.begin(); i != m_ScreenElements.end(); ++i)
 	{
 		return ( (*i)->OnRestore() );
 	}
@@ -174,7 +172,8 @@ bool HumanView::OnRestore()
 
 bool HumanView::OnLostDevice() 
 {
-	for(ScreenElementList::iterator i=m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
+	for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+		m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
 	{
 		return ( (*i)->OnLostDevice() );
 	}
@@ -229,7 +228,8 @@ bool HumanView::OnMsgProc( const Event& evt )
 	// Iterate through the screen layers first
 	// In reverse order since we'll send input messages to the 
 	// screen on top
-	for(ScreenElementList::reverse_iterator i=m_ScreenElements.rbegin(); i!=m_ScreenElements.rend(); ++i)
+	for(eastl::shared_ptr<ScreenElementScene>::reverse_iterator i = 
+		m_ScreenElements.rbegin(); i!=m_ScreenElements.rend(); ++i)
 	{
 		if ( (*i)->IsVisible() )
 		{
@@ -253,8 +253,12 @@ bool HumanView::OnMsgProc( const Event& evt )
 				}
 				else
 				{
-					const unsigned int oemScan = int( evt.m_KeyInput.m_Char & ( 0xff << 16 ) ) >> 16;
-					m_Console.HandleKeyboardInput( evt.m_KeyInput.m_Char, MapVirtualKey( oemScan, 1 ), evt.m_KeyInput.m_bPressedDown );
+					const unsigned int oemScan = 
+						int( evt.m_KeyInput.m_Char & ( 0xff << 16 ) ) >> 16;
+					m_Console.HandleKeyboardInput( 
+						evt.m_KeyInput.m_Char, 
+						MapVirtualKey( oemScan, 1 ), 
+						evt.m_KeyInput.m_bPressedDown );
 				}
 			}
 			else
@@ -340,7 +344,8 @@ void HumanView::OnUpdate(const int deltaMilliseconds)
 	// and calls VOnUpdate. Some screen elements need to update every frame, one 
 	// example of this is a 3D scene attached to the human view.
 	//
-	for(ScreenElementList::iterator i=m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
+	for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+		m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
 	{
 		(*i)->OnUpdate(deltaMilliseconds);
 	}
@@ -356,7 +361,8 @@ void HumanView::OnAnimate(unsigned int uTime)
 	// and calls OnAnimate. Some screen elements need to update every frame, one 
 	// example of this is a 3D scene attached to the human view.
 	//
-	for(ScreenElementList::iterator i=m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
+	for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+		m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
 	{
 		(*i)->OnAnimate(uTime);
 	}
@@ -365,7 +371,7 @@ void HumanView::OnAnimate(unsigned int uTime)
 //
 // HumanView::VPushElement						- Chapter 10, page 274
 //
-void HumanView::PushElement(const shared_ptr<BaseScreenElement>& pElement)
+void HumanView::PushElement(const eastl::shared_ptr<BaseScreenElement>& pElement)
 {
 	m_ScreenElements.push_front(pElement);
 }
@@ -375,26 +381,10 @@ void HumanView::PushElement(const shared_ptr<BaseScreenElement>& pElement)
 //
 //   
 //
-void HumanView::RemoveElement(const shared_ptr<BaseScreenElement>& pElement)
+void HumanView::RemoveElement(const eastl::shared_ptr<BaseScreenElement>& pElement)
 {
 	m_ScreenElements.remove(pElement);
 }
-
-//
-// HumanView::SetActiveCameraOffset					- not described in the book
-//
-//   Sets a camera offset, useful for making a 1st person or 3rd person game
-//
-/*
-void HumanView::SetActiveCameraOffset(const Vec4 & camOffset )
-{
-	GE_ASSERT(m_pCamera);
-	if (m_pCamera)
-	{
-		m_pCamera->SetActiveCameraOffset( camOffset );
-	}
-}
-*/
 
 
 //
@@ -406,15 +396,19 @@ void HumanView::RegisterAllDelegates(void)
 {
 
     BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
-//	pGlobalEventManager->AddListener(MakeDelegate(this, &HumanView::GameStateDelegate), EvtData_Game_State::sk_EventType);
-    pGlobalEventManager->AddListener(MakeDelegate(this, &HumanView::PlaySoundDelegate), EvtData_PlaySound::sk_EventType);
+//	pGlobalEventManager->AddListener(
+//		MakeDelegate(this, &HumanView::GameStateDelegate), EvtData_Game_State::sk_EventType);
+    pGlobalEventManager->AddListener(
+		MakeDelegate(this, &HumanView::PlaySoundDelegate), EvtData_PlaySound::sk_EventType);
 }
 
 void HumanView::RemoveAllDelegates(void)
 {
     BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
-//	pGlobalEventManager->RemoveListener(MakeDelegate(this, &HumanView::GameStateDelegate), EvtData_Game_State::sk_EventType);
-    pGlobalEventManager->RemoveListener(MakeDelegate(this, &HumanView::PlaySoundDelegate), EvtData_PlaySound::sk_EventType);
+//	pGlobalEventManager->RemoveListener(
+//		MakeDelegate(this, &HumanView::GameStateDelegate), EvtData_Game_State::sk_EventType);
+    pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &HumanView::PlaySoundDelegate), EvtData_PlaySound::sk_EventType);
 }
 
 
@@ -423,11 +417,13 @@ void HumanView::RemoveAllDelegates(void)
 //
 void HumanView::PlaySoundDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EvtData_PlaySound> pCastEventData = static_pointer_cast<EvtData_PlaySound>(pEventData);
+    eastl::shared_ptr<EvtData_PlaySound> pCastEventData = 
+		eastl::static_pointer_cast<EvtData_PlaySound>(pEventData);
 
     // play the sound a bullet makes when it hits a teapot
-    Resource resource(pCastEventData->GetResource().c_str());
-    shared_ptr<ResHandle> srh = static_pointer_cast<ResHandle>(g_pGameApp->m_ResCache->GetHandle(&resource));
+    BaseResource resource(pCastEventData->GetResource().c_str());
+    eastl::shared_ptr<ResHandle> srh = 
+		eastl::static_pointer_cast<ResHandle>(g_pGameApp->m_ResCache->GetHandle(&resource));
     shared_ptr<SoundProcess> sfx(new SoundProcess(srh, 100, false));
     m_pProcessManager->AttachProcess(sfx);
 }
@@ -437,7 +433,8 @@ void HumanView::PlaySoundDelegate(BaseEventDataPtr pEventData)
 //
 void HumanView::GameStateDelegate(BaseEventDataPtr pEventData)
 {
-//    shared_ptr<EvtData_Game_State> pCastEventData = static_pointer_cast<EvtData_Game_State>(pEventData);
+//    eastl::shared_ptr<EvtData_Game_State> pCastEventData = 
+//		static_pointer_cast<EvtData_Game_State>(pEventData);
 //    m_BaseGameState = pCastEventData->GetGameState(); 
 }
 
@@ -457,7 +454,7 @@ HumanView::Console::Console()
 {
 	m_ConsoleInputSize = 48;
 
-	m_CurrentInputString = eastl::string("");
+	m_CurrentInputString = L"";
 
 	m_CursorBlinkTimer = kCursorBlinkTimeMS;
 	m_bCursorOn = true;
@@ -490,10 +487,10 @@ bool HumanView::Console::OnInit( )
 {
 	BaseUI::OnInit();
 
-	u32 width = g_pGameApp->m_pRenderer->GetScreenSize().Width;
-	u32 height = g_pGameApp->m_pRenderer->GetScreenSize().Height;
+	unsigned int width = g_pGameApp->m_pRenderer->GetScreenSize().Width;
+	unsigned int height = g_pGameApp->m_pRenderer->GetScreenSize().Height;
 	shared_ptr<BaseUIStaticText> consoleText(
-		AddStaticText(L">", Rect<s32>(0, height, width, height-10), false, true, 0, 1, true));
+		AddStaticText(L">", Rectangle<2, int>(0, height, width, height-10), false, true, 0, 1, true));
 	consoleText->SetOverrideColor(Color(1.0f, 1.0f, 1.0f, 1.0f)); //white font
 	consoleText->SetBackgroundColor(Color(1.0f, 0.0f, 0.0f, 0.0f)); //black background
 

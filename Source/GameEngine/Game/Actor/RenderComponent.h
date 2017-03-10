@@ -41,7 +41,11 @@
 #define RENDERCOMPONENT_H
 
 #include "GameEngineStd.h"
+
 #include "BaseRenderComponent.h"
+
+#include "Mathematic/Algebra/Vector2.h"
+#include "Mathematic/Algebra/Vector3.h"
 
 //---------------------------------------------------------------------------------------------------------------------
 // This class represents a render component built from a Mesh.  In a real game, this is the one you'll use 99% of the 
@@ -60,11 +64,11 @@ public:
     MeshRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XmlElement* pData) override;
-    virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+    virtual bool DelegateInit(XMLElement* pData) override;
+    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXmlElements(XmlElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
 };
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -82,11 +86,11 @@ public:
     SphereRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XmlElement* pData) override;
-    virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+    virtual bool DelegateInit(XMLElement* pData) override;
+    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXmlElements(XmlElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
 };
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -100,10 +104,10 @@ public:
 	virtual const char *GetName() const { return g_Name; }
 
 protected:
-    virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXmlElements(XmlElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
 };
 
 
@@ -124,11 +128,11 @@ public:
 	const int GetDivision() { return m_squares; }
 
 protected:
-    virtual bool DelegateInit(XmlElement* pData) override;
-    virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+    virtual bool DelegateInit(XMLElement* pData) override;
+    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXmlElements(XmlElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
 };
 
 
@@ -137,11 +141,11 @@ protected:
 //---------------------------------------------------------------------------------------------------------------------
 class LightRenderComponent : public BaseRenderComponent
 {
-	Light m_Props; 
+	//Light m_Props; 
 
-	f32 m_animatorSpeed;
+	float m_animatorSpeed;
 	eastl::string m_animatorType;
-	Vector3 m_animatorCenter;
+	Vector3<float> m_animatorCenter;
 
 	bool m_addBillboard;
 	eastl::string m_billboardMaterial;
@@ -155,11 +159,11 @@ public:
     LightRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XmlElement* pData) override;
-    virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+    virtual bool DelegateInit(XMLElement* pData) override;
+    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXmlElements(XmlElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
 };
 
 
@@ -176,11 +180,11 @@ public:
     ParticleSystemRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XmlElement* pData) override;
-    virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+    virtual bool DelegateInit(XMLElement* pData) override;
+    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXmlElements(XmlElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
 };
 
 
@@ -198,11 +202,11 @@ public:
     SkyRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XmlElement* pData) override;
-    virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+    virtual bool DelegateInit(XMLElement* pData) override;
+    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXmlElements(XmlElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
 };
 
 #endif

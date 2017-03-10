@@ -36,19 +36,19 @@
 //
 //========================================================================
 
-#ifndef _HUMANVIEW_H_INCLUDED_
-#define _HUMANVIEW_H_INCLUDED_
+#ifndef HUMANVIEW_H
+#define HUMANVIEW_H
 
 #include "GameEngineStd.h"
-#include "GameEngine/interfaces.h"
 
-#include "UserInterface/UserInterface.h"
-#include "Process/ProcessManager.h"
-#include "Events/EventManager.h"
+#include "UI/UserInterface.h"
+
+#include "Core/Process/ProcessManager.h"
+#include "Core/Event/EventManager.h"
 
 class ScreenElementScene;
 class CameraSceneNode;
-class IRenderer;
+class BaseRenderer;
 
 //
 // class HumanView - Chapter 10, page 272
@@ -61,23 +61,9 @@ class HumanView : public BaseGameView
 {
 	friend class GameEngineApp;
 
-protected:
-
-	GameViewId m_ViewId;
-	ActorId m_ActorId;
-
-	ProcessManager* m_pProcessManager;	// strictly for things like button animations, etc.
-	bool m_runFullSpeed; // set to true if you want to run full speed
-
-	BaseGameState m_BaseGameState;	// Added post-press - what is the current game state
-
-	virtual void RenderText() { };
-
-	virtual bool LoadGameDelegate(XmlElement* pLevelData);
-
 public:
 
-	HumanView(const shared_ptr<IRenderer>& renderer);
+	HumanView(const eastl::shared_ptr<BaseRenderer>& renderer);
 
 	virtual ~HumanView();
 
@@ -100,19 +86,13 @@ public:
 	virtual bool OnMsgProc( const Event& event );
 
 	// Virtual methods to control the layering of interface elements
-	virtual void PushElement(const shared_ptr<BaseScreenElement>& pElement);
-	virtual void RemoveElement(const shared_ptr<BaseScreenElement>& pElement);
+	virtual void PushElement(const eastl::shared_ptr<BaseScreenElement>& pElement);
+	virtual void RemoveElement(const eastl::shared_ptr<BaseScreenElement>& pElement);
 
 	void TogglePause(bool active);
+    bool LoadGame(XMLElement* pLevelData);
 
-    bool LoadGame(XmlElement* pLevelData);
-
-	ScreenElementList m_ScreenElements;						// a game screen entity
-
-	// Interface sensitive objects
-	shared_ptr<IMouseHandler> m_MouseHandler;
-	int m_PointerRadius;
-	shared_ptr<IKeyboardHandler> m_KeyboardHandler;
+	eastl::list<eastl::shared_ptr<BaseScreenElement>> m_ScreenElements; // a game screen entity
 
 	// Audio
 	bool InitAudio();
@@ -122,8 +102,8 @@ public:
 	//virtual void VSetActiveCameraOffset(const Vec4 & camOffset );
 
 	// Added post press
-	shared_ptr<ScreenElementScene> m_pScene;			
-	shared_ptr<CameraSceneNode> m_pCamera;					
+	eastl::shared_ptr<ScreenElementScene> m_pScene;
+	eastl::shared_ptr<CameraSceneNode> m_pCamera;
 
 	void HandleGameState(BaseGameState newState);		
 
@@ -133,10 +113,6 @@ public:
 	// Event delegates
 	void PlaySoundDelegate(BaseEventDataPtr pEventData);	
     void GameStateDelegate(BaseEventDataPtr pEventData);
-
-private:
-    void RegisterAllDelegates(void);
-    void RemoveAllDelegates(void);
 
 public:
 	// Class Console						- not described in the book
@@ -204,7 +180,24 @@ public:
 	}
 
 protected:
+
+	GameViewId m_ViewId;
+	ActorId m_ActorId;
+
+	ProcessManager* m_pProcessManager;	// strictly for things like button animations, etc.
+	bool m_runFullSpeed; // set to true if you want to run full speed
+
+	BaseGameState m_BaseGameState;	// Added post-press - what is the current game state
+
+	virtual void RenderText() { };
+
+	virtual bool LoadGameDelegate(XMLElement* pLevelData);
+
 	Console m_Console;
+
+private:
+	void RegisterAllDelegates(void);
+	void RemoveAllDelegates(void);
 };
 
 

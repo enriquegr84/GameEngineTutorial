@@ -379,7 +379,7 @@ public:
 	virtual void SetColor(EUI_DEFAULT_COLOR which, Color newColor) = 0;
 
 	//! returns size for the given size type
-	virtual s32 GetSize(EUI_DEFAULT_SIZE size) const = 0;
+	virtual int GetSize(EUI_DEFAULT_SIZE size) const = 0;
 
 	//! Returns a default text.
 	/** For example for Message box button captions:
@@ -392,7 +392,7 @@ public:
 	virtual void SetDefaultText(EUI_DEFAULT_TEXT which, const wchar_t* newText) = 0;
 
 	//! sets a default size
-	virtual void SetSize(EUI_DEFAULT_SIZE which, s32 size) = 0;
+	virtual void SetSize(EUI_DEFAULT_SIZE which, int size) = 0;
 
 	//! returns the default font
 	virtual const shared_ptr<UIFont>& GetFont(EUI_DEFAULT_FONT which=EGDF_DEFAULT) const = 0;
@@ -408,14 +408,14 @@ public:
 
 	//! Returns a default icon
 	/** Returns the sprite index within the sprite bank */
-	virtual u32 GetIcon(EUI_DEFAULT_ICON icon) const = 0;
+	virtual unsigned int GetIcon(EUI_DEFAULT_ICON icon) const = 0;
 
 	//! Sets a default icon
 	/** Sets the sprite index used for drawing icons like arrows,
 	close buttons and ticks in checkboxes
 	\param icon: Enum specifying which icon to change
 	\param index: The sprite index used to draw this icon */
-	virtual void SetIcon(EUI_DEFAULT_ICON icon, u32 index) = 0;
+	virtual void SetIcon(EUI_DEFAULT_ICON icon, unsigned int index) = 0;
 
 	//! draws a standard 3d button pane
 	/** Used for drawing for example buttons in normal state.
@@ -427,7 +427,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
 	virtual void Draw3DButtonPaneStandard(const shared_ptr<UIElement>& element,
-		const Rect<s32>& rect, const Rect<s32>* clip=0) = 0;
+		const Rectangle<2, int>& rect, const Rectangle<2, int>* clip=0) = 0;
 
 	//! draws a pressed 3d button pane
 	/** Used for drawing for example buttons in pressed state.
@@ -439,7 +439,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
 	virtual void Draw3DButtonPanePressed(const shared_ptr<UIElement>& element,
-		const Rect<s32>& rect, const Rect<s32>* clip=0) = 0;
+		const Rectangle<2, int>& rect, const Rectangle<2, int>* clip=0) = 0;
 
 	//! draws a sunken 3d pane
 	/** Used for drawing the background of edit, combo or check boxes.
@@ -454,7 +454,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
 	virtual void Draw3DSunkenPane(const shared_ptr<UIElement>& element, Color bgcolor, 
-		bool flat, bool fillBackGround, const Rect<s32>& rect, const Rect<s32>* clip=0) = 0;
+		bool flat, bool fillBackGround, const Rectangle<2, int>& rect, const Rectangle<2, int>* clip=0) = 0;
 
 	//! draws a window background
 	/** Used for drawing the background of dialogs and windows.
@@ -470,9 +470,9 @@ public:
 	That is the area without borders and without titlebar.
 	\return Returns rect where it would be good to draw title bar text. This will
 	work even when checkClientArea is set to a non-null value.*/
-	virtual Rect<s32> Draw3DWindowBackground(const shared_ptr<UIElement>& element, 
-		bool drawTitleBar, Color titleBarColor, const Rect<s32>& rect, 
-		const Rect<s32>* clip=0, Rect<s32>* checkClientArea=0) = 0;
+	virtual Rectangle<2, int> Draw3DWindowBackground(const shared_ptr<UIElement>& element, 
+		bool drawTitleBar, Color titleBarColor, const Rectangle<2, int>& rect, 
+		const Rectangle<2, int>* clip=0, Rectangle<2, int>* checkClientArea=0) = 0;
 
 	//! draws a standard 3d menu pane
 	/** Used for drawing for menus and context menus.
@@ -483,8 +483,8 @@ public:
 	implementations to find out how to draw the part exactly.
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
-	virtual void Draw3DMenuPane(const shared_ptr<UIElement>& element, const Rect<s32>& rect, 
-		const Rect<s32>* clip=0) = 0;
+	virtual void Draw3DMenuPane(const shared_ptr<UIElement>& element, const Rectangle<2, int>& rect, 
+		const Rectangle<2, int>* clip=0) = 0;
 
 	//! draws a standard 3d tool bar
 	/** Used for drawing for toolbars and menus.
@@ -493,8 +493,8 @@ public:
 	implementations to find out how to draw the part exactly.
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
-	virtual void Draw3DToolBar(const shared_ptr<UIElement>& element, const Rect<s32>& rect, 
-		const Rect<s32>* clip=0) = 0;
+	virtual void Draw3DToolBar(const shared_ptr<UIElement>& element, const Rectangle<2, int>& rect, 
+		const Rectangle<2, int>* clip=0) = 0;
 
 	//! draws a tab button
 	/** Used for drawing for tab buttons on top of tabs.
@@ -505,8 +505,8 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.
 	\param alignment Alignment of UI element. */
-	virtual void Draw3DTabButton(const shared_ptr<UIElement>& element, bool active, const Rect<s32>& rect, 
-		const Rect<s32>* clip=0, EUI_ALIGNMENT alignment=EUIA_UPPERLEFT) = 0;
+	virtual void Draw3DTabButton(const shared_ptr<UIElement>& element, bool active, const Rectangle<2, int>& rect, 
+		const Rectangle<2, int>* clip=0, EUI_ALIGNMENT alignment=EUIA_UPPERLEFT) = 0;
 
 	//! draws a tab control body
 	/** \param element: Pointer to the element which wishes to draw this. This parameter
@@ -519,7 +519,7 @@ public:
 	\param tabHeight Height of tab.
 	\param alignment Alignment of UI element. */
 	virtual void Draw3DTabBody(const shared_ptr<UIElement>& element, bool border, bool background,
-		const Rect<s32>& rect, const Rect<s32>* clip=0, s32 tabHeight=-1, 
+		const Rectangle<2, int>& rect, const Rectangle<2, int>* clip=0, int tabHeight=-1, 
 		EUI_ALIGNMENT alignment=EUIA_UPPERLEFT ) = 0;
 
 	//! draws an icon, usually from the skin's sprite bank
@@ -533,8 +533,8 @@ public:
 	\param loop: Whether the animation should loop or not
 	\param clip: Clip area. */
 	virtual void DrawIcon(const shared_ptr<UIElement>& element, EUI_DEFAULT_ICON icon,
-		const Position2i position, u32 starttime=0, u32 currenttime=0,
-		bool loop=false, const Rect<s32>* clip=0) = 0;
+		const Position2i position, unsigned int starttime=0, unsigned int currenttime=0,
+		bool loop=false, const Rectangle<2, int>* clip=0) = 0;
 
 	//! draws a 2d rectangle.
 	/** \param element: Pointer to the element which wishes to draw this icon.
@@ -546,7 +546,7 @@ public:
 	\param clip: Pointer to rectangle against which the rectangle will be clipped.
 	If the pointer is null, no clipping will be performed. */
 	virtual void Draw2DRectangle(const shared_ptr<UIElement>& element, const Color &color,
-		const Rect<s32>& pos, const Rect<s32>* clip = 0) = 0;
+		const Rectangle<2, int>& pos, const Rectangle<2, int>* clip = 0) = 0;
 
 	//! get the type of this skin
 	virtual EUI_SKIN_THEME_TYPE GetType() const { return EGSTT_UNKNOWN; }

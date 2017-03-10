@@ -8,6 +8,7 @@
 #define GAMEENGINESTD_H
 
 #include "Core/CoreStd.h"
+#include "Game/GameStd.h"
 #include "Graphic/GraphicStd.h"
 #include "Mathematic/MathematicStd.h"
 

@@ -9,7 +9,19 @@
 #ifndef CORE_H
 #define CORE_H
 
-// Assert
+// Utility
+#include "Utility/String.h"
+
+// IO
+#include "IO/Environment.h"
+#include "IO/FileIO.h"
+#include "IO/FileList.h"
+#include "IO/FileSystem.h"
+#include "IO/MountPointReader.h"
+#include "IO/ResourceCache.h"
+#include "IO/XmlResource.h"
+
+// Logger
 #include "Logger/Logger.h"
 #include "Logger/LogReporter.h"
 #include "Logger/LogToFile.h"
@@ -17,16 +29,26 @@
 #include "Logger/LogToStringArray.h"
 
 #if defined(USE_WINDOWS)
+
 #include "Logger/Windows/LogToMessageBox.h"
 #include "Logger/Windows/LogToOutputWindow.h"
-#endif
 
-// InputOutput
-#include "IO/Environment.h"
-#include "IO/FileIO.h"
+#endif
 
 //OS
 #include "OS/OS.h"
+
+//Process
+#include "Process/Process.h"
+#include "Process/ProcessManager.h"
+
+//Threading
+#include "Threading/ThreadSafeMap.h"
+#include "Threading/ThreadSafeQueue.h"
+
+//Event
+#include "Event/Event.h"
+#include "Event/EventManager.h"
 
 #include <mutex>
 

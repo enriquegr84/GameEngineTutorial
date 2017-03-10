@@ -20,6 +20,7 @@
 #include "Algebra/Matrix4x4.h"
 #include "Algebra/Quaternion.h"
 #include "Algebra/Rotation.h"
+#include "Algebra/Transform.h"
 #include "Algebra/Vector.h"
 #include "Algebra/Vector2.h"
 #include "Algebra/Vector3.h"

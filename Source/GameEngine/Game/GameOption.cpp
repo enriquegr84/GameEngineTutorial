@@ -38,24 +38,22 @@
 
 #include "GameOption.h"
 
-#include "ResourceCache/XmlResource.h"
+#include "Core/IO/XmlResource.h"
 
 GameOption::GameOption()
 {
 	// set all the options to decent default valu
 	m_Level = "";
-	m_Renderer = "Direct3D9";
-	m_runFullSpeed = false;
+	m_Renderer = "Direct3D11";
 	m_soundEffectsVolume = 1.0f;			
 	m_musicVolume = 1.0f;				
 	m_expectedPlayers = 1;
 	m_listenPort = -1;					
-	eastl::string m_gameHost = "MrMike-m1710";
+	m_gameHost = "GameHost";
 	m_numAIs = 1;
 	m_maxAIs = 4;
 	m_maxPlayers = 4;
-	m_ScreenSize = Dimension2<int>(800,600);
-    m_useDevelopmentDirectories = false;
+	m_ScreenSize = Vector2<int>(800,600);
 
 	m_pRoot = NULL;
 }
@@ -64,17 +62,19 @@ void GameOption::Init(const wchar_t* xmlFileName)
 {
 	// read the XML file
 	// if needed, override the XML file with options passed in on the command line.
-	m_pRoot = XmlResourceLoader::LoadAndReturnRootXmlElement(xmlFileName);
+	m_pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(xmlFileName);
     if (!m_pRoot)
     {
-        GE_ERROR(eastl::string("Failed to load game options from file: ") + eastl::string(xmlFileName));
+        LogError(
+			eastl::string("Failed to load game options from file: ") + 
+			eastl::string(xmlFileName));
         return;
     }
 
 	if (m_pRoot)
 	{
         // Loop through each child element and load the component
-        XmlElement* pNode = NULL;
+        XMLElement* pNode = NULL;
 		pNode = m_pRoot->FirstChildElement("Graphics"); 
 		if (pNode)
 		{
@@ -82,7 +82,7 @@ void GameOption::Init(const wchar_t* xmlFileName)
 			attribute = pNode->Attribute("renderer");
 			if (attribute != "Direct3D9" && attribute != "Direct3D11")
 			{
-				GE_ASSERT(0 && "Bad Renderer setting in Graphics options.");
+				LogAssert(0 && "Bad Renderer setting in Graphics options.");
 			}
 			else
 			{
@@ -97,9 +97,6 @@ void GameOption::Init(const wchar_t* xmlFileName)
 
 			if (pNode->Attribute("height"))
 				pNode->Attribute("height", &m_ScreenSize.Height);
-
-			if (pNode->Attribute("runfullspeed"))
-				StringUtils::StringToBool(pNode->Attribute("runfullspeed"), &m_runFullSpeed);
 		}
 
 		pNode = m_pRoot->FirstChildElement("Sound"); 
@@ -120,12 +117,5 @@ void GameOption::Init(const wchar_t* xmlFileName)
 			m_listenPort = atoi(pNode->Attribute("listenPort"));
 			m_gameHost = pNode->Attribute("gameHost");
 		}
-
-        pNode = m_pRoot->FirstChildElement("ResCache");
-        if (pNode)
-        {
-			StringUtils::StringToBool(
-				pNode->Attribute("useDevelopmentDirectories"), &m_useDevelopmentDirectories);
-        }
 	}
 }

@@ -39,13 +39,15 @@
 #ifndef RENDERCOMPONENTINTERFACE_H
 #define RENDERCOMPONENTINTERFACE_H
 
+#include "ActorComponent.h"
+
 class RenderComponentInterface : public ActorComponent
 {
 public:
 //    virtual ComponentId GetComponentId(void) const override { return COMPONENT_ID; }
 
     // RenderComponentInterface
-    virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) = 0;
+    //virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) = 0;
 };
 
 

@@ -63,7 +63,6 @@
 #include "Scene/Element/Visual.h"
 #include "Scene/Element/Camera.h"
 #include "Scene/Element/Spatial.h"
-#include "Scene/Element/Transform.h"
 #include "Scene/Element/ViewVolume.h"
 #include "Scene/Element/BoundingSphere.h"
 

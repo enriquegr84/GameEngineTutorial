@@ -36,16 +36,12 @@
 //
 //========================================================================
 
-#ifndef _PROCESS_H_INCLUDED_
-#define _PROCESS_H_INCLUDED_
+#ifndef PROCESS_H
+#define PROCESS_H
 
 #include "GameEngineStd.h"
 
-#include "Debugging/Logger.h"
-
-class Process;
-typedef shared_ptr<Process> StrongProcessPtr;
-typedef weak_ptr<Process> WeakProcessPtr;
+#include "Core/Logger/Logger.h"
 
 //---------------------------------------------------------------------------------------------------------------------
 // Process class
@@ -83,7 +79,7 @@ public:
 	
 private:
 	State m_state;  // the current state of the process
-	StrongProcessPtr m_pChild;  // the child process, if any
+	eastl::shared_ptr<Process> m_pChild;  // the child process, if any
 
 public:
 	// construction
@@ -115,9 +111,9 @@ public:
 	bool IsPaused(void) const { return m_state == PAUSED; }
 
 	// child functions
-	inline void AttachChild(StrongProcessPtr pChild);
-	StrongProcessPtr RemoveChild(void);  // releases ownership of the child
-	StrongProcessPtr PeekChild(void) { return m_pChild; }  // doesn't release ownership of the child
+	inline void AttachChild(eastl::shared_ptr<Process> pChild);
+	eastl::shared_ptr<Process> RemoveChild(void);  // releases ownership of the child
+	eastl::shared_ptr<Process> PeekChild(void) { return m_pChild; }  // doesn't release ownership of the child
 
 private:
 	void SetState(State newState) { m_state = newState; }
@@ -129,17 +125,17 @@ private:
 //---------------------------------------------------------------------------------------------------------------------
 inline void Process::Succeed(void)
 {
-	GE_ASSERT(m_state == RUNNING || m_state == PAUSED);
+	LogAssert(m_state == RUNNING || m_state == PAUSED, "Fail");
 	m_state = SUCCEEDED;
 }
 
 inline void Process::Fail(void)
 {
-	GE_ASSERT(m_state == RUNNING || m_state == PAUSED);
+	LogAssert(m_state == RUNNING || m_state == PAUSED, "Fail");
 	m_state = FAILED;
 }
 
-inline void Process::AttachChild(StrongProcessPtr pChild)
+inline void Process::AttachChild(eastl::shared_ptr<Process> pChild)
 {
 	if (m_pChild)
 		m_pChild->AttachChild(pChild);
@@ -152,7 +148,7 @@ inline void Process::Pause(void)
 	if (m_state == RUNNING)
 		m_state = PAUSED;
 	else
-		GE_WARNING("Attempting to pause a process that isn't running");
+		LogWarning("Attempting to pause a process that isn't running");
 }
 
 inline void Process::UnPause(void)
@@ -160,17 +156,7 @@ inline void Process::UnPause(void)
 	if (m_state == PAUSED)
 		m_state = RUNNING;
 	else
-		GE_WARNING("Attempting to unpause a process that isn't paused");
+		LogWarning("Attempting to unpause a process that isn't paused");
 }
-
-/*
-inline StrongProcessPtr Process::GetTopLevelProcess(void)
-{
-	if (m_pParent)
-		return m_pParent->GetTopLevelProcess();
-	else
-		return this;
-}
-*/
 
 #endif

@@ -190,6 +190,15 @@
     <Filter Include="Game\View\UI">
       <UniqueIdentifier>{64c46103-8c16-4966-ad94-86e6b6f4b0e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\3rdParty\fastdelegate">
+      <UniqueIdentifier>{59300da9-2bb7-4124-bd60-b6ba478dab5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Utility">
+      <UniqueIdentifier>{cf755c7d-d0ce-4bb9-8acd-1b6fc7043324}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mathematic\Geometric">
+      <UniqueIdentifier>{05df6e4f-cf5b-4cc4-b341-7d13604d9e07}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -592,9 +601,6 @@
     <ClCompile Include="..\Graphic\Scene\Element\BoundingSphere.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Transform.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp">
       <Filter>Graphic\Scene</Filter>
     </ClCompile>
@@ -614,12 +620,6 @@
       <Filter>Game\Actor</Filter>
     </ClCompile>
     <ClCompile Include="..\Game\Actor\BaseRenderComponent.cpp">
-      <Filter>Game\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\Actor\BaseScriptComponent.cpp">
-      <Filter>Game\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\Actor\PhysicsComponent.cpp">
       <Filter>Game\Actor</Filter>
     </ClCompile>
     <ClCompile Include="..\Game\Actor\RenderComponent.cpp">
@@ -696,6 +696,30 @@
     </ClCompile>
     <ClCompile Include="..\Game\View\UI\UIRoot.cpp">
       <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\FileList.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\FileSystem.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\LimitReadFile.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\MemoryFile.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\MountPointReader.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\ReadFile.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Mathematic\Algebra\Transform.cpp">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\Actor\PhysicComponent.cpp">
+      <Filter>Game\Actor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1528,9 +1552,6 @@
     <ClInclude Include="..\Graphic\Scene\Element\BoundingSphere.h">
       <Filter>Graphic\Scene\Element</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Transform.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
     <ClInclude Include="..\Mathematic\Surface\IndexAttribute.h">
       <Filter>Mathematic\Surface</Filter>
     </ClInclude>
@@ -1663,19 +1684,10 @@
     <ClInclude Include="..\Game\Actor\BaseRenderComponent.h">
       <Filter>Game\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="..\Game\Actor\BaseScriptComponent.h">
-      <Filter>Game\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\Actor\PhysicsComponent.h">
-      <Filter>Game\Actor</Filter>
-    </ClInclude>
     <ClInclude Include="..\Game\Actor\RenderComponent.h">
       <Filter>Game\Actor</Filter>
     </ClInclude>
     <ClInclude Include="..\Game\Actor\RenderComponentInterface.h">
-      <Filter>Game\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\Actor\ScriptComponentInterface.h">
       <Filter>Game\Actor</Filter>
     </ClInclude>
     <ClInclude Include="..\Game\Actor\TransformComponent.h">
@@ -1767,6 +1779,66 @@
     </ClInclude>
     <ClInclude Include="..\Game\View\UI\UIElementTypes.h">
       <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\FileList.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\FileSystem.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\LimitReadFile.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\MemoryFile.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\MountPointReader.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\ReadFile.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\BaseFileArchive.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\BaseFileList.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\BaseFileSystem.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\BaseReadFile.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\BaseResourceFile.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\BaseResourceLoader.h">
+      <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\fastdelegate\FastDelegate.h">
+      <Filter>Core\3rdParty\fastdelegate</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\fastdelegate\FastDelegateBind.h">
+      <Filter>Core\3rdParty\fastdelegate</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\GameStd.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Utility\String.h">
+      <Filter>Core\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Utility\String.cpp">
+      <Filter>Core\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Algebra\Transform.h">
+      <Filter>Mathematic\Algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\Actor\PhysicComponent.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Geometric\Rectangle.h">
+      <Filter>Mathematic\Geometric</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

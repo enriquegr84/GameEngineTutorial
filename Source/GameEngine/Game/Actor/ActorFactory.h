@@ -39,6 +39,10 @@
 #ifndef ACTORFACTORY_H
 #define ACTORFACTORY_H
 
+#include "GameEngineStd.h"
+
+#include "Mathematic/Algebra/Transform.h"
+
 //---------------------------------------------------------------------------------------------------------------------
 // ActorFactory class
 // Chapter 6, page 161
@@ -53,14 +57,14 @@ protected:
 public:
     ActorFactory(void);
 
-    eastl::shared_ptr<Actor> CreateActor(const wchar_t* actorResource, XmlElement* overrides, 
-		const Matrix4x4* initialTransform, const ActorId serversActorId);
-	void ModifyActor(eastl::shared_ptr<Actor> pActor, XmlElement* overrides);
+    eastl::shared_ptr<Actor> CreateActor(const wchar_t* actorResource, XMLElement* overrides, 
+		const Transform* initialTransform, const ActorId serversActorId);
+	void ModifyActor(eastl::shared_ptr<Actor> pActor, XMLElement* overrides);
 
 //protected:
     // [rez] This function can be overridden by a subclass so you can create game-specific C++ components.  If you do
     // this, make sure you call the base-class version first.  If it returns NULL, you know it's not an engine component.
-    virtual eastl::shared_ptr<ActorComponent> CreateComponent(XmlElement* pData);
+    virtual eastl::shared_ptr<ActorComponent> CreateComponent(XMLElement* pData);
 
 private:
     ActorId GetNextActorId(void) { ++m_lastActorId; return m_lastActorId; }

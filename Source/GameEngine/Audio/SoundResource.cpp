@@ -418,8 +418,8 @@ bool OggResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, cons
 	shared_ptr<SoundResourceExtraData> extra = shared_ptr<SoundResourceExtraData>(new SoundResourceExtraData());
 	extra->m_SoundType = SOUND_TYPE_OGG;
 	handle->SetExtra(shared_ptr<SoundResourceExtraData>(extra));
-	IReadFile* file = (IReadFile*)rawBuffer;
-	u32 size = file->GetSize();
+	BaseReadFile* file = (BaseReadFile*)rawBuffer;
+	unsigned int size = file->GetSize();
 	eastl::vector<char> buffer(size);
 	file->Read(buffer.data(), size);
 	if (!ParseOgg(buffer.data(), size, handle))

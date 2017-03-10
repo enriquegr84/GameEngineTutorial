@@ -110,11 +110,11 @@ public:
 	virtual void Clear();
 
 	//! returns the font
-	virtual eastl::shared_ptr<UIFont> GetFont(const path& filename);
+	virtual eastl::shared_ptr<UIFont> GetFont(const eastl::string& filename);
 
 	//! add an externally loaded font
 	virtual const eastl::shared_ptr<UIFont>& AddFont(
-		const path& name, const eastl::shared_ptr<UIFont>& font);
+		const eastl::string& name, const eastl::shared_ptr<UIFont>& font);
 
 	//! Returns the element with the focus
 	virtual const eastl::shared_ptr<UIElement>& GetFocus() const;
@@ -129,7 +129,7 @@ public:
 	virtual eastl::shared_ptr<UIElementFactory> GetDefaultUIElementFactory();
 
 	//! Returns a scene node factory by index
-	virtual eastl::shared_ptr<UIElementFactory> GetUIElementFactory(u32 index) const;
+	virtual eastl::shared_ptr<UIElementFactory> GetUIElementFactory(unsigned int index) const;
 
 	//! returns the current gui skin
 	virtual const eastl::shared_ptr<UISkin>& GetSkin() const;
@@ -165,7 +165,7 @@ public:
 	virtual void RegisterUIElementFactory(const eastl::shared_ptr<UIElementFactory>& factoryToAdd);
 
 	//! Returns amount of registered scene node factories.
-	virtual u32 GetRegisteredUIElementFactoryCount() const;
+	virtual unsigned int GetRegisteredUIElementFactoryCount() const;
 
 	//! Adds a UI Element by its name
 	virtual eastl::shared_ptr<UIElement> AddUIElement(const c8* elementName,

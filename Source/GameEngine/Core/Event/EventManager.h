@@ -40,23 +40,27 @@
 #ifndef EVENTMANAGER_H
 #define EVENTMANAGER_H
 
+#include "GameEngineStd.h"
+
+#include "Core/Threading/ThreadSafeQueue.h"
+
 #include <strstream>
 
 //---------------------------------------------------------------------------------------------------------------------
 // Forward declaration & typedefs
 //---------------------------------------------------------------------------------------------------------------------
-class EventData;
+class BaseEventData;
 
-typedef unsigned long EventType;
-typedef shared_ptr<EventData> EventDataPtr;
-typedef fastdelegate::FastDelegate1<EventDataPtr> EventListenerDelegate;
-typedef concurrent_queue<EventDataPtr> ThreadSafeEventQueue;
+typedef unsigned long BaseEventType;
+typedef eastl::shared_ptr<BaseEventData> BaseEventDataPtr;
+typedef fastdelegate::FastDelegate1<BaseEventDataPtr> EventListenerDelegate;
+typedef ThreadSafeQueue<BaseEventDataPtr> ThreadSafeEventQueue;
 
 
 //---------------------------------------------------------------------------------------------------------------------
 // Macro for event registration
 //---------------------------------------------------------------------------------------------------------------------
-extern GenericObjectFactory<BaseEventData, EventType> g_eventFactory;
+extern GenericObjectFactory<BaseEventData, BaseEventType> g_eventFactory;
 #define REGISTER_EVENT(eventClass) g_eventFactory.Register<eventClass>(eventClass::sk_EventType)
 #define CREATE_EVENT(eventType) g_eventFactory.Create(eventType)
 
@@ -70,14 +74,12 @@ class EventData
 {
 public:
 	virtual ~EventData(void) {}
-	virtual const EventType& GetEventType(void) const = 0;
+	virtual const BaseEventType& GetEventType(void) const = 0;
 	virtual float GetTimeStamp(void) const = 0;
 	virtual void Serialize(std::ostrstream& out) const = 0;
     virtual void Deserialize(std::istrstream& in) = 0;
-	virtual EventDataPtr Copy(void) const = 0;
+	virtual BaseEventDataPtr Copy(void) const = 0;
     virtual const char* GetName(void) const = 0;
-
-    //GE_MEMORY_WATCHER_DECLARATION();
 };
 
 
@@ -92,7 +94,7 @@ public:
 	explicit BaseEventData(const float timeStamp = 0.0f) : m_timeStamp(timeStamp) { }
 
 	// Returns the type of the event
-	virtual const EventType& GetEventType(void) const = 0;
+	virtual const BaseEventType& GetEventType(void) const = 0;
 
 	float GetTimeStamp(void) const { return m_timeStamp; }
 
@@ -128,19 +130,19 @@ public:
 
     // Registers a delegate function that will get called when the event type is triggered.  Returns true if 
     // successful, false if not.
-    virtual bool AddListener(const EventListenerDelegate& eventDelegate, const EventType& type) = 0;
+    virtual bool AddListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type) = 0;
 
 	// Removes a delegate / event type pairing from the internal tables.  Returns false if the pairing was not found.
-	virtual bool RemoveListener(const EventListenerDelegate& eventDelegate, const EventType& type) = 0;
+	virtual bool RemoveListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type) = 0;
 
 	// Fire off event NOW.  This bypasses the queue entirely and immediately calls all delegate functions registered 
     // for the event.
-	virtual bool TriggerEvent(const EventDataPtr& pEvent) const = 0;
+	virtual bool TriggerEvent(const BaseEventDataPtr& pEvent) const = 0;
 
 	// Fire off event.  This uses the queue and will call the delegate function on the next call to VTick(), assuming
     // there's enough time.
-	virtual bool QueueEvent(const EventDataPtr& pEvent) = 0;
-	virtual bool ThreadSafeQueueEvent(const EventDataPtr& pEvent) = 0;
+	virtual bool QueueEvent(const BaseEventDataPtr& pEvent) = 0;
+	virtual bool ThreadSafeQueueEvent(const BaseEventDataPtr& pEvent) = 0;
 
 	// Find the next-available instance of the named event type and remove it from the processing queue.  This 
     // may be done up to the point that it is actively being processed ...  e.g.: is safe to happen during event
@@ -149,7 +151,7 @@ public:
 	// if allOfType is true, then all events of that type are cleared from the input queue.
 	//
 	// returns true if the event was found and removed, false otherwise
-	virtual bool AbortEvent(const EventType& type, bool allOfType = false) = 0;
+	virtual bool AbortEvent(const BaseEventType& type, bool allOfType = false) = 0;
 
 	// Allow for processing of any queued messages, optionally specify a processing time limit so that the event 
     // processing does not take too long. Note the danger of using this artificial limiter is that all messages 
@@ -170,8 +172,8 @@ const unsigned int EVENTMANAGER_NUM_QUEUES = 2;
 class EventManager : public BaseEventManager
 {
 	typedef eastl::list<EventListenerDelegate> EventListenerList;
-	typedef eastl::map<EventType, EventListenerList> EventListenerMap;
-	typedef eastl::list<EventDataPtr> EventQueue;
+	typedef eastl::map<BaseEventType, EventListenerList> EventListenerMap;
+	typedef eastl::list<BaseEventDataPtr> EventQueue;
 
 	EventListenerMap m_eventListeners;
 	EventQueue m_queues[EVENTMANAGER_NUM_QUEUES];
@@ -183,13 +185,13 @@ public:
 	explicit EventManager(const char* pName, bool setAsGlobal);
 	virtual ~EventManager(void);
 
-	virtual bool AddListener(const EventListenerDelegate& eventDelegate, const EventType& type);
-	virtual bool RemoveListener(const EventListenerDelegate& eventDelegate, const EventType& type);
+	virtual bool AddListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type);
+	virtual bool RemoveListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type);
 
-	virtual bool TriggerEvent(const EventDataPtr& pEvent) const;
-	virtual bool QueueEvent(const EventDataPtr& pEvent);
-	virtual bool ThreadSafeQueueEvent(const EventDataPtr& pEvent);
-	virtual bool AbortEvent(const EventType& type, bool allOfType = false);
+	virtual bool TriggerEvent(const BaseEventDataPtr& pEvent) const;
+	virtual bool QueueEvent(const BaseEventDataPtr& pEvent);
+	virtual bool ThreadSafeQueueEvent(const BaseEventDataPtr& pEvent);
+	virtual bool AbortEvent(const BaseEventType& type, bool allOfType = false);
 
 	virtual bool Update(unsigned long maxMillis = kINFINITE);
 };

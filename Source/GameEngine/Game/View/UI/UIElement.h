@@ -7,21 +7,10 @@
 
 #include "GameEngineStd.h"
 
-#include "Events/IEvent.h"
+#include "Application/System/EventSystem.h"
 
-#include "EUIElementTypes.h"
-#include "EUIAlignment.h"
-
-#include "Utilities\math.h"
-#include "Utilities\types.h"
-#include "Utilities\color.h"
-#include "Utilities\string.h"
-#include "Utilities\path.h"
-#include "Utilities\Vertex3.h"
-#include "Utilities\geometry.h"
-#include "Utilities\VertexIndex.h"
-#include "Debugging\Logger.h"  // this should be the first of the gcc includes since it defines GE_ASSERT()
-#include "Utilities\templates.h"
+#include "Mathematic/Algebra/Vector2.h"
+#include "Mathematic/Geometric/Rectangle.h"
 
 class BaseUI;
 class UISkin;
@@ -29,6 +18,105 @@ class UIFont;
 class UISpriteBank;
 class UIStaticText;
 class UIElementFactory;
+
+enum EUI_ALIGNMENT
+{
+	//! Aligned to parent's top or left side (default)
+	EUIA_UPPERLEFT = 0,
+	//! Aligned to parent's bottom or right side
+	EUIA_LOWERRIGHT,
+	//! Aligned to the center of parent
+	EUIA_CENTER,
+	//! Stretched to fit parent
+	EUIA_SCALE
+};
+
+//! List of all basic Irrlicht GUI elements.
+/** An IGUIElement returns this when calling IGUIElement::GetType(); */
+enum EUI_ELEMENT_TYPE
+{
+	//! A button (IGUIButton)
+	EUIET_BUTTON = 0,
+
+	//! A check box (IGUICheckBox)
+	EUIET_CHECK_BOX,
+
+	//! A combo box (IGUIComboBox)
+	EUIET_COMBO_BOX,
+
+	//! A context menu (IGUIContextMenu)
+	EUIET_CONTEXT_MENU,
+
+	//! A menu (IGUIMenu)
+	EUIET_MENU,
+
+	//! An edit box (IGUIEditBox)
+	EUIET_EDIT_BOX,
+
+	//! A file open dialog (IGUIFileOpenDialog)
+	EUIET_FILE_OPEN_DIALOG,
+
+	//! A color select open dialog (IGUIColorSelectDialog)
+	EUIET_COLOR_SELECT_DIALOG,
+
+	//! A in/out fader (IGUIInOutFader)
+	EUIET_IN_OUT_FADER,
+
+	//! An image (IGUIImage)
+	EUIET_IMAGE,
+
+	//! A list box (IGUIListBox)
+	EUIET_LIST_BOX,
+
+	//! A mesh viewer (IGUIMeshViewer)
+	EUIET_MESH_VIEWER,
+
+	//! A message box (IGUIWindow)
+	EUIET_MESSAGE_BOX,
+
+	//! A modal screen
+	EUIET_MODAL_SCREEN,
+
+	//! A scroll bar (IGUIScrollBar)
+	EUIET_SCROLL_BAR,
+
+	//! A spin box (IGUISpinBox)
+	EUIET_SPIN_BOX,
+
+	//! A static text (IGUIStaticText)
+	EUIET_STATIC_TEXT,
+
+	//! A tab (IGUITab)
+	EUIET_TAB,
+
+	//! A tab control
+	EUIET_TAB_CONTROL,
+
+	//! A Table
+	EUIET_TABLE,
+
+	//! A tool bar (IGUIToolBar)
+	EUIET_TOOL_BAR,
+
+	//! A Tree View
+	EUIET_TREE_VIEW,
+
+	//! A window
+	EUIET_WINDOW,
+
+	//! Unknown type.
+	EUIET_ELEMENT,
+
+	//! The root of the GUI
+	EUIET_ROOT,
+
+	//! Not an element, amount of elements in there
+	EUIET_COUNT,
+
+	//! This enum is never used, it only forces the compiler to compile this enumeration to 32 bit.
+	EUIET_FORCE_32_BIT = 0x7fffffff
+
+};
 
 //! Base class of all UI elements.
 class UIElement : public eastl::enable_shared_from_this<UIElement>
@@ -38,16 +126,12 @@ friend class BaseUI;
 public:
 
 	//! Constructor
-	UIElement(EUI_ELEMENT_TYPE type, s32 id, const Rect<s32>& rectangle)
+	UIElement(EUI_ELEMENT_TYPE type, int id, const Rectangle<2, int>& rectangle)
 	:	Parent(0), RelativeRect(rectangle), AbsoluteRect(rectangle), AbsoluteClippingRect(rectangle), 
 		DesiredRect(rectangle), MaxSize(0,0), MinSize(1,1), Visible(true), Enabled(true), SubElement(false), 
 		NoClip(false), ID(id), TabStop(false), TabOrder(-1), TabGroup(false), AlignLeft(EUIA_UPPERLEFT), 
 		AlignRight(EUIA_UPPERLEFT), AlignTop(EUIA_UPPERLEFT), AlignBottom(EUIA_UPPERLEFT), Type(type)
 	{
-		#ifdef _DEBUG
-		//setDebugName("UIElement");
-		#endif
-
 		Children.clear();
 	}
 
@@ -55,7 +139,7 @@ public:
 	virtual ~UIElement()
 	{
 		// delete all children
-		eastl::list<shared_ptr<UIElement>>::iterator it = Children.begin();
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
 		for (; it != Children.end(); ++it)
 		{
 			(*it)->Parent = 0;
@@ -64,7 +148,7 @@ public:
 	}
 
 	//! set the parent of the element
-	void SetParent(const shared_ptr<UIElement>& parent)
+	void SetParent(const eastl::shared_ptr<UIElement>& parent)
 	{
 		if (parent)
 		{
@@ -75,14 +159,14 @@ public:
 	}
 
 	//! Returns parent of this element.
-	const shared_ptr<UIElement>& GetParent() const
+	const eastl::shared_ptr<UIElement>& GetParent() const
 	{
 		return Parent;
 	}
 
 
 	//! Returns the relative rectangle of this element.
-	Rect<s32> GetRelativePosition() const
+	Rectangle<2, int> GetRelativePosition() const
 	{
 		return RelativeRect;
 	}
@@ -90,13 +174,14 @@ public:
 
 	//! Sets the relative rectangle of this element.
 	/** \param r The absolute position to set */
-	void SetRelativePosition(const Rect<s32>& r)
+	void SetRelativePosition(const Rectangle<2, int>& r)
 	{
 		if (Parent)
 		{
-			const Rect<s32>& r2 = Parent->GetAbsolutePosition();
+			const Rectangle<2, int>& rectangle = Parent->GetAbsolutePosition();
+			Vector2<float> dimension{ (float)rectangle.extent[0], (float)rectangle.extent[1] };
 
-			Dimension2f d((f32)(r2.GetSize().Width), (f32)(r2.GetSize().Height));
+			rectangle.GetVertices();
 
 			if (AlignLeft   == EUIA_SCALE)
 				ScaleRect.UpperLeftCorner.X = (f32)r.UpperLeftCorner.X / d.Width;
@@ -117,25 +202,25 @@ public:
 	void SetRelativePosition(const Position2i & position)
 	{
 		const Dimension2i mySize = RelativeRect.GetSize();
-		const Rect<s32> rectangle(position.X, position.Y,
+		const Rectangle<2, int> rectangle(position.X, position.Y,
 						position.X + mySize.Width, position.Y + mySize.Height);
 		SetRelativePosition(rectangle);
 	}
 
 
 	//! Sets the relative rectangle of this element as a proportion of its parent's area.
-	/** \note This method used to be 'void SetRelativePosition(const Rect<f32>& r)'
+	/** \note This method used to be 'void SetRelativePosition(const Rectangle<2, float>& r)'
 	\param r  The rectangle to set, interpreted as a proportion of the parent's area.
 	Meaningful values are in the range [0...1], unless you intend this element to spill
 	outside its parent. */
-	void SetRelativePositionProportional(const Rect<f32>& r)
+	void SetRelativePositionProportional(const Rectangle<2, float>& r)
 	{
 		if (!Parent)
 			return;
 
 		const Dimension2i& d = Parent->GetAbsolutePosition().GetSize();
 
-		DesiredRect = Rect<s32>(
+		DesiredRect = Rectangle<2, int>(
 					floor32((f32)d.Width * r.UpperLeftCorner.X),
 					floor32((f32)d.Height * r.UpperLeftCorner.Y),
 					floor32((f32)d.Width * r.LowerRightCorner.X),
@@ -148,14 +233,14 @@ public:
 
 
 	//! Gets the absolute rectangle of this element
-	Rect<s32> GetAbsolutePosition() const
+	Rectangle<2, int> GetAbsolutePosition() const
 	{
 		return AbsoluteRect;
 	}
 
 
 	//! Returns the visible area of the element.
-	Rect<s32> GetAbsoluteClippingRect() const
+	Rectangle<2, int> GetAbsoluteClippingRect() const
 	{
 		return AbsoluteClippingRect;
 	}
@@ -180,7 +265,7 @@ public:
 
 	//! Sets the maximum size allowed for this element
 	/** If set to 0,0, there is no maximum size */
-	void SetMaxSize(Dimension2u size)
+	void SetMaxSize(Vector2<unsigned int> size)
 	{
 		MaxSize = size;
 		UpdateAbsoluteTransformation();
@@ -188,7 +273,7 @@ public:
 
 
 	//! Sets the minimum size allowed for this element
-	void SetMinSize(Dimension2u size)
+	void SetMinSize(Vector2<unsigned int> size)
 	{
 		MinSize = size;
 		if (MinSize.Width < 1)
@@ -209,9 +294,9 @@ public:
 
 		if (Parent)
 		{
-			Rect<s32> r(Parent->GetAbsolutePosition());
+			Rectangle<2, int> r(Parent->GetAbsolutePosition());
 
-			Dimension2f d((f32)r.GetSize().Width, (f32)r.GetSize().Height);
+			Vector2<float> d((f32)r.GetSize().Width, (f32)r.GetSize().Height);
 
 			if (AlignLeft   == EUIA_SCALE)
 				ScaleRect.UpperLeftCorner.X = (f32)DesiredRect.UpperLeftCorner.X / d.Width;
@@ -251,7 +336,7 @@ public:
 	\return The topmost UI element at that point, or 0 if there are
 	no candidate elements at this point.
 	*/
-	shared_ptr<UIElement> GetElementFromPoint(const Position2<s32>& point)
+	shared_ptr<UIElement> GetElementFromPoint(const Position2<int>& point)
 	{
 		shared_ptr<UIElement> target = 0;
 
@@ -281,7 +366,7 @@ public:
 
 	//! Returns true if a point is within this element.
 	/** Elements with a shape other than a rectangle should override this method */
-	virtual bool IsPointInside(const Position2<s32>& point) const
+	virtual bool IsPointInside(const Position2<int>& point) const
 	{
 		return AbsoluteClippingRect.IsPointInside(point);
 	}
@@ -334,7 +419,7 @@ public:
 
 
 	//! animate the element and its children.
-	virtual void OnPostRender(u32 timeMs)
+	virtual void OnPostRender(unsigned int timeMs)
 	{
 		if ( IsVisible() )
 		{
@@ -346,7 +431,7 @@ public:
 
 
 	//! Moves this element.
-	virtual void Move(Position2<s32> absoluteMovement)
+	virtual void Move(Position2<int> absoluteMovement)
 	{
 		SetRelativePosition(DesiredRect + absoluteMovement);
 	}
@@ -414,7 +499,7 @@ public:
 	//! Sets the priority of focus when using the tab key to navigate between a group of elements.
 	/** See SetTabGroup, IsTabGroup and GetTabGroup for information on tab groups.
 	Elements with a lower number are Focused first */
-	void SetTabOrder(s32 index)
+	void SetTabOrder(int index)
 	{
 		// negative = autonumber
 		if (index < 0)
@@ -438,7 +523,7 @@ public:
 
 
 	//! Returns the number in the tab order sequence
-	s32 GetTabOrder() const
+	int GetTabOrder() const
 	{
 		return TabOrder;
 	}
@@ -522,14 +607,14 @@ public:
 
 
 	//! Returns id. Can be used to identify the element.
-	virtual s32 GetID() const
+	virtual int GetID() const
 	{
 		return ID;
 	}
 
 
 	//! Sets the id of this element
-	virtual void SetID(s32 id)
+	virtual void SetID(int id)
 	{
 		ID = id;
 	}
@@ -595,7 +680,7 @@ public:
 	should be searched too.
 	\return Returns the first element with the given id. If no element
 	with this id was found, 0 is returned. */
-	virtual shared_ptr<UIElement> GetElementFromId(s32 id, bool searchchildren=false) const
+	virtual shared_ptr<UIElement> GetElementFromId(int id, bool searchchildren=false) const
 	{
 		shared_ptr<UIElement> e = 0;
 
@@ -641,17 +726,17 @@ public:
 	\param closest: the closest match, depending on tab order and direction
 	\param includeInvisible: includes invisible elements in the search (default=false)
 	\return true if successfully found an element, false to continue searching/fail */
-	bool GetNextElement(s32 startOrder, bool reverse, bool group,
+	bool GetNextElement(int startOrder, bool reverse, bool group,
 		shared_ptr<UIElement> first, shared_ptr<UIElement> closest, bool includeInvisible=false) const
 	{
 		// we'll stop searching if we find this number
-		s32 wanted = startOrder + ( reverse ? -1 : 1 );
+		int wanted = startOrder + ( reverse ? -1 : 1 );
 		if (wanted==-2)
-			wanted = 1073741824; // maximum s32
+			wanted = 1073741824; // maximum int
 
 		eastl::list<shared_ptr<UIElement>>::const_iterator it = Children.begin();
 
-		s32 closestOrder, currentOrder;
+		int closestOrder, currentOrder;
 
 		while(it != Children.end())
 		{
@@ -787,8 +872,8 @@ protected:
 	// not virtual because needed in constructor
 	void RecalculateAbsolutePosition(bool recursive)
 	{
-		Rect<s32> parentAbsolute(0,0,0,0);
-		Rect<s32> parentAbsoluteClip;
+		Rectangle<2, int> parentAbsolute(0,0,0,0);
+		Rectangle<2, int> parentAbsoluteClip;
 		f32 fw=0.f, fh=0.f;
 
 		if (Parent)
@@ -806,8 +891,8 @@ protected:
 				parentAbsoluteClip = Parent->AbsoluteClippingRect;
 		}
 
-		const s32 diffx = parentAbsolute.GetWidth() - LastParentRect.GetWidth();
-		const s32 diffy = parentAbsolute.GetHeight() - LastParentRect.GetHeight();
+		const int diffx = parentAbsolute.GetWidth() - LastParentRect.GetWidth();
+		const int diffy = parentAbsolute.GetHeight() - LastParentRect.GetHeight();
 
 		if (AlignLeft == EUIA_SCALE || AlignRight == EUIA_SCALE)
 			fw = (f32)parentAbsolute.GetWidth();
@@ -877,17 +962,17 @@ protected:
 
 		RelativeRect = DesiredRect;
 
-		const s32 w = RelativeRect.GetWidth();
-		const s32 h = RelativeRect.GetHeight();
+		const int w = RelativeRect.GetWidth();
+		const int h = RelativeRect.GetHeight();
 
 		// make sure the desired rectangle is allowed
-		if (w < (s32)MinSize.Width)
+		if (w < (int)MinSize.Width)
 			RelativeRect.LowerRightCorner.X = RelativeRect.UpperLeftCorner.X + MinSize.Width;
-		if (h < (s32)MinSize.Height)
+		if (h < (int)MinSize.Height)
 			RelativeRect.LowerRightCorner.Y = RelativeRect.UpperLeftCorner.Y + MinSize.Height;
-		if (MaxSize.Width && w > (s32)MaxSize.Width)
+		if (MaxSize.Width && w > (int)MaxSize.Width)
 			RelativeRect.LowerRightCorner.X = RelativeRect.UpperLeftCorner.X + MaxSize.Width;
-		if (MaxSize.Height && h > (s32)MaxSize.Height)
+		if (MaxSize.Height && h > (int)MaxSize.Height)
 			RelativeRect.LowerRightCorner.Y = RelativeRect.UpperLeftCorner.Y + MaxSize.Height;
 
 		RelativeRect.Repair();
@@ -916,32 +1001,32 @@ protected:
 protected:
 
 	//! List of all children of this element
-	eastl::list<shared_ptr<UIElement>> Children;
+	eastl::list<eastl::shared_ptr<UIElement>> Children;
 
 	//! Pointer to the parent
-	shared_ptr<UIElement> Parent;
+	eastl::shared_ptr<UIElement> Parent;
 
 	//! relative rect of element
-	Rect<s32> RelativeRect;
+	Rectangle<2, int> RelativeRect;
 
 	//! absolute rect of element
-	Rect<s32> AbsoluteRect;
+	Rectangle<2, int> AbsoluteRect;
 
 	//! absolute clipping rect of element
-	Rect<s32> AbsoluteClippingRect;
+	Rectangle<2, int> AbsoluteClippingRect;
 
 	//! the rectangle the element would prefer to be,
 	//! if it was not constrained by parent or max/min size
-	Rect<s32> DesiredRect;
+	Rectangle<2, int> DesiredRect;
 
 	//! for calculating the difference when resizing parent
-	Rect<s32> LastParentRect;
+	Rectangle<2, int> LastParentRect;
 
 	//! relative scale of the element inside its parent
-	Rect<f32> ScaleRect;
+	Rectangle<2, float> ScaleRect;
 
 	//! maximum and minimum size of the element
-	Dimension2u MaxSize, MinSize;
+	Vector2<unsigned int> MaxSize, MinSize;
 
 	//! is visible?
 	bool Visible;
@@ -965,13 +1050,13 @@ protected:
 	eastl::string Name;
 
 	//! users can set this for identificating the element by integer
-	s32 ID;
+	int ID;
 
 	//! tab stop like in windows
 	bool TabStop;
 
 	//! tab order
-	s32 TabOrder;
+	int TabOrder;
 
 	//! tab groups are containers like windows, use ctrl+tab to navigate
 	bool TabGroup;
@@ -982,3 +1067,5 @@ protected:
 	//! type of element
 	EUI_ELEMENT_TYPE Type;
 };
+
+#endif

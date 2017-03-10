@@ -40,10 +40,9 @@
 #define PATHING_H
 
 #include "GameEngineStd.h"
-#include "GameEngine/interfaces.h"
 
-#include "Memory/MemoryPool.h"
-#include "Memory/MemoryMacros.h"
+#include "Core/Logger/Logger.h"
+#include "Mathematic/Algebra/Vector3.h"
 
 class PathingArc;
 class PathingNode;
@@ -67,20 +66,19 @@ const float PATHING_DEFAULT_ARC_WEIGHT = 1.0f;
 class PathingNode
 {
 	float m_tolerance;
-	Vector3f m_pos;
+	Vector3<float> m_pos;
 	PathingArcList m_arcs;
 	
 public:
-	explicit PathingNode(const Vector3f& pos, float tolerance = PATHING_DEFAULT_NODE_TOLERANCE) : m_pos(pos) { m_tolerance = tolerance; }
-	const Vector3f& GetPos(void) const { return m_pos; }
+	explicit PathingNode(const Vector3<float>& pos, float tolerance = PATHING_DEFAULT_NODE_TOLERANCE) 
+		: m_pos(pos) { m_tolerance = tolerance; }
+	const Vector3<float>& GetPos(void) const { return m_pos; }
 	float GetTolerance(void) const { return m_tolerance; }
 	void AddArc(PathingArc* pArc);
 	void GetNeighbors(PathingNodeList& outNeighbors);
 	float GetCostFromNode(PathingNode* pFromNode);
 private:
 	PathingArc* FindArc(PathingNode* pLinkedNode);
-
-    GE_MEMORYPOOL_DECLARATION(0);
 };
 
 
@@ -116,8 +114,9 @@ public:
 	PathPlan(void) { m_index = m_path.end(); }
 	
 	void ResetPath(void) { m_index = m_path.begin(); }
-	const Vector3f& GetCurrentNodePosition(void) const { GE_ASSERT(m_index != m_path.end()); return (*m_index)->GetPos(); }
-	bool CheckForNextNode(const Vector3f& pos);
+	const Vector3<float>& GetCurrentNodePosition(void) const 
+	{ LogAssert(m_index != m_path.end(), "Invalid index"); return (*m_index)->GetPos(); }
+	bool CheckForNextNode(const Vector3<float>& pos);
 	bool CheckForEnd(void);
 	
 private:
@@ -202,12 +201,12 @@ public:
 	~PathingGraph(void) { DestroyGraph(); }
 	void DestroyGraph(void);
 	
-	PathingNode* FindClosestNode(const Vector3f& pos);
-	PathingNode* FindFurthestNode(const Vector3f& pos);
+	PathingNode* FindClosestNode(const Vector3<float>& pos);
+	PathingNode* FindFurthestNode(const Vector3<float>& pos);
 	PathingNode* FindRandomNode(void);
-	PathPlan* FindPath(const Vector3f& startPoint, const Vector3f& endPoint);
-	PathPlan* FindPath(const Vector3f& startPoint, PathingNode* pGoalNode);
-	PathPlan* FindPath(PathingNode* pStartNode, const Vector3f& endPoint);
+	PathPlan* FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
+	PathPlan* FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode);
+	PathPlan* FindPath(PathingNode* pStartNode, const Vector3<float>& endPoint);
 	PathPlan* FindPath(PathingNode* pStartNode, PathingNode* pGoalNode);
 	
 	// debug functions

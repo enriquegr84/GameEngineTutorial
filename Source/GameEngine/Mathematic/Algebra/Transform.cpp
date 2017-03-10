@@ -6,10 +6,10 @@
 // File Version: 3.0.0 (2016/06/19)
 
 #include "Transform.h"
-
 #include <algorithm>
 
 Transform const Transform::IDENTITY;
+
 
 Transform::Transform()
     :
@@ -188,7 +188,7 @@ float Transform::GetNorm() const
 
     if (mIsRSMatrix)
     {
-        // A RS matrix (GE_USE_MAT_VEC) or an SR matrix (GTE_USE_VEC_MAT).
+        // A RS matrix (GE_USE_MAT_VEC) or an SR matrix (GE_USE_VEC_MAT).
         r0 = fabs(mScale[0]);
         r1 = fabs(mScale[1]);
         r2 = fabs(mScale[2]);
@@ -479,6 +479,9 @@ void Transform::Invert3x3(Matrix4x4<float> const& mat,
     invMat(2, 2) *= invDet;
 }
 
+namespace gte
+{
+
 Vector4<float> operator*(Transform const& M, Vector4<float> const& V)
 {
     return M.GetHMatrix() * V;
@@ -587,4 +590,6 @@ Transform operator*(Transform const& A, Transform const& B)
         B.GetTranslationW1());
 #endif
     return product;
+}
+
 }

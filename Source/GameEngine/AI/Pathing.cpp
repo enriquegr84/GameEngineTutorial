@@ -38,20 +38,16 @@
 
  
 #include "Pathing.h"
-#include "GameEngine/GameEngine.h"
 
-#include "OS/os.h"
-
+#include "Core/OS/OS.h"
 
 //--------------------------------------------------------------------------------------------------------
 // PathingNode
 //--------------------------------------------------------------------------------------------------------
-GE_MEMORYPOOL_DEFINITION(PathingNode);
-GE_MEMORYPOOL_AUTOINIT(PathingNode, 128);  // there are currently 81 pathing nodes generated; if you make more, you should increase this number
 
 void PathingNode::AddArc(PathingArc* pArc)
 {
-	GE_ASSERT(pArc);
+	LogAssert(pArc, "Invalid arc");
 	m_arcs.push_back(pArc);
 }
 
@@ -66,16 +62,16 @@ void PathingNode::GetNeighbors(PathingNodeList& outNeighbors)
 
 float PathingNode::GetCostFromNode(PathingNode* pFromNode)
 {
-	GE_ASSERT(pFromNode);
+	LogAssert(pFromNode, "Invalid node");
 	PathingArc* pArc = FindArc(pFromNode);
-	GE_ASSERT(pArc);
-	Vector3f diff = pFromNode->GetPos() - m_pos;
-	return pArc->GetWeight() * diff.GetLength();
+	LogAssert(pArc, "Invalid arc");
+	Vector3<float> diff = pFromNode->GetPos() - m_pos;
+	return pArc->GetWeight() * Length(diff);
 }
 
 PathingArc* PathingNode::FindArc(PathingNode* pLinkedNode)
 {
-	GE_ASSERT(pLinkedNode);
+	LogAssert(pLinkedNode, "Invalid node");
 	
 	for (PathingArcList::iterator it = m_arcs.begin(); it != m_arcs.end(); ++it)
 	{
@@ -92,8 +88,8 @@ PathingArc* PathingNode::FindArc(PathingNode* pLinkedNode)
 //--------------------------------------------------------------------------------------------------------
 void PathingArc::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
 {
-	GE_ASSERT(pNodeA);
-	GE_ASSERT(pNodeB);
+	LogAssert(pNodeA, "Invalid node");
+	LogAssert(pNodeB, "Invalid node");
 
 	m_pNodes[0] = pNodeA;
 	m_pNodes[1] = pNodeB;
@@ -101,7 +97,7 @@ void PathingArc::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
 
 PathingNode* PathingArc::GetNeighbor(PathingNode* pMe)
 {
-	GE_ASSERT(pMe);
+	LogAssert(pMe, "Invalid node");
 	
 	if (m_pNodes[0] == pMe)
 		return m_pNodes[1];
@@ -113,12 +109,12 @@ PathingNode* PathingArc::GetNeighbor(PathingNode* pMe)
 //--------------------------------------------------------------------------------------------------------
 // PathPlan
 //--------------------------------------------------------------------------------------------------------
-bool PathPlan::CheckForNextNode(const Vector3f& pos)
+bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 {
 	if (m_index == m_path.end())
 		return false;
 
-	Vector3f diff = pos - (*m_index)->GetPos();
+	Vector3<float> diff = pos - (*m_index)->GetPos();
 	
 	// DEBUG dump target orientation
 	/*
@@ -129,7 +125,7 @@ bool PathPlan::CheckForNextNode(const Vector3f& pos)
 	*/
 	// end DEBUG
 	
-	if (diff.GetLength() <= (*m_index)->GetTolerance())
+	if (Length(diff) <= (*m_index)->GetTolerance())
 	{
 		++m_index;
 		return true;
@@ -146,7 +142,7 @@ bool PathPlan::CheckForEnd(void)
 
 void PathPlan::AddNode(PathingNode* pNode)
 {
-	GE_ASSERT(pNode);
+	LogAssert(pNode, "Invalid node");
 	m_path.push_front(pNode);
 }
 
@@ -156,7 +152,7 @@ void PathPlan::AddNode(PathingNode* pNode)
 //--------------------------------------------------------------------------------------------------------
 PathPlanNode::PathPlanNode(PathingNode* pNode, PathPlanNode* pPrevNode, PathingNode* pGoalNode)
 {
-	GE_ASSERT(pNode);
+	LogAssert(pNode, "Invalid node");
 	
 	m_pPathingNode = pNode;
 	m_pPrev = pPrevNode;  // NULL is a valid value, though it should only be NULL for the start node
@@ -167,7 +163,7 @@ PathPlanNode::PathPlanNode(PathingNode* pNode, PathPlanNode* pPrevNode, PathingN
 
 void PathPlanNode::UpdatePrevNode(PathPlanNode* pPrev)
 {
-	GE_ASSERT(pPrev);
+	LogAssert(pPrev, "Invalid node");
 	m_pPrev = pPrev;
 	UpdateHeuristics();
 }
@@ -181,8 +177,8 @@ void PathPlanNode::UpdateHeuristics(void)
 		m_goal = 0;
 
 	// heuristic (h)
-	Vector3f diff = m_pPathingNode->GetPos() - m_pGoalNode->GetPos();
-	m_heuristic = diff.GetLength();
+	Vector3<float> diff = m_pPathingNode->GetPos() - m_pGoalNode->GetPos();
+	m_heuristic = Length(diff);
 
 	// cost to goal (f)
 	m_fitness = m_goal + m_heuristic;
@@ -224,8 +220,8 @@ void AStar::Destroy(void)
 //
 PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 {
-	GE_ASSERT(pStartNode);
-	GE_ASSERT(pGoalNode);
+	LogAssert(pStartNode, "Invalid node");
+	LogAssert(pGoalNode, "Invalid node");
 
 	// if the start and end nodes are the same, we're close enough to b-line to the goal
 	if (pStartNode == pGoalNode)
@@ -271,7 +267,8 @@ PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 				continue;
 			
 			// figure out the cost for this route through the node
-			float costForThisPath = pNode->GetGoal() + pNodeToEvaluate->GetCostFromNode(pNode->GetPathingNode());
+			float costForThisPath = 
+				pNode->GetGoal() + pNodeToEvaluate->GetCostFromNode(pNode->GetPathingNode());
 			bool isPathBetter = false;
 
 			// Grab the PathPlanNode if there is one.
@@ -308,7 +305,7 @@ PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 
 PathPlanNode* AStar::AddToOpenSet(PathingNode* pNode, PathPlanNode* pPrevNode)
 {
-	GE_ASSERT(pNode);
+	LogAssert(pNode, "Invalid node");
 
 	// create a new PathPlanNode if necessary
 	PathingNodeToPathPlanNodeMap::iterator it = m_nodes.find(pNode);
@@ -320,7 +317,7 @@ PathPlanNode* AStar::AddToOpenSet(PathingNode* pNode, PathPlanNode* pPrevNode)
 	}
 	else
 	{
-        GE_WARNING("Adding existing PathPlanNode to open set");
+		LogWarning("Adding existing PathPlanNode to open set");
 		pThisNode = it->second;
 		pThisNode->SetClosed(false);
 	}
@@ -333,7 +330,7 @@ PathPlanNode* AStar::AddToOpenSet(PathingNode* pNode, PathPlanNode* pPrevNode)
 
 void AStar::AddToClosedSet(PathPlanNode* pNode)
 {
-	GE_ASSERT(pNode);
+	LogAssert(pNode, "Invalid node");
 	pNode->SetClosed();
 }
 
@@ -342,7 +339,7 @@ void AStar::AddToClosedSet(PathPlanNode* pNode)
 //
 void AStar::InsertNode(PathPlanNode* pNode)
 {
-	GE_ASSERT(pNode);
+	LogAssert(pNode, "Invalid node");
 	
 	// just add the node if the open set is empty
 	if (m_openSet.empty())
@@ -368,7 +365,7 @@ void AStar::InsertNode(PathPlanNode* pNode)
 
 void AStar::ReinsertNode(PathPlanNode* pNode)
 {
-	GE_ASSERT(pNode);
+	LogAssert(pNode, "Invalid node");
 
 	for (PathPlanNodeList::iterator it = m_openSet.begin(); it != m_openSet.end(); ++it)
 	{
@@ -381,13 +378,13 @@ void AStar::ReinsertNode(PathPlanNode* pNode)
 	}
 
 	// if we get here, the node was never in the open set to begin with
-    GE_WARNING("Attemping to reinsert node that was never in the open list");
+    LogWarning("Attemping to reinsert node that was never in the open list");
 	InsertNode(pNode);
 }
 
 PathPlan* AStar::RebuildPath(PathPlanNode* pGoalNode)
 {
-	GE_ASSERT(pGoalNode);
+	LogAssert(pGoalNode, "Invalid node");
 
 	PathPlan* pPlan = new PathPlan;
 
@@ -418,7 +415,7 @@ void PathingGraph::DestroyGraph(void)
 	m_arcs.clear();
 }
 
-PathingNode* PathingGraph::FindClosestNode(const Vector3f& pos)
+PathingNode* PathingGraph::FindClosestNode(const Vector3<float>& pos)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
 	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
@@ -427,18 +424,18 @@ PathingNode* PathingGraph::FindClosestNode(const Vector3f& pos)
 	for (PathingNodeVec::iterator it = m_nodes.begin(); it != m_nodes.end(); ++it)
 	{
 		PathingNode* pNode = *it;
-		Vector3f diff = pos - pNode->GetPos();
-		if (diff.GetLength() < length)
+		Vector3<float> diff = pos - pNode->GetPos();
+		if (Length(diff) < length)
 		{
 			pClosestNode = pNode;
-			length = diff.GetLength();
+			length = Length(diff);
 		}
 	}
 	
 	return pClosestNode;
 }
 
-PathingNode* PathingGraph::FindFurthestNode(const Vector3f& pos)
+PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
 	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
@@ -447,11 +444,11 @@ PathingNode* PathingGraph::FindFurthestNode(const Vector3f& pos)
 	for (PathingNodeVec::iterator it = m_nodes.begin(); it != m_nodes.end(); ++it)
 	{
 		PathingNode* pNode = *it;
-		Vector3f diff = pos - pNode->GetPos();
-		if (diff.GetLength() > length)
+		Vector3<float> diff = pos - pNode->GetPos();
+		if (Length(diff) > length)
 		{
 			pFurthestNode = pNode;
-			length = diff.GetLength();
+			length = Length(diff);
 		}
 	}
 
@@ -464,7 +461,7 @@ PathingNode* PathingGraph::FindRandomNode(void)
 	unsigned int numNodes = (unsigned int)m_nodes.size();
 	
 	// choose a random node
-	unsigned int node = Randomizer::frand() * numNodes;
+	unsigned int node = (int)(Randomizer::FRand() * numNodes);
 	
 	// if we're in the lower half of the node list, start from the bottom
 	if (node <= numNodes / 2)
@@ -485,7 +482,7 @@ PathingNode* PathingGraph::FindRandomNode(void)
 	}
 }
 
-PathPlan* PathingGraph::FindPath(const Vector3f& startPoint, const Vector3f& endPoint)
+PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint)
 {
 	// Find the closest nodes to the start and end points.  There really should be some ray-casting 
 	// to ensure that we can actually make it to the closest node, but this is good enough for now.
@@ -494,13 +491,13 @@ PathPlan* PathingGraph::FindPath(const Vector3f& startPoint, const Vector3f& end
 	return FindPath(pStart,pGoal);
 }
 
-PathPlan* PathingGraph::FindPath(const Vector3f& startPoint, PathingNode* pGoalNode)
+PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode)
 {
 	PathingNode* pStart = FindClosestNode(startPoint);
 	return FindPath(pStart,pGoalNode);
 }
 
-PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, const Vector3f& endPoint)
+PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, const Vector3<float>& endPoint)
 {
 	PathingNode* pGoal = FindClosestNode(endPoint);
 	return FindPath(pStartNode,pGoal);
@@ -531,7 +528,7 @@ void PathingGraph::BuildTestGraph(void)
 		for (float z = -45.0f; z < 45.0f; z += 10.0f)
 		{
 			// add the new node
-			PathingNode* pNode = new PathingNode(Vector3f(x,0,z));
+			PathingNode* pNode = new PathingNode(Vector3<float>{x, 0, z});
 			m_nodes.push_back(pNode);
 			
 			// link it to the previous node
@@ -552,8 +549,8 @@ void PathingGraph::BuildTestGraph(void)
 
 void PathingGraph::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
 {
-	GE_ASSERT(pNodeA);
-	GE_ASSERT(pNodeB);
+	LogAssert(pNodeA, "Invalid node");
+	LogAssert(pNodeB, "Invalid node");
 	
 	PathingArc* pArc = new PathingArc;
 	pArc->LinkNodes(pNodeA,pNodeB);

@@ -56,9 +56,9 @@ MeshRenderComponent::MeshRenderComponent(void)
     //m_segments = 50;
 }
 
-bool MeshRenderComponent::DelegateInit(XmlElement* pData)
+bool MeshRenderComponent::DelegateInit(XMLElement* pData)
 {
-    XmlElement* pMesh = pData->FirstChildElement("Mesh");
+    XMLElement* pMesh = pData->FirstChildElement("Mesh");
 
 	m_meshTextureFile = pMesh->Attribute("texture_file");
 	m_meshModelFile = pMesh->Attribute("model_file");
@@ -113,7 +113,7 @@ eastl::shared_ptr<SceneNode> MeshRenderComponent::CreateSceneNode(void)
 	return eastl::shared_ptr<SceneNode>();
 }
 
-void MeshRenderComponent::CreateInheritedXmlElements(XmlElement* pBaseElement)
+void MeshRenderComponent::CreateInheritedXMLElements(XMLElement* pBaseElement)
 {
 	LogError("MeshRenderComponent::GenerateSubclassXml() not implemented");
 }
@@ -126,9 +126,9 @@ SphereRenderComponent::SphereRenderComponent(void)
     m_segments = 50;
 }
 
-bool SphereRenderComponent::DelegateInit(XmlElement* pData)
+bool SphereRenderComponent::DelegateInit(XMLElement* pData)
 {
-    XmlElement* pMesh = pData->FirstChildElement("Sphere");
+    XMLElement* pMesh = pData->FirstChildElement("Sphere");
     int segments = 50;
 	double radius = 1.0;
 	pMesh->Attribute("radius", &radius);
@@ -173,9 +173,9 @@ shared_ptr<SceneNode> SphereRenderComponent::CreateSceneNode(void)
 	return eastl::shared_ptr<SceneNode>();
 }
 
-void SphereRenderComponent::CreateInheritedXmlElements(XmlElement* pBaseElement)
+void SphereRenderComponent::CreateInheritedXMLElements(XMLElement* pBaseElement)
 {
-    XmlElement* pMesh = new XmlElement("Sphere");
+    XMLElement* pMesh = new XMLElement("Sphere");
 	pMesh->SetAttribute("radius", eastl::string(m_radius).c_str());
     pMesh->SetAttribute("segments", eastl::string(m_segments).c_str());
     pBaseElement->LinkEndChild(pBaseElement);
@@ -227,7 +227,7 @@ eastl::shared_ptr<SceneNode> TeapotRenderComponent::CreateSceneNode(void)
     return eastl::shared_ptr<SceneNode>();
 }
 
-void TeapotRenderComponent::CreateInheritedXmlElements(XmlElement *)
+void TeapotRenderComponent::CreateInheritedXMLElements(XMLElement *)
 {
 }
 
@@ -240,15 +240,15 @@ GridRenderComponent::GridRenderComponent(void)
     m_squares = 0;
 }
 
-bool GridRenderComponent::DelegateInit(XmlElement* pData)
+bool GridRenderComponent::DelegateInit(XMLElement* pData)
 {
-    XmlElement* pTexture = pData->FirstChildElement("Texture");
+    XMLElement* pTexture = pData->FirstChildElement("Texture");
     if (pTexture)
 	{
 		m_textureResource = pTexture->FirstChild()->Value();
 	}
 
-    XmlElement* pDivision = pData->FirstChildElement("Division");
+    XMLElement* pDivision = pData->FirstChildElement("Division");
     if (pDivision)
 	{
 		m_squares = atoi(pDivision->FirstChild()->Value());
@@ -271,7 +271,7 @@ eastl::shared_ptr<SceneNode> GridRenderComponent::CreateSceneNode(void)
 		{
 			// add this mesh scene node.
 			eastl::shared_ptr<IMesh> tangentMesh(
-				pScene->AddHillPlaneMesh("plane", Dimension2<f32>(40,40), Dimension2<u32>(sqrt((float)m_squares), sqrt((float)m_squares))));
+				pScene->AddHillPlaneMesh("plane", Dimension2<f32>(40,40), Dimension2<unsigned int>(sqrt((float)m_squares), sqrt((float)m_squares))));
 
 			eastl::shared_ptr<SceneNode> plane =
 				pScene->AddMeshSceneNode(m_pOwner->GetId(), wbrcp, 0, &transform, tangentMesh);
@@ -294,14 +294,14 @@ eastl::shared_ptr<SceneNode> GridRenderComponent::CreateSceneNode(void)
     return eastl::shared_ptr<SceneNode>();
 }
 
-void GridRenderComponent::CreateInheritedXmlElements(XmlElement *pBaseElement)
+void GridRenderComponent::CreateInheritedXMLElements(XMLElement *pBaseElement)
 {
-    XmlElement* pTextureNode = new XmlElement("Texture");
+    XMLElement* pTextureNode = new XMLElement("Texture");
     XmlText* pTextureText = new XmlText(m_textureResource.c_str());
     pTextureNode->LinkEndChild(pTextureText);
     pBaseElement->LinkEndChild(pTextureNode);
 
-    XmlElement* pDivisionNode = new XmlElement("Division");
+    XMLElement* pDivisionNode = new XMLElement("Division");
     XmlText* pDivisionText = new XmlText(eastl::string(m_squares).c_str());
     pDivisionNode->LinkEndChild(pDivisionText);
     pBaseElement->LinkEndChild(pDivisionNode);
@@ -316,10 +316,10 @@ LightRenderComponent::LightRenderComponent(void)
 
 }
 
-bool LightRenderComponent::DelegateInit(XmlElement* pData)
+bool LightRenderComponent::DelegateInit(XMLElement* pData)
 {
 	double temp;
-	XmlElement* pColor = pData->FirstChildElement("Color");
+	XMLElement* pColor = pData->FirstChildElement("Color");
 	if (pColor)
 	{
 		pColor->Attribute("r", &temp);
@@ -335,8 +335,8 @@ bool LightRenderComponent::DelegateInit(XmlElement* pData)
 		m_Props.m_DiffuseColor.a = temp;
 	}
 
-	XmlElement* pLight = pData->FirstChildElement("Light");
-    XmlElement* pAttenuationNode = pLight->FirstChildElement("Attenuation");
+	XMLElement* pLight = pData->FirstChildElement("Light");
+    XMLElement* pAttenuationNode = pLight->FirstChildElement("Attenuation");
     if (pAttenuationNode)
 	{
 		pAttenuationNode->Attribute("const", &temp);
@@ -349,7 +349,7 @@ bool LightRenderComponent::DelegateInit(XmlElement* pData)
 		m_Props.m_Attenuation.Z = (f32) temp;
 	}
 
-    XmlElement* pShapeNode = pLight->FirstChildElement("Shape");
+    XMLElement* pShapeNode = pLight->FirstChildElement("Shape");
     if (pShapeNode)
 	{
 		pShapeNode->Attribute("range", &temp);
@@ -362,7 +362,7 @@ bool LightRenderComponent::DelegateInit(XmlElement* pData)
 		m_Props.m_InnerCone = (float) temp;	
 	}
 
-	XmlElement* pAnimator = pData->FirstChildElement("Animator");
+	XMLElement* pAnimator = pData->FirstChildElement("Animator");
 	if (pAnimator)
 	{
 		m_animatorType = pAnimator->Attribute("type");
@@ -378,7 +378,7 @@ bool LightRenderComponent::DelegateInit(XmlElement* pData)
 		m_animatorSpeed = temp;
 	}
 
-	XmlElement* pBillBoard = pData->FirstChildElement("Billboard");
+	XMLElement* pBillBoard = pData->FirstChildElement("Billboard");
 	if (pBillBoard)
 	{
 		m_addBillboard=true;
@@ -387,7 +387,7 @@ bool LightRenderComponent::DelegateInit(XmlElement* pData)
 		pBillBoard->Attribute("y", &temp);
 		m_billboardSize.Height = temp;
 	
-		XmlElement* pMaterial = pBillBoard->FirstChildElement("Material");
+		XMLElement* pMaterial = pBillBoard->FirstChildElement("Material");
 		if (pMaterial)
 		{
 			m_billboardMaterial = pMaterial->Attribute("type");
@@ -437,20 +437,20 @@ eastl::shared_ptr<SceneNode> LightRenderComponent::CreateSceneNode(void)
     return eastl::shared_ptr<SceneNode>();
 }
 
-void LightRenderComponent::CreateInheritedXmlElements(XmlElement *pBaseElement)
+void LightRenderComponent::CreateInheritedXMLElements(XMLElement *pBaseElement)
 {
 	/*
-    XmlElement* pSceneNode = new XmlElement("Light");
+    XMLElement* pSceneNode = new XMLElement("Light");
 
     // attenuation
-    XmlElement* pAttenuation = new XmlElement("Attenuation");
+    XMLElement* pAttenuation = new XMLElement("Attenuation");
     pAttenuation->SetAttribute("const", eastl::string(m_Props.m_Attenuation[0]).c_str());
     pAttenuation->SetAttribute("linear", eastl::string(m_Props.m_Attenuation[1]).c_str());
     pAttenuation->SetAttribute("exp", eastl::string(m_Props.m_Attenuation[2]).c_str());
     pSceneNode->LinkEndChild(pAttenuation);
 
     // shape
-    XmlElement* pShape = new XmlElement("Shape");
+    XMLElement* pShape = new XMLElement("Shape");
     pShape->SetAttribute("range", eastl::string(m_Props.m_Range).c_str());
     pShape->SetAttribute("falloff", eastl::string(m_Props.m_Falloff).c_str());
     pShape->SetAttribute("theta", eastl::string(m_Props.m_Theta).c_str());
@@ -470,7 +470,7 @@ ParticleSystemRenderComponent::ParticleSystemRenderComponent(void)
 
 }
 
-bool ParticleSystemRenderComponent::DelegateInit(XmlElement* pData)
+bool ParticleSystemRenderComponent::DelegateInit(XMLElement* pData)
 {
     return true;
 }
@@ -501,8 +501,8 @@ eastl::shared_ptr<SceneNode> ParticleSystemRenderComponent::CreateSceneNode(void
 						Color(0,255,255,255),       // darkest color
 						Color(0,255,255,255),       // brightest color
 						800,2000,0,                         // min and max age, angle
-						Dimension2f(10.f,10.f),         // min size
-						Dimension2f(20.f,20.f)));        // max size
+						Vector2<float>(10.f,10.f),         // min size
+						Vector2<float>(20.f,20.f)));        // max size
 
 				ps->SetEmitter(em); // this grabs the emitter
 		
@@ -522,7 +522,7 @@ eastl::shared_ptr<SceneNode> ParticleSystemRenderComponent::CreateSceneNode(void
     return eastl::shared_ptr<SceneNode>();
 }
 
-void ParticleSystemRenderComponent::CreateInheritedXmlElements(XmlElement *pBaseElement)
+void ParticleSystemRenderComponent::CreateInheritedXMLElements(XMLElement *pBaseElement)
 {
 
 }
@@ -535,9 +535,9 @@ SkyRenderComponent::SkyRenderComponent(void)
 {
 }
 
-bool SkyRenderComponent::DelegateInit(XmlElement* pData)
+bool SkyRenderComponent::DelegateInit(XMLElement* pData)
 {
-    XmlElement* pTexture = pData->FirstChildElement("Texture");
+    XMLElement* pTexture = pData->FirstChildElement("Texture");
     if (pTexture)
 	{
 		m_textureResource = pTexture->FirstChild()->Value();
@@ -571,9 +571,9 @@ eastl::shared_ptr<SceneNode> SkyRenderComponent::CreateSceneNode(void)
     return eastl::shared_ptr<SceneNode>();
 }
 
-void SkyRenderComponent::CreateInheritedXmlElements(XmlElement *pBaseElement)
+void SkyRenderComponent::CreateInheritedXMLElements(XMLElement *pBaseElement)
 {
-    XmlElement* pTextureNode = new XmlElement("Texture");
+    XMLElement* pTextureNode = new XMLElement("Texture");
     XmlText* pTextureText = new XmlText(m_textureResource.c_str());
     pTextureNode->LinkEndChild(pTextureText);
     pBaseElement->LinkEndChild(pTextureNode);

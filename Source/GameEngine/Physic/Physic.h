@@ -41,6 +41,60 @@
 
 #include "GameEngineStd.h"
 
+#include "Mathematic/Algebra/Matrix4x4.h"
+
+/////////////////////////////////////////////////////////////////////////////
+// class BaseGamePhysic							- Chapter 17, page 589
+//
+//   The interface defintion for a generic physics API.
+/////////////////////////////////////////////////////////////////////////////
+class BaseGamePhysic
+{
+public:
+
+	// Initialiazation and Maintenance of the Physics World
+	virtual bool Initialize() = 0;
+	virtual void SyncVisibleScene() = 0;
+	virtual void OnUpdate(float deltaSeconds) = 0;
+
+	// Initialization of Physics Objects
+	virtual void AddSphere(float radius, eastl::weak_ptr<Actor> actor, 
+		/*const Matrix4x4<float>& initialTransform, */
+		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
+	virtual void AddBox(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> gameActor, 
+		/*const Matrix4x4<float>& initialTransform, */
+		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
+	virtual void AddPointCloud(Vector3<float> *verts, int numPoints, eastl::weak_ptr<Actor> gameActor, 
+		/*const Matrix4x4<float>& initialTransform, */
+		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
+
+	virtual void RemoveActor(ActorId id) = 0;
+
+	// Debugging
+	virtual void RenderDiagnostics() = 0;
+
+	// Physics world modifiers
+	virtual void CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) = 0;
+	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
+	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
+	virtual bool KinematicMove(const Matrix4x4<float> &mat, ActorId aid) = 0;
+
+	// Physics actor states
+	virtual void RotateY(ActorId actorId, float angleRadians, float time) = 0;
+	virtual float GetOrientationY(ActorId actorId) = 0;
+	virtual void StopActor(ActorId actorId) = 0;
+	virtual Vector3<float> GetVelocity(ActorId actorId) = 0;
+	virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel) = 0;
+	virtual Vector3<float> GetAngularVelocity(ActorId actorId) = 0;
+	virtual void SetAngularVelocity(ActorId actorId, const Vector3<float>& vel) = 0;
+	virtual void Translate(ActorId actorId, const Vector3<float>& vec) = 0;
+
+	virtual void SetTransform(const ActorId id, const Matrix4x4<float>& mat) = 0;
+	virtual Matrix4x4<float> GetTransform(const ActorId id) = 0;
+
+	virtual ~BaseGamePhysic() { };
+};
+
 extern BaseGamePhysic *CreateGamePhysics();
 extern BaseGamePhysic *CreateNullPhysics();
 

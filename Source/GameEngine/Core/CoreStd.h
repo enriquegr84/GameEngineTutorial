@@ -26,6 +26,14 @@
 
 #define WIN32_LEAN_AND_MEAN
 
+#ifndef __MSXML_LIBRARY_DEFINED__
+#define __MSXML_LIBRARY_DEFINED__
+#endif
+
+#ifndef __XMLDocument_FWD_DEFINED__
+#define __XMLDocument_FWD_DEFINED__
+#endif
+
 #include <windows.h>
 #include <windowsx.h>
 
@@ -181,13 +189,18 @@
 #include "EASTL/unique_ptr.h"
 #include "EASTL/shared_ptr.h"
 
-#include "tinyxml2.h"
+// fast delegate
+#include "FastDelegate.h"
+using fastdelegate::MakeDelegate;
 
+#include "tinyxml2.h"
 using namespace tinyxml2;
 
 #ifdef _WINDOWS_
 
 #include <direct.h>
+#include <io.h>
+#include <tchar.h>
 
 // Create a string with last error message
 inline eastl::string GetErrorMessage(HRESULT hr)
@@ -214,5 +227,42 @@ inline eastl::string GetErrorMessage(HRESULT hr)
 }
 
 #endif
+
+template <class BaseType, class SubType>
+BaseType* GenericObjectCreationFunction(void) { return new SubType; }
+
+template <class BaseClass, class IdType>
+class GenericObjectFactory
+{
+	typedef BaseClass* (*ObjectCreationFunction)(void);
+	eastl::map<IdType, ObjectCreationFunction> m_creationFunctions;
+
+public:
+	template <class SubClass>
+	bool Register(IdType id)
+	{
+		auto findIt = m_creationFunctions.find(id);
+		if (findIt == m_creationFunctions.end())
+		{
+			m_creationFunctions[id] =
+				&GenericObjectCreationFunction<BaseClass, SubClass>;
+			return true;
+		}
+
+		return false;
+	}
+
+	BaseClass* Create(IdType id)
+	{
+		auto findIt = m_creationFunctions.find(id);
+		if (findIt != m_creationFunctions.end())
+		{
+			ObjectCreationFunction pFunc = findIt->second;
+			return pFunc();
+		}
+
+		return NULL;
+	}
+};
 
 #endif

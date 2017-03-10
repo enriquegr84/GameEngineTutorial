@@ -36,16 +36,15 @@
 //
 //========================================================================
 
-#include "PhysicsDebugDrawer.h"
+#include "PhysicDebugDrawer.h"
 
-#include "GameEngine/GameEngine.h"
-#include "Scenes/Scene.h"
-#include "Graphics/IRenderer.h"
-
-void BulletDebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color)
+/*
+void BulletDebugDrawer::drawContactPoint(
+	const btVector3& PointOnB, const btVector3& normalOnB, 
+	btScalar distance, int lifeTime, const btVector3& color)
 {
-	// draw a line to represent the normal.  This only lasts one frame, and is hard to see.
-	//   it might help to linger this drawn object onscreen for a while to make it more noticeable
+	// draw a line to represent the normal. This only lasts one frame, and is hard to see.
+	// it might help to linger this drawn object onscreen for a while to make it more noticeable
 	
 	btVector3 const startPoint = PointOnB;
 	btVector3 const endPoint = PointOnB + normalOnB * distance;
@@ -55,10 +54,10 @@ void BulletDebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVect
 
 void BulletDebugDrawer::reportErrorWarning(const char* warningString)
 {
-    GE_WARNING(warningString);
+    LogWarning(warningString);
 }
 
-void BulletDebugDrawer::draw3dText(const btVector3& location, const char* texteastl::string)
+void BulletDebugDrawer::draw3dText(const btVector3& location, const char* text)
 {
 	// FUTURE WORK - BulletDebugDrawer::draw3dText needs an implementation
 }
@@ -73,14 +72,10 @@ int BulletDebugDrawer::getDebugMode() const
     return m_DebugModes;
 }
 
-void BulletDebugDrawer::ReadOptions()
+void BulletDebugDrawer::ReadOptions(XMLElement *pRoot)
 {
-	XmlElement *pRoot = g_pGameApp->m_Options.m_pRoot;
-    if (!pRoot)
-		return;
-
 	int debugModes = btIDebugDraw::DBG_NoDebug;
-	XmlElement *pNode = pRoot->FirstChildElement("PhysicsDebug");
+	XMLElement *pNode = pRoot->FirstChildElement("PhysicsDebug");
 	if (pNode)
 	{
 		if (pNode->Attribute("DrawWireFrame"))
@@ -175,12 +170,10 @@ void BulletDebugDrawer::ReadOptions()
 
 }
 
-void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& lineColor)
+void BulletDebugDrawer::drawLine(
+	const btVector3& from, const btVector3& to, const btVector3& lineColor)
 {
-	const shared_ptr<ScreenElementScene>& pScene = g_pGameApp->GetHumanView()->m_pScene;
-	const shared_ptr<IRenderer>& pRenderer = pScene->GetRenderer();
-
-	Vector3f Vector3From, Vector3To;
+	Vector3<float> Vector3From, Vector3To;
 	Vector3From.X = from.x();
 	Vector3From.Y = from.y();
 	Vector3From.Z = from.z();
@@ -191,5 +184,5 @@ void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, con
 
 	Color color(0, 255*lineColor.x(), 255*lineColor.y(), 255*lineColor.z() );
 	pRenderer->Draw3DLine(Vector3From, Vector3To, color);
-
 }
+*/

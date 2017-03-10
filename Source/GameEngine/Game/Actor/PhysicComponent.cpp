@@ -36,7 +36,7 @@
 //
 //========================================================================
 
-#include "PhysicsComponent.h"
+#include "PhysicComponent.h"
 
 // all times are units-per-second
 const float DEFAULT_MAX_VELOCITY = 7.5f;
@@ -47,10 +47,10 @@ const float DEFAULT_MAX_ANGULAR_VELOCITY = 1.2f;
 // PhysicsComponent implementation
 //---------------------------------------------------------------------------------------------------------------------
 
-const char *PhysicsComponent::g_Name = "PhysicsComponent";
+const char *PhysicComponent::g_Name = "PhysicsComponent";
 
 
-PhysicsComponent::PhysicsComponent(void)
+PhysicComponent::PhysicComponent(void)
 {
     m_RigidBodyLocation = Vector3(0.f,0.f,0.f);
 	m_RigidBodyOrientation = Vector3(0.f,0.f,0.f);
@@ -62,12 +62,12 @@ PhysicsComponent::PhysicsComponent(void)
     m_maxAngularVelocity = DEFAULT_MAX_ANGULAR_VELOCITY;
 }
 
-PhysicsComponent::~PhysicsComponent(void)
+PhysicComponent::~PhysicComponent(void)
 {
     m_pGamePhysics->RemoveActor(m_pOwner->GetId());
 }
 
-bool PhysicsComponent::Init(XmlElement* pData)
+bool PhysicComponent::Init(XMLElement* pData)
 {
     // no point in having a physics component with no game physics
 	m_pGamePhysics = g_pGameApp->GetGameLogic()->GetGamePhysics();
@@ -75,71 +75,71 @@ bool PhysicsComponent::Init(XmlElement* pData)
         return false;
 
     // shape
-    XmlElement* pShape = pData->FirstChildElement("Shape");
+    XMLElement* pShape = pData->FirstChildElement("Shape");
     if (pShape)
     {
 		m_shape = pShape->FirstChild()->Value();
     }
 
     // density
-    XmlElement* pDensity = pData->FirstChildElement("Density");
+    XMLElement* pDensity = pData->FirstChildElement("Density");
     if (pDensity)
         m_density = pDensity->FirstChild()->Value();
 
     // material
-    XmlElement* pMaterial = pData->FirstChildElement("PhysicMaterial");
+    XMLElement* pMaterial = pData->FirstChildElement("PhysicMaterial");
     if (pMaterial)
         m_material = pMaterial->FirstChild()->Value();
 
     // initial transform
-    XmlElement* pRigidBodyTransform = pData->FirstChildElement("RigidBodyTransform");
+    XMLElement* pRigidBodyTransform = pData->FirstChildElement("RigidBodyTransform");
     if (pRigidBodyTransform)
         BuildRigidBodyTransform(pRigidBodyTransform);
 
     return true;
 }
 
-XmlElement* PhysicsComponent::GenerateXml(void)
+XMLElement* PhysicComponent::GenerateXml(void)
 {
-    XmlElement* pBaseElement = new XmlElement(GetName());
+    XMLElement* pBaseElement = new XMLElement(GetName());
 
     // shape
-	XmlElement* pShape = new XmlElement("Shape");
+	XMLElement* pShape = new XMLElement("Shape");
     XmlText* pShapeText = new XmlText(m_shape.c_str());
     pShape->LinkEndChild(pShapeText);
 	pBaseElement->LinkEndChild(pShape);
 
     // density
-    XmlElement* pDensity = new XmlElement("Density");
+    XMLElement* pDensity = new XMLElement("Density");
     XmlText* pDensityText = new XmlText(m_density.c_str());
     pDensity->LinkEndChild(pDensityText);
     pBaseElement->LinkEndChild(pDensity);
 
     // material
-    XmlElement* pMaterial = new XmlElement("Material");
+    XMLElement* pMaterial = new XMLElement("Material");
     XmlText* pMaterialText = new XmlText(m_material.c_str());
     pMaterial->LinkEndChild(pMaterialText);
     pBaseElement->LinkEndChild(pMaterial);
 
     // rigid body transform
-    XmlElement* pInitialTransform = new XmlElement("RigidBodyTransform");
+    XMLElement* pInitialTransform = new XMLElement("RigidBodyTransform");
 
     // initial transform -> position
-    XmlElement* pPosition = new XmlElement("Position");
+    XMLElement* pPosition = new XMLElement("Position");
     pPosition->SetAttribute("x", eastl::string(m_RigidBodyLocation.X).c_str());
     pPosition->SetAttribute("y", eastl::string(m_RigidBodyLocation.Y).c_str());
     pPosition->SetAttribute("z", eastl::string(m_RigidBodyLocation.Z).c_str());
     pInitialTransform->LinkEndChild(pPosition);
 
     // initial transform -> orientation
-    XmlElement* pOrientation = new XmlElement("Orientation");
+    XMLElement* pOrientation = new XMLElement("Orientation");
     pOrientation->SetAttribute("yaw", eastl::string(m_RigidBodyOrientation.X).c_str());
     pOrientation->SetAttribute("pitch", eastl::string(m_RigidBodyOrientation.Y).c_str());
     pOrientation->SetAttribute("roll", eastl::string(m_RigidBodyOrientation.Z).c_str());
     pInitialTransform->LinkEndChild(pOrientation);
 
 	// initial transform -> scale 
-    XmlElement* pScale = new XmlElement("Scale");
+    XMLElement* pScale = new XMLElement("Scale");
     pScale->SetAttribute("x", eastl::string(m_RigidBodyScale.X).c_str());
     pScale->SetAttribute("y", eastl::string(m_RigidBodyScale.Y).c_str());
     pScale->SetAttribute("z", eastl::string(m_RigidBodyScale.Z).c_str());
@@ -150,7 +150,7 @@ XmlElement* PhysicsComponent::GenerateXml(void)
     return pBaseElement;
 }
 
-void PhysicsComponent::PostInit(void)
+void PhysicComponent::PostInit(void)
 {
     if (m_pOwner)
     {
@@ -169,7 +169,7 @@ void PhysicsComponent::PostInit(void)
 	}
 }
 
-void PhysicsComponent::Update(int deltaMs)
+void PhysicComponent::Update(int deltaMs)
 {
     // get the transform component
     shared_ptr<TransformComponent> pTransformComponent = 
@@ -227,12 +227,12 @@ void PhysicsComponent::Update(int deltaMs)
     }
 }
 
-void PhysicsComponent::BuildRigidBodyTransform(XmlElement* pTransformElement)
+void PhysicComponent::BuildRigidBodyTransform(XMLElement* pTransformElement)
 {
 	// FUTURE WORK Mrmike - this should be exactly the same as the TransformComponent - maybe factor into a helper method?
     LogAssert(pTransformElement);
 
-    XmlElement* pPositionElement = pTransformElement->FirstChildElement("Position");
+    XMLElement* pPositionElement = pTransformElement->FirstChildElement("Position");
     if (pPositionElement)
     {
         double x = 0;
@@ -244,7 +244,7 @@ void PhysicsComponent::BuildRigidBodyTransform(XmlElement* pTransformElement)
         m_RigidBodyLocation = Vector3(x, y, z);
     }
 
-    XmlElement* pOrientationElement = pTransformElement->FirstChildElement("Orientation");
+    XMLElement* pOrientationElement = pTransformElement->FirstChildElement("Orientation");
     if (pOrientationElement)
     {
         double yaw = 0;
@@ -256,7 +256,7 @@ void PhysicsComponent::BuildRigidBodyTransform(XmlElement* pTransformElement)
         m_RigidBodyOrientation = Vector3(yaw, pitch, roll);
     }
 
-    XmlElement* pScaleElement = pTransformElement->FirstChildElement("Scale");
+    XMLElement* pScaleElement = pTransformElement->FirstChildElement("Scale");
     if (pScaleElement)
     {
         double x = 0;
@@ -269,52 +269,52 @@ void PhysicsComponent::BuildRigidBodyTransform(XmlElement* pTransformElement)
     }
 }
 
-void PhysicsComponent::ApplyForce(const Vector3& direction, float forceNewtons)
+void PhysicComponent::ApplyForce(const Vector3& direction, float forceNewtons)
 {
     m_pGamePhysics->ApplyForce(direction, forceNewtons, m_pOwner->GetId());
 }
 
-void PhysicsComponent::ApplyTorque(const Vector3& direction, float forceNewtons)
+void PhysicComponent::ApplyTorque(const Vector3& direction, float forceNewtons)
 {
     m_pGamePhysics->ApplyTorque(direction, forceNewtons, m_pOwner->GetId());
 }
 
-bool PhysicsComponent::KinematicMove(const Matrix4x4 &transform)
+bool PhysicComponent::KinematicMove(const Matrix4x4 &transform)
 {
 	return m_pGamePhysics->KinematicMove(transform, m_pOwner->GetId());
 }
 
-void PhysicsComponent::ApplyAcceleration(float acceleration)
+void PhysicComponent::ApplyAcceleration(float acceleration)
 {
     m_acceleration = acceleration;
 }
 
-void PhysicsComponent::RemoveAcceleration(void)
+void PhysicComponent::RemoveAcceleration(void)
 {
     m_acceleration = 0;
 }
 
-void PhysicsComponent::ApplyAngularAcceleration(float acceleration)
+void PhysicComponent::ApplyAngularAcceleration(float acceleration)
 {
     m_angularAcceleration = acceleration;
 }
 
-void PhysicsComponent::RemoveAngularAcceleration(void)
+void PhysicComponent::RemoveAngularAcceleration(void)
 {
     m_angularAcceleration = 0;
 }
 
-Vector3 PhysicsComponent::GetVelocity(void)
+Vector3 PhysicComponent::GetVelocity(void)
 {
     return m_pGamePhysics->GetVelocity(m_pOwner->GetId());
 }
 
-void PhysicsComponent::SetVelocity(const Vector3& velocity)
+void PhysicComponent::SetVelocity(const Vector3& velocity)
 {
     m_pGamePhysics->SetVelocity(m_pOwner->GetId(), velocity);
 }
 
-void PhysicsComponent::RotateY(float angleRadians)
+void PhysicComponent::RotateY(float angleRadians)
 {
     shared_ptr<TransformComponent> pTransformComponent = eastl::make_shared(m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
     if (pTransformComponent)
@@ -332,7 +332,7 @@ void PhysicsComponent::RotateY(float angleRadians)
         LogError("Attempting to call RotateY() on actor with no transform component");
 }
 
-void PhysicsComponent::SetPosition(float x, float y, float z)
+void PhysicComponent::SetPosition(float x, float y, float z)
 {
     eastl::shared_ptr<TransformComponent> pTransformComponent = 
 		eastl::make_shared(m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
@@ -348,7 +348,7 @@ void PhysicsComponent::SetPosition(float x, float y, float z)
         LogError("Attempting to call RotateY() on actor with no trnasform component");
 }
 
-void PhysicsComponent::Stop(void)
+void PhysicComponent::Stop(void)
 {
     return m_pGamePhysics->StopActor(m_pOwner->GetId());
 }

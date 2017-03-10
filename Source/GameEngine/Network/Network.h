@@ -41,12 +41,12 @@
 #define NETWORK_H
 
 #include "GameEngineStd.h"
-#include "GameEngine/GameEngine.h"
+
+#include "Game/Game.h"
+#include "Core/Event/EventManager.h"
 
 #include <sys/types.h>
 #include <Winsock2.h>
-#include "Events\EventManager.h"
-
 
 #define MAX_PACKET_SIZE (256)
 #define RECV_BUFFER_SIZE (MAX_PACKET_SIZE * 512)
@@ -60,7 +60,7 @@ class NetSocket;
 
 ////////////////////////////////////////////////////
 //
-// IPacket Description
+// BasePacket Description
 //
 //    The interface class that defines a public API for 
 //    packet objects - data that is either about to be
@@ -68,13 +68,13 @@ class NetSocket;
 //
 ////////////////////////////////////////////////////
 
-class IPacket
+class BasePacket
 {
 public:
 	virtual char const * const GetType() const=0;
 	virtual char const * const GetData() const=0;
 	virtual u_long GetSize() const =0;
-	virtual ~IPacket() { }
+	virtual ~BasePacket() { }
 };
 
 ////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ public:
 //   or with repeated calls to MemCpy
 ////////////////////////////////////////////////////
 
-class BinaryPacket : public IPacket
+class BinaryPacket : public BasePacket
 {
 protected:
 	char *m_Data;
@@ -92,7 +92,7 @@ protected:
 public:
 	inline BinaryPacket(char const * const data, u_long size);
 	inline BinaryPacket(u_long size);
-	virtual ~BinaryPacket() { SAFE_DELETE(m_Data); }
+	virtual ~BinaryPacket() { delete m_Data; }
 	virtual char const * const GetType() const { return g_Type; }
 	virtual char const * const GetData() const { return m_Data; }
 	virtual u_long GetSize() const { return ntohl(*(u_long *)m_Data); }
@@ -107,7 +107,7 @@ public:
 inline BinaryPacket::BinaryPacket(char const * const data, u_long size)
 {
 	m_Data = new char[size + sizeof(u_long)];
-	GE_ASSERT(m_Data);
+	LogAssert(m_Data);
 	*(u_long *)m_Data = htonl(size+sizeof(u_long));
 	memcpy(m_Data+sizeof(u_long), data, size);
 }
@@ -115,7 +115,7 @@ inline BinaryPacket::BinaryPacket(char const * const data, u_long size)
 inline BinaryPacket::BinaryPacket(u_long size)
 {
 	m_Data = new char[size + sizeof(u_long)];
-	GE_ASSERT(m_Data);
+	LogAssert(m_Data);
 	*(u_long *)m_Data = htonl(size+sizeof(u_long));
 }
 
@@ -124,7 +124,7 @@ inline BinaryPacket::BinaryPacket(u_long size)
 //
 inline void BinaryPacket::MemCpy(char const *const data, size_t size, int destOffset)
 {
-	GE_ASSERT(size+destOffset <= GetSize()-sizeof(u_long));
+	LogAssert(size+destOffset <= GetSize()-sizeof(u_long));
 	memcpy(m_Data + destOffset + sizeof(u_long), data, size);
 }
 
@@ -153,7 +153,7 @@ public:
 class NetSocket 
 {
 	friend class BaseSocketManager;
-	typedef eastl::list< shared_ptr <IPacket> > PacketList;
+	typedef eastl::list<eastl::shared_ptr<BasePacket>> PacketList;
 
 public:
 	NetSocket();											// clients use this to initialize a NetSocket prior to calling Connect.
@@ -162,7 +162,7 @@ public:
 
 	bool Connect(unsigned int ip, unsigned int port, bool forceCoalesce = 0);
 	void SetBlocking(bool blocking);
-	void Send(shared_ptr<IPacket> pkt, bool clearTimeOut=1);
+	void Send(eastl::shared_ptr<BasePacket> pkt, bool clearTimeOut=1);
 
 	virtual int  HasOutput() { return !m_OutList.empty(); }
 	virtual void HandleOutput();
@@ -247,7 +247,7 @@ public:
 	}
 	bool IsInternal(unsigned int ipaddr);
 
-	bool Send(int sockId, shared_ptr<IPacket> packet);
+	bool Send(int sockId, eastl::shared_ptr<BasePacket> packet);
 
 	void AddToOutbound(int rc) { m_Outbound += rc; }
 	void AddToInbound(int rc) { m_Inbound += rc; }

@@ -43,23 +43,12 @@
 
  
 
-#include "PhysicsEventListener.h"
+#include "PhysicEventListener.h"
 
-#include "Physics.h"
-#include "Events/Events.h"
-#include "Scripting/LUAScripting/LuaStateManager.h"
+#include "Physic.h"
+#include "Core/Event/Event.h"
 
-const EventType EvtData_PhysTrigger_Enter::sk_EventType(0x99358c15);
-const EventType EvtData_PhysTrigger_Leave::sk_EventType(0x3f49c41f);
-const EventType EvtData_PhysCollision::sk_EventType(0x54c58d0d);
-const EventType EvtData_PhysSeparation::sk_EventType(0x3dcea6e1);
-
-
-void EvtData_PhysCollision::BuildEventData(void)
-{
-    m_eventData.AssignNewTable(LuaStateManager::Get()->GetLuaState());
-    m_eventData.SetInteger("actorA", m_ActorA);
-    m_eventData.SetInteger("actorB", m_ActorB);
-}
-
-
+const BaseEventType EvtData_PhysTrigger_Enter::sk_EventType(0x99358c15);
+const BaseEventType EvtData_PhysTrigger_Leave::sk_EventType(0x3f49c41f);
+const BaseEventType EvtData_PhysCollision::sk_EventType(0x54c58d0d);
+const BaseEventType EvtData_PhysSeparation::sk_EventType(0x3dcea6e1);

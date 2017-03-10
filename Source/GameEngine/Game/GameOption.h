@@ -45,12 +45,11 @@
 struct GameOption
 {
 	// Level option
-	eastl::wstring m_Level;
+	eastl::string m_Level;
 
 	// Rendering options
-	eastl::wstring m_Renderer;
-	bool m_runFullSpeed;
-	Dimension2<int> m_ScreenSize;
+	eastl::string m_Renderer;
+	Vector2<int> m_ScreenSize;
 
 	// Sound options
 	float m_soundEffectsVolume;			
@@ -64,11 +63,8 @@ struct GameOption
 	int m_maxAIs;
 	int m_maxPlayers;
 
-    // resource cache options
-    bool m_useDevelopmentDirectories;
-
-	// XmlElement - look at this to find other options added by the developer
-	XmlElement *m_pRoot;
+	// XMLElement - look at this to find other options added by the developer
+	XMLElement *m_pRoot;
 
 	GameOption();
 	~GameOption() { }

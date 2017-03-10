@@ -61,10 +61,10 @@ public:
 
     AudioComponent(void);
 
-    virtual XmlElement* GenerateXml(void);
+    virtual XMLElement* GenerateXml(void);
 
     // ActorComponent interface
-    virtual bool Init(XmlElement* pData) override;
+    virtual bool Init(XMLElement* pData) override;
     virtual void PostInit(void) override;
 };
 

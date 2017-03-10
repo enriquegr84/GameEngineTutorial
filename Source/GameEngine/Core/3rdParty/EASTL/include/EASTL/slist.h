@@ -95,7 +95,7 @@ namespace eastl
 		/// In debug builds, we define SListNodeBaseProxy to be the same thing as
 		/// SListNodeBase, except it is templated on the parent SListNode class.
 		/// We do this because we want users in debug builds to be able to easily
-		/// view the slist's contents in a debugger UI. We do this only in a debug
+		/// view the slist's contents in a debugger GUI. We do this only in a debug
 		/// build for the reasons described above: that SListNodeBase needs to be
 		/// as efficient as possible and not cause code bloat or extra function 
 		/// calls (inlined or not).

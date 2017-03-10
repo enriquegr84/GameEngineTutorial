@@ -9,6 +9,7 @@
 #define TRANSFORM_H
 
 #include "Core/Logger/Logger.h"
+
 #include "Mathematic/Algebra/Matrix3x3.h"
 #include "Mathematic/Algebra/Matrix4x4.h"
 #include "Mathematic/Algebra/Rotation.h"
@@ -130,7 +131,7 @@ public:
     // For M = R*S or M = S*R, the largest value of S in absolute value is
     // returned. For general M, the max-row-sum norm is returned for the
     // GE_USE_MAT_VEC convention and the max-col-sum norm is returned for
-    // the GTE_USE_VEC_MAT convetion, which is a reasonable measure of maximum
+    // the GE_USE_VEC_MAT convetion, which is a reasonable measure of maximum
     // scale of the transformation.
     float GetNorm() const;
 
@@ -140,7 +141,7 @@ public:
     // Get the inverse homogeneous matrix, recomputing it when necessary.
     // GE_USE_MAT_VEC
     //     H = {{M,T},{0,1}}, then H^{-1} = {{M^{-1},-M^{-1}*T},{0,1}}
-    // GTE_USE_VEC_MAT
+    // GE_USE_VEC_MAT
     //     H = {{M,0},{T,1}}, then H^{-1} = {{M^{-1},0},{-M^{-1}*T,1}}
     Matrix4x4<float> const& GetHInverse() const;
 

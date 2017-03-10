@@ -36,8 +36,8 @@
 //
 //========================================================================
 
-#ifndef _PROCESSMANAGER_H_INCLUDED_
-#define _PROCESSMANAGER_H_INCLUDED_
+#ifndef PROCESSMANAGER_H
+#define PROCESSMANAGER_H
 
 #include "GameEngineStd.h"
 
@@ -45,7 +45,7 @@
 
 class ProcessManager
 {
-	typedef eastl::list<StrongProcessPtr> ProcessList;
+	typedef eastl::list<eastl::shared_ptr<Process>> ProcessList;
 
 	ProcessList m_processList;
 
@@ -55,11 +55,11 @@ public:
 
 	// interface
 	unsigned int UpdateProcesses(unsigned long deltaMs);  // updates all attached processes
-	WeakProcessPtr AttachProcess(StrongProcessPtr pProcess);  // attaches a process to the process mgr
+	eastl::weak_ptr<Process> AttachProcess(eastl::shared_ptr<Process> pProcess);  // attaches a process to the process mgr
 	void AbortAllProcesses(bool immediate);
 
 	// accessors
-	unsigned int GetProcessCount(void) const { return m_processList.size(); }
+	unsigned int GetProcessCount(void) const { return (unsigned int)m_processList.size(); }
 
 private:
 	void ClearAllProcesses(void);  // should only be called by the destructor

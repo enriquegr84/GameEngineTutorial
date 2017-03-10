@@ -70,11 +70,11 @@ ActorFactory::ActorFactory(void)
     m_componentFactory.Register<BaseScriptComponent>(ActorComponent::GetIdFromName(BaseScriptComponent::g_Name));
 }
 
-eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, XmlElement *overrides, 
+eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, XMLElement *overrides, 
 	const Matrix4x4 *pInitialTransform, const ActorId serversActorId)
 {
     // Grab the root XML node
-    XmlElement* pRoot = XmlResourceLoader::LoadAndReturnRootXmlElement(actorResource);
+    XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(actorResource);
     if (!pRoot)
     {
         LogError(eastl::string("Failed to create actor from resource: ") + eastl::string(actorResource));
@@ -95,7 +95,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
     }
 
 	bool initialTransformSet = false;
-	XmlElement* pNode = pRoot->FirstChildElement();
+	XMLElement* pNode = pRoot->FirstChildElement();
 
     // Loop through each child element and load the component
     for (; pNode; pNode = pNode->NextSiblingElement())
@@ -136,7 +136,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
     return pActor;
 }
 
-eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(XmlElement* pData)
+eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(XMLElement* pData)
 {
     const char* name = pData->Value();
     eastl::shared_ptr<ActorComponent> pComponent(
@@ -163,10 +163,10 @@ eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(XmlElement* pDat
 }
 
 
-void ActorFactory::ModifyActor(eastl::shared_ptr<Actor> pActor, XmlElement* overrides)
+void ActorFactory::ModifyActor(eastl::shared_ptr<Actor> pActor, XMLElement* overrides)
 {
 	// Loop through each child element and load the component
-	XmlElement* pNode = overrides->FirstChildElement();
+	XMLElement* pNode = overrides->FirstChildElement();
 	for (; pNode; pNode = pNode->NextSiblingElement())
 	{
 		ComponentId componentId = ActorComponent::GetIdFromName(pNode->Value());

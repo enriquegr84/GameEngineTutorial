@@ -7,7 +7,7 @@
 #include "UserInterface/UserInterface.h"
 
 //! constructor
-UIRoot::UIRoot(BaseUI* ui, EUI_ELEMENT_TYPE type, s32 id, Rect<s32> rectangle)
+UIRoot::UIRoot(BaseUI* ui, EUI_ELEMENT_TYPE type, int id, Rectangle<2, int> rectangle)
 :	UIElement(type, id, rectangle), UserInterface(ui)
 {
 	#ifdef _DEBUG

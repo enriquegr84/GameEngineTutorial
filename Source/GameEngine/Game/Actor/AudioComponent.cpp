@@ -50,29 +50,29 @@ AudioComponent::AudioComponent()
 	m_volume = 100;
 }
 
-bool AudioComponent::Init(XmlElement* pData)
+bool AudioComponent::Init(XMLElement* pData)
 {
-    XmlElement* pTexture = pData->FirstChildElement("Sound");
+    XMLElement* pTexture = pData->FirstChildElement("Sound");
     if (pTexture)
 	{
 		m_audioResource = pTexture->FirstChild()->Value();
 	}
 
-	XmlElement* pLooping = pData->FirstChildElement("Looping");
+	XMLElement* pLooping = pData->FirstChildElement("Looping");
 	if (pLooping)
 	{
 		eastl::string value = pLooping->FirstChild()->Value();
 		m_looping = (value == "0") ? false : true;
 	}
 
-	XmlElement* pFadeIn = pData->FirstChildElement("FadeIn");
+	XMLElement* pFadeIn = pData->FirstChildElement("FadeIn");
 	if (pFadeIn)
 	{
 		eastl::string value = pFadeIn->FirstChild()->Value();
 		m_fadeInTime = (float)atof(value.c_str());
 	}
 
-	XmlElement* pVolume = pData->FirstChildElement("Volume");
+	XMLElement* pVolume = pData->FirstChildElement("Volume");
 	if (pVolume)
 	{
 		eastl::string value = pVolume->FirstChild()->Value();
@@ -82,27 +82,30 @@ bool AudioComponent::Init(XmlElement* pData)
 	return true;
 }
 
-XmlElement* AudioComponent::GenerateXml(void)
+XMLElement* AudioComponent::GenerateXml(void)
 {
-    XmlElement* pBaseElement = new XmlElement(GetName());
+	XMLDocument doc;
 
-	XmlElement* pSoundNode = new XmlElement("Sound");
-    XmlText* pSoundText = new XmlText(m_audioResource.c_str());
+	// base element
+    XMLElement* pBaseElement = doc.NewElement(GetName());
+
+	XMLElement* pSoundNode = new XMLElement("Sound");
+    XMLText* pSoundText = doc.NewText(m_audioResource.c_str());
     pSoundNode->LinkEndChild(pSoundText);
     pBaseElement->LinkEndChild(pSoundNode);
 
-    XmlElement* pLoopingNode = new XmlElement("Looping");
-    XmlText* pLoopingText = new XmlText(m_looping ? "1" : "0" );
+    XMLElement* pLoopingNode = new XMLElement("Looping");
+	XMLText* pLoopingText = doc.NewText(m_looping ? "1" : "0");
     pLoopingNode->LinkEndChild(pLoopingText);
     pBaseElement->LinkEndChild(pLoopingNode);
 
-    XmlElement* pFadeInNode = new XmlElement("FadeIn");
-    XmlText* pFadeInText = new XmlText( eastl::string(m_fadeInTime).c_str());
+    XMLElement* pFadeInNode = new XMLElement("FadeIn");
+	XMLText* pFadeInText = doc.NewText(eastl::to_string(m_fadeInTime).c_str());
     pFadeInNode->LinkEndChild(pFadeInText);
     pBaseElement->LinkEndChild(pFadeInNode);
 
-    XmlElement* pVolumeNode = new XmlElement("Volume");
-    XmlText* pVolumeText = new XmlText( eastl::string(m_volume).c_str());
+    XMLElement* pVolumeNode = new XMLElement("Volume");
+	XMLText* pVolumeText = doc.NewText(eastl::to_string(m_volume).c_str());
     pVolumeNode->LinkEndChild(pVolumeText);
     pBaseElement->LinkEndChild(pVolumeNode);
 
@@ -111,34 +114,18 @@ XmlElement* AudioComponent::GenerateXml(void)
 
 void AudioComponent::PostInit()
 {
-	HumanView *humanView = g_pGameApp->GetHumanView();
-	if (!humanView)
+	/*
+	// The editor can play sounds, but it shouldn't run them when AudioComponents are initialized.
+	BaseResource resource(m_audioResource);
+	eastl::shared_ptr<ResHandle> rh = g_pGameApp->m_ResCache->GetHandle(&resource);
+	eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, 0, true));
+	processManager->AttachProcess(sound);
+
+	// fade process
+	if (m_fadeInTime > 0.0f)
 	{
-		LogError("Sounds need a human view to be heard!");
-		return;
+		eastl::shared_ptr<FadeProcess> fadeProc(new FadeProcess(sound, 10000, 100)); 
+		processManager->AttachProcess(fadeProc);
 	}
-
-	ProcessManager *processManager = humanView->GetProcessManager();
-	if (!processManager)
-	{
-		LogError("Sounds need a process manager to attach!");
-		return;
-	}
-
-	if (!g_pGameApp->IsEditorRunning())
-	{
-		// The editor can play sounds, but it shouldn't run them when AudioComponents are initialized.
-
-		Resource resource(m_audioResource);
-		eastl::shared_ptr<ResHandle> rh = g_pGameApp->m_ResCache->GetHandle(&resource);
-		eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, 0, true));
-		processManager->AttachProcess(sound);
-
-		// fade process
-		if (m_fadeInTime > 0.0f)
-		{
-			shared_ptr<FadeProcess> fadeProc(new FadeProcess(sound, 10000, 100)); 
-			processManager->AttachProcess(fadeProc);
-		}
-	}
+	*/
 }

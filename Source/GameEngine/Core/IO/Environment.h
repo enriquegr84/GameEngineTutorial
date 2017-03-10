@@ -22,7 +22,7 @@ public:
 
 	//! Get the current working directory.
 	/** \return Current working directory as a string. */
-    static const eastl::string GetWorkingDirectory ();
+    static const eastl::wstring GetWorkingDirectory ();
 
 	//! Converts a relative path to an absolute (unique) path,
 	/** \param filename Possibly relative file or directory name to query.

@@ -118,12 +118,12 @@ public:
 	//RandomGenerator& GetRNG(void) { return m_Random; }
 
 	// [rez] note: don't store this strong pointer outside of this class 
-    virtual StrongActorPtr CreateActor(const eastl::string &actorResource, XmlElement *overrides, 
+    virtual StrongActorPtr CreateActor(const eastl::string &actorResource, XMLElement *overrides, 
 		const matrix4 *initialTransform=NULL, const ActorId serversActorId=INVALID_ACTOR_ID);
 
     virtual void DestroyActor(const ActorId actorId);
     virtual WeakActorPtr GetActor(const ActorId actorId);
-	virtual void ModifyActor(const ActorId actorId, XmlElement *overrides);
+	virtual void ModifyActor(const ActorId actorId, XMLElement *overrides);
 
 	virtual void MoveActor(const ActorId id, matrix4 const &mat) {}
 
@@ -158,7 +158,7 @@ protected:
     virtual ActorFactory* CreateActorFactory(void);
 
     // [rez] Override this function to do any game-specific loading.
-    virtual bool LoadGameDelegate(XmlElement* pLevelData) { return true; }
+    virtual bool LoadGameDelegate(XMLElement* pLevelData) { return true; }
 
     void MoveActorDelegate(BaseEventDataPtr pEventData);
     void RequestNewActorDelegate(BaseEventDataPtr pEventData);

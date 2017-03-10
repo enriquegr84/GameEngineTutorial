@@ -226,7 +226,7 @@ float SoundProcess::GetProgress()
 void ExplosionProcess::OnInit()
 {
 	Process::OnInit();
-	Resource resource("explosion.wav");
+	BaseResource resource("explosion.wav");
 	shared_ptr<ResHandle> srh = g_pGameApp->m_ResCache->GetHandle(&resource);
 	m_Sound.reset(new SoundProcess(srh));
 

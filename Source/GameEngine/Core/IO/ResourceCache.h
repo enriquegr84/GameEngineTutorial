@@ -41,6 +41,9 @@
 
 #include "GameEngineStd.h"
 
+#include "BaseResourceFile.h"
+#include "BaseResourceLoader.h"
+
 //
 // class BaseResourceExtraData		- Chapter 8, page 224 (see notes below)
 //
@@ -51,7 +54,7 @@
 class BaseResourceExtraData
 {
 public:
-	virtual eastl::string ToString()=0;
+	virtual eastl::wstring ToString()=0;
 };
 
 //
@@ -62,7 +65,7 @@ class ResHandle
 	friend class ResCache;
 
 protected:
-	Resource		m_resource;
+	BaseResource		m_resource;
 	void*			m_buffer;	
 	bool			m_isRawBuffer;
 	unsigned int	m_size;
@@ -70,11 +73,11 @@ protected:
 	eastl::shared_ptr<BaseResourceExtraData> m_extra;
 
 public:
-	ResHandle(Resource & resource, void *buffer, unsigned int size, bool isRawBuffer, ResCache *pResCache);
+	ResHandle(BaseResource & resource, void *buffer, unsigned int size, bool isRawBuffer, ResCache *pResCache);
 
 	virtual ~ResHandle();
 
-	const eastl::string GetName() { return m_resource.m_name; }
+	const eastl::wstring GetName() { return m_resource.m_name; }
 	unsigned int Size() const { return m_size; } 
 	bool IsRawBuffer() const { return m_isRawBuffer; }
 	void* Buffer() const { return m_buffer; }
@@ -93,8 +96,9 @@ public:
 	virtual bool UseRawFile() { return true; }
 	virtual bool DiscardRawBufferAfterLoad() { return true; }
 	virtual unsigned int GetLoadedResourceSize(void* rawBuffer, unsigned int rawSize) { return rawSize; }
-	virtual bool LoadResource(void* rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle) { return true; }
-	virtual bool MatchResourceFormat(eastl::string name){ return false; }
+	virtual bool LoadResource(
+		void* rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle) { return true; }
+	virtual bool MatchResourceFormat(eastl::wstring name){ return false; }
 
 };
 
@@ -102,7 +106,7 @@ public:
 //  class ResCache										- Chapter 8, page 225
 //
 typedef eastl::list<eastl::shared_ptr<ResHandle>> ResHandleList;					// lru list
-typedef eastl::map<eastl::string, eastl::shared_ptr<ResHandle>> ResHandleMap;		// maps indentifiers to resource data
+typedef eastl::map<eastl::wstring, eastl::shared_ptr<ResHandle>> ResHandleMap;		// maps indentifiers to resource data
 typedef eastl::list<eastl::shared_ptr<BaseResourceLoader>> ResourceLoaders;
 
 class ResCache
@@ -124,8 +128,8 @@ protected:
 	char *Allocate(unsigned int size);
 	void Free(const eastl::shared_ptr<ResHandle>& gonner);
 
-	eastl::shared_ptr<ResHandle> Load(Resource * r);
-	eastl::shared_ptr<ResHandle> Find(Resource * r);
+	eastl::shared_ptr<ResHandle> Load(BaseResource * r);
+	eastl::shared_ptr<ResHandle> Find(BaseResource * r);
 	void Update(const eastl::shared_ptr<ResHandle>& handle);
 
 	void FreeOneResource();
@@ -139,11 +143,11 @@ public:
 	
 	void RegisterLoader(const eastl::shared_ptr<BaseResourceLoader>& loader );
 	
-	bool ExistDirectory(const path& dirname);
+	bool ExistDirectory(const eastl::wstring& dirname);
 
-	bool ExistResource(Resource * r);
-	int GetResource(Resource* r, void** buffer);
-	eastl::shared_ptr<ResHandle> GetHandle(Resource * r);
+	bool ExistResource(BaseResource * r);
+	int GetResource(BaseResource* r, void** buffer);
+	eastl::shared_ptr<ResHandle> GetHandle(BaseResource * r);
 
 	int Preload(const eastl::string pattern, void (*progressCallback)(int, bool &));
 	eastl::vector<eastl::wstring> Match(const eastl::string pattern);
@@ -152,7 +156,7 @@ public:
 
     bool IsUsingDevelopmentDirectories(void) const 
 	{ 
-		GE_ASSERT(m_File); 
+		LogAssert(m_File, "Invalid file"); 
 		return m_File->IsUsingDevelopmentDirectories(); 
 	}
 

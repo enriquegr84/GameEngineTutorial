@@ -62,7 +62,7 @@ Actor::~Actor(void)
     LogAssert(m_components.empty());
 }
 
-bool Actor::Init(XmlElement* pData)
+bool Actor::Init(XMLElement* pData)
 {
 	m_type = pData->Attribute("type");
 	m_resource = pData->Attribute("resource");
@@ -96,10 +96,10 @@ void Actor::Update(int deltaMs)
 
 eastl::string Actor::ToXML()
 {
-    XmlDocument outDoc;
+    XMLDocument outDoc;
 
     // Actor element
-    XmlElement* pActorElement = new XmlElement("Actor");
+    XMLElement* pActorElement = outDoc.NewElement("Actor");
     pActorElement->SetAttribute("type", m_type.c_str());
 	pActorElement->SetAttribute("resource", m_resource.c_str());
 
@@ -107,12 +107,12 @@ eastl::string Actor::ToXML()
     for (auto it = m_components.begin(); it != m_components.end(); ++it)
     {
         eastl::shared_ptr<ActorComponent> pComponent = it->second;
-        XmlElement* pComponentElement = pComponent->GenerateXml();
+        XMLElement* pComponentElement = pComponent->GenerateXml();
         pActorElement->LinkEndChild(pComponentElement);
     }
 
     outDoc.LinkEndChild(pActorElement);
-	XmlPrinter printer;
+	XMLPrinter printer;
 	outDoc.Accept(&printer);
 
 	return printer.CStr();

@@ -39,6 +39,10 @@
 #ifndef ACTORCOMPONENT_H
 #define ACTORCOMPONENT_H
 
+#include "GameEngineStd.h"
+
+#include "Core/Utility/String.h"
+
 //---------------------------------------------------------------------------------------------------------------------
 // ActorComponent class
 // Chapter 6, page 167
@@ -54,13 +58,13 @@ public:
 	virtual ~ActorComponent(void) { m_pOwner.reset(); }
 
     // These functions are meant to be overridden by the implementation classes of the components.
-	virtual bool Init(XmlElement* pData) = 0;
+	virtual bool Init(XMLElement* pData) = 0;
 	virtual void PostInit(void) { }
 	virtual void Update(int deltaMs) { }
 	virtual void OnChanged(void) { }				// [mrmike] - added post-press
 
     // for the editor
-    virtual XmlElement* GenerateXml(void) = 0;
+    virtual XMLElement* GenerateXml(void) = 0;
 
     // This function should be overridden by the interface class.
 	virtual ComponentId GetId(void) const { return GetIdFromName(GetName()); }

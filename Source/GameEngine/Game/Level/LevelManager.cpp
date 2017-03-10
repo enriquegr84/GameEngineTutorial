@@ -17,15 +17,6 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "LevelManager.h"
-#include "Level.h"
-
-#include "GameEngine/GameEngine.h"
-/*
-#include "audio/music_manager.hpp"
-#include "config/stk_config.hpp"
-#include "io/file_manager.hpp"
-#include "tracks/track.hpp"
-*/
 
 LevelManager* level_manager = 0;
 eastl::vector<eastl::string>  LevelManager::m_level_search_path;
@@ -41,7 +32,7 @@ LevelManager::LevelManager()
 LevelManager::~LevelManager()
 {
     for(LevelList::iterator i = m_levels.begin(); i != m_levels.end(); ++i)
-        SAFE_DELETE( *i );
+        delete *i;
 }   // ~TrackManager
 
 //-----------------------------------------------------------------------------
@@ -50,7 +41,7 @@ LevelManager::~LevelManager()
  *  contains a level.
  *  \param dir The directory to add.
  */
-void LevelManager::addLevelSearchDir(const eastl::string &dir)
+void LevelManager::AddLevelSearchDir(const eastl::string &dir)
 {
     m_level_search_path.push_back(dir);
 }   // addLevelSearchDir
@@ -60,7 +51,7 @@ void LevelManager::addLevelSearchDir(const eastl::string &dir)
  *  \param ident Identifier = basename of the directory the level is in.
  *  \return      The corresponding level object, or NULL if not found
  */
-Level* LevelManager::getLevel(const eastl::string& ident) const
+Level* LevelManager::GetLevel(const eastl::string& ident) const
 {
     for(LevelList::const_iterator i = m_levels.begin(); i != m_levels.end(); ++i)
     {
@@ -76,7 +67,7 @@ Level* LevelManager::getLevel(const eastl::string& ident) const
 /** Removes all cached data from all levels. This is called when the screen
  *  resolution is changed and all textures need to be bound again.
  */
-void LevelManager::removeAllCachedData()
+void LevelManager::RemoveAllCachedData()
 {
 /*
     for(LevelList::const_iterator i = m_levels.begin(); i != m_levels.end(); ++i)
@@ -89,7 +80,7 @@ void LevelManager::removeAllCachedData()
  *  a client.
  *  \param demos List of all levels identifiers (available on a client).
  */
-void LevelManager::setUnavailableLevels(const eastl::vector<eastl::string> &levels)
+void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::string> &levels)
 {
     for(LevelList::const_iterator i = m_levels.begin(); i != m_levels.end(); ++i)
     {
@@ -109,7 +100,7 @@ void LevelManager::setUnavailableLevels(const eastl::vector<eastl::string> &leve
 //-----------------------------------------------------------------------------
 /** Returns a list with all level identifiers.
  */
-eastl::vector<eastl::string> LevelManager::getAllLevelIdentifiers()
+eastl::vector<eastl::string> LevelManager::GetAllLevelIdentifiers()
 {
     eastl::vector<eastl::string> all;
     for(LevelList::const_iterator i = m_levels.begin(); i != m_levels.end(); ++i)
@@ -122,7 +113,7 @@ eastl::vector<eastl::string> LevelManager::getAllLevelIdentifiers()
 //-----------------------------------------------------------------------------
 /** Loads all levels from the level directory (world/).
  */
-void LevelManager::loadLevelList(const eastl::string& levelname)
+void LevelManager::LoadLevelList(const eastl::string& levelname)
 {
     m_all_level_dirs.clear();
     m_level_group_names.clear();
@@ -136,17 +127,17 @@ void LevelManager::loadLevelList(const eastl::string& levelname)
 
         // First test if the directory itself contains a level:
         // ----------------------------------------------------
-        //if(loadLevel(dir)) continue;  // level found, no more tests
+        //if(LoadLevel(dir)) continue;  // level found, no more tests
 
         // Then see if a subdir of this dir contains levels
         // ------------------------------------------------
-        eastl::vector<eastl::wstring> files = 
-			g_pGameApp->m_ResCache->Match(eastl::string("world/*/") + levelname);
+		eastl::vector<eastl::string> files;
+		//=	g_pGameApp->m_ResCache->Match(eastl::string("world/*/") + levelname);
 
-        for(eastl::vector<eastl::wstring>::iterator itFile = files.begin(); 
+        for(eastl::vector<eastl::string>::iterator itFile = files.begin(); 
 			itFile != files.end(); itFile++)
         {
-            loadLevel(*itFile);
+            LoadLevel(*itFile);
         }   // for dir in dirs
     }   // for i <m_level_search_path.size()
 }  // loadLevelsList
@@ -156,12 +147,13 @@ void LevelManager::loadLevelList(const eastl::string& levelname)
  *  successfully loaded.
  *  \param dirname Name of the directory to load the level from.
  */
-bool LevelManager::loadLevel(const eastl::string& levelname)
+bool LevelManager::LoadLevel(const eastl::string& levelname)
 {
     eastl::string config_file = levelname;
+	/*
 	if (!g_pGameApp->m_pFileSystem->ExistFile(config_file))
         return false;
-
+	*/
     Level *level;
 
     try
@@ -170,8 +162,10 @@ bool LevelManager::loadLevel(const eastl::string& levelname)
     }
     catch (std::exception& e)
     {
+		/*
         fprintf(stderr, "[LevelManager] ERROR: Cannot load level <%s> : %s\n",
 			Utils::GetFileBasename(levelname).c_str(), e.what());
+		*/
         return false;
     }
 	/*
@@ -188,10 +182,10 @@ bool LevelManager::loadLevel(const eastl::string& levelname)
         return false;
     }
 	*/
-	m_all_level_dirs.push_back(g_pGameApp->m_pFileSystem->GetFileDir(levelname));
+	//m_all_level_dirs.push_back(g_pGameApp->m_pFileSystem->GetFileDir(levelname));
     m_levels.push_back(level);
     m_level_avail.push_back(true);
-    updateGroups(level);
+    UpdateGroups(level);
     return true;
 }   // loadTrack
 
@@ -199,13 +193,14 @@ bool LevelManager::loadLevel(const eastl::string& levelname)
 /** Removes a level.
  *  \param ident Identifier of the level (i.e. the name of the directory).
  */
-void LevelManager::removeLevel(const eastl::string& ident)
+void LevelManager::RemoveLevel(const eastl::string& ident)
 {
-    Level* level = getLevel(ident);
+    Level* level = GetLevel(ident);
     if (level == NULL)
     {
-        fprintf(stderr, "[LevelManager] ERROR: There is no level named '%s'!!\n", ident.c_str());
-        GE_ASSERT(false);
+		char error[128];
+        sprintf(error, "[LevelManager] ERROR: There is no level named '%s'!!\n", ident.c_str());
+        LogError(error);
         return;
     }
 
@@ -214,9 +209,9 @@ void LevelManager::removeLevel(const eastl::string& ident)
     eastl::vector<Level*>::iterator it = eastl::find(m_levels.begin(), m_levels.end(), level);
     if (it == m_levels.end())
     {
-        fprintf(stderr, 
-			"[LevelsManager] INTERNAL ERROR: Cannot find level '%s' in map!!\n", ident.c_str());
-        GE_ASSERT(false);
+		char error[128];
+		sprintf(error, "[LevelsManager] INTERNAL ERROR: Cannot find level '%s' in map!!\n", ident.c_str());
+		LogError(error);
         return;
     }
     int index = it - m_levels.begin();
@@ -226,13 +221,13 @@ void LevelManager::removeLevel(const eastl::string& ident)
 
     eastl::vector<eastl::string> &group_names = m_level_group_names;
 
-    const eastl::vector<eastl::string>& groups = level->getGroups();
+    const eastl::vector<eastl::string>& groups = level->GetGroups();
     for(unsigned int i=0; i<groups.size(); i++)
     {
         eastl::vector<int> &indices = group_2_indices[groups[i]];
         eastl::vector<int>::iterator j;
         j = eastl::find(indices.begin(), indices.end(), index);
-        GE_ASSERT(j!=indices.end());
+        LogAssert(j!=indices.end(), "error indice");
         indices.erase(j);
 
         // If the demo was the last member of a group,
@@ -242,7 +237,7 @@ void LevelManager::removeLevel(const eastl::string& ident)
             group_2_indices.erase(groups[i]);
             eastl::vector<eastl::string>::iterator it_g;
             it_g = eastl::find(group_names.begin(), group_names.end(), groups[i]);
-            GE_ASSERT(it_g!=group_names.end());
+			LogAssert(it_g!=group_names.end(), "error indice");
             group_names.erase(it_g);
         }   // if complete group must be removed
     }   // for i in groups
@@ -264,18 +259,18 @@ void LevelManager::removeLevel(const eastl::string& ident)
     m_levels.erase(it);
     m_all_level_dirs.erase(m_all_level_dirs.begin()+index);
     m_level_avail.erase(m_level_avail.begin()+index);
-    SAFE_DELETE( level );
+    delete level;
 }   // removeDemo
 
 // ----------------------------------------------------------------------------
 /** \brief Updates the groups after a level was read in.
   * \param demo Pointer to the new level, whose groups are now analysed.
   */
-void LevelManager::updateGroups(const Level* level)
+void LevelManager::UpdateGroups(const Level* level)
 {
     //if (level->isInternal()) return;
 
-    const eastl::vector<eastl::string>& new_groups = level->getGroups();
+    const eastl::vector<eastl::string>& new_groups = level->GetGroups();
 
     Group2Indices &group_2_indices = m_level_groups;
 

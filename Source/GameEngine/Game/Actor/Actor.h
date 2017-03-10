@@ -39,6 +39,8 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 
+#include "Game/GameStd.h"
+
 typedef eastl::string ActorType;
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -65,7 +67,7 @@ public:
     explicit Actor(ActorId id);
     ~Actor(void);
 
-    bool Init(XmlElement* pData);
+    bool Init(XMLElement* pData);
     void PostInit(void);
     void Destroy(void);
     void Update(int deltaMs);

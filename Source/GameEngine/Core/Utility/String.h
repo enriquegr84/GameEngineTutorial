@@ -1,9 +1,9 @@
 //========================================================================
-// ScriptComponentInterface.h - Interface for script components
+// String.h : Defines some useful string utility functions
 //
-// Part of the GameCode4 Application
+// Part of the GameEngine Application
 //
-// GameCode4 is the sample application that encapsulates much of the source code
+// GameEngine is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
 // "Rez" Graham, published by Charles River Media. 
 // ISBN-10: 1133776574 | ISBN-13: 978-1133776574
@@ -17,7 +17,7 @@
 // There's a companion web site at http://www.mcshaffry.com/GameCode/
 // 
 // The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/gamecode4/
+//    http://code.google.com/p/GameEngine/
 //
 // (c) Copyright 2012 Michael L. McShaffry and David Graham
 //
@@ -36,23 +36,58 @@
 //
 //========================================================================
 
-#ifndef SCRIPTCOMPONENTINTERFACE_H
-#define SCRIPTCOMPONENTINTERFACE_H
+#ifndef STRING_H
+#define STRING_H
 
-#include "ActorComponent.h"
+#include "EASTL/string.h"
 
-//---------------------------------------------------------------------------------------------------------------------
-// This component is essentially a placeholder for the script representation of the entity.  The engine doesn't do 
-// much (if anything) with it, hence the lack of interface.
-//---------------------------------------------------------------------------------------------------------------------
-class ScriptComponentInterface : public ActorComponent
+//	A hashed string.  It retains the initial (ANSI) string in 
+//	addition to the hash value for easy reference.
+
+// class HashedString				- Chapter 10, page 274
+class HashedString
 {
 public:
-//    static ComponentId COMPONENT_ID;
-//    virtual ComponentId GetComponentId(void) const { return COMPONENT_ID; }
+	explicit HashedString(char const * const pIdentstring)
+		: m_ident(hash_name(pIdentstring)), m_identStr(pIdentstring)
+	{
+	}
+
+	unsigned long GetHashValue(void) const
+	{
+
+		return reinterpret_cast<unsigned long>(m_ident);
+	}
+
+	const eastl::string & GetStr() const
+	{
+		return m_identStr;
+	}
+
+	void* hash_name(char const *  pIdentStr);
+
+	bool operator< (HashedString const & o) const
+	{
+		bool r = (GetHashValue() < o.GetHashValue());
+		return r;
+	}
+
+	bool operator== (HashedString const & o) const
+	{
+		bool r = (GetHashValue() == o.GetHashValue());
+		return r;
+	}
+
+private:
+
+	// note: m_ident is stored as a void* not an int, so that in
+	// the debugger it will show up as hex-values instead of
+	// integer values. This is a bit more representative of what
+	// we're doing here and makes it easy to allow external code
+	// to assign event types as desired.
+
+	void * m_ident;
+	eastl::string m_identStr;
 };
 
-
 #endif
-
-

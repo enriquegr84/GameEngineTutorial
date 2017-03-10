@@ -39,27 +39,37 @@
 #ifndef TRANSFORMCOMPONENT_H
 #define TRANSFORMCOMPONENT_H
 
-//---------------------------------------------------------------------------------------------------------------------
-// This component implementation is a very simple representation of the physical aspect of an actor.  It just defines 
-// the transform and doesn't register with the physics system at all.
-//---------------------------------------------------------------------------------------------------------------------
+#include "ActorComponent.h"
+
+#include "Mathematic/Algebra/Transform.h"
+
+//---------------------------------------------------------------------------------------------------
+// This component implementation is a very simple representation of the physical aspect of an actor.
+// It just defines the transform and doesn't register with the physics system at all.
+//---------------------------------------------------------------------------------------------------
 class TransformComponent : public ActorComponent
 {
-    Matrix4x4 m_transform;
+    Transform m_transform;
+
 public:
 	static const char* g_Name;
 	virtual const char* GetName() const { return g_Name; }
 
-    TransformComponent(void) : m_transform(g_IdentityMatrix4) { }
-    virtual bool Init(XmlElement* pData) override;
-    virtual XmlElement* GenerateXml(void) override;
+	TransformComponent(void) { m_transform.MakeIdentity(); }
+    virtual bool Init(XMLElement* pData) override;
+    virtual XMLElement* GenerateXml(void) override;
 
     // transform functions
-	Matrix4x4 GetTransform(void) const { return m_transform; }
-    void SetTransform(const Matrix4x4& newTransform) { m_transform = newTransform; }
-    Vector3 GetPosition(void) const { return m_transform.GetTranslation(); }
-    void SetPosition(const Vector3& pos) { m_transform.SetTranslation(pos); }
-    Vector3 GetLookAt(void) const { return m_transform.GetRotationDegrees(); }
+	Transform GetTransform(void) const { return m_transform; }
+    void SetTransform(const Transform& newTransform) { m_transform = newTransform; }
+    Vector3<float> GetPosition(void) const { return m_transform.GetTranslation(); }
+    void SetPosition(const Vector3<float>& pos) { m_transform.SetTranslation(pos); }
+	EulerAngles<float> GetLookAt(void) const
+	{ 
+		EulerAngles<float> eulerAngles;
+		m_transform.GetRotation(eulerAngles); 
+		return eulerAngles;
+	}
 };
 
 #endif

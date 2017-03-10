@@ -10,7 +10,7 @@
 
 #include "Graphic/Scene/Visibility/CullingPlane.h"
 
-#include "Transform.h"
+#include "Mathematic/Algebra/Transform.h"
 
 
 class GRAPHIC_ITEM BoundingSphere
@@ -47,8 +47,7 @@ public:
     // Transform the sphere.  If the transform has nonuniform scaling, the
     // resulting object is an ellipsoid.  A sphere is generated to contain
     // the ellipsoid.
-    void TransformBy(Transform const& transform,
-        BoundingSphere& sphere) const;
+    void TransformBy(Transform const& transform, BoundingSphere& sphere) const;
 
     // This function is valid only for 3-channel points (x,y,z) or 4-channel
     // vectors (x,y,z,0) or 4-channel points (x,y,z,1).  In all cases, the

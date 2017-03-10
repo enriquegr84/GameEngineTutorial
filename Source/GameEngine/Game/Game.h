@@ -1,5 +1,5 @@
 //========================================================================
-// Interfaces.h : Defines interface classes defined throughout the book
+// Game.h : Defines game interface classes
 //
 // Part of the GameEngine Application
 //
@@ -49,19 +49,53 @@
 #include "Actor/AudioComponent.h"
 #include "Actor/TransformComponent.h"
 #include "Actor/RenderComponent.h"
-#include "Actor/PhysicsComponent.h"
-#include "Actor/BaseScriptComponent.h"
+#include "Actor/PhysicComponent.h"
 
-#include "Mathematic/Algebra/Matrix4x4.h"
+#include "Level/Level.h"
+#include "Level/LevelManager.h"
 
-class Actor;
-class ActorComponent;
+#include "View/HumanView.h"
+#include "View/UI/UserInterface.h"
 
-typedef unsigned int ActorId;
-typedef unsigned int ComponentId;
+#include "Application/System/EventSystem.h"
 
-const ActorId INVALID_ACTOR_ID = 0;
-const ComponentId INVALID_COMPONENT_ID = 0;
+#include "Mathematic/Algebra/Transform.h"
+
+class BaseGamePhysic;
+
+class BaseGameLogic
+{
+public:
+	virtual eastl::weak_ptr<Actor> GetActor(const ActorId id) = 0;
+	virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource, XMLElement *overrides,
+		const Matrix4x4<float> *initialTransform = NULL, const ActorId serversActorId = INVALID_ACTOR_ID) = 0;
+	virtual void DestroyActor(const ActorId actorId) = 0;
+	virtual bool LoadGame(const wchar_t* levelResource) = 0;
+	virtual void SetProxy() = 0;
+	virtual void OnUpdate(float time, float elapsedTime) = 0;
+	virtual void ChangeState(enum BaseGameState newState) = 0;
+	virtual void MoveActor(const ActorId id, Transform const &transform) = 0;
+	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) = 0;
+};
+
+class BaseGameView
+{
+public:
+	virtual bool OnRestore() = 0;
+	virtual void OnRender(double fTime, float fElapsedTime) = 0;
+	virtual void OnUpdate(unsigned long deltaMs) = 0;
+	virtual void OnAnimate(unsigned int uTime) = 0;
+
+	virtual bool OnLostDevice() = 0;
+	virtual GameViewType GetType() = 0;
+	virtual GameViewId GetId() const = 0;
+	virtual void OnAttach(GameViewId vid, ActorId aid) = 0;
+
+	virtual bool OnMsgProc(const Event& event) = 0;
+
+
+	virtual ~BaseGameView() { };
+};
 
 //
 // class BaseScreenElement							- Chapter 10, page 285
@@ -86,55 +120,6 @@ public:
 
 	virtual ~BaseScreenElement() { };
 	virtual bool const operator <(BaseScreenElement const &other) { return GetZOrder() < other.GetZOrder(); }
-};
-
-
-class BaseGamePhysic;
-
-class BaseGameLogic
-{
-public:
-	virtual eastl::weak_ptr<Actor> GetActor(const ActorId id) = 0;
-	virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource, XmlElement *overrides,
-		const Matrix4x4<float> *initialTransform = NULL, const ActorId serversActorId = INVALID_ACTOR_ID) = 0;
-	virtual void DestroyActor(const ActorId actorId) = 0;
-	virtual bool LoadGame(const wchar_t* levelResource) = 0;
-	virtual void SetProxy() = 0;
-	virtual void OnUpdate(float time, float elapsedTime) = 0;
-	virtual void ChangeState(enum BaseGameState newState) = 0;
-	virtual void MoveActor(const ActorId id, Matrix4x4<float> const &mat) = 0;
-	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) = 0;
-};
-
-enum GameViewType
-{
-	GameView_Human,
-	GameView_Remote,
-	GameView_AI,
-	GameView_Recorder,
-	GameView_Other
-};
-
-typedef unsigned int GameViewId;
-extern const GameViewId InvalidGameViewId;
-
-class BaseGameView
-{
-public:
-	virtual bool OnRestore() = 0;
-	virtual void OnRender(double fTime, float fElapsedTime) = 0;
-	virtual void OnUpdate(unsigned long deltaMs) = 0;
-	virtual void OnAnimate(unsigned int uTime) = 0;
-
-	virtual bool OnLostDevice() = 0;
-	virtual GameViewType GetType() = 0;
-	virtual GameViewId GetId() const = 0;
-	virtual void OnAttach(GameViewId vid, ActorId aid) = 0;
-
-	virtual bool OnMsgProc(const Event& event) = 0;
-
-
-	virtual ~BaseGameView() { };
 };
 
 #endif

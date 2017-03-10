@@ -12,6 +12,8 @@
 #include "Application.h"
 
 #include "Game/Game.h"
+#include "Game/GameOption.h"
+
 #include "System/System.h"
 #include "Graphic/Renderer/Renderer.h"
 
@@ -88,7 +90,7 @@ protected:
 
 	HumanView* GetHumanView();	// it was convenient to grab the HumanView attached to the game.
 
-	void InitHumanViews(XmlElement* pRoot);
+	void InitHumanViews(XMLElement* pRoot);
 	const eastl::list<eastl::shared_ptr<BaseGameView>>& GetGameViews() { return mGameViews; }
 	void AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId = INVALID_ACTOR_ID);
 	void RemoveView(const eastl::shared_ptr<BaseGameView>& pView);

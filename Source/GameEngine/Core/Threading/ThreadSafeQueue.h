@@ -5,8 +5,8 @@
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // File Version: 3.0.0 (2016/06/19)
 
-#ifndef THREADSAFEMAP_H
-#define THREADSAFEMAP_H
+#ifndef THREADSAFEQUEUE_H
+#define THREADSAFEQUEUE_H
 
 #include "Core/CoreStd.h"
 

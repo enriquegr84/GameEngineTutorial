@@ -46,6 +46,12 @@
     <ClCompile Include="..\Core\Event\EventManager.cpp" />
     <ClCompile Include="..\Core\IO\Environment.cpp" />
     <ClCompile Include="..\Core\IO\FileIO.cpp" />
+    <ClCompile Include="..\Core\IO\FileList.cpp" />
+    <ClCompile Include="..\Core\IO\FileSystem.cpp" />
+    <ClCompile Include="..\Core\IO\LimitReadFile.cpp" />
+    <ClCompile Include="..\Core\IO\MemoryFile.cpp" />
+    <ClCompile Include="..\Core\IO\MountPointReader.cpp" />
+    <ClCompile Include="..\Core\IO\ReadFile.cpp" />
     <ClCompile Include="..\Core\IO\ResourceCache.cpp" />
     <ClCompile Include="..\Core\IO\XmlResource.cpp" />
     <ClCompile Include="..\Core\Logger\Logger.cpp" />
@@ -63,8 +69,7 @@
     <ClCompile Include="..\Game\Actor\ActorFactory.cpp" />
     <ClCompile Include="..\Game\Actor\AudioComponent.cpp" />
     <ClCompile Include="..\Game\Actor\BaseRenderComponent.cpp" />
-    <ClCompile Include="..\Game\Actor\BaseScriptComponent.cpp" />
-    <ClCompile Include="..\Game\Actor\PhysicsComponent.cpp" />
+    <ClCompile Include="..\Game\Actor\PhysicComponent.cpp" />
     <ClCompile Include="..\Game\Actor\RenderComponent.cpp" />
     <ClCompile Include="..\Game\Actor\TransformComponent.cpp" />
     <ClCompile Include="..\Game\BaseGameLogic.cpp" />
@@ -163,7 +168,6 @@
     <ClCompile Include="..\Graphic\Scene\Element\Camera.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Node.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Spatial.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Element\Transform.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ViewVolume.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Visual.cpp" />
     <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp" />
@@ -183,6 +187,7 @@
     <ClCompile Include="..\Graphic\State\DrawingState.cpp" />
     <ClCompile Include="..\Graphic\State\RasterizerState.cpp" />
     <ClCompile Include="..\Graphic\State\SamplerState.cpp" />
+    <ClCompile Include="..\Mathematic\Algebra\Transform.cpp" />
     <ClCompile Include="..\Mathematic\Arithmetic\BitHacks.cpp" />
     <ClCompile Include="..\Network\Network.cpp" />
     <ClCompile Include="..\Physic\Physic.cpp" />
@@ -330,13 +335,27 @@
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_atomic.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_thread.h" />
+    <ClInclude Include="..\Core\3rdParty\fastdelegate\FastDelegate.h" />
+    <ClInclude Include="..\Core\3rdParty\fastdelegate\FastDelegateBind.h" />
     <ClInclude Include="..\Core\3rdParty\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\Core\Core.h" />
     <ClInclude Include="..\Core\CoreStd.h" />
     <ClInclude Include="..\Core\Event\Event.h" />
     <ClInclude Include="..\Core\Event\EventManager.h" />
+    <ClInclude Include="..\Core\IO\BaseResourceFile.h" />
+    <ClInclude Include="..\Core\IO\BaseResourceLoader.h" />
     <ClInclude Include="..\Core\IO\Environment.h" />
     <ClInclude Include="..\Core\IO\FileIO.h" />
+    <ClInclude Include="..\Core\IO\FileList.h" />
+    <ClInclude Include="..\Core\IO\FileSystem.h" />
+    <ClInclude Include="..\Core\IO\BaseFileArchive.h" />
+    <ClInclude Include="..\Core\IO\BaseFileList.h" />
+    <ClInclude Include="..\Core\IO\BaseFileSystem.h" />
+    <ClInclude Include="..\Core\IO\BaseReadFile.h" />
+    <ClInclude Include="..\Core\IO\LimitReadFile.h" />
+    <ClInclude Include="..\Core\IO\MemoryFile.h" />
+    <ClInclude Include="..\Core\IO\MountPointReader.h" />
+    <ClInclude Include="..\Core\IO\ReadFile.h" />
     <ClInclude Include="..\Core\IO\ResourceCache.h" />
     <ClInclude Include="..\Core\IO\XmlResource.h" />
     <ClInclude Include="..\Core\Logger\Logger.h" />
@@ -351,21 +370,22 @@
     <ClInclude Include="..\Core\Process\ProcessManager.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeMap.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeQueue.h" />
+    <ClInclude Include="..\Core\Utility\String.cpp" />
+    <ClInclude Include="..\Core\Utility\String.h" />
     <ClInclude Include="..\GameEngineStd.h" />
     <ClInclude Include="..\Game\Actor\Actor.h" />
     <ClInclude Include="..\Game\Actor\ActorComponent.h" />
     <ClInclude Include="..\Game\Actor\ActorFactory.h" />
     <ClInclude Include="..\Game\Actor\AudioComponent.h" />
     <ClInclude Include="..\Game\Actor\BaseRenderComponent.h" />
-    <ClInclude Include="..\Game\Actor\BaseScriptComponent.h" />
-    <ClInclude Include="..\Game\Actor\PhysicsComponent.h" />
+    <ClInclude Include="..\Game\Actor\PhysicComponent.h" />
     <ClInclude Include="..\Game\Actor\RenderComponent.h" />
     <ClInclude Include="..\Game\Actor\RenderComponentInterface.h" />
-    <ClInclude Include="..\Game\Actor\ScriptComponentInterface.h" />
     <ClInclude Include="..\Game\Actor\TransformComponent.h" />
     <ClInclude Include="..\Game\BaseGameLogic.h" />
     <ClInclude Include="..\Game\Game.h" />
     <ClInclude Include="..\Game\GameOption.h" />
+    <ClInclude Include="..\Game\GameStd.h" />
     <ClInclude Include="..\Game\Level\Level.h" />
     <ClInclude Include="..\Game\Level\LevelManager.h" />
     <ClInclude Include="..\Game\View\HumanView.h" />
@@ -504,7 +524,6 @@
     <ClInclude Include="..\Graphic\Scene\Element\Camera.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Node.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Spatial.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\Transform.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ViewVolume.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Visual.h" />
     <ClInclude Include="..\Graphic\Scene\MeshFactory.h" />
@@ -532,12 +551,14 @@
     <ClInclude Include="..\Mathematic\Algebra\Matrix4x4.h" />
     <ClInclude Include="..\Mathematic\Algebra\Quaternion.h" />
     <ClInclude Include="..\Mathematic\Algebra\Rotation.h" />
+    <ClInclude Include="..\Mathematic\Algebra\Transform.h" />
     <ClInclude Include="..\Mathematic\Algebra\Vector.h" />
     <ClInclude Include="..\Mathematic\Algebra\Vector2.h" />
     <ClInclude Include="..\Mathematic\Algebra\Vector3.h" />
     <ClInclude Include="..\Mathematic\Algebra\Vector4.h" />
     <ClInclude Include="..\Mathematic\Arithmetic\BitHacks.h" />
     <ClInclude Include="..\Mathematic\Function\Constants.h" />
+    <ClInclude Include="..\Mathematic\Geometric\Rectangle.h" />
     <ClInclude Include="..\Mathematic\Mathematic.h" />
     <ClInclude Include="..\Mathematic\MathematicStd.h" />
     <ClInclude Include="..\Mathematic\Surface\IndexAttribute.h" />
@@ -614,7 +635,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -623,7 +644,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -632,7 +653,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -641,7 +662,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

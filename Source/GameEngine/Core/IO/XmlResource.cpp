@@ -36,7 +36,6 @@
 //
 //========================================================================
 
-#include "GameEngine/GameEngine.h"
 #include "XmlResource.h"
 
 void XmlResourceExtraData::ParseXml(char* pRawBuffer)
@@ -46,44 +45,44 @@ void XmlResourceExtraData::ParseXml(char* pRawBuffer)
 
 //! returns true if the file maybe is able to be loaded by this class
 //! based on the file extension (e.g. ".xml")
-bool XmlResourceLoader::IsALoadableFileExtension(const path& filename) const
+bool XmlResourceLoader::IsALoadableFileExtension(const eastl::wstring& filename) const
 {
-	return Utils::HasFileExtension ( filename, "xml" );
+	if (filename.rfind('.') != eastl::string::npos)
+		return filename.substr(filename.rfind('.') + 1) == eastl::wstring("xml");
+	else
+		return false;
 }
 
-bool XmlResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const shared_ptr<ResHandle>& handle)
+bool XmlResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)
 {
     if (rawSize <= 0)
         return false;
 
-    shared_ptr<XmlResourceExtraData> pExtraData(new XmlResourceExtraData());
-	IReadFile* file = (IReadFile*)rawBuffer;
-	u32 size = file->GetSize();
+    eastl::shared_ptr<XmlResourceExtraData> pExtraData(new XmlResourceExtraData());
+	BaseReadFile* file = (BaseReadFile*)rawBuffer;
+	unsigned int size = file->GetSize();
 	eastl::vector<char> buffer(size+1);
 	file->Read(buffer.data(), size);
 	buffer[size] = 0;
     pExtraData->ParseXml(reinterpret_cast<char*> (buffer.data()));
 
-    handle->SetExtra(shared_ptr<XmlResourceExtraData>(pExtraData));
+    handle->SetExtra(eastl::shared_ptr<XmlResourceExtraData>(pExtraData));
 
     return true;
 }
 
 
-shared_ptr<BaseResourceLoader> CreateXmlResourceLoader()
+eastl::shared_ptr<BaseResourceLoader> CreateXmlResourceLoader()
 {
-    return shared_ptr<BaseResourceLoader>(new XmlResourceLoader());
+    return eastl::shared_ptr<BaseResourceLoader>(new XmlResourceLoader());
 }
 
-XmlElement* XmlResourceLoader::LoadAndReturnRootXmlElement(const wchar_t* resourceString)
+XMLElement* XmlResourceLoader::LoadAndReturnRootXMLElement(const eastl::shared_ptr<ResHandle>& pResourceHandle)
 {
-    Resource resource(resourceString);
-	// this actually loads the XML file from the zip file
-    const shared_ptr<ResHandle>& pResourceHandle = g_pGameApp->m_ResCache->GetHandle(&resource);
 	if (pResourceHandle)
 	{
-		shared_ptr<XmlResourceExtraData> pExtraData = 
-			static_pointer_cast<XmlResourceExtraData>(pResourceHandle->GetExtra());
+		eastl::shared_ptr<XmlResourceExtraData> pExtraData = 
+			eastl::static_pointer_cast<XmlResourceExtraData>(pResourceHandle->GetExtra());
 		return pExtraData->GetRoot();
 	}
 	else return NULL;
