@@ -41,7 +41,9 @@
 
 #include "GameEngineStd.h"
 
-#include "Mathematic/Algebra/Matrix4x4.h"
+#include "Mathematic/Algebra/EulerAngles.h"
+#include "Mathematic/Algebra/Transform.h"
+#include "Mathematic/Algebra/Vector3.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // class BaseGamePhysic							- Chapter 17, page 589
@@ -77,7 +79,7 @@ public:
 	virtual void CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) = 0;
 	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
 	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
-	virtual bool KinematicMove(const Matrix4x4<float> &mat, ActorId aid) = 0;
+	virtual bool KinematicMove(const Transform &mat, ActorId aid) = 0;
 
 	// Physics actor states
 	virtual void RotateY(ActorId actorId, float angleRadians, float time) = 0;
@@ -89,8 +91,8 @@ public:
 	virtual void SetAngularVelocity(ActorId actorId, const Vector3<float>& vel) = 0;
 	virtual void Translate(ActorId actorId, const Vector3<float>& vec) = 0;
 
-	virtual void SetTransform(const ActorId id, const Matrix4x4<float>& mat) = 0;
-	virtual Matrix4x4<float> GetTransform(const ActorId id) = 0;
+	virtual void SetTransform(const ActorId id, const Transform& mat) = 0;
+	virtual Transform GetTransform(const ActorId id) = 0;
 
 	virtual ~BaseGamePhysic() { };
 };

@@ -41,14 +41,19 @@
 
 #include "GameEngineStd.h"
 
+#include "GameView.h"
+#include "Game/GameLogic.h"
+
 #include "UI/UserInterface.h"
+#include "Graphic/ScreenElement.h"
 
 #include "Core/Process/ProcessManager.h"
 #include "Core/Event/EventManager.h"
 
 class ScreenElementScene;
 class CameraSceneNode;
-class BaseRenderer;
+class Renderer;
+class System;
 
 //
 // class HumanView - Chapter 10, page 272
@@ -59,11 +64,11 @@ class BaseRenderer;
 
 class HumanView : public BaseGameView
 {
-	friend class GameEngineApp;
+	friend class GameApplication;
 
 public:
 
-	HumanView(const eastl::shared_ptr<BaseRenderer>& renderer);
+	HumanView();
 
 	virtual ~HumanView();
 
@@ -93,6 +98,10 @@ public:
     bool LoadGame(XMLElement* pLevelData);
 
 	eastl::list<eastl::shared_ptr<BaseScreenElement>> m_ScreenElements; // a game screen entity
+																		
+	// Interface sensitive objects
+	eastl::shared_ptr<BaseMouseHandler> mMouseHandler;
+	eastl::shared_ptr<BaseKeyboardHandler> mKeyboardHandler;
 
 	// Audio
 	bool InitAudio();
@@ -104,8 +113,6 @@ public:
 	// Added post press
 	eastl::shared_ptr<ScreenElementScene> m_pScene;
 	eastl::shared_ptr<CameraSceneNode> m_pCamera;
-
-	void HandleGameState(BaseGameState newState);		
 
 	// Added post press - this helps the network system attach views to the right actor.
 	virtual void SetControlledActor(ActorId actorId) { m_ActorId = actorId; }
@@ -123,9 +130,9 @@ public:
 	class Console : public BaseUI
 	{
 	public:
-		Console(void);
+		Console();
 
-		~Console(void);
+		~Console();
 
 		virtual bool OnInit();
 		virtual bool OnRestore() { return true; };

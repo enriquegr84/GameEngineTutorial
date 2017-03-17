@@ -9,6 +9,8 @@
 #include "LimitReadFile.h"
 #include "MountPointReader.h"
 
+#include "Core/Logger/Logger.h"
+
 #if !defined (_WINDOWS_API_)
 	#if (defined(_POSIX_API_) || defined(_OSX_PLATFORM_))
 		#include <stdio.h>

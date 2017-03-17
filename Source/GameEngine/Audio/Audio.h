@@ -41,6 +41,8 @@
 
 #include "GameEngineStd.h"
 
+#include "Core/IO/ResourceCache.h"
+
 class SoundResourceExtraData;
 
 
@@ -76,13 +78,13 @@ extern char *gSoundExtentions[];
 // the same source data - such as two explosions in two different places.
 //////////////////////////////////////////////////////////////////////
 
-class IAudioBuffer
+class BaseAudioBuffer
 {
 public:
-	virtual ~IAudioBuffer() { }
+	virtual ~BaseAudioBuffer() { }
 
 	virtual void *Get()=0;
-	virtual shared_ptr<ResHandle> GetResource()=0;
+	virtual eastl::shared_ptr<ResHandle> GetResource()=0;
 	virtual bool OnRestore()=0;
 
 	virtual bool Play(int volume, bool looping)=0;
@@ -106,21 +108,22 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class AudioBuffer : public IAudioBuffer
+class AudioBuffer : public BaseAudioBuffer
 {
 public: 
-	virtual shared_ptr<ResHandle> GetResource() { return m_Resource; }
+	virtual eastl::shared_ptr<ResHandle> GetResource() { return m_Resource; }
 	virtual bool IsLooping() const { return m_isLooping; }
 	virtual int GetVolume() const { return m_Volume; }
 protected:
-	AudioBuffer(shared_ptr<ResHandle >resource) 
-		{ m_Resource = resource; 
-		  m_isPaused = false;
-		  m_isLooping = false;
-		  m_Volume = 0;
-		}	// disable public construction
+	AudioBuffer(eastl::shared_ptr<ResHandle>resource)
+	{ 
+		m_Resource = resource; 
+		m_isPaused = false;
+		m_isLooping = false;
+		m_Volume = 0;
+	}	// disable public construction
 
-	shared_ptr<ResHandle> m_Resource;
+	eastl::shared_ptr<ResHandle> m_Resource;
 
 	// Is the sound paused
 	bool m_isPaused;
@@ -134,19 +137,19 @@ protected:
 
 
 //////////////////////////////////////////////////////////////////////
-// class IAudio									- Chapter 13, page 411
+// class BaseAudio									- Chapter 13, page 411
 //
 // This interface class describes the public interface for 
 // a game's audio system. 
 //////////////////////////////////////////////////////////////////////
 
-class IAudio
+class BaseAudio
 {
 public:
 	virtual bool Active()=0;
 
-	virtual IAudioBuffer* InitAudioBuffer(shared_ptr<ResHandle> handle)=0;
-	virtual void ReleaseAudioBuffer(IAudioBuffer* audioBuffer)=0;
+	virtual BaseAudioBuffer* InitAudioBuffer(eastl::shared_ptr<ResHandle> handle)=0;
+	virtual void ReleaseAudioBuffer(BaseAudioBuffer* audioBuffer)=0;
 
 	virtual void StopAllSounds()=0;
 	virtual void PauseAllSounds()=0;
@@ -159,12 +162,12 @@ public:
 //////////////////////////////////////////////////////////////////////
 // class Audio									- Chapter 13, page 412
 //
-// Implements IAudio interface - but not all the way - this is 
+// Implements BaseAudio interface - but not all the way - this is 
 // still a base class. See class DirectSoundAudio.
 // 
 //////////////////////////////////////////////////////////////////////
 
-class Audio : public IAudio
+class Audio : public BaseAudio
 {
 public:
 	Audio();
@@ -179,7 +182,7 @@ public:
 
 protected:
 
-	typedef eastl::list<IAudioBuffer *> AudioBufferList;
+	typedef eastl::list<BaseAudioBuffer *> AudioBufferList;
 
 	AudioBufferList m_AllSamples;	// List of all currently allocated audio buffers
 	bool m_AllPaused;				// Has the sound system been paused?

@@ -110,7 +110,7 @@ public:
 	virtual void CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) { }
 	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) { }
 	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) { }
-	virtual bool KinematicMove(const Matrix4x4<float> &mat, ActorId aid) { return true; }
+	virtual bool KinematicMove(const Transform &mat, ActorId aid) { return true; }
 
 	// Physics actor states
 	virtual void RotateY(ActorId actorId, float angleRadians, float time) { }
@@ -121,8 +121,8 @@ public:
     virtual Vector3<float> GetAngularVelocity(ActorId actorId) { return Vector3<float>(); }
     virtual void SetAngularVelocity(ActorId actorId, const Vector3<float>& vel) { }
 	virtual void Translate(ActorId actorId, const Vector3<float>& vec) { }
-	virtual void SetTransform(const ActorId id, const Matrix4x4<float>& mat) { }
-    virtual Matrix4x4<float> GetTransform(const ActorId id) { return Matrix4x4<float>::Identity(); }
+	virtual void SetTransform(const ActorId id, const Transform& mat) { }
+    virtual Transform GetTransform(const ActorId id) { return Transform::IDENTITY; }
 };
 
 /*
@@ -267,7 +267,7 @@ class BulletPhysics : public BaseGamePhysic
 	void SendCollisionPairRemoveEvent( btRigidBody const * body0, btRigidBody const * body1 );
 	
 	// common functionality used by VAddSphere, VAddBox, etc
-	void AddShape(StrongActorPtr pGameActor, btCollisionShape* shape, float mass, const eastl::string& physicMaterial);
+	void AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionShape* shape, float mass, const eastl::string& physicMaterial);
 	
 	// helper for cleaning up objects
 	void RemoveCollisionObject( btCollisionObject * removeMe );
@@ -300,7 +300,7 @@ public:
 	virtual void CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) override;
 	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) override;
 	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) override;
-	virtual bool KinematicMove(const Matrix4x4<float> &mat, ActorId aid) override;
+	virtual bool KinematicMove(const Transform &mat, ActorId aid) override;
 	
 	virtual void RotateY(ActorId actorId, float angleRadians, float time);
 	virtual float GetOrientationY(ActorId actorId);
@@ -311,8 +311,8 @@ public:
     virtual void SetAngularVelocity(ActorId actorId, const Vector3<float>& vel);
 	virtual void Translate(ActorId actorId, const Vector3<float>& vec);
 
-    virtual void SetTransform(const ActorId id, const Matrix4x4<float>& mat);
-	virtual Matrix4x4<float> GetTransform(const ActorId id);
+    virtual void SetTransform(const ActorId id, const Transform& mat);
+	virtual Transform GetTransform(const ActorId id);
 };
 
 
@@ -780,7 +780,7 @@ void BulletPhysics::ApplyTorque(const Vector3<float> &dir, float magnitude, Acto
 //
 //    Forces a phyics object to a new location/orientation
 //
-bool BulletPhysics::KinematicMove(const Matrix4x4<float> &mat, ActorId aid)
+bool BulletPhysics::KinematicMove(const Transform &mat, ActorId aid)
 {
 	if ( btRigidBody * const body = FindBulletRigidBody( aid ) )
 	{
@@ -813,7 +813,7 @@ Matrix4x4<float> BulletPhysics::GetTransform(const ActorId id)
 //
 //   Sets the current transform of the phyics object
 //
-void BulletPhysics::SetTransform(ActorId actorId, const Matrix4x4<float>& mat)
+void BulletPhysics::SetTransform(ActorId actorId, const Transform& mat)
 {
     KinematicMove(mat, actorId);
 }

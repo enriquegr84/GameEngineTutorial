@@ -44,6 +44,7 @@
 
 #include "Game/Game.h"
 #include "Core/Event/EventManager.h"
+#include "Core/OS/Os.h"
 
 #include <sys/types.h>
 #include <Winsock2.h>
@@ -107,7 +108,6 @@ public:
 inline BinaryPacket::BinaryPacket(char const * const data, u_long size)
 {
 	m_Data = new char[size + sizeof(u_long)];
-	LogAssert(m_Data);
 	*(u_long *)m_Data = htonl(size+sizeof(u_long));
 	memcpy(m_Data+sizeof(u_long), data, size);
 }
@@ -115,7 +115,6 @@ inline BinaryPacket::BinaryPacket(char const * const data, u_long size)
 inline BinaryPacket::BinaryPacket(u_long size)
 {
 	m_Data = new char[size + sizeof(u_long)];
-	LogAssert(m_Data);
 	*(u_long *)m_Data = htonl(size+sizeof(u_long));
 }
 
@@ -124,7 +123,7 @@ inline BinaryPacket::BinaryPacket(u_long size)
 //
 inline void BinaryPacket::MemCpy(char const *const data, size_t size, int destOffset)
 {
-	LogAssert(size+destOffset <= GetSize()-sizeof(u_long));
+	LogAssert(size+destOffset <= GetSize()-sizeof(u_long), "not enough space");
 	memcpy(m_Data + destOffset + sizeof(u_long), data, size);
 }
 
@@ -171,7 +170,7 @@ public:
 
 	void HandleException() { m_deleteFlag |= 1; }
 
-	void SetTimeOut(unsigned int ms=45*1000) { m_timeOut = g_pGameApp->GetTime() + ms; }
+	void SetTimeOut(unsigned int ms=45*1000) { m_timeOut = Timer::GetTime() + ms; }
 
 	int GetIpAddress() { return m_ipaddr; }
 

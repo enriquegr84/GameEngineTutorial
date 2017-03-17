@@ -345,8 +345,7 @@ bool Dx11Renderer::CreateDevice()
 */
 bool Dx11Renderer::CreateSwapChain(HWND handle, UINT width, UINT height)
 {
-	mWidth = width;
-	mHeight = height;
+	mScreenSize = Vector2<unsigned int>{ width, height };
 
 	struct DXGIInterfaces
 	{

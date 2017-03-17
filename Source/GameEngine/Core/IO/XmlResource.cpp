@@ -38,6 +38,8 @@
 
 #include "XmlResource.h"
 
+#include "Application/GameApplication.h"
+
 void XmlResourceExtraData::ParseXml(char* pRawBuffer)
 {
 	m_xmlDocument.Parse(pRawBuffer);
@@ -77,8 +79,12 @@ eastl::shared_ptr<BaseResourceLoader> CreateXmlResourceLoader()
     return eastl::shared_ptr<BaseResourceLoader>(new XmlResourceLoader());
 }
 
-XMLElement* XmlResourceLoader::LoadAndReturnRootXMLElement(const eastl::shared_ptr<ResHandle>& pResourceHandle)
+XMLElement* XmlResourceLoader::LoadAndReturnRootXMLElement(const wchar_t* resourceName)
 {
+	BaseResource resource(resourceName);
+	// this actually loads the XML file from the zip file
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	const eastl::shared_ptr<ResHandle>& pResourceHandle = gameApp->mResCache->GetHandle(&resource);
 	if (pResourceHandle)
 	{
 		eastl::shared_ptr<XmlResourceExtraData> pExtraData = 

@@ -72,11 +72,12 @@
     <ClCompile Include="..\Game\Actor\PhysicComponent.cpp" />
     <ClCompile Include="..\Game\Actor\RenderComponent.cpp" />
     <ClCompile Include="..\Game\Actor\TransformComponent.cpp" />
-    <ClCompile Include="..\Game\BaseGameLogic.cpp" />
+    <ClCompile Include="..\Game\GameLogic.cpp" />
     <ClCompile Include="..\Game\GameOption.cpp" />
     <ClCompile Include="..\Game\Level\Level.cpp" />
     <ClCompile Include="..\Game\Level\LevelManager.cpp" />
     <ClCompile Include="..\Game\View\HumanView.cpp" />
+    <ClCompile Include="..\Game\View\UI\DefaultUIElementFactory.cpp" />
     <ClCompile Include="..\Game\View\UI\UIRoot.cpp" />
     <ClCompile Include="..\Game\View\UI\UserInterface.cpp" />
     <ClCompile Include="..\Graphic\Effect\Font.cpp" />
@@ -171,6 +172,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\ViewVolume.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Visual.cpp" />
     <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Scene.cpp" />
     <ClCompile Include="..\Graphic\Scene\Visibility\Culler.cpp" />
     <ClCompile Include="..\Graphic\Scene\Visibility\CullingPlane.cpp" />
     <ClCompile Include="..\Graphic\Shader\ComputeProgram.cpp" />
@@ -382,13 +384,15 @@
     <ClInclude Include="..\Game\Actor\RenderComponent.h" />
     <ClInclude Include="..\Game\Actor\RenderComponentInterface.h" />
     <ClInclude Include="..\Game\Actor\TransformComponent.h" />
-    <ClInclude Include="..\Game\BaseGameLogic.h" />
+    <ClInclude Include="..\Game\GameLogic.h" />
     <ClInclude Include="..\Game\Game.h" />
     <ClInclude Include="..\Game\GameOption.h" />
     <ClInclude Include="..\Game\GameStd.h" />
     <ClInclude Include="..\Game\Level\Level.h" />
     <ClInclude Include="..\Game\Level\LevelManager.h" />
+    <ClInclude Include="..\Game\View\GameView.h" />
     <ClInclude Include="..\Game\View\HumanView.h" />
+    <ClInclude Include="..\Game\View\UI\DefaultUIElementFactory.h" />
     <ClInclude Include="..\Game\View\UI\UIElement.h" />
     <ClInclude Include="..\Game\View\UI\UIElementFactory.h" />
     <ClInclude Include="..\Game\View\UI\UIElementTypes.h" />
@@ -527,8 +531,10 @@
     <ClInclude Include="..\Graphic\Scene\Element\ViewVolume.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Visual.h" />
     <ClInclude Include="..\Graphic\Scene\MeshFactory.h" />
+    <ClInclude Include="..\Graphic\Scene\Scene.h" />
     <ClInclude Include="..\Graphic\Scene\Visibility\Culler.h" />
     <ClInclude Include="..\Graphic\Scene\Visibility\CullingPlane.h" />
+    <ClInclude Include="..\Graphic\ScreenElement.h" />
     <ClInclude Include="..\Graphic\Shader\ComputeProgram.h" />
     <ClInclude Include="..\Graphic\Shader\ComputeShader.h" />
     <ClInclude Include="..\Graphic\Shader\GeometryShader.h" />
@@ -635,7 +641,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis;$(ProjectDir)..\Audio\3rdParty\libogg;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -644,7 +650,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis;$(ProjectDir)..\Audio\3rdParty\libogg;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -653,7 +659,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis;$(ProjectDir)..\Audio\3rdParty\libogg;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -662,7 +668,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis;$(ProjectDir)..\Audio\3rdParty\libogg;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

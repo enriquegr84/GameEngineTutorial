@@ -634,9 +634,6 @@
     <ClCompile Include="..\Game\Level\LevelManager.cpp">
       <Filter>Game\Level</Filter>
     </ClCompile>
-    <ClCompile Include="..\Game\BaseGameLogic.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="..\Game\GameOption.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -720,6 +717,15 @@
     </ClCompile>
     <ClCompile Include="..\Game\Actor\PhysicComponent.cpp">
       <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\GameLogic.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\DefaultUIElementFactory.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Scene.cpp">
+      <Filter>Graphic\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1699,9 +1705,6 @@
     <ClInclude Include="..\Game\Level\LevelManager.h">
       <Filter>Game\Level</Filter>
     </ClInclude>
-    <ClInclude Include="..\Game\BaseGameLogic.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="..\Game\Game.h">
       <Filter>Game</Filter>
     </ClInclude>
@@ -1839,6 +1842,21 @@
     </ClInclude>
     <ClInclude Include="..\Mathematic\Geometric\Rectangle.h">
       <Filter>Mathematic\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\GameView.h">
+      <Filter>Game\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\GameLogic.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\DefaultUIElementFactory.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Scene.h">
+      <Filter>Graphic\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\ScreenElement.h">
+      <Filter>Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

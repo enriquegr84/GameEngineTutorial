@@ -40,6 +40,8 @@
 
 #include "AudioComponent.h"
 
+#include "Application/GameApplication.h"
+
 const char* AudioComponent::g_Name = "AudioComponent";
 
 AudioComponent::AudioComponent()
@@ -89,22 +91,22 @@ XMLElement* AudioComponent::GenerateXml(void)
 	// base element
     XMLElement* pBaseElement = doc.NewElement(GetName());
 
-	XMLElement* pSoundNode = new XMLElement("Sound");
+	XMLElement* pSoundNode = doc.NewElement("Sound");
     XMLText* pSoundText = doc.NewText(m_audioResource.c_str());
     pSoundNode->LinkEndChild(pSoundText);
     pBaseElement->LinkEndChild(pSoundNode);
 
-    XMLElement* pLoopingNode = new XMLElement("Looping");
+    XMLElement* pLoopingNode = doc.NewElement("Looping");
 	XMLText* pLoopingText = doc.NewText(m_looping ? "1" : "0");
     pLoopingNode->LinkEndChild(pLoopingText);
     pBaseElement->LinkEndChild(pLoopingNode);
 
-    XMLElement* pFadeInNode = new XMLElement("FadeIn");
+    XMLElement* pFadeInNode = doc.NewElement("FadeIn");
 	XMLText* pFadeInText = doc.NewText(eastl::to_string(m_fadeInTime).c_str());
     pFadeInNode->LinkEndChild(pFadeInText);
     pBaseElement->LinkEndChild(pFadeInNode);
 
-    XMLElement* pVolumeNode = new XMLElement("Volume");
+    XMLElement* pVolumeNode = doc.NewElement("Volume");
 	XMLText* pVolumeText = doc.NewText(eastl::to_string(m_volume).c_str());
     pVolumeNode->LinkEndChild(pVolumeText);
     pBaseElement->LinkEndChild(pVolumeNode);
@@ -114,18 +116,36 @@ XMLElement* AudioComponent::GenerateXml(void)
 
 void AudioComponent::PostInit()
 {
-	/*
-	// The editor can play sounds, but it shouldn't run them when AudioComponents are initialized.
-	BaseResource resource(m_audioResource);
-	eastl::shared_ptr<ResHandle> rh = g_pGameApp->m_ResCache->GetHandle(&resource);
-	eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, 0, true));
-	processManager->AttachProcess(sound);
-
-	// fade process
-	if (m_fadeInTime > 0.0f)
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	HumanView *humanView = gameApp->GetHumanView();
+	if (!humanView)
 	{
-		eastl::shared_ptr<FadeProcess> fadeProc(new FadeProcess(sound, 10000, 100)); 
-		processManager->AttachProcess(fadeProc);
+		LogError("Sounds need a human view to be heard!");
+		return;
 	}
-	*/
+
+	ProcessManager *processManager = humanView->GetProcessManager();
+	if (!processManager)
+	{
+		LogError("Sounds need a process manager to attach!");
+		return;
+	}
+
+	if (!gameApp->IsEditorRunning())
+	{
+		// The editor can play sounds, but it shouldn't run them when AudioComponents are initialized.
+		/*
+		BaseResource resource(m_audioResource);
+		eastl::shared_ptr<ResHandle> rh = gameApp->mResCache->GetHandle(&resource);
+		eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, 0, true));
+		processManager->AttachProcess(sound);
+
+		// fade process
+		if (m_fadeInTime > 0.0f)
+		{
+			eastl::shared_ptr<FadeProcess> fadeProc(new FadeProcess(sound, 10000, 100));
+			processManager->AttachProcess(fadeProc);
+		}
+		*/
+	}
 }

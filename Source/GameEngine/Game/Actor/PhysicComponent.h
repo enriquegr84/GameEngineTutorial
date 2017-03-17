@@ -98,8 +98,6 @@ protected:
 	Vector3<float> m_RigidBodyLocation; // rigid body is offset from the position of the actor.
 	Vector3<float> m_RigidBodyOrientation;	// ditto, orientation
 	Vector3<float> m_RigidBodyScale;			// ditto, scale
-	
-    eastl::shared_ptr<BaseGamePhysic> m_pGamePhysics;  // might be better as a weak ptr...
 };
 
 

@@ -53,7 +53,7 @@ GameOption::GameOption()
 	m_numAIs = 1;
 	m_maxAIs = 4;
 	m_maxPlayers = 4;
-	m_ScreenSize = Vector2<int>(800,600);
+	m_ScreenSize = Vector2<int>{ 800,600 };
 
 	m_pRoot = NULL;
 }
@@ -66,8 +66,7 @@ void GameOption::Init(const wchar_t* xmlFileName)
     if (!m_pRoot)
     {
         LogError(
-			eastl::string("Failed to load game options from file: ") + 
-			eastl::string(xmlFileName));
+			L"Failed to load game options from file: " + eastl::wstring(xmlFileName));
         return;
     }
 
@@ -82,7 +81,7 @@ void GameOption::Init(const wchar_t* xmlFileName)
 			attribute = pNode->Attribute("renderer");
 			if (attribute != "Direct3D9" && attribute != "Direct3D11")
 			{
-				LogAssert(0 && "Bad Renderer setting in Graphics options.");
+				LogError("Bad Renderer setting in Graphics options.");
 			}
 			else
 			{
@@ -91,12 +90,12 @@ void GameOption::Init(const wchar_t* xmlFileName)
 
 			if (pNode->Attribute("width"))
 			{
-				pNode->Attribute("width", &m_ScreenSize.Width);
-				if (m_ScreenSize.Width < 800) m_ScreenSize.Width = 800;
+				m_ScreenSize[0] = pNode->IntAttribute("width", m_ScreenSize[0]);
+				if (m_ScreenSize[0] < 800) m_ScreenSize[0] = 800;
 			}
 
 			if (pNode->Attribute("height"))
-				pNode->Attribute("height", &m_ScreenSize.Height);
+				m_ScreenSize[1] = pNode->IntAttribute("height", m_ScreenSize[1]);
 		}
 
 		pNode = m_pRoot->FirstChildElement("Sound"); 

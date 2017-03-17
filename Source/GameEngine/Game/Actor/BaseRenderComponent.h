@@ -71,8 +71,7 @@ protected:
     //Color LoadColor(XMLElement* pData);
 
     // editor stuff
-	virtual XMLElement* CreateBaseElement(XMLDocument doc) { return doc.NewElement(GetName()); }
-    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement) = 0;
+    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement) = 0;
 
 private:
     //virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) override;

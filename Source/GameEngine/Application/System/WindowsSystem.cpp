@@ -721,9 +721,6 @@ void WindowsSystem::ResizeIfNecessary()
 	{
 		sprintf(tmp, "Resizing window (%ld %ld)", r.right, r.bottom);
 		//LogInformation(tmp);
-
-		//g_pGameApp->m_pRenderer->OnResize(Vector2<unsigned int>((unsigned int)r.right, (unsigned int)r.bottom));
-		//GetWindowsCursorControl()->OnResize(g_pGameApp->m_pRenderer->GetScreenSize());
 	}
 
 	mResized = false;

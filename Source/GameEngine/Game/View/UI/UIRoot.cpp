@@ -3,29 +3,23 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "UIRoot.h"
-
-#include "UserInterface/UserInterface.h"
+#include "UserInterface.h"
 
 //! constructor
-UIRoot::UIRoot(BaseUI* ui, EUI_ELEMENT_TYPE type, int id, Rectangle<2, int> rectangle)
-:	UIElement(type, id, rectangle), UserInterface(ui)
+UIRoot::UIRoot(BaseUI* ui, EUI_ELEMENT_TYPE type, int id, RectangleBase<2, int> rectangle)
+:	UIElement(type, id, rectangle), UI(ui)
 {
-	#ifdef _DEBUG
-	//setDebugName("UIRoot");
-	#endif
-
 }
 
 //! called if an event happened.
 bool UIRoot::OnEvent(const Event& evt)
 {
 	bool ret = false;
-	if (UserInterface
-		&& (evt.m_EventType != EET_MOUSE_INPUT_EVENT)
-		&& (evt.m_EventType != EET_KEY_INPUT_EVENT)
-		&& (evt.m_EventType != EET_UI_EVENT || evt.m_UIEvent.m_Caller != this))
+	if (UI && (evt.mEventType != ET_MOUSE_INPUT_EVENT)
+		&& (evt.mEventType != ET_KEY_INPUT_EVENT)
+		&& (evt.mEventType != ET_UI_EVENT || evt.mUIEvent.mCaller != this))
 	{
-		ret = UserInterface->OnEvent(evt);
+		ret = UI->OnEvent(evt);
 	}
 
 	return ret;

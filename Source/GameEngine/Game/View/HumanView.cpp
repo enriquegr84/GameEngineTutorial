@@ -45,20 +45,32 @@
 #include "Audio/DirectSoundAudio.h"
 #include "Audio/SoundProcess.h"
 
-#include "Core/Event/Event.h"
-#include "Core/Event/EventManager.h"
+#include "Application/GameApplication.h"
+#include "Application/System/System.h"
 
+#include "Graphic/Scene/Scene.h"
 #include "Graphic/Renderer/Renderer.h"
 
+#include "Core/Event/Event.h"
+#include "Core/Event/EventManager.h"
 #include "Core/Process/Process.h"
 
 const unsigned int SCREEN_REFRESH_RATE(1000/60);
 const GameViewId InvalidGameViewId = 0xffffffff;
 
+template<class T>
+struct SortBy_SharedPtr_Content
+{
+	bool operator()(const eastl::shared_ptr<T> &lhs, const eastl::shared_ptr<T> &rhs) const
+	{
+		return *lhs < *rhs;
+	}
+};
+
 //
 // HumanView::HumanView - Chapter 10, page 272
 //
-HumanView::HumanView(const eastl::shared_ptr<Renderer>& renderer)
+HumanView::HumanView()
 {
 	InitAudio(); 
 
@@ -71,18 +83,20 @@ HumanView::HumanView(const eastl::shared_ptr<Renderer>& renderer)
 	RegisterAllDelegates();
 	m_BaseGameState = BGS_Initializing;		// what is the current game state
 
-	if (renderer)
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	if (gameApp->mRenderer)
 	{
 		// Moved to the HumanView class post press
-		m_pScene.reset(new ScreenElementScene(renderer));
-
+		m_pScene.reset(new ScreenElementScene());
+		/*
 		m_pCamera.reset(new CameraSceneNode(
-			g_pGameApp->GetGameLogic()->GetNewActorID(), m_pScene.get(), &g_IdentityMatrix4));
+			gameApp->mGame->GetNewActorID(), m_pScene.get(), Matrix4x4<float>::Identity));
 		LogAssert(m_pScene && m_pCamera, "Out of memory");
 		m_pCamera->SetFarValue(20000.f); // this increase a shadow visible range.
 
 		m_pScene->AddChild(m_pCamera->Get()->GetId(), m_pCamera);
 		m_pScene->SetActiveCamera(m_pCamera);
+		*/
 	}
 }
 
@@ -93,9 +107,7 @@ HumanView::~HumanView()
 	RemoveAllDelegates();
 
 	while (!m_ScreenElements.empty())
-	{
-		m_ScreenElements.pop_front();		
-	}
+		m_ScreenElements.pop_front();
 
 	delete m_pProcessManager;
 	delete g_pAudio;
@@ -122,16 +134,17 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 	int deltaMilliseconds = int(fElapsedTime * 1000.0f);
 
 	// It is time to draw ?
-	if (g_pGameApp->m_pRenderer->PreRender())
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	//if (gameApp->mRenderer->PreRender())
 	{
 		if( m_runFullSpeed || ( deltaMilliseconds > SCREEN_REFRESH_RATE) )
 		{
 			m_ScreenElements.sort(SortBy_SharedPtr_Content<BaseScreenElement>());
 
-			for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+			for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
 				m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
 			{
-				if ( (*i)->IsVisible() )
+				if ((*i)->IsVisible())
 				{
 					(*i)->OnRender(fTime, fElapsedTime);
 				}
@@ -142,12 +155,11 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 			// Let the console render.
 			m_Console.OnRender(fTime, fElapsedTime);
 
-			//g_pGameApp->GetGameLogic()->RenderDiagnostics();
+			//gameApp->mGame->RenderDiagnostics();
 		}
     }
-	g_pGameApp->m_pRenderer->PostRender();
+	//gameApp->mRenderer->PostRender();
 }
-
 
 //
 // HumanView::OnRestore						- Chapter 10, page 275
@@ -155,7 +167,7 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 bool HumanView::OnRestore()
 {
 	bool hr = true;
-	for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
 		m_ScreenElements.begin(); i != m_ScreenElements.end(); ++i)
 	{
 		return ( (*i)->OnRestore() );
@@ -164,15 +176,13 @@ bool HumanView::OnRestore()
 	return hr;
 }
 
-
 //
 // HumanView::OnLostDevice						- not described in the book
 //
 //    Recursively calls VOnLostDevice for everything attached to the HumanView. 
-
 bool HumanView::OnLostDevice() 
 {
-	for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
 		m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
 	{
 		return ( (*i)->OnLostDevice() );
@@ -195,7 +205,8 @@ bool HumanView::InitAudio()
 	if (!g_pAudio)
 		return false;
 
-	if (!g_pAudio->Initialize(g_pGameApp->m_pPlatform->GetID()))
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	if (!g_pAudio->Initialize(gameApp->mSystem->GetID()))
 		return false;
 
 	return true;
@@ -228,7 +239,7 @@ bool HumanView::OnMsgProc( const Event& evt )
 	// Iterate through the screen layers first
 	// In reverse order since we'll send input messages to the 
 	// screen on top
-	for(eastl::shared_ptr<ScreenElementScene>::reverse_iterator i = 
+	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::reverse_iterator i =
 		m_ScreenElements.rbegin(); i!=m_ScreenElements.rend(); ++i)
 	{
 		if ( (*i)->IsVisible() )
@@ -241,83 +252,83 @@ bool HumanView::OnMsgProc( const Event& evt )
 	}
 
 	bool result = 0;
-	switch (evt.m_EventType) 
+	switch (evt.mEventType) 
 	{
-		case EET_KEY_INPUT_EVENT:
+		case ET_KEY_INPUT_EVENT:
 			if (m_Console.IsActive())
 			{	
 				//See if it was the console key.
-				if (L'º' == evt.m_KeyInput.m_Char)
+				if (L'º' == evt.mKeyInput.mChar)
 				{
 					m_Console.SetActive(false);
 				}
 				else
 				{
 					const unsigned int oemScan = 
-						int( evt.m_KeyInput.m_Char & ( 0xff << 16 ) ) >> 16;
+						int( evt.mKeyInput.mChar & ( 0xff << 16 ) ) >> 16;
 					m_Console.HandleKeyboardInput( 
-						evt.m_KeyInput.m_Char, 
+						evt.mKeyInput.mChar, 
 						MapVirtualKey( oemScan, 1 ), 
-						evt.m_KeyInput.m_bPressedDown );
+						evt.mKeyInput.mPressedDown );
 				}
 			}
 			else
 			{
 				//See if it was the console key.
-				if (L'º' == evt.m_KeyInput.m_Char)
+				if (L'º' == evt.mKeyInput.mChar)
 				{
 					m_Console.SetActive(true);
 				}
-				else if (evt.m_KeyInput.m_bPressedDown)
+				else if (evt.mKeyInput.mPressedDown)
 				{
-					if (m_KeyboardHandler)
-						result = m_KeyboardHandler->OnKeyDown(evt.m_KeyInput.m_Key);
+					if (mKeyboardHandler)
+						result = mKeyboardHandler->OnKeyDown(evt.mKeyInput.mKey);
 				}
 				else
 				{
-					if (m_KeyboardHandler)
-						result = m_KeyboardHandler->OnKeyUp(evt.m_KeyInput.m_Key);
+					if (mKeyboardHandler)
+						result = mKeyboardHandler->OnKeyUp(evt.mKeyInput.mKey);
 				}
 			}
 			break;
-		case EET_MOUSE_INPUT_EVENT:
-			if (m_MouseHandler)
+		case ET_MOUSE_INPUT_EVENT:
+			if (mMouseHandler)
 			{
-				switch (evt.m_MouseInput.m_Event)
+				switch (evt.mMouseInput.mEvent)
 				{
-					case EMIE_MOUSE_MOVED:
-						result = m_MouseHandler->OnMouseMove(
-							Vector2i(evt.m_MouseInput.X,evt.m_MouseInput.Y),1);
+					case MIE_MOUSE_MOVED:
+						result = mMouseHandler->OnMouseMove(
+							Vector2<int>{evt.mMouseInput.X, evt.mMouseInput.Y}, 1);
 						break;
-					case EMIE_LMOUSE_PRESSED_DOWN:
-						result = m_MouseHandler->OnMouseButtonDown(
-							Vector2i(evt.m_MouseInput.X,evt.m_MouseInput.Y), 1, "PointerLeft");
+					case MIE_LMOUSE_PRESSED_DOWN:
+						result = mMouseHandler->OnMouseButtonDown(
+							Vector2<int>{evt.mMouseInput.X, evt.mMouseInput.Y}, 1, "PointerLeft");
 						break;
-					case EMIE_LMOUSE_LEFT_UP:
-						result = m_MouseHandler->OnMouseButtonUp(
-							Vector2i(evt.m_MouseInput.X,evt.m_MouseInput.Y), 1, "PointerLeft");
+					case MIE_LMOUSE_LEFT_UP:
+						result = mMouseHandler->OnMouseButtonUp(
+							Vector2<int>{evt.mMouseInput.X, evt.mMouseInput.Y}, 1, "PointerLeft");
 						break;
-					case EMIE_RMOUSE_PRESSED_DOWN:
-						result = m_MouseHandler->OnMouseButtonDown(
-							Vector2i(evt.m_MouseInput.X,evt.m_MouseInput.Y), 1, "PointerRight");
+					case MIE_RMOUSE_PRESSED_DOWN:
+						result = mMouseHandler->OnMouseButtonDown(
+							Vector2<int>{evt.mMouseInput.X, evt.mMouseInput.Y}, 1, "PointerRight");
 						break;
-					case EMIE_RMOUSE_LEFT_UP:
-						result = m_MouseHandler->OnMouseButtonUp(
-							Vector2i(evt.m_MouseInput.X,evt.m_MouseInput.Y), 1, "PointerRight");
+					case MIE_RMOUSE_LEFT_UP:
+						result = mMouseHandler->OnMouseButtonUp(
+							Vector2<int>{evt.mMouseInput.X, evt.mMouseInput.Y}, 1, "PointerRight");
 						break;
-					case EMIE_MMOUSE_PRESSED_DOWN:
-						result = m_MouseHandler->OnMouseButtonDown(
-							Vector2i(evt.m_MouseInput.X,evt.m_MouseInput.Y), 1, "PointerMiddle");
+					case MIE_MMOUSE_PRESSED_DOWN:
+						result = mMouseHandler->OnMouseButtonDown(
+							Vector2<int>{evt.mMouseInput.X, evt.mMouseInput.Y}, 1, "PointerMiddle");
 						break;
-					case EMIE_MMOUSE_LEFT_UP:
-						result = m_MouseHandler->OnMouseButtonUp(
-							Vector2i(evt.m_MouseInput.X,evt.m_MouseInput.Y), 1, "PointerMiddle");
+					case MIE_MMOUSE_LEFT_UP:
+						result = mMouseHandler->OnMouseButtonUp(
+							Vector2<int>{evt.mMouseInput.X, evt.mMouseInput.Y}, 1, "PointerMiddle");
 						break;
-					case EMIE_MOUSE_WHEEL:
-						if (evt.m_MouseInput.m_Wheel > 0)
-							result = m_MouseHandler->OnWheelRollUp();
+					case MIE_MOUSE_WHEEL:
+						if (evt.mMouseInput.mWheel > 0)
+							result = mMouseHandler->OnWheelRollUp();
 						else
-							result = m_MouseHandler->OnWheelRollDown();
+							result = mMouseHandler->OnWheelRollDown();
 						break;
 					default:
 						break;
@@ -344,7 +355,7 @@ void HumanView::OnUpdate(const int deltaMilliseconds)
 	// and calls VOnUpdate. Some screen elements need to update every frame, one 
 	// example of this is a 3D scene attached to the human view.
 	//
-	for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
 		m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
 	{
 		(*i)->OnUpdate(deltaMilliseconds);
@@ -361,7 +372,7 @@ void HumanView::OnAnimate(unsigned int uTime)
 	// and calls OnAnimate. Some screen elements need to update every frame, one 
 	// example of this is a 3D scene attached to the human view.
 	//
-	for(eastl::shared_ptr<ScreenElementScene>::iterator i = 
+	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
 		m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
 	{
 		(*i)->OnAnimate(uTime);
@@ -419,13 +430,15 @@ void HumanView::PlaySoundDelegate(BaseEventDataPtr pEventData)
 {
     eastl::shared_ptr<EvtData_PlaySound> pCastEventData = 
 		eastl::static_pointer_cast<EvtData_PlaySound>(pEventData);
-
+	/*
     // play the sound a bullet makes when it hits a teapot
+	GameApplication* gameApp = (GameApplication*)Application::App;
     BaseResource resource(pCastEventData->GetResource().c_str());
     eastl::shared_ptr<ResHandle> srh = 
-		eastl::static_pointer_cast<ResHandle>(g_pGameApp->m_ResCache->GetHandle(&resource));
+		eastl::static_pointer_cast<ResHandle>(gameApp->mResCache->GetHandle(&resource));
     shared_ptr<SoundProcess> sfx(new SoundProcess(srh, 100, false));
-    m_pProcessManager->AttachProcess(sfx);
+    mProcessManager->AttachProcess(sfx);
+	*/
 }
 
 //
@@ -468,32 +481,36 @@ HumanView::Console::~Console()
 
 void HumanView::Console::AddDisplayText( const eastl::wstring & newText )
 {
+	/*
 	BaseUIStaticText* text = 
 		(BaseUIStaticText*)GetRootUIElement()->GetElementFromId(1).get();
 	text->SetText(newText.c_str());
-	//m_CurrentOutputString += newText;
-	//m_CurrentOutputString += '\n';
+	m_CurrentOutputString += newText;
+	m_CurrentOutputString += '\n';
+	*/
 }
 
 void HumanView::Console::SetDisplayText( const eastl::wstring & newText )
 {
+	/*
 	BaseUIStaticText* text = 
 		(BaseUIStaticText*)GetRootUIElement()->GetElementFromId(1).get();
 	text->SetText(newText.c_str());
-	//m_CurrentOutputString = newText;
+	m_CurrentOutputString = newText;
+	*/
 }
 
 bool HumanView::Console::OnInit( )
 {
 	BaseUI::OnInit();
-
-	unsigned int width = g_pGameApp->m_pRenderer->GetScreenSize().Width;
-	unsigned int height = g_pGameApp->m_pRenderer->GetScreenSize().Height;
+	/*
+	unsigned int width = m_pRenderer->GetScreenSize().Width;
+	unsigned int height = m_pRenderer->GetScreenSize().Height;
 	shared_ptr<BaseUIStaticText> consoleText(
-		AddStaticText(L">", Rectangle<2, int>(0, height, width, height-10), false, true, 0, 1, true));
+		AddStaticText(L">", RectangleBase<2, int>(0, height, width, height-10), false, true, 0, 1, true));
 	consoleText->SetOverrideColor(Color(1.0f, 1.0f, 1.0f, 1.0f)); //white font
 	consoleText->SetBackgroundColor(Color(1.0f, 0.0f, 0.0f, 0.0f)); //black background
-
+	*/
 	return true;
 }
 
@@ -504,7 +521,7 @@ void HumanView::Console::OnUpdate( const int deltaMilliseconds )
 	{
 		return;	//Bail!
 	}
-
+	/*
 	//Do we have a string to execute?
 	if (m_bExecuteStringOnUpdate)
 	{
@@ -540,7 +557,7 @@ void HumanView::Console::OnUpdate( const int deltaMilliseconds )
 		m_bExecuteStringOnUpdate = false;
         SetActive(false);
 	}
-
+	*/
 	//Update the cursor blink timer...
 	m_CursorBlinkTimer -= deltaMilliseconds;
 

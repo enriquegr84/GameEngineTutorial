@@ -41,6 +41,8 @@
 #include "Actor.h"
 #include "ActorComponent.h"
 
+#include "Core/Logger/Logger.h"
+
 
 //---------------------------------------------------------------------------------------------------------------------
 // Actor
@@ -57,16 +59,16 @@ Actor::Actor(ActorId id)
 
 Actor::~Actor(void)
 {
-    LogInformation(eastl::string("Destroying Actor ") + eastl::string(m_id));
+    LogInformation("Destroying Actor " + eastl::to_string(m_id));
 	// [rez] if this assert fires, the actor was destroyed without calling Actor::Destroy()
-    LogAssert(m_components.empty());
+    LogAssert(m_components.empty(), "components are empty");
 }
 
 bool Actor::Init(XMLElement* pData)
 {
 	m_type = pData->Attribute("type");
 	m_resource = pData->Attribute("resource");
-    LogInformation(eastl::string("Initializing Actor ") + eastl::string(m_id) + " " + m_type);
+    LogInformation("Initializing Actor " + eastl::to_string(m_id) + " " + m_type);
 
     return true;
 }
@@ -123,6 +125,6 @@ void Actor::AddComponent(eastl::shared_ptr<ActorComponent> pComponent)
 {
     eastl::pair<ActorComponents::iterator, bool> success = 
 		m_components.insert(eastl::make_pair(pComponent->GetId(), pComponent));
-    LogAssert(success.second);
+    LogAssert(success.second, "error add component");
 }
 

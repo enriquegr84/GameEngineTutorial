@@ -70,7 +70,7 @@ void Audio::Shutdown()
 
 	while (i!=m_AllSamples.end())
 	{
-		IAudioBuffer *audioBuffer = (*i);
+		BaseAudioBuffer *audioBuffer = (*i);
 		audioBuffer->Stop();
 		m_AllSamples.pop_front();
 	}
@@ -86,7 +86,7 @@ void Audio::PauseAllSounds()
 	AudioBufferList::iterator end;
 	for(i=m_AllSamples.begin(), end=m_AllSamples.end(); i!=end; ++i)
 	{
-		IAudioBuffer *audioBuffer = (*i);
+		BaseAudioBuffer *audioBuffer = (*i);
 		audioBuffer->Pause();
 	}
 
@@ -102,7 +102,7 @@ void Audio::ResumeAllSounds()
 	AudioBufferList::iterator end;
 	for(i=m_AllSamples.begin(), end=m_AllSamples.end(); i!=end; ++i)
 	{
-		IAudioBuffer *audioBuffer = (*i);
+		BaseAudioBuffer *audioBuffer = (*i);
 		audioBuffer->Resume();
 	}
 
@@ -114,7 +114,7 @@ void Audio::ResumeAllSounds()
 //
 void Audio::StopAllSounds()
 {
-	IAudioBuffer *audioBuffer = NULL;
+	BaseAudioBuffer *audioBuffer = NULL;
 
 	AudioBufferList::iterator i;
 	AudioBufferList::iterator end;

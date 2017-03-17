@@ -107,7 +107,7 @@ void SoundProcess::OnInit()
 		return;
 
 	//This sound will manage it's own handle in the other thread
-	IAudioBuffer *buffer = g_pAudio->InitAudioBuffer(m_handle);
+	BaseAudioBuffer *buffer = g_pAudio->InitAudioBuffer(m_handle);
 
 	if (!buffer)
 	{
@@ -226,8 +226,11 @@ float SoundProcess::GetProgress()
 void ExplosionProcess::OnInit()
 {
 	Process::OnInit();
+
 	BaseResource resource("explosion.wav");
-	shared_ptr<ResHandle> srh = g_pGameApp->m_ResCache->GetHandle(&resource);
+
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	eastl::shared_ptr<ResHandle> srh = gameApp->mResCache->GetHandle(&resource);
 	m_Sound.reset(new SoundProcess(srh));
 
 	// Imagine cool explosion graphics setup code here!!!!

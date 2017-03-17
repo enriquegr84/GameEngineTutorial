@@ -15,7 +15,13 @@
 #include "Game/GameOption.h"
 
 #include "System/System.h"
+#include "Core/IO/FileSystem.h"
+#include "Core/IO/ResourceCache.h"
+
 #include "Graphic/Renderer/Renderer.h"
+
+class BaseSocketManager;
+class NetworkEventForwarder;
 
 //	Window abstracts the platform-dependent implementations
 class GameApplication : public Application, public EventListener
@@ -37,35 +43,53 @@ public:
 	virtual void OnPreidle();
 	virtual void OnIdle();
 
-	void AbortGame() { mQuitting = true; }
-	bool IsRunning() { return mIsRunning; }
-	void SetQuitting(bool quitting) { mQuitting = quitting; }
-	
-	// Event callbacks.
-	virtual bool OnEvent(const Event& ev);
-
-	// Game specific.
-
 	// Game Application Data
 	// You must define these in an inherited
 	// class - see TeapotWarsApp for an example
 	virtual eastl::wstring GetGameTitle() = 0;
 	virtual eastl::wstring GetGameAppDirectory() = 0;
-	/*
-	Reimplemented method by the child class and performs the logic associated
-	to this state. It is called before drawing the scene to update game logic.
-	@param elapsedTime Running time in milliseconds since the last updating of 
-	the logic
-	*/
-	void OnUpdateGame(unsigned int elapsedTime);
-	void OnUpdateView(unsigned int elapsedTime);
-	void OnAnimateView(unsigned int time);
 
-	/*
-	Reimplemented method by the child classes which draws the scene
-	@param elapsedTime Running time in milliseconds since the last drawing
-	*/
-	void OnRender(unsigned int elapsedTime);
+	void AbortGame() { mQuitting = true; }
+	bool IsRunning() { return mIsRunning; }
+	void SetQuitting(bool quitting) { mQuitting = quitting; }
+
+	HumanView* GetHumanView();	// it was convenient to grab the HumanView attached to the game.
+
+	void InitHumanViews(XMLElement* pRoot);
+	const eastl::list<eastl::shared_ptr<BaseGameView>>& GetGameViews() { return mGameViews; }
+	void AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId = INVALID_ACTOR_ID);
+	void RemoveView(const eastl::shared_ptr<BaseGameView>& pView);
+	void RemoveViews();
+	void RemoveView();
+
+	// You must define these functions to initialize your game.
+	virtual eastl::shared_ptr<GameLogic> CreateGameAndView() = 0;
+	virtual bool LoadGame(void);
+
+	bool IsEditorRunning() { return mIsEditorRunning; }
+
+	bool AttachAsClient();
+
+	//main services
+
+	// File and Resource System
+	eastl::shared_ptr<ResCache> mResCache;
+
+	// Event manager
+	eastl::shared_ptr<EventManager> mEventManager;
+
+	// Socket manager - could be server or client
+	eastl::shared_ptr<BaseSocketManager> mBaseSocketManager;
+	eastl::shared_ptr<NetworkEventForwarder> mNetworkEventForwarder;
+
+	eastl::shared_ptr<ProgramFactory> mProgramFactory;
+	eastl::shared_ptr<FileSystem> mFileSystem;
+	eastl::shared_ptr<Renderer> mRenderer;
+	eastl::shared_ptr<System> mSystem;
+
+	// Game specific
+	eastl::shared_ptr<GameLogic> mGame;
+	struct GameOption mOption;
 
 protected:
 
@@ -86,24 +110,24 @@ protected:
 	void UpdateFrameCount();
 	float GetLimitedDt();
 
-	eastl::shared_ptr<BaseGameLogic> GetGameLogic(void) const { return mGame; }
+	// Event callbacks.
+	virtual bool OnEvent(const Event& ev);
 
-	HumanView* GetHumanView();	// it was convenient to grab the HumanView attached to the game.
+	/*
+	Reimplemented method by the child class and performs the logic associated
+	to this state. It is called before drawing the scene to update game logic.
+	@param elapsedTime Running time in milliseconds since the last updating of
+	the logic
+	*/
+	void OnUpdateGame(unsigned int elapsedTime);
+	void OnUpdateView(unsigned int elapsedTime);
+	void OnAnimateView(unsigned int time);
 
-	void InitHumanViews(XMLElement* pRoot);
-	const eastl::list<eastl::shared_ptr<BaseGameView>>& GetGameViews() { return mGameViews; }
-	void AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId = INVALID_ACTOR_ID);
-	void RemoveView(const eastl::shared_ptr<BaseGameView>& pView);
-	void RemoveViews();
-	void RemoveView();
-
-	// You must define these functions to initialize your game.
-	virtual eastl::shared_ptr<BaseGameLogic> CreateGameAndView() = 0;
-	virtual bool LoadGame(void);
-
-	bool IsEditorRunning() { return mIsEditorRunning; }
-
-	bool AttachAsClient();
+	/*
+	Reimplemented method by the child classes which draws the scene
+	@param elapsedTime Running time in milliseconds since the last drawing
+	*/
+	void OnRender(unsigned int elapsedTime);
 
 	virtual void RegisterGameEvents(void) {}
 	virtual void CreateNetworkEventForwarder(void);
@@ -132,26 +156,6 @@ protected:
 
 	// views that are attached to our game
 	eastl::list<eastl::shared_ptr<BaseGameView>> mGameViews;
-
-	//main services
-
-	// File and Resource System
-	eastl::shared_ptr<ResCache> mResCache;
-
-	// Event manager
-	eastl::shared_ptr<EventManager> mEventManager;
-
-	// Socket manager - could be server or client
-	eastl::shared_ptr<BaseSocketManager> mBaseSocketManager;
-	eastl::shared_ptr<NetworkEventForwarder> mNetworkEventForwarder;
-
-	eastl::shared_ptr<ProgramFactory> mProgramFactory;
-	eastl::shared_ptr<Renderer> mRenderer;
-	eastl::shared_ptr<System> mSystem;
-
-	// Game specific
-	eastl::shared_ptr<BaseGameLogic> mGame;
-	struct GameOption mOption;
 
 private:
 

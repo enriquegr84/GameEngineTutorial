@@ -10,7 +10,7 @@
 
 #include "Core/Core.h"
 
-#include "Game/BaseGameLogic.h"
+#include "Game/GameLogic.h"
 #include "Network/Network.h"
 
 #include "Core/IO/ResourceCache.h"
@@ -276,7 +276,7 @@ bool GameApplication::OnInitialize()
 	mResCache->RegisterLoader(CreateXmlResourceLoader());
 	mResCache->RegisterLoader(CreateScriptResourceLoader());
 
-	//m_Options.Init(L"Config/PlayerOptions.xml");
+	//m_Option.Init(L"Config/PlayerOptions.xml");
 
 	// Init the minimum managers so that user config exists, then
 	// handle all command line options that do not need (or must
@@ -287,7 +287,7 @@ bool GameApplication::OnInitialize()
 	//	the resource once it's loaded.  We don't need to do anything with it, 
 	//	we just need to load it.
 	{
-		//Resource resource(SCRIPT_PREINIT_FILE);
+		//BaseResource resource(SCRIPT_PREINIT_FILE);
 		// this actually loads the XML file from the zip file
 		//eastl::shared_ptr<ResHandle> pResourceHandle = mResCache->GetHandle(&resource);
 	}
@@ -310,9 +310,9 @@ bool GameApplication::OnInitialize()
 
 	// now that all the major systems are initialized, preload resources 
 	//    Preload calls are discussed in Chapter 5, page 148
-	//mResCache->Preload("*.ogg", NULL);
-	//mResCache->Preload("*.dds", NULL);
-	//mResCache->Preload("*.jpg", NULL);
+	//mResCache->Preload(L"*.ogg", NULL);
+	//mResCache->Preload(L"*.dds", NULL);
+	//mResCache->Preload(L"*.jpg", NULL);
 
 	//CheckForJoystick(GetHwnd());
 	InitTime();

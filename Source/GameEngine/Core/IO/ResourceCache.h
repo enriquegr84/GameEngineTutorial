@@ -44,6 +44,8 @@
 #include "BaseResourceFile.h"
 #include "BaseResourceLoader.h"
 
+#include "Core/Logger/Logger.h"
+
 //
 // class BaseResourceExtraData		- Chapter 8, page 224 (see notes below)
 //
@@ -65,7 +67,7 @@ class ResHandle
 	friend class ResCache;
 
 protected:
-	BaseResource		m_resource;
+	BaseResource	m_resource;
 	void*			m_buffer;	
 	bool			m_isRawBuffer;
 	unsigned int	m_size;
@@ -149,8 +151,8 @@ public:
 	int GetResource(BaseResource* r, void** buffer);
 	eastl::shared_ptr<ResHandle> GetHandle(BaseResource * r);
 
-	int Preload(const eastl::string pattern, void (*progressCallback)(int, bool &));
-	eastl::vector<eastl::wstring> Match(const eastl::string pattern);
+	int Preload(const eastl::wstring pattern, void (*progressCallback)(int, bool &));
+	eastl::vector<eastl::wstring> Match(const eastl::wstring pattern);
 
 	void Flush(void);
 

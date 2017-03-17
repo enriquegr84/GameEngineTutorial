@@ -42,72 +42,76 @@ const char* TransformComponent::g_Name = "TransformComponent";
 
 bool TransformComponent::Init(XMLElement* pData)
 {
-    LogAssert(pData);
+    LogAssert(pData, "Invalid data");
 
 	// [mrmike] - this was changed post-press - because changes to the TransformComponents can come in partial definitions,
 	//            such as from the editor, its better to grab the current values rather than clear them out.
-    
-	Vector3 yawPitchRoll = m_transform.GetRotationDegrees();
+	EulerAngles<float> yawPitchRoll;
+	m_transform.GetRotation(yawPitchRoll);
 	//yawPitchRoll.x = RADIANS_TO_DEGREES(yawPitchRoll.x);
 	//yawPitchRoll.y = RADIANS_TO_DEGREES(yawPitchRoll.y);
 	//yawPitchRoll.z = RADIANS_TO_DEGREES(yawPitchRoll.z);
 
-	Vector3 position = m_transform.GetTranslation();	
+	Vector3<float> position = m_transform.GetTranslation();	
 
     XMLElement* pPositionElement = pData->FirstChildElement("Position");
     if (pPositionElement)
     {
-        double x = 0;
-        double y = 0;
-        double z = 0;
-        pPositionElement->Attribute("x", &x);
-        pPositionElement->Attribute("y", &y);
-        pPositionElement->Attribute("z", &z);
-        position = Vector3(x, y, z);
+        float x = 0;
+		float y = 0;
+		float z = 0;
+        x = pPositionElement->FloatAttribute("x", x);
+        y = pPositionElement->FloatAttribute("y", y);
+        z = pPositionElement->FloatAttribute("z", z);
+
+		position = Vector3<float>{ x, y, z };
     }
 
     XMLElement* pOrientationElement = pData->FirstChildElement("YawPitchRoll");
     if (pOrientationElement)
     {
-        double yaw = 0;
-        double pitch = 0;
-        double roll = 0;
-        pOrientationElement->Attribute("x", &yaw);
-        pOrientationElement->Attribute("y", &pitch);
-        pOrientationElement->Attribute("z", &roll);
-		yawPitchRoll = Vector3(yaw, pitch, roll);
-	}
+        float yaw = 0;
+		float pitch = 0;
+		float roll = 0;
+        yaw = pOrientationElement->FloatAttribute("x", yaw);
+        pitch = pOrientationElement->FloatAttribute("y", pitch);
+        roll = pOrientationElement->FloatAttribute("z", roll);
 
-	Matrix4x4 translation;
+		yawPitchRoll.angle[0] = yaw;
+		yawPitchRoll.angle[1] = pitch;
+		yawPitchRoll.angle[2] = roll;
+	};
+
+	Transform translation;
 	translation.SetTranslation(position);
 
-	Matrix4x4 rotation;
-	rotation.SetRotationDegrees(yawPitchRoll);
+	Transform rotation;
+	rotation.SetRotation(yawPitchRoll);
 
 	// This is not supported yet.
     XMLElement* pLookAtElement = pData->FirstChildElement("LookAt");
     if (pLookAtElement)
     {
-        double x = 0;
-        double y = 0;
-        double z = 0;
-        pLookAtElement->Attribute("x", &x);
-        pLookAtElement->Attribute("y", &y);
-        pLookAtElement->Attribute("z", &z);
+		float x = 0;
+		float y = 0;
+		float z = 0;
+        x = pLookAtElement->FloatAttribute("x", x);
+        y = pLookAtElement->FloatAttribute("y", y);
+        z = pLookAtElement->FloatAttribute("z", z);
 
-		Vector3 lookAt(x, y, z);
+		Vector3<float> lookAt{ x, y, z };
 		//rotation.buildCameraLookAtMatrixLH(translation.getTranslation(), lookAt, g_Up);
     }
 
     XMLElement* pScaleElement = pData->FirstChildElement("Scale");
     if (pScaleElement)
     {
-        double x = 0;
-        double y = 0;
-        double z = 0;
-        pScaleElement->Attribute("x", &x);
-        pScaleElement->Attribute("y", &y);
-        pScaleElement->Attribute("z", &z);
+		float x = 0;
+		float y = 0;
+		float z = 0;
+        x = pScaleElement->FloatAttribute("x", x);
+        y = pScaleElement->FloatAttribute("y", y);
+        z = pScaleElement->FloatAttribute("z", z);
         //scale = Vector3(x, y, z);
     }
 
@@ -118,31 +122,35 @@ bool TransformComponent::Init(XMLElement* pData)
 
 XMLElement* TransformComponent::GenerateXml(void)
 {
-    XMLElement* pBaseElement = new XMLElement(GetName());
+	XMLDocument doc;
+
+	// base element
+	XMLElement* pBaseElement = doc.NewElement(GetName());
 
     // initial transform -> position
-    XMLElement* pPosition = new XMLElement("Position");
-    Vector3 pos(m_transform.GetTranslation());
-    pPosition->SetAttribute("x", eastl::string(pos.X).c_str());
-    pPosition->SetAttribute("y", eastl::string(pos.Y).c_str());
-    pPosition->SetAttribute("z", eastl::string(pos.Z).c_str());
+    XMLElement* pPosition = doc.NewElement("Position");
+    Vector3<float> pos(m_transform.GetTranslation());
+    pPosition->SetAttribute("x", eastl::to_string(pos[0]).c_str());
+    pPosition->SetAttribute("y", eastl::to_string(pos[1]).c_str());
+    pPosition->SetAttribute("z", eastl::to_string(pos[3]).c_str());
     pBaseElement->LinkEndChild(pPosition);
 
     // initial transform -> LookAt
-    XMLElement* pDirection = new XMLElement("YawPitchRoll");
-	Vector3 orient(m_transform.GetRotationDegrees());
-    pDirection->SetAttribute("x", eastl::string(orient.X).c_str());
-    pDirection->SetAttribute("y", eastl::string(orient.Y).c_str());
-    pDirection->SetAttribute("z", eastl::string(orient.Z).c_str());
+    XMLElement* pDirection = doc.NewElement("YawPitchRoll");
+	EulerAngles<float> yawPitchRoll;
+	m_transform.GetRotation(yawPitchRoll);
+    pDirection->SetAttribute("x", eastl::to_string(yawPitchRoll.angle[0]).c_str());
+    pDirection->SetAttribute("y", eastl::to_string(yawPitchRoll.angle[1]).c_str());
+    pDirection->SetAttribute("z", eastl::to_string(yawPitchRoll.angle[2]).c_str());
     pBaseElement->LinkEndChild(pDirection);
 
 	// This is not supported yet
     // initial transform -> position
-    XMLElement* pScale = new XMLElement("Scale");
-	Vector3 scale(m_transform.GetScale());
-    pPosition->SetAttribute("x", eastl::string(scale.X).c_str());
-    pPosition->SetAttribute("y", eastl::string(scale.Y).c_str());
-    pPosition->SetAttribute("z", eastl::string(scale.Z).c_str());
+    XMLElement* pScale = doc.NewElement("Scale");
+	Vector3<float> scale(m_transform.GetScale());
+    pPosition->SetAttribute("x", eastl::to_string(scale[0]).c_str());
+    pPosition->SetAttribute("y", eastl::to_string(scale[1]).c_str());
+    pPosition->SetAttribute("z", eastl::to_string(scale[2]).c_str());
     pBaseElement->LinkEndChild(pScale);
 
     return pBaseElement;

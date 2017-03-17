@@ -41,10 +41,10 @@
 
 #include "GameEngineStd.h"
 
-#include "Process\Process.h"
-
 #include "Audio.h"
 #include "SoundResource.h"
+
+#include "Core/Process/Process.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // class SoundProcess							- Chapter 13, page 426
@@ -58,14 +58,14 @@
 class SoundProcess : public Process
 {
 protected:
-    shared_ptr<ResHandle> m_handle;			// this is the raw sound data
-    shared_ptr<IAudioBuffer> m_AudioBuffer;		// handle to the implementation dependent audio buffer (DSound, Miles) 
+    eastl::shared_ptr<ResHandle> m_handle;			// this is the raw sound data
+	eastl::shared_ptr<BaseAudioBuffer> m_AudioBuffer;		// handle to the implementation dependent audio buffer (DSound, Miles) 
 
     int m_Volume;						// these hold the initial setting until the sound is actually launched.
     bool m_isLooping;
 
 public:
-	SoundProcess(shared_ptr<ResHandle> soundResource, int volume=100, bool looping=false);
+	SoundProcess(eastl::shared_ptr<ResHandle> soundResource, int volume=100, bool looping=false);
 	virtual ~SoundProcess();
 
     void Play(const int volume, const bool looping);
@@ -105,7 +105,7 @@ class ExplosionProcess : public Process
 {
 protected:
     int m_Stage;
-    shared_ptr<SoundProcess> m_Sound;
+	eastl::shared_ptr<SoundProcess> m_Sound;
 
   public:
   	ExplosionProcess() { m_Stage=0; }
@@ -127,7 +127,7 @@ protected:
 class FadeProcess : public Process
 {
 protected:
-	shared_ptr<SoundProcess> m_Sound;
+	eastl::shared_ptr<SoundProcess> m_Sound;
 	
 	int m_TotalFadeTime;
 	int m_ElapsedTime;
@@ -135,7 +135,7 @@ protected:
 	int m_EndVolume;
 
 public:
-	FadeProcess(shared_ptr<SoundProcess> sound, int fadeTime, int endVolume);
+	FadeProcess(eastl::shared_ptr<SoundProcess> sound, int fadeTime, int endVolume);
 	virtual void OnUpdate(unsigned long deltaMs);	
 };
 

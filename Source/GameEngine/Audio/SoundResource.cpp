@@ -45,7 +45,6 @@
 #include <vorbis/vorbisfile.h>       // also :)
 
 #include "GameEngineStd.h"
-#include "GameEngine/interfaces.h"
 
 #include "SoundResource.h"
 #include "Audio.h"
@@ -77,12 +76,15 @@ unsigned int WaveResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned
 	// mmioFOURCC -- converts four chars into a 4 byte integer code.
 	// The first 4 bytes of a valid .wav file is 'R','I','F','F'
 
-	type = *((unsigned long *)((char *)rawBuffer+pos));		pos+=sizeof(unsigned long);
+	type = *((unsigned long *)((char *)rawBuffer+pos));		
+	pos+=sizeof(unsigned long);
 	if(type != mmioFOURCC('R', 'I', 'F', 'F'))
 		return false;	
 	
-	length = *((unsigned long *)((char *)rawBuffer+pos));	pos+=sizeof(unsigned long);
-	type = *((unsigned long *)((char *)rawBuffer+pos));		pos+=sizeof(unsigned long);
+	length = *((unsigned long *)((char *)rawBuffer+pos));	
+	pos+=sizeof(unsigned long);
+	type = *((unsigned long *)((char *)rawBuffer+pos));		
+	pos+=sizeof(unsigned long);
 
 	// 'W','A','V','E' for a legal .wav file
 	if(type != mmioFOURCC('W', 'A', 'V', 'E'))
@@ -97,17 +99,19 @@ unsigned int WaveResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned
 	// Note that these blocks can be in either order.
 	while(file < fileEnd)
 	{
-		type = *((unsigned long *)((char *)rawBuffer+pos));		pos+=sizeof(unsigned long);
+		type = *((unsigned long *)((char *)rawBuffer+pos));		
+		pos+=sizeof(unsigned long);
 		file += sizeof(unsigned long);
 
-		length = *((unsigned long *)((char *)rawBuffer+pos));	pos+=sizeof(unsigned long);
+		length = *((unsigned long *)((char *)rawBuffer+pos));	
+		pos+=sizeof(unsigned long);
 		file += sizeof(unsigned long);
 
 		switch(type)
 		{
 			case mmioFOURCC('f', 'a', 'c', 't'):
 			{
-				GE_ASSERT(false && "This wav file is compressed.  We don't handle compressed wav at this time");
+				LogError("This wav file is compressed.  We don't handle compressed wav at this time");
 				break;
 			}
 
@@ -138,11 +142,11 @@ unsigned int WaveResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned
 	return false; 
 }
 
-bool WaveResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const shared_ptr<ResHandle>& handle)
+bool WaveResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)
 {
-	shared_ptr<SoundResourceExtraData> extra = shared_ptr<SoundResourceExtraData>(new SoundResourceExtraData());
+	eastl::shared_ptr<SoundResourceExtraData> extra(new SoundResourceExtraData());
 	extra->m_SoundType = SOUND_TYPE_WAVE;
-	handle->SetExtra(shared_ptr<SoundResourceExtraData>(extra));
+	handle->SetExtra(eastl::shared_ptr<SoundResourceExtraData>(extra));
 	if (!ParseWave((char *)rawBuffer, rawSize, handle))
 	{
 		return false;
@@ -153,26 +157,30 @@ bool WaveResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, con
 //
 // WaveResourceLoader::ParseWave				- Chapter 13, page 401
 //
-bool WaveResourceLoader::ParseWave(char *wavStream, size_t bufferLength, shared_ptr<ResHandle> handle)
+bool WaveResourceLoader::ParseWave(char *wavStream, size_t bufferLength, eastl::shared_ptr<ResHandle> handle)
 {
-	shared_ptr<SoundResourceExtraData> extra = static_pointer_cast<SoundResourceExtraData>(handle->GetExtra());
-	unsigned long		file = 0; 
-	unsigned long		fileEnd = 0; 
+	eastl::shared_ptr<SoundResourceExtraData> extra = 
+		eastl::static_pointer_cast<SoundResourceExtraData>(handle->GetExtra());
+	unsigned long file = 0; 
+	unsigned long fileEnd = 0; 
 	
-	unsigned long		length = 0;     
-	unsigned long		type = 0;									
+	unsigned long length = 0;     
+	unsigned long type = 0;									
 
 	unsigned long pos = 0;
 
 	// mmioFOURCC -- converts four chars into a 4 byte integer code.
 	// The first 4 bytes of a valid .wav file is 'R','I','F','F'
 
-	type = *((unsigned long *)(wavStream+pos));		pos+=sizeof(unsigned long);
+	type = *((unsigned long *)(wavStream+pos));		
+	pos+=sizeof(unsigned long);
 	if(type != mmioFOURCC('R', 'I', 'F', 'F'))
 		return false;	
 	
-	length = *((unsigned long *)(wavStream+pos));	pos+=sizeof(unsigned long);
-	type = *((unsigned long *)(wavStream+pos));		pos+=sizeof(unsigned long);
+	length = *((unsigned long *)(wavStream+pos));	
+	pos+=sizeof(unsigned long);
+	type = *((unsigned long *)(wavStream+pos));		
+	pos+=sizeof(unsigned long);
 
 	// 'W','A','V','E' for a legal .wav file
 	if(type != mmioFOURCC('W', 'A', 'V', 'E'))
@@ -189,23 +197,26 @@ bool WaveResourceLoader::ParseWave(char *wavStream, size_t bufferLength, shared_
 	// Note that these blocks can be in either order.
 	while(file < fileEnd)
 	{
-		type = *((unsigned long *)(wavStream+pos));		pos+=sizeof(unsigned long);
+		type = *((unsigned long *)(wavStream+pos));		
+		pos+=sizeof(unsigned long);
 		file += sizeof(unsigned long);
 
-		length = *((unsigned long *)(wavStream+pos));	pos+=sizeof(unsigned long);
+		length = *((unsigned long *)(wavStream+pos));	
+		pos+=sizeof(unsigned long);
 		file += sizeof(unsigned long);
 
 		switch(type)
 		{
 			case mmioFOURCC('f', 'a', 'c', 't'):
 			{
-				GE_ASSERT(false && "This wav file is compressed.  We don't handle compressed wav at this time");
+				LogError("This wav file is compressed.  We don't handle compressed wav at this time");
 				break;
 			}
 
 			case mmioFOURCC('f', 'm', 't', ' '):
 			{
-				memcpy(&extra->m_WavFormatEx, wavStream+pos, length);		pos+=length;   
+				memcpy(&extra->m_WavFormatEx, wavStream+pos, length);		
+				pos+=length;   
 				extra->m_WavFormatEx.cbSize = (WORD)length;
 				break;
 			}
@@ -215,10 +226,11 @@ bool WaveResourceLoader::ParseWave(char *wavStream, size_t bufferLength, shared_
 				copiedBuffer = true;
 				if (length != handle->Size())
 				{
-					GE_ASSERT(0 && _GE_TEXT("Wav resource size does not equal the buffer size"));
+					LogError("Wav resource size does not equal the buffer size");
 					return 0;
 				}
-				memcpy(handle->WritableBuffer(), wavStream+pos, length);			pos+=length;
+				memcpy(handle->WritableBuffer(), wavStream+pos, length);			
+				pos+=length;
 				break;
 			}
 		} 

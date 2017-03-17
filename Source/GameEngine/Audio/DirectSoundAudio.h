@@ -62,7 +62,7 @@ protected:
 	LPDIRECTSOUNDBUFFER m_Sample;
 
 public:
-	DirectSoundAudioBuffer(LPDIRECTSOUNDBUFFER sample, shared_ptr<ResHandle> resource);
+	DirectSoundAudioBuffer(LPDIRECTSOUNDBUFFER sample, eastl::shared_ptr<ResHandle> resource);
 	virtual void *Get();
 	virtual bool OnRestore();
 
@@ -88,7 +88,7 @@ private:
 //////////////////////////////////////////////////////////////////////
 // class DirectSoundAudio::io						- Chapter 13, page 414
 //
-// Implements the rest of the IAudio interface left out by Audio.  
+// Implements the rest of the BaseAudio interface left out by Audio.  
 // If you are interested in implementing a sound system using OpenAL 
 // you'd create a class OpenALAudioBuffer from AudioBuffer.
 // 
@@ -100,8 +100,8 @@ public:
 	DirectSoundAudio() { m_pDS = NULL; }
 	virtual bool Active() { return m_pDS!=NULL; }
 
-	virtual IAudioBuffer *InitAudioBuffer(shared_ptr<ResHandle> handle);
-	virtual void ReleaseAudioBuffer(IAudioBuffer* audioBuffer);
+	virtual BaseAudioBuffer *InitAudioBuffer(eastl::shared_ptr<ResHandle> handle);
+	virtual void ReleaseAudioBuffer(BaseAudioBuffer* audioBuffer);
 
 	virtual void Shutdown();
 	virtual bool Initialize(void* id);

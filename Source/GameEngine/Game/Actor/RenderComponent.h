@@ -68,7 +68,7 @@ protected:
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
 };
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ protected:
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
 };
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ protected:
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
 };
 
 
@@ -132,7 +132,7 @@ protected:
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
 };
 
 
@@ -163,7 +163,7 @@ protected:
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
 };
 
 
@@ -184,7 +184,7 @@ protected:
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
 };
 
 
@@ -206,7 +206,7 @@ protected:
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
 };
 
 #endif

@@ -5,10 +5,7 @@
 #ifndef UISKIN_H
 #define UISKIN_H
 
-#include "EUIAlignment.h"
-
 #include "UIFont.h"
-#include "UISpriteBank.h"
 #include "UIElement.h"
 
 //! Enumeration of available default skins.
@@ -36,16 +33,6 @@ enum EUI_SKIN_THEME_TYPE
 
 	//! this value is not used, it only specifies the number of skin types
 	EGSTT_COUNT
-};
-
-//! Names for gui element types
-const c8* const UISkinTypeNames[EGSTT_COUNT+1] =
-{
-	"windowsClassic",
-	"windowsMetallic",
-	"burning",
-	"unknown",
-	0,
 };
 
 
@@ -108,37 +95,6 @@ enum EUI_DEFAULT_COLOR
 	EGDC_COUNT
 };
 
-//! Names for default skin colors
-const c8* const UISkinColorNames[EGDC_COUNT+1] =
-{
-	"3DDarkShadow",
-	"3DShadow",
-	"3DFace",
-	"3DHighlight",
-	"3DLight",
-	"ActiveBorder",
-	"ActiveCaption",
-	"AppWorkspace",
-	"ButtonText",
-	"GrayText",
-	"Highlight",
-	"HighlightText",
-	"InactiveBorder",
-	"InactiveCaption",
-	"ToolTip",
-	"ToolTipBackground",
-	"ScrollBar",
-	"Window",
-	"WindowSymbol",
-	"Icon",
-	"IconHighlight",
-	"GrayWindowSymbol",
-	"Editable",
-	"GrayEditable",
-	"FocusedEditable",
-	0,
-};
-
 //! Enumeration for default sizes.
 enum EUI_DEFAULT_SIZE
 {
@@ -191,34 +147,6 @@ enum EUI_DEFAULT_SIZE
 };
 
 
-//! Names for default skin sizes
-const c8* const UISkinSizeNames[EGDS_COUNT+1] =
-{
-	"ScrollBarSize",
-	"MenuHeight",
-	"WindowButtonWidth",
-	"CheckBoxWidth",
-	"MessageBoxWidth",
-	"MessageBoxHeight",
-	"ButtonWidth",
-	"ButtonHeight",
-	"TextDistanceX",
-	"TextDistanceY",
-	"TitleBarTextX",
-	"TitleBarTextY",
-	"MessageBoxGapSpace",
-	"MessageBoxMinTextWidth",
-	"MessageBoxMaxTextWidth",
-	"MessageBoxMinTextHeight",
-	"MessageBoxMaxTextHeight",
-	"ButtonPressedImageOffsetX",
-	"ButtonPressedImageOffsetY"
-	"ButtonPressedTextOffsetX",
-	"ButtonPressedTextOffsetY",
-	0
-};
-
-
 enum EUI_DEFAULT_TEXT
 {
 	//! Text for the OK button on a message box
@@ -242,19 +170,6 @@ enum EUI_DEFAULT_TEXT
 	EGDT_COUNT
 };
 
-//! Names for default skin sizes
-const c8* const UISkinTextNames[EGDT_COUNT+1] =
-{
-	"MessageBoxOkay",
-	"MessageBoxCancel",
-	"MessageBoxYes",
-	"MessageBoxNo",
-	"WindowButtonClose",
-	"WindowButtonMaximize",
-	"WindowButtonMinimize",
-	"WindowButtonRestore",
-	0
-};
 
 //! Customizable symbols for UI
 enum EUI_DEFAULT_ICON
@@ -311,33 +226,6 @@ enum EUI_DEFAULT_ICON
 	EGDI_COUNT
 };
 
-const c8* const UISkinIconNames[EGDI_COUNT+1] =
-{
-	"windowMaximize",
-	"windowRestore",
-	"windowClose",
-	"windowMinimize",
-	"windowResize",
-	"cursorUp",
-	"cursorDown",
-	"cursorLeft",
-	"cursorRight",
-	"menuMore",
-	"checkBoxChecked",
-	"dropDown",
-	"smallCursorUp",
-	"smallCursorDown",
-	"radioButtonChecked",
-	"moreLeft",
-	"moreRight",
-	"moreUp",
-	"moreDown",
-	"expand",
-	"collapse",
-	"file",
-	"directory",
-	0
-};
 
 // Customizable fonts
 enum EUI_DEFAULT_FONT
@@ -357,15 +245,6 @@ enum EUI_DEFAULT_FONT
 	EGDF_COUNT
 };
 
-const c8* const UISkinFontNames[EGDF_COUNT+1] =
-{
-	"defaultFont",
-	"buttonFont",
-	"windowFont",
-	"menuFont",
-	"tooltipFont",
-	0
-};
 
 //! A skin modifies the look of the UI elements.
 class UISkin
@@ -373,10 +252,10 @@ class UISkin
 public:
 
 	//! returns default color
-	virtual Color GetColor(EUI_DEFAULT_COLOR color) const = 0;
+	virtual eastl::array<float, 4> const GetColor(EUI_DEFAULT_COLOR color) const = 0;
 
 	//! sets a default color
-	virtual void SetColor(EUI_DEFAULT_COLOR which, Color newColor) = 0;
+	virtual void SetColor(EUI_DEFAULT_COLOR which, eastl::array<float, 4> const newColor) = 0;
 
 	//! returns size for the given size type
 	virtual int GetSize(EUI_DEFAULT_SIZE size) const = 0;
@@ -395,16 +274,10 @@ public:
 	virtual void SetSize(EUI_DEFAULT_SIZE which, int size) = 0;
 
 	//! returns the default font
-	virtual const shared_ptr<UIFont>& GetFont(EUI_DEFAULT_FONT which=EGDF_DEFAULT) const = 0;
+	virtual const eastl::shared_ptr<UIFont>& GetFont(EUI_DEFAULT_FONT which=EGDF_DEFAULT) const = 0;
 
 	//! sets a default font
-	virtual void SetFont(const shared_ptr<UIFont>& font, EUI_DEFAULT_FONT which=EGDF_DEFAULT) = 0;
-
-	//! returns the sprite bank
-	virtual const shared_ptr<UISpriteBank>& GetSpriteBank() const = 0;
-
-	//! sets the sprite bank
-	virtual void SetSpriteBank(const shared_ptr<UISpriteBank>& bank) = 0;
+	virtual void SetFont(const eastl::shared_ptr<UIFont>& font, EUI_DEFAULT_FONT which=EGDF_DEFAULT) = 0;
 
 	//! Returns a default icon
 	/** Returns the sprite index within the sprite bank */
@@ -426,8 +299,8 @@ public:
 	implementations to find out how to draw the part exactly.
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
-	virtual void Draw3DButtonPaneStandard(const shared_ptr<UIElement>& element,
-		const Rectangle<2, int>& rect, const Rectangle<2, int>* clip=0) = 0;
+	virtual void Draw3DButtonPaneStandard(const eastl::shared_ptr<UIElement>& element,
+		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0) = 0;
 
 	//! draws a pressed 3d button pane
 	/** Used for drawing for example buttons in pressed state.
@@ -438,8 +311,8 @@ public:
 	implementations to find out how to draw the part exactly.
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
-	virtual void Draw3DButtonPanePressed(const shared_ptr<UIElement>& element,
-		const Rectangle<2, int>& rect, const Rectangle<2, int>* clip=0) = 0;
+	virtual void Draw3DButtonPanePressed(const eastl::shared_ptr<UIElement>& element,
+		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0) = 0;
 
 	//! draws a sunken 3d pane
 	/** Used for drawing the background of edit, combo or check boxes.
@@ -453,8 +326,9 @@ public:
 	color or not be drawn at all.
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
-	virtual void Draw3DSunkenPane(const shared_ptr<UIElement>& element, Color bgcolor, 
-		bool flat, bool fillBackGround, const Rectangle<2, int>& rect, const Rectangle<2, int>* clip=0) = 0;
+	virtual void Draw3DSunkenPane(const eastl::shared_ptr<UIElement>& element, 
+		eastl::array<float, 4> const bgcolor, bool flat, bool fillBackGround, 
+		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0) = 0;
 
 	//! draws a window background
 	/** Used for drawing the background of dialogs and windows.
@@ -470,9 +344,9 @@ public:
 	That is the area without borders and without titlebar.
 	\return Returns rect where it would be good to draw title bar text. This will
 	work even when checkClientArea is set to a non-null value.*/
-	virtual Rectangle<2, int> Draw3DWindowBackground(const shared_ptr<UIElement>& element, 
-		bool drawTitleBar, Color titleBarColor, const Rectangle<2, int>& rect, 
-		const Rectangle<2, int>* clip=0, Rectangle<2, int>* checkClientArea=0) = 0;
+	virtual RectangleBase<2, int> Draw3DWindowBackground(const eastl::shared_ptr<UIElement>& element, 
+		bool drawTitleBar, eastl::array<float, 4> const titleBarColor, const RectangleBase<2, int>& rect,
+		const RectangleBase<2, int>* clip=0, RectangleBase<2, int>* checkClientArea=0) = 0;
 
 	//! draws a standard 3d menu pane
 	/** Used for drawing for menus and context menus.
@@ -483,8 +357,8 @@ public:
 	implementations to find out how to draw the part exactly.
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
-	virtual void Draw3DMenuPane(const shared_ptr<UIElement>& element, const Rectangle<2, int>& rect, 
-		const Rectangle<2, int>* clip=0) = 0;
+	virtual void Draw3DMenuPane(const eastl::shared_ptr<UIElement>& element, const RectangleBase<2, int>& rect, 
+		const RectangleBase<2, int>* clip=0) = 0;
 
 	//! draws a standard 3d tool bar
 	/** Used for drawing for toolbars and menus.
@@ -493,8 +367,8 @@ public:
 	implementations to find out how to draw the part exactly.
 	\param rect: Defining area where to draw.
 	\param clip: Clip area. */
-	virtual void Draw3DToolBar(const shared_ptr<UIElement>& element, const Rectangle<2, int>& rect, 
-		const Rectangle<2, int>* clip=0) = 0;
+	virtual void Draw3DToolBar(const eastl::shared_ptr<UIElement>& element, const RectangleBase<2, int>& rect, 
+		const RectangleBase<2, int>* clip=0) = 0;
 
 	//! draws a tab button
 	/** Used for drawing for tab buttons on top of tabs.
@@ -505,8 +379,9 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.
 	\param alignment Alignment of UI element. */
-	virtual void Draw3DTabButton(const shared_ptr<UIElement>& element, bool active, const Rectangle<2, int>& rect, 
-		const Rectangle<2, int>* clip=0, EUI_ALIGNMENT alignment=EUIA_UPPERLEFT) = 0;
+	virtual void Draw3DTabButton(const eastl::shared_ptr<UIElement>& element, bool active, 
+		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0, 
+		EUI_ALIGNMENT alignment=EUIA_UPPERLEFT) = 0;
 
 	//! draws a tab control body
 	/** \param element: Pointer to the element which wishes to draw this. This parameter
@@ -518,9 +393,9 @@ public:
 	\param clip: Clip area.
 	\param tabHeight Height of tab.
 	\param alignment Alignment of UI element. */
-	virtual void Draw3DTabBody(const shared_ptr<UIElement>& element, bool border, bool background,
-		const Rectangle<2, int>& rect, const Rectangle<2, int>* clip=0, int tabHeight=-1, 
-		EUI_ALIGNMENT alignment=EUIA_UPPERLEFT ) = 0;
+	virtual void Draw3DTabBody(const eastl::shared_ptr<UIElement>& element, bool border, 
+		bool background, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0, 
+		int tabHeight=-1, EUI_ALIGNMENT alignment=EUIA_UPPERLEFT ) = 0;
 
 	//! draws an icon, usually from the skin's sprite bank
 	/** \param element: Pointer to the element which wishes to draw this icon.
@@ -532,9 +407,9 @@ public:
 	\param currenttime: The present time, used to calculate the frame number
 	\param loop: Whether the animation should loop or not
 	\param clip: Clip area. */
-	virtual void DrawIcon(const shared_ptr<UIElement>& element, EUI_DEFAULT_ICON icon,
-		const Position2i position, unsigned int starttime=0, unsigned int currenttime=0,
-		bool loop=false, const Rectangle<2, int>* clip=0) = 0;
+	virtual void DrawIcon(const eastl::shared_ptr<UIElement>& element, EUI_DEFAULT_ICON icon,
+		const Vector2<int> position, unsigned int starttime=0, unsigned int currenttime=0,
+		bool loop=false, const RectangleBase<2, int>* clip=0) = 0;
 
 	//! draws a 2d rectangle.
 	/** \param element: Pointer to the element which wishes to draw this icon.
@@ -544,9 +419,10 @@ public:
 	transparent the rectangle will be.
 	\param pos: Position of the rectangle.
 	\param clip: Pointer to rectangle against which the rectangle will be clipped.
-	If the pointer is null, no clipping will be performed. */
-	virtual void Draw2DRectangle(const shared_ptr<UIElement>& element, const Color &color,
-		const Rectangle<2, int>& pos, const Rectangle<2, int>* clip = 0) = 0;
+	If the pointer is null, no clipping will be performed. 
+	virtual void Draw2DRectangle(const eastl::shared_ptr<UIElement>& element, 
+		const eastl::array<float, 4> const& color, const RectangleBase<2, int>& pos, 
+		const RectangleBase<2, int>* clip = 0) = 0;*/
 
 	//! get the type of this skin
 	virtual EUI_SKIN_THEME_TYPE GetType() const { return EGSTT_UNKNOWN; }

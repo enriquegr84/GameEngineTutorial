@@ -13,8 +13,7 @@
 //----------------------------------------------------------------------------
 Renderer::Renderer()
 	:
-	mWidth(0),
-	mHeight(0),
+	mScreenSize(),
 	mClearDepth(1.0f),
 	mClearStencil(0),
 	mCreateDrawTarget(nullptr),

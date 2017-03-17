@@ -1,5 +1,5 @@
 //========================================================================
-// BaseGameLogic.h : Defines the Base Game Logic class 
+// GameLogic.h : Defines the Base Game Logic class 
 //
 // Part of the GameEngine Application
 //
@@ -36,20 +36,22 @@
 //
 //========================================================================
 
-#ifndef BASEGAMELOGIC_H
-#define BASEGAMELOGIC_H
+#ifndef GAMELOGIC_H
+#define GAMELOGIC_H
 
 #include "GameEngineStd.h"
 
-#include "GameEngine/interfaces.h"
+#include "Core/Process/ProcessManager.h"
+#include "Core/Event/EventManager.h"
+#include "Game/Actor/Actor.h"
 
-#include "Process/ProcessManager.h"
-#include "Events/EventManager.h"
-#include "Actors/Actor.h"
+#include "Mathematic/Algebra/Transform.h"
+#include "Mathematic/Algebra/Matrix4x4.h"
 
 class PathingGraph;
 class ActorFactory;
 class LevelManager;
+class BaseGamePhysic;
 
 enum BaseGameState
 {
@@ -63,12 +65,27 @@ enum BaseGameState
 	BGS_Running
 };
 
-typedef eastl::map<ActorId, StrongActorPtr> ActorMap;
+typedef eastl::map<ActorId, eastl::shared_ptr<Actor>> ActorMap;
 
-
-class BaseGameLogic : public BaseGameLogic
+class BaseGameLogic
 {
-	friend class GameEngineApp;						// This is only to gain access to the view list
+public:
+	virtual eastl::weak_ptr<Actor> GetActor(const ActorId id) = 0;
+	virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource, 
+		XMLElement *overrides, const Matrix4x4<float> *initialTransform = NULL, 
+		const ActorId serversActorId = INVALID_ACTOR_ID) = 0;
+	virtual void DestroyActor(const ActorId actorId) = 0;
+	virtual bool LoadGame(const wchar_t* levelResource) = 0;
+	virtual void SetProxy() = 0;
+	virtual void OnUpdate(float time, float elapsedTime) = 0;
+	virtual void ChangeState(enum BaseGameState newState) = 0;
+	virtual void MoveActor(const ActorId id, Transform const &transform) = 0;
+};
+
+
+class GameLogic : public BaseGameLogic
+{
+	friend class GameApplication;					// This is only to gain access to the view list
 
 protected:
 	float m_Lifetime;								//indicates how long this game has been in session
@@ -89,14 +106,14 @@ protected:
 	int m_remotePlayerId;							// if we are a remote player - what is out socket number on the server
 
 	bool m_RenderDiagnostics;						// Are we rendering diagnostics?
-	shared_ptr<BaseGamePhysic> m_pPhysics;
+	eastl::shared_ptr<BaseGamePhysic> mPhysics;
 
-	LevelManager* m_pLevelManager;					// Manages loading and chaining levels
+	LevelManager* mLevelManager;					// Manages loading and chaining levels
 
 public:
 
-	BaseGameLogic();
-	virtual ~BaseGameLogic();
+	GameLogic();
+	virtual ~GameLogic();
     bool Init(void);
 
 	void SetProxy(bool isProxy) 
@@ -118,20 +135,20 @@ public:
 	//RandomGenerator& GetRNG(void) { return m_Random; }
 
 	// [rez] note: don't store this strong pointer outside of this class 
-    virtual StrongActorPtr CreateActor(const eastl::string &actorResource, XMLElement *overrides, 
-		const matrix4 *initialTransform=NULL, const ActorId serversActorId=INVALID_ACTOR_ID);
+    virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource, XMLElement *overrides,
+		const Transform *initialTransform=NULL, const ActorId serversActorId=INVALID_ACTOR_ID);
 
     virtual void DestroyActor(const ActorId actorId);
-    virtual WeakActorPtr GetActor(const ActorId actorId);
+    virtual eastl::weak_ptr<Actor> GetActor(const ActorId actorId);
 	virtual void ModifyActor(const ActorId actorId, XMLElement *overrides);
 
-	virtual void MoveActor(const ActorId id, matrix4 const &mat) {}
+	virtual void MoveActor(const ActorId id, Matrix4x4<float> const &mat) {}
 
     // editor functions
 	eastl::string GetActorXml(const ActorId id);
 
 	// Level management
-	const LevelManager* GetLevelManager() { return m_pLevelManager; }
+	const LevelManager* GetLevelManager() { return mLevelManager; }
 	// [rez] Subclasses shouldn't override this function; use LoadGameDelegate() instead
     virtual bool LoadGame(const wchar_t* levelResource) override;  
 	virtual void SetProxy();
@@ -146,9 +163,9 @@ public:
 	// Render Diagnostics
 	void ToggleRenderDiagnostics() { m_RenderDiagnostics = !m_RenderDiagnostics; }
 	virtual void RenderDiagnostics();
-	virtual shared_ptr<BaseGamePhysic> GetGamePhysics(void) { return m_pPhysics; }
+	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) { return mPhysics; }
 	
-	void AttachProcess(StrongProcessPtr pProcess) 
+	void AttachProcess(eastl::shared_ptr<Process> pProcess)
 	{ if (m_pProcessManager) {m_pProcessManager->AttachProcess(pProcess);} }
 
     // event delegates

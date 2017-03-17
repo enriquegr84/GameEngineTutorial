@@ -40,6 +40,8 @@
 
 #include "RenderComponent.h"
 
+#include "Core/Logger/Logger.h"
+
 const char* MeshRenderComponent::g_Name = "MeshRenderComponent";
 const char* SphereRenderComponent::g_Name = "SphereRenderComponent";
 const char* TeapotRenderComponent::g_Name = "TeapotRenderComponent";
@@ -68,20 +70,21 @@ bool MeshRenderComponent::DelegateInit(XMLElement* pData)
 
     return true;
 }
-
+/*
 eastl::shared_ptr<SceneNode> MeshRenderComponent::CreateSceneNode(void)
 {
     // get the transform component
-    const eastl::shared_ptr<TransformComponent>& pTransformComponent =
-		eastl::make_shared(m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+    const eastl::shared_ptr<TransformComponent>& pTransformComponent(
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
     if (!pTransformComponent)
     {
         // can't render without a transform
         return eastl::shared_ptr<SceneNode>();
     }
 
-	const eastl::shared_ptr<ScreenElementScene>& pScene = g_pGameApp->GetHumanView()->m_pScene;
-	Matrix4x4 transform = pTransformComponent->GetTransform();
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->m_pScene;
+	Transform transform = pTransformComponent->GetTransform();
 	eastl::weak_ptr<BaseRenderComponent> wbrcp(this);
 
 	if (g_pGameApp->GetRendererImpl() == ERT_DIRECT3D9)
@@ -92,13 +95,12 @@ eastl::shared_ptr<SceneNode> MeshRenderComponent::CreateSceneNode(void)
 		eastl::shared_ptr<SceneNode> animatedMeshNode =
 			pScene->AddAnimatedMeshSceneNode(m_pOwner->GetId(), wbrcp, 0, &transform, mesh);
 
-		/*
-		To let the mesh look a little bit nicer, we change its material. We
-		disable lighting because we do not have a dynamic light in here, and
-		the mesh would be totally black otherwise. And last, we apply a
-		texture to the mesh. Without it the mesh would be drawn using only a
-		color.
-		*/
+		//To let the mesh look a little bit nicer, we change its material. We
+		//disable lighting because we do not have a dynamic light in here, and
+		//the mesh would be totally black otherwise. And last, we apply a
+		//texture to the mesh. Without it the mesh would be drawn using only a
+		//color.
+
 		if (animatedMeshNode)
 		{
 			animatedMeshNode->SetMaterialFlag(EMF_LIGHTING, false);
@@ -112,8 +114,8 @@ eastl::shared_ptr<SceneNode> MeshRenderComponent::CreateSceneNode(void)
 
 	return eastl::shared_ptr<SceneNode>();
 }
-
-void MeshRenderComponent::CreateInheritedXMLElements(XMLElement* pBaseElement)
+*/
+void MeshRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement)
 {
 	LogError("MeshRenderComponent::GenerateSubclassXml() not implemented");
 }
@@ -130,28 +132,29 @@ bool SphereRenderComponent::DelegateInit(XMLElement* pData)
 {
     XMLElement* pMesh = pData->FirstChildElement("Sphere");
     int segments = 50;
-	double radius = 1.0;
-	pMesh->Attribute("radius", &radius);
-    pMesh->Attribute("segments", &segments);
+	float radius = 1.0;
+	radius = pMesh->FloatAttribute("radius", radius);
+    segments = pMesh->IntAttribute("segments", segments);
 	m_radius = (float)radius;
     m_segments = (unsigned int)segments;
 
     return true;
 }
-
-shared_ptr<SceneNode> SphereRenderComponent::CreateSceneNode(void)
+/*
+eastl::shared_ptr<SceneNode> SphereRenderComponent::CreateSceneNode(void)
 {
     // get the transform component
-    const eastl::shared_ptr<TransformComponent>& pTransformComponent =
-		eastl::make_shared(m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+    const eastl::shared_ptr<TransformComponent>& pTransformComponent(
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
     if (!pTransformComponent)
     {
         // can't render without a transform
         return eastl::shared_ptr<SceneNode>();
     }
 
-	const eastl::shared_ptr<ScreenElementScene>& pScene = g_pGameApp->GetHumanView()->m_pScene;
-	Matrix4x4 transform = pTransformComponent->GetTransform();
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->m_pScene;
+	Transform transform = pTransformComponent->GetTransform();
 	eastl::weak_ptr<BaseRenderComponent> wbrcp(this);
 
 	if (g_pGameApp->GetRendererImpl() == ERT_DIRECT3D9)
@@ -162,7 +165,7 @@ shared_ptr<SceneNode> SphereRenderComponent::CreateSceneNode(void)
 		if (sphere)
 		{
 			sphere->SetPosition(transform.GetTranslation());
-			sphere->SetMaterialTexture(0, g_pGameApp->m_pRenderer->GetTexture("art/textures/wall.bmp").get());
+			sphere->SetMaterialTexture(0, gameApp->m_pRenderer->GetTexture("art/textures/wall.bmp").get());
 			sphere->SetMaterialFlag(EMF_LIGHTING, false);
 		}
 
@@ -172,30 +175,32 @@ shared_ptr<SceneNode> SphereRenderComponent::CreateSceneNode(void)
 
 	return eastl::shared_ptr<SceneNode>();
 }
-
-void SphereRenderComponent::CreateInheritedXMLElements(XMLElement* pBaseElement)
+*/
+void SphereRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement)
 {
-    XMLElement* pMesh = new XMLElement("Sphere");
-	pMesh->SetAttribute("radius", eastl::string(m_radius).c_str());
-    pMesh->SetAttribute("segments", eastl::string(m_segments).c_str());
+    XMLElement* pMesh = doc.NewElement("Sphere");
+	pMesh->SetAttribute("radius", eastl::to_string(m_radius).c_str());
+    pMesh->SetAttribute("segments", eastl::to_string(m_segments).c_str());
     pBaseElement->LinkEndChild(pBaseElement);
 }
 
+/*
 //---------------------------------------------------------------------------------------------------------------------
 // TeapotRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
 eastl::shared_ptr<SceneNode> TeapotRenderComponent::CreateSceneNode(void)
 {
     // get the transform component
-    const eastl::shared_ptr<TransformComponent>& pTransformComponent =
-		eastl::make_shared(m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+    const eastl::shared_ptr<TransformComponent>& pTransformComponent(
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
     if (pTransformComponent)
     {
-		const eastl::shared_ptr<ScreenElementScene>& pScene = g_pGameApp->GetHumanView()->m_pScene;
-		Matrix4x4 transform = pTransformComponent->GetTransform();
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->m_pScene;
+		Transform transform = pTransformComponent->GetTransform();
 		eastl::weak_ptr<BaseRenderComponent> wbrcp(this);
 
-		if (g_pGameApp->GetRendererImpl() == ERT_DIRECT3D9)
+		if (gameApp->GetRendererImpl() == ERT_DIRECT3D9)
 		{
 			// create a sphere node with specified radius and poly count.
 			eastl::shared_ptr<SceneNode> sphere =
@@ -203,12 +208,12 @@ eastl::shared_ptr<SceneNode> TeapotRenderComponent::CreateSceneNode(void)
 			if (sphere)
 			{
 				sphere->SetPosition(transform.GetTranslation());
-				sphere->SetMaterialTexture(0, g_pGameApp->m_pRenderer->GetTexture("art/textures/wall.bmp").get());
+				sphere->SetMaterialTexture(0, gameApp->m_pRenderer->GetTexture("art/textures/wall.bmp").get());
 				sphere->SetMaterialFlag(EMF_LIGHTING, false);
 			}
 
 			return sphere;
-			/*
+
 			// add this mesh scene node.
 			eastl::shared_ptr<SceneNode> node = 
 				pScene->AddMeshSceneNode(m_pOwner->GetId(), wbrcp, 0, &transform, pScene->GetMesh("tiefite.3ds"));
@@ -219,15 +224,16 @@ eastl::shared_ptr<SceneNode> TeapotRenderComponent::CreateSceneNode(void)
 				//node->SetScale(Vector3(5)); // Make it appear realistically scaled
 			}
 
-			return node;*/
+			return node;
 		}
 		else LogError("Unknown Renderer Implementation in TeapotRenderComponent");
     }
 
     return eastl::shared_ptr<SceneNode>();
 }
+*/
 
-void TeapotRenderComponent::CreateInheritedXMLElements(XMLElement *)
+void TeapotRenderComponent::CreateInheritedXMLElements(XMLDocument, XMLElement *)
 {
 }
 
@@ -257,21 +263,24 @@ bool GridRenderComponent::DelegateInit(XMLElement* pData)
     return true;
 }
 
+/*
 eastl::shared_ptr<SceneNode> GridRenderComponent::CreateSceneNode(void)
 {
-    const eastl::shared_ptr<TransformComponent>& pTransformComponent =
-		eastl::make_shared(m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+    const eastl::shared_ptr<TransformComponent>& pTransformComponent(
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
     if (pTransformComponent)
     {
-		const eastl::shared_ptr<ScreenElementScene>& pScene = g_pGameApp->GetHumanView()->m_pScene;
-		Matrix4x4 transform = pTransformComponent->GetTransform();
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->m_pScene;
+		Transform transform = pTransformComponent->GetTransform();
 		eastl::weak_ptr<BaseRenderComponent> wbrcp(this);
 
-		if (g_pGameApp->GetRendererImpl() == ERT_DIRECT3D9)
+		if (gameApp->GetRendererImpl() == ERT_DIRECT3D9)
 		{
 			// add this mesh scene node.
 			eastl::shared_ptr<IMesh> tangentMesh(
-				pScene->AddHillPlaneMesh("plane", Dimension2<f32>(40,40), Dimension2<unsigned int>(sqrt((float)m_squares), sqrt((float)m_squares))));
+				pScene->AddHillPlaneMesh("plane", Dimension2<f32>(40,40), 
+					Dimension2<unsigned int>(sqrt((float)m_squares), sqrt((float)m_squares))));
 
 			eastl::shared_ptr<SceneNode> plane =
 				pScene->AddMeshSceneNode(m_pOwner->GetId(), wbrcp, 0, &transform, tangentMesh);
@@ -281,7 +290,8 @@ eastl::shared_ptr<SceneNode> GridRenderComponent::CreateSceneNode(void)
 				plane->SetPosition(transform.GetTranslation());
 				//plane->SetRotation(Vector3(270,0,0));
 
-				plane->SetMaterialTexture(0, g_pGameApp->m_pRenderer->GetTexture("art/textures/t351sml.jpg").get());
+				plane->SetMaterialTexture(
+					0, gameApp->m_pRenderer->GetTexture("art/textures/t351sml.jpg").get());
 				plane->SetMaterialFlag(EMF_LIGHTING, false);
 				plane->SetMaterialFlag(EMF_BACK_FACE_CULLING, true);
 			}
@@ -293,16 +303,16 @@ eastl::shared_ptr<SceneNode> GridRenderComponent::CreateSceneNode(void)
 
     return eastl::shared_ptr<SceneNode>();
 }
-
-void GridRenderComponent::CreateInheritedXMLElements(XMLElement *pBaseElement)
+*/
+void GridRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement *pBaseElement)
 {
-    XMLElement* pTextureNode = new XMLElement("Texture");
-    XmlText* pTextureText = new XmlText(m_textureResource.c_str());
+    XMLElement* pTextureNode = doc.NewElement("Texture");
+    XMLText* pTextureText = doc.NewText(m_textureResource.c_str());
     pTextureNode->LinkEndChild(pTextureText);
     pBaseElement->LinkEndChild(pTextureNode);
 
-    XMLElement* pDivisionNode = new XMLElement("Division");
-    XmlText* pDivisionText = new XmlText(eastl::string(m_squares).c_str());
+    XMLElement* pDivisionNode = doc.NewElement("Division");
+	XMLText* pDivisionText = doc.NewText(eastl::to_string(m_squares).c_str());
     pDivisionNode->LinkEndChild(pDivisionText);
     pBaseElement->LinkEndChild(pDivisionNode);
 }
@@ -322,44 +332,47 @@ bool LightRenderComponent::DelegateInit(XMLElement* pData)
 	XMLElement* pColor = pData->FirstChildElement("Color");
 	if (pColor)
 	{
-		pColor->Attribute("r", &temp);
-		m_Props.m_DiffuseColor.r = temp;
+		temp = pColor->DoubleAttribute("r", temp);
+		//m_Props.m_DiffuseColor.r = temp;
 
-		pColor->Attribute("g", &temp);
-		m_Props.m_DiffuseColor.g = temp;
+		temp = pColor->DoubleAttribute("g", temp);
+		//m_Props.m_DiffuseColor.g = temp;
 
-		pColor->Attribute("b", &temp);
-		m_Props.m_DiffuseColor.b = temp;
+		temp = pColor->DoubleAttribute("b", temp);
+		//m_Props.m_DiffuseColor.b = temp;
 
-		pColor->Attribute("a", &temp);
-		m_Props.m_DiffuseColor.a = temp;
+		temp = pColor->DoubleAttribute("a", temp);
+		//m_Props.m_DiffuseColor.a = temp;
 	}
 
 	XMLElement* pLight = pData->FirstChildElement("Light");
     XMLElement* pAttenuationNode = pLight->FirstChildElement("Attenuation");
     if (pAttenuationNode)
 	{
-		pAttenuationNode->Attribute("const", &temp);
-		m_Props.m_Attenuation.X = (f32) temp;
+		temp = pAttenuationNode->DoubleAttribute("const", temp);
+		//m_Props.m_Attenuation.X = temp;
 
-		pAttenuationNode->Attribute("linear", &temp);
-		m_Props.m_Attenuation.Y = (f32) temp;
+		temp = pAttenuationNode->DoubleAttribute("linear", temp);
+		//m_Props.m_Attenuation.Y = temp;
 
-		pAttenuationNode->Attribute("exp", &temp);
-		m_Props.m_Attenuation.Z = (f32) temp;
+		temp = pAttenuationNode->DoubleAttribute("exp", temp);
+		//m_Props.m_Attenuation.Z = temp;
 	}
 
     XMLElement* pShapeNode = pLight->FirstChildElement("Shape");
     if (pShapeNode)
 	{
-		pShapeNode->Attribute("range", &temp);
-		m_Props.m_Radius = (f32) temp;
-		pShapeNode->Attribute("falloff", &temp);
-		m_Props.m_Falloff = (float) temp;
-		pShapeNode->Attribute("outercone", &temp);		
-		m_Props.m_OuterCone = (float) temp;
-		pShapeNode->Attribute("innercone", &temp);
-		m_Props.m_InnerCone = (float) temp;	
+		temp = pShapeNode->DoubleAttribute("range", temp);
+		//m_Props.m_Radius = temp;
+
+		temp = pShapeNode->DoubleAttribute("falloff", temp);
+		//m_Props.m_Falloff = temp;
+
+		temp = pShapeNode->DoubleAttribute("outercone", temp);
+		//m_Props.m_OuterCone = temp;
+
+		temp = pShapeNode->DoubleAttribute("innercone", temp);
+		//m_Props.m_InnerCone = temp;	
 	}
 
 	XMLElement* pAnimator = pData->FirstChildElement("Animator");
@@ -367,25 +380,29 @@ bool LightRenderComponent::DelegateInit(XMLElement* pData)
 	{
 		m_animatorType = pAnimator->Attribute("type");
 
-		pAnimator->Attribute("x", &temp);
-		m_animatorCenter.X = temp;
-		pAnimator->Attribute("y", &temp);
-		m_animatorCenter.Y = temp;
-		pAnimator->Attribute("z", &temp);
-		m_animatorCenter.Z = temp;
+		temp = pAnimator->DoubleAttribute("x", temp);
+		//m_animatorCenter.X = temp;
 
-		pAnimator->Attribute("speed", &temp);
-		m_animatorSpeed = temp;
+		temp = pAnimator->DoubleAttribute("y", temp);
+		//m_animatorCenter.Y = temp;
+
+		temp = pAnimator->DoubleAttribute("z", temp);
+		//m_animatorCenter.Z = temp;
+
+		temp = pAnimator->DoubleAttribute("speed", temp);
+		//m_animatorSpeed = temp;
 	}
 
 	XMLElement* pBillBoard = pData->FirstChildElement("Billboard");
 	if (pBillBoard)
 	{
 		m_addBillboard=true;
-		pBillBoard->Attribute("x", &temp);
-		m_billboardSize.Width = temp;
-		pBillBoard->Attribute("y", &temp);
-		m_billboardSize.Height = temp;
+
+		temp = pBillBoard->DoubleAttribute("x", temp);
+		//m_billboardSize.Width = temp;
+
+		temp = pBillBoard->DoubleAttribute("y", temp);
+		//m_billboardSize.Height = temp;
 	
 		XMLElement* pMaterial = pBillBoard->FirstChildElement("Material");
 		if (pMaterial)
@@ -397,18 +414,19 @@ bool LightRenderComponent::DelegateInit(XMLElement* pData)
 
     return true;
 }
-
+/*
 eastl::shared_ptr<SceneNode> LightRenderComponent::CreateSceneNode(void)
 {
-    const eastl::shared_ptr<TransformComponent>& pTransformComponent =
-		eastl::make_shared(m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+    const eastl::shared_ptr<TransformComponent>& pTransformComponent(
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
     if (pTransformComponent)
     {
-		const eastl::shared_ptr<ScreenElementScene>& pScene = g_pGameApp->GetHumanView()->m_pScene;
-		Matrix4x4 transform = pTransformComponent->GetTransform();
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->m_pScene;
+		Transform transform = pTransformComponent->GetTransform();
 		eastl::weak_ptr<BaseRenderComponent> wbrcp(this);
 
-		if (g_pGameApp->GetRendererImpl() == ERT_DIRECT3D9)
+		if (gameApp->GetRendererImpl() == ERT_DIRECT3D9)
 		{
 			// Add light
 			eastl::shared_ptr<LightSceneNode> light = pScene->AddLightSceneNode(
@@ -425,7 +443,7 @@ eastl::shared_ptr<SceneNode> LightRenderComponent::CreateSceneNode(void)
 			if (m_addBillboard)
 			{
 				eastl::shared_ptr<BillboardSceneNode> bill = 
-					pScene->AddBillboardSceneNode(g_pGameApp->GetGameLogic()->GetNewActorID(), 
+					pScene->AddBillboardSceneNode(gameApp->GetGameLogic()->GetNewActorID(),
 						eastl::weak_ptr<BaseRenderComponent>(), light, &transform, m_billboardSize);
 
 				bill->SetMaterialFlag( EMF_LIGHTING, false);
@@ -436,21 +454,21 @@ eastl::shared_ptr<SceneNode> LightRenderComponent::CreateSceneNode(void)
 	}
     return eastl::shared_ptr<SceneNode>();
 }
-
-void LightRenderComponent::CreateInheritedXMLElements(XMLElement *pBaseElement)
+*/
+void LightRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement *pBaseElement)
 {
 	/*
-    XMLElement* pSceneNode = new XMLElement("Light");
+    XMLElement* pSceneNode = doc.NewElement("Light");
 
     // attenuation
-    XMLElement* pAttenuation = new XMLElement("Attenuation");
+    XMLElement* pAttenuation = doc.NewElement("Attenuation");
     pAttenuation->SetAttribute("const", eastl::string(m_Props.m_Attenuation[0]).c_str());
     pAttenuation->SetAttribute("linear", eastl::string(m_Props.m_Attenuation[1]).c_str());
     pAttenuation->SetAttribute("exp", eastl::string(m_Props.m_Attenuation[2]).c_str());
     pSceneNode->LinkEndChild(pAttenuation);
 
     // shape
-    XMLElement* pShape = new XMLElement("Shape");
+    XMLElement* pShape = doc.NewElement("Shape");
     pShape->SetAttribute("range", eastl::string(m_Props.m_Range).c_str());
     pShape->SetAttribute("falloff", eastl::string(m_Props.m_Falloff).c_str());
     pShape->SetAttribute("theta", eastl::string(m_Props.m_Theta).c_str());
@@ -474,18 +492,19 @@ bool ParticleSystemRenderComponent::DelegateInit(XMLElement* pData)
 {
     return true;
 }
-
+/*
 eastl::shared_ptr<SceneNode> ParticleSystemRenderComponent::CreateSceneNode(void)
 {
-    const eastl::shared_ptr<TransformComponent>& pTransformComponent =
-		eastl::make_shared(m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+    const eastl::shared_ptr<TransformComponent>& pTransformComponent(
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
     if (pTransformComponent)
     {
-		const eastl::shared_ptr<ScreenElementScene>& pScene = g_pGameApp->GetHumanView()->m_pScene;
-		Matrix4x4 transform = pTransformComponent->GetTransform();
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->m_pScene;
+		Transform transform = pTransformComponent->GetTransform();
 		eastl::weak_ptr<BaseRenderComponent> wbrcp(this);
 
-		if (g_pGameApp->GetRendererImpl() == ERT_DIRECT3D9)
+		if (gameApp->GetRendererImpl() == ERT_DIRECT3D9)
 		{
 			// create a particle system
 			eastl::shared_ptr<ParticleSystemSceneNode> ps = pScene->AddParticleSystemSceneNode(
@@ -501,16 +520,16 @@ eastl::shared_ptr<SceneNode> ParticleSystemRenderComponent::CreateSceneNode(void
 						Color(0,255,255,255),       // darkest color
 						Color(0,255,255,255),       // brightest color
 						800,2000,0,                         // min and max age, angle
-						Vector2<float>(10.f,10.f),         // min size
-						Vector2<float>(20.f,20.f)));        // max size
+						Vector2<float>{10.f, 10.f},         // min size
+						Vector2<float>{20.f, 20.f}));        // max size
 
 				ps->SetEmitter(em); // this grabs the emitter
 		
 				eastl::shared_ptr<IParticleAffector> paf(ps->CreateFadeOutParticleAffector());
 
 				ps->AddAffector(paf); // same goes for the affector
-				ps->SetPosition(Vector3(0,0,0));
-				ps->SetScale(Vector3(2,2,2));
+				ps->SetPosition(Vector3<float>());
+				ps->SetScale(Vector3<float>{2, 2, 2});
 
 				ps->SetMaterialFlag(EMF_LIGHTING, false);
 				ps->SetMaterialFlag(EMF_ZWRITE_ENABLE, false);
@@ -521,8 +540,8 @@ eastl::shared_ptr<SceneNode> ParticleSystemRenderComponent::CreateSceneNode(void
 	}
     return eastl::shared_ptr<SceneNode>();
 }
-
-void ParticleSystemRenderComponent::CreateInheritedXMLElements(XMLElement *pBaseElement)
+*/
+void ParticleSystemRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement *pBaseElement)
 {
 
 }
@@ -544,25 +563,26 @@ bool SkyRenderComponent::DelegateInit(XMLElement* pData)
 	}
 	return true;
 }
-
+/*
 eastl::shared_ptr<SceneNode> SkyRenderComponent::CreateSceneNode(void)
 {
 	eastl::shared_ptr<SceneNode> sky;
 
-	const eastl::shared_ptr<ScreenElementScene>& pScene = g_pGameApp->GetHumanView()->m_pScene;
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->m_pScene;
 	eastl::weak_ptr<BaseRenderComponent> wbrcp(this);
 
-	if (g_pGameApp->GetRendererImpl() == ERT_DIRECT3D9)
+	if (gameApp->GetRendererImpl() == ERT_DIRECT3D9)
 	{
 		// add skybox
 		sky = pScene->AddSkyBoxSceneNode(
 			m_pOwner->GetId(), wbrcp, 0, &g_IdentityMatrix4,
-			g_pGameApp->m_pRenderer->GetTexture(m_textureResource + "t.jpg"),
-			g_pGameApp->m_pRenderer->GetTexture(m_textureResource + "b.jpg"),
-			g_pGameApp->m_pRenderer->GetTexture(m_textureResource + "e.jpg"),
-			g_pGameApp->m_pRenderer->GetTexture(m_textureResource + "w.jpg"),
-			g_pGameApp->m_pRenderer->GetTexture(m_textureResource + "n.jpg"),
-			g_pGameApp->m_pRenderer->GetTexture(m_textureResource + "s.jpg"));
+			gameApp->mRenderer->GetTexture(m_textureResource + "t.jpg"),
+			gameApp->mRenderer->GetTexture(m_textureResource + "b.jpg"),
+			gameApp->mRenderer->GetTexture(m_textureResource + "e.jpg"),
+			gameApp->mRenderer->GetTexture(m_textureResource + "w.jpg"),
+			gameApp->mRenderer->GetTexture(m_textureResource + "n.jpg"),
+			gameApp->mRenderer->GetTexture(m_textureResource + "s.jpg"));
 
 		return sky;
 	}
@@ -570,11 +590,11 @@ eastl::shared_ptr<SceneNode> SkyRenderComponent::CreateSceneNode(void)
 
     return eastl::shared_ptr<SceneNode>();
 }
-
-void SkyRenderComponent::CreateInheritedXMLElements(XMLElement *pBaseElement)
+*/
+void SkyRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement *pBaseElement)
 {
-    XMLElement* pTextureNode = new XMLElement("Texture");
-    XmlText* pTextureText = new XmlText(m_textureResource.c_str());
+    XMLElement* pTextureNode = doc.NewElement("Texture");
+    XMLText* pTextureText = doc.NewText(m_textureResource.c_str());
     pTextureNode->LinkEndChild(pTextureText);
     pBaseElement->LinkEndChild(pTextureNode);
 }

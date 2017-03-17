@@ -15,8 +15,6 @@
 class BaseUI;
 class UISkin;
 class UIFont;
-class UISpriteBank;
-class UIStaticText;
 class UIElementFactory;
 
 enum EUI_ALIGNMENT
@@ -126,9 +124,9 @@ friend class BaseUI;
 public:
 
 	//! Constructor
-	UIElement(EUI_ELEMENT_TYPE type, int id, const Rectangle<2, int>& rectangle)
+	UIElement(EUI_ELEMENT_TYPE type, int id, const RectangleBase<2, int>& rectangle)
 	:	Parent(0), RelativeRect(rectangle), AbsoluteRect(rectangle), AbsoluteClippingRect(rectangle), 
-		DesiredRect(rectangle), MaxSize(0,0), MinSize(1,1), Visible(true), Enabled(true), SubElement(false), 
+		DesiredRect(rectangle), MaxSize{ 0,0 }, MinSize{ 1, 1 }, Visible(true), Enabled(true), SubElement(false),
 		NoClip(false), ID(id), TabStop(false), TabOrder(-1), TabGroup(false), AlignLeft(EUIA_UPPERLEFT), 
 		AlignRight(EUIA_UPPERLEFT), AlignTop(EUIA_UPPERLEFT), AlignBottom(EUIA_UPPERLEFT), Type(type)
 	{
@@ -166,7 +164,7 @@ public:
 
 
 	//! Returns the relative rectangle of this element.
-	Rectangle<2, int> GetRelativePosition() const
+	RectangleBase<2, int> GetRelativePosition() const
 	{
 		return RelativeRect;
 	}
@@ -174,23 +172,32 @@ public:
 
 	//! Sets the relative rectangle of this element.
 	/** \param r The absolute position to set */
-	void SetRelativePosition(const Rectangle<2, int>& r)
+	void SetRelativePosition(const RectangleBase<2, int>& r)
 	{
 		if (Parent)
 		{
-			const Rectangle<2, int>& rectangle = Parent->GetAbsolutePosition();
-			Vector2<float> dimension{ (float)rectangle.extent[0], (float)rectangle.extent[1] };
+			const RectangleBase<2, int>& rectangle = Parent->GetAbsolutePosition();
 
-			rectangle.GetVertices();
-
-			if (AlignLeft   == EUIA_SCALE)
-				ScaleRect.UpperLeftCorner.X = (f32)r.UpperLeftCorner.X / d.Width;
-			if (AlignRight  == EUIA_SCALE)
-				ScaleRect.LowerRightCorner.X = (f32)r.LowerRightCorner.X / d.Width;
-			if (AlignTop    == EUIA_SCALE)
-				ScaleRect.UpperLeftCorner.Y = (f32)r.UpperLeftCorner.Y / d.Height;
+			if (AlignLeft == EUIA_SCALE)
+			{
+				ScaleRect.center[0] = (float)r.center[0] / (float)rectangle.extent[0];
+				ScaleRect.extent[0] = (float)rectangle.extent[0];
+			}
+			if (AlignRight == EUIA_SCALE)
+			{
+				ScaleRect.center[0] = (float)r.center[0] / (float)rectangle.extent[0];
+				ScaleRect.extent[0] = (float)rectangle.extent[0];
+			}
+			if (AlignTop == EUIA_SCALE)
+			{
+				ScaleRect.center[1] = (float)r.center[1] / (float)rectangle.extent[1];
+				ScaleRect.extent[1] = (float)rectangle.extent[1];
+			}
 			if (AlignBottom == EUIA_SCALE)
-				ScaleRect.LowerRightCorner.Y = (f32)r.LowerRightCorner.Y / d.Height;
+			{
+				ScaleRect.center[1] = (float)r.center[1] / (float)rectangle.extent[1];
+				ScaleRect.extent[1] = (float)rectangle.extent[1];
+			}
 		}
 
 		DesiredRect = r;
@@ -199,11 +206,13 @@ public:
 
 	//! Sets the relative rectangle of this element, maintaining its current width and height
 	/** \param position The new relative position to set. Width and height will not be changed. */
-	void SetRelativePosition(const Position2i & position)
+	void SetRelativePosition(const Vector2<int>& position)
 	{
-		const Dimension2i mySize = RelativeRect.GetSize();
-		const Rectangle<2, int> rectangle(position.X, position.Y,
-						position.X + mySize.Width, position.Y + mySize.Height);
+		Vector2<int> center(RelativeRect.center);
+		center[0] += position[0];
+		center[1] += position[1];
+		const RectangleBase<2, int> rectangle(
+			center, RelativeRect.axis, RelativeRect.extent);
 		SetRelativePosition(rectangle);
 	}
 
@@ -213,19 +222,21 @@ public:
 	\param r  The rectangle to set, interpreted as a proportion of the parent's area.
 	Meaningful values are in the range [0...1], unless you intend this element to spill
 	outside its parent. */
-	void SetRelativePositionProportional(const Rectangle<2, float>& r)
+	void SetRelativePositionProportional(const RectangleBase<2, float>& r)
 	{
 		if (!Parent)
 			return;
 
-		const Dimension2i& d = Parent->GetAbsolutePosition().GetSize();
+		const RectangleBase<2, int>& rectangle = Parent->GetAbsolutePosition();
+		Vector2<int> center{ 
+			(int)floor(r.center[0] * rectangle.extent[0]), 
+			(int)floor(r.center[1] * rectangle.extent[1]) };
+		eastl::array<Vector2<int>, 2U> axis;
+		for (int i = 0; i < r.axis.count; i++)
+			axis[i] = Vector2<int>{ (int)r.axis[i][0], (int)r.axis[i][1] };
+		Vector2<int> extent{ (int)r.extent[0], (int)r.extent[1] };
 
-		DesiredRect = Rectangle<2, int>(
-					floor32((f32)d.Width * r.UpperLeftCorner.X),
-					floor32((f32)d.Height * r.UpperLeftCorner.Y),
-					floor32((f32)d.Width * r.LowerRightCorner.X),
-					floor32((f32)d.Height * r.LowerRightCorner.Y));
-
+		DesiredRect = RectangleBase<2, int>(center, axis, extent);
 		ScaleRect = r;
 
 		UpdateAbsoluteTransformation();
@@ -233,14 +244,14 @@ public:
 
 
 	//! Gets the absolute rectangle of this element
-	Rectangle<2, int> GetAbsolutePosition() const
+	RectangleBase<2, int> GetAbsolutePosition() const
 	{
 		return AbsoluteRect;
 	}
 
 
 	//! Returns the visible area of the element.
-	Rectangle<2, int> GetAbsoluteClippingRect() const
+	RectangleBase<2, int> GetAbsoluteClippingRect() const
 	{
 		return AbsoluteClippingRect;
 	}
@@ -276,10 +287,10 @@ public:
 	void SetMinSize(Vector2<unsigned int> size)
 	{
 		MinSize = size;
-		if (MinSize.Width < 1)
-			MinSize.Width = 1;
-		if (MinSize.Height < 1)
-			MinSize.Height = 1;
+		if (MinSize[0] < 1)
+			MinSize[0] = 1;
+		if (MinSize[1] < 1)
+			MinSize[1] = 1;
 		UpdateAbsoluteTransformation();
 	}
 
@@ -294,18 +305,28 @@ public:
 
 		if (Parent)
 		{
-			Rectangle<2, int> r(Parent->GetAbsolutePosition());
+			const RectangleBase<2, int>& rectangle = Parent->GetAbsolutePosition();
 
-			Vector2<float> d((f32)r.GetSize().Width, (f32)r.GetSize().Height);
-
-			if (AlignLeft   == EUIA_SCALE)
-				ScaleRect.UpperLeftCorner.X = (f32)DesiredRect.UpperLeftCorner.X / d.Width;
-			if (AlignRight  == EUIA_SCALE)
-				ScaleRect.LowerRightCorner.X = (f32)DesiredRect.LowerRightCorner.X / d.Width;
-			if (AlignTop    == EUIA_SCALE)
-				ScaleRect.UpperLeftCorner.Y = (f32)DesiredRect.UpperLeftCorner.Y / d.Height;
+			if (AlignLeft == EUIA_SCALE)
+			{
+				ScaleRect.center[0] = (float)DesiredRect.center[0] / (float)rectangle.extent[0];
+				ScaleRect.extent[0] = (float)rectangle.extent[0];
+			}
+			if (AlignRight == EUIA_SCALE)
+			{
+				ScaleRect.center[0] = (float)DesiredRect.center[0] / (float)rectangle.extent[0];
+				ScaleRect.extent[0] = (float)rectangle.extent[0];
+			}
+			if (AlignTop == EUIA_SCALE)
+			{
+				ScaleRect.center[1] = (float)DesiredRect.center[1] / (float)rectangle.extent[1];
+				ScaleRect.extent[1] = (float)rectangle.extent[1];
+			}
 			if (AlignBottom == EUIA_SCALE)
-				ScaleRect.LowerRightCorner.Y = (f32)DesiredRect.LowerRightCorner.Y / d.Height;
+			{
+				ScaleRect.center[1] = (float)DesiredRect.center[1] / (float)rectangle.extent[1];
+				ScaleRect.extent[1] = (float)rectangle.extent[1];
+			}
 		}
 	}
 
@@ -316,7 +337,7 @@ public:
 		RecalculateAbsolutePosition(false);
 
 		// update all children
-		eastl::list<shared_ptr<UIElement>>::iterator it = Children.begin();
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
 		for (; it != Children.end(); ++it)
 		{
 			(*it)->UpdateAbsoluteTransformation();
@@ -336,15 +357,14 @@ public:
 	\return The topmost UI element at that point, or 0 if there are
 	no candidate elements at this point.
 	*/
-	shared_ptr<UIElement> GetElementFromPoint(const Position2<int>& point)
+	eastl::shared_ptr<UIElement> GetElementFromPoint(const Vector2<int>& point)
 	{
-		shared_ptr<UIElement> target = 0;
+		eastl::shared_ptr<UIElement> target = 0;
 
 		// we have to search from back to front, because later children
 		// might be drawn over the top of earlier ones.
 
-		eastl::list<shared_ptr<UIElement>>::reverse_iterator it = Children.rbegin();
-
+		eastl::list<eastl::shared_ptr<UIElement>>::reverse_iterator it = Children.rbegin();
 		if (IsVisible())
 		{
 			while(it != Children.rend())
@@ -366,26 +386,28 @@ public:
 
 	//! Returns true if a point is within this element.
 	/** Elements with a shape other than a rectangle should override this method */
-	virtual bool IsPointInside(const Position2<int>& point) const
+	virtual bool IsPointInside(const Vector2<int>& point) const
 	{
-		return AbsoluteClippingRect.IsPointInside(point);
+		eastl::array<Vector2<int>, 4> vertex;
+		AbsoluteClippingRect.GetVertices(vertex);
+		return (
+			vertex[0][0] >= point[0] && vertex[0][1] >= point[1] &&
+			vertex[3][0] <= point[0] && vertex[3][1] <= point[1] );
 	}
 
 
 	//! Adds a UI element as new child of this element.
-	virtual void AddChild(const shared_ptr<UIElement>& child)
+	virtual void AddChild(const eastl::shared_ptr<UIElement>& child)
 	{
 		AddChildToEnd(child);
 		if (child)
-		{
 			child->UpdateAbsoluteTransformation();
-		}
 	}
 
 	//! Removes a child.
-	virtual void RemoveChild(const shared_ptr<UIElement>& child)
+	virtual void RemoveChild(const eastl::shared_ptr<UIElement>& child)
 	{
-		eastl::list<shared_ptr<UIElement>>::iterator it = Children.begin();
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
 		for (; it != Children.end(); ++it)
 		{
 			if ((*it) == child)
@@ -411,7 +433,7 @@ public:
 	{
 		if ( IsVisible() )
 		{
-			eastl::list<shared_ptr<UIElement>>::iterator it = Children.begin();
+			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
 			for (; it != Children.end(); ++it)
 				(*it)->Draw();
 		}
@@ -423,7 +445,7 @@ public:
 	{
 		if ( IsVisible() )
 		{
-			eastl::list<shared_ptr<UIElement>>::iterator it = Children.begin();
+			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
 			for (; it != Children.end(); ++it)
 				(*it)->OnPostRender( timeMs );
 		}
@@ -431,9 +453,15 @@ public:
 
 
 	//! Moves this element.
-	virtual void Move(Position2<int> absoluteMovement)
+	virtual void Move(Vector2<int> absoluteMovement)
 	{
-		SetRelativePosition(DesiredRect + absoluteMovement);
+		Vector2<int> center(DesiredRect.center);
+		center[0] += absoluteMovement[0];
+		center[1] += absoluteMovement[1];
+		const RectangleBase<2, int> rectangle(
+			center, DesiredRect.axis, DesiredRect.extent);
+
+		SetRelativePosition(rectangle);
 	}
 
 
@@ -505,11 +533,11 @@ public:
 		if (index < 0)
 		{
 			TabOrder = 0;
-			shared_ptr<UIElement> el = GetTabGroup();
+			eastl::shared_ptr<UIElement> el = GetTabGroup();
 			while (TabGroup && el && el->Parent)
 				el = el->Parent;
 
-			const shared_ptr<UIElement>& first=0, closest=0;
+			const eastl::shared_ptr<UIElement>& first=0, closest=0;
 			if (el)
 			{
 				// find the highest element number
@@ -546,10 +574,9 @@ public:
 
 
 	//! Returns the container element which holds all elements in this element's tab group.
-	shared_ptr<UIElement> GetTabGroup()
+	eastl::shared_ptr<UIElement> GetTabGroup()
 	{
-		shared_ptr<UIElement> ret(shared_from_this());
-
+		eastl::shared_ptr<UIElement> ret(shared_from_this());
 		while (ret && !ret->IsTabGroup())
 			ret = ret->GetParent();
 
@@ -628,9 +655,9 @@ public:
 
 	//! Brings a child to front
 	/** \return True if successful, false if not. */
-	virtual bool BringToFront(const shared_ptr<UIElement>& element)
+	virtual bool BringToFront(const eastl::shared_ptr<UIElement>& element)
 	{
-		eastl::list<shared_ptr<UIElement>>::iterator it = Children.begin();
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
 		for (; it != Children.end(); ++it)
 		{
 			if (element == (*it))
@@ -647,9 +674,9 @@ public:
 
 	//! Moves a child to the back, so it's siblings are drawn on top of it
 	/** \return True if successful, false if not. */
-	virtual bool SendToBack(const shared_ptr<UIElement>& element)
+	virtual bool SendToBack(const eastl::shared_ptr<UIElement>& element)
 	{
-		eastl::list<shared_ptr<UIElement>>::iterator it = Children.begin();
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
 		if (element == (*it)) // already there
 			return true;
 
@@ -667,7 +694,7 @@ public:
 	}
 
 	//! Returns list with children of this element
-	virtual const eastl::list<shared_ptr<UIElement>>& GetChildren() const
+	virtual const eastl::list<eastl::shared_ptr<UIElement>>& GetChildren() const
 	{
 		return Children;
 	}
@@ -680,11 +707,11 @@ public:
 	should be searched too.
 	\return Returns the first element with the given id. If no element
 	with this id was found, 0 is returned. */
-	virtual shared_ptr<UIElement> GetElementFromId(int id, bool searchchildren=false) const
+	virtual eastl::shared_ptr<UIElement> GetElementFromId(int id, bool searchchildren=false) const
 	{
-		shared_ptr<UIElement> e = 0;
+		eastl::shared_ptr<UIElement> e = 0;
 
-		eastl::list<shared_ptr<UIElement>>::const_iterator it = Children.begin();
+		eastl::list<eastl::shared_ptr<UIElement>>::const_iterator it = Children.begin();
 		for (; it != Children.end(); ++it)
 		{
 			if ((*it)->GetID() == id)
@@ -727,17 +754,17 @@ public:
 	\param includeInvisible: includes invisible elements in the search (default=false)
 	\return true if successfully found an element, false to continue searching/fail */
 	bool GetNextElement(int startOrder, bool reverse, bool group,
-		shared_ptr<UIElement> first, shared_ptr<UIElement> closest, bool includeInvisible=false) const
+		eastl::shared_ptr<UIElement> first, eastl::shared_ptr<UIElement> closest, 
+		bool includeInvisible=false) const
 	{
 		// we'll stop searching if we find this number
 		int wanted = startOrder + ( reverse ? -1 : 1 );
 		if (wanted==-2)
 			wanted = 1073741824; // maximum int
 
-		eastl::list<shared_ptr<UIElement>>::const_iterator it = Children.begin();
+		eastl::list<eastl::shared_ptr<UIElement>>::const_iterator it = Children.begin();
 
 		int closestOrder, currentOrder;
-
 		while(it != Children.end())
 		{
 			// ignore invisible elements and their children
@@ -823,18 +850,9 @@ public:
 		return type == Type;
 	}
 
-
-	//! Returns the type name of the gui element.
-	/** This is needed serializing elements. For serializing your own elements, override this function
-	and return your own type name which is created by your UIElementFactory */
-	virtual const c8* GetTypeName() const
-	{
-		return UIElementTypeNames[Type];
-	}
-
 	//! Returns the name of the element.
 	/** \return Name as character string. */
-	virtual const c8* GetName() const
+	virtual const char* GetName() const
 	{
 		return Name.c_str();
 	}
@@ -842,7 +860,7 @@ public:
 
 	//! Sets the name of the element.
 	/** \param name New name of the gui element. */
-	virtual void SetName(const c8* name)
+	virtual void SetName(const char* name)
 	{
 		Name = name;
 	}
@@ -858,7 +876,7 @@ public:
 protected:
 
 	// not virtual because needed in constructor
-	void AddChildToEnd(const shared_ptr<UIElement>& child)
+	void AddChildToEnd(const eastl::shared_ptr<UIElement>& child)
 	{
 		if (child)
 		{
@@ -872,9 +890,9 @@ protected:
 	// not virtual because needed in constructor
 	void RecalculateAbsolutePosition(bool recursive)
 	{
-		Rectangle<2, int> parentAbsolute(0,0,0,0);
-		Rectangle<2, int> parentAbsoluteClip;
-		f32 fw=0.f, fh=0.f;
+		RectangleBase<2, int> parentAbsolute;
+		RectangleBase<2, int> parentAbsoluteClip;
+		float fw=0.f, fh=0.f;
 
 		if (Parent)
 		{
@@ -882,7 +900,7 @@ protected:
 
 			if (NoClip)
 			{
-				shared_ptr<UIElement> p(shared_from_this());
+				eastl::shared_ptr<UIElement> p(shared_from_this());
 				while (p->Parent)
 					p = p->Parent;
 				parentAbsoluteClip = p->AbsoluteClippingRect;
@@ -891,27 +909,27 @@ protected:
 				parentAbsoluteClip = Parent->AbsoluteClippingRect;
 		}
 
-		const int diffx = parentAbsolute.GetWidth() - LastParentRect.GetWidth();
-		const int diffy = parentAbsolute.GetHeight() - LastParentRect.GetHeight();
+		const int diffx = parentAbsolute.extent[0] - LastParentRect.extent[0];
+		const int diffy = parentAbsolute.extent[1] - LastParentRect.extent[1];
 
 		if (AlignLeft == EUIA_SCALE || AlignRight == EUIA_SCALE)
-			fw = (f32)parentAbsolute.GetWidth();
+			fw = (float)parentAbsolute.extent[0];
 
 		if (AlignTop == EUIA_SCALE || AlignBottom == EUIA_SCALE)
-			fh = (f32)parentAbsolute.GetHeight();
+			fh = (float)parentAbsolute.extent[1];
 
 		switch (AlignLeft)
 		{
 			case EUIA_UPPERLEFT:
 				break;
 			case EUIA_LOWERRIGHT:
-				DesiredRect.UpperLeftCorner.X += diffx;
+				DesiredRect.center[0] += diffx;
 				break;
 			case EUIA_CENTER:
-				DesiredRect.UpperLeftCorner.X += diffx/2;
+				DesiredRect.center[0] += diffx/2;
 				break;
 			case EUIA_SCALE:
-				DesiredRect.UpperLeftCorner.X = round32(ScaleRect.UpperLeftCorner.X * fw);
+				DesiredRect.center[0] = (int)round(ScaleRect.center[0] * fw);
 				break;
 		}
 
@@ -920,13 +938,13 @@ protected:
 			case EUIA_UPPERLEFT:
 				break;
 			case EUIA_LOWERRIGHT:
-				DesiredRect.LowerRightCorner.X += diffx;
+				DesiredRect.center[0] += diffx;
 				break;
 			case EUIA_CENTER:
-				DesiredRect.LowerRightCorner.X += diffx/2;
+				DesiredRect.center[0] += diffx / 2;
 				break;
 			case EUIA_SCALE:
-				DesiredRect.LowerRightCorner.X = round32(ScaleRect.LowerRightCorner.X * fw);
+				DesiredRect.center[0] = (int)round(ScaleRect.center[0] * fw);
 				break;
 		}
 
@@ -935,13 +953,13 @@ protected:
 			case EUIA_UPPERLEFT:
 				break;
 			case EUIA_LOWERRIGHT:
-				DesiredRect.UpperLeftCorner.Y += diffy;
+				DesiredRect.center[1] += diffy;
 				break;
 			case EUIA_CENTER:
-				DesiredRect.UpperLeftCorner.Y += diffy/2;
+				DesiredRect.center[1] += diffy / 2;
 				break;
 			case EUIA_SCALE:
-				DesiredRect.UpperLeftCorner.Y = round32(ScaleRect.UpperLeftCorner.Y * fh);
+				DesiredRect.center[1] = (int)round(ScaleRect.center[1] * fh);
 				break;
 		}
 
@@ -950,47 +968,44 @@ protected:
 			case EUIA_UPPERLEFT:
 				break;
 			case EUIA_LOWERRIGHT:
-				DesiredRect.LowerRightCorner.Y += diffy;
+				DesiredRect.center[1] += diffy;
 				break;
 			case EUIA_CENTER:
-				DesiredRect.LowerRightCorner.Y += diffy/2;
+				DesiredRect.center[1] += diffy / 2;
 				break;
 			case EUIA_SCALE:
-				DesiredRect.LowerRightCorner.Y = round32(ScaleRect.LowerRightCorner.Y * fh);
+				DesiredRect.center[1] = (int)round(ScaleRect.center[1] * fh);
 				break;
 		}
 
 		RelativeRect = DesiredRect;
 
-		const int w = RelativeRect.GetWidth();
-		const int h = RelativeRect.GetHeight();
+		const int w = RelativeRect.extent[0];
+		const int h = RelativeRect.extent[1];
 
 		// make sure the desired rectangle is allowed
-		if (w < (int)MinSize.Width)
-			RelativeRect.LowerRightCorner.X = RelativeRect.UpperLeftCorner.X + MinSize.Width;
-		if (h < (int)MinSize.Height)
-			RelativeRect.LowerRightCorner.Y = RelativeRect.UpperLeftCorner.Y + MinSize.Height;
-		if (MaxSize.Width && w > (int)MaxSize.Width)
-			RelativeRect.LowerRightCorner.X = RelativeRect.UpperLeftCorner.X + MaxSize.Width;
-		if (MaxSize.Height && h > (int)MaxSize.Height)
-			RelativeRect.LowerRightCorner.Y = RelativeRect.UpperLeftCorner.Y + MaxSize.Height;
+		if (w < (int)MinSize[0])
+			RelativeRect.center[0] = RelativeRect.center[0] + MinSize[0];
+		if (h < (int)MinSize[1])
+			RelativeRect.center[1] = RelativeRect.center[1] + MinSize[1];
+		if (MaxSize[0] && w > (int)MaxSize[0])
+			RelativeRect.center[0] = RelativeRect.center[0] + MaxSize[0];
+		if (MaxSize[1] && h > (int)MaxSize[1])
+			RelativeRect.center[1] = RelativeRect.center[1] + MaxSize[1];
 
-		RelativeRect.Repair();
-
-		AbsoluteRect = RelativeRect + parentAbsolute.UpperLeftCorner;
+		AbsoluteRect.center = RelativeRect.center + parentAbsolute.center;
 
 		if (!Parent)
 			parentAbsoluteClip = AbsoluteRect;
 
 		AbsoluteClippingRect = AbsoluteRect;
-		AbsoluteClippingRect.ClipAgainst(parentAbsoluteClip);
 
 		LastParentRect = parentAbsolute;
 
 		if ( recursive )
 		{
 			// update all children
-			eastl::list<shared_ptr<UIElement>>::iterator it = Children.begin();
+			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
 			for (; it != Children.end(); ++it)
 			{
 				(*it)->RecalculateAbsolutePosition(recursive);
@@ -1007,23 +1022,23 @@ protected:
 	eastl::shared_ptr<UIElement> Parent;
 
 	//! relative rect of element
-	Rectangle<2, int> RelativeRect;
+	RectangleBase<2, int> RelativeRect;
 
 	//! absolute rect of element
-	Rectangle<2, int> AbsoluteRect;
+	RectangleBase<2, int> AbsoluteRect;
 
 	//! absolute clipping rect of element
-	Rectangle<2, int> AbsoluteClippingRect;
+	RectangleBase<2, int> AbsoluteClippingRect;
 
 	//! the rectangle the element would prefer to be,
 	//! if it was not constrained by parent or max/min size
-	Rectangle<2, int> DesiredRect;
+	RectangleBase<2, int> DesiredRect;
 
 	//! for calculating the difference when resizing parent
-	Rectangle<2, int> LastParentRect;
+	RectangleBase<2, int> LastParentRect;
 
 	//! relative scale of the element inside its parent
-	Rectangle<2, float> ScaleRect;
+	RectangleBase<2, float> ScaleRect;
 
 	//! maximum and minimum size of the element
 	Vector2<unsigned int> MaxSize, MinSize;

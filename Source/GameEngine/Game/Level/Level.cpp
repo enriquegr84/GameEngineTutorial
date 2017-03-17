@@ -19,15 +19,20 @@
 
 #include "Level.h"
 
+#include "Application/GameApplication.h"
 #include "Core/IO/XmlResource.h"
 
 // ----------------------------------------------------------------------------
-Level::Level(const eastl::string& filename)
+Level::Level(const eastl::wstring& filename)
 {
-	/*
-	Utils::RemoveFilenameExtension(destFileName, filename);
-	g_pGameApp->m_pFileSystem->GetFileDir(destFileName);
-	*/
+	GameApplication* gameApp = (GameApplication*)Application::App;
+
+	if (filename.rfind('.') != eastl::string::npos)
+	{
+		eastl::wstring destFileName(filename.substr(0, filename.rfind('.')).c_str());
+		gameApp->mFileSystem->GetFileDir(destFileName);
+	}
+
 	LoadLevelInfo();
 }   // Level
 

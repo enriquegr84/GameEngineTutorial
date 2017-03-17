@@ -38,6 +38,10 @@
 
 #include "ResourceCache.h"
 
+#include "Core/Utility/String.h"
+
+#include "Application/GameApplication.h"
+
 //
 //  Resource::Resource
 //
@@ -373,16 +377,16 @@ void ResCache::MemoryHasBeenFreed(unsigned int size)
 //   Searches the resource cache assets for files matching the pattern. Useful for providing a 
 //   a list of levels for a main menu screen, for example.
 //
-eastl::vector<eastl::wstring> ResCache::Match(const eastl::string pattern)
+eastl::vector<eastl::wstring> ResCache::Match(const eastl::wstring pattern)
 {
 	eastl::vector<eastl::wstring> matchingNames;
 	if (m_File==NULL)
 		return matchingNames;
 
 	/*
-	const shared_ptr<BaseFileSystem>& fileSystem = g_pGameApp->m_pFileSystem;
+	GameApplication* gameApp = (GameApplication*)Application::App;
 	bool searchDirectory = false;
-	eastl::string directory = fileSystem->GetFileDir(pattern);
+	eastl::string directory = gameApp->mFileSystem->GetFileDir(pattern);
 	eastl::string filePattern = Utils::GetFileBasename(pattern);
 	eastl::string currentDirectory = ".";
 	if ( directory != ".")
@@ -392,16 +396,16 @@ eastl::vector<eastl::wstring> ResCache::Match(const eastl::string pattern)
 	int numFiles = m_File->GetNumResources();
 	for (int i=0; i<numFiles; ++i)
 	{
-		eastl::wstring name = m_File->GetResourceName(i);
+		eastl::wstring name(m_File->GetResourceName(i).c_str());
 		/*
 		if (searchDirectory)
 			if (name.findLast ( '.' ) < 0)
 				currentDirectory = name;
 
-		if (!StringUtils::WildcardMatch(directory.c_str(), currentDirectory.c_str()))
+		if (!WildcardMatch(directory.c_str(), currentDirectory.c_str()))
 			continue;
 		*/
-		if (StringUtils::WildcardMatch(pattern.c_str(), name.c_str()))
+		if (WildcardMatch(pattern.c_str(), name.c_str()))
 		{
 			matchingNames.push_back(eastl::wstring(name.c_str()));
 		}
@@ -413,7 +417,7 @@ eastl::vector<eastl::wstring> ResCache::Match(const eastl::string pattern)
 //
 // ResCache::Preload								- Chapter 8, page 236
 //
-int ResCache::Preload(const eastl::string pattern, void (*progressCallback)(int, bool &))
+int ResCache::Preload(const eastl::wstring pattern, void (*progressCallback)(int, bool &))
 {
 	if (m_File==NULL)
 		return 0;
@@ -421,13 +425,15 @@ int ResCache::Preload(const eastl::string pattern, void (*progressCallback)(int,
 	int numFiles = m_File->GetNumResources();
 	int loaded = 0;
 	bool cancel = false;
+
+	GameApplication* gameApp = (GameApplication*)Application::App;
 	for (int i=0; i<numFiles; ++i)
 	{
 		BaseResource resource(m_File->GetResourceName(i));
 
-		if (StringUtils::WildcardMatch(pattern.c_str(), resource.m_name.c_str()))
+		if (WildcardMatch(pattern.c_str(), resource.m_name.c_str()))
 		{
-			const eastl::shared_ptr<ResHandle>& handle = g_pGameApp->m_ResCache->GetHandle(&resource);
+			const eastl::shared_ptr<ResHandle>& handle = gameApp->mResCache->GetHandle(&resource);
 			++loaded;
 		}
 

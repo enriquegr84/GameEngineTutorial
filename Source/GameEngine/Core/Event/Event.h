@@ -43,10 +43,13 @@
 
 #include "Core/Logger/Logger.h"
 
+#include "Mathematic/Algebra/Transform.h"
+
+
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_New_Actor - This event is sent out when an actor is *actually* created.
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_New_Actor : public BaseEventData
+class EvtData_New_Actor : public EventData
 {
 	ActorId m_actorId;
     GameViewId m_viewId;
@@ -109,7 +112,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_Destroy_Actor - sent when actors are destroyed	
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Destroy_Actor : public BaseEventData
+class EvtData_Destroy_Actor : public EventData
 {
     ActorId m_id;
 
@@ -154,7 +157,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_Move_Actor - sent when actors are moved
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Move_Actor : public BaseEventData
+class EvtData_Move_Actor : public EventData
 {
     ActorId m_id;
     Matrix4x4<float> m_matrix;
@@ -228,7 +231,7 @@ public:
 // EvtData_New_Render_Component - This event is sent out when an actor is *actually* created.
 //---------------------------------------------------------------------------------------------------------------------
 /*
-class EvtData_New_Render_Component : public BaseEventData
+class EvtData_New_Render_Component : public EventData
 {
     ActorId m_actorId;
     eastl::shared_ptr<SceneNode> m_pSceneNode;
@@ -288,7 +291,7 @@ public:
 // EvtData_Modified_Render_Component - This event is sent out when a render component is changed
 //   NOTE: This class is not described in the book!
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Modified_Render_Component : public BaseEventData
+class EvtData_Modified_Render_Component : public EventData
 {
     ActorId m_id;
 
@@ -341,7 +344,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_Environment_Loaded - this event is sent when a new game is started
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Environment_Loaded : public BaseEventData
+class EvtData_Environment_Loaded : public EventData
 {
 public:
 	static const BaseEventType sk_EventType;
@@ -363,7 +366,7 @@ public:
 // FUTURE_WORK: It would be an interesting idea to add a "Private" type of event that is addressed only to a specific 
 //              listener. Of course, that might be a really dumb idea too - someone will have to try it!
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Remote_Environment_Loaded : public BaseEventData
+class EvtData_Remote_Environment_Loaded : public EventData
 {
 public:
 	static const BaseEventType sk_EventType;
@@ -378,7 +381,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_Request_Start_Game - this is sent by the authoritative game logic to all views so they will load a game level.
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Request_Start_Game : public BaseEventData
+class EvtData_Request_Start_Game : public EventData
 {
 
 public:
@@ -407,7 +410,7 @@ public:
 // 
 //   Sent whenever a new client attaches to a game logic acting as a server				
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Remote_Client : public BaseEventData
+class EvtData_Remote_Client : public EventData
 {
     int m_socketId;
     int m_ipAddress;
@@ -468,7 +471,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_Update_Tick - sent by the game logic each game tick
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Update_Tick : public BaseEventData
+class EvtData_Update_Tick : public EventData
 {
     int m_DeltaMilliseconds;
 
@@ -505,7 +508,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_Network_Player_Actor_Assignment - sent by the server to the clients when a network view is assigned a player number
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Network_Player_Actor_Assignment : public BaseEventData
+class EvtData_Network_Player_Actor_Assignment : public EventData
 {
     ActorId m_ActorId;
     int m_SocketId;
@@ -568,7 +571,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_Decompress_Request - sent to a multithreaded game event listener to decompress something in the resource file
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Decompress_Request : public BaseEventData
+class EvtData_Decompress_Request : public EventData
 {
     eastl::wstring m_zipFileName;
     eastl::string m_fileName;
@@ -616,7 +619,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_Decompression_Progress - sent by the decompression thread to report progress
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Decompression_Progress : public BaseEventData
+class EvtData_Decompression_Progress : public EventData
 {
     int m_progress;
     eastl::wstring m_zipFileName;
@@ -663,11 +666,11 @@ public:
 // It can be sent from script or via code.
 // This event is also sent from the server game logic to client logics AFTER it has created a new actor. The logics will allow follow suit to stay in sync.
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Request_New_Actor : public BaseEventData
+class EvtData_Request_New_Actor : public EventData
 {
     eastl::string m_actorResource;
 	bool m_hasInitialTransform;
-	Matrix4x4<float> m_initialTransform;
+	Transform m_initialTransform;
 	ActorId m_serverActorId;
     GameViewId m_viewId;
 
@@ -678,12 +681,12 @@ public:
 	{
 		m_actorResource = "";
 		m_hasInitialTransform = false;
-		m_initialTransform = Matrix4x4<float>::Identity();
+		m_initialTransform.MakeIdentity();
 		m_serverActorId = -1;
 		m_viewId = InvalidGameViewId;
 	}
 
-    explicit EvtData_Request_New_Actor(const eastl::string &actorResource, const Matrix4x4<float> *initialTransform=NULL, 
+    explicit EvtData_Request_New_Actor(const eastl::string &actorResource, const Transform *initialTransform=NULL, 
 		const ActorId serverActorId = INVALID_ACTOR_ID, const GameViewId viewId = InvalidGameViewId)
     {
         m_actorResource = actorResource;
@@ -712,13 +715,10 @@ public:
 		in >> m_hasInitialTransform;
 		if (m_hasInitialTransform)
 		{
+			Matrix4x4<float> transform = m_initialTransform.GetMatrix();
 			for (int i=0; i<4; ++i)
-			{
 				for (int j=0; j<4; ++j)
-				{
-					in >> m_initialTransform(i,j);
-				}
-			}
+					in >> transform(i,j);
 		}
 		in >> m_serverActorId;
 		in >> m_viewId;
@@ -726,7 +726,8 @@ public:
 
 	virtual BaseEventDataPtr Copy() const
 	{	 
-		return BaseEventDataPtr (new EvtData_Request_New_Actor(m_actorResource, (m_hasInitialTransform) ? &m_initialTransform : NULL, m_serverActorId, m_viewId));
+		return BaseEventDataPtr (new EvtData_Request_New_Actor(
+			m_actorResource, (m_hasInitialTransform) ? &m_initialTransform : NULL, m_serverActorId, m_viewId));
 	}
 
 	virtual void Serialize( std::ostrstream & out ) const
@@ -735,13 +736,10 @@ public:
 		out << m_hasInitialTransform << " ";
 		if (m_hasInitialTransform)
 		{
+			Matrix4x4<float> transform = m_initialTransform.GetMatrix();
 			for (int i=0; i<4; ++i)
-			{
 				for (int j=0; j<4; ++j)
-				{
-					out << m_initialTransform(i,j) << " ";
-				}
-			}		
+					out << transform(i,j) << " ";
 		}
 		out << m_serverActorId << " ";
 		out << m_viewId << " ";
@@ -750,7 +748,7 @@ public:
     virtual const char* GetName(void) const { return "EvtData_Request_New_Actor";  }
 
     const eastl::string &GetActorResource(void) const { return m_actorResource;  }
-	const Matrix4x4<float> *GetInitialTransform(void) const { return (m_hasInitialTransform) ? &m_initialTransform : NULL; }
+	const Transform *GetInitialTransform(void) const { return (m_hasInitialTransform) ? &m_initialTransform : NULL; }
 	const ActorId GetServerActorId(void) const 	{ return m_serverActorId; }
     GameViewId GetViewId(void) const { return m_viewId; }
 };
@@ -759,7 +757,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_Request_Destroy_Actor - sent by any system requesting that the game logic destroy an actor	
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Request_Destroy_Actor : public BaseEventData
+class EvtData_Request_Destroy_Actor : public EventData
 {
     ActorId m_actorId;
 
@@ -811,7 +809,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EvtData_PlaySound - sent by any system wishing for a HumanView to play a sound
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_PlaySound : public BaseEventData
+class EvtData_PlaySound : public EventData
 {
     eastl::string m_soundResource;
 

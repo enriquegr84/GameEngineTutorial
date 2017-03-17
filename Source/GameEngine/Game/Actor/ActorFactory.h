@@ -41,6 +41,8 @@
 
 #include "GameEngineStd.h"
 
+#include "Actor.h"
+
 #include "Mathematic/Algebra/Transform.h"
 
 //---------------------------------------------------------------------------------------------------------------------

@@ -81,7 +81,9 @@ void BaseRenderComponent::OnChanged(void)
 XMLElement* BaseRenderComponent::GenerateXml(void)
 {
 	XMLDocument doc;
-    XMLElement* pBaseElement = CreateBaseElement(doc);
+
+	// base element
+	XMLElement* pBaseElement = doc.NewElement(GetName());
 
     // color
     XMLElement* pColor = doc.NewElement("Color");
@@ -94,7 +96,7 @@ XMLElement* BaseRenderComponent::GenerateXml(void)
     pBaseElement->LinkEndChild(pColor);
 
     // create XML for inherited classes
-    CreateInheritedXMLElements(pBaseElement);
+    CreateInheritedXMLElements(&doc, pBaseElement);
 
     return pBaseElement;
 }

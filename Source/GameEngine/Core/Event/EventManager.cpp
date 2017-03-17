@@ -36,17 +36,18 @@
 //
 //========================================================================
 
-
 #include "EventManager.h"
 
-static EventManager* g_pEventMgr = NULL;
-GenericObjectFactory<EventData, EventType> g_eventFactory;
+#include "Core/Logger/Logger.h"
+
+static BaseEventManager* g_pEventMgr = NULL;
+GenericObjectFactory<BaseEventData, BaseEventType> g_eventFactory;
 
 //GE_MEMORY_WATCHER_DEFINITION(EventData);
 
 BaseEventManager* BaseEventManager::Get(void)
 {
-    GE_ASSERT(g_pEventMgr);
+    LogAssert(g_pEventMgr, "Event manager doesn't exist");
 	return g_pEventMgr;
 }
 
@@ -56,7 +57,8 @@ BaseEventManager::BaseEventManager(const char* pName, bool setAsGlobal)
     {
         if (g_pEventMgr)
         {
-            GE_ERROR("Attempting to create two global event managers! The old one will be destroyed and overwritten with this one.");
+            LogError("Attempting to create two global event managers! \
+					The old one will be destroyed and overwritten with this one.");
             delete g_pEventMgr;
         }
 
@@ -93,24 +95,24 @@ EventManager::~EventManager()
 //---------------------------------------------------------------------------------------------------------------------
 // EventManager::AddListener
 //---------------------------------------------------------------------------------------------------------------------
-bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const EventType& type)
+bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type)
 {
 	//GE_LOG("Events", eastl::string("Attempting to add delegate function for event type: ") + eastl::string(type, 16));
-	GE_LOG("Events", eastl::string("Attempting to add delegate function for event type: ") + eastl::string(type));
+	LogInformation("Events " + eastl::string("Attempting to add delegate function for event type: ") + eastl::to_string(type));
 
 	EventListenerList& eventListenerList = m_eventListeners[type];  // this will find or create the entry
 	for (auto it = eventListenerList.begin(); it != eventListenerList.end(); ++it)
 	{
 		if (eventDelegate == (*it))
 		{
-			GE_WARNING("Attempting to double-register a delegate");
+			LogWarning("Attempting to double-register a delegate");
 			return false;
 		}
 	}
 
 	eventListenerList.push_back(eventDelegate);
 	//GE_LOG("Events", eastl::string("Successfully added delegate for event type: ") + eastl::string(type, 16));
-	GE_LOG("Events", eastl::string("Successfully added delegate for event type: ") + eastl::string(type));
+	LogInformation("Events " + eastl::string("Successfully added delegate for event type: ") + eastl::to_string(type));
 
 	return true;
 }
@@ -119,10 +121,10 @@ bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const
 //---------------------------------------------------------------------------------------------------------------------
 // EventManager::RemoveListener
 //---------------------------------------------------------------------------------------------------------------------
-bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, const EventType& type)
+bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type)
 {
 	//GE_LOG("Events", eastl::string("Attempting to remove delegate function from event type: ") + eastl::string(type, 16));
-	GE_LOG("Events", eastl::string("Attempting to remove delegate function from event type: ") + eastl::string(type));
+	LogInformation("Events " + eastl::string("Attempting to remove delegate function from event type: ") + eastl::to_string(type));
 	bool success = false;
 
 	auto findIt = m_eventListeners.find(type);
@@ -135,7 +137,7 @@ bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, co
 			{
 				listeners.erase(it);
 				//GE_LOG("Events", eastl::string("Successfully removed delegate function from event type: ") + eastl::string(type, 16));
-				GE_LOG("Events", eastl::string("Successfully removed delegate function from event type: ") + eastl::string(type));
+				LogInformation("Events " + eastl::string("Successfully removed delegate function from event type: ") + eastl::to_string(type));
 				success = true;
 				break;  // we don't need to continue because it should be impossible for the same delegate function to be registered for the same event more than once
 			}
@@ -151,7 +153,7 @@ bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, co
 //---------------------------------------------------------------------------------------------------------------------
 bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 {
-	GE_LOG("Events", eastl::string("Attempting to trigger event ") + eastl::string(pEvent->GetName()));
+	LogInformation("Events " + eastl::string("Attempting to trigger event ") + eastl::string(pEvent->GetName()));
 	bool processed = false;
 
 	auto findIt = m_eventListeners.find(pEvent->GetEventType());
@@ -161,7 +163,7 @@ bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 		for (EventListenerList::const_iterator it = eventListenerList.begin(); it != eventListenerList.end(); ++it)
 		{
 			EventListenerDelegate listener = (*it);
-			GE_LOG("Events", eastl::string("Sending Event ") + eastl::string(pEvent->GetName()) + eastl::string(" to delegate."));
+			LogInformation("Events " + eastl::string("Sending Event ") + eastl::string(pEvent->GetName()) + eastl::string(" to delegate."));
 			listener(pEvent);  // call the delegate
 			processed = true;
 		}
@@ -176,28 +178,28 @@ bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 //---------------------------------------------------------------------------------------------------------------------
 bool EventManager::QueueEvent(const BaseEventDataPtr& pEvent)
 {
-	GE_ASSERT(m_activeQueue >= 0);
-	GE_ASSERT(m_activeQueue < EVENTMANAGER_NUM_QUEUES);
+	LogAssert(m_activeQueue >= 0, "Queue active");
+	LogAssert(m_activeQueue < EVENTMANAGER_NUM_QUEUES, "Queue active max");
 
 	// make sure the event is valid
 	if (!pEvent)
 	{
-		GE_ERROR("Invalid event in VQueueEvent()");
+		LogError("Invalid event in VQueueEvent()");
 		return false;
 	}
 
-	GE_LOG("Events", eastl::string("Attempting to queue event: ") + eastl::string(pEvent->GetName()));
+	LogInformation("Events " + eastl::string("Attempting to queue event: ") + eastl::string(pEvent->GetName()));
 
 	auto findIt = m_eventListeners.find(pEvent->GetEventType());
 	if (findIt != m_eventListeners.end())
 	{
 		m_queues[m_activeQueue].push_back(pEvent);
-		GE_LOG("Events", eastl::string("Successfully queued event: ") + eastl::string(pEvent->GetName()));
+		LogInformation("Events " + eastl::string("Successfully queued event: ") + eastl::string(pEvent->GetName()));
 		return true;
 	}
 	else
 	{
-		GE_LOG("Events", eastl::string("Skipping event since there are no delegates registered to receive it: ") + eastl::string(pEvent->GetName()));
+		LogInformation("Events " + eastl::string("Skipping event since there are no delegates registered to receive it: ") + eastl::string(pEvent->GetName()));
 		return false;
 	}
 }
@@ -208,7 +210,7 @@ bool EventManager::QueueEvent(const BaseEventDataPtr& pEvent)
 //---------------------------------------------------------------------------------------------------------------------
 bool EventManager::ThreadSafeQueueEvent(const BaseEventDataPtr& pEvent)
 {
-	m_realtimeEventQueue.push(pEvent);
+	m_realtimeEventQueue.Push(pEvent);
 	return true;
 }
 
@@ -216,10 +218,10 @@ bool EventManager::ThreadSafeQueueEvent(const BaseEventDataPtr& pEvent)
 //---------------------------------------------------------------------------------------------------------------------
 // EventManager::AbortEvent
 //---------------------------------------------------------------------------------------------------------------------
-bool EventManager::AbortEvent(const EventType& inType, bool allOfType)
+bool EventManager::AbortEvent(const BaseEventType& inType, bool allOfType)
 {
-	GE_ASSERT(m_activeQueue >= 0);
-	GE_ASSERT(m_activeQueue < EVENTMANAGER_NUM_QUEUES);
+	LogAssert(m_activeQueue >= 0, "Queue active");
+	LogAssert(m_activeQueue < EVENTMANAGER_NUM_QUEUES, "Queue active max");
 
 	bool success = false;
 	EventListenerMap::iterator findIt = m_eventListeners.find(inType);
@@ -259,7 +261,7 @@ bool EventManager::Update(unsigned long maxMillis)
 
 	// This section added to handle events from other threads.  Check out Chapter 20.
 	BaseEventDataPtr pRealtimeEvent;
-	while (m_realtimeEventQueue.try_pop(pRealtimeEvent))
+	while (m_realtimeEventQueue.Pop(pRealtimeEvent))
 	{
 		QueueEvent(pRealtimeEvent);
 
@@ -268,7 +270,7 @@ bool EventManager::Update(unsigned long maxMillis)
 		{
 			if (currMs >= maxMs)
 			{
-				GE_ERROR("A realtime process is spamming the event manager!");
+				LogError("A realtime process is spamming the event manager!");
 			}
 		}
 	}
@@ -278,8 +280,8 @@ bool EventManager::Update(unsigned long maxMillis)
 	m_activeQueue = (m_activeQueue + 1) % EVENTMANAGER_NUM_QUEUES;
 	m_queues[m_activeQueue].clear();
 
-	GE_LOG("EventLoop", eastl::string("Processing Event Queue ") + eastl::string(queueToProcess) + "; "
-		+ eastl::string((unsigned long)m_queues[queueToProcess].size()) + eastl::string(" events to process"));
+	LogInformation("EventLoop " + eastl::string("Processing Event Queue ") + eastl::to_string(queueToProcess) + "; "
+		+ eastl::to_string((unsigned long)m_queues[queueToProcess].size()) + eastl::string(" events to process"));
 
 	// Process the queue
 	while (!m_queues[queueToProcess].empty())
@@ -287,23 +289,23 @@ bool EventManager::Update(unsigned long maxMillis)
 		// pop the front of the queue
 		BaseEventDataPtr pEvent = m_queues[queueToProcess].front();
 		m_queues[queueToProcess].pop_front();
-		GE_LOG("EventLoop", eastl::string("\t\tProcessing Event ") + eastl::string(pEvent->GetName()));
+		LogInformation("EventLoop " + eastl::string("\t\tProcessing Event ") + eastl::string(pEvent->GetName()));
 
-		const EventType& eventType = pEvent->GetEventType();
+		const BaseEventType& eventType = pEvent->GetEventType();
 
 		// find all the delegate functions registered for this event
 		auto findIt = m_eventListeners.find(eventType);
 		if (findIt != m_eventListeners.end())
 		{
 			const EventListenerList& eventListeners = findIt->second;
-			GE_LOG("EventLoop", eastl::string("\t\tFound ") + eastl::string((unsigned long)eventListeners.size())
+			LogInformation("EventLoop " + eastl::string("\t\tFound ") + eastl::to_string((unsigned long)eventListeners.size())
 				+ eastl::string(" delegates"));
 
 			// call each listener
 			for (auto it = eventListeners.begin(); it != eventListeners.end(); ++it)
 			{
 				EventListenerDelegate listener = (*it);
-				GE_LOG("EventLoop", eastl::string("\t\tSending event ") + eastl::string(pEvent->GetName())
+				LogInformation("EventLoop " + eastl::string("\t\tSending event ") + eastl::string(pEvent->GetName())
 					+ eastl::string(" to delegate"));
 				listener(pEvent);
 			}
@@ -313,7 +315,7 @@ bool EventManager::Update(unsigned long maxMillis)
 		currMs = GetTickCount();
 		if (maxMillis != BaseEventManager::kINFINITE && currMs >= maxMs)
 		{
-			GE_LOG("EventLoop", "Aborting event processing; time ran out");
+			LogInformation("EventLoop Aborting event processing; time ran out");
 			break;
 		}
 	}

@@ -42,6 +42,8 @@
 
 #include "GameEngineStd.h"
 
+#include "Mathematic/Algebra/Vector2.h"
+
 struct GameOption
 {
 	// Level option

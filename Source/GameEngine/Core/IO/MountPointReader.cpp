@@ -6,9 +6,10 @@
 
 #include "ReadFile.h"
 
+#include "Application/GameApplication.h"
+
 //! Constructor
-ResourceMountPointFile::ResourceMountPointFile(BaseFileSystem* fs, const eastl::wstring resFileName)
-	: mFileSystem(fs)
+ResourceMountPointFile::ResourceMountPointFile(const eastl::wstring resFileName)
 { 
 	m_pMountPointFile.reset(); 
 	m_resFileName = resFileName; 
@@ -27,16 +28,18 @@ bool ResourceMountPointFile::IsALoadableFileFormat(const eastl::wstring& filenam
 	if (!fname.size())
 		return ret;
 
-	E_FILESYSTEM_TYPE current = mFileSystem->SetFileSystemType(FILESYSTEM_NATIVE);
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	FileSystem* fileSystem = gameApp->mFileSystem.get();
+	E_FILESYSTEM_TYPE current = fileSystem->SetFileSystemType(FILESYSTEM_NATIVE);
 
-	const eastl::wstring save = mFileSystem->GetWorkingDirectory();
-	eastl::wstring fullPath = mFileSystem->GetAbsolutePath(filename);
+	const eastl::wstring save = fileSystem->GetWorkingDirectory();
+	eastl::wstring fullPath = fileSystem->GetAbsolutePath(filename);
 
-	if (mFileSystem->ChangeWorkingDirectoryTo(fullPath))
+	if (fileSystem->ChangeWorkingDirectoryTo(fullPath))
 		ret = true;
 
-	mFileSystem->ChangeWorkingDirectoryTo(save);
-	mFileSystem->SetFileSystemType(current);
+	fileSystem->ChangeWorkingDirectoryTo(save);
+	fileSystem->SetFileSystemType(current);
 
 	return ret;
 }
@@ -55,7 +58,7 @@ bool ResourceMountPointFile::IsALoadableFileFormat(BaseReadFile* file) const
 
 bool ResourceMountPointFile::ExistFile(const eastl::wstring& filename) const
 {
-	if (m_pMountPointFile->GetFileList()->FindFile(filename) ! = -1)
+	if (m_pMountPointFile->GetFileList()->FindFile(filename) != -1)
 		return true;
 
 	return false;
@@ -63,7 +66,7 @@ bool ResourceMountPointFile::ExistFile(const eastl::wstring& filename) const
 
 bool ResourceMountPointFile::ExistDirectory(const eastl::wstring& dir) const
 {
-	if (m_pMountPointFile->GetFileList()->FindFile(dir,true)!=-1)
+	if (m_pMountPointFile->GetFileList()->FindFile(dir,true) != -1)
 		return true;
 
 	return false;
@@ -76,10 +79,12 @@ bool ResourceMountPointFile::Open()
 	bool ignoreCase = true;
 	bool ignorePaths = false;
 
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	FileSystem* fileSystem = gameApp->mFileSystem.get();
 	if (IsALoadableFileFormat(m_resFileName))
 	{
 		m_pMountPointFile.reset(dynamic_cast<MountPointReader*>(
-			mFileSystem->CreateMountPointFileArchive(m_resFileName, ignoreCase, ignorePaths)));
+			fileSystem->CreateMountPointFileArchive(m_resFileName, ignoreCase, ignorePaths)));
 		return true;
 	}
 
@@ -135,19 +140,20 @@ eastl::wstring ResourceMountPointFile::GetResourceName(unsigned int num) const
 
 
 //! compatible Folder Architecture
-MountPointReader::MountPointReader(BaseFileSystem* fs, const eastl::wstring& basename, 
-	bool ignoreCase, bool ignorePaths)
-	: mFileSystem(fs), FileList(basename, ignoreCase, ignorePaths)
+MountPointReader::MountPointReader(const eastl::wstring& basename, bool ignoreCase, bool ignorePaths)
+	: FileList(basename, ignoreCase, ignorePaths)
 {
 	//! ensure CFileList path ends in a slash
 	if (m_FileListPath[m_FileListPath.size() - 1] != '/') 
 		m_FileListPath += '/';
 
-	const eastl::wstring& work = mFileSystem->GetWorkingDirectory();
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	FileSystem* fileSystem = gameApp->mFileSystem.get();
+	const eastl::wstring& work = fileSystem->GetWorkingDirectory();
 
-	mFileSystem->ChangeWorkingDirectoryTo(basename);
+	fileSystem->ChangeWorkingDirectoryTo(basename);
 	BuildDirectory();
-	mFileSystem->ChangeWorkingDirectoryTo(work);
+	fileSystem->ChangeWorkingDirectoryTo(work);
 
 	Sort();
 }
@@ -161,7 +167,9 @@ const BaseFileList* MountPointReader::GetFileList()
 
 void MountPointReader::BuildDirectory()
 {
-	BaseFileList * list = mFileSystem->CreateFileList();
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	FileSystem* fileSystem = gameApp->mFileSystem.get();
+	BaseFileList * list = fileSystem->CreateFileList();
 	if (!list)
 		return;
 
@@ -181,16 +189,16 @@ void MountPointReader::BuildDirectory()
 			const eastl::wstring rel = list->GetFileName(i);
 			m_RealFileNames.push_back(list->GetFullFileName(i));
 
-			eastl::wstring pwd  = mFileSystem->GetWorkingDirectory();
+			eastl::wstring pwd  = fileSystem->GetWorkingDirectory();
 			if (pwd[pwd.size() - 1] != '/') pwd += '/';
 			pwd.append(rel);
 
 			if ( rel != L"." && rel != L".." )
 			{
 				AddItem(full, 0, 0, true, 0);
-				mFileSystem->ChangeWorkingDirectoryTo(pwd);
+				fileSystem->ChangeWorkingDirectoryTo(pwd);
 				BuildDirectory();
-				mFileSystem->ChangeWorkingDirectoryTo(L"..");
+				fileSystem->ChangeWorkingDirectoryTo(L"..");
 			}
 		}
 	}

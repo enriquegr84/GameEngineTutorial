@@ -52,7 +52,7 @@ class Level
 
 public:
 
-	Level(const eastl::string& filename);
+	Level(const eastl::wstring& filename);
 	~Level();
     void Update(float dt);
     void Reset();
@@ -61,37 +61,37 @@ public:
     //float getDemoLength() const {return QuadGraph::get()->getLapLength();}
     // ------------------------------------------------------------------------
     /** Returns a unique identifier for this level (the directory name). */
-    const eastl::string& getIdent() const {return m_ident;}
+    const eastl::wstring& getIdent() const {return m_ident;}
     // ------------------------------------------------------------------------
 	/** Returns all groups this level belongs to. */
-	const eastl::vector<eastl::string>& GetGroups() const { return m_groups; }
+	const eastl::vector<eastl::wstring>& GetGroups() const { return m_groups; }
 	// ------------------------------------------------------------------------
     /** Returns the filename of this level. */
-    const eastl::string& getFilename() const { return m_filename; }
+    const eastl::wstring& getFilename() const { return m_filename; }
 
 private:
 
-	eastl::string m_ident;
-	eastl::string m_screenshot;
+	eastl::wstring m_ident;
+	eastl::wstring m_screenshot;
 	double m_gravity;
 
 	eastl::vector<Subtitle> m_subtitles;
 
-	eastl::vector<eastl::string> m_groups;
+	eastl::vector<eastl::wstring> m_groups;
 
 	/** The full filename of the config (xml) file. */
-	eastl::string m_filename;
+	eastl::wstring m_filename;
 
 	/** A simple class to keep information about a level mode. */
 	class LevelMode
 	{
 	public:
-		eastl::string m_name; /* Name / description of this mode. */
-		eastl::string m_scene; /* Name of the scene file to use.   */
+		eastl::wstring m_name; /* Name / description of this mode. */
+		eastl::wstring m_scene; /* Name of the scene file to use.   */
 
 		/** Default constructor, sets default names for all fields. */
 		LevelMode()
-			: m_name("default"), m_scene("scene.xml")
+			: m_name(L"default"), m_scene(L"scene.xml")
 		{
 
 		}

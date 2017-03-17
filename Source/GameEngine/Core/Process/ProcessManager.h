@@ -54,8 +54,10 @@ public:
 	~ProcessManager(void);
 
 	// interface
-	unsigned int UpdateProcesses(unsigned long deltaMs);  // updates all attached processes
-	eastl::weak_ptr<Process> AttachProcess(eastl::shared_ptr<Process> pProcess);  // attaches a process to the process mgr
+	// updates all attached processes
+	unsigned int UpdateProcesses(unsigned long deltaMs);
+	// attaches a process to the process mgr
+	eastl::weak_ptr<Process> AttachProcess(eastl::shared_ptr<Process> pProcess);
 	void AbortAllProcesses(bool immediate);
 
 	// accessors

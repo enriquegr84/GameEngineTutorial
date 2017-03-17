@@ -61,7 +61,7 @@ unsigned int ProcessManager::UpdateProcesses(unsigned long deltaMs)
     while (it != m_processList.end())
     {
         // grab the next process
-        StrongProcessPtr pCurrProcess = (*it);
+        eastl::shared_ptr<Process> pCurrProcess = (*it);
 
         // save the iterator and increment the old one in case we need to remove this process from the list
         ProcessList::iterator thisIt = it;
@@ -84,7 +84,7 @@ unsigned int ProcessManager::UpdateProcesses(unsigned long deltaMs)
                 case Process::SUCCEEDED :
                 {
                     pCurrProcess->OnSuccess();
-                    StrongProcessPtr pChild = pCurrProcess->RemoveChild();
+                    eastl::shared_ptr<Process> pChild = pCurrProcess->RemoveChild();
                     if (pChild)
                         AttachProcess(pChild);
                     else
@@ -119,10 +119,10 @@ unsigned int ProcessManager::UpdateProcesses(unsigned long deltaMs)
 //---------------------------------------------------------------------------------------------------------------------
 // Attaches the process to the process list so it can be run on the next update.
 //---------------------------------------------------------------------------------------------------------------------
-WeakProcessPtr ProcessManager::AttachProcess(StrongProcessPtr pProcess)
+eastl::weak_ptr<Process> ProcessManager::AttachProcess(eastl::shared_ptr<Process> pProcess)
 {
 	m_processList.push_front(pProcess);
-    return WeakProcessPtr(pProcess);
+    return eastl::weak_ptr<Process>(pProcess);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -145,7 +145,7 @@ void ProcessManager::AbortAllProcesses(bool immediate)
         ProcessList::iterator tempIt = it;
         ++it;
 
-        StrongProcessPtr pProcess = *tempIt;
+        eastl::shared_ptr<Process> pProcess = *tempIt;
         if (pProcess->IsAlive())
         {
             pProcess->SetState(Process::ABORTED);

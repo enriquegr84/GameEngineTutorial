@@ -15,14 +15,14 @@
 // parameters s0 and s1 are constrained by |s0| <= e0 and |s1| <= e1,
 // where e0 > 0 and e1 > 0 are the extents of the rectangle.
 template <int N, typename Real>
-class Rectangle
+class RectangleBase
 {
 public:
     // Construction and destruction.  The default constructor sets the origin
     // to (0,...,0), axis A0 to (1,0,...,0), axis A1 to (0,1,0,...0), and both
     // extents to 1.
-    Rectangle();
-    Rectangle(Vector<N, Real> const& inCenter,
+    RectangleBase();
+    RectangleBase(Vector<N, Real> const& inCenter,
         eastl::array<Vector<N, Real>, 2> const& inAxis,
         Vector<2, Real> const& inExtent);
 
@@ -38,21 +38,21 @@ public:
 
 public:
     // Comparisons to support sorted containers.
-    bool operator==(Rectangle const& rectangle) const;
-    bool operator!=(Rectangle const& rectangle) const;
-    bool operator< (Rectangle const& rectangle) const;
-    bool operator<=(Rectangle const& rectangle) const;
-    bool operator> (Rectangle const& rectangle) const;
-    bool operator>=(Rectangle const& rectangle) const;
+    bool operator==(RectangleBase const& rectangle) const;
+    bool operator!=(RectangleBase const& rectangle) const;
+    bool operator< (RectangleBase const& rectangle) const;
+    bool operator<=(RectangleBase const& rectangle) const;
+    bool operator> (RectangleBase const& rectangle) const;
+    bool operator>=(RectangleBase const& rectangle) const;
 };
 
 // Template alias for convenience.
 template <typename Real>
-using Rectangle3 = Rectangle<3, Real>;
+using Rectangle3 = RectangleBase<3, Real>;
 
 
 template <int N, typename Real>
-Rectangle<N, Real>::Rectangle()
+RectangleBase<N, Real>::RectangleBase()
 {
     center.MakeZero();
     for (int i = 0; i < 2; ++i)
@@ -63,7 +63,7 @@ Rectangle<N, Real>::Rectangle()
 }
 
 template <int N, typename Real>
-Rectangle<N, Real>::Rectangle(Vector<N, Real> const& inCenter,
+RectangleBase<N, Real>::RectangleBase(Vector<N, Real> const& inCenter,
 	eastl::array<Vector<N, Real>, 2> const& inAxis,
     Vector<2, Real> const& inExtent)
     :
@@ -74,7 +74,7 @@ Rectangle<N, Real>::Rectangle(Vector<N, Real> const& inCenter,
 }
 
 template <int N, typename Real>
-void Rectangle<N, Real>::GetVertices(
+void RectangleBase<N, Real>::GetVertices(
 	eastl::array<Vector<N, Real>, 4>& vertex) const
 {
     Vector<N, Real> product0 = extent[0] * axis[0];
@@ -89,7 +89,7 @@ void Rectangle<N, Real>::GetVertices(
 }
 
 template <int N, typename Real>
-bool Rectangle<N, Real>::operator==(Rectangle const& rectangle) const
+bool RectangleBase<N, Real>::operator==(RectangleBase const& rectangle) const
 {
     if (center != rectangle.center)
     {
@@ -116,13 +116,13 @@ bool Rectangle<N, Real>::operator==(Rectangle const& rectangle) const
 }
 
 template <int N, typename Real>
-bool Rectangle<N, Real>::operator!=(Rectangle const& rectangle) const
+bool RectangleBase<N, Real>::operator!=(RectangleBase const& rectangle) const
 {
     return !operator==(rectangle);
 }
 
 template <int N, typename Real>
-bool Rectangle<N, Real>::operator<(Rectangle const& rectangle) const
+bool RectangleBase<N, Real>::operator<(RectangleBase const& rectangle) const
 {
     if (center < rectangle.center)
     {
@@ -148,19 +148,19 @@ bool Rectangle<N, Real>::operator<(Rectangle const& rectangle) const
 }
 
 template <int N, typename Real>
-bool Rectangle<N, Real>::operator<=(Rectangle const& rectangle) const
+bool RectangleBase<N, Real>::operator<=(RectangleBase const& rectangle) const
 {
     return operator<(rectangle) || operator==(rectangle);
 }
 
 template <int N, typename Real>
-bool Rectangle<N, Real>::operator>(Rectangle const& rectangle) const
+bool RectangleBase<N, Real>::operator>(RectangleBase const& rectangle) const
 {
     return !operator<=(rectangle);
 }
 
 template <int N, typename Real>
-bool Rectangle<N, Real>::operator>=(Rectangle const& rectangle) const
+bool RectangleBase<N, Real>::operator>=(RectangleBase const& rectangle) const
 {
     return !operator<(rectangle);
 }

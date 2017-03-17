@@ -37,7 +37,6 @@
 //========================================================================
 
 
-#include "GameEngine/GameEngine.h"
 #include "SoundResource.h"
 #include "DirectSoundAudio.h"
 
@@ -61,7 +60,7 @@ bool DirectSoundAudio::Initialize(void* id)
 	m_Initialized=false;
 	m_AllSamples.clear();
 
-	SAFE_RELEASE( m_pDS );
+	delete m_pDS;
 
 	HRESULT hr;
 
@@ -126,9 +125,8 @@ HRESULT DirectSoundAudio::SetPrimaryBufferFormat(
 
 	if( FAILED( hr = pDSBPrimary->SetFormat(&wfx) ) )
 		return S_OK;
-		//return DXUT_ERR( L"SetFormat", hr );
 
-	SAFE_RELEASE( pDSBPrimary );
+	delete pDSBPrimary;
 
 	return S_OK;
 }
@@ -142,7 +140,8 @@ void DirectSoundAudio::Shutdown()
 	if(m_Initialized)
 	{
 		Audio::Shutdown();
-		SAFE_RELEASE(m_pDS);
+
+		delete m_pDS;
 		m_Initialized = false;
 	}
 }
@@ -152,10 +151,10 @@ void DirectSoundAudio::Shutdown()
 // DirectSoundAudio::InitAudioBuffer			- Chapter 13, page 418
 //   Allocate a sample handle for the newborn sound (used by SoundResource) and tell you it's length
 //
-IAudioBuffer *DirectSoundAudio::InitAudioBuffer(shared_ptr<ResHandle> resHandle)//const
+BaseAudioBuffer *DirectSoundAudio::InitAudioBuffer(eastl::shared_ptr<ResHandle> resHandle)//const
 {
-	shared_ptr<SoundResourceExtraData> extra = 
-		static_pointer_cast<SoundResourceExtraData>(resHandle->GetExtra());
+	eastl::shared_ptr<SoundResourceExtraData> extra = 
+		eastl::static_pointer_cast<SoundResourceExtraData>(resHandle->GetExtra());
 
     if( ! m_pDS )
         return NULL;
@@ -168,13 +167,15 @@ IAudioBuffer *DirectSoundAudio::InitAudioBuffer(shared_ptr<ResHandle> resHandle)
 			break;
 
 		case SOUND_TYPE_MP3:
-		case SOUND_TYPE_MIDI:	//If it's a midi file, then do nothin at this time... maybe we will support this in the future
-			GE_ASSERT(false && "MP3s and MIDI are not supported");
+		case SOUND_TYPE_MIDI:
+			//If it's a midi file, then do nothin at this time...
+			//maybe we will support this in the future
+			LogError("MP3s and MIDI are not supported");
 			return NULL;
 			break;
 
 		default:
-			GE_ASSERT(false && "Unknown sound type");
+			LogError("Unknown sound type");
 			return NULL;
 	}//end switch
 
@@ -198,7 +199,7 @@ IAudioBuffer *DirectSoundAudio::InitAudioBuffer(shared_ptr<ResHandle> resHandle)
     }
 
 	// Add handle to the list
-	IAudioBuffer *audioBuffer = new DirectSoundAudioBuffer(sampleHandle, resHandle);
+	BaseAudioBuffer *audioBuffer = new DirectSoundAudioBuffer(sampleHandle, resHandle);
 	m_AllSamples.push_front( audioBuffer);
 	
 	return audioBuffer;
@@ -209,7 +210,7 @@ IAudioBuffer *DirectSoundAudio::InitAudioBuffer(shared_ptr<ResHandle> resHandle)
 // DirectSoundAudio::ReleaseAudioBuffer			- Chapter 13, page 419
 //    Allocate a sample handle for the newborn sound (used by SoundResource)
 //
-void DirectSoundAudio::ReleaseAudioBuffer(IAudioBuffer *sampleHandle)//const
+void DirectSoundAudio::ReleaseAudioBuffer(BaseAudioBuffer *sampleHandle)//const
 {
 	sampleHandle->Stop();
 	m_AllSamples.remove(sampleHandle);
@@ -219,7 +220,7 @@ void DirectSoundAudio::ReleaseAudioBuffer(IAudioBuffer *sampleHandle)//const
 // DirectSoundAudioBuffer::DirectSoundAudioBuffer	- Chapter 13, page 420
 //
 DirectSoundAudioBuffer::DirectSoundAudioBuffer(
-	LPDIRECTSOUNDBUFFER sample, shared_ptr<ResHandle> resource)
+	LPDIRECTSOUNDBUFFER sample, eastl::shared_ptr<ResHandle> resource)
  : AudioBuffer(resource) 
 { 
 	m_Sample = sample; 
@@ -372,7 +373,7 @@ void DirectSoundAudioBuffer::SetVolume(int volume)
 
 	LPDIRECTSOUNDBUFFER pDSB = (LPDIRECTSOUNDBUFFER)Get();
 
-	GE_ASSERT(volume>=0 && volume<=100 && "Volume must be a number between 0 and 100");
+	LogAssert(volume>=0 && volume<=100, "Volume must be a number between 0 and 100");
 
 	// convert volume from 0-100 into range for DirectX - don't forget to use a logarithmic scale!
 
@@ -381,9 +382,9 @@ void DirectSoundAudioBuffer::SetVolume(int volume)
 	float range = float(DSBVOLUME_MAX - gccDSBVolumeMin);
 	float fvolume = ( range * logarithmicProportion ) + gccDSBVolumeMin;
 
-	GE_ASSERT(fvolume>=gccDSBVolumeMin && fvolume<=DSBVOLUME_MAX);
+	LogAssert(fvolume>=gccDSBVolumeMin && fvolume<=DSBVOLUME_MAX, "Volume DSB out of range");
 	HRESULT hr = pDSB->SetVolume( LONG(fvolume) );
-	GE_ASSERT(hr==S_OK);
+	LogAssert(hr==S_OK, "Couldn't set volume");
 
 }
 
@@ -469,11 +470,12 @@ HRESULT DirectSoundAudioBuffer::FillBufferWithSound( void )
 {
     HRESULT hr; 
 	int pcmBufferSize = m_Resource->Size();
-	shared_ptr<SoundResourceExtraData> extra = static_pointer_cast<SoundResourceExtraData>(m_Resource->GetExtra());
+	eastl::shared_ptr<SoundResourceExtraData> extra = 
+		eastl::static_pointer_cast<SoundResourceExtraData>(m_Resource->GetExtra());
 
-	VOID*	pDSLockedBuffer = NULL;							// a pointer to the DirectSound buffer
-    unsigned long   dwDSLockedBufferSize = 0;				// Size of the locked DirectSound buffer
-    unsigned long   dwWavDataRead        = 0;				// Amount of data read from the wav file 
+	VOID* pDSLockedBuffer = NULL; // a pointer to the DirectSound buffer
+    unsigned long dwDSLockedBufferSize = 0; // Size of the locked DirectSound buffer
+    unsigned long dwWavDataRead = 0; // Amount of data read from the wav file 
 
     if( ! m_Sample )
         return CO_E_NOTINITIALIZED;
@@ -486,11 +488,9 @@ HRESULT DirectSoundAudioBuffer::FillBufferWithSound( void )
 
 	
     // Lock the buffer down
-    if( FAILED( hr = m_Sample->Lock( 0, pcmBufferSize, 
-                                 &pDSLockedBuffer, &dwDSLockedBufferSize, 
-                                 NULL, NULL, 0L ) ) )
+    if(FAILED( hr = m_Sample->Lock(0, pcmBufferSize, 
+		&pDSLockedBuffer, &dwDSLockedBufferSize, NULL, NULL, 0L)))
 		return S_OK;
-        //return DXUT_ERR( L"Lock", hr );
 
     if( pcmBufferSize == 0 )
     {

@@ -5,10 +5,6 @@
 #ifndef UIFONT_H
 #define UIFONT_H
 
-#include "Utilities/color.h"
-#include "Utilities/rect.h"
-#include "Utilities/string.h"
-
 //! An enum for the different types of UI font.
 enum EUI_FONT_TYPE
 {
@@ -42,13 +38,14 @@ public:
 	\param vcenter: Specifies if the text should be centered vertically into the rectangle.
 	\param clip: Optional pointer to a rectangle against which the text will be clipped.
 	If the pointer is null, no clipping will be done. */
-	virtual void Draw(const eastl::wstring& text, const Rectangle<2, int>& position,
-		Color color, bool hcenter=false, bool vcenter=false, const Rectangle<2, int>* clip=0) = 0;
+	virtual void Draw(const eastl::wstring& text, const RectangleBase<2, int>& position,
+		eastl::array<float, 4> const& color, bool hcenter=false, bool vcenter=false, 
+		const RectangleBase<2, int>* clip=0) = 0;
 
 	//! Calculates the width and height of a given string of text.
 	/** \return Returns width and height of the area covered by the text if
 	it would be drawn. */
-	virtual Dimension2<unsigned int> GetDimension(const wchar_t* text) = 0;
+	virtual Vector2<unsigned int> GetDimension(const wchar_t* text) = 0;
 
 	//! Calculates the index of the character in the text which is on a specific position.
 	/** \param text: Text string.

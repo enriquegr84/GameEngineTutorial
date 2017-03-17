@@ -70,10 +70,10 @@ extern GenericObjectFactory<BaseEventData, BaseEventType> g_eventFactory;
 // Base type for event object hierarchy, may be used itself for simplest event notifications such as those that do 
 // not carry additional payload data. If any event needs to propagate with payload data it must be defined separately.
 //---------------------------------------------------------------------------------------------------------------------
-class EventData 
+class BaseEventData 
 {
 public:
-	virtual ~EventData(void) {}
+	virtual ~BaseEventData(void) {}
 	virtual const BaseEventType& GetEventType(void) const = 0;
 	virtual float GetTimeStamp(void) const = 0;
 	virtual void Serialize(std::ostrstream& out) const = 0;
@@ -86,12 +86,12 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // class BaseEventData		- Chapter 11, page 311
 //---------------------------------------------------------------------------------------------------------------------
-class BaseEventData : public EventData
+class EventData : public BaseEventData
 {
     const float m_timeStamp;
 
 public:
-	explicit BaseEventData(const float timeStamp = 0.0f) : m_timeStamp(timeStamp) { }
+	explicit EventData(const float timeStamp = 0.0f) : m_timeStamp(timeStamp) { }
 
 	// Returns the type of the event
 	virtual const BaseEventType& GetEventType(void) const = 0;

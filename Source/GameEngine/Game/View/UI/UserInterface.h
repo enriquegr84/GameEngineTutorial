@@ -41,11 +41,15 @@
 
 #include "GameEngineStd.h"
 
-#include "UI/UIRoot.h"
-#include "UI/UIFont.h"
-#include "UI/UISkin.h"
-#include "UI/UIElement.h"
-#include "UI/UIElementFactory.h"
+#include "UIRoot.h"
+#include "UIFont.h"
+#include "UISkin.h"
+#include "UIElement.h"
+#include "UIElementFactory.h"
+#include "DefaultUIElementFactory.h"
+
+#include "Graphic/ScreenElement.h"
+#include "Graphic/Renderer/Renderer.h"
 
 const unsigned long g_QuitNoPrompt = MAKELPARAM(-1,-1);
 const UINT g_MsgEndModal = (WM_USER+100);
@@ -62,6 +66,7 @@ enum
 
 // This class is a group of user interface controls.
 // It can be modal or modeless.
+
 
 //
 // class BaseUI									- Chapter 10, page 286  
@@ -168,13 +173,26 @@ public:
 	virtual unsigned int GetRegisteredUIElementFactoryCount() const;
 
 	//! Adds a UI Element by its name
-	virtual eastl::shared_ptr<UIElement> AddUIElement(const c8* elementName,
-		const eastl::shared_ptr<UIElement>& parent = 0);
+	virtual eastl::shared_ptr<UIElement> AddUIElement(
+		EUI_ELEMENT_TYPE elementType, const eastl::shared_ptr<UIElement>& parent = 0);
 
 
 protected:
-	eastl::shared_ptr<BaseUIElement> Root;
+	eastl::shared_ptr<UIElement> Root;
 	bool Visible;
+
+private:
+
+	eastl::shared_ptr<UIElement> GetNextElement(bool reverse = false, bool group = false);
+	void UpdateHoveredElement(Vector2<int> mousePos);
+
+	eastl::vector<eastl::shared_ptr<UIElementFactory>> UIElementFactoryList;
+
+	eastl::shared_ptr<UIElement> Hovered;
+	eastl::shared_ptr<UIElement> HoveredNoSubelement;	// subelements replaced by their parent, so you only have 'real' elements here
+	eastl::shared_ptr<UIElement> Focus;
+	Vector2<int> LastHoveredMousePos;
+	eastl::shared_ptr<UISkin> CurrentSkin;
 };
 
 

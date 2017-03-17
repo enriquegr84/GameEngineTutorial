@@ -9,6 +9,8 @@
 #ifndef EVENTSYSTEM_H
 #define EVENTSYSTEM_H
 
+#include "Mathematic/Algebra/Vector2.h"
+
 static unsigned int LocaleIdToCodepage(unsigned int lcid)
 {
 	switch (lcid)
@@ -461,10 +463,35 @@ enum MouseButtonStateMask
 class UIElement;
 
 //! Enumeration for all events which are sendable by the gui system
-enum GuiEventType
+enum UIEventType
 {
+	//! A gui element has lost its focus.
+	/** GUIEvent.Caller is losing the focus to GUIEvent.Element.
+	If the event is absorbed then the focus will not be changed. */
+	UIET_ELEMENT_FOCUS_LOST = 0,
+
+	//! A gui element has got the focus.
+	/** If the event is absorbed then the focus will not be changed. */
+	UIET_ELEMENT_Focused,
+
+	//! The mouse cursor hovered over a gui element.
+	/** If an element has sub-elements you also get this message for the subelements */
+	UIET_ELEMENT_HOVERED,
+
+	//! The mouse cursor left the hovered element.
+	/** If an element has sub-elements you also get this message for the subelements */
+	UIET_ELEMENT_LEFT,
+
+	//! An element would like to close.
+	/** Windows and context menus use this event when they would like to close,
+	this can be cancelled by absorbing the event. */
+	UIET_ELEMENT_CLOSED,
+
+	//! A button was clicked.
+	UIET_BUTTON_CLICKED,
+
 	//! No real event. Just for convenience to get number of events
-	GET_COUNT
+	UIET_COUNT
 };
 
 //! Events hold information about an event. See EventReceiver for details on event handling.
@@ -473,14 +500,14 @@ struct Event
 	//! Any kind of UI event.
 	struct UIEvent
 	{
-		//! BaseUIElement who called the event
+		//! UIElement who called the event
 		UIElement* mCaller;
 
 		//! If the event has something to do with another element, it will be held here.
 		UIElement* mElement;
 
 		//! Type of UI Event
-		GuiEventType mEventType;
+		UIEventType mEventType;
 
 	};
 
@@ -488,10 +515,10 @@ struct Event
 	struct MouseInput
 	{
 		//! X position of mouse cursor
-		signed int X;
+		int X;
 
 		//! Y position of mouse cursor
-		signed int Y;
+		int Y;
 
 		/* Only valid if event was MIE_MOUSE_WHEEL */
 		//! mouse wheel delta, often 1.0 or -1.0, but can have other values < 0.f or > 0.f;
@@ -544,10 +571,10 @@ struct Event
 	struct UserEvent
 	{
 		//! Some user specified data as int
-		signed int mUserData1;
+		int mUserData1;
 
 		//! Another user specified data as int
-		signed int mUserData2;
+		int mUserData2;
 	};
 
 	EventType mEventType;
@@ -559,6 +586,58 @@ struct Event
 		struct UserEvent	mUserEvent;
 	};
 
+};
+
+////////////////////////////////////////////////////
+//
+// BaseKeyboardHandler Description		- Chapter 9, page 242
+// BaseMouseHandler Description		- Chapter 9, page 242
+// BaseJoystickHandler Description		- Chapter 9, page 242
+// BaseGamepadHandler Description		- Chapter 9, page 242
+//
+// These are the public APIs for any object that implements reactions
+// to events sent by hardware user interface devices.
+//
+// Note: IJoystickHandler and IGamepadHandler are not currently
+//       implemented anywhere in the codebase. They are here
+//       as examples, and could require modification to actually work!
+//
+////////////////////////////////////////////////////
+
+class BaseKeyboardHandler
+{
+public:
+	virtual bool OnKeyDown(const KeyCode c) = 0;
+	virtual bool OnKeyUp(const KeyCode c) = 0;
+};
+
+class BaseMouseHandler
+{
+public:
+	virtual bool OnWheelRollUp() = 0;
+	virtual bool OnWheelRollDown() = 0;
+
+	virtual bool OnMouseMove(const Vector2<int> &pos, const int radius) = 0;
+	virtual bool OnMouseButtonDown(
+		const Vector2<int> &pos, const int radius, const eastl::string &buttonName) = 0;
+	virtual bool OnMouseButtonUp(
+		const Vector2<int> &pos, const int radius, const eastl::string &buttonName) = 0;
+};
+
+class BaseJoystickHandler
+{
+	virtual bool OnButtonDown(const eastl::string &buttonName, int const pressure) = 0;
+	virtual bool OnButtonUp(const eastl::string &buttonName) = 0;
+	virtual bool OnJoystick(float const x, float const y) = 0;
+};
+
+class BaseGamepadHandler
+{
+	virtual bool OnTrigger(const eastl::string &triggerName, float const pressure) = 0;
+	virtual bool OnButtonDown(const eastl::string &buttonName, int const pressure) = 0;
+	virtual bool OnButtonUp(const eastl::string &buttonName) = 0;
+	virtual bool OnDirectionalPad(const eastl::string &direction) = 0;
+	virtual bool OnThumbstick(const eastl::string &stickName, float const x, float const y) = 0;
 };
 
 /*

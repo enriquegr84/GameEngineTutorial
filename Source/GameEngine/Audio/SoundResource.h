@@ -41,8 +41,7 @@
 
 #include "GameEngineStd.h"
 
-#include "GameEngine\interfaces.h"
-#include "ResourceCache\ResCache.h"
+#include "Core/IO/ResourceCache.h"
 
 #include <mmsystem.h>
 
@@ -58,7 +57,7 @@ class SoundResourceExtraData : public BaseResourceExtraData
 public: 	
 	SoundResourceExtraData();
 	virtual ~SoundResourceExtraData() { }
-	virtual eastl::string ToString() { return "SoundResourceExtraData"; }
+
 	enum SoundType GetSoundType() { return m_SoundType; }
 	WAVEFORMATEX const *GetFormat() { return &m_WavFormatEx; }
 	int GetLengthMilli() const { return m_LengthMilli; }
@@ -82,7 +81,13 @@ public:
 	virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize);
 	virtual bool LoadResource(
 		void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
-	virtual bool MatchResourceFormat(eastl::wstring name) { return Utils::HasFileExtension(name, "wav"); }
+	virtual bool MatchResourceFormat(eastl::wstring name) 
+	{
+		if (name.rfind('.') != eastl::string::npos)
+			return name.substr(name.rfind('.') + 1) == eastl::wstring("wav");
+		else
+			return false;
+	}
 
 protected:
 	bool ParseWave(char *wavStream, size_t length, eastl::shared_ptr<ResHandle> handle);
@@ -100,8 +105,13 @@ public:
 	virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize);
 	virtual bool LoadResource(
 		void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
-	virtual bool MatchResourceFormat(eastl::wstring name) { return Utils::HasFileExtension(name, "ogg"); }
-
+	virtual bool MatchResourceFormat(eastl::wstring name) 
+	{
+		if (name.rfind('.') != eastl::string::npos)
+			return name.substr(name.rfind('.') + 1) == eastl::wstring("ogg");
+		else
+			return false;
+	}
 
 protected:
 	bool ParseOgg(char *oggStream, size_t length, eastl::shared_ptr<ResHandle> handle);

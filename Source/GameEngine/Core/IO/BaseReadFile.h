@@ -5,6 +5,8 @@
 #ifndef BASEREADFILE_H
 #define BASEREADFILE_H
 
+#include "GameEngineStd.h"
+
 //! Interface providing read acess to a file.
 class BaseReadFile
 {

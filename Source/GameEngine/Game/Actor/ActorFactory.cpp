@@ -43,9 +43,9 @@
 #include "AudioComponent.h"
 #include "TransformComponent.h"
 #include "RenderComponent.h"
-#include "PhysicsComponent.h"
-#include "BaseScriptComponent.h"
+#include "PhysicComponent.h"
 
+#include "Core/IO/XmlResource.h"
 
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -59,25 +59,23 @@ ActorFactory::ActorFactory(void)
     m_componentFactory.Register<TransformComponent>(ActorComponent::GetIdFromName(TransformComponent::g_Name));
 	m_componentFactory.Register<MeshRenderComponent>(ActorComponent::GetIdFromName(MeshRenderComponent::g_Name));
     m_componentFactory.Register<SphereRenderComponent>(ActorComponent::GetIdFromName(SphereRenderComponent::g_Name));
-    m_componentFactory.Register<PhysicsComponent>(ActorComponent::GetIdFromName(PhysicsComponent::g_Name));
+    m_componentFactory.Register<PhysicComponent>(ActorComponent::GetIdFromName(PhysicComponent::g_Name));
     m_componentFactory.Register<TeapotRenderComponent>(ActorComponent::GetIdFromName(TeapotRenderComponent::g_Name));
     m_componentFactory.Register<GridRenderComponent>(ActorComponent::GetIdFromName(GridRenderComponent::g_Name));
     m_componentFactory.Register<ParticleSystemRenderComponent>(ActorComponent::GetIdFromName(ParticleSystemRenderComponent::g_Name));
     m_componentFactory.Register<LightRenderComponent>(ActorComponent::GetIdFromName(LightRenderComponent::g_Name));
     m_componentFactory.Register<SkyRenderComponent>(ActorComponent::GetIdFromName(SkyRenderComponent::g_Name));
     m_componentFactory.Register<AudioComponent>(ActorComponent::GetIdFromName(AudioComponent::g_Name));
-
-    m_componentFactory.Register<BaseScriptComponent>(ActorComponent::GetIdFromName(BaseScriptComponent::g_Name));
 }
 
 eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, XMLElement *overrides, 
-	const Matrix4x4 *pInitialTransform, const ActorId serversActorId)
+	const Transform *pInitialTransform, const ActorId serversActorId)
 {
     // Grab the root XML node
     XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(actorResource);
     if (!pRoot)
     {
-        LogError(eastl::string("Failed to create actor from resource: ") + eastl::string(actorResource));
+        LogError(L"Failed to create actor from resource: " + eastl::wstring(actorResource));
         return eastl::shared_ptr<Actor>();
     }
 
@@ -90,7 +88,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
     eastl::shared_ptr<Actor> pActor(new Actor(nextActorId));
     if (!pActor->Init(pRoot))
     {
-        LogError(eastl::string("Failed to initialize actor: ") + eastl::string(actorResource));
+        LogError(L"Failed to initialize actor: " + eastl::wstring(actorResource));
         return eastl::shared_ptr<Actor>();
     }
 
@@ -123,8 +121,8 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
 
 	//	This is a bit of a hack to get the initial transform of the transform component 
 	//	set before the other components (like PhysicsComponent) read it.
-    shared_ptr<TransformComponent> pTransformComponent = 
-		eastl::make_shared(pActor->GetComponent<TransformComponent>(TransformComponent::g_Name));
+    eastl::shared_ptr<TransformComponent> pTransformComponent(
+		pActor->GetComponent<TransformComponent>(TransformComponent::g_Name));
 	if (pInitialTransform && pTransformComponent)
 	{
 		pTransformComponent->SetPosition(pInitialTransform->GetTranslation());
@@ -170,17 +168,16 @@ void ActorFactory::ModifyActor(eastl::shared_ptr<Actor> pActor, XMLElement* over
 	for (; pNode; pNode = pNode->NextSiblingElement())
 	{
 		ComponentId componentId = ActorComponent::GetIdFromName(pNode->Value());
-		eastl::shared_ptr<ActorComponent> pComponent = 
-			eastl::make_shared(pActor->GetComponent<ActorComponent>(componentId));
+		eastl::shared_ptr<ActorComponent> pComponent(
+			pActor->GetComponent<ActorComponent>(componentId));
 		if (pComponent)
 		{
 			pComponent->Init(pNode);
 
-			// [mrmike] - added post press to ensure that components that need it have
-			//            Events generated that can notify subsystems when changes happen.
-			//            This was done to have SceneNode derived classes respond to RenderComponent
-			//            changes.
-
+			// added post press to ensure that components that need it have
+			// Events generated that can notify subsystems when changes happen.
+			// This was done to have SceneNode derived classes respond to RenderComponent
+			// changes.
 			pComponent->OnChanged();		
 		}
 		else

@@ -49,7 +49,7 @@
 // Physics event implementation 
 //
 
-class EvtData_PhysTrigger_Enter : public BaseEventData
+class EvtData_PhysTrigger_Enter : public EventData
 {
 	int m_triggerID;
     ActorId m_other;
@@ -94,7 +94,7 @@ public:
     }
 };
 
-class EvtData_PhysTrigger_Leave : public BaseEventData
+class EvtData_PhysTrigger_Leave : public EventData
 {
 	int m_triggerID;
     ActorId m_other;
@@ -139,7 +139,7 @@ public:
     }
 };
 
-class EvtData_PhysCollision : public BaseEventData
+class EvtData_PhysCollision : public EventData
 {
 	ActorId m_ActorA;
     ActorId m_ActorB;
@@ -210,7 +210,7 @@ public:
 };
 
 
-class EvtData_PhysSeparation : public BaseEventData
+class EvtData_PhysSeparation : public EventData
 {
 	ActorId m_ActorA;
     ActorId m_ActorB;

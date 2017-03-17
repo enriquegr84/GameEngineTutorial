@@ -41,12 +41,13 @@
 #include <errno.h>
 #include "Network.h"
 
+#include "Core/OS/Os.h"
 #include "Core/Event/Event.h"
 #include "Core/Event/EventManager.h"
 
-#pragma comment(lib, "Ws2_32")
+#include "Application/GameApplication.h"
 
-#define EXIT_ASSERT GE_ASSERT(0);
+#pragma comment(lib, "Ws2_32")
 
 const char *BinaryPacket::g_Type = "BinaryPacket";
 const char *TextPacket::g_Type = "TextPacket";
@@ -138,7 +139,7 @@ NetSocket::NetSocket(SOCKET new_sock, unsigned int hostIP)
 	m_recvOfs = m_recvBegin = 0;
 	m_internal = 0;
 
-	m_timeCreated = g_pGameApp->GetTime();
+	m_timeCreated = Timer::GetTime();
 
 	m_sock = new_sock;
 	m_ipaddr = hostIP;
@@ -154,7 +155,7 @@ NetSocket::NetSocket(SOCKET new_sock, unsigned int hostIP)
 		const char *ansiIpaddress = g_pSocketManager->GetHostByAddr(m_ipaddr);
 		if (ansiIpaddress)
 		{
-			fschar_t genIpaddress[64];
+			char genIpaddress[64];
 			//AnsiToGenericCch(genIpaddress, ansiIpaddress, static_cast<int>(strlen(ansiIpaddress)+1));
 			//_tcssprintf(buffer, _T("User connected: %s %s"), genIpaddress, (m_internal) ? _T("(internal)") : _T(""));
             sprintf(buffer, "User connected: %s %s", genIpaddress, (m_internal) ? "(internal)" : "");
@@ -211,7 +212,7 @@ bool NetSocket::Connect(unsigned int ip, unsigned int port, bool forceCoalesce)
 //
 // NetSocket::Send								- Chapter 19, page 670
 //
-void NetSocket::Send(shared_ptr<BasePacket> pkt, bool clearTimeOut)
+void NetSocket::Send(eastl::shared_ptr<BasePacket> pkt, bool clearTimeOut)
 {
 	if (clearTimeOut)
 		m_timeOut = 0;
@@ -247,10 +248,10 @@ void NetSocket::HandleOutput()
 	int fSent = 0;
 	do 
 	{
-		GE_ASSERT(!m_OutList.empty());
+		LogAssert(!m_OutList.empty(), "output is empty");
 		PacketList::iterator i = m_OutList.begin();
 
-		shared_ptr<BasePacket> pkt = *i;
+		eastl::shared_ptr<BasePacket> pkt = *i;
 		const char *buf = pkt->GetData();
 		int len = static_cast<int>(pkt->GetSize());
 
@@ -293,7 +294,7 @@ void NetSocket::HandleInput()
 
 	char metrics[1024];
 	sprintf_s(metrics, 1024, "Incoming: %6d bytes. Begin %6d Offset %4d\n", rc, m_recvBegin, m_recvOfs);
-    GE_LOG("Network", metrics);
+    LogInformation(metrics);
 
 	if (rc==0)
 	{
@@ -342,8 +343,9 @@ void NetSocket::HandleInput()
 				//test[packetSize+1]='\r';
 				//test[packetSize+2]='\n';
 				//test[packetSize+3]=0;
-                //GE_LOG("Network", test);
-				shared_ptr<BinaryPacket> pkt(new BinaryPacket(&m_recvBuf[m_recvBegin+hdrSize], packetSize-hdrSize));
+                //LogInformation(test);
+				eastl::shared_ptr<BinaryPacket> pkt(
+					new BinaryPacket(&m_recvBuf[m_recvBegin+hdrSize], packetSize-hdrSize));
 				m_InList.push_back(pkt);
 				bPktRecieved = true;
 				processedData += packetSize;
@@ -358,7 +360,7 @@ void NetSocket::HandleInput()
 			if (cr)
 			{
 				*(cr+1) = 0;
-				shared_ptr<TextPacket> pkt(new TextPacket(&m_recvBuf[m_recvBegin]));
+				eastl::shared_ptr<TextPacket> pkt(new TextPacket(&m_recvBuf[m_recvBegin]));
 				m_InList.push_back(pkt);
 				packetSize = cr - &m_recvBuf[m_recvBegin];
 				bPktRecieved = true;
@@ -409,17 +411,15 @@ void NetListenSocket::Init(int portnum)
 	struct sockaddr_in sa;
 	int value = 1;
 
-	if ((m_sock = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-	{
-      GE_ASSERT("NetListenSocket Error: Init failed to create socket handle");
-	}
+	m_sock = socket(PF_INET, SOCK_STREAM, 0);
+	LogAssert(m_sock == INVALID_SOCKET, "NetListenSocket Error: Init failed to create socket handle");
 
 	if (setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (char *)&value, sizeof(value))== SOCKET_ERROR) 
 	{
 		perror("NetListenSocket::Init: setsockopt");
 		closesocket(m_sock);
 		m_sock = INVALID_SOCKET;
-		GE_ASSERT("NetListenSocket Error: Init failed to set socket options");
+		LogAssert(m_sock == INVALID_SOCKET, "NetListenSocket Error: Init failed to set socket options");
 
 	}
 	
@@ -434,7 +434,7 @@ void NetListenSocket::Init(int portnum)
 		perror("NetListenSocket::Init: bind");
 		closesocket(m_sock);
 		m_sock = INVALID_SOCKET;
-		GE_ASSERT("NetListenSocket Error: Init failed to bind");
+		LogAssert(m_sock == INVALID_SOCKET, "NetListenSocket Error: Init failed to bind");
 	}
 
 	// set nonblocking - accept() blocks under some odd circumstances otherwise
@@ -445,7 +445,7 @@ void NetListenSocket::Init(int portnum)
 	{
 		closesocket(m_sock);
 		m_sock = INVALID_SOCKET;
-		GE_ASSERT("NetListenSocket Error: Init failed to listen");
+		LogAssert(m_sock == INVALID_SOCKET, "NetListenSocket Error: Init failed to listen");
 	}
 
 	port = portnum;
@@ -462,7 +462,7 @@ void NetListenSocket::InitScan(int portnum_min, int portnum_max)
 
 	if ((m_sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
 	{
-		EXIT_ASSERT
+		LogAssert(m_sock == INVALID_SOCKET, "Invalid socket");
 		exit(1);
 	}
 
@@ -470,7 +470,7 @@ void NetListenSocket::InitScan(int portnum_min, int portnum_max)
 	{
 		closesocket(m_sock);
 		m_sock = INVALID_SOCKET;
-		EXIT_ASSERT
+		LogAssert(m_sock == INVALID_SOCKET, "Invalid socket");
 		exit(1);
 	}
 
@@ -488,7 +488,7 @@ void NetListenSocket::InitScan(int portnum_min, int portnum_max)
 	{
 		closesocket(m_sock);
 		m_sock = INVALID_SOCKET;
-		EXIT_ASSERT
+		LogAssert(m_sock == INVALID_SOCKET, "Invalid socket");
 		exit(1);
 	}
 
@@ -500,7 +500,7 @@ void NetListenSocket::InitScan(int portnum_min, int portnum_max)
 	{
 		closesocket(m_sock);
 		m_sock = INVALID_SOCKET;
-		EXIT_ASSERT
+		LogAssert(m_sock == INVALID_SOCKET, "Invalid socket");
 		exit(1);
 	}
 
@@ -557,7 +557,7 @@ bool BaseSocketManager::Init()
 		return true;
 	else
 	{
-		GE_ERROR("WSAStartup failure!");
+		LogError("WSAStartup failure!");
 		return false;
 	}
 }
@@ -603,7 +603,7 @@ void BaseSocketManager::RemoveSocket(NetSocket *socket)
 { 
 	m_SockList.remove(socket); 
 	m_SockMap.erase(socket->m_id);
-	SAFE_DELETE(socket);
+	delete socket;
 }
 
 //
@@ -643,7 +643,7 @@ int BaseSocketManager::GetIpAddress(int sockId)
 //
 // BaseSocketManager::Send						- Chapter 19, page 679
 //
-bool BaseSocketManager::Send(int sockId, shared_ptr<BasePacket> packet)
+bool BaseSocketManager::Send(int sockId, eastl::shared_ptr<BasePacket> packet)
 {
 	NetSocket *sock = FindSocket(sockId);
 	if (!sock)
@@ -729,7 +729,7 @@ void BaseSocketManager::DoSelect(int pauseMicroSecs, bool handleInput)
 		 }	
 	}
 
-	unsigned int timeNow = g_pGameApp->GetTime();
+	unsigned int timeNow = Timer::GetTime();
 
 	// handle deleting any sockets
 	SocketList::iterator i = m_SockList.begin();
@@ -795,7 +795,7 @@ unsigned int BaseSocketManager::GetHostByName(const eastl::string &hostName)
 
     if(pHostEnt == NULL)
     {
-        GE_ASSERT(0 && _GE_TEXT("Error occured"));
+        LogError("Error occured");
         return 0;
     }
 
@@ -846,7 +846,7 @@ void BaseSocketManager::PrintError()
 
 	char buffer[256];
 	sprintf(buffer, "SOCKET error: %s", reason);
-    GE_LOG("Network", buffer);
+    LogInformation(buffer);
 }
 
 
@@ -862,7 +862,7 @@ bool ClientSocketManager::Connect()
 	
 	if (!pSocket->Connect(GetHostByName(m_HostName), m_Port) )
 	{
-		SAFE_DELETE(pSocket);
+		delete pSocket;
 		return false;
 	}
 	AddSocket(pSocket);
@@ -887,16 +887,10 @@ void GameServerListenSocket::HandleInput()
 		RemoteEventSocket * sock = new RemoteEventSocket(new_sock, theipaddr);
 		int sockId = g_pSocketManager->AddSocket(sock);
 		int ipAddress = g_pSocketManager->GetIpAddress(sockId);
-        shared_ptr<EvtData_Remote_Client> pEvent(new EvtData_Remote_Client(sockId, ipAddress));
+        eastl::shared_ptr<EvtData_Remote_Client> pEvent(new EvtData_Remote_Client(sockId, ipAddress));
         BaseEventManager::Get()->QueueEvent(pEvent);
 	}
  }
-
-
-
-
-
-
 
 //
 // RemoteEventSocket::HandleInput				- Chapter 19, page 688
@@ -908,7 +902,7 @@ void RemoteEventSocket::HandleInput()
 	// traverse the list of m_InList packets and do something useful with them
 	while (!m_InList.empty())
 	{
-		shared_ptr<BasePacket> packet = *m_InList.begin();
+		eastl::shared_ptr<BasePacket> packet = *m_InList.begin();
 		m_InList.pop_front();
 		if (!strcmp(packet->GetType(), BinaryPacket::g_Type))
 		{
@@ -932,19 +926,19 @@ void RemoteEventSocket::HandleInput()
 					in >> actorId;
 					std::string level;
 					in >> level;			// [mrmike] This was the best spot to set the level !
-					g_pGameApp->m_Options.m_Level = eastl::string(level.c_str());
-                    shared_ptr<EvtData_Network_Player_Actor_Assignment> pEvent(new EvtData_Network_Player_Actor_Assignment(actorId, serverSockId));
+                    eastl::shared_ptr<EvtData_Network_Player_Actor_Assignment> pEvent(
+						new EvtData_Network_Player_Actor_Assignment(actorId, serverSockId));
                     BaseEventManager::Get()->QueueEvent(pEvent);
 					break;
 				}
 
 				default:
-					GE_ERROR("Unknown message type.");
+					LogError("Unknown message type.");
 			}
 		}
 		else if (!strcmp(packet->GetType(), TextPacket::g_Type))
 		{
-            GE_LOG("Network", packet->GetData()+sizeof(u_long));
+            LogInformation(packet->GetData()+sizeof(u_long));
 		}
 	}
 }
@@ -957,7 +951,7 @@ void RemoteEventSocket::CreateEvent(std::istrstream &in)
 {
 	// Note:  We can improve the efficiency of this by comparing the hash values instead of strings.
 	// But strings are easier to debug!
-	EventType eventType;
+	BaseEventType eventType;
 	in >> eventType;
 
     BaseEventDataPtr pEvent(CREATE_EVENT(eventType));
@@ -968,8 +962,7 @@ void RemoteEventSocket::CreateEvent(std::istrstream &in)
     }
     else
     {
-        //GE_ERROR(eastl::string("ERROR Unknown event type from remote: 0x") + eastl::string(eventType, 16));
-		GE_ERROR(eastl::string("ERROR Unknown event type from remote: ") + eastl::string(eventType));
+		LogError("ERROR Unknown event type from remote: " + eastl::to_string(eventType));
     }
 }
 
@@ -987,7 +980,8 @@ void NetworkEventForwarder::ForwardEvent(BaseEventDataPtr pEventData)
 	pEventData->Serialize(out);
 	out << "\r\n";
 
-	shared_ptr<BinaryPacket> eventMsg(new BinaryPacket(out.rdbuf()->str(), (u_long)out.pcount()));
+	eastl::shared_ptr<BinaryPacket> eventMsg(
+		new BinaryPacket(out.rdbuf()->str(), (u_long)out.pcount()));
 
 	g_pSocketManager->Send(m_SockId, eventMsg);
 }
@@ -1021,11 +1015,10 @@ void NetworkGameView::AttachRemotePlayer(int sockID)
 	out << static_cast<int>(RemoteEventSocket::NetMsg_PlayerLoginOk) << " ";
 	out << m_SockId << " ";
 	out << m_ActorId << " ";
-	std::wstring level(g_pGameApp->m_Options.m_Level.c_str());
-	out << std::string(level.begin(),level.end()) << " ";
 	out << "\r\n";
 
-	shared_ptr<BinaryPacket> gvidMsg(new BinaryPacket(out.rdbuf()->str(), (u_long)out.pcount()));
+	eastl::shared_ptr<BinaryPacket> gvidMsg(
+		new BinaryPacket(out.rdbuf()->str(), (u_long)out.pcount()));
 	g_pSocketManager->Send(m_SockId, gvidMsg);
 }
 
@@ -1043,15 +1036,19 @@ void NetworkGameView::OnUpdate(unsigned long deltaMs)
 { 
 	if (m_ActorId != INVALID_ACTOR_ID)
 	{
-		BaseEventManager::Get()->RemoveListener(MakeDelegate(this, &NetworkGameView::NewActorDelegate), EvtData_New_Actor::sk_EventType);
+		BaseEventManager::Get()->RemoveListener(
+			MakeDelegate(this, &NetworkGameView::NewActorDelegate), EvtData_New_Actor::sk_EventType);
 	}
 };
 
 void NetworkGameView::NewActorDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EvtData_New_Actor> pCastEventData = static_pointer_cast<EvtData_New_Actor>(pEventData);
+    eastl::shared_ptr<EvtData_New_Actor> pCastEventData = 
+		eastl::static_pointer_cast<EvtData_New_Actor>(pEventData);
 	ActorId actorId = pCastEventData->GetActorId();
-	StrongActorPtr pActor = MakeStrongPtr(g_pGameApp->GetGameLogic()->GetActor(actorId));
+
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	eastl::shared_ptr<Actor> pActor(gameApp->mGame->GetActor(actorId));
 
 	// FUTURE WORK: This could be in a script.
     if (pActor && pActor->GetType() == "Teapot")
@@ -1059,7 +1056,8 @@ void NetworkGameView::NewActorDelegate(BaseEventDataPtr pEventData)
         if (pCastEventData->GetViewId() == m_ViewId)
         {
             m_ActorId = actorId;
-			shared_ptr<EvtData_Network_Player_Actor_Assignment> pEvent(new EvtData_Network_Player_Actor_Assignment(m_ActorId, m_SockId));
+			eastl::shared_ptr<EvtData_Network_Player_Actor_Assignment> pEvent(
+				new EvtData_Network_Player_Actor_Assignment(m_ActorId, m_SockId));
 			BaseEventManager::Get()->QueueEvent(pEvent);
         }
     }

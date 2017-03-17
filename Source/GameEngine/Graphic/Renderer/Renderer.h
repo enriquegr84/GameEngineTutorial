@@ -69,8 +69,7 @@ public:
 	// Draw 2D text.
 	uint64_t Draw(int x, int y, eastl::array<float, 4> const& color, eastl::string const& message);
 
-	inline int GetWidth() const;
-	inline int GetHeight() const;
+	inline const Vector2<unsigned int>& GetScreenSize() const;
 
 	// Support for clearing the color, depth, and stencil back buffers.
 	inline void SetClearColor(eastl::array<float, 4> const& clearColor);
@@ -164,8 +163,7 @@ protected:
 	virtual void DestroyDefaultGlobalState();
 
     // Construction parameters.
-    int mWidth;
-    int mHeight;
+	Vector2<unsigned int> mScreenSize;
 
     int mNumMultisamples;
 
@@ -192,15 +190,10 @@ inline bool Renderer::Unbind(eastl::shared_ptr<GraphicObject> const& object)
 	return Unbind(object.get());
 }
 
-//----------------------------------------------------------------------------
-inline int Renderer::GetWidth() const
+//! returns screen size
+inline const Vector2<unsigned int>& Renderer::GetScreenSize() const
 {
-	return mWidth;
-}
-//----------------------------------------------------------------------------
-inline int Renderer::GetHeight() const
-{
-	return mHeight;
+	return mScreenSize;
 }
 //----------------------------------------------------------------------------
 inline void Renderer::SetClearStencil(unsigned int clearStencil)

@@ -92,37 +92,6 @@ enum EUI_ELEMENT_TYPE
 
 };
 
-//! Names for built-in element types
-const c8* const UIElementTypeNames[] =
-{
-	"button",
-	"checkBox",
-	"comboBox",
-	"contextMenu",
-	"menu",
-	"UIEditBox",
-	"fileOpenDialog",
-	"colorSelectDialog",
-	"inOutFader",
-	"image",
-	"UIListBox",
-	"meshViewer",
-	"messageBox",
-	"modalScreen",
-	"scrollBar",
-	"spinBox",
-	"staticText",
-	"tab",
-	"tabControl",
-	"table",
-	"toolBar",
-	"treeview",
-	"window",
-	"element",
-	"root",
-	0
-};
-
 #endif
 
 

@@ -19,8 +19,7 @@ class MountPointReader : public virtual BaseFileArchive, public virtual FileList
 public:
 
 	//! Constructor
-	MountPointReader(BaseFileSystem* fs, const eastl::wstring& filename, 
-		bool ignoreCase, bool ignorePaths);
+	MountPointReader(const eastl::wstring& filename, bool ignoreCase, bool ignorePaths);
 
 	//! opens a file by index
 	virtual BaseReadFile* CreateAndOpenFile(unsigned int index);
@@ -39,7 +38,6 @@ public:
 
 private:
 
-	BaseFileSystem* mFileSystem;
 	eastl::vector<eastl::wstring> m_RealFileNames;
 
 	void BuildDirectory();
@@ -50,7 +48,7 @@ class ResourceMountPointFile : public BaseResourceFile
 {
 public:
 
-	ResourceMountPointFile(BaseFileSystem* fs, const eastl::wstring resFileName);
+	ResourceMountPointFile(const eastl::wstring resFileName);
 
 	virtual bool Open();
 	virtual int GetRawResource(const BaseResource &r, void** buffer);
@@ -84,7 +82,6 @@ protected:
 
 private:
 
-	BaseFileSystem* mFileSystem;
 	eastl::wstring m_resFileName;
 	eastl::shared_ptr<MountPointReader> m_pMountPointFile;
 };
