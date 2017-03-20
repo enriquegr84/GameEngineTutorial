@@ -57,6 +57,7 @@ class SoundResourceExtraData : public BaseResourceExtraData
 public: 	
 	SoundResourceExtraData();
 	virtual ~SoundResourceExtraData() { }
+	virtual eastl::wstring ToString() { return L"SoundResourceExtraData"; }
 
 	enum SoundType GetSoundType() { return m_SoundType; }
 	WAVEFORMATEX const *GetFormat() { return &m_WavFormatEx; }

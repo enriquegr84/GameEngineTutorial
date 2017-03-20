@@ -85,10 +85,6 @@ protected:
     virtual void OnUpdate(unsigned long deltaMs);
 
     void InitializeVolume();
-
-protected:
-	SoundProcess();	 // Disable Default Construction
-
 };
 
 

@@ -36,7 +36,7 @@ public:
 	See IReferenceCounted::drop() for more information.
 	*/
 	virtual BaseReadFile* CreateMemoryReadFile(const void* memory, int len, 
-		const eastl::string& fileName, bool deleteMemoryWhenDropped = false) = 0;
+		const eastl::wstring& fileName, bool deleteMemoryWhenDropped = false) = 0;
 
 	//! Creates an BaseReadFile interface for accessing files inside files.
 	/** This is useful e.g. for archives.
@@ -48,7 +48,7 @@ public:
 	The returned pointer should be dropped when no longer needed.
 	See IReferenceCounted::drop() for more information.
 	*/
-	virtual BaseReadFile* CreateLimitReadFile(const eastl::string& fileName, 
+	virtual BaseReadFile* CreateLimitReadFile(const eastl::wstring& fileName, 
 		BaseReadFile* alreadyOpenedFile, long pos, long areaSize) = 0;
 
 	//! Creates an IWriteFile interface for accessing memory like a file.

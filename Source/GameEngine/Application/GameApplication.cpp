@@ -202,7 +202,7 @@ bool GameApplication::OnInitialize()
 
 	mFileSystem = eastl::shared_ptr<FileSystem>(new FileSystem());
 
-	BaseResourceFile *mountPointFile = new ResourceMountPointFile("../../../Assets");
+	BaseResourceFile *mountPointFile = new ResourceMountPointFile(L"../../../Assets");
 	mResCache = eastl::shared_ptr<ResCache>(new ResCache(50, mountPointFile));
 
 	if (!mResCache->Init())
@@ -325,22 +325,22 @@ bool GameApplication::OnInitialize()
 void GameApplication::OnTerminate()
 {
 	//Destroy the logging system at the last possible moment
-	Logger::Destroy();
+	//Logger::Destroy();
 
 	// release all the game systems in reverse order from which they were created
-	SAFE_DELETE(mGame);
+	//delete mGame;
 
-	SAFE_DELETE(user_config);
-	//SAFE_DELETE( unlock_manager );
-	//SAFE_DELETE( level_manager );
+	//delete user_config;
+	//delete unlock_manager;
+	//delete level_manager;
 
-	//DestroyWindow((HWND)m_pPlatform->GetID());
+	//DestroyWindow((HWND)mSystem->GetID());
 
 	DestroyNetworkEventForwarder();
 
-	SAFE_DELETE(mBaseSocketManager);
+	//delete mBaseSocketManager;
 
-	SAFE_DELETE(mEventManager);
+	//delete mEventManager;
 }
 
 //----------------------------------------------------------------------------
@@ -444,15 +444,15 @@ void GameApplication::OnUpdateView(unsigned int elapsedTime)
 //--------------------------------------------------------------------------------------
 void GameApplication::OnRender(unsigned int elapsedTime)
 {
-	eastl::list<eastl::shared_ptr<BaseGameView>>::iterator it = mGameViews.begin(), itEnd = mGameViews.end();
-	for (; it != itEnd; ++i)
+	eastl::list<eastl::shared_ptr<BaseGameView>>::iterator it = mGameViews.begin();
+	for (; it != mGameViews.end(); ++it)
 	{
-		(*i)->OnRender(GetTime(), elapsedTime);
+		(*it)->OnRender(Timer::GetTime(), elapsedTime);
 	}
 	mGame->RenderDiagnostics();
 
 	// Temporarily pause execution and let other processes run.
-	//m_pPlatform->OnPause(100);
+	//mSystem->OnPause(100);
 }
 
 
@@ -478,14 +478,14 @@ void GameApplication::OnUpdateGame(unsigned int elapsedTime)
 	PostMessage(g_pGameApp->GetHwnd(), WM_CLOSE, 0, 0);
 	}
 	*/
-	if (g_pGameApp->m_pGame)
+	if (mGame)
 	{
 		BaseEventManager::Get()->Update(20); // allow event queue to process for up to 20 ms
 
-		if (g_pGameApp->m_pBaseSocketManager)
-			g_pGameApp->m_pBaseSocketManager->DoSelect(0);	// pause 0 microseconds
+		if (mBaseSocketManager)
+			mBaseSocketManager->DoSelect(0);	// pause 0 microseconds
 
-		g_pGameApp->m_pGame->OnUpdate(GetTime(), elapsedTime);
+		mGame->OnUpdate(Timer::GetTime(), elapsedTime);
 	}
 }
 
@@ -555,7 +555,7 @@ bool GameApplication::LoadGame(void)
 {
     // Read the game options and see what the current game
     // needs to be - all of the game graphics are initialized by now, too...
-	return mGame->LoadGame(m_Options.m_Level.c_str());
+	return mGame->LoadGame(mOption.m_Level.c_str());
 }
 
 void GameApplication::RegisterEngineEvents(void)
@@ -585,11 +585,11 @@ void GameApplication::AddView(const eastl::shared_ptr<BaseGameView>& pView, Acto
 HumanView* GameApplication::GetHumanView()
 {
 	HumanView *pView = NULL;
-	for(GameViewList::iterator i=m_gameViews.begin(); i!=mGameViews.end(); ++i)
+	for (auto it = mGameViews.begin(); it != mGameViews.end(); ++it)
 	{
-		if ((*i)->GetType()==GameView_Human)
+		if ((*it)->GetType()==GameView_Human)
 		{
-			eastl::shared_ptr<BaseGameView> pBaseGameView(*i);
+			eastl::shared_ptr<BaseGameView> pBaseGameView(*it);
 			pView = static_cast<HumanView *>(&*pBaseGameView);
 			break;
 		}
@@ -632,13 +632,13 @@ void GameApplication::RemoveViews( )
 
 bool GameApplication::AttachAsClient()
 {
-	ClientSocketManager *pClient = new ClientSocketManager(
-		g_pGameApp->m_Options.m_gameHost, g_pGameApp->m_Options.m_listenPort);
+	ClientSocketManager *pClient = 
+		new ClientSocketManager(mOption.m_gameHost, mOption.m_listenPort);
 	if (!pClient->Connect())
 	{
 		return false;
 	}
-	g_pGameApp->m_pBaseSocketManager = pClient;
+	mBaseSocketManager.reset(pClient);
 	CreateNetworkEventForwarder();
 
 	return true;
@@ -649,19 +649,19 @@ void GameApplication::CreateNetworkEventForwarder(void)
 {
     if (mNetworkEventForwarder != NULL)
     {
-        GE_ERROR("Overwriting network event forwarder in TeapotWarsApp!");
-        SAFE_DELETE(mNetworkEventForwarder);
+        LogError("Overwriting network event forwarder in TeapotWarsApp!");
+        //delete mNetworkEventForwarder;
     }
 
-    mNetworkEventForwarder = new NetworkEventForwarder(0);
+    mNetworkEventForwarder.reset(new NetworkEventForwarder(0));
 
-    EventManager* pGlobalEventManager = EventManager::Get();
+    BaseEventManager* pGlobalEventManager = EventManager::Get();
 	pGlobalEventManager->AddListener(MakeDelegate(
-		mNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Request_New_Actor::sk_EventType);
+		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_Request_New_Actor::sk_EventType);
 	pGlobalEventManager->AddListener(MakeDelegate(
-		mNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Environment_Loaded::sk_EventType);
+		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_Environment_Loaded::sk_EventType);
 	pGlobalEventManager->AddListener(MakeDelegate(
-		mNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_PhysCollision::sk_EventType);
+		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_PhysCollision::sk_EventType);
 
 }
 
@@ -669,13 +669,14 @@ void GameApplication::DestroyNetworkEventForwarder(void)
 {
     if (mNetworkEventForwarder)
     {
-        EventManager* pGlobalEventManager = EventManager::Get();
+        BaseEventManager* pGlobalEventManager = EventManager::Get();
 		pGlobalEventManager->RemoveListener(MakeDelegate(
-			mNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Request_New_Actor::sk_EventType);
+			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_Request_New_Actor::sk_EventType);
 		pGlobalEventManager->RemoveListener(MakeDelegate(
-			mNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Environment_Loaded::sk_EventType);
+			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_Environment_Loaded::sk_EventType);
 		pGlobalEventManager->RemoveListener(MakeDelegate(
-			mNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_PhysCollision::sk_EventType);
-        SAFE_DELETE(mNetworkEventForwarder);
+			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_PhysCollision::sk_EventType);
+        
+		//delete mNetworkEventForwarder;
     }
 }

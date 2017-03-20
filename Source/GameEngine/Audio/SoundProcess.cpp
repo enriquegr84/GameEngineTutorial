@@ -36,12 +36,11 @@
 //
 //========================================================================
 
-
-#include "GameEngine/GameEngine.h"
-
 #include "Audio.h"
 #include "SoundProcess.h"
 #include "SoundResource.h"
+
+#include "Application/GameApplication.h"
 
 //////////////////////////////////////////////////////////////////////
 // SoundProcess Implementation
@@ -50,7 +49,7 @@
 //
 // SoundProcess::SoundProcess				- Chapter 13, page 428
 //
-SoundProcess::SoundProcess(shared_ptr<ResHandle> resource, int volume, bool looping) :
+SoundProcess::SoundProcess(eastl::shared_ptr<ResHandle> resource, int volume, bool looping) :
 	m_handle(resource),
 	m_Volume(volume),
 	m_isLooping(looping)
@@ -85,8 +84,8 @@ int SoundProcess::GetLengthMilli()
 {
 	if ( m_handle && m_handle->GetExtra())
 	{
-		shared_ptr<SoundResourceExtraData> extra = 
-			static_pointer_cast<SoundResourceExtraData>(m_handle->GetExtra());
+		eastl::shared_ptr<SoundResourceExtraData> extra = 
+			eastl::static_pointer_cast<SoundResourceExtraData>(m_handle->GetExtra());
 		return extra->GetLengthMilli();
 	}
 	else
@@ -152,7 +151,7 @@ void SoundProcess::SetVolume(int volume)
 		return;
 	}
 
-	GE_ASSERT(volume>=0 && volume<=100 && "Volume must be a number between 0 and 100");
+	LogAssert(volume>=0 && volume<=100, "Volume must be a number between 0 and 100");
 	m_Volume = volume;
 	m_AudioBuffer->SetVolume(volume);
 }
@@ -186,7 +185,7 @@ void SoundProcess::PauseSound()
 //
 void SoundProcess::Play(const int volume, const bool looping)
 {
-	GE_ASSERT(volume>=0 && volume<=100 && "Volume must be a number between 0 and 100");
+	LogAssert(volume>=0 && volume<=100, "Volume must be a number between 0 and 100");
 
 	if(!m_AudioBuffer)
 	{
@@ -227,7 +226,7 @@ void ExplosionProcess::OnInit()
 {
 	Process::OnInit();
 
-	BaseResource resource("explosion.wav");
+	BaseResource resource(L"explosion.wav");
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	eastl::shared_ptr<ResHandle> srh = gameApp->mResCache->GetHandle(&resource);
@@ -285,7 +284,7 @@ void ExplosionProcess::OnUpdate(unsigned long deltaMs)
 //
 // FadeProcess::FadeProcess						- Chapter 13, page 435
 //
-FadeProcess::FadeProcess(shared_ptr<SoundProcess> sound, int fadeTime, int endVolume)
+FadeProcess::FadeProcess(eastl::shared_ptr<SoundProcess> sound, int fadeTime, int endVolume)
 {
 	m_Sound = sound;
 	m_TotalFadeTime = fadeTime;

@@ -53,8 +53,6 @@
 //
 // SoundResource::SoundResource			- Chapter X, page 362
 //
-
-
 SoundResourceExtraData::SoundResourceExtraData()
 :	m_SoundType(SOUND_TYPE_UNKNOWN),
 	m_bInitialized(false),
@@ -345,7 +343,7 @@ int VorbisSeek(void* data_src, ogg_int64_t offset, int origin)
 		break;
 
     default:
-      GE_ASSERT(false && "Bad parameter for 'origin', requires same as fseek.");
+      LogError("Bad parameter for 'origin', requires same as fseek.");
       break;
   };
 
@@ -375,14 +373,14 @@ long VorbisTell(void *data_src)
 	return static_cast<long>(pVorbisData->dataRead);
 }
 
-shared_ptr<BaseResourceLoader> CreateWAVResourceLoader()
+eastl::shared_ptr<BaseResourceLoader> CreateWAVResourceLoader()
 {
-	return shared_ptr<BaseResourceLoader>(new WaveResourceLoader());
+	return eastl::shared_ptr<BaseResourceLoader>(new WaveResourceLoader());
 }
 
-shared_ptr<BaseResourceLoader> CreateOGGResourceLoader()
+eastl::shared_ptr<BaseResourceLoader> CreateOGGResourceLoader()
 {
-	return shared_ptr<BaseResourceLoader>(new OggResourceLoader());
+	return eastl::shared_ptr<BaseResourceLoader>(new OggResourceLoader());
 }
 
 
@@ -403,7 +401,7 @@ unsigned int OggResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned 
 	oggCallbacks.tell_func = VorbisTell;
 
 	int ov_ret = ov_open_callbacks(vorbisMemoryFile, &vf, NULL, 0, oggCallbacks);
-	GE_ASSERT(ov_ret>=0);
+	LogAssert(ov_ret>=0, "load fail");
 
     // ok now the tricky part
     // the vorbis_info struct keeps the most of the interesting format info
@@ -420,16 +418,17 @@ unsigned int OggResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned 
 
 	ov_clear(&vf);
 
-	SAFE_DELETE(vorbisMemoryFile);
+	delete vorbisMemoryFile;
 
 	return bytes;
 }
 
-bool OggResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const shared_ptr<ResHandle>& handle)
+bool OggResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)
 {
-	shared_ptr<SoundResourceExtraData> extra = shared_ptr<SoundResourceExtraData>(new SoundResourceExtraData());
+	eastl::shared_ptr<SoundResourceExtraData> extra = 
+		eastl::shared_ptr<SoundResourceExtraData>(new SoundResourceExtraData());
 	extra->m_SoundType = SOUND_TYPE_OGG;
-	handle->SetExtra(shared_ptr<SoundResourceExtraData>(extra));
+	handle->SetExtra(eastl::shared_ptr<SoundResourceExtraData>(extra));
 	BaseReadFile* file = (BaseReadFile*)rawBuffer;
 	unsigned int size = file->GetSize();
 	eastl::vector<char> buffer(size);
@@ -444,9 +443,10 @@ bool OggResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, cons
 //
 // OggResourceLoader::ParseOgg					- Chapter 13, page 405
 //
-bool OggResourceLoader::ParseOgg(char *oggStream, size_t length, shared_ptr<ResHandle> handle)
+bool OggResourceLoader::ParseOgg(char *oggStream, size_t length, eastl::shared_ptr<ResHandle> handle)
 {
-	shared_ptr<SoundResourceExtraData> extra = static_pointer_cast<SoundResourceExtraData>(handle->GetExtra());
+	eastl::shared_ptr<SoundResourceExtraData> extra = 
+		eastl::static_pointer_cast<SoundResourceExtraData>(handle->GetExtra());
 
 	OggVorbis_File vf;                     // for the vorbisfile interface
 
@@ -463,7 +463,7 @@ bool OggResourceLoader::ParseOgg(char *oggStream, size_t length, shared_ptr<ResH
 	oggCallbacks.tell_func = VorbisTell;
 
 	int ov_ret = ov_open_callbacks(vorbisMemoryFile, &vf, NULL, 0, oggCallbacks);
-	GE_ASSERT(ov_ret>=0);
+	LogAssert(ov_ret>=0, "load fail");
 
     // ok now the tricky part
     // the vorbis_info struct keeps the most of the interesting format info
@@ -490,6 +490,6 @@ bool OggResourceLoader::ParseOgg(char *oggStream, size_t length, shared_ptr<ResH
 	extra->m_LengthMilli = (int)(1000.f * ov_time_total(&vf, -1));
 
 	ov_clear(&vf);
-	SAFE_DELETE(vorbisMemoryFile);
+	delete vorbisMemoryFile;
 	return true;
 }
