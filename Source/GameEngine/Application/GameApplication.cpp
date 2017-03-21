@@ -447,7 +447,7 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 	eastl::list<eastl::shared_ptr<BaseGameView>>::iterator it = mGameViews.begin();
 	for (; it != mGameViews.end(); ++it)
 	{
-		(*it)->OnRender(Timer::GetTime(), elapsedTime);
+		(*it)->OnRender(Timer::GetTime(), (float)elapsedTime);
 	}
 	mGame->RenderDiagnostics();
 
@@ -467,15 +467,15 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 void GameApplication::OnUpdateGame(unsigned int elapsedTime)
 {
 	/*
-	if (g_pGameApp->HasModalDialog())
+	if (HasModalDialog())
 	{
 	// don't update the game if a modal dialog is up.
 	return;
 	}
 
-	if (g_pGameApp->m_bQuitting)
+	if (m_bQuitting)
 	{
-	PostMessage(g_pGameApp->GetHwnd(), WM_CLOSE, 0, 0);
+	PostMessage(mSystem->GetHwnd(), WM_CLOSE, 0, 0);
 	}
 	*/
 	if (mGame)
@@ -485,7 +485,7 @@ void GameApplication::OnUpdateGame(unsigned int elapsedTime)
 		if (mBaseSocketManager)
 			mBaseSocketManager->DoSelect(0);	// pause 0 microseconds
 
-		mGame->OnUpdate(Timer::GetTime(), elapsedTime);
+		mGame->OnUpdate((float)Timer::GetTime(), (float)elapsedTime);
 	}
 }
 

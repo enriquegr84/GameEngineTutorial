@@ -38,7 +38,10 @@
 
 #include "PhysicDebugDrawer.h"
 
-/*
+#include "Core/Logger/Logger.h"
+
+#include "Application/GameApplication.h"
+
 void BulletDebugDrawer::drawContactPoint(
 	const btVector3& PointOnB, const btVector3& normalOnB, 
 	btScalar distance, int lifeTime, const btVector3& color)
@@ -173,16 +176,16 @@ void BulletDebugDrawer::ReadOptions(XMLElement *pRoot)
 void BulletDebugDrawer::drawLine(
 	const btVector3& from, const btVector3& to, const btVector3& lineColor)
 {
-	Vector3<float> Vector3From, Vector3To;
-	Vector3From.X = from.x();
-	Vector3From.Y = from.y();
-	Vector3From.Z = from.z();
+	Vector3<float> vFrom, vTo;
+	vFrom[0] = from.x();
+	vFrom[1] = from.y();
+	vFrom[2] = from.z();
 
-	Vector3To.X = to.x();
-	Vector3To.Y = to.y();
-	Vector3To.Z = to.z();
+	vTo[0] = to.x();
+	vTo[1] = to.y();
+	vTo[2] = to.z();
 
-	Color color(0, 255*lineColor.x(), 255*lineColor.y(), 255*lineColor.z() );
-	pRenderer->Draw3DLine(Vector3From, Vector3To, color);
+	eastl::array<float, 4> color{ 0, 255 * lineColor.x(), 255 * lineColor.y(), 255 * lineColor.z() };
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	//gameApp->mRenderer->Draw3DLine(vFrom, vTo, color);
 }
-*/

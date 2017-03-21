@@ -75,7 +75,7 @@ public:
 		XMLElement *overrides, const Matrix4x4<float> *initialTransform = NULL, 
 		const ActorId serversActorId = INVALID_ACTOR_ID) = 0;
 	virtual void DestroyActor(const ActorId actorId) = 0;
-	virtual bool LoadGame(const wchar_t* levelResource) = 0;
+	virtual bool LoadGame(const char* levelResource) = 0;
 	virtual void SetProxy() = 0;
 	virtual void OnUpdate(float time, float elapsedTime) = 0;
 	virtual void ChangeState(enum BaseGameState newState) = 0;
@@ -150,7 +150,7 @@ public:
 	// Level management
 	const LevelManager* GetLevelManager() { return mLevelManager; }
 	// [rez] Subclasses shouldn't override this function; use LoadGameDelegate() instead
-    virtual bool LoadGame(const wchar_t* levelResource) override;  
+    virtual bool LoadGame(const char* levelResource) override;  
 	virtual void SetProxy();
 
 	// Logic Update

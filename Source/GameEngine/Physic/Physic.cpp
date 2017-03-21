@@ -47,11 +47,12 @@
 
 #include "Core/IO/XmlResource.h"
 #include "Core/Event/EventManager.h"
+#include "Core/Event/Event.h"
 
-/*
+#include "Application/GameApplication.h"
+
 #include "btBulletDynamicsCommon.h"
 #include "btBulletCollisionCommon.h"
-*/
 
 /////////////////////////////////////////////////////////////////////////////
 // g_Materials Description						- Chapter 17, page 579
@@ -125,7 +126,7 @@ public:
     virtual Transform GetTransform(const ActorId id) { return Transform::IDENTITY; }
 };
 
-/*
+
 /////////////////////////////////////////////////////////////////////////////
 // helpers for conversion to and from Bullet's data types
 static btVector3 Vector3_to_btVector3( Vector3<float> const & vector3 )
@@ -135,10 +136,10 @@ static btVector3 Vector3_to_btVector3( Vector3<float> const & vector3 )
 
 static Vector3<float> btVector3_to_Vector3( btVector3 const & btvec )
 {
-	return Vector3<float>() { btvec.x(), btvec.y(), btvec.z() };
+	return Vector3<float>{ btvec.x(), btvec.y(), btvec.z() };
 }
 
-static btTransform Matrix4_to_btTransform( Matrix4x4<float> const & mat )
+static btTransform Transform_to_btTransform( Matrix4x4<float> const & mat )
 {
 	// convert from matrix4 (GameEngine) to btTransform (Bullet)
 	btMatrix3x3 bulletRotation;
@@ -161,28 +162,30 @@ static btTransform Matrix4_to_btTransform( Matrix4x4<float> const & mat )
 	return btTransform( bulletRotation, bulletPosition );
 }
 
-static Matrix4x4<float> btTransform_to_Matrix4( btTransform const & trans )
+static Transform btTransform_to_Transform( btTransform const & trans )
 {
-	Matrix4x4<float> returnValue =g_IdentityMatrix4;
+	Transform returnValue;
 
 	// convert from btTransform (Bullet) to matrix4 (GameEngine)
 	btMatrix3x3 const & bulletRotation = trans.getBasis();
 	btVector3 const & bulletPosition = trans.getOrigin();
 	
 	// copy rotation matrix
+	Matrix4x4<float> transformMatrix;
 	for ( int row=0; row<3; ++row )
 		for ( int column=0; column<3; ++column )
-			returnValue(row,column) = bulletRotation[column][row]; 
-			          // note the reversed indexing (row/column vs. column/row)
-			          //  this is because matrix4s are row-major matrices and
-			          //  btMatrix3x3 are column-major.  This reversed indexing
-			          //  implicitly transposes (flips along the diagonal) 
-			          //  the matrix when it is copied.
+			transformMatrix(row,column) = bulletRotation[column][row];
+			// note the reversed indexing (row/column vs. column/row)
+			//  this is because matrix4s are row-major matrices and
+			//  btMatrix3x3 are column-major.  This reversed indexing
+			//  implicitly transposes (flips along the diagonal) 
+			//  the matrix when it is copied.
 	
 	// copy position
 	for ( int column=0; column<3; ++column )
-		returnValue(3,column) = bulletPosition[column];
+		transformMatrix(3,column) = bulletPosition[column];
 		
+	returnValue.SetMatrix(transformMatrix);
 	return returnValue;
 }
 
@@ -197,17 +200,17 @@ static Matrix4x4<float> btTransform_to_Matrix4( btTransform const & trans )
 //
 struct ActorMotionState : public btMotionState
 {
-	matrix4 m_worldToPositionTransform;
+	Transform m_worldToPositionTransform;
 	
-	ActorMotionState( matrix4 const & startingTransform )
+	ActorMotionState(Transform const & startingTransform )
 	  : m_worldToPositionTransform( startingTransform ) { }
 	
 	// btMotionState interface:  Bullet calls these
 	virtual void getWorldTransform( btTransform& worldTrans ) const
-	   { worldTrans = Matrix4_to_btTransform( m_worldToPositionTransform ); }
+	   { worldTrans = Transform_to_btTransform( m_worldToPositionTransform ); }
 
 	virtual void setWorldTransform( const btTransform& worldTrans )
-	   { m_worldToPositionTransform = btTransform_to_Matrix4( worldTrans ); }
+	   { m_worldToPositionTransform = btTransform_to_Transform( worldTrans ); }
 };
 
 
@@ -361,23 +364,24 @@ void BulletPhysics::LoadXml()
 {
     // Load the physics config file and grab the root XML node
     XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(L"config\\Physics.xml");
-    LogAssert(pRoot);
+    LogAssert(pRoot, "Physcis xml doesn't exists");
 
     // load all materials
     XMLElement* pParentNode = pRoot->FirstChildElement("PhysicsMaterials");
-	LogAssert(pParentNode);
+	LogAssert(pParentNode, "No materials");
     for (XMLElement* pNode = pParentNode->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
     {
         double restitution = 0;
         double friction = 0;
-        pNode->Attribute("restitution", &restitution);
-        pNode->Attribute("friction", &friction);
-        m_materialTable.insert(eastl::make_pair(pNode->Value(), MaterialData((float)restitution, (float)friction)));
+		restitution = pNode->DoubleAttribute("restitution", restitution);
+		friction = pNode->DoubleAttribute("friction", friction);
+        m_materialTable.insert(eastl::make_pair(
+			pNode->Value(), MaterialData((float)restitution, (float)friction)));
     }
 
     // load all densities
     pParentNode = pRoot->FirstChildElement("DensityTable");
-	LogAssert(pParentNode);
+	LogAssert(pParentNode, "No desinty table");
     for (XMLElement* pNode = pParentNode->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
     {
         m_densityTable.insert(eastl::make_pair(pNode->Value(), (float)atof(pNode->FirstChild()->Value())));
@@ -407,13 +411,12 @@ bool BulletPhysics::Initialize()
 	m_solver = new btSequentialImpulseConstraintSolver;
 
 	// This is the main Bullet interface point.  Pass in all these components to customize its behavior.
-	m_dynamicsWorld = new btDiscreteDynamicsWorld( m_dispatcher, 
-	                                                        m_broadphase, 
-	                                                        m_solver, 
-	                                                        m_collisionConfiguration );
+	m_dynamicsWorld = new btDiscreteDynamicsWorld( 
+		m_dispatcher, m_broadphase, m_solver, m_collisionConfiguration );
 
 	m_debugDrawer = new BulletDebugDrawer;
-	m_debugDrawer->ReadOptions();
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	m_debugDrawer->ReadOptions(gameApp->mOption.m_pRoot);
 
 	if(!m_collisionConfiguration || !m_dispatcher || !m_broadphase ||
 			  !m_solver || !m_dynamicsWorld || !m_debugDrawer)
@@ -463,17 +466,18 @@ void BulletPhysics::SyncVisibleScene()
 		//	m_actorIdToRigidBody were created through AddShape()
 		ActorMotionState const * const actorMotionState = 
 			static_cast<ActorMotionState*>(it->second->getMotionState());
-		LogAssert( actorMotionState );
+		LogAssert( actorMotionState, "actor motion state null" );
 		
-		eastl::shared_ptr<Actor> pGameActor = 
-			eastl::make_shared<Actor>(g_pGameApp->GetGameLogic()->GetActor(id));
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		eastl::shared_ptr<Actor> pGameActor(gameApp->mGame->GetActor(id));
 		if (pGameActor && actorMotionState)
 		{
-            eastl::shared_ptr<TransformComponent> pTransformComponent = eastl::make_shared<Actor>(
+            eastl::shared_ptr<TransformComponent> pTransformComponent(
 				pGameActor->GetComponent<TransformComponent>(TransformComponent::g_Name));
             if (pTransformComponent)
             {
-			    if (pTransformComponent->GetTransform() != actorMotionState->m_worldToPositionTransform)
+			    if (pTransformComponent->GetTransform().GetMatrix() != 
+					actorMotionState->m_worldToPositionTransform.GetMatrix())
                 {
                     //	Bullet has moved the actor's physics object.  Sync the transform and inform 
 					//	the game an actor has moved
@@ -493,10 +497,10 @@ void BulletPhysics::SyncVisibleScene()
 void BulletPhysics::AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionShape* shape,
 	float mass, const eastl::string& physicMaterial)
 {
-    LogAssert(pGameActor);
+    LogAssert(pGameActor, "no actor");
 
     ActorId actorID = pGameActor->GetId();
-	LogAssert(m_actorIdToRigidBody.find( actorID ) == m_actorIdToRigidBody.end() &&
+	LogAssert(m_actorIdToRigidBody.find( actorID ) == m_actorIdToRigidBody.end(),
 		"Actor with more than one physics body?");
 
     // lookup the material
@@ -507,11 +511,10 @@ void BulletPhysics::AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionSha
 	if ( mass > 0.f )
 		shape->calculateLocalInertia( mass, localInertia );
 
-
-	Matrix4x4<float> transform = Matrix4x4<float>::Identity();
+	Transform transform;
     eastl::shared_ptr<TransformComponent> pTransformComponent = eastl::shared_ptr<TransformComponent>(
 		pGameActor->GetComponent<TransformComponent>(TransformComponent::g_Name));
-	LogAssert(pTransformComponent);
+	LogAssert(pTransformComponent, "no transform");
     if (pTransformComponent)
     {
 		transform = pTransformComponent->GetTransform();
@@ -618,7 +621,7 @@ ActorId BulletPhysics::FindActorID( btRigidBody const * const body ) const
 void BulletPhysics::AddSphere(float const radius, eastl::weak_ptr<Actor> pGameActor, 
 	const eastl::string& densityStr, const eastl::string& physicMaterial)
 {
-	eastl::shared_ptr<Actor> pStrongActor = eastl::make_shared<Actor>(pGameActor);
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor);
     if (!pStrongActor)
         return;  // FUTURE WORK - Add a call to the error log here
 	
@@ -627,7 +630,7 @@ void BulletPhysics::AddSphere(float const radius, eastl::weak_ptr<Actor> pGameAc
 	
 	// calculate absolute mass from specificGravity
     float specificGravity = LookupSpecificGravity(densityStr);
-	float const volume = (4.f / 3.f) * PI * radius * radius * radius;
+	float const volume = (4.f / 3.f) * (float)GE_C_PI * radius * radius * radius;
 	btScalar const mass = volume * specificGravity;
 	
 	AddShape(pStrongActor, collisionShape, mass, physicMaterial);
@@ -639,7 +642,7 @@ void BulletPhysics::AddSphere(float const radius, eastl::weak_ptr<Actor> pGameAc
 void BulletPhysics::AddBox(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> pGameActor,
 	const eastl::string& densityStr, const eastl::string& physicMaterial)
 {
-	eastl::shared_ptr<Actor> pStrongActor = eastl::make_shared<Actor>(pGameActor);
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor);
     if (!pStrongActor)
         return;  // FUTURE WORK: Add a call to the error log here
 
@@ -660,7 +663,7 @@ void BulletPhysics::AddBox(const Vector3<float>& dimensions, eastl::weak_ptr<Act
 void BulletPhysics::AddPointCloud(Vector3<float> *verts, int numPoints, eastl::weak_ptr<Actor> pGameActor,
 	const eastl::string& densityStr, const eastl::string& physicMaterial)
 {
-	eastl::shared_ptr<Actor> pStrongActor = eastl::make_shared<Actor>(pGameActor);
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor);
     if (!pStrongActor)
         return;  // FUTURE WORK: Add a call to the error log here
 	
@@ -714,20 +717,20 @@ void BulletPhysics::RenderDiagnostics()
 //
 void BulletPhysics::CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim)
 {
-	eastl::shared_ptr<Actor> pStrongActor = eastl::make_shared<Actor>(pGameActor);
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor);
     if (!pStrongActor)
         return;  // FUTURE WORK: Add a call to the error log here
 
 	// create the collision body, which specifies the shape of the object
-	btBoxShape * const boxShape = new btBoxShape( Vector3_to_btVector3( Vector3f(dim,dim,dim) ) );
+	btBoxShape * const boxShape = new btBoxShape(Vector3_to_btVector3(Vector3<float>{dim, dim, dim}));
 	
 	// triggers are immoveable.  0 mass signals this to Bullet.
 	btScalar const mass = 0;
 
 	// set the initial position of the body from the actor
-	Matrix4x4<float> triggerTrans = Matrix4x4<float>::Identity();
-	triggerTrans.SetTranslation( pos );
-	ActorMotionState * const myMotionState = new ActorMotionState( triggerTrans );
+	Transform triggerTransform;
+	triggerTransform.SetTranslation( pos );
+	ActorMotionState * const myMotionState = new ActorMotionState(triggerTransform);
 	
 	btRigidBody::btRigidBodyConstructionInfo rbInfo( mass, myMotionState, boxShape, btVector3(0,0,0) );
 	btRigidBody * const body = new btRigidBody(rbInfo);
@@ -750,9 +753,9 @@ void BulletPhysics::ApplyForce(const Vector3<float> &dir, float newtons, ActorId
 	{
 		body->setActivationState(DISABLE_DEACTIVATION);
 
-		btVector3 const force( dir.X * newtons,
-		                       dir.Y * newtons,
-		                       dir.Z * newtons );
+		btVector3 const force( dir[0] * newtons,
+		                       dir[1] * newtons,
+		                       dir[2] * newtons );
 
 		body->applyCentralImpulse( force );
 	}
@@ -767,9 +770,9 @@ void BulletPhysics::ApplyTorque(const Vector3<float> &dir, float magnitude, Acto
 	{
 		body->setActivationState(DISABLE_DEACTIVATION);
 
-		btVector3 const torque( dir.X * magnitude,
-		                        dir.Y * magnitude,
-		                        dir.Z * magnitude );
+		btVector3 const torque( dir[0] * magnitude,
+		                        dir[1] * magnitude,
+		                        dir[2] * magnitude );
 
 		body->applyTorqueImpulse( torque );
 	}
@@ -787,7 +790,7 @@ bool BulletPhysics::KinematicMove(const Transform &mat, ActorId aid)
         body->setActivationState(DISABLE_DEACTIVATION);
 
 		// warp the body to the new position
-		body->setWorldTransform( Matrix4_to_btTransform( mat ) );
+		body->setWorldTransform( Transform_to_btTransform( mat ) );
 		return true;
 	}
 	
@@ -799,13 +802,13 @@ bool BulletPhysics::KinematicMove(const Transform &mat, ActorId aid)
 //
 //   Returns the current transform of the phyics object
 //
-Matrix4x4<float> BulletPhysics::GetTransform(const ActorId id)
+Transform BulletPhysics::GetTransform(const ActorId id)
 {
     btRigidBody * pRigidBody = FindBulletRigidBody(id);
-    LogAssert(pRigidBody);
+    LogAssert(pRigidBody, "no rigid body");
 
     const btTransform& actorTransform = pRigidBody->getCenterOfMassTransform();
-    return btTransform_to_Matrix4(actorTransform);
+    return btTransform_to_Transform(actorTransform);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -826,7 +829,7 @@ void BulletPhysics::SetTransform(ActorId actorId, const Transform& mat)
 void BulletPhysics::RotateY( ActorId const actorId, float const deltaAngleRadians, float const time )
 {
 	btRigidBody * pRigidBody = FindBulletRigidBody(actorId);
-	LogAssert(pRigidBody);
+	LogAssert(pRigidBody, "no rigid body");
 
 	// create a transform to represent the additional turning this frame
 	btTransform angleTransform;
@@ -847,7 +850,7 @@ void BulletPhysics::RotateY( ActorId const actorId, float const deltaAngleRadian
 float BulletPhysics::GetOrientationY(ActorId actorId)
 {
 	btRigidBody * pRigidBody = FindBulletRigidBody(actorId);
-	LogAssert(pRigidBody);
+	LogAssert(pRigidBody, "no rigid body");
 	
 	const btTransform& actorTransform = pRigidBody->getCenterOfMassTransform();
 	btMatrix3x3 actorRotationMat(actorTransform.getBasis());  // should be just the rotation information
@@ -879,7 +882,7 @@ float BulletPhysics::GetOrientationY(ActorId actorId)
 //
 void BulletPhysics::StopActor(ActorId actorId)
 {
-	SetVelocity(actorId, Vector3<float>::MakeZero());
+	SetVelocity(actorId, Vector3<float>());
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -888,7 +891,7 @@ void BulletPhysics::StopActor(ActorId actorId)
 Vector3<float> BulletPhysics::GetVelocity(ActorId actorId)
 {
     btRigidBody* pRigidBody = FindBulletRigidBody(actorId);
-    LogAssert(pRigidBody);
+    LogAssert(pRigidBody, "no rigid body");
     if (!pRigidBody) return Vector3<float>();
 
     btVector3 btVel = pRigidBody->getLinearVelocity();
@@ -899,7 +902,7 @@ Vector3<float> BulletPhysics::GetVelocity(ActorId actorId)
 void BulletPhysics::SetVelocity(ActorId actorId, const Vector3<float>& vel)
 {
 	btRigidBody * pRigidBody = FindBulletRigidBody(actorId);
-	LogAssert(pRigidBody);
+	LogAssert(pRigidBody, "no rigid body");
 	if (!pRigidBody) return;
 
 	btVector3 btVel = Vector3_to_btVector3(vel);
@@ -910,7 +913,7 @@ void BulletPhysics::SetVelocity(ActorId actorId, const Vector3<float>& vel)
 Vector3<float> BulletPhysics::GetAngularVelocity(ActorId actorId)
 {
     btRigidBody* pRigidBody = FindBulletRigidBody(actorId);
-	LogAssert(pRigidBody);
+	LogAssert(pRigidBody, "no rigid body");
     if (!pRigidBody) return Vector3<float>();
 
     btVector3 btVel = pRigidBody->getAngularVelocity();
@@ -921,7 +924,7 @@ Vector3<float> BulletPhysics::GetAngularVelocity(ActorId actorId)
 void BulletPhysics::SetAngularVelocity(ActorId actorId, const Vector3<float>& vel)
 {
     btRigidBody * pRigidBody = FindBulletRigidBody(actorId);
-	LogAssert(pRigidBody);
+	LogAssert(pRigidBody, "no rigid body");
     if (!pRigidBody) return;
 
     btVector3 btVel = Vector3_to_btVector3(vel);
@@ -932,7 +935,7 @@ void BulletPhysics::SetAngularVelocity(ActorId actorId, const Vector3<float>& ve
 void BulletPhysics::Translate(ActorId actorId, const Vector3<float>& vec)
 {
 	btRigidBody * pRigidBody = FindBulletRigidBody(actorId);
-	LogAssert(pRigidBody);
+	LogAssert(pRigidBody, "no rigid body");
 
 	btVector3 btVec = Vector3_to_btVector3(vec);
 	pRigidBody->translate(btVec);
@@ -947,9 +950,9 @@ void BulletPhysics::Translate(ActorId actorId, const Vector3<float>& vec)
 //
 void BulletPhysics::BulletInternalTickCallback(btDynamicsWorld * const world, btScalar const timeStep )
 {
-	LogAssert( world );
+	LogAssert( world, "invalid world ptr" );
 	
-	LogAssert( world->getWorldUserInfo() );
+	LogAssert( world->getWorldUserInfo(), "no world user info" );
 	BulletPhysics * const bulletPhysics = static_cast<BulletPhysics*>( world->getWorldUserInfo() );
 	
 	CollisionPairs currentTickCollisionPairs;
@@ -961,7 +964,7 @@ void BulletPhysics::BulletInternalTickCallback(btDynamicsWorld * const world, bt
 		// get the "manifold", which is the set of data corresponding to a contact point
 		//   between two physics objects
 		btPersistentManifold const * const manifold = dispatcher->getManifoldByIndexInternal( manifoldIdx );
-		LogAssert( manifold );
+		LogAssert( manifold, "invalid manifold" );
 		
 		// get the two bodies used in the manifold.  Bullet stores them as void*, so we must cast
 		//  them back to btRigidBody*s.  Manipulating void* pointers is usually a bad
@@ -1130,8 +1133,6 @@ MaterialData BulletPhysics::LookupMaterialData(const eastl::string& materialStr)
         return MaterialData(0, 0);
 }
 
-*/
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // CreateGamePhysics 
@@ -1140,8 +1141,7 @@ MaterialData BulletPhysics::LookupMaterialData(const eastl::string& materialStr)
 BaseGamePhysic* CreateGamePhysics()
 {
 	std::auto_ptr<BaseGamePhysic> gamePhysics;
-	gamePhysics.reset(new NullPhysics);
-	//gamePhysics.reset( new BulletPhysics );
+	gamePhysics.reset( new BulletPhysics );
 
 	if (gamePhysics.get() && !gamePhysics->Initialize())
 	{

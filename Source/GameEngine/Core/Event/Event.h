@@ -681,7 +681,6 @@ public:
 	{
 		m_actorResource = "";
 		m_hasInitialTransform = false;
-		m_initialTransform.MakeIdentity();
 		m_serverActorId = -1;
 		m_viewId = InvalidGameViewId;
 	}

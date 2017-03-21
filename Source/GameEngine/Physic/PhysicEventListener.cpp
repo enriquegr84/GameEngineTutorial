@@ -40,9 +40,6 @@
 //
 // Basic, simple, physics event listener construct
 //
-
- 
-
 #include "PhysicEventListener.h"
 
 #include "Physic.h"

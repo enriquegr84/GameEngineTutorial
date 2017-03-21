@@ -134,17 +134,17 @@ eastl::string GameLogic::GetActorXml(const ActorId id)
     return eastl::string();
 }
 
-bool GameLogic::LoadGame(const wchar_t* levelResource)
+bool GameLogic::LoadGame(const char* levelResource)
 {
+	eastl::wstring levelName(levelResource);
+
     // Grab the root XML node
-    XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(levelResource);
+    XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(levelName.c_str());
     if (!pRoot)
     {
-        LogError(L"Failed to find level resource file: " + eastl::wstring(levelResource));
+        LogError(L"Failed to find level resource file: " + levelName);
         return false;
     }
-
-	GameApplication* gameApp = (GameApplication*)Application::App;
 
     // pre and post load scripts
     const char* preLoadScript = NULL;
@@ -159,6 +159,7 @@ bool GameLogic::LoadGame(const wchar_t* levelResource)
     }
 
     // load the pre-load script if there is one
+		GameApplication* gameApp = (GameApplication*)Application::App;
 	/*
     if (preLoadScript)
     {

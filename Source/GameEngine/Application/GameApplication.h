@@ -99,6 +99,9 @@ protected:
 	*/
 	void InitTime();
 
+	// process message
+	void ProcessMessage(int* hWndPtrAddress, int msg, int wParam, int lParam);
+
 	/*
 	Function called in each tick. It must update the deltaTime and time
 	attributes, so it will reflects the pass of the time. Particularly, the

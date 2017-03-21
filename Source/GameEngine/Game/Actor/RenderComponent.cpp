@@ -328,7 +328,7 @@ LightRenderComponent::LightRenderComponent(void)
 
 bool LightRenderComponent::DelegateInit(XMLElement* pData)
 {
-	double temp;
+	double temp = 0;
 	XMLElement* pColor = pData->FirstChildElement("Color");
 	if (pColor)
 	{

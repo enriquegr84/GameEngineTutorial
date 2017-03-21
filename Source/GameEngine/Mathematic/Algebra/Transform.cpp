@@ -10,7 +10,6 @@
 
 Transform const Transform::IDENTITY;
 
-
 Transform::Transform()
     :
     mTranslate({ 0.0f, 0.0f, 0.0f, 1.0f }),
@@ -479,9 +478,6 @@ void Transform::Invert3x3(Matrix4x4<float> const& mat,
     invMat(2, 2) *= invDet;
 }
 
-namespace gte
-{
-
 Vector4<float> operator*(Transform const& M, Vector4<float> const& V)
 {
     return M.GetHMatrix() * V;
@@ -590,6 +586,4 @@ Transform operator*(Transform const& A, Transform const& B)
         B.GetTranslationW1());
 #endif
     return product;
-}
-
 }
