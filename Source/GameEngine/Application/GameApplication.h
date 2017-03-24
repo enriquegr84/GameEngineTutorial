@@ -23,19 +23,37 @@
 class BaseSocketManager;
 class NetworkEventForwarder;
 
-//	Window abstracts the platform-dependent implementations
+/*
+	Game application layer handles operating system-specific tasks, including interfacing
+	with the hardware and operating system, handling the application life cycle including
+	initialization, managing acces to localized strings, and initializing the game logic.
+	This class is meant to be inherited by a game-specific application class that will
+	extend it and define some game specifics, also implementations for creating the game
+	logic, game views and loading the initial state of the game.
+*/
 class GameApplication : public Application, public EventListener
 {
 protected:
     // Abstract base class.
-    GameApplication (const char* windowTitle, int xPosition,
-        int yPosition, int width, int height, const eastl::array<float, 4>& clearColor);
+    GameApplication (const char* windowTitle, int xPosition, int yPosition, 
+		int width, int height, const eastl::array<float, 4>& clearColor);
 public:
     virtual ~GameApplication ();
 	
 	inline float GetAspectRatio() const;
 
-	// Main loop processing
+	/*
+	Initializing games involves performing setup tasks in a particular order.
+	Every platform will be different but they follow the same steps:
+	- Check system resources: HDD, memory, input/output devices.
+	- Check CPU speed.
+	- Initialize memory cache
+	- Create window
+	- Initialize aduio system
+	- Load player's game options and saved game files
+	- Create drawing surface
+	- Perform game system initializations: Physics, AI and so on
+	*/
 	virtual bool OnInitialize();
 	virtual void OnTerminate();
 	virtual void OnRun();
@@ -70,7 +88,15 @@ public:
 
 	bool AttachAsClient();
 
-	//main services
+	/*
+		The class actas as a container for other important members that manage
+		the application layer:
+		- Game logic implementation
+		- Data structure that holds game options (usually XML file)
+		- Resource cache, responsible for loading textures, meshes, sounds...
+		- Event manager, which allows different game subsystems to communicate
+		- Network communications manager
+	*/
 
 	// File and Resource System
 	eastl::shared_ptr<ResCache> mResCache;

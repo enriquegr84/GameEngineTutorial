@@ -7,7 +7,9 @@
 
 class ResHandle;
 
-//! The core of a resource cache system
+/*
+	Resource Loader interface
+*/
 class BaseResourceLoader
 {
 public:

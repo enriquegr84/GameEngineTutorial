@@ -55,13 +55,13 @@ class CameraSceneNode;
 class Renderer;
 class System;
 
-//
-// class HumanView - Chapter 10, page 272
-//
-// This is a view onto the game - which includes anything visual or audible.
-// It gets messages about the changes in game state.
-//
 
+/*
+	Class  HumanView. It is a view onto the game, which includes anything visual or audible.
+	It is a platform-independent class which gets message of the game state or inputs
+	and translate it into changes on the graphics system, which will draw the game
+	world and the audio system
+*/
 class HumanView : public BaseGameView
 {
 	friend class GameApplication;
@@ -97,13 +97,21 @@ public:
 	void TogglePause(bool active);
     bool LoadGame(XMLElement* pLevelData);
 
+	/*
+		list of pointers to objects that implement the BaseScreenElement interface. A screen
+		element is a strictly user interface thing and is a container for user interface controls 
+		like buttons and textboxes
+	*/
 	eastl::list<eastl::shared_ptr<BaseScreenElement>> m_ScreenElements; // a game screen entity
 																		
 	// Interface sensitive objects
+	/*
+		mouse and keyboard handler interpret device messages into game commands
+	*/
 	eastl::shared_ptr<BaseMouseHandler> mMouseHandler;
 	eastl::shared_ptr<BaseKeyboardHandler> mKeyboardHandler;
 
-	// Audio
+	// Initialize audio system
 	bool InitAudio();
 	ProcessManager* GetProcessManager() { return m_pProcessManager; }
 
@@ -188,16 +196,33 @@ public:
 
 protected:
 
+	/*
+		ViewId and ActorId makes easy for the game logic to determine if a view is attached
+		to a particular actor in the game universe
+	*/
 	GameViewId m_ViewId;
 	ActorId m_ActorId;
 
-	ProcessManager* m_pProcessManager;	// strictly for things like button animations, etc.
+	/*
+		ProcessManager is a convenient manager for anything that takes multiple game loops
+		to accomplish, such as playing a sound effect or running an animation
+	*/
+	ProcessManager* m_pProcessManager;
 	bool m_runFullSpeed; // set to true if you want to run full speed
 
 	BaseGameState m_BaseGameState;	// Added post-press - what is the current game state
-
+	
+	/*
+		This member, once overloaded in an inherited class, is what is called when text-specific
+		elements need to be drawn by the view.
+	*/
 	virtual void RenderText() { };
 
+	/*
+		It is reponsible for creating view-specific elements from an XML file that defines all the
+		elements in the game. It might include a background music track, which could be appreciated
+		by the human playing but is inconsequential for the game logic
+	*/
 	virtual bool LoadGameDelegate(XMLElement* pLevelData);
 
 	Console m_Console;

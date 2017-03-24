@@ -59,9 +59,18 @@ public:
 	virtual eastl::wstring ToString()=0;
 };
 
-//
-//  class ResHandle			- Chapter 8, page 222
-//
+/*
+	ResHandle tracks loaded resources. It is important for the cache to keep track of all the loaded
+	resources. The ResHandle encapsulates the resource identified with the loaded resource data, when
+	the cache loads a resource, it dynamically creates a ResHandle, allocates a buffer and reads the
+	resource from the resource file. The ResHandle class exists in memory as long as the resource caches
+	it in, or as long as any consumer fo the bits keeps a shared_ptr to a ResHandle object. The ResHandle
+	also tracks the size of the memory block. If the resource cache gets full, the resource handle is
+	discarded and removed from the resource cache. The destructor of ResHandle makes a call to a ResCache
+	member, MemoryHasBeenFreed(). ResHandle objects are always managed through a shared_ptr and can
+	therefore be actively in use at the moment the cache tries to free them. When ResHandle object goes
+	out of scope, it needs to inform the resource cache that it is time to adjust the amount of memory in use.
+*/
 class ResHandle
 {
 	friend class ResCache;
@@ -90,7 +99,7 @@ public:
 };
 
 //
-// class DefaultResourceLoader							- Chapter 8, page 225
+// class DefaultResourceLoader
 //
 class DefaultResourceLoader : public BaseResourceLoader
 {
@@ -104,18 +113,36 @@ public:
 
 };
 
-//
-//  class ResCache										- Chapter 8, page 225
-//
+
+/*
+	Resource Cache definitions. 
+	While the resource is in memory, a pointer to the ResHandle exists in several data structures.
+	1) ResHandleList, is a linked list which is managed such that the nodes appear in the order in
+	which the resource was last used. Every time a resource is used, it is moved to the front of the list,
+	so it can be found the most and least recently used resources.
+	2) ResHandleMap is a map which provides a way to quickly find resource data with the unique resource
+	identifier.
+	3) ResourceLoaders is a list containing loaders
+*/
 typedef eastl::list<eastl::shared_ptr<ResHandle>> ResHandleList;					// lru list
 typedef eastl::map<eastl::wstring, eastl::shared_ptr<ResHandle>> ResHandleMap;		// maps indentifiers to resource data
 typedef eastl::list<eastl::shared_ptr<BaseResourceLoader>> ResourceLoaders;
 
+/*
+	Resource Cache manage memory and the process of loading resources, even predict resource requirements
+	befor it is required. Resource caches work on similar principles as any other memory cache. Most of
+	the bits are needed to display the next frame are probably ones used recently. As the game progresses
+	from one state to the next, new resources are cached in and old ones are cached out to free space.
+	When a cache miss occurs, the game has to wait while the hard drive reads the required data. Cache
+	trashing occurs when a game consistently needs more resource data than can fit in the available memory
+	space. The cache is forced to throw out resources that are still frequently referenced by the game.
+*/
 class ResCache
 {
 	friend class ResHandle;
 
-	ResHandleList	m_lru;							// lru list
+	//lru (least recently used) list to track which resources are less frequently used than others
+	ResHandleList	m_lru;
 	ResHandleMap	m_resources;
 	ResourceLoaders m_resourceLoaders;
 

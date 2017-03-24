@@ -43,15 +43,21 @@
 
 #include "Core/Utility/String.h"
 
-//---------------------------------------------------------------------------------------------------------------------
-// ActorComponent class
-// Chapter 6, page 167
-//---------------------------------------------------------------------------------------------------------------------
+/*
+	class ActorComponent describes any actor in the game. Components is the chosen architecture
+	to define actors since they encapsulate specific features and are flexible enough to make 
+	changes during the course of the game. This is the base class that the actor maintains a
+	reference to and establishes a common interfaces for each component such as unique
+	identified. Each component will have a particular responsability and also subclasses
+	which can change actor's behavior at runtime
+*/
 class ActorComponent
 {
 	friend class ActorFactory;
 
 protected:
+	// It is important to have direct control over lifetime of actors. We need the ability to destroy
+	// the actor objects at any time to free up memory
 	eastl::shared_ptr<Actor> m_pOwner;
 
 public:

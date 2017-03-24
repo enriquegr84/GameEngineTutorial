@@ -45,10 +45,12 @@
 
 #include "Mathematic/Algebra/Transform.h"
 
-//---------------------------------------------------------------------------------------------------------------------
-// ActorFactory class
-// Chapter 6, page 161
-//---------------------------------------------------------------------------------------------------------------------
+/*
+	Class ActorFactory. All actors are created using a factory. The factory's job is to
+	take an XML resource, parse it, and return a fully initialized actor complete with
+	all the appropriate components. It's important to understand how actors are built, 
+	how to define a component configuration and any default values for that component.
+*/
 class ActorFactory
 {
     ActorId m_lastActorId;
@@ -59,13 +61,15 @@ protected:
 public:
     ActorFactory(void);
 
-    eastl::shared_ptr<Actor> CreateActor(const wchar_t* actorResource, XMLElement* overrides, 
+    eastl::shared_ptr<Actor> CreateActor(
+		const wchar_t* actorResource, XMLElement* overrides, 
 		const Transform* initialTransform, const ActorId serversActorId);
 	void ModifyActor(eastl::shared_ptr<Actor> pActor, XMLElement* overrides);
 
 //protected:
-    // [rez] This function can be overridden by a subclass so you can create game-specific C++ components.  If you do
-    // this, make sure you call the base-class version first.  If it returns NULL, you know it's not an engine component.
+    // This function can be overridden by a subclass so you can create game-specific 
+	// C++ components. If you do this, make sure you call the base-class version first.  
+	// If it returns NULL, you know it's not an engine component.
     virtual eastl::shared_ptr<ActorComponent> CreateComponent(XMLElement* pData);
 
 private:

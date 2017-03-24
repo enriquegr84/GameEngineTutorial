@@ -151,10 +151,23 @@ float GameApplication::GetLimitedDt()
 
 //----------------------------------------------------------------------------
 /*
-This is the base class which provides general purpose initialization for platform-dependent
-specifications. It creates a window for the application to draw to, set up graphics drivers,
-and perform generic component initialization. It is intended to be inherited so this method
-can be customized by derived class.
+	This is the base class which provides general purpose initialization for platform-dependent
+	specifications. It creates a window for the application to draw to, set up graphics drivers,
+	and perform generic component initialization. It is intended to be inherited so this method
+	can be customized by derived class.
+
+	The initialization is particularly sensitive to order, it is necessary to keep shutdown code
+	in sync, or rather reverse sync, with the order of initialization. The method does:
+	- Detects multiple instances of the application
+	- Checks secondary storage space and memory
+	- Calculates CPU speed
+	- Loads game's resource cache
+	- Loads strings which will be presented to the player
+	- Creates game event manager
+	- Initializes application's window
+	- Creates game logic and game views
+	- Sets the directory for save games and other temporary files
+	- Preloads selected resources from the resource cache.
 */
 bool GameApplication::OnInitialize()
 {
@@ -177,6 +190,14 @@ bool GameApplication::OnInitialize()
 #endif
 
 	if (mSystem == 0) return false; // initialization failed
+
+	// Check for existing instance of the same window
+
+	// Note - it can be really useful to debug network code to have
+	// more than one instance of the game up at one time - so
+	// feel free to comment these lines in or out as you wish!
+	if (!mSystem->IsOnlyInstance(GetGameTitle().c_str()))
+		return false;
 
 	// get windows version and create OS operator
 	eastl::string winversion;
@@ -202,6 +223,13 @@ bool GameApplication::OnInitialize()
 
 	mFileSystem = eastl::shared_ptr<FileSystem>(new FileSystem());
 
+	/*
+		ResCache is created and initialized to 50MB and assocaited to a concreted mount point where 
+		files will be taken. A resource cache can contain many different types of resources, such as 
+		sounds, music, textures, and more. The resource cache needs to know how each one of these 
+		files types is read and converted into something the game engine can use directly. The process
+		of registering a loader associates a specific loader class with a file type.
+	*/
 	BaseResourceFile *mountPointFile = new ResourceMountPointFile(L"../../../Assets");
 	mResCache = eastl::shared_ptr<ResCache>(new ResCache(50, mountPointFile));
 
@@ -294,34 +322,39 @@ bool GameApplication::OnInitialize()
 
 	// The event manager should be created next so that subsystems can hook in as desired.
 	// Discussed in Chapter 5, page 144
-	mEventManager = eastl::shared_ptr<EventManager>(new EventManager("GameEngine Event Mgr", true));
+	mEventManager = eastl::shared_ptr<EventManager>(
+		new EventManager("GameEngine EventMgr", true));
 	if (!mEventManager)
 	{
 		LogError("Failed to create EventManager.");
 		return false;
 	}
 
-	// You usually must have an HWND to initialize your game views...
-	// CreateGameAndView it is implemented in the game project
+	// Create the game logic and all the views that attach to the game logic
 	mGame = CreateGameAndView();
 
 	if (!mGame)
 		return false;
 
-	// now that all the major systems are initialized, preload resources 
-	//    Preload calls are discussed in Chapter 5, page 148
+	/*
+		Preload most commonly used files. The resource cache provides the methods to
+		preload those resources, based on file type.
+	*/
 	//mResCache->Preload(L"*.ogg", NULL);
 	//mResCache->Preload(L"*.dds", NULL);
 	//mResCache->Preload(L"*.jpg", NULL);
 
-	//CheckForJoystick(GetHwnd());
 	InitTime();
 
 	mIsRunning = true;
 	return true;
 }
 
-//----------------------------------------------------------------------------
+/*
+	The game system should shut down or deallocate in the reverse order of which they were created.
+	Each data structure should be traversed and freed, taking special care of dependencies between
+	resources.
+*/
 void GameApplication::OnTerminate()
 {
 	//Destroy the logging system at the last possible moment
@@ -366,7 +399,15 @@ bool GameApplication::OnEvent(const Event& event)
 	The game loop is the system that makes calls to update the objects in the scene
 	and draw them to the screen. It is initialized and executed right after program
 	startup and runs continuously until the program is terminated.
-	Game loop illustration page 195
+
+	Our main loop is hard-coded update in which every system updates onceper frame,
+	but it is inflexible since doesn't allow to update in different frequency. 
+	Multithreaded architecture is the alternative to separate system in their own 
+	thread, and resolve communications issues between them.
+	Another solution is a hybrid technique called cooperative multitasking which
+	consists on putting multiple systems in their own discrete execution modules but 
+	throw away all the problems with concurrent execution. It keeps all of different 
+	systems decoupled from each other whilst running "simultaneously".
 */
 //----------------------------------------------------------------------------
 void GameApplication::OnRun()
@@ -434,14 +475,14 @@ void GameApplication::OnUpdateView(unsigned int elapsedTime)
 	}
 }
 
-//--------------------------------------------------------------------------------------
-// This callback function will be called at the end of every frame to perform all the 
-// rendering calls for the scene, and it will also be called if the window needs to be 
-// repainted. After this function has returned, the sample framework will call 
-// IDirect3DDevice9::Present to display the contents of the next buffer in the swap chain
-//
-// See Game Coding Complete - 3rd Edition - Chapter 6 - page 154
-//--------------------------------------------------------------------------------------
+/*
+	
+	Render function retrieves and calls the application's frame render, which will call
+	the OnRender() methods of the views attached to the game every frame to perform 
+	all the rendering calls for the scene, and it will also be called if the window needs 
+	to be repainted. After the rendering is complete, the screen must be presented onto the
+	monitor.
+*/
 void GameApplication::OnRender(unsigned int elapsedTime)
 {
 	eastl::list<eastl::shared_ptr<BaseGameView>>::iterator it = mGameViews.begin();
@@ -449,6 +490,8 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 	{
 		(*it)->OnRender(Timer::GetTime(), (float)elapsedTime);
 	}
+
+	//Rendering for debug purpose
 	mGame->RenderDiagnostics();
 
 	// Temporarily pause execution and let other processes run.
@@ -456,28 +499,15 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 }
 
 
-//--------------------------------------------------------------------------------------
-// This function will be called once at the beginning of every frame. This is the
-// best location for your application to handle updates to the scene, but is not 
-// intended to contain actual rendering calls, which should instead be placed in the 
-// OnFrameRender callback.  
-//
-// See Game Coding Complete - 4th Edition - Chapter X, page Y
-//--------------------------------------------------------------------------------------
+/*
+	This function controls the game logic and how the game state changes over each pass of the main loop.
+	Control passes to the game logic's onupdate() method, which will update all the running game processes
+	and send updates to all the game views attached to the game logic. This is the best location for
+	application to handle updates to the scene, but is not intended to contain actual rendering calls, 
+	which should instead be placed in the OnFrameRender callback.
+*/
 void GameApplication::OnUpdateGame(unsigned int elapsedTime)
 {
-	/*
-	if (HasModalDialog())
-	{
-	// don't update the game if a modal dialog is up.
-	return;
-	}
-
-	if (m_bQuitting)
-	{
-	PostMessage(mSystem->GetHwnd(), WM_CLOSE, 0, 0);
-	}
-	*/
 	if (mGame)
 	{
 		BaseEventManager::Get()->Update(20); // allow event queue to process for up to 20 ms

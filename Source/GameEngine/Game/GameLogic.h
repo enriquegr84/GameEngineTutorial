@@ -67,6 +67,12 @@ enum BaseGameState
 
 typedef eastl::map<ActorId, eastl::shared_ptr<Actor>> ActorMap;
 
+/*
+	The game logic defines the game universe, what is in there and how they interact. 
+	It also defines how the game state can be changed by external stimulus. The main
+	components of the game logic are: GameState, Physics, Event, ProcessManager and
+	Command Interpreter.
+*/
 class BaseGameLogic
 {
 public:

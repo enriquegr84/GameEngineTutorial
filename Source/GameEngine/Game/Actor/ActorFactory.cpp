@@ -56,16 +56,26 @@ ActorFactory::ActorFactory(void)
 {
     m_lastActorId = INVALID_ACTOR_ID;
 
-    m_componentFactory.Register<TransformComponent>(ActorComponent::GetIdFromName(TransformComponent::g_Name));
-	m_componentFactory.Register<MeshRenderComponent>(ActorComponent::GetIdFromName(MeshRenderComponent::g_Name));
-    m_componentFactory.Register<SphereRenderComponent>(ActorComponent::GetIdFromName(SphereRenderComponent::g_Name));
-    m_componentFactory.Register<PhysicComponent>(ActorComponent::GetIdFromName(PhysicComponent::g_Name));
-    m_componentFactory.Register<TeapotRenderComponent>(ActorComponent::GetIdFromName(TeapotRenderComponent::g_Name));
-    m_componentFactory.Register<GridRenderComponent>(ActorComponent::GetIdFromName(GridRenderComponent::g_Name));
-    m_componentFactory.Register<ParticleSystemRenderComponent>(ActorComponent::GetIdFromName(ParticleSystemRenderComponent::g_Name));
-    m_componentFactory.Register<LightRenderComponent>(ActorComponent::GetIdFromName(LightRenderComponent::g_Name));
-    m_componentFactory.Register<SkyRenderComponent>(ActorComponent::GetIdFromName(SkyRenderComponent::g_Name));
-    m_componentFactory.Register<AudioComponent>(ActorComponent::GetIdFromName(AudioComponent::g_Name));
+    m_componentFactory.Register<TransformComponent>(
+		ActorComponent::GetIdFromName(TransformComponent::g_Name));
+	m_componentFactory.Register<MeshRenderComponent>(
+		ActorComponent::GetIdFromName(MeshRenderComponent::g_Name));
+    m_componentFactory.Register<SphereRenderComponent>(
+		ActorComponent::GetIdFromName(SphereRenderComponent::g_Name));
+    m_componentFactory.Register<PhysicComponent>(
+		ActorComponent::GetIdFromName(PhysicComponent::g_Name));
+    m_componentFactory.Register<TeapotRenderComponent>(
+		ActorComponent::GetIdFromName(TeapotRenderComponent::g_Name));
+    m_componentFactory.Register<GridRenderComponent>(
+		ActorComponent::GetIdFromName(GridRenderComponent::g_Name));
+    m_componentFactory.Register<ParticleSystemRenderComponent>(
+		ActorComponent::GetIdFromName(ParticleSystemRenderComponent::g_Name));
+    m_componentFactory.Register<LightRenderComponent>(
+		ActorComponent::GetIdFromName(LightRenderComponent::g_Name));
+    m_componentFactory.Register<SkyRenderComponent>(
+		ActorComponent::GetIdFromName(SkyRenderComponent::g_Name));
+    m_componentFactory.Register<AudioComponent>(
+		ActorComponent::GetIdFromName(AudioComponent::g_Name));
 }
 
 eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, XMLElement *overrides, 

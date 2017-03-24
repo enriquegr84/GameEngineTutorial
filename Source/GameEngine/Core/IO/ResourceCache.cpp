@@ -144,9 +144,20 @@ eastl::shared_ptr<ResHandle> ResCache::GetHandle(BaseResource * r)
 	return handle;
 }
 
-//
-// ResCache::Load								- Chapter 8, page 228-230
-//
+/*
+	Load a resource. First it is located the right resource loader using its name as identifier.
+	If a loader isn't found an empty ResHandle is returned. Then the method grabas the size of the raw
+	resource. If the resource doesn't need any processing, the memory is allocated from the cache
+	through allocate() method; otherwise, a temporary buffer is created. If the memory allocation is
+	sucessful, the raw resource bits are loaded with the call to GetRawResource(). If no further
+	processing of the resource is needed, a ResHandle object is crated using pointers to the raw bits
+	and the raw resource size. Othe resources need processing and might even be a different size after 
+	they are loaded. This is the job of a specially defined resource loader, which loads the raw bits
+	from the resource file, calculates the final size of the processed resource, allocates the right
+	amount of memory in cache, and finally copies the processed resource into the new buffer.
+	After the resource is loaded, the newly created ResHandle is pushed onto the LRU list, and the 
+	resource name is entered into the resource name map.
+*/
 eastl::shared_ptr<ResHandle> ResCache::Load(BaseResource *r)
 {
 	// Create a new resource and add it to the lru list and map
@@ -258,20 +269,19 @@ eastl::shared_ptr<ResHandle> ResCache::Find(BaseResource * r)
 	return i->second;
 }
 
-//
-// ResCache::Update									- Chapter 8, page 228
-//
+/*
+	Update removes a ResHandle from the LRU list and promotes it to the front,
+	making sure that the LRU is always sorted properly
+*/
 void ResCache::Update(const eastl::shared_ptr<ResHandle>& handle)
 {
 	m_lru.remove(handle);
 	m_lru.push_front(handle);
 }
 
-
-
-//
-// ResCache::Allocate								- Chapter 8, page 230
-//
+/*
+	Allocate makes room in the cache when it is needed
+*/
 char* ResCache::Allocate(unsigned int size)
 {
 	if (!MakeRoom(size))
@@ -287,9 +297,11 @@ char* ResCache::Allocate(unsigned int size)
 }
 
 
-//
-// ResCache::FreeOneResource						- Chapter 8, page 231
-//
+/*
+	FreeOneResource removes the oldest resource and updates the cache data members. Note that the memory
+	used by the cache isn't actually modified here, that's because any active shared_ptr<ResHandle> in
+	use will need the bits until it actually goes out of scope.
+*/
 void ResCache::FreeOneResource()
 {
 	ResHandleList::iterator gonner = m_lru.end();

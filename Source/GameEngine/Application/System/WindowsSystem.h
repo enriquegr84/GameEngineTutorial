@@ -14,10 +14,9 @@
 
 #include "System.h"
 
-//
-// class WindowsSystem
-//
-//	class platform-dependent WindowsSystem implementation
+/*
+	Class WindowsSystem, platform-dependent implementation of Windows
+*/
 class WindowsSystem : public System
 {
 public:
@@ -46,6 +45,7 @@ public:
 	virtual bool IsWindowMinimized() const override;
 	virtual bool SwitchToFullScreen(bool reset = false) override;
 
+	virtual bool IsOnlyInstance(const wchar_t* gameTitle) override;
 	virtual void* GetID() const override;
 	virtual void GetSystemVersion(eastl::string& out) override;
 

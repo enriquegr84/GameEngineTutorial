@@ -55,6 +55,10 @@ private:
 /*
 	The timer class wraps calls to the API high-resolution performance counter, 
 	a timer that increments a value at a frequency expressed in counts per second.
+	The system timer is critical for synchronize game logic with the views. Almost
+	every game subsystem will care about time. Some systems have multiple methods
+	of getting access to the system timer, each with different levels of resolution
+	or precision.
 */
 class Timer
 {

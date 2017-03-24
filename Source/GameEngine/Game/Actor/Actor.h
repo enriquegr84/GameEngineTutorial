@@ -43,10 +43,11 @@
 
 typedef eastl::string ActorType;
 
-//---------------------------------------------------------------------------------------------------------------------
-// Actor class
-// Chapter 6, page 165
-//---------------------------------------------------------------------------------------------------------------------
+/*
+	Actor class. A game actor is an object that represents a single entity in your game world.
+	Its entiry purpose is to manage and mantain components to make them as flexible and reusable 
+	as possible.
+*/
 class Actor
 {
     friend class ActorFactory;
@@ -57,8 +58,10 @@ public:
 
 private:
     ActorId m_id;					// unique id for the actor
-    ActorComponents m_components;	// all components this actor has
     ActorType m_type;
+
+	// all components this actor has
+	ActorComponents m_components;
 
 	// [mrmike] - these were added post press as editor helpers, 
 	// but will also be great for save game files if we ever make them.
@@ -83,7 +86,7 @@ public:
     ActorId GetId(void) const { return m_id; }
     ActorType GetType(void) const { return m_type; }
 
-    // template function for retrieving components
+    // template function for retrieving components.
     template <class ComponentType>
     eastl::weak_ptr<ComponentType> GetComponent(ComponentId id)
     {

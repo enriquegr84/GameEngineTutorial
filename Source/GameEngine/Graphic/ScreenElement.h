@@ -43,9 +43,21 @@
 
 #include "Application/System/EventSystem.h"
 
-//
-// class BaseScreenElement							- Chapter 10, page 285
-//
+/*
+	A screen element is anything that draws and accepts input. It could be anything from a UI
+	to your rendered 3D world. Screen elements can be hierarchical, for example, a dialog box
+	can have buttons attached to it. Screen elements in various configurations create the user
+	interface for the game, such as a menu, inventory screen. Some run on top of the main game
+	screen, but others might completely overlay the main view and even pause the game. In
+	addition to acting as a container for controls, screens parse user input messages from the
+	application layer and translate them into game messages.
+
+	The BaseScreenElement interface shows that a screen knows how to restore itself when it 
+	needs to be rebuilt, render itself when it's time to draw, how it should be ordered in the
+	master draw list, and whether it is visible. The OnMsgProce method accepts messages from
+	the application layer, but translates them into a structure to simplify the call signature
+	of anything that will accept these messages.
+*/
 class BaseScreenElement
 {
 public:
@@ -65,7 +77,8 @@ public:
 	virtual bool OnMsgProc(const Event& event) = 0;
 
 	virtual ~BaseScreenElement() { };
-	virtual bool const operator <(BaseScreenElement const &other) { return GetZOrder() < other.GetZOrder(); }
+	virtual bool const operator <(BaseScreenElement const &other) 
+	{ return GetZOrder() < other.GetZOrder(); }
 };
 
 #endif

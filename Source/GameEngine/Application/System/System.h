@@ -13,11 +13,11 @@
 
 #include "EventSystem.h"
 
-//
-// class System
-//
-//	class System abstracts the platform implementation so the engine
-//  can use different platform devices.
+/*
+	Class System abstracts the platform implementation for different systems.
+	It reads the state of the input device and report it to the game logic as an 
+	event which is translated into game commands
+*/
 class System
 {
 public:
@@ -143,7 +143,10 @@ public:
 	//! switchs to fullscreen
 	virtual bool SwitchToFullScreen(bool reset = false) = 0;
 
+	virtual bool IsOnlyInstance(const wchar_t* gameTitle) = 0;
+
 	virtual void* GetID() const { return NULL; }
+
 	virtual void GetSystemVersion(eastl::string& out) { }
 
 	//Window properties

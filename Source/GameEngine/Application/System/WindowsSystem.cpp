@@ -761,6 +761,33 @@ bool WindowsSystem::IsWindowMinimized() const
 	return ret;
 }
 
+//
+// IsOnlyInstance							- Chapter 5, page 137
+//
+bool WindowsSystem::IsOnlyInstance(const wchar_t* gameTitle)
+{
+	// Find the window.  If active, set and return false
+	// Only one game instance may have this mutex at a time...
+
+	HANDLE handle = CreateMutex(NULL, TRUE, gameTitle);
+
+	// Does anyone else think 'ERROR_SUCCESS' is a bit of an oxymoron?
+	if (GetLastError() != ERROR_SUCCESS)
+	{
+		HWND hWnd = FindWindow(gameTitle, NULL);
+		if (hWnd)
+		{
+			// An instance of your game is already running.
+			ShowWindow(hWnd, SW_SHOWNORMAL);
+			SetFocus(hWnd);
+			SetForegroundWindow(hWnd);
+			SetActiveWindow(hWnd);
+			return false;
+		}
+	}
+	return true;
+}
+
 void* WindowsSystem::GetID() const
 {
 	return IntToPtr(mWindowID);

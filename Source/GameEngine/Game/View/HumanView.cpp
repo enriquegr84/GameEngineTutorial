@@ -126,9 +126,16 @@ bool HumanView::LoadGame(XMLElement* pLevelData)
     return LoadGameDelegate(pLevelData);
 }
 
-//
-// HumanView::OnRender							- Chapter 10, page 274
-//
+/*
+	OnRender method is responsible for rendering the view at either a clamped maximum refresh rate 
+	or at full speed, depending on the value of the local variables. If the view is ready to draw,
+	it calls the application renderer's PreRender() method. 
+	The loop iterates through the screen layers and if it is visible, it calls its own render method.
+	This implies that the only thing the view really draws for itself is the following RenderText().
+	Everything else should be drawn because it belongs to the list of screens.
+	Next it is rendered any text applied directly to the screen.
+	PostRender() method finalizes the render process and presents the screen to the viewer
+*/
 void HumanView::OnRender(double fTime, float fElapsedTime )
 {
 	int deltaMilliseconds = int(fElapsedTime * 1000.0f);
@@ -141,12 +148,12 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 		{
 			m_ScreenElements.sort(SortBy_SharedPtr_Content<BaseScreenElement>());
 
-			for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
-				m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
+			for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator it =
+				m_ScreenElements.begin(); it!=m_ScreenElements.end(); ++it)
 			{
-				if ((*i)->IsVisible())
+				if ((*it)->IsVisible())
 				{
-					(*i)->OnRender(fTime, fElapsedTime);
+					(*it)->OnRender(fTime, fElapsedTime);
 				}
 			}
 
@@ -161,31 +168,37 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 	//gameApp->mRenderer->PostRender();
 }
 
-//
-// HumanView::OnRestore						- Chapter 10, page 275
-//
+/*
+	OnRestore method is responsible for recreating anything that might be lost while the game
+	is running. It typically happens as a result of the operating system responding to something
+	application wide, such as restoring the application from a sleep mode or changing the screen
+	resolution while the game is running. OnRestore method gets called just after the class is
+	instantiated, so this method is just as useful for initialization as it is for restoring lost
+	objects. These objects include all of the attached screens
+*/
 bool HumanView::OnRestore()
 {
 	bool hr = true;
-	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
-		m_ScreenElements.begin(); i != m_ScreenElements.end(); ++i)
+	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator it =
+		m_ScreenElements.begin(); it != m_ScreenElements.end(); ++it)
 	{
-		return ( (*i)->OnRestore() );
+		return ( (*it)->OnRestore() );
 	}
 
 	return hr;
 }
 
-//
-// HumanView::OnLostDevice						- not described in the book
-//
-//    Recursively calls VOnLostDevice for everything attached to the HumanView. 
+/*
+	OnLostDevice will be called prior to OnRestore(), so it is used to chain the "on lost device"
+	event to other objects or simply release the objects so they will be re-created in the call
+	OnRestore(). Recursively calls OnLostDevice for everything attached to the HumanView. 
+*/
 bool HumanView::OnLostDevice() 
 {
-	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
-		m_ScreenElements.begin(); i!=m_ScreenElements.end(); ++i)
+	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator it =
+		m_ScreenElements.begin(); it!=m_ScreenElements.end(); ++it)
 	{
-		return ( (*i)->OnLostDevice() );
+		return ( (*it)->OnLostDevice() );
 	}
 	return true;
 }
@@ -229,24 +242,35 @@ void HumanView::TogglePause(bool active)
 	}
 }
 
-
-
-//
-// HumanView::OnMsgProc						- Chapter 10, page 279
-//
+/*
+	HumanView do process device messages from the application layer. Any conceivable message that
+	the game views would want to see should be translated into the generic message form and passed
+	on to all the game views. If the game view returns true it means that it has completely consumed
+	the message, and no other view should see it. The HumanView class can contain multiple screens,
+	but instead of being layered, they will sit side by side. The HumanView class will still grab
+	input from all the devices and translate it into game commands, just as you are about to see, but
+	in this case, each device will be treated as input for a different player.
+	The OnMsgProc iterates through the list of screens attached to it, forward the message on the
+	visible ones, and if they don't eat the message, then ask the handlers if they can consume it.
+	We can hook own device input device implementation by using the handlers. The existence of the
+	handler is always checked before the message is sent to it.
+	It is used a reverse iterator for the screens because otherwise the screen on top is going to be
+	the last one drawn. User input should always be processed in order of the screens from top to 
+	bottom, or reverse order.
+*/
 bool HumanView::OnMsgProc( const Event& evt )
 {
 	// Iterate through the screen layers first
 	// In reverse order since we'll send input messages to the 
 	// screen on top
-	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::reverse_iterator i =
-		m_ScreenElements.rbegin(); i!=m_ScreenElements.rend(); ++i)
+	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::reverse_iterator it =
+		m_ScreenElements.rbegin(); it!=m_ScreenElements.rend(); ++it)
 	{
-		if ( (*i)->IsVisible() )
+		if ( (*it)->IsVisible() )
 		{
-			if ( (*i)->OnMsgProc( evt ) )
+			if ( (*it)->OnMsgProc( evt ) )
 			{
-				return 1;
+				return true;
 			}
 		}
 	}
@@ -337,14 +361,28 @@ bool HumanView::OnMsgProc( const Event& evt )
 			break;
 
 		default:
-			return 0;
+			return false;
 	}
 	return result;
 }
 
-//
-// HumanView::OnUpdate						- Chapter 10, page 277
-//
+/*
+	OnUpdate is called once per frame by the application layer so that it can perform non-rendering
+	update tasks. The OnUpdate() chain is called as quickly as the game loops and is used to update
+	my object attached to the human view. In this case, the ProcessManager is updated, as well as
+	any of the screen elements attached to the human view, such as updating the objects in the 3D
+	scene, which is itself a screen element. A game object that exists in the game universe and is
+	affected by game rules, like physics, belongs to the game logic. Whenever the game object moves
+	or change state, events are generated that eventually make their way to the game views, where
+	they update their internal representations of these objects. There is a different set of objects
+	that only exist visually and have no real effect on the world themselves, such as particle
+	effects, which is updated in this function. Since the game logic knows nothing about them, they
+	are completely contained in the human view and need some way to be updated if they are animating.
+	The audio system is another example of what human perceives but the game logic does not.
+	Background music and ambient sound effects have no effect on the game logic per se and therefore
+	can safely belong to the human view. The audio system is actually managed as a Process object that
+	is attached to the ProcessManager contained in the human view.
+*/
 void HumanView::OnUpdate(const int deltaMilliseconds)
 {
 	m_pProcessManager->UpdateProcesses(deltaMilliseconds);
@@ -352,7 +390,7 @@ void HumanView::OnUpdate(const int deltaMilliseconds)
 	m_Console.OnUpdate(deltaMilliseconds);
 
 	// This section of code was added post-press. It runs through the screenlist
-	// and calls VOnUpdate. Some screen elements need to update every frame, one 
+	// and calls OnUpdate. Some screen elements need to update every frame, one 
 	// example of this is a 3D scene attached to the human view.
 	//
 	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =

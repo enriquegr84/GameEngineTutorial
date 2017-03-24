@@ -7,9 +7,13 @@
 
 #include "BaseFileArchive.h"
 
-//
-//  class BaseResource			- Chapter 8, page 220
-//
+/*
+	The resource is a unique asset which use the name as identifier.
+	Two phases are involved in using a resource cache: creating the resource
+	and using it. If the resource is already loaded in cache, accessing it
+	will be fast otherwise there is a cache miss and it will have to load the
+	resource file.
+*/
 class BaseResource
 {
 public:
@@ -18,7 +22,9 @@ public:
 };
 
 
-//! Interface providing read acess to a file.
+/*
+	Resource file provides access to resource.
+*/
 class BaseResourceFile
 {
 public:

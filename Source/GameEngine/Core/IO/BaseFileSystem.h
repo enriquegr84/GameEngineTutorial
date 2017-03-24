@@ -16,10 +16,13 @@ enum E_FILESYSTEM_TYPE
 	FILESYSTEM_VIRTUAL	// Virtual FileSystem
 };
 
-//! The FileSystem manages files and archives and provides access to them.
-/** It manages where files are, so that modules which use the the IO do not
-need to know where every file is located. A file could be in a .zip-Archive or
-as file on disk, using the BaseFileSystem makes no difference to this. */
+/* 
+	The FileSystem subsystem will generally be responsible for managing game files
+	and archives and provides access to them. It manages where files are, so that 
+	modules which use the the IO do not to know where every file is located. A file 
+	could be in a compressed format or as file on disk, using the BaseFileSystem makes 
+	no difference to this.
+*/
 class BaseFileSystem
 {
 public:
