@@ -58,10 +58,10 @@ class ActorComponent
 protected:
 	// It is important to have direct control over lifetime of actors. We need the ability to destroy
 	// the actor objects at any time to free up memory
-	eastl::shared_ptr<Actor> m_pOwner;
+	eastl::shared_ptr<Actor> mOwner;
 
 public:
-	virtual ~ActorComponent(void) { m_pOwner.reset(); }
+	virtual ~ActorComponent(void) { mOwner.reset(); }
 
     // These functions are meant to be overridden by the implementation classes of the components.
 	virtual bool Init(XMLElement* pData) = 0;
@@ -81,7 +81,7 @@ public:
 	}
 
 private:
-	void SetOwner(eastl::shared_ptr<Actor> pOwner) { m_pOwner = pOwner; }
+	void SetOwner(eastl::shared_ptr<Actor> pOwner) { mOwner = pOwner; }
 
 };
 

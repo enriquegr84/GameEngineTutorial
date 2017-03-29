@@ -53,15 +53,15 @@
 class BaseRenderComponent : public RenderComponentInterface
 {
 protected:
-    //Color m_color;
-    //eastl::shared_ptr<SceneNode> m_pSceneNode;
+    //Color mColor;
+    //eastl::shared_ptr<SceneNode> mSceneNode;
 
 public:
     virtual bool Init(XMLElement* pData) override;
     virtual void PostInit(void) override;
 	virtual void OnChanged(void) override;
     virtual XMLElement* GenerateXml(void) override;
-	//const Color GetColor() const { return m_color; }
+	//const Color GetColor() const { return mColor; }
 
 protected:
     // loads the SceneNode specific data (represented in the <SceneNode> tag)

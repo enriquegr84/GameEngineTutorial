@@ -77,15 +77,15 @@ public:
 	virtual ~SoundResourceExtraData() { }
 	virtual eastl::wstring ToString() { return L"SoundResourceExtraData"; }
 
-	enum SoundType GetSoundType() { return m_SoundType; }
-	WAVEFORMATEX const *GetFormat() { return &m_WavFormatEx; }
-	int GetLengthMilli() const { return m_LengthMilli; }
+	enum SoundType GetSoundType() { return mSoundType; }
+	WAVEFORMATEX const *GetFormat() { return &mWavFormatEx; }
+	int GetLength() const { return mLength; }
 
 protected:
-	enum SoundType m_SoundType;			// is this an Ogg, WAV, etc.?
-	bool m_bInitialized;				// has the sound been initialized
-	WAVEFORMATEX m_WavFormatEx;			// description of the PCM format
-	int m_LengthMilli;					// how long the sound is in milliseconds
+	enum SoundType mSoundType; // is this an Ogg, WAV, etc.?
+	bool mIsInitialized; // has the sound been initialized
+	WAVEFORMATEX mWavFormatEx; // description of the PCM format
+	int mLength; // how long the sound is in milliseconds
 };
 
 /*
@@ -120,7 +120,6 @@ public:
 protected:
 	bool ParseWave(char *wavStream, size_t length, eastl::shared_ptr<ResHandle> handle);
 };
-
 
 /*
 	OggResourceLoader loads a ogg format sound into the memory allocated by the cache.

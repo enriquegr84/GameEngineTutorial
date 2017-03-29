@@ -6,23 +6,23 @@
 #define UIFONT_H
 
 //! An enum for the different types of UI font.
-enum EUI_FONT_TYPE
+enum UIFontType
 {
 	//! Bitmap fonts loaded from an XML file or a texture.
-	EGFT_BITMAP = 0,
+	GFT_BITMAP = 0,
 
 	//! Scalable vector fonts loaded from an XML file.
 	/** These fonts reside in system memory and use no video memory
 	until they are displayed. These are slower than bitmap fonts
 	but can be easily scaled and rotated. */
-	EGFT_VECTOR,
+	GFT_VECTOR,
 
 	//! A font which uses a the native API provided by the operating system.
 	/** Currently not used. */
-	EGFT_OS,
+	GFT_OS,
 
 	//! An external font type provided by the user.
-	EGFT_CUSTOM
+	GFT_CUSTOM
 };
 
 //! Font interface.
@@ -84,7 +84,7 @@ public:
 	virtual void SetInvisibleCharacters( const wchar_t *s ) = 0;
 
 	//! Returns the type of this font
-	virtual EUI_FONT_TYPE GetType() const { return EGFT_CUSTOM; }
+	virtual UIFontType GetType() const { return GFT_CUSTOM; }
 };
 
 #endif

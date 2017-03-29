@@ -64,19 +64,19 @@
 /////////////////////////////////////////////////////////////////////////////
 struct MaterialData
 {
-	float m_restitution;
-	float m_friction;
+	float mRestitution;
+	float mFriction;
 
     MaterialData(float restitution, float friction)
     {
-        m_restitution = restitution;
-        m_friction = friction;
+        mRestitution = restitution;
+        mFriction = friction;
     }
 
     MaterialData(const MaterialData& other)
     {
-        m_restitution = other.m_restitution;
-        m_friction = other.m_friction;
+        mRestitution = other.mRestitution;
+        mFriction = other.mFriction;
     }
 };
 
@@ -228,18 +228,18 @@ class BulletPhysics : public BaseGamePhysic
 	
 	// these are all of the objects that Bullet uses to do its work.
 	//   see BulletPhysics::VInitialize() for some more info.
-	btDynamicsWorld*                 m_dynamicsWorld;
-	btBroadphaseInterface*           m_broadphase;
-	btCollisionDispatcher*           m_dispatcher;
-	btConstraintSolver*              m_solver;
-	btDefaultCollisionConfiguration* m_collisionConfiguration;
-	BulletDebugDrawer*               m_debugDrawer;
+	btDynamicsWorld*                 mDynamicsWorld;
+	btBroadphaseInterface*           mBroadphase;
+	btCollisionDispatcher*           mDispatcher;
+	btConstraintSolver*              mSolver;
+	btDefaultCollisionConfiguration* mCollisionConfiguration;
+	BulletDebugDrawer*               mDebugDrawer;
 
     // tables read from the XML
     typedef eastl::map<eastl::string, float> DensityTable;
     typedef eastl::map<eastl::string, MaterialData> MaterialTable;
-    DensityTable m_densityTable;
-    MaterialTable m_materialTable;
+    DensityTable mDensityTable;
+    MaterialTable mMaterialTable;
 
 	void LoadXml();
     float LookupSpecificGravity(const eastl::string& densityStr);
@@ -248,12 +248,12 @@ class BulletPhysics : public BaseGamePhysic
 	// keep track of the existing rigid bodies:  To check them for updates
 	//   to the actors' positions, and to remove them when their lives are over.
 	typedef eastl::map<ActorId, btRigidBody*> ActorIDToBulletRigidBodyMap;
-	ActorIDToBulletRigidBodyMap m_actorIdToRigidBody;
+	ActorIDToBulletRigidBodyMap mActorIdToRigidBody;
 	btRigidBody * FindBulletRigidBody( ActorId id ) const;
 	
 	// also keep a map to get the actor id from the btRigidBody*
 	typedef eastl::map<btRigidBody const *, ActorId> BulletRigidBodyToActorIDMap;
-	BulletRigidBodyToActorIDMap m_rigidBodyToActorId;
+	BulletRigidBodyToActorIDMap mRigidBodyToActorId;
 	ActorId FindActorID( btRigidBody const * ) const;
 	
 	// data used to store which collision pair (bodies that are touching) need
@@ -261,9 +261,9 @@ class BulletPhysics : public BaseGamePhysic
 	//   they are added to m_previousTickCollisionPairs and an event is sent.
 	//   When the pair is no longer detected, they are removed and another event
 	//   is sent.
-	typedef eastl::pair< btRigidBody const *, btRigidBody const * > CollisionPair;
-	typedef eastl::set< CollisionPair > CollisionPairs;
-	CollisionPairs m_previousTickCollisionPairs;
+	typedef eastl::pair<btRigidBody const *, btRigidBody const *> CollisionPair;
+	typedef eastl::set<CollisionPair> CollisionPairs;
+	CollisionPairs mPreviousTickCollisionPairs;
 	
 	// helpers for sending events relating to collision pairs
 	void SendCollisionPairAddEvent( btPersistentManifold const * manifold, btRigidBody const * body0, btRigidBody const * body1 );
@@ -322,10 +322,10 @@ public:
 BulletPhysics::BulletPhysics()
 {
 	// [mrmike] This was changed post-press to add event registration!
-	REGISTER_EVENT(EvtData_PhysTrigger_Enter);
-	REGISTER_EVENT(EvtData_PhysTrigger_Leave);
-	REGISTER_EVENT(EvtData_PhysCollision);
-	REGISTER_EVENT(EvtData_PhysSeparation);
+	REGISTER_EVENT(EventDataPhysTriggerEnter);
+	REGISTER_EVENT(EventDataPhysTriggerLeave);
+	REGISTER_EVENT(EventDataPhysCollision);
+	REGISTER_EVENT(EventDataPhysSeparation);
 }
 
 
@@ -338,21 +338,21 @@ BulletPhysics::~BulletPhysics()
 	
 	// iterate backwards because removing the last object doesn't affect the
 	//  other objects stored in a vector-type array
-	for ( int ii=m_dynamicsWorld->getNumCollisionObjects()-1; ii>=0; --ii )
+	for ( int ii=mDynamicsWorld->getNumCollisionObjects()-1; ii>=0; --ii )
 	{
-		btCollisionObject * const obj = m_dynamicsWorld->getCollisionObjectArray()[ii];
+		btCollisionObject * const obj = mDynamicsWorld->getCollisionObjectArray()[ii];
 		
 		RemoveCollisionObject( obj );
 	}
 	
-	m_rigidBodyToActorId.clear();
+	mRigidBodyToActorId.clear();
 
-	delete m_debugDrawer;
-	delete m_dynamicsWorld;
-	delete m_solver;
-	delete m_broadphase;
-	delete m_dispatcher;
-	delete m_collisionConfiguration;
+	delete mDebugDrawer;
+	delete mDynamicsWorld;
+	delete mSolver;
+	delete mBroadphase;
+	delete mDispatcher;
+	delete mCollisionConfiguration;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -375,7 +375,7 @@ void BulletPhysics::LoadXml()
         double friction = 0;
 		restitution = pNode->DoubleAttribute("restitution", restitution);
 		friction = pNode->DoubleAttribute("friction", friction);
-        m_materialTable.insert(eastl::make_pair(
+        mMaterialTable.insert(eastl::make_pair(
 			pNode->Value(), MaterialData((float)restitution, (float)friction)));
     }
 
@@ -384,7 +384,7 @@ void BulletPhysics::LoadXml()
 	LogAssert(pParentNode, "No desinty table");
     for (XMLElement* pNode = pParentNode->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
     {
-        m_densityTable.insert(eastl::make_pair(pNode->Value(), (float)atof(pNode->FirstChild()->Value())));
+        mDensityTable.insert(eastl::make_pair(pNode->Value(), (float)atof(pNode->FirstChild()->Value())));
     }
 }
 
@@ -396,41 +396,41 @@ bool BulletPhysics::Initialize()
 	LoadXml();
 
 	// this controls how Bullet does internal memory management during the collision pass
-	m_collisionConfiguration = new btDefaultCollisionConfiguration();
+	mCollisionConfiguration = new btDefaultCollisionConfiguration();
 
 	// this manages how Bullet detects precise collisions between pairs of objects
-	m_dispatcher = new btCollisionDispatcher( m_collisionConfiguration);
+	mDispatcher = new btCollisionDispatcher( mCollisionConfiguration);
 
 	// Bullet uses this to quickly (imprecisely) detect collisions between objects.
 	//   Once a possible collision passes the broad phase, it will be passed to the
 	//   slower but more precise narrow-phase collision detection (btCollisionDispatcher).
-	m_broadphase = new btDbvtBroadphase();
+	mBroadphase = new btDbvtBroadphase();
 
 	// Manages constraints which apply forces to the physics simulation.  Used
 	//  for e.g. springs, motors.  We don't use any constraints right now.
-	m_solver = new btSequentialImpulseConstraintSolver;
+	mSolver = new btSequentialImpulseConstraintSolver;
 
 	// This is the main Bullet interface point.  Pass in all these components to customize its behavior.
-	m_dynamicsWorld = new btDiscreteDynamicsWorld( 
-		m_dispatcher, m_broadphase, m_solver, m_collisionConfiguration );
+	mDynamicsWorld = new btDiscreteDynamicsWorld( 
+		mDispatcher, mBroadphase, mSolver, mCollisionConfiguration );
 
-	m_debugDrawer = new BulletDebugDrawer;
+	mDebugDrawer = new BulletDebugDrawer;
 	GameApplication* gameApp = (GameApplication*)Application::App;
-	m_debugDrawer->ReadOptions(gameApp->mOption.m_pRoot);
+	mDebugDrawer->ReadOptions(gameApp->mOption.mRoot);
 
-	if(!m_collisionConfiguration || !m_dispatcher || !m_broadphase ||
-			  !m_solver || !m_dynamicsWorld || !m_debugDrawer)
+	if(!mCollisionConfiguration || !mDispatcher || !mBroadphase ||
+			  !mSolver || !mDynamicsWorld || !mDebugDrawer)
 	{
 		LogError("BulletPhysics::VInitialize failed!");
 		return false;
 	}
 
-	m_dynamicsWorld->setDebugDrawer( m_debugDrawer );
+	mDynamicsWorld->setDebugDrawer( mDebugDrawer );
 
 	
 	// and set the internal tick callback to our own method "BulletInternalTickCallback"
-	m_dynamicsWorld->setInternalTickCallback( BulletInternalTickCallback );
-	m_dynamicsWorld->setWorldUserInfo( this );
+	mDynamicsWorld->setInternalTickCallback( BulletInternalTickCallback );
+	mDynamicsWorld->setWorldUserInfo( this );
 	
 	return true;
 }
@@ -444,7 +444,7 @@ void BulletPhysics::OnUpdate( float const deltaSeconds )
 	//   We pass in 4 as a max number of sub steps.  Bullet will run the simulation
 	//   in increments of the fixed timestep until "deltaSeconds" amount of time has
 	//   passed, but will only run a maximum of 4 steps this way.
-	m_dynamicsWorld->stepSimulation( deltaSeconds, 4 );
+	mDynamicsWorld->stepSimulation( deltaSeconds, 4 );
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -456,8 +456,8 @@ void BulletPhysics::SyncVisibleScene()
 	
 	// check all the existing actor's bodies for changes. 
 	//  If there is a change, send the appropriate event for the game system.
-	for (	ActorIDToBulletRigidBodyMap::const_iterator it = m_actorIdToRigidBody.begin();
-			it != m_actorIdToRigidBody.end(); ++it )
+	for (	ActorIDToBulletRigidBodyMap::const_iterator it = mActorIdToRigidBody.begin();
+			it != mActorIdToRigidBody.end(); ++it )
 	{ 
 		ActorId const id = it->first;
 		
@@ -473,7 +473,7 @@ void BulletPhysics::SyncVisibleScene()
 		if (pGameActor && actorMotionState)
 		{
             eastl::shared_ptr<TransformComponent> pTransformComponent(
-				pGameActor->GetComponent<TransformComponent>(TransformComponent::g_Name));
+				pGameActor->GetComponent<TransformComponent>(TransformComponent::Name));
             if (pTransformComponent)
             {
 			    if (pTransformComponent->GetTransform().GetMatrix() != 
@@ -482,8 +482,8 @@ void BulletPhysics::SyncVisibleScene()
                     //	Bullet has moved the actor's physics object.  Sync the transform and inform 
 					//	the game an actor has moved
 					pTransformComponent->SetTransform(actorMotionState->m_worldToPositionTransform);
-                    eastl::shared_ptr<EvtData_Move_Actor> pEvent(
-						new EvtData_Move_Actor(id, actorMotionState->m_worldToPositionTransform));
+                    eastl::shared_ptr<EventDataMoveActor> pEvent(
+						new EventDataMoveActor(id, actorMotionState->m_worldToPositionTransform));
                     BaseEventManager::Get()->QueueEvent(pEvent);
 			    }
             }
@@ -500,7 +500,7 @@ void BulletPhysics::AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionSha
     LogAssert(pGameActor, "no actor");
 
     ActorId actorID = pGameActor->GetId();
-	LogAssert(m_actorIdToRigidBody.find( actorID ) == m_actorIdToRigidBody.end(),
+	LogAssert(mActorIdToRigidBody.find( actorID ) == mActorIdToRigidBody.end(),
 		"Actor with more than one physics body?");
 
     // lookup the material
@@ -513,7 +513,7 @@ void BulletPhysics::AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionSha
 
 	Transform transform;
     eastl::shared_ptr<TransformComponent> pTransformComponent = eastl::shared_ptr<TransformComponent>(
-		pGameActor->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		pGameActor->GetComponent<TransformComponent>(TransformComponent::Name));
 	LogAssert(pTransformComponent, "no transform");
     if (pTransformComponent)
     {
@@ -531,16 +531,16 @@ void BulletPhysics::AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionSha
 	btRigidBody::btRigidBodyConstructionInfo rbInfo( mass, myMotionState, shape, localInertia );
 	
 	// set up the materal properties
-	rbInfo.m_restitution = material.m_restitution;
-	rbInfo.m_friction    = material.m_friction;
+	rbInfo.m_restitution = material.mRestitution;
+	rbInfo.m_friction    = material.mFriction;
 	
 	btRigidBody* const body = new btRigidBody(rbInfo);
 	
-	m_dynamicsWorld->addRigidBody( body );
+	mDynamicsWorld->addRigidBody( body );
 	
 	// add it to the collection to be checked for changes in VSyncVisibleScene
-	m_actorIdToRigidBody[actorID] = body;
-	m_rigidBodyToActorId[body] = actorID;
+	mActorIdToRigidBody[actorID] = body;
+	mRigidBodyToActorId[body] = actorID;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -551,11 +551,11 @@ void BulletPhysics::AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionSha
 void BulletPhysics::RemoveCollisionObject( btCollisionObject * const removeMe )
 {
 	// first remove the object from the physics sim
-	m_dynamicsWorld->removeCollisionObject( removeMe );
+	mDynamicsWorld->removeCollisionObject( removeMe );
 	
 	// then remove the pointer from the ongoing contacts list
-	for ( CollisionPairs::iterator it = m_previousTickCollisionPairs.begin();
-	      it != m_previousTickCollisionPairs.end(); )
+	for ( CollisionPairs::iterator it = mPreviousTickCollisionPairs.begin();
+	      it != mPreviousTickCollisionPairs.end(); )
     {
 		CollisionPairs::iterator next = it;
 		++next;
@@ -563,7 +563,7 @@ void BulletPhysics::RemoveCollisionObject( btCollisionObject * const removeMe )
 		if ( it->first == removeMe || it->second == removeMe )
 		{
 			SendCollisionPairRemoveEvent( it->first, it->second );
-			m_previousTickCollisionPairs.erase( it );
+			mPreviousTickCollisionPairs.erase( it );
 		}
 		
 		it = next;
@@ -581,7 +581,7 @@ void BulletPhysics::RemoveCollisionObject( btCollisionObject * const removeMe )
 		for ( int ii=body->getNumConstraintRefs()-1; ii >= 0; --ii )
 		{
 			btTypedConstraint * const constraint = body->getConstraintRef( ii );
-			m_dynamicsWorld->removeConstraint( constraint );
+			mDynamicsWorld->removeConstraint( constraint );
 			delete constraint;
 		}
 	}
@@ -595,8 +595,8 @@ void BulletPhysics::RemoveCollisionObject( btCollisionObject * const removeMe )
 //
 btRigidBody* BulletPhysics::FindBulletRigidBody( ActorId const id ) const
 {
-	ActorIDToBulletRigidBodyMap::const_iterator found = m_actorIdToRigidBody.find( id );
-	if ( found != m_actorIdToRigidBody.end() )
+	ActorIDToBulletRigidBodyMap::const_iterator found = mActorIdToRigidBody.find( id );
+	if ( found != mActorIdToRigidBody.end() )
 		return found->second;
 
 	return NULL;
@@ -608,8 +608,8 @@ btRigidBody* BulletPhysics::FindBulletRigidBody( ActorId const id ) const
 //
 ActorId BulletPhysics::FindActorID( btRigidBody const * const body ) const
 {
-	BulletRigidBodyToActorIDMap::const_iterator found = m_rigidBodyToActorId.find( body );
-	if ( found != m_rigidBodyToActorId.end() )
+	BulletRigidBodyToActorIDMap::const_iterator found = mRigidBodyToActorId.find( body );
+	if ( found != mRigidBodyToActorId.end() )
 		return found->second;
 		
 	return ActorId();
@@ -697,8 +697,8 @@ void BulletPhysics::RemoveActor(ActorId id)
 	{
 		// destroy the body and all its components
 		RemoveCollisionObject( body );
-		m_actorIdToRigidBody.erase ( id );
-		m_rigidBodyToActorId.erase( body );
+		mActorIdToRigidBody.erase ( id );
+		mRigidBodyToActorId.erase( body );
 	}
 }
 
@@ -707,7 +707,7 @@ void BulletPhysics::RemoveActor(ActorId id)
 //
 void BulletPhysics::RenderDiagnostics()
 {
-	m_dynamicsWorld->debugDrawWorld();
+	mDynamicsWorld->debugDrawWorld();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -735,13 +735,13 @@ void BulletPhysics::CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vecto
 	btRigidBody::btRigidBodyConstructionInfo rbInfo( mass, myMotionState, boxShape, btVector3(0,0,0) );
 	btRigidBody * const body = new btRigidBody(rbInfo);
 	
-	m_dynamicsWorld->addRigidBody( body );
+	mDynamicsWorld->addRigidBody( body );
 	
 	// a trigger is just a box that doesn't collide with anything.  That's what "CF_NO_CONTACT_RESPONSE" indicates.
 	body->setCollisionFlags( body->getCollisionFlags() | btRigidBody::CF_NO_CONTACT_RESPONSE );
 
-	m_actorIdToRigidBody[pStrongActor->GetId()] = body;
-	m_rigidBodyToActorId[body] = pStrongActor->GetId();
+	mActorIdToRigidBody[pStrongActor->GetId()] = body;
+	mRigidBodyToActorId[body] = pStrongActor->GetId();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -982,7 +982,7 @@ void BulletPhysics::BulletInternalTickCallback(btDynamicsWorld * const world, bt
 		CollisionPair const thisPair = eastl::make_pair( sortedBodyA, sortedBodyB );
 		currentTickCollisionPairs.insert( thisPair );
 		
-		if ( bulletPhysics->m_previousTickCollisionPairs.find( thisPair ) == bulletPhysics->m_previousTickCollisionPairs.end() )
+		if ( bulletPhysics->mPreviousTickCollisionPairs.find( thisPair ) == bulletPhysics->mPreviousTickCollisionPairs.end() )
 		{
 			// this is a new contact, which wasn't in our list before.  send an event to the game.
 			bulletPhysics->SendCollisionPairAddEvent( manifold, body0, body1 );
@@ -992,7 +992,7 @@ void BulletPhysics::BulletInternalTickCallback(btDynamicsWorld * const world, bt
 	CollisionPairs removedCollisionPairs;
 	
 	// use the STL set difference function to find collision pairs that existed during the previous tick but not any more
-	eastl::set_difference( bulletPhysics->m_previousTickCollisionPairs.begin(), bulletPhysics->m_previousTickCollisionPairs.end(),
+	eastl::set_difference( bulletPhysics->mPreviousTickCollisionPairs.begin(), bulletPhysics->mPreviousTickCollisionPairs.end(),
 	                     currentTickCollisionPairs.begin(), currentTickCollisionPairs.end(),
 	                     eastl::inserter( removedCollisionPairs, removedCollisionPairs.begin() ) );
 	
@@ -1006,7 +1006,7 @@ void BulletPhysics::BulletInternalTickCallback(btDynamicsWorld * const world, bt
 	}
 	
 	// the current tick becomes the previous tick.  this is the way of all things.
-	bulletPhysics->m_previousTickCollisionPairs = currentTickCollisionPairs;
+	bulletPhysics->mPreviousTickCollisionPairs = currentTickCollisionPairs;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1033,8 +1033,8 @@ void BulletPhysics::SendCollisionPairAddEvent( btPersistentManifold const * mani
 		
 		// send the trigger event.
 		int const triggerId = *static_cast<int*>(triggerBody->getUserPointer());
-        eastl::shared_ptr<EvtData_PhysTrigger_Enter> pEvent(
-			new EvtData_PhysTrigger_Enter(triggerId, FindActorID(otherBody)));
+        eastl::shared_ptr<EventDataPhysTriggerEnter> pEvent(
+			new EventDataPhysTriggerEnter(triggerId, FindActorID(otherBody)));
         BaseEventManager::Get()->QueueEvent(pEvent);
 	}
 	else
@@ -1064,8 +1064,8 @@ void BulletPhysics::SendCollisionPairAddEvent( btPersistentManifold const * mani
 		}
 		
 		// send the event for the game
-        eastl::shared_ptr<EvtData_PhysCollision> pEvent(
-			new EvtData_PhysCollision(id0, id1, sumNormalForce, sumFrictionForce, collisionPoints));
+        eastl::shared_ptr<EventDataPhysCollision> pEvent(
+			new EventDataPhysCollision(id0, id1, sumNormalForce, sumFrictionForce, collisionPoints));
         BaseEventManager::Get()->QueueEvent(pEvent);
 	}
 }
@@ -1092,8 +1092,8 @@ void BulletPhysics::SendCollisionPairRemoveEvent(
 		
 		// send the trigger event.
 		int const triggerId = *static_cast<int*>(triggerBody->getUserPointer());
-        eastl::shared_ptr<EvtData_PhysTrigger_Leave> pEvent(
-			new EvtData_PhysTrigger_Leave(triggerId, FindActorID( otherBody)));
+        eastl::shared_ptr<EventDataPhysTriggerLeave> pEvent(
+			new EventDataPhysTriggerLeave(triggerId, FindActorID( otherBody)));
         BaseEventManager::Get()->QueueEvent(pEvent);
 	}
 	else
@@ -1108,7 +1108,7 @@ void BulletPhysics::SendCollisionPairRemoveEvent(
 			return;
 		}
 
-        eastl::shared_ptr<EvtData_PhysSeparation> pEvent(new EvtData_PhysSeparation(id0, id1));
+        eastl::shared_ptr<EventDataPhysSeparation> pEvent(new EventDataPhysSeparation(id0, id1));
         BaseEventManager::Get()->QueueEvent(pEvent);
 	}
 }
@@ -1116,8 +1116,8 @@ void BulletPhysics::SendCollisionPairRemoveEvent(
 float BulletPhysics::LookupSpecificGravity(const eastl::string& densityStr)
 {
     float density = 0;
-    auto densityIt = m_densityTable.find(densityStr);
-    if (densityIt != m_densityTable.end())
+    auto densityIt = mDensityTable.find(densityStr);
+    if (densityIt != mDensityTable.end())
         density = densityIt->second;
     // else: dump error
 
@@ -1126,8 +1126,8 @@ float BulletPhysics::LookupSpecificGravity(const eastl::string& densityStr)
 
 MaterialData BulletPhysics::LookupMaterialData(const eastl::string& materialStr)
 {
-    auto materialIt = m_materialTable.find(materialStr);
-    if (materialIt != m_materialTable.end())
+    auto materialIt = mMaterialTable.find(materialStr);
+    if (materialIt != mMaterialTable.end())
         return materialIt->second;
     else
         return MaterialData(0, 0);

@@ -38,7 +38,7 @@
 
 #include "TransformComponent.h"
 
-const char* TransformComponent::g_Name = "TransformComponent";
+const char* TransformComponent::Name = "TransformComponent";
 
 bool TransformComponent::Init(XMLElement* pData)
 {
@@ -47,12 +47,12 @@ bool TransformComponent::Init(XMLElement* pData)
 	// [mrmike] - this was changed post-press - because changes to the TransformComponents can come in partial definitions,
 	//            such as from the editor, its better to grab the current values rather than clear them out.
 	EulerAngles<float> yawPitchRoll;
-	m_transform.GetRotation(yawPitchRoll);
+	mTransform.GetRotation(yawPitchRoll);
 	//yawPitchRoll.x = RADIANS_TO_DEGREES(yawPitchRoll.x);
 	//yawPitchRoll.y = RADIANS_TO_DEGREES(yawPitchRoll.y);
 	//yawPitchRoll.z = RADIANS_TO_DEGREES(yawPitchRoll.z);
 
-	Vector3<float> position = m_transform.GetTranslation();	
+	Vector3<float> position = mTransform.GetTranslation();	
 
     XMLElement* pPositionElement = pData->FirstChildElement("Position");
     if (pPositionElement)
@@ -115,7 +115,7 @@ bool TransformComponent::Init(XMLElement* pData)
         //scale = Vector3(x, y, z);
     }
 
-    m_transform = rotation * translation;
+    mTransform = rotation * translation;
     
     return true;
 }
@@ -129,7 +129,7 @@ XMLElement* TransformComponent::GenerateXml(void)
 
     // initial transform -> position
     XMLElement* pPosition = doc.NewElement("Position");
-    Vector3<float> pos(m_transform.GetTranslation());
+    Vector3<float> pos(mTransform.GetTranslation());
     pPosition->SetAttribute("x", eastl::to_string(pos[0]).c_str());
     pPosition->SetAttribute("y", eastl::to_string(pos[1]).c_str());
     pPosition->SetAttribute("z", eastl::to_string(pos[3]).c_str());
@@ -138,7 +138,7 @@ XMLElement* TransformComponent::GenerateXml(void)
     // initial transform -> LookAt
     XMLElement* pDirection = doc.NewElement("YawPitchRoll");
 	EulerAngles<float> yawPitchRoll;
-	m_transform.GetRotation(yawPitchRoll);
+	mTransform.GetRotation(yawPitchRoll);
     pDirection->SetAttribute("x", eastl::to_string(yawPitchRoll.angle[0]).c_str());
     pDirection->SetAttribute("y", eastl::to_string(yawPitchRoll.angle[1]).c_str());
     pDirection->SetAttribute("z", eastl::to_string(yawPitchRoll.angle[2]).c_str());
@@ -147,7 +147,7 @@ XMLElement* TransformComponent::GenerateXml(void)
 	// This is not supported yet
     // initial transform -> position
     XMLElement* pScale = doc.NewElement("Scale");
-	Vector3<float> scale(m_transform.GetScale());
+	Vector3<float> scale(mTransform.GetScale());
     pPosition->SetAttribute("x", eastl::to_string(scale[0]).c_str());
     pPosition->SetAttribute("y", eastl::to_string(scale[1]).c_str());
     pPosition->SetAttribute("z", eastl::to_string(scale[2]).c_str());

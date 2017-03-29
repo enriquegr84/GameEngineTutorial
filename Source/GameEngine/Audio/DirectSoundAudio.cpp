@@ -59,30 +59,30 @@
 */
 bool DirectSoundAudio::Initialize(void* id)
 {
-	if(m_Initialized)
+	if(mInitialized)
 		return true;
 
-	m_Initialized=false;
-	m_AllSamples.clear();
+	mInitialized=false;
+	mAllSamples.clear();
 
-	delete m_pDS;
+	delete mDS;
 
 	HRESULT hr;
 
 	HWND hWnd = static_cast<HWND>(id);
 
 	// Create IDirectSound using the primary sound device
-	if( FAILED( hr = DirectSoundCreate8( NULL, &m_pDS, NULL ) ) )
+	if( FAILED( hr = DirectSoundCreate8( NULL, &mDS, NULL ) ) )
 		return false;
 
 	// Set DirectSound coop level 
-	if( FAILED( hr = m_pDS->SetCooperativeLevel( hWnd, DSSCL_PRIORITY) ) )
+	if( FAILED( hr = mDS->SetCooperativeLevel( hWnd, DSSCL_PRIORITY) ) )
 		return false;
 
 	if( FAILED( hr = SetPrimaryBufferFormat( 8, 44100, 16 ) ) )
 		return false;
 
-	m_Initialized = true;
+	mInitialized = true;
 
 	return true;
 }
@@ -106,45 +106,45 @@ HRESULT DirectSoundAudio::SetPrimaryBufferFormat(
 	// If you want your primary buffer format to be 22kHz stereo, 16-bit
 	// call with these parameters:	SetPrimaryBufferFormat(2, 22050, 16);
 
-	HRESULT             hr;
-	LPDIRECTSOUNDBUFFER pDSBPrimary = NULL;
+	HRESULT hr;
+	LPDIRECTSOUNDBUFFER dsbPrimary = NULL;
 
-	if( ! m_pDS )
+	if( ! mDS )
 		return CO_E_NOTINITIALIZED;
 
 	// Get the primary buffer 
 	DSBUFFERDESC dsbd;
 	ZeroMemory( &dsbd, sizeof(DSBUFFERDESC) );
-	dsbd.dwSize        = sizeof(DSBUFFERDESC);
-	dsbd.dwFlags       = DSBCAPS_PRIMARYBUFFER;
+	dsbd.dwSize = sizeof(DSBUFFERDESC);
+	dsbd.dwFlags = DSBCAPS_PRIMARYBUFFER;
 	dsbd.dwBufferBytes = 0;
-	dsbd.lpwfxFormat   = NULL;
+	dsbd.lpwfxFormat = NULL;
 
 	/*
 		The method returns a pointer to the primary sound buffer where all the sound effects
 		are mixed into a single sound stream that is rendered by the sound card
 	*/
-	if( FAILED( hr = m_pDS->CreateSoundBuffer( &dsbd, &pDSBPrimary, NULL ) ) )
+	if( FAILED( hr = mDS->CreateSoundBuffer( &dsbd, &dsbPrimary, NULL ) ) )
 		return S_OK;
 		//return DXUT_ERR( L"CreateSoundBuffer", hr );
 
 	WAVEFORMATEX wfx;
 	ZeroMemory( &wfx, sizeof(WAVEFORMATEX) ); 
-	wfx.wFormatTag      = (WORD) WAVE_FORMAT_PCM; 
-	wfx.nChannels       = (WORD) dwPrimaryChannels; 
-	wfx.nSamplesPerSec  = (unsigned long) dwPrimaryFreq; 
-	wfx.wBitsPerSample  = (WORD) dwPrimaryBitRate; 
-	wfx.nBlockAlign     = (WORD) (wfx.wBitsPerSample / 8 * wfx.nChannels);
+	wfx.wFormatTag = (WORD) WAVE_FORMAT_PCM; 
+	wfx.nChannels = (WORD) dwPrimaryChannels; 
+	wfx.nSamplesPerSec = (unsigned long) dwPrimaryFreq; 
+	wfx.wBitsPerSample = (WORD) dwPrimaryBitRate; 
+	wfx.nBlockAlign = (WORD) (wfx.wBitsPerSample / 8 * wfx.nChannels);
 	wfx.nAvgBytesPerSec = (unsigned long) (wfx.nSamplesPerSec * wfx.nBlockAlign);
 
 	/*
 		SetFormat tells the sound driver to change the primary buffer's format to one
 		that you specify.
 	*/
-	if( FAILED( hr = pDSBPrimary->SetFormat(&wfx) ) )
+	if( FAILED( hr = dsbPrimary->SetFormat(&wfx) ) )
 		return S_OK;
 
-	delete pDSBPrimary;
+	delete dsbPrimary;
 
 	return S_OK;
 }
@@ -155,12 +155,12 @@ HRESULT DirectSoundAudio::SetPrimaryBufferFormat(
 */
 void DirectSoundAudio::Shutdown()
 {
-	if(m_Initialized)
+	if(mInitialized)
 	{
 		Audio::Shutdown();
 
-		delete m_pDS;
-		m_Initialized = false;
+		delete mDS;
+		mInitialized = false;
 	}
 }
 
@@ -175,7 +175,7 @@ BaseAudioBuffer *DirectSoundAudio::InitAudioBuffer(eastl::shared_ptr<ResHandle> 
 	eastl::shared_ptr<SoundResourceExtraData> extra = 
 		eastl::static_pointer_cast<SoundResourceExtraData>(resHandle->GetExtra());
 
-    if( ! m_pDS )
+    if( ! mDS )
         return NULL;
 
 	/*
@@ -216,21 +216,21 @@ BaseAudioBuffer *DirectSoundAudio::InitAudioBuffer(eastl::shared_ptr<ResHandle> 
 	*/
     DSBUFFERDESC dsbd;
     ZeroMemory( &dsbd, sizeof(DSBUFFERDESC) );
-    dsbd.dwSize          = sizeof(DSBUFFERDESC);
-    dsbd.dwFlags         = DSBCAPS_CTRLVOLUME;
-    dsbd.dwBufferBytes   = resHandle->Size();
+    dsbd.dwSize = sizeof(DSBUFFERDESC);
+    dsbd.dwFlags = DSBCAPS_CTRLVOLUME;
+    dsbd.dwBufferBytes = resHandle->Size();
     dsbd.guid3DAlgorithm = GUID_NULL;
-    dsbd.lpwfxFormat     = const_cast<WAVEFORMATEX *>(extra->GetFormat());
+    dsbd.lpwfxFormat = const_cast<WAVEFORMATEX *>(extra->GetFormat());
 
 	HRESULT hr;
-    if( FAILED( hr = m_pDS->CreateSoundBuffer( &dsbd, &sampleHandle, NULL ) ) )
+    if( FAILED( hr = mDS->CreateSoundBuffer( &dsbd, &sampleHandle, NULL ) ) )
     {
         return NULL;
     }
 
 	// Add handle to the list
 	BaseAudioBuffer *audioBuffer = new DirectSoundAudioBuffer(sampleHandle, resHandle);
-	m_AllSamples.push_front( audioBuffer);
+	mAllSamples.push_front( audioBuffer);
 	
 	return audioBuffer;
 }
@@ -243,7 +243,7 @@ BaseAudioBuffer *DirectSoundAudio::InitAudioBuffer(eastl::shared_ptr<ResHandle> 
 void DirectSoundAudio::ReleaseAudioBuffer(BaseAudioBuffer *sampleHandle)//const
 {
 	sampleHandle->Stop();
-	m_AllSamples.remove(sampleHandle);
+	mAllSamples.remove(sampleHandle);
 }
 
 //
@@ -253,7 +253,7 @@ DirectSoundAudioBuffer::DirectSoundAudioBuffer(
 	LPDIRECTSOUNDBUFFER sample, eastl::shared_ptr<ResHandle> resource)
  : AudioBuffer(resource) 
 { 
-	m_Sample = sample; 
+	mSample = sample; 
 	FillBufferWithSound();
 }
 
@@ -265,7 +265,7 @@ void *DirectSoundAudioBuffer::Get()
  	if (!OnRestore())
 		return NULL;
 
-	return m_Sample;
+	return mSample;
 }
 
 
@@ -275,23 +275,23 @@ void *DirectSoundAudioBuffer::Get()
 //
 bool DirectSoundAudioBuffer::Play(int volume, bool looping)
 {
-   if(!g_pAudio->Active())
+   if(!Audio::AudioSystem->Active())
       return false;
 
 	Stop();
 
-	m_Volume = volume;
-	m_isLooping = looping;
+	mVolume = volume;
+	mIsLooping = looping;
 
-	LPDIRECTSOUNDBUFFER pDSB = (LPDIRECTSOUNDBUFFER)Get();
-	if (!pDSB)
+	LPDIRECTSOUNDBUFFER dsb = (LPDIRECTSOUNDBUFFER)Get();
+	if (!dsb)
 		return false;
 
-    pDSB->SetVolume( volume );
+    dsb->SetVolume( volume );
     
     unsigned long dwFlags = looping ? DSBPLAY_LOOPING : 0L;
 
-    return (S_OK==pDSB->Play( 0, 0, dwFlags ) );
+    return (S_OK==dsb->Play( 0, 0, dwFlags ) );
 
 }//end Play
 
@@ -302,16 +302,16 @@ bool DirectSoundAudioBuffer::Play(int volume, bool looping)
 //
 bool DirectSoundAudioBuffer::Stop()
 {
-	if(!g_pAudio->Active())
+	if(!Audio::AudioSystem->Active())
 		return false;
 
-	LPDIRECTSOUNDBUFFER pDSB = (LPDIRECTSOUNDBUFFER)Get();
+	LPDIRECTSOUNDBUFFER dsb = (LPDIRECTSOUNDBUFFER)Get();
 
-   if( ! pDSB )
+   if( ! dsb )
 		return false;
 
-	m_isPaused=true;
-    pDSB->Stop();
+	mIsPaused=true;
+    dsb->Stop();
 	return true;
 }
 
@@ -322,17 +322,17 @@ bool DirectSoundAudioBuffer::Stop()
 //
 bool DirectSoundAudioBuffer::Pause()
 {
-	LPDIRECTSOUNDBUFFER pDSB = (LPDIRECTSOUNDBUFFER)Get();
-
-	if(!g_pAudio->Active())
+	if(!Audio::AudioSystem->Active())
 		return false;
 
-   if( pDSB )
+	LPDIRECTSOUNDBUFFER dsb = (LPDIRECTSOUNDBUFFER)Get();
+
+   if( dsb )
 		return false;
 
-	m_isPaused=true;
-    pDSB->Stop();
-	pDSB->SetCurrentPosition(0);	// rewinds buffer to beginning.
+	mIsPaused=true;
+    dsb->Stop();
+	dsb->SetCurrentPosition(0);	// rewinds buffer to beginning.
 	return true;
 }
 
@@ -341,7 +341,7 @@ bool DirectSoundAudioBuffer::Pause()
 //    Resume a sound
 bool DirectSoundAudioBuffer::Resume()
 {
-	m_isPaused=false;
+	mIsPaused=false;
 	return Play(GetVolume(), IsLooping());
 }
 
@@ -351,10 +351,10 @@ bool DirectSoundAudioBuffer::Resume()
 //
 bool DirectSoundAudioBuffer::TogglePause()
 {
-	if(!g_pAudio->Active())
+	if(!Audio::AudioSystem->Active())
 		return false;
 
-	if(m_isPaused)
+	if(mIsPaused)
 	{
 		Resume();
 	}
@@ -376,15 +376,15 @@ bool DirectSoundAudioBuffer::TogglePause()
 //
 bool DirectSoundAudioBuffer::IsPlaying() 
 {
-	if(!g_pAudio->Active())
+	if(!Audio::AudioSystem->Active())
 		return false;
 
 	unsigned long dwStatus = 0;
-	LPDIRECTSOUNDBUFFER pDSB = (LPDIRECTSOUNDBUFFER)Get();
-	pDSB->GetStatus( &dwStatus );
-    bool bIsPlaying = ( ( dwStatus & DSBSTATUS_PLAYING ) != 0 );
+	LPDIRECTSOUNDBUFFER dsb = (LPDIRECTSOUNDBUFFER)Get();
+	dsb->GetStatus( &dwStatus );
+    bool IsPlaying = ( ( dwStatus & DSBSTATUS_PLAYING ) != 0 );
 
-	return bIsPlaying;
+	return IsPlaying;
 }
 
 //
@@ -398,7 +398,7 @@ void DirectSoundAudioBuffer::SetVolume(int volume)
 	// This was contributed by BystanderKain!
 	int gccDSBVolumeMin = DSBVOLUME_MIN;
 
-	if(!g_pAudio->Active())
+	if(!Audio::AudioSystem->Active())
 		return;
 
 	LPDIRECTSOUNDBUFFER pDSB = (LPDIRECTSOUNDBUFFER)Get();
@@ -420,7 +420,7 @@ void DirectSoundAudioBuffer::SetVolume(int volume)
 
 void DirectSoundAudioBuffer::SetPosition(unsigned long newPosition)
 {
-    m_Sample->SetCurrentPosition(newPosition);
+    mSample->SetCurrentPosition(newPosition);
 }
 
 
@@ -430,13 +430,13 @@ void DirectSoundAudioBuffer::SetPosition(unsigned long newPosition)
 bool DirectSoundAudioBuffer::OnRestore()
 {
    HRESULT hr;
-   BOOL    bRestored;
+   BOOL    restored;
 
     // Restore the buffer if it was lost
-    if( FAILED( hr = RestoreBuffer( &bRestored ) ) )
+    if( FAILED( hr = RestoreBuffer( &restored ) ) )
         return NULL;
 
-    if( bRestored )
+    if( restored )
     {
         // The buffer was restored, so we need to fill it with new data
         if( FAILED( hr = FillBufferWithSound( ) ) )
@@ -456,13 +456,13 @@ HRESULT DirectSoundAudioBuffer::RestoreBuffer( BOOL* pbWasRestored )
 {
     HRESULT hr;
 
-    if( ! m_Sample )
+    if( ! mSample )
         return CO_E_NOTINITIALIZED;
     if( pbWasRestored )
         *pbWasRestored = FALSE;
 
     unsigned long dwStatus;
-    if( FAILED( hr = m_Sample->GetStatus( &dwStatus ) ) )
+    if( FAILED( hr = mSample->GetStatus( &dwStatus ) ) )
 		return S_OK;
         //return DXUT_ERR( L"GetStatus", hr );
 
@@ -476,11 +476,11 @@ HRESULT DirectSoundAudioBuffer::RestoreBuffer( BOOL* pbWasRestored )
         int count = 0;
 		do 
         {
-            hr = m_Sample->Restore();
+            hr = mSample->Restore();
             if( hr == DSERR_BUFFERLOST )
                 Sleep( 10 );
         }
-        while( ( hr = m_Sample->Restore() ) == DSERR_BUFFERLOST && ++count < 100 );
+        while( ( hr = mSample->Restore() ) == DSERR_BUFFERLOST && ++count < 100 );
 
         if( pbWasRestored != NULL )
             *pbWasRestored = TRUE;
@@ -499,15 +499,15 @@ HRESULT DirectSoundAudioBuffer::RestoreBuffer( BOOL* pbWasRestored )
 HRESULT DirectSoundAudioBuffer::FillBufferWithSound( void )
 {
     HRESULT hr; 
-	int pcmBufferSize = m_Resource->Size();
+	int pcmBufferSize = mResource->Size();
 	eastl::shared_ptr<SoundResourceExtraData> extra = 
-		eastl::static_pointer_cast<SoundResourceExtraData>(m_Resource->GetExtra());
+		eastl::static_pointer_cast<SoundResourceExtraData>(mResource->GetExtra());
 
-	VOID* pDSLockedBuffer = NULL; // a pointer to the DirectSound buffer
+	VOID* dsLockedBuffer = NULL; // a pointer to the DirectSound buffer
     unsigned long dwDSLockedBufferSize = 0; // Size of the locked DirectSound buffer
     unsigned long dwWavDataRead = 0; // Amount of data read from the wav file 
 
-    if( ! m_Sample )
+    if( ! mSample )
         return CO_E_NOTINITIALIZED;
 
     // Make sure we have focus, and we didn't just switch in from
@@ -518,31 +518,31 @@ HRESULT DirectSoundAudioBuffer::FillBufferWithSound( void )
 
 	
     // Lock the buffer down
-    if(FAILED( hr = m_Sample->Lock(0, pcmBufferSize, 
-		&pDSLockedBuffer, &dwDSLockedBufferSize, NULL, NULL, 0L)))
+    if(FAILED( hr = mSample->Lock(0, pcmBufferSize, 
+		&dsLockedBuffer, &dwDSLockedBufferSize, NULL, NULL, 0L)))
 		return S_OK;
 
     if( pcmBufferSize == 0 )
     {
         // Wav is blank, so just fill with silence
-        FillMemory( (BYTE*) pDSLockedBuffer, 
+        FillMemory( (BYTE*) dsLockedBuffer, 
                     dwDSLockedBufferSize, 
                     (BYTE)(extra->GetFormat()->wBitsPerSample == 8 ? 128 : 0 ) );
     }
     else 
 	{
-		CopyMemory(pDSLockedBuffer, m_Resource->Buffer(), pcmBufferSize);
+		CopyMemory(dsLockedBuffer, mResource->Buffer(), pcmBufferSize);
 		if( pcmBufferSize < (int)dwDSLockedBufferSize )
 		{
             // If the buffer sizes are different fill in the rest with silence 
-            FillMemory( (BYTE*) pDSLockedBuffer + pcmBufferSize, 
+            FillMemory( (BYTE*) dsLockedBuffer + pcmBufferSize, 
                         dwDSLockedBufferSize - pcmBufferSize, 
                         (BYTE)(extra->GetFormat()->wBitsPerSample == 8 ? 128 : 0 ) );
         }
     }
 
     // Unlock the buffer, we don't need it anymore.
-    m_Sample->Unlock( pDSLockedBuffer, dwDSLockedBufferSize, NULL, 0 );
+    mSample->Unlock( dsLockedBuffer, dwDSLockedBufferSize, NULL, 0 );
 
     return S_OK;
 }
@@ -552,12 +552,12 @@ HRESULT DirectSoundAudioBuffer::FillBufferWithSound( void )
 //
 float DirectSoundAudioBuffer::GetProgress()
 {
-	LPDIRECTSOUNDBUFFER pDSB = (LPDIRECTSOUNDBUFFER)Get();	
+	LPDIRECTSOUNDBUFFER dsb = (LPDIRECTSOUNDBUFFER)Get();	
 	unsigned long progress = 0;
 
-	pDSB->GetCurrentPosition(&progress, NULL);
+	dsb->GetCurrentPosition(&progress, NULL);
 
-	float length = (float)m_Resource->Size();
+	float length = (float)mResource->Size();
 
 	return (float)progress / length;
 }

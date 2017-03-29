@@ -54,20 +54,20 @@
 // SoundResource::SoundResource			- Chapter X, page 362
 //
 SoundResourceExtraData::SoundResourceExtraData()
-:	m_SoundType(SOUND_TYPE_UNKNOWN),
-	m_bInitialized(false),
-	m_LengthMilli(0)
+:	mSoundType(SOUND_TYPE_UNKNOWN),
+	mIsInitialized(false),
+	mLength(0)
 {	
 	// don't do anything yet - timing sound Initialization is important!
 }
 
 unsigned int WaveResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize)
 {
-	unsigned long		file = 0; 
-	unsigned long		fileEnd = 0; 
+	unsigned long file = 0; 
+	unsigned long fileEnd = 0; 
 	
-	unsigned long		length = 0;     
-	unsigned long		type = 0;									
+	unsigned long length = 0;     
+	unsigned long type = 0;									
 
 	unsigned long pos = 0;
 
@@ -109,7 +109,7 @@ unsigned int WaveResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned
 		{
 			case mmioFOURCC('f', 'a', 'c', 't'):
 			{
-				LogError("This wav file is compressed.  We don't handle compressed wav at this time");
+				LogError("This wav file is compressed. We don't handle compressed wav at this time");
 				break;
 			}
 
@@ -143,7 +143,7 @@ unsigned int WaveResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned
 bool WaveResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)
 {
 	eastl::shared_ptr<SoundResourceExtraData> extra(new SoundResourceExtraData());
-	extra->m_SoundType = SOUND_TYPE_WAVE;
+	extra->mSoundType = SOUND_TYPE_WAVE;
 	handle->SetExtra(eastl::shared_ptr<SoundResourceExtraData>(extra));
 	if (!ParseWave((char *)rawBuffer, rawSize, handle))
 	{
@@ -169,7 +169,6 @@ bool WaveResourceLoader::ParseWave(char *wavStream, size_t bufferLength, eastl::
 
 	// mmioFOURCC -- converts four chars into a 4 byte integer code.
 	// The first 4 bytes of a valid .wav file is 'R','I','F','F'
-
 	type = *((unsigned long *)(wavStream+pos));		
 	pos+=sizeof(unsigned long);
 	if(type != mmioFOURCC('R', 'I', 'F', 'F'))
@@ -187,7 +186,7 @@ bool WaveResourceLoader::ParseWave(char *wavStream, size_t bufferLength, eastl::
 	// Find the end of the file
 	fileEnd = length - 4;
 	
-	memset(&extra->m_WavFormatEx, 0, sizeof(WAVEFORMATEX));
+	memset(&extra->mWavFormatEx, 0, sizeof(WAVEFORMATEX));
 
 	bool copiedBuffer = false;
 
@@ -207,15 +206,15 @@ bool WaveResourceLoader::ParseWave(char *wavStream, size_t bufferLength, eastl::
 		{
 			case mmioFOURCC('f', 'a', 'c', 't'):
 			{
-				LogError("This wav file is compressed.  We don't handle compressed wav at this time");
+				LogError("This wav file is compressed. We don't handle compressed wav at this time");
 				break;
 			}
 
 			case mmioFOURCC('f', 'm', 't', ' '):
 			{
-				memcpy(&extra->m_WavFormatEx, wavStream+pos, length);		
+				memcpy(&extra->mWavFormatEx, wavStream+pos, length);		
 				pos+=length;   
-				extra->m_WavFormatEx.cbSize = (WORD)length;
+				extra->mWavFormatEx.cbSize = (WORD)length;
 				break;
 			}
 
@@ -238,7 +237,7 @@ bool WaveResourceLoader::ParseWave(char *wavStream, size_t bufferLength, eastl::
 		// If both blocks have been seen, we can return true.
 		if( copiedBuffer )
 		{
-			extra->m_LengthMilli = ( handle->Size() * 1000 ) / extra->GetFormat()->nAvgBytesPerSec;
+			extra->mLength = ( handle->Size() * 1000 ) / extra->GetFormat()->nAvgBytesPerSec;
 			return true;
 		}
 
@@ -261,9 +260,9 @@ bool WaveResourceLoader::ParseWave(char *wavStream, size_t bufferLength, eastl::
 //
 struct OggMemoryFile
 {
-    unsigned char*  dataPtr;// Pointer to the data in memory
-    size_t    dataSize;     // Size of the data
-    size_t    dataRead;     // Bytes read so far
+    unsigned char* dataPtr; // Pointer to the data in memory
+    size_t dataSize; // Size of the data
+    size_t dataRead; // Bytes read so far
 
     OggMemoryFile(void)
     {
@@ -407,10 +406,10 @@ unsigned int OggResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned 
     // the vorbis_info struct keeps the most of the interesting format info
     vorbis_info *vi = ov_info(&vf,-1);
 
-	unsigned long   size = 4096 * 16;
-    unsigned long   pos = 0;
-    int     sec = 0;
-    int     ret = 1;
+	unsigned long size = 4096 * 16;
+    unsigned long pos = 0;
+    int sec = 0;
+    int ret = 1;
     
 	//Thanks to Kain for fixing this bug!
 	unsigned long bytes = (unsigned long)ov_pcm_total(&vf, -1);    
@@ -427,7 +426,7 @@ bool OggResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, cons
 {
 	eastl::shared_ptr<SoundResourceExtraData> extra = 
 		eastl::shared_ptr<SoundResourceExtraData>(new SoundResourceExtraData());
-	extra->m_SoundType = SOUND_TYPE_OGG;
+	extra->mSoundType = SOUND_TYPE_OGG;
 	handle->SetExtra(eastl::shared_ptr<SoundResourceExtraData>(extra));
 	BaseReadFile* file = (BaseReadFile*)rawBuffer;
 	unsigned int size = file->GetSize();
@@ -469,25 +468,24 @@ bool OggResourceLoader::ParseOgg(char *oggStream, size_t length, eastl::shared_p
     // the vorbis_info struct keeps the most of the interesting format info
     vorbis_info *vi = ov_info(&vf,-1);
 
-    memset(&(extra->m_WavFormatEx), 0, sizeof(extra->m_WavFormatEx));
+    memset(&(extra->mWavFormatEx), 0, sizeof(extra->mWavFormatEx));
 
-    extra->m_WavFormatEx.cbSize          = sizeof(extra->m_WavFormatEx);
-    extra->m_WavFormatEx.nChannels       = vi->channels;
-    extra->m_WavFormatEx.wBitsPerSample  = 16;                    // ogg vorbis is always 16 bit
-    extra->m_WavFormatEx.nSamplesPerSec  = vi->rate;
-    extra->m_WavFormatEx.nAvgBytesPerSec = extra->m_WavFormatEx.nSamplesPerSec*extra->m_WavFormatEx.nChannels*2;
-    extra->m_WavFormatEx.nBlockAlign     = 2*extra->m_WavFormatEx.nChannels;
-    extra->m_WavFormatEx.wFormatTag      = 1;
+    extra->mWavFormatEx.cbSize = sizeof(extra->mWavFormatEx);
+    extra->mWavFormatEx.nChannels = vi->channels;
+    extra->mWavFormatEx.wBitsPerSample = 16;                    // ogg vorbis is always 16 bit
+    extra->mWavFormatEx.nSamplesPerSec = vi->rate;
+    extra->mWavFormatEx.nAvgBytesPerSec = extra->mWavFormatEx.nSamplesPerSec*extra->mWavFormatEx.nChannels*2;
+    extra->mWavFormatEx.nBlockAlign = 2*extra->mWavFormatEx.nChannels;
+    extra->mWavFormatEx.wFormatTag = 1;
 
-    int     sec = 0;
-    int     ret = 1;
-    
+    int sec = 0;
+    int ret = 1;
 	while(ret)
 	{
 		ret=ov_read(&vf, (char *)handle->WritableBuffer(), sizeof(handle->WritableBuffer()), 0, 2, 1, &sec);
 	}
 
-	extra->m_LengthMilli = (int)(1000.f * ov_time_total(&vf, -1));
+	extra->mLength = (int)(1000.f * ov_time_total(&vf, -1));
 
 	ov_clear(&vf);
 	delete vorbisMemoryFile;

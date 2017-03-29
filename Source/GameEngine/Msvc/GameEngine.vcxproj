@@ -395,7 +395,6 @@
     <ClInclude Include="..\Game\View\UI\DefaultUIElementFactory.h" />
     <ClInclude Include="..\Game\View\UI\UIElement.h" />
     <ClInclude Include="..\Game\View\UI\UIElementFactory.h" />
-    <ClInclude Include="..\Game\View\UI\UIElementTypes.h" />
     <ClInclude Include="..\Game\View\UI\UIFont.h" />
     <ClInclude Include="..\Game\View\UI\UIRoot.h" />
     <ClInclude Include="..\Game\View\UI\UISkin.h" />

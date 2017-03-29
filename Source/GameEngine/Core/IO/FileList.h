@@ -15,43 +15,43 @@ struct FileListEntry
 	//! The name of the file
 	/** If this is a file or folder in the virtual filesystem and the archive
 	was created with the ignoreCase flag then the file name will be lower case. */
-	eastl::wstring m_Name;
+	eastl::wstring mName;
 
 	//! The name of the file including the path
 	/** If this is a file or folder in the virtual filesystem and the archive was
 	created with the ignoreDirs flag then it will be the same as Name. */
-	eastl::wstring m_FullName;
+	eastl::wstring mFullName;
 
 	//! The size of the file in bytes
-	unsigned int m_Size;
+	unsigned int mSize;
 
 	//! The ID of the file in an archive
 	/** This is used to link the FileList entry to extra info held about this
 	file in an archive, which can hold things like data offset and CRC. */
-	unsigned int m_ID;
+	unsigned int mID;
 
 	//! FileOffset inside an archive
-	unsigned int m_Offset;
+	unsigned int mOffset;
 
 	//! True if this is a folder, false if not.
-	bool m_IsDirectory;
+	bool mIsDirectory;
 
 	//! The == operator is provided so that FileList can slowly search the list!
 	bool operator ==(const struct FileListEntry& other) const
 	{
-		if (m_IsDirectory != other.m_IsDirectory)
+		if (mIsDirectory != other.mIsDirectory)
 			return false;
 
-		return m_FullName == other.m_FullName;
+		return mFullName == other.mFullName;
 	}
 
 	//! The < operator is provided so that FileList can sort and quickly search the list.
 	bool operator <(const struct FileListEntry& other) const
 	{
-		if (m_IsDirectory != other.m_IsDirectory)
-			return m_IsDirectory;
+		if (mIsDirectory != other.mIsDirectory)
+			return mIsDirectory;
 
-		return m_FullName < other.m_FullName;
+		return mFullName < other.mFullName;
 	}
 };
 
@@ -140,16 +140,16 @@ public:
 protected:
 
 	//! Ignore paths when adding or searching for files
-	bool m_IgnorePaths;
+	bool mIgnorePaths;
 
 	//! Ignore case when adding or searching for files
-	bool m_IgnoreCase;
+	bool mIgnoreCase;
 
 	//! Path to the file list
-	eastl::wstring m_FileListPath;
+	eastl::wstring mFileListPath;
 
 	//! List of files
-	eastl::vector<FileListEntry> m_Files;
+	eastl::vector<FileListEntry> mFiles;
 };
 
 

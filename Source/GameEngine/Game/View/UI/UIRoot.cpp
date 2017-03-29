@@ -6,8 +6,8 @@
 #include "UserInterface.h"
 
 //! constructor
-UIRoot::UIRoot(BaseUI* ui, EUI_ELEMENT_TYPE type, int id, RectangleBase<2, int> rectangle)
-:	UIElement(type, id, rectangle), UI(ui)
+UIRoot::UIRoot(BaseUI* ui, UIElementType type, int id, RectangleBase<2, int> rectangle)
+:	UIElement(type, id, rectangle), mUI(ui)
 {
 }
 
@@ -15,11 +15,11 @@ UIRoot::UIRoot(BaseUI* ui, EUI_ELEMENT_TYPE type, int id, RectangleBase<2, int> 
 bool UIRoot::OnEvent(const Event& evt)
 {
 	bool ret = false;
-	if (UI && (evt.mEventType != ET_MOUSE_INPUT_EVENT)
+	if (mUI && (evt.mEventType != ET_MOUSE_INPUT_EVENT)
 		&& (evt.mEventType != ET_KEY_INPUT_EVENT)
 		&& (evt.mEventType != ET_UI_EVENT || evt.mUIEvent.mCaller != this))
 	{
-		ret = UI->OnEvent(evt);
+		ret = mUI->OnEvent(evt);
 	}
 
 	return ret;

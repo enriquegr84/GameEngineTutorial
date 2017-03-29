@@ -22,7 +22,7 @@ public:
 	\param parent: Parent scene node of the new element. A value of 0 adds it to the root.
 	\return Returns pointer to the new element or 0 if unsuccessful. */
 	virtual eastl::shared_ptr<UIElement> AddUIElement(
-		EUI_ELEMENT_TYPE type, const eastl::shared_ptr<UIElement>& parent=0);
+		UIElementType type, const eastl::shared_ptr<UIElement>& parent=0);
 
 	//! Returns the amount of GUI element types this factory is able to create.
 	virtual int GetCreatableUIElementTypeCount() const;

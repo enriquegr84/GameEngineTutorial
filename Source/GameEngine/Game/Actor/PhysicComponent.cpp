@@ -49,26 +49,26 @@ const float DEFAULT_MAX_ANGULAR_VELOCITY = 1.2f;
 // PhysicsComponent implementation
 //---------------------------------------------------------------------------------------------------------------------
 
-const char *PhysicComponent::g_Name = "PhysicsComponent";
+const char *PhysicComponent::Name = "PhysicsComponent";
 
 
 PhysicComponent::PhysicComponent(void)
 {
-	m_RigidBodyLocation.MakeZero();
-	m_RigidBodyOrientation.MakeZero();
-	m_RigidBodyScale.MakeUnit(3);
+	mRigidBodyLocation.MakeZero();
+	mRigidBodyOrientation.MakeZero();
+	mRigidBodyScale.MakeUnit(3);
 
-    m_acceleration = 0;
-    m_angularAcceleration = 0;
-    m_maxVelocity = DEFAULT_MAX_VELOCITY;
-    m_maxAngularVelocity = DEFAULT_MAX_ANGULAR_VELOCITY;
+    mAcceleration = 0;
+    mAngularAcceleration = 0;
+    mMaxVelocity = DEFAULT_MAX_VELOCITY;
+    mMaxAngularVelocity = DEFAULT_MAX_ANGULAR_VELOCITY;
 }
 
 PhysicComponent::~PhysicComponent(void)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
-	gamePhysics->RemoveActor(m_pOwner->GetId());
+	gamePhysics->RemoveActor(mOwner->GetId());
 }
 
 bool PhysicComponent::Init(XMLElement* pData)
@@ -83,18 +83,18 @@ bool PhysicComponent::Init(XMLElement* pData)
     XMLElement* pShape = pData->FirstChildElement("Shape");
     if (pShape)
     {
-		m_shape = pShape->FirstChild()->Value();
+		mShape = pShape->FirstChild()->Value();
     }
 
     // density
     XMLElement* pDensity = pData->FirstChildElement("Density");
     if (pDensity)
-        m_density = pDensity->FirstChild()->Value();
+        mDensity = pDensity->FirstChild()->Value();
 
     // material
     XMLElement* pMaterial = pData->FirstChildElement("PhysicMaterial");
     if (pMaterial)
-        m_material = pMaterial->FirstChild()->Value();
+        mMaterial = pMaterial->FirstChild()->Value();
 
     // initial transform
     XMLElement* pRigidBodyTransform = pData->FirstChildElement("RigidBodyTransform");
@@ -113,19 +113,19 @@ XMLElement* PhysicComponent::GenerateXml(void)
 
     // shape
 	XMLElement* pShape = doc.NewElement("Shape");
-    XMLText* pShapeText = doc.NewText(m_shape.c_str());
+    XMLText* pShapeText = doc.NewText(mShape.c_str());
     pShape->LinkEndChild(pShapeText);
 	pBaseElement->LinkEndChild(pShape);
 
     // density
     XMLElement* pDensity = doc.NewElement("Density");
-	XMLText* pDensityText = doc.NewText(m_density.c_str());
+	XMLText* pDensityText = doc.NewText(mDensity.c_str());
     pDensity->LinkEndChild(pDensityText);
     pBaseElement->LinkEndChild(pDensity);
 
     // material
     XMLElement* pMaterial = doc.NewElement("Material");
-	XMLText* pMaterialText = doc.NewText(m_material.c_str());
+	XMLText* pMaterialText = doc.NewText(mMaterial.c_str());
     pMaterial->LinkEndChild(pMaterialText);
     pBaseElement->LinkEndChild(pMaterial);
 
@@ -134,23 +134,23 @@ XMLElement* PhysicComponent::GenerateXml(void)
 
     // initial transform -> position
     XMLElement* pPosition = doc.NewElement("Position");
-    pPosition->SetAttribute("x", eastl::to_string(m_RigidBodyLocation[0]).c_str());
-    pPosition->SetAttribute("y", eastl::to_string(m_RigidBodyLocation[1]).c_str());
-    pPosition->SetAttribute("z", eastl::to_string(m_RigidBodyLocation[2]).c_str());
+    pPosition->SetAttribute("x", eastl::to_string(mRigidBodyLocation[0]).c_str());
+    pPosition->SetAttribute("y", eastl::to_string(mRigidBodyLocation[1]).c_str());
+    pPosition->SetAttribute("z", eastl::to_string(mRigidBodyLocation[2]).c_str());
     pInitialTransform->LinkEndChild(pPosition);
 
     // initial transform -> orientation
     XMLElement* pOrientation = doc.NewElement("Orientation");
-    pOrientation->SetAttribute("yaw", eastl::to_string(m_RigidBodyOrientation[0]).c_str());
-    pOrientation->SetAttribute("pitch", eastl::to_string(m_RigidBodyOrientation[1]).c_str());
-    pOrientation->SetAttribute("roll", eastl::to_string(m_RigidBodyOrientation[2]).c_str());
+    pOrientation->SetAttribute("yaw", eastl::to_string(mRigidBodyOrientation[0]).c_str());
+    pOrientation->SetAttribute("pitch", eastl::to_string(mRigidBodyOrientation[1]).c_str());
+    pOrientation->SetAttribute("roll", eastl::to_string(mRigidBodyOrientation[2]).c_str());
     pInitialTransform->LinkEndChild(pOrientation);
 
 	// initial transform -> scale 
     XMLElement* pScale = doc.NewElement("Scale");
-    pScale->SetAttribute("x", eastl::to_string(m_RigidBodyScale[0]).c_str());
-    pScale->SetAttribute("y", eastl::to_string(m_RigidBodyScale[1]).c_str());
-    pScale->SetAttribute("z", eastl::to_string(m_RigidBodyScale[2]).c_str());
+    pScale->SetAttribute("x", eastl::to_string(mRigidBodyScale[0]).c_str());
+    pScale->SetAttribute("y", eastl::to_string(mRigidBodyScale[1]).c_str());
+    pScale->SetAttribute("z", eastl::to_string(mRigidBodyScale[2]).c_str());
     pInitialTransform->LinkEndChild(pScale);
 
     pBaseElement->LinkEndChild(pInitialTransform);
@@ -160,20 +160,20 @@ XMLElement* PhysicComponent::GenerateXml(void)
 
 void PhysicComponent::PostInit(void)
 {
-    if (m_pOwner)
+    if (mOwner)
     {
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
 
-		if (m_shape == "Sphere")
+		if (mShape == "Sphere")
 		{
-			gamePhysics->AddSphere((float)m_RigidBodyScale[0], m_pOwner, m_density, m_material);
+			gamePhysics->AddSphere((float)mRigidBodyScale[0], mOwner, mDensity, mMaterial);
 		}
-		else if (m_shape == "Box")
+		else if (mShape == "Box")
 		{
-			gamePhysics->AddBox(m_RigidBodyScale, m_pOwner, m_density, m_material);
+			gamePhysics->AddBox(mRigidBodyScale, mOwner, mDensity, mMaterial);
 		}
-		else if (m_shape == "PointCloud")
+		else if (mShape == "PointCloud")
 		{
 			LogError("Not supported yet!");
 		}
@@ -184,7 +184,7 @@ void PhysicComponent::Update(int deltaMs)
 {
     // get the transform component
     eastl::shared_ptr<TransformComponent> pTransformComponent(
-		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		mOwner->GetComponent<TransformComponent>(TransformComponent::Name));
     if (!pTransformComponent)
     {
         LogError("No transform component!");
@@ -193,16 +193,16 @@ void PhysicComponent::Update(int deltaMs)
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
-	if (m_acceleration != 0)
+	if (mAcceleration != 0)
     {
         // calculate the acceleration this frame
 
-        float accelerationPerFrame = m_acceleration / 1000.f * (float)deltaMs;
+        float accelerationPerFrame = mAcceleration / 1000.f * (float)deltaMs;
 
         // Get the current velocity vector and convert to a scalar. The velocity vector 
 		// is a combination of the direction this actor is going in and the speed of the 
 		// actor. The scalar is just the speed component.
-        Vector3<float> velocity(gamePhysics->GetVelocity(m_pOwner->GetId()));
+        Vector3<float> velocity(gamePhysics->GetVelocity(mOwner->GetId()));
         float velocityScalar = Length(velocity);
 
 		EulerAngles<float> rotation;
@@ -211,7 +211,7 @@ void PhysicComponent::Update(int deltaMs)
 		transform.GetRotation(rotation);
 
 		Vector3<float> direction{ rotation.angle[0], rotation.angle[1], rotation.angle[2] };
-		gamePhysics->ApplyForce(direction, accelerationPerFrame, m_pOwner->GetId());
+		gamePhysics->ApplyForce(direction, accelerationPerFrame, mOwner->GetId());
 
         // logging
         // [rez] Comment this back in if you want to debug the physics thrust & rotation stuff. It spams quite 
@@ -227,12 +227,12 @@ void PhysicComponent::Update(int deltaMs)
         LogInformation(info);
     }
 
-    if (m_angularAcceleration != 0)
+    if (mAngularAcceleration != 0)
     {
         // calculate the acceleration this frame
 		Vector3<float> upVector{ 0.f,1.f,0.f };
-        float angularAccelerationToApplyThisFrame = m_angularAcceleration / 1000.f * (float)deltaMs;
-		gamePhysics->ApplyTorque(upVector, angularAccelerationToApplyThisFrame, m_pOwner->GetId());
+        float angularAccelerationToApplyThisFrame = mAngularAcceleration / 1000.f * (float)deltaMs;
+		gamePhysics->ApplyTorque(upVector, angularAccelerationToApplyThisFrame, mOwner->GetId());
 
         // logging
         // [rez] Comment this back in if you want to debug the physics thrust & rotation stuff.  It spams quite 
@@ -252,7 +252,7 @@ void PhysicComponent::BuildRigidBodyTransform(XMLElement* pTransformElement)
         x = pPositionElement->FloatAttribute("x", x);
         y = pPositionElement->FloatAttribute("y", y);
         z = pPositionElement->FloatAttribute("z", z);
-		m_RigidBodyLocation = Vector3<float>{ x, y, z };
+		mRigidBodyLocation = Vector3<float>{ x, y, z };
     }
 
     XMLElement* pOrientationElement = pTransformElement->FirstChildElement("Orientation");
@@ -264,7 +264,7 @@ void PhysicComponent::BuildRigidBodyTransform(XMLElement* pTransformElement)
         yaw = pPositionElement->FloatAttribute("yaw", yaw);
         pitch = pPositionElement->FloatAttribute("pitch", pitch);
         roll = pPositionElement->FloatAttribute("roll", roll);
-		m_RigidBodyOrientation = Vector3<float>{ yaw, pitch, roll };
+		mRigidBodyOrientation = Vector3<float>{ yaw, pitch, roll };
     }
 
     XMLElement* pScaleElement = pTransformElement->FirstChildElement("Scale");
@@ -276,7 +276,7 @@ void PhysicComponent::BuildRigidBodyTransform(XMLElement* pTransformElement)
         x = pScaleElement->FloatAttribute("x", x);
         y = pScaleElement->FloatAttribute("y", y);
         z = pScaleElement->FloatAttribute("z", z);
-		m_RigidBodyScale = Vector3<float>{ x, y, z };
+		mRigidBodyScale = Vector3<float>{ x, y, z };
     }
 }
 
@@ -284,61 +284,61 @@ void PhysicComponent::ApplyForce(const Vector3<float>& direction, float forceNew
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
-    gamePhysics->ApplyForce(direction, forceNewtons, m_pOwner->GetId());
+    gamePhysics->ApplyForce(direction, forceNewtons, mOwner->GetId());
 }
 
 void PhysicComponent::ApplyTorque(const Vector3<float>& direction, float forceNewtons)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
-    gamePhysics->ApplyTorque(direction, forceNewtons, m_pOwner->GetId());
+    gamePhysics->ApplyTorque(direction, forceNewtons, mOwner->GetId());
 }
 
 bool PhysicComponent::KinematicMove(const Transform &transform)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
-	return gamePhysics->KinematicMove(transform, m_pOwner->GetId());
+	return gamePhysics->KinematicMove(transform, mOwner->GetId());
 }
 
 void PhysicComponent::ApplyAcceleration(float acceleration)
 {
-    m_acceleration = acceleration;
+    mAcceleration = acceleration;
 }
 
 void PhysicComponent::RemoveAcceleration(void)
 {
-    m_acceleration = 0;
+    mAcceleration = 0;
 }
 
 void PhysicComponent::ApplyAngularAcceleration(float acceleration)
 {
-    m_angularAcceleration = acceleration;
+    mAngularAcceleration = acceleration;
 }
 
 void PhysicComponent::RemoveAngularAcceleration(void)
 {
-    m_angularAcceleration = 0;
+    mAngularAcceleration = 0;
 }
 
 Vector3<float> PhysicComponent::GetVelocity(void)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
-    return gamePhysics->GetVelocity(m_pOwner->GetId());
+    return gamePhysics->GetVelocity(mOwner->GetId());
 }
 
 void PhysicComponent::SetVelocity(const Vector3<float>& velocity)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
-    gamePhysics->SetVelocity(m_pOwner->GetId(), velocity);
+    gamePhysics->SetVelocity(mOwner->GetId(), velocity);
 }
 
 void PhysicComponent::RotateY(float angleRadians)
 {
     eastl::shared_ptr<TransformComponent> pTransformComponent(
-		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		mOwner->GetComponent<TransformComponent>(TransformComponent::Name));
     if (pTransformComponent)
     {
 		Transform transform = pTransformComponent->GetTransform();
@@ -358,7 +358,7 @@ void PhysicComponent::RotateY(float angleRadians)
 void PhysicComponent::SetPosition(float x, float y, float z)
 {
     eastl::shared_ptr<TransformComponent> pTransformComponent(
-		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		mOwner->GetComponent<TransformComponent>(TransformComponent::Name));
     if (pTransformComponent)
     {
 		Transform transform = pTransformComponent->GetTransform();
@@ -375,5 +375,5 @@ void PhysicComponent::Stop(void)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
-    return gamePhysics->StopActor(m_pOwner->GetId());
+    return gamePhysics->StopActor(mOwner->GetId());
 }

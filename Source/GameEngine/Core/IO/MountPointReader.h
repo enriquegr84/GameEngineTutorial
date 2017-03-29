@@ -31,14 +31,14 @@ public:
 	virtual const BaseFileList* GetFileList();
 
 	//! get the class Type
-	virtual E_FILE_ARCHIVE_TYPE GetType() const { return EFAT_FOLDER; }
+	virtual FileArchiveType GetType() const { return FAT_FOLDER; }
 
 	//! return the name (id) of the file Archive
-	virtual const eastl::wstring& GetArchiveName() const {return m_FileListPath;}
+	virtual const eastl::wstring& GetArchiveName() const {return mFileListPath;}
 
 private:
 
-	eastl::vector<eastl::wstring> m_RealFileNames;
+	eastl::vector<eastl::wstring> mRealFileNames;
 
 	void BuildDirectory();
 };
@@ -78,12 +78,12 @@ protected:
 	/** Check based on the archive type.
 	\param fileType The archive type to check.
 	\return True if the archile loader supports this type, false if not */
-	virtual bool IsALoadableFileFormat(E_FILE_ARCHIVE_TYPE fileType) const;
+	virtual bool IsALoadableFileFormat(FileArchiveType fileType) const;
 
 private:
 
-	eastl::wstring m_resFileName;
-	eastl::shared_ptr<MountPointReader> m_pMountPointFile;
+	eastl::wstring mResFileName;
+	eastl::shared_ptr<MountPointReader> mMountPointFile;
 };
 
 #endif

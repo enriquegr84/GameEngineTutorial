@@ -50,9 +50,9 @@
 // SoundProcess::SoundProcess				- Chapter 13, page 428
 //
 SoundProcess::SoundProcess(eastl::shared_ptr<ResHandle> resource, int volume, bool looping) :
-	m_handle(resource),
-	m_Volume(volume),
-	m_isLooping(looping)
+	mHandle(resource),
+	mVolume(volume),
+	mIsLooping(looping)
 {
 	InitializeVolume();
 }
@@ -66,8 +66,8 @@ SoundProcess::~SoundProcess()
     if (IsPlaying())
         Stop();
 
-	if (m_AudioBuffer)
-		g_pAudio->ReleaseAudioBuffer(m_AudioBuffer.get());
+	if (mAudioBuffer)
+		Audio::AudioSystem->ReleaseAudioBuffer(mAudioBuffer.get());
 }
 
 
@@ -82,11 +82,11 @@ void SoundProcess::InitializeVolume()
 //
 int SoundProcess::GetLengthMilli()
 {
-	if ( m_handle && m_handle->GetExtra())
+	if ( mHandle && mHandle->GetExtra())
 	{
 		eastl::shared_ptr<SoundResourceExtraData> extra = 
-			eastl::static_pointer_cast<SoundResourceExtraData>(m_handle->GetExtra());
-		return extra->GetLengthMilli();
+			eastl::static_pointer_cast<SoundResourceExtraData>(mHandle->GetExtra());
+		return extra->GetLength();
 	}
 	else
     {
@@ -106,11 +106,11 @@ void SoundProcess::OnInit()
     Process::OnInit();
 
 	//If the sound has never been... you know... then Play it for the very first time
-	if ( m_handle == NULL || m_handle->GetExtra() == NULL)
+	if ( mHandle == NULL || mHandle->GetExtra() == NULL)
 		return;
 
 	//This sound will manage it's own handle in the other thread
-	BaseAudioBuffer *buffer = g_pAudio->InitAudioBuffer(m_handle);
+	BaseAudioBuffer *buffer = Audio::AudioSystem->InitAudioBuffer(mHandle);
 
 	if (!buffer)
 	{
@@ -118,9 +118,9 @@ void SoundProcess::OnInit()
 		return;
 	}
 
-	m_AudioBuffer.reset(buffer);	
+	mAudioBuffer.reset(buffer);	
 
-	Play(m_Volume, m_isLooping);
+	Play(mVolume, mIsLooping);
 }
 
 /*
@@ -142,10 +142,10 @@ void SoundProcess::OnUpdate(unsigned long deltaMs)
 //
 bool SoundProcess::IsPlaying()
 {
-	if ( ! m_handle || ! m_AudioBuffer )
+	if ( ! mHandle || ! mAudioBuffer )
 		return false;
 	
-	return m_AudioBuffer->IsPlaying();
+	return mAudioBuffer->IsPlaying();
 }
 
 //
@@ -153,14 +153,14 @@ bool SoundProcess::IsPlaying()
 //
 void SoundProcess::SetVolume(int volume)
 {
-	if(m_AudioBuffer==NULL)
+	if(mAudioBuffer==NULL)
 	{
 		return;
 	}
 
 	LogAssert(volume>=0 && volume<=100, "Volume must be a number between 0 and 100");
-	m_Volume = volume;
-	m_AudioBuffer->SetVolume(volume);
+	mVolume = volume;
+	mAudioBuffer->SetVolume(volume);
 }
 
 //
@@ -168,13 +168,13 @@ void SoundProcess::SetVolume(int volume)
 //
 int SoundProcess::GetVolume()
 {
-	if(m_AudioBuffer==NULL)
+	if(mAudioBuffer==NULL)
 	{
 		return 0;
 	}
 
-	m_Volume = m_AudioBuffer->GetVolume();
-	return m_Volume;
+	mVolume = mAudioBuffer->GetVolume();
+	return mVolume;
 }
 
 //
@@ -183,8 +183,8 @@ int SoundProcess::GetVolume()
 //
 void SoundProcess::PauseSound()
 {
-	if (m_AudioBuffer)
-		m_AudioBuffer->TogglePause();
+	if (mAudioBuffer)
+		mAudioBuffer->TogglePause();
 }
 
 //
@@ -194,12 +194,12 @@ void SoundProcess::Play(const int volume, const bool looping)
 {
 	LogAssert(volume>=0 && volume<=100, "Volume must be a number between 0 and 100");
 
-	if(!m_AudioBuffer)
+	if(!mAudioBuffer)
 	{
 		return;
 	}
 	
-	m_AudioBuffer->Play(volume, looping);
+	mAudioBuffer->Play(volume, looping);
 }
 
 //
@@ -207,9 +207,9 @@ void SoundProcess::Play(const int volume, const bool looping)
 //
 void SoundProcess::Stop()
 {
-	if (m_AudioBuffer)
+	if (mAudioBuffer)
 	{
-		m_AudioBuffer->Stop();
+		mAudioBuffer->Stop();
 	}
 }
 
@@ -218,9 +218,9 @@ void SoundProcess::Stop()
 //
 float SoundProcess::GetProgress()
 {
-	if (m_AudioBuffer)
+	if (mAudioBuffer)
 	{
-		return m_AudioBuffer->GetProgress();
+		return mAudioBuffer->GetProgress();
 	}
 
 	return 0.0f;
@@ -237,7 +237,7 @@ void ExplosionProcess::OnInit()
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	eastl::shared_ptr<ResHandle> srh = gameApp->mResCache->GetHandle(&resource);
-	m_Sound.reset(new SoundProcess(srh));
+	mSound.reset(new SoundProcess(srh));
 
 	// Imagine cool explosion graphics setup code here!!!!
 	//
@@ -251,15 +251,15 @@ void ExplosionProcess::OnInit()
 void ExplosionProcess::OnUpdate(unsigned long deltaMs)
 {
 	// Since the sound is the real pacing mechanism - we ignore deltaMilliseconds
-	float progress = m_Sound->GetProgress();
+	float progress = mSound->GetProgress();
 	
-	switch (m_Stage)
+	switch (mStage)
 	{
 		case 0:
         {
 			if (progress > 0.55f)
 			{
-				++m_Stage;
+				++mStage;
 				// Imagine secondary explosion effect launch right here!
 			}
 			break;
@@ -269,7 +269,7 @@ void ExplosionProcess::OnUpdate(unsigned long deltaMs)
         {
 			if (progress > 0.75f)
 			{
-				++m_Stage;
+				++mStage;
 				// Imagine tertiary explosion effect launch right here!
 			}
 			break;
@@ -293,11 +293,11 @@ void ExplosionProcess::OnUpdate(unsigned long deltaMs)
 //
 FadeProcess::FadeProcess(eastl::shared_ptr<SoundProcess> sound, int fadeTime, int endVolume)
 {
-	m_Sound = sound;
-	m_TotalFadeTime = fadeTime;
-	m_StartVolume = sound->GetVolume();
-	m_EndVolume = endVolume;
-	m_ElapsedTime = 0;
+	mSound = sound;
+	mTotalFadeTime = fadeTime;
+	mStartVolume = sound->GetVolume();
+	mEndVolume = endVolume;
+	mElapsedTime = 0;
 
 	OnUpdate(0);
 }
@@ -307,24 +307,24 @@ FadeProcess::FadeProcess(eastl::shared_ptr<SoundProcess> sound, int fadeTime, in
 //
 void FadeProcess::OnUpdate(unsigned long deltaMs)
 {
-    m_ElapsedTime += deltaMs;
+    mElapsedTime += deltaMs;
 
-	if (m_Sound->IsDead())
+	if (mSound->IsDead())
 		Succeed();
 
-	float cooef = (float)m_ElapsedTime / m_TotalFadeTime;
+	float cooef = (float)mElapsedTime / mTotalFadeTime;
 	if (cooef>1.0f)
 		cooef = 1.0f;
 	if (cooef<0.0f)
 		cooef = 0.0f;
 
-	int newVolume = m_StartVolume + (int)( float(m_EndVolume - m_StartVolume) * cooef);
+	int newVolume = mStartVolume + (int)( float(mEndVolume - mStartVolume) * cooef);
 
-	if (m_ElapsedTime >= m_TotalFadeTime)
+	if (mElapsedTime >= mTotalFadeTime)
 	{
-		newVolume = m_EndVolume;
+		newVolume = mEndVolume;
 		Succeed();
 	}
 
-	m_Sound->SetVolume(newVolume);
+	mSound->SetVolume(newVolume);
 }

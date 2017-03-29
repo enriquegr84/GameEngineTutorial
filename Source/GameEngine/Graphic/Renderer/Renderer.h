@@ -13,14 +13,60 @@
 
 #include "Graphic/Graphic.h"
 
-// The Renderer class is an abstract interface that is implemented by each
-// platform of interest (Direct3D, OpenGL, software, embedded devices, etc.).
-// The class description is factored into two sections. The first section
-// lists the platform-independent functions and data. These are implemented
-// in LibGraphics files Renderer.{h,inl,cpp}. The second section lists
-// the platform-dependent functions and data.  These are implemented by each
-// platform of interest in the LibRenderers folder.
+/*
+	3D Graphics Pipeline
 
+	It describes the process of getting a 3D scene up on a screen. It implies a beginning that 
+	accepts raw materials, a process that occurs along the way, and a conclusion from which the 
+	refined result pours. This is analogous to what happens inside 3D game engines. The raw 
+	materials or resources used in the pipeline include:
+	-	Geometry: Everything you see on the screen starts with descriptions of their shape. Each 
+		shape is broken down into triangles, each of which is composed of three vertices, which 
+		is a basic drawable element in 3D engines. Some renderers support points, lines, and even 
+		curved surfaces, but the triangle is by far the most common. 
+		Meshes are collections of triangles.
+	-	Materials: These elements describe appearance. You can imagine materials as paint that 
+		you apply to the geometry. Each material can describe colors, translucency, and how the 
+		material reflects light.
+	-	Textures: These are images that can be applied to objects, just as you might have applied 
+		decals to plastic models or wallpaper to your kitchen.
+	-	Lights: You must have light to see anything. Light can affect an entire scene or have a 
+		local effect that mimics a spotlight.
+	-	Camera: Records the scene onto a render target, such as the screen. It even describes 
+		what kind of lens is used, such as a wide or narrow angle lens. You can have multiple 
+		cameras to split the screen for a multiplayer game or render a different view to create 
+		a rearview mirror.
+	-	Shader: A shader is a bit of code that runs on the video card. It is able to consume
+		all of the above and calculate exactly what pixels to paint to the screen in the right 
+		positions to faithfully render every triangle the camera can see. Shaders typically work 
+		on either vertex positions or individual pixels inside a triangle, but in truth they can 
+		be much more general than that.
+
+	Some of the processes applied to the raw materials include the following:
+	-	Transformations: The same object can appear in the world in different orientations and 
+		locations. Objects are manipulated in 3D space via matrix multiplications.
+	-	Culling: At the object level, visible objects are inserted into a list of objects that
+		are in view of the camera; at the triangle level, individual triangles are removed if 
+		they don’t meet certain criteria, such as facing the camera.
+	-	Lighting: Each object in range of a light source is illuminated by calculating
+		additional colors applied to each vertex.
+	-	Rasterization: Polygons are drawn, sometimes in many passes, to handle additional
+		effects such as lighting and shadows.
+		
+		Graphics pipelines also come in two flavors: fixed-function and programmable. The
+		fixed-function pipeline sets rendering states and then uses those states to draw 
+		elements with those exact states. A programmable pipeline is much more flexible, it 
+		allows programmers to have detailed control over every pixel on the screen.
+*/
+
+/*
+	The Renderer class is an abstract interface that is implemented by each platform of 
+	interest (Direct3D, OpenGL, software, embedded devices, etc.). The class description 
+	is factored into two sections. The first section lists the platform-independent 
+	functions and data. These are implemented in LibGraphics files Renderer.{h,inl,cpp}. 
+	The second section lists the platform-dependent functions and data. These are implemented 
+	by each platform of interest in the LibRenderers folder.
+*/
 class GRAPHIC_ITEM Renderer
 {
 public:

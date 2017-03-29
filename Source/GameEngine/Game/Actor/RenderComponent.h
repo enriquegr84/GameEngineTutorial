@@ -54,12 +54,12 @@
 //---------------------------------------------------------------------------------------------------------------------
 class MeshRenderComponent : public BaseRenderComponent
 {
-	eastl::string m_meshModelFile;;
-	eastl::string m_meshTextureFile;
+	eastl::string mMeshModelFile;;
+	eastl::string mMeshTextureFile;
 
 public:
-	static const char *g_Name;
-	virtual const char *GetName() const { return g_Name; }
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
 
     MeshRenderComponent(void);
 
@@ -76,12 +76,12 @@ protected:
 //---------------------------------------------------------------------------------------------------------------------
 class SphereRenderComponent : public BaseRenderComponent
 {
-    unsigned int m_segments;
-	float m_radius;
+    unsigned int mSegments;
+	float mRadius;
 
 public:
-	static const char *g_Name;
-	virtual const char *GetName() const { return g_Name; }
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
 
     SphereRenderComponent(void);
 
@@ -100,8 +100,8 @@ protected:
 class TeapotRenderComponent : public BaseRenderComponent
 {
 public:
-	static const char *g_Name;
-	virtual const char *GetName() const { return g_Name; }
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
 
 protected:
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
@@ -116,16 +116,16 @@ protected:
 //---------------------------------------------------------------------------------------------------------------------
 class GridRenderComponent : public BaseRenderComponent
 {
-    eastl::string m_textureResource;
-    int m_squares;
+    eastl::string mTextureResource;
+    int mSquares;
 
 public:
 	static const char *g_Name;
 	virtual const char *GetName() const { return g_Name; }
 
     GridRenderComponent(void);
-	const char* GetTextureResource() { return m_textureResource.c_str(); }
-	const int GetDivision() { return m_squares; }
+	const char* GetTextureResource() { return mTextureResource.c_str(); }
+	const int GetDivision() { return mSquares; }
 
 protected:
     virtual bool DelegateInit(XMLElement* pData) override;
@@ -141,20 +141,20 @@ protected:
 //---------------------------------------------------------------------------------------------------------------------
 class LightRenderComponent : public BaseRenderComponent
 {
-	//Light m_Props; 
+	//Light mProps; 
 
-	float m_animatorSpeed;
+	float mAnimatorSpeed;
 	eastl::string m_animatorType;
 	Vector3<float> m_animatorCenter;
 
 	bool m_addBillboard;
-	eastl::string m_billboardMaterial;
-	eastl::string m_billboardTexture;
-	Vector2<float> m_billboardSize;
+	eastl::string mBillboardMaterial;
+	eastl::string mBillboardTexture;
+	Vector2<float> mBillboardSize;
 
 public:
-	static const char *g_Name;
-	virtual const char *GetName() const { return g_Name; }
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
 
     LightRenderComponent(void);
 
@@ -174,8 +174,8 @@ class ParticleSystemRenderComponent : public BaseRenderComponent
 {
 
 public:
-	static const char *g_Name;
-	virtual const char *GetName() const { return g_Name; }
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
 
     ParticleSystemRenderComponent(void);
 
@@ -193,11 +193,11 @@ protected:
 //---------------------------------------------------------------------------------------------------------------------
 class SkyRenderComponent : public BaseRenderComponent
 {
-	eastl::string m_textureResource;
+	eastl::string mTextureResource;
 
 public:
-	static const char *g_Name;
-	virtual const char *GetName() const { return g_Name; }
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
 
     SkyRenderComponent(void);
 

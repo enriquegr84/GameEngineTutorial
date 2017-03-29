@@ -11,8 +11,8 @@
 //! Constructor
 ResourceMountPointFile::ResourceMountPointFile(const eastl::wstring resFileName)
 { 
-	m_pMountPointFile.reset(); 
-	m_resFileName = resFileName; 
+	mMountPointFile.reset(); 
+	mResFileName = resFileName; 
 }
 
 //! returns true if the file maybe is able to be loaded by this class
@@ -30,7 +30,7 @@ bool ResourceMountPointFile::IsALoadableFileFormat(const eastl::wstring& filenam
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	FileSystem* fileSystem = gameApp->mFileSystem.get();
-	E_FILESYSTEM_TYPE current = fileSystem->SetFileSystemType(FILESYSTEM_NATIVE);
+	BaseFileSystemType current = fileSystem->SetFileSystemType(FILESYSTEM_NATIVE);
 
 	const eastl::wstring save = fileSystem->GetWorkingDirectory();
 	eastl::wstring fullPath = fileSystem->GetAbsolutePath(filename);
@@ -45,9 +45,9 @@ bool ResourceMountPointFile::IsALoadableFileFormat(const eastl::wstring& filenam
 }
 
 //! Check to see if the loader can create archives of this type.
-bool ResourceMountPointFile::IsALoadableFileFormat(E_FILE_ARCHIVE_TYPE fileType) const
+bool ResourceMountPointFile::IsALoadableFileFormat(FileArchiveType fileType) const
 {
-	return fileType == EFAT_FOLDER;
+	return fileType == FAT_FOLDER;
 }
 
 //! Check if the file might be loaded by this class
@@ -58,7 +58,7 @@ bool ResourceMountPointFile::IsALoadableFileFormat(BaseReadFile* file) const
 
 bool ResourceMountPointFile::ExistFile(const eastl::wstring& filename) const
 {
-	if (m_pMountPointFile->GetFileList()->FindFile(filename) != -1)
+	if (mMountPointFile->GetFileList()->FindFile(filename) != -1)
 		return true;
 
 	return false;
@@ -66,7 +66,7 @@ bool ResourceMountPointFile::ExistFile(const eastl::wstring& filename) const
 
 bool ResourceMountPointFile::ExistDirectory(const eastl::wstring& dir) const
 {
-	if (m_pMountPointFile->GetFileList()->FindFile(dir,true) != -1)
+	if (mMountPointFile->GetFileList()->FindFile(dir,true) != -1)
 		return true;
 
 	return false;
@@ -75,25 +75,25 @@ bool ResourceMountPointFile::ExistDirectory(const eastl::wstring& dir) const
 
 bool ResourceMountPointFile::Open()
 {
-	m_pMountPointFile.reset();
+	mMountPointFile.reset();
 	bool ignoreCase = true;
 	bool ignorePaths = false;
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	FileSystem* fileSystem = gameApp->mFileSystem.get();
-	if (IsALoadableFileFormat(m_resFileName))
+	if (IsALoadableFileFormat(mResFileName))
 	{
-		m_pMountPointFile.reset(dynamic_cast<MountPointReader*>(
-			fileSystem->CreateMountPointFileArchive(m_resFileName, ignoreCase, ignorePaths)));
+		mMountPointFile.reset(dynamic_cast<MountPointReader*>(
+			fileSystem->CreateMountPointFileArchive(mResFileName, ignoreCase, ignorePaths)));
 		return true;
 	}
 
 	return false;
 /*
-	m_pMountPointFile = new PakFile;
-    if (m_pMountPointFile)
+	mMountPointFile = new PakFile;
+    if (mMountPointFile)
     {
-		return m_pMountPointFile->Init(m_resFileName.c_str());
+		return mMountPointFile->Init(mResFileName.c_str());
 	}
 	return false;	
 */
@@ -102,7 +102,7 @@ bool ResourceMountPointFile::Open()
 int ResourceMountPointFile::GetRawResource(const BaseResource &r, void** buffer)
 {
 	int size = 0;
-	BaseReadFile* file = m_pMountPointFile->CreateAndOpenFile(r.m_name);
+	BaseReadFile* file = mMountPointFile->CreateAndOpenFile(r.mName);
 	if (file)
 	{
 		size = file->GetSize();
@@ -112,11 +112,11 @@ int ResourceMountPointFile::GetRawResource(const BaseResource &r, void** buffer)
 	return size;
 
 /*
-	optional<int> resourceNum = m_pMountPointFile->Find(r.m_name.c_str());
+	optional<int> resourceNum = mMountPointFile->Find(r.mName.c_str());
 	if (resourceNum.valid())
 	{
-		size = m_pMountPointFile->GetFileLen(*resourceNum);
-		m_pMountPointFile->ReadFile(*resourceNum, buffer);
+		size = mMountPointFile->GetFileLen(*resourceNum);
+		mMountPointFile->ReadFile(*resourceNum, buffer);
 	}
 	return size;	
 */
@@ -125,15 +125,15 @@ int ResourceMountPointFile::GetRawResource(const BaseResource &r, void** buffer)
 
 int ResourceMountPointFile::GetNumResources() const 
 { 
-	return (m_pMountPointFile) ? m_pMountPointFile->GetFileCount() : 0;
+	return (mMountPointFile) ? mMountPointFile->GetFileCount() : 0;
 }
 
 
 eastl::wstring ResourceMountPointFile::GetResourceName(unsigned int num) const 
 { 
 	eastl::wstring resName = L"";
-	if (m_pMountPointFile && num >= 0 && num < m_pMountPointFile->GetFileCount())
-		resName = m_pMountPointFile->GetFullFileName(num); 
+	if (mMountPointFile && num >= 0 && num < mMountPointFile->GetFileCount())
+		resName = mMountPointFile->GetFullFileName(num); 
 
 	return resName;
 }
@@ -144,8 +144,8 @@ MountPointReader::MountPointReader(const eastl::wstring& basename, bool ignoreCa
 	: FileList(basename, ignoreCase, ignorePaths)
 {
 	//! ensure CFileList path ends in a slash
-	if (m_FileListPath[m_FileListPath.size() - 1] != '/') 
-		m_FileListPath += '/';
+	if (mFileListPath[mFileListPath.size() - 1] != '/') 
+		mFileListPath += '/';
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	FileSystem* fileSystem = gameApp->mFileSystem.get();
@@ -177,17 +177,17 @@ void MountPointReader::BuildDirectory()
 	for (unsigned int i=0; i < size; ++i)
 	{
 		eastl::wstring full = list->GetFullFileName(i);
-		full = full.substr(m_FileListPath.size(), full.size() - m_FileListPath.size());
+		full = full.substr(mFileListPath.size(), full.size() - mFileListPath.size());
 
 		if (!list->IsDirectory(i))
 		{
-			AddItem(full, list->GetFileOffset(i), list->GetFileSize(i), false, m_RealFileNames.size());
-			m_RealFileNames.push_back(list->GetFullFileName(i));
+			AddItem(full, list->GetFileOffset(i), list->GetFileSize(i), false, mRealFileNames.size());
+			mRealFileNames.push_back(list->GetFullFileName(i));
 		}
 		else
 		{
 			const eastl::wstring rel = list->GetFileName(i);
-			m_RealFileNames.push_back(list->GetFullFileName(i));
+			mRealFileNames.push_back(list->GetFullFileName(i));
 
 			eastl::wstring pwd  = fileSystem->GetWorkingDirectory();
 			if (pwd[pwd.size() - 1] != '/') pwd += '/';
@@ -209,10 +209,10 @@ void MountPointReader::BuildDirectory()
 //! opens a file by index
 BaseReadFile* MountPointReader::CreateAndOpenFile(unsigned int index)
 {
-	if (index >= m_Files.size())
+	if (index >= mFiles.size())
 		return 0;
 
-	return ReadFile::CreateReadFile(m_RealFileNames[m_Files[index].m_ID]);
+	return ReadFile::CreateReadFile(mRealFileNames[mFiles[index].mID]);
 }
 
 //! opens a file by file name

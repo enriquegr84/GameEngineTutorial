@@ -33,6 +33,8 @@ public:
 	LevelManager();
 	~LevelManager();
 
+	static LevelManager* LevelMngr;
+
     static void AddLevelSearchDir(const eastl::wstring &dir);
     /** Returns a list of all level identifiers. */
     eastl::vector<eastl::wstring> GetAllLevelIdentifiers();
@@ -52,63 +54,62 @@ public:
     /** \brief Returns a list of all directories that contain a level. */
     const eastl::vector<eastl::wstring>* GetAllLevelDirs() const
     {
-        return &m_all_level_dirs;
+        return &mAllLevelDirs;
     }   // getAllLevelDirs
     // ------------------------------------------------------------------------
     /** \brief Returns a list of the names of all used level groups. */
     const eastl::vector<eastl::wstring>& GetAllLevelGroups() const
     {
-        return m_level_group_names;
+        return mLevelGroupNames;
     }   // getAllLevelGroups
     // ------------------------------------------------------------------------
     /** Returns the number of levels. */
-    size_t GetNumberOfLevels() const { return m_levels.size(); }
+    size_t GetNumberOfLevels() const { return mLevels.size(); }
     // ------------------------------------------------------------------------
     /** Returns the level view with a given index number.
      *  \param index The index number of the level. */
-    Level* GetLevel(unsigned int index) const { return m_levels[index];}
+    Level* GetLevel(unsigned int index) const { return mLevels[index];}
     // ------------------------------------------------------------------------
     /** Checks if a certain level is available.
      *  \param n Index of the level to check. */
-    bool IsAvailable(unsigned int n) const {return m_level_avail[n];}
+    bool IsAvailable(unsigned int n) const {return mLevelAvailables[n];}
     // ------------------------------------------------------------------------
     /** Returns a list of all levels in a given group.
      *  \param g Name of the group. */
     const eastl::vector<int>& GetLevelInGroup(const eastl::wstring& g)
     {
-        return m_level_groups[g];
+        return mLevelGroups[g];
     }   // getLevelInGroup
 
 private:
 	/** All directories in which level are searched. */
-	static eastl::vector<eastl::wstring> m_level_search_path;
+	static eastl::vector<eastl::wstring> mLevelSearchPaths;
 
 	/** All directories in which levels were found. */
-	eastl::vector<eastl::wstring> m_all_level_dirs;
+	eastl::vector<eastl::wstring> mAllLevelDirs;
 
 	typedef eastl::vector<Level*> LevelList;
 
 	/** All track objects. */
-	LevelList m_levels;
+	LevelList mLevels;
 
 	typedef eastl::map<eastl::wstring, eastl::vector<int> > Group2Indices;
 	/** List of all level groups. */
-	Group2Indices m_level_groups;
+	Group2Indices mLevelGroups;
 
 	/** List of all groups (for any kind of level) */
-	//eastl::vector<eastl::string> m_all_group_names;
+	//eastl::vector<eastl::string> mAllGroupNames;
 
 	/** List of the names of all groups containing levels */
-	eastl::vector<eastl::wstring> m_level_group_names;
+	eastl::vector<eastl::wstring> mLevelGroupNames;
 
 	/** Flag if this level is available or not. Levels are set unavailable
 	*  if they are not available on all clients (applies only to network mode)
 	*/
-	eastl::vector<bool> m_level_avail;
+	eastl::vector<bool> mLevelAvailables;
 
 	void UpdateGroups(const Level* demo);
+
 };   // LevelManager
 
-extern LevelManager* level_manager;
-
-#endif   // HEADER_TRACK_MANAGER_HPP
+#endif

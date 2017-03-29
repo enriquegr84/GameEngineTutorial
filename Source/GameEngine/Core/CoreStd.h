@@ -235,16 +235,16 @@ template <class BaseClass, class IdType>
 class GenericObjectFactory
 {
 	typedef BaseClass* (*ObjectCreationFunction)(void);
-	eastl::map<IdType, ObjectCreationFunction> m_creationFunctions;
+	eastl::map<IdType, ObjectCreationFunction> mCreationFunctions;
 
 public:
 	template <class SubClass>
 	bool Register(IdType id)
 	{
-		auto findIt = m_creationFunctions.find(id);
-		if (findIt == m_creationFunctions.end())
+		auto findIt = mCreationFunctions.find(id);
+		if (findIt == mCreationFunctions.end())
 		{
-			m_creationFunctions[id] =
+			mCreationFunctions[id] =
 				&GenericObjectCreationFunction<BaseClass, SubClass>;
 			return true;
 		}
@@ -254,11 +254,11 @@ public:
 
 	BaseClass* Create(IdType id)
 	{
-		auto findIt = m_creationFunctions.find(id);
-		if (findIt != m_creationFunctions.end())
+		auto findIt = mCreationFunctions.find(id);
+		if (findIt != mCreationFunctions.end())
 		{
-			ObjectCreationFunction pFunc = findIt->second;
-			return pFunc();
+			ObjectCreationFunction func = findIt->second;
+			return func();
 		}
 
 		return NULL;

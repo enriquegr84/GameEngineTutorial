@@ -64,24 +64,24 @@ public:
 	enum State
 	{
 		// Processes that are neither dead nor alive
-		UNINITIALIZED = 0,  // created but not running
-		REMOVED,  		// removed from the process list but not destroyed; 
+		STATE_UNINITIALIZED = 0,  // created but not running
+		STATE_REMOVED,  		// removed from the process list but not destroyed; 
 						// this can happen when a process that is already 
 						// running is parented to another process
 
 		// Living processes
-		RUNNING,  // initialized and running
-		PAUSED,  // initialized but paused
+		STATE_RUNNING,  // initialized and running
+		STATE_PAUSED,  // initialized but paused
 		
 		// Dead processes
-		SUCCEEDED,  // completed successfully
-		FAILED,  // failed to complete
-		ABORTED,  // aborted; may not have started
+		STATE_SUCCEEDED,  // completed successfully
+		STATE_FAILED,  // failed to complete
+		STATE_ABORTED,  // aborted; may not have started
 	};
 	
 private:
-	State m_state;  // the current state of the process
-	eastl::shared_ptr<Process> m_pChild;  // the child process, if any
+	State mState;  // the current state of the process
+	eastl::shared_ptr<Process> mChild;  // the child process, if any
 
 public:
 	// construction
@@ -92,7 +92,7 @@ protected:
 	// interface; these functions should be overridden by the subclass as needed
 
 	// called during the first update; responsible for setting the initial state (typically RUNNING)
-	virtual void OnInit(void) { m_state = RUNNING; } 
+	virtual void OnInit(void) { mState = STATE_RUNNING; } 
 	virtual void OnUpdate(unsigned long deltaMs) = 0;  // called every frame
 	virtual void OnSuccess(void) { }  // called if the process succeeds (see below)
 	virtual void OnFail(void) { }  // called if the process fails (see below)
@@ -108,19 +108,19 @@ public:
 	inline void UnPause(void);
 
 	// accessors
-	State GetState(void) const { return m_state; }
-	bool IsAlive(void) const { return (m_state == RUNNING || m_state == PAUSED); }
-	bool IsDead(void) const { return (m_state == SUCCEEDED || m_state == FAILED || m_state == ABORTED); }
-	bool IsRemoved(void) const { return (m_state == REMOVED); }
-	bool IsPaused(void) const { return m_state == PAUSED; }
+	State GetState(void) const { return mState; }
+	bool IsAlive(void) const { return (mState == STATE_RUNNING || mState == STATE_PAUSED); }
+	bool IsDead(void) const { return (mState == STATE_SUCCEEDED || mState == STATE_FAILED || mState == STATE_ABORTED); }
+	bool IsRemoved(void) const { return (mState == STATE_REMOVED); }
+	bool IsPaused(void) const { return mState == STATE_PAUSED; }
 
 	// child functions
 	inline void AttachChild(eastl::shared_ptr<Process> pChild);
 	eastl::shared_ptr<Process> RemoveChild(void);  // releases ownership of the child
-	eastl::shared_ptr<Process> PeekChild(void) { return m_pChild; }  // doesn't release ownership of the child
+	eastl::shared_ptr<Process> PeekChild(void) { return mChild; }  // doesn't release ownership of the child
 
 private:
-	void SetState(State newState) { m_state = newState; }
+	void SetState(State newState) { mState = newState; }
 };
 
 
@@ -129,36 +129,36 @@ private:
 //---------------------------------------------------------------------------------------------------------------------
 inline void Process::Succeed(void)
 {
-	LogAssert(m_state == RUNNING || m_state == PAUSED, "Fail");
-	m_state = SUCCEEDED;
+	LogAssert(mState == STATE_RUNNING || mState == STATE_PAUSED, "Fail");
+	mState = STATE_SUCCEEDED;
 }
 
 inline void Process::Fail(void)
 {
-	LogAssert(m_state == RUNNING || m_state == PAUSED, "Fail");
-	m_state = FAILED;
+	LogAssert(mState == STATE_RUNNING || mState == STATE_PAUSED, "Fail");
+	mState = STATE_FAILED;
 }
 
 inline void Process::AttachChild(eastl::shared_ptr<Process> pChild)
 {
-	if (m_pChild)
-		m_pChild->AttachChild(pChild);
+	if (mChild)
+		mChild->AttachChild(pChild);
 	else
-		m_pChild = pChild;
+		mChild = pChild;
 }
 
 inline void Process::Pause(void)
 {
-	if (m_state == RUNNING)
-		m_state = PAUSED;
+	if (mState == STATE_RUNNING)
+		mState = STATE_PAUSED;
 	else
 		LogWarning("Attempting to pause a process that isn't running");
 }
 
 inline void Process::UnPause(void)
 {
-	if (m_state == PAUSED)
-		m_state = RUNNING;
+	if (mState == STATE_PAUSED)
+		mState = STATE_RUNNING;
 	else
 		LogWarning("Attempting to unpause a process that isn't paused");
 }

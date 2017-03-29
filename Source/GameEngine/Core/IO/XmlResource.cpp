@@ -42,7 +42,7 @@
 
 void XmlResourceExtraData::ParseXml(char* pRawBuffer)
 {
-	m_xmlDocument.Parse(pRawBuffer);
+	mXmlDocument.Parse(pRawBuffer);
 }
 
 //! returns true if the file maybe is able to be loaded by this class

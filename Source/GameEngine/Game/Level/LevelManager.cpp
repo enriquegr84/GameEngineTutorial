@@ -22,8 +22,8 @@
 
 #include "Application/GameApplication.h"
 
-LevelManager* level_manager = 0;
-eastl::vector<eastl::wstring> LevelManager::m_level_search_path;
+LevelManager* LevelManager::LevelMngr = NULL;
+eastl::vector<eastl::wstring> LevelManager::mLevelSearchPaths;
 
 /** Constructor (currently empty). The real work happens in loadLevelList.
  */
@@ -35,7 +35,7 @@ LevelManager::LevelManager()
  */
 LevelManager::~LevelManager()
 {
-    for(LevelList::iterator i = m_levels.begin(); i != m_levels.end(); ++i)
+    for(LevelList::iterator i = mLevels.begin(); i != mLevels.end(); ++i)
         delete *i;
 }   // ~TrackManager
 
@@ -47,7 +47,7 @@ LevelManager::~LevelManager()
  */
 void LevelManager::AddLevelSearchDir(const eastl::wstring &dir)
 {
-    m_level_search_path.push_back(dir);
+    mLevelSearchPaths.push_back(dir);
 }   // addLevelSearchDir
 
 //-----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ void LevelManager::AddLevelSearchDir(const eastl::wstring &dir)
  */
 Level* LevelManager::GetLevel(const eastl::wstring& ident) const
 {
-    for(LevelList::const_iterator i = m_levels.begin(); i != m_levels.end(); ++i)
+    for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
     {
         if ((*i)->getIdent() == ident)
             return *i;
@@ -86,13 +86,13 @@ void LevelManager::RemoveAllCachedData()
  */
 void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::wstring> &levels)
 {
-    for(LevelList::const_iterator i = m_levels.begin(); i != m_levels.end(); ++i)
+    for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
     {
-        if(!m_level_avail[i-m_levels.begin()]) continue;
+        if(!mLevelAvailables[i-mLevels.begin()]) continue;
         const eastl::wstring id=(*i)->getIdent();
         if (eastl::find(levels.begin(), levels.end(), id)==levels.end())
         {
-            m_level_avail[i-m_levels.begin()] = false;
+            mLevelAvailables[i-mLevels.begin()] = false;
             fwprintf(stderr,
 				L"Demo '%s' not available on all clients, disabled.\n", id.c_str());
         }   // if id not in tracks
@@ -106,7 +106,7 @@ void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::wstring> &lev
 eastl::vector<eastl::wstring> LevelManager::GetAllLevelIdentifiers()
 {
     eastl::vector<eastl::wstring> all;
-    for(LevelList::const_iterator i = m_levels.begin(); i != m_levels.end(); ++i)
+    for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
     {
         all.push_back((*i)->getIdent());
     }
@@ -118,16 +118,16 @@ eastl::vector<eastl::wstring> LevelManager::GetAllLevelIdentifiers()
  */
 void LevelManager::LoadLevelList(const eastl::wstring& levelname)
 {
-    m_all_level_dirs.clear();
-    m_level_group_names.clear();
-    m_level_groups.clear();
-    m_level_avail.clear();
-    m_levels.clear();
+    mAllLevelDirs.clear();
+    mLevelGroupNames.clear();
+    mLevelGroups.clear();
+    mLevelAvailables.clear();
+    mLevels.clear();
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
-    for(unsigned int i=0; i<m_level_search_path.size(); i++)
+    for(unsigned int i=0; i<mLevelSearchPaths.size(); i++)
     {
-        const eastl::wstring &dir = m_level_search_path[i];
+        const eastl::wstring &dir = mLevelSearchPaths[i];
 
         // First test if the directory itself contains a level:
         // ----------------------------------------------------
@@ -185,9 +185,9 @@ bool LevelManager::LoadLevel(const eastl::wstring& levelname)
         return false;
     }
 	*/
-	m_all_level_dirs.push_back(gameApp->mFileSystem->GetFileDir(levelname));
-    m_levels.push_back(level);
-    m_level_avail.push_back(true);
+	mAllLevelDirs.push_back(gameApp->mFileSystem->GetFileDir(levelname));
+    mLevels.push_back(level);
+    mLevelAvailables.push_back(true);
     UpdateGroups(level);
     return true;
 }   // loadTrack
@@ -209,24 +209,24 @@ void LevelManager::RemoveLevel(const eastl::wstring& ident)
 
     //if (level->isInternal()) return;
 
-    eastl::vector<Level*>::iterator it = eastl::find(m_levels.begin(), m_levels.end(), level);
-    if (it == m_levels.end())
+    eastl::vector<Level*>::iterator it = eastl::find(mLevels.begin(), mLevels.end(), level);
+    if (it == mLevels.end())
     {
 		wchar_t error[128];
 		wsprintf(error, L"[LevelsManager] INTERNAL ERROR: Cannot find level '%s' in map!!\n", ident.c_str());
 		LogError(error);
         return;
     }
-    int index = it - m_levels.begin();
+    int index = it - mLevels.begin();
 
     // Remove the demo from all groups it belongs to
-    Group2Indices &group_2_indices = m_level_groups;
+    Group2Indices &groupToIndices = mLevelGroups;
 
-    eastl::vector<eastl::wstring> &group_names = m_level_group_names;
+    eastl::vector<eastl::wstring> &groupNames = mLevelGroupNames;
     const eastl::vector<eastl::wstring>& groups = level->GetGroups();
     for(unsigned int i=0; i<groups.size(); i++)
     {
-        eastl::vector<int> &indices = group_2_indices[groups[i]];
+        eastl::vector<int> &indices = groupToIndices[groups[i]];
         eastl::vector<int>::iterator j;
         j = eastl::find(indices.begin(), indices.end(), index);
         LogAssert(j!=indices.end(), "error indice");
@@ -236,11 +236,11 @@ void LevelManager::RemoveLevel(const eastl::wstring& ident)
         // completely remove the group
         if(indices.size()==0)
         {
-            group_2_indices.erase(groups[i]);
+            groupToIndices.erase(groups[i]);
             eastl::vector<eastl::wstring>::iterator it_g;
-            it_g = eastl::find(group_names.begin(), group_names.end(), groups[i]);
-			LogAssert(it_g!=group_names.end(), "error indice");
-            group_names.erase(it_g);
+            it_g = eastl::find(groupNames.begin(), groupNames.end(), groups[i]);
+			LogAssert(it_g!=groupNames.end(), "error indice");
+            groupNames.erase(it_g);
         }   // if complete group must be removed
     }   // for i in groups
 
@@ -249,7 +249,7 @@ void LevelManager::RemoveLevel(const eastl::wstring& ident)
     // be done for all levels
     unsigned int i=2; // i=2: levels
     {
-        Group2Indices &g2i = m_level_groups;
+        Group2Indices &g2i = mLevelGroups;
         Group2Indices::iterator j;
         for(j=g2i.begin(); j!=g2i.end(); j++)
         {
@@ -258,9 +258,9 @@ void LevelManager::RemoveLevel(const eastl::wstring& ident)
         }   // for j in group_2_indices
     }   // for levels
 
-    m_levels.erase(it);
-    m_all_level_dirs.erase(m_all_level_dirs.begin()+index);
-    m_level_avail.erase(m_level_avail.begin()+index);
+    mLevels.erase(it);
+    mAllLevelDirs.erase(mAllLevelDirs.begin()+index);
+    mLevelAvailables.erase(mLevelAvailables.begin()+index);
     delete level;
 }   // removeDemo
 
@@ -272,20 +272,20 @@ void LevelManager::UpdateGroups(const Level* level)
 {
     //if (level->isInternal()) return;
 
-    const eastl::vector<eastl::wstring>& new_groups = level->GetGroups();
+    const eastl::vector<eastl::wstring>& newGroups = level->GetGroups();
 
-    Group2Indices &group_2_indices = m_level_groups;
+    Group2Indices &groupToIndices = mLevelGroups;
 
-    eastl::vector<eastl::wstring> &group_names = m_level_group_names;
+    eastl::vector<eastl::wstring> &groupNames = mLevelGroupNames;
 
-    const unsigned int groups_amount = new_groups.size();
-    for(unsigned int i=0; i<groups_amount; i++)
+    const unsigned int groupsAmount = newGroups.size();
+    for(unsigned int i=0; i<groupsAmount; i++)
     {
-        bool group_exists = 
-			group_2_indices.find(new_groups[i]) != group_2_indices.end();
-        if(!group_exists)
-            group_names.push_back(new_groups[i]);
-        group_2_indices[new_groups[i]].push_back(m_levels.size()-1);
+        bool groupExists = 
+			groupToIndices.find(newGroups[i]) != groupToIndices.end();
+        if(!groupExists)
+            groupNames.push_back(newGroups[i]);
+        groupToIndices[newGroups[i]].push_back(mLevels.size()-1);
     }
 }   // updateGroups
 

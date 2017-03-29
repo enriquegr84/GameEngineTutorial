@@ -57,15 +57,15 @@ void Level::Reset()
 void Level::LoadLevelInfo()
 {
 	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(
-		eastl::wstring(m_filename.c_str()).c_str());
+		eastl::wstring(mFileName.c_str()).c_str());
 
 	if(!pRoot || !pRoot->FirstChildElement("level"))
     {
         std::ostringstream o;
-		o << "Can't load level '" << m_filename.c_str() << "', no level element.";
+		o << "Can't load level '" << mFileName.c_str() << "', no level element.";
         throw std::runtime_error(o.str());
     }
-	m_name = pRoot->Attribute("name");
+	mName = pRoot->Attribute("name");
 }   // loadLevelInfo
 
 // ----------------------------------------------------------------------------

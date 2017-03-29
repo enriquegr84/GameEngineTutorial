@@ -45,12 +45,12 @@
 
 class XmlResourceExtraData : public BaseResourceExtraData
 {
-	XMLDocument m_xmlDocument;
+	XMLDocument mXmlDocument;
 
 public:
     virtual eastl::wstring ToString() { return L"XmlResourceExtraData"; }
     void ParseXml(char* pRawBuffer);
-    XMLElement* GetRoot(void) { return m_xmlDocument.RootElement(); }
+    XMLElement* GetRoot(void) { return mXmlDocument.RootElement(); }
 
 };
 

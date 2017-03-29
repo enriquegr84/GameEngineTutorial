@@ -40,36 +40,36 @@
 
 #include "Core/Logger/Logger.h"
 
-static BaseEventManager* g_pEventMgr = NULL;
-GenericObjectFactory<BaseEventData, BaseEventType> g_eventFactory;
+BaseEventManager* BaseEventManager::EventMgr = NULL;
+GenericObjectFactory<BaseEventData, BaseEventType> EventFactory;
 
 //GE_MEMORY_WATCHER_DEFINITION(EventData);
 
 BaseEventManager* BaseEventManager::Get(void)
 {
-    LogAssert(g_pEventMgr, "Event manager doesn't exist");
-	return g_pEventMgr;
+    LogAssert(BaseEventManager::EventMgr, "Event manager doesn't exist");
+	return BaseEventManager::EventMgr;
 }
 
 BaseEventManager::BaseEventManager(const char* pName, bool setAsGlobal)
 {
 	if (setAsGlobal)
     {
-        if (g_pEventMgr)
+        if (BaseEventManager::EventMgr)
         {
             LogError("Attempting to create two global event managers! \
 					The old one will be destroyed and overwritten with this one.");
-            delete g_pEventMgr;
+            delete BaseEventManager::EventMgr;
         }
 
-		g_pEventMgr = this;
+		BaseEventManager::EventMgr = this;
     }
 }
 
 BaseEventManager::~BaseEventManager(void)
 {
-	if (g_pEventMgr == this)
-		g_pEventMgr = NULL;
+	if (BaseEventManager::EventMgr == this)
+		BaseEventManager::EventMgr = NULL;
 }
 
 
@@ -79,7 +79,7 @@ BaseEventManager::~BaseEventManager(void)
 EventManager::EventManager(const char* pName, bool setAsGlobal)
 	: BaseEventManager(pName, setAsGlobal)
 {
-	m_activeQueue = 0;
+	mActiveQueue = 0;
 }
 
 
@@ -90,7 +90,6 @@ EventManager::~EventManager()
 {
 	//
 }
-
 
 /*
 	EventManager AddListener walks through the list to see if the listener has already been registered. Registering
@@ -103,7 +102,7 @@ bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const
 	//GE_LOG("Events", eastl::string("Attempting to add delegate function for event type: ") + eastl::string(type, 16));
 	LogInformation("Events " + eastl::string("Attempting to add delegate function for event type: ") + eastl::to_string(type));
 
-	EventListenerList& eventListenerList = m_eventListeners[type];  // this will find or create the entry
+	EventListenerList& eventListenerList = mEventListeners[type];  // this will find or create the entry
 	for (auto it = eventListenerList.begin(); it != eventListenerList.end(); ++it)
 	{
 		if (eventDelegate == (*it))
@@ -114,7 +113,6 @@ bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const
 	}
 
 	eventListenerList.push_back(eventDelegate);
-	//GE_LOG("Events", eastl::string("Successfully added delegate for event type: ") + eastl::string(type, 16));
 	LogInformation("Events " + eastl::string("Successfully added delegate for event type: ") + eastl::to_string(type));
 
 	return true;
@@ -132,8 +130,8 @@ bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, co
 	LogInformation("Events " + eastl::string("Attempting to remove delegate function from event type: ") + eastl::to_string(type));
 	bool success = false;
 
-	auto findIt = m_eventListeners.find(type);
-	if (findIt != m_eventListeners.end())
+	auto findIt = mEventListeners.find(type);
+	if (findIt != mEventListeners.end())
 	{
 		EventListenerList& listeners = findIt->second;
 		for (auto it = listeners.begin(); it != listeners.end(); ++it)
@@ -141,7 +139,6 @@ bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, co
 			if (eventDelegate == (*it))
 			{
 				listeners.erase(it);
-				//GE_LOG("Events", eastl::string("Successfully removed delegate function from event type: ") + eastl::string(type, 16));
 				LogInformation("Events " + eastl::string("Successfully removed delegate function from event type: ") + eastl::to_string(type));
 				success = true;
 				break;  // we don't need to continue because it should be impossible for the same delegate function to be registered for the same event more than once
@@ -151,7 +148,6 @@ bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, co
 
 	return success;
 }
-
 
 /*
 	TriggerEvent fires an event and have all listeners respond ot it inmediately, without using the event queue.
@@ -165,8 +161,8 @@ bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 	LogInformation("Events " + eastl::string("Attempting to trigger event ") + eastl::string(pEvent->GetName()));
 	bool processed = false;
 
-	auto findIt = m_eventListeners.find(pEvent->GetEventType());
-	if (findIt != m_eventListeners.end())
+	auto findIt = mEventListeners.find(pEvent->GetEventType());
+	if (findIt != mEventListeners.end())
 	{
 		const EventListenerList& eventListenerList = findIt->second;
 		for (EventListenerList::const_iterator it = eventListenerList.begin(); it != eventListenerList.end(); ++it)
@@ -188,8 +184,8 @@ bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 */
 bool EventManager::QueueEvent(const BaseEventDataPtr& pEvent)
 {
-	LogAssert(m_activeQueue >= 0, "Queue active");
-	LogAssert(m_activeQueue < EVENTMANAGER_NUM_QUEUES, "Queue active max");
+	LogAssert(mActiveQueue >= 0, "Queue active");
+	LogAssert(mActiveQueue < EVENTMANAGER_NUM_QUEUES, "Queue active max");
 
 	// make sure the event is valid
 	if (!pEvent)
@@ -200,10 +196,10 @@ bool EventManager::QueueEvent(const BaseEventDataPtr& pEvent)
 
 	LogInformation("Events " + eastl::string("Attempting to queue event: ") + eastl::string(pEvent->GetName()));
 
-	auto findIt = m_eventListeners.find(pEvent->GetEventType());
-	if (findIt != m_eventListeners.end())
+	auto findIt = mEventListeners.find(pEvent->GetEventType());
+	if (findIt != mEventListeners.end())
 	{
-		m_queues[m_activeQueue].push_back(pEvent);
+		mQueues[mActiveQueue].push_back(pEvent);
 		LogInformation("Events " + eastl::string("Successfully queued event: ") + eastl::string(pEvent->GetName()));
 		return true;
 	}
@@ -219,7 +215,7 @@ bool EventManager::QueueEvent(const BaseEventDataPtr& pEvent)
 //---------------------------------------------------------------------------------------------------------------------
 bool EventManager::ThreadSafeQueueEvent(const BaseEventDataPtr& pEvent)
 {
-	m_realtimeEventQueue.Push(pEvent);
+	mRealtimeEventQueue.Push(pEvent);
 	return true;
 }
 
@@ -230,15 +226,15 @@ bool EventManager::ThreadSafeQueueEvent(const BaseEventDataPtr& pEvent)
 */
 bool EventManager::AbortEvent(const BaseEventType& inType, bool allOfType)
 {
-	LogAssert(m_activeQueue >= 0, "Queue active");
-	LogAssert(m_activeQueue < EVENTMANAGER_NUM_QUEUES, "Queue active max");
+	LogAssert(mActiveQueue >= 0, "Queue active");
+	LogAssert(mActiveQueue < EVENTMANAGER_NUM_QUEUES, "Queue active max");
 
 	bool success = false;
-	EventListenerMap::iterator findIt = m_eventListeners.find(inType);
+	EventListenerMap::iterator findIt = mEventListeners.find(inType);
 
-	if (findIt != m_eventListeners.end())
+	if (findIt != mEventListeners.end())
 	{
-		EventQueue& eventQueue = m_queues[m_activeQueue];
+		EventQueue& eventQueue = mQueues[mActiveQueue];
 		auto it = eventQueue.begin();
 		while (it != eventQueue.end())
 		{
@@ -260,7 +256,6 @@ bool EventManager::AbortEvent(const BaseEventType& inType, bool allOfType)
 	return success;
 }
 
-
 /*
 	EventManager Update should be called on the main loop in order to process the queued messages. It takes
 	all the queued messages and calls the registered delegate methods. There is a double queue processing in
@@ -270,19 +265,20 @@ bool EventManager::AbortEvent(const BaseEventType& inType, bool allOfType)
 	are messages still in the queue. This can be pretty useful for smoothing out the frame rate stutter if it 
 	is attempted to handle too many events in one game loop.
 */
-bool EventManager::Update(unsigned long maxMillis)
+bool EventManager::Update(unsigned long maxTime)
 {
 	unsigned long currMs = GetTickCount();
-	unsigned long maxMs = ((maxMillis == BaseEventManager::kINFINITE) ? (BaseEventManager::kINFINITE) : (currMs + maxMillis));
+	unsigned long maxMs = ((maxTime == BaseEventManager::CONS_INFINITE) ? 
+		(BaseEventManager::CONS_INFINITE) : (currMs + maxTime));
 
 	// This section added to handle events from other threads.  Check out Chapter 20.
 	BaseEventDataPtr pRealtimeEvent;
-	while (m_realtimeEventQueue.Pop(pRealtimeEvent))
+	while (mRealtimeEventQueue.Pop(pRealtimeEvent))
 	{
 		QueueEvent(pRealtimeEvent);
 
 		currMs = GetTickCount();
-		if (maxMillis != BaseEventManager::kINFINITE)
+		if (maxTime != BaseEventManager::CONS_INFINITE)
 		{
 			if (currMs >= maxMs)
 			{
@@ -292,26 +288,26 @@ bool EventManager::Update(unsigned long maxMillis)
 	}
 
 	// swap active queues and clear the new queue after the swap
-	int queueToProcess = m_activeQueue;
-	m_activeQueue = (m_activeQueue + 1) % EVENTMANAGER_NUM_QUEUES;
-	m_queues[m_activeQueue].clear();
+	int queueToProcess = mActiveQueue;
+	mActiveQueue = (mActiveQueue + 1) % EVENTMANAGER_NUM_QUEUES;
+	mQueues[mActiveQueue].clear();
 
 	LogInformation("EventLoop " + eastl::string("Processing Event Queue ") + eastl::to_string(queueToProcess) + "; "
-		+ eastl::to_string((unsigned long)m_queues[queueToProcess].size()) + eastl::string(" events to process"));
+		+ eastl::to_string((unsigned long)mQueues[queueToProcess].size()) + eastl::string(" events to process"));
 
 	// Process the queue
-	while (!m_queues[queueToProcess].empty())
+	while (!mQueues[queueToProcess].empty())
 	{
 		// pop the front of the queue
-		BaseEventDataPtr pEvent = m_queues[queueToProcess].front();
-		m_queues[queueToProcess].pop_front();
+		BaseEventDataPtr pEvent = mQueues[queueToProcess].front();
+		mQueues[queueToProcess].pop_front();
 		LogInformation("EventLoop " + eastl::string("\t\tProcessing Event ") + eastl::string(pEvent->GetName()));
 
 		const BaseEventType& eventType = pEvent->GetEventType();
 
 		// find all the delegate functions registered for this event
-		auto findIt = m_eventListeners.find(eventType);
-		if (findIt != m_eventListeners.end())
+		auto findIt = mEventListeners.find(eventType);
+		if (findIt != mEventListeners.end())
 		{
 			const EventListenerList& eventListeners = findIt->second;
 			LogInformation("EventLoop " + eastl::string("\t\tFound ") + eastl::to_string((unsigned long)eventListeners.size())
@@ -329,7 +325,7 @@ bool EventManager::Update(unsigned long maxMillis)
 
 		// check to see if time ran out
 		currMs = GetTickCount();
-		if (maxMillis != BaseEventManager::kINFINITE && currMs >= maxMs)
+		if (maxTime != BaseEventManager::CONS_INFINITE && currMs >= maxMs)
 		{
 			LogInformation("EventLoop Aborting event processing; time ran out");
 			break;
@@ -338,14 +334,14 @@ bool EventManager::Update(unsigned long maxMillis)
 
 	// If we couldn't process all of the events, push the remaining events to the new active queue.
 	// Note: To preserve sequencing, go back-to-front, inserting them at the head of the active queue
-	bool queueFlushed = (m_queues[queueToProcess].empty());
+	bool queueFlushed = (mQueues[queueToProcess].empty());
 	if (!queueFlushed)
 	{
-		while (!m_queues[queueToProcess].empty())
+		while (!mQueues[queueToProcess].empty())
 		{
-			BaseEventDataPtr pEvent = m_queues[queueToProcess].back();
-			m_queues[queueToProcess].pop_back();
-			m_queues[m_activeQueue].push_front(pEvent);
+			BaseEventDataPtr pEvent = mQueues[queueToProcess].back();
+			mQueues[queueToProcess].pop_back();
+			mQueues[mActiveQueue].push_front(pEvent);
 		}
 	}
 

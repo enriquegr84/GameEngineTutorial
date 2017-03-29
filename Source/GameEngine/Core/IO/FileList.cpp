@@ -7,19 +7,19 @@
 static const eastl::wstring emptyFileListEntry;
 
 FileList::FileList(const eastl::wstring& filepath, bool ignoreCase, bool ignorePaths)
- : m_IgnorePaths(ignorePaths), m_IgnoreCase(ignoreCase), m_FileListPath(filepath)
+ : mIgnorePaths(ignorePaths), mIgnoreCase(ignoreCase), mFileListPath(filepath)
 {
-	eastl::replace(m_FileListPath.begin(), m_FileListPath.end(), '\\', '/');
+	eastl::replace(mFileListPath.begin(), mFileListPath.end(), '\\', '/');
 }
 
 FileList::~FileList()
 {
-	m_Files.clear();
+	mFiles.clear();
 }
 
 unsigned int FileList::GetFileCount() const
 {
-	return m_Files.size();
+	return mFiles.size();
 }
 
 void FileList::Sort()
@@ -29,20 +29,20 @@ void FileList::Sort()
 
 const eastl::wstring& FileList::GetFileName(unsigned int index) const
 {
-	if (index >= m_Files.size())
+	if (index >= mFiles.size())
 		return emptyFileListEntry;
 
-	return m_Files[index].m_Name;
+	return mFiles[index].mName;
 }
 
 
 //! Gets the full name of a file in the list, path included, based on an index.
 const eastl::wstring& FileList::GetFullFileName(unsigned int index) const
 {
-	if (index >= m_Files.size())
+	if (index >= mFiles.size())
 		return emptyFileListEntry;
 
-	return m_Files[index].m_FullName;
+	return mFiles[index].mFullName;
 }
 
 //! adds a file or folder
@@ -50,49 +50,49 @@ unsigned int FileList::AddItem(const eastl::wstring& fullPath,
 	unsigned int offset, unsigned int size, bool isDirectory, unsigned int id)
 {
 	FileListEntry entry;
-	entry.m_ID   = id ? id : m_Files.size();
-	entry.m_Offset = offset;
-	entry.m_Size = size;
-	entry.m_Name = fullPath;
-	eastl::replace(entry.m_Name.begin(), entry.m_Name.end(), '\\', '/');
-	entry.m_IsDirectory = isDirectory;
+	entry.mID   = id ? id : mFiles.size();
+	entry.mOffset = offset;
+	entry.mSize = size;
+	entry.mName = fullPath;
+	eastl::replace(entry.mName.begin(), entry.mName.end(), '\\', '/');
+	entry.mIsDirectory = isDirectory;
 
 	// remove trailing slash
-	if (entry.m_Name[entry.m_Name.size()-1] == '/')
+	if (entry.mName[entry.mName.size()-1] == '/')
 	{
-		entry.m_IsDirectory = true;
-		entry.m_Name[entry.m_Name.size()-1] = 0;
-		entry.m_Name.validate();
+		entry.mIsDirectory = true;
+		entry.mName[entry.mName.size()-1] = 0;
+		entry.mName.validate();
 	}
 
-	if (m_IgnoreCase)
-		entry.m_Name.make_lower();
+	if (mIgnoreCase)
+		entry.mName.make_lower();
 
-	entry.m_FullName = entry.m_Name;
+	entry.mFullName = entry.mName;
 
-	if (m_IgnorePaths)
-		entry.m_FullName = entry.m_Name;
+	if (mIgnorePaths)
+		entry.mFullName = entry.mName;
 
-	if (entry.m_Name.rfind('/') != eastl::string::npos)
-		entry.m_Name = entry.m_Name.substr(entry.m_Name.rfind('/') + 1);
+	if (entry.mName.rfind('/') != eastl::string::npos)
+		entry.mName = entry.mName.substr(entry.mName.rfind('/') + 1);
 
 	//LogInformation(m_Path.c_str() entry.m_FullName);
-	m_Files.push_back(entry);
+	mFiles.push_back(entry);
 
-	return m_Files.size() - 1;
+	return mFiles.size() - 1;
 }
 
 //! Returns the ID of a file in the file list, based on an index.
 unsigned int FileList::GetID(unsigned int index) const
 {
-	return index < m_Files.size() ? m_Files[index].m_ID : 0;
+	return index < mFiles.size() ? mFiles[index].mID : 0;
 }
 
 bool FileList::IsDirectory(unsigned int index) const
 {
 	bool ret = false;
-	if (index < m_Files.size())
-		ret = m_Files[index].m_IsDirectory;
+	if (index < mFiles.size())
+		ret = mFiles[index].mIsDirectory;
 
 	return ret;
 }
@@ -100,13 +100,13 @@ bool FileList::IsDirectory(unsigned int index) const
 //! Returns the size of a file
 unsigned int FileList::GetFileSize(unsigned int index) const
 {
-	return index < m_Files.size() ? m_Files[index].m_Size : 0;
+	return index < mFiles.size() ? mFiles[index].mSize : 0;
 }
 
 //! Returns the size of a file
 unsigned int FileList::GetFileOffset(unsigned int index) const
 {
-	return index < m_Files.size() ? m_Files[index].m_Offset : 0;
+	return index < mFiles.size() ? mFiles[index].mOffset : 0;
 }
 
 
@@ -115,41 +115,41 @@ int FileList::FindFile(const eastl::wstring& filename, bool isDirectory = false)
 {
 	FileListEntry entry;
 	// we only need FullName to be set for the search
-	entry.m_FullName = filename;
-	entry.m_IsDirectory = isDirectory;
+	entry.mFullName = filename;
+	entry.mIsDirectory = isDirectory;
 
 	// exchange
-	eastl::replace(entry.m_FullName.begin(), entry.m_FullName.end(), '\\', '/');
+	eastl::replace(entry.mFullName.begin(), entry.mFullName.end(), '\\', '/');
 
 	// remove trailing slash
-	if (entry.m_FullName[entry.m_FullName.size()-1] == '/')
+	if (entry.mFullName[entry.mFullName.size()-1] == '/')
 	{
-		entry.m_IsDirectory = true;
-		entry.m_FullName[entry.m_FullName.size()-1] = 0;
-		entry.m_FullName.validate();
+		entry.mIsDirectory = true;
+		entry.mFullName[entry.mFullName.size()-1] = 0;
+		entry.mFullName.validate();
 	}
 
-	if (isDirectory && !entry.m_IsDirectory)
+	if (isDirectory && !entry.mIsDirectory)
 		return -1;
 
-	if (m_IgnoreCase)
-		entry.m_FullName.make_lower();
+	if (mIgnoreCase)
+		entry.mFullName.make_lower();
 
-	if (m_IgnorePaths)
-		entry.m_FullName = entry.m_FullName.substr(entry.m_FullName.rfind('/') + 1);
+	if (mIgnorePaths)
+		entry.mFullName = entry.mFullName.substr(entry.mFullName.rfind('/') + 1);
 
 
-	for (unsigned int i=0; i < (unsigned int)m_Files.size(); i++)
+	for (unsigned int i=0; i < (unsigned int)mFiles.size(); i++)
 	{
-		FileListEntry fentry = m_Files[i];
+		FileListEntry fentry = mFiles[i];
 		if (isDirectory)
 		{
-			if (fentry.m_IsDirectory)
+			if (fentry.mIsDirectory)
 				if (fentry == entry) return i;
 		}
 		else	
 		{
-			if (!fentry.m_IsDirectory)
+			if (!fentry.mIsDirectory)
 				if (fentry == entry) return i;
 		}
 	}
@@ -161,5 +161,5 @@ int FileList::FindFile(const eastl::wstring& filename, bool isDirectory = false)
 //! Returns the base path of the file list
 const eastl::wstring& FileList::GetPath() const
 {
-	return m_FileListPath;
+	return mFileListPath;
 }

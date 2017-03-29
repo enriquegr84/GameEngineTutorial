@@ -6,12 +6,12 @@
 
 LimitReadFile::LimitReadFile(BaseReadFile* alreadyOpenedFile, 
 	long pos, long areaSize, const eastl::wstring& name)
-:	m_Filename(name), m_AreaStart(0), m_AreaEnd(0), m_Pos(0), m_File(alreadyOpenedFile)
+:	mFileName(name), mAreaStart(0), mAreaEnd(0), mPos(0), mFile(alreadyOpenedFile)
 {
-	if (m_File)
+	if (mFile)
 	{
-		m_AreaStart = pos;
-		m_AreaEnd = m_AreaStart + areaSize;
+		mAreaStart = pos;
+		mAreaEnd = mAreaStart + areaSize;
 	}
 }
 
@@ -24,18 +24,18 @@ LimitReadFile::~LimitReadFile()
 //! returns how much was read
 int LimitReadFile::Read(void* buffer, unsigned int sizeToRead)
 {
-	if (0 == m_File)
+	if (0 == mFile)
 		return 0;
 
-	int r = m_AreaStart + m_Pos;
+	int r = mAreaStart + mPos;
 	int toRead = 
-		eastl::min(m_AreaEnd, (long)(r + sizeToRead)) - 
-		eastl::max(m_AreaStart, (long)r);
+		eastl::min(mAreaEnd, (long)(r + sizeToRead)) - 
+		eastl::max(mAreaStart, (long)r);
 	if (toRead < 0)
 		return 0;
-	m_File->Seek(r);
-	r = m_File->Read(buffer, toRead);
-	m_Pos += r;
+	mFile->Seek(r);
+	r = mFile->Read(buffer, toRead);
+	mPos += r;
 	return r;
 }
 
@@ -43,7 +43,7 @@ int LimitReadFile::Read(void* buffer, unsigned int sizeToRead)
 //! changes position in file, returns true if successful
 bool LimitReadFile::Seek(long finalPos, bool relativeMovement)
 {
-	m_Pos = eastl::clamp(finalPos + (relativeMovement ? m_Pos : 0 ), (long)0, m_AreaEnd - m_AreaStart);
+	mPos = eastl::clamp(finalPos + (relativeMovement ? mPos : 0 ), (long)0, mAreaEnd - mAreaStart);
 	return true;
 }
 
@@ -51,21 +51,21 @@ bool LimitReadFile::Seek(long finalPos, bool relativeMovement)
 //! returns size of file
 long LimitReadFile::GetSize() const
 {
-	return m_AreaEnd - m_AreaStart;
+	return mAreaEnd - mAreaStart;
 }
 
 
 //! returns where in the file we are.
 long LimitReadFile::GetPos() const
 {
-	return m_Pos;
+	return mPos;
 }
 
 
 //! returns name of file
 const eastl::wstring& LimitReadFile::GetFileName() const
 {
-	return m_Filename;
+	return mFileName;
 }
 
 

@@ -54,28 +54,28 @@
 //---------------------------------------------------------------------------------------------------------------------
 ActorFactory::ActorFactory(void)
 {
-    m_lastActorId = INVALID_ACTOR_ID;
+    mLastActorId = INVALID_ACTOR_ID;
 
     m_componentFactory.Register<TransformComponent>(
-		ActorComponent::GetIdFromName(TransformComponent::g_Name));
+		ActorComponent::GetIdFromName(TransformComponent::Name));
 	m_componentFactory.Register<MeshRenderComponent>(
-		ActorComponent::GetIdFromName(MeshRenderComponent::g_Name));
+		ActorComponent::GetIdFromName(MeshRenderComponent::Name));
     m_componentFactory.Register<SphereRenderComponent>(
-		ActorComponent::GetIdFromName(SphereRenderComponent::g_Name));
+		ActorComponent::GetIdFromName(SphereRenderComponent::Name));
     m_componentFactory.Register<PhysicComponent>(
-		ActorComponent::GetIdFromName(PhysicComponent::g_Name));
+		ActorComponent::GetIdFromName(PhysicComponent::Name));
     m_componentFactory.Register<TeapotRenderComponent>(
-		ActorComponent::GetIdFromName(TeapotRenderComponent::g_Name));
+		ActorComponent::GetIdFromName(TeapotRenderComponent::Name));
     m_componentFactory.Register<GridRenderComponent>(
 		ActorComponent::GetIdFromName(GridRenderComponent::g_Name));
     m_componentFactory.Register<ParticleSystemRenderComponent>(
-		ActorComponent::GetIdFromName(ParticleSystemRenderComponent::g_Name));
+		ActorComponent::GetIdFromName(ParticleSystemRenderComponent::Name));
     m_componentFactory.Register<LightRenderComponent>(
-		ActorComponent::GetIdFromName(LightRenderComponent::g_Name));
+		ActorComponent::GetIdFromName(LightRenderComponent::Name));
     m_componentFactory.Register<SkyRenderComponent>(
-		ActorComponent::GetIdFromName(SkyRenderComponent::g_Name));
+		ActorComponent::GetIdFromName(SkyRenderComponent::Name));
     m_componentFactory.Register<AudioComponent>(
-		ActorComponent::GetIdFromName(AudioComponent::g_Name));
+		ActorComponent::GetIdFromName(AudioComponent::Name));
 }
 
 eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, XMLElement *overrides, 
@@ -132,7 +132,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
 	//	This is a bit of a hack to get the initial transform of the transform component 
 	//	set before the other components (like PhysicsComponent) read it.
     eastl::shared_ptr<TransformComponent> pTransformComponent(
-		pActor->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		pActor->GetComponent<TransformComponent>(TransformComponent::Name));
 	if (pInitialTransform && pTransformComponent)
 	{
 		pTransformComponent->SetPosition(pInitialTransform->GetTranslation());

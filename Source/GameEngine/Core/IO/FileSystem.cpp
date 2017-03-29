@@ -69,7 +69,7 @@ BaseFileList* FileSystem::CreateFileList()
 	if (filesPath[filesPath.size() - 1] != '/') filesPath += '/';
 
 	//! Construct from native filesystem
-	if (m_FileSystemType == FILESYSTEM_NATIVE)
+	if (mFileSystemType == FILESYSTEM_NATIVE)
 	{
 		// --------------------------------------------
 		//! Windows version
@@ -174,7 +174,7 @@ BaseFileList* FileSystem::CreateEmptyFileList(const eastl::wstring& filesPath, b
 BaseFileArchive* FileSystem::CreateMountPointFileArchive(const eastl::wstring& filename, bool ignoreCase, bool ignorePaths)
 {
 	BaseFileArchive *archive = 0;
-	E_FILESYSTEM_TYPE current = SetFileSystemType(FILESYSTEM_NATIVE);
+	BaseFileSystemType current = SetFileSystemType(FILESYSTEM_NATIVE);
 
 	const eastl::wstring save = GetWorkingDirectory();
 	eastl::wstring fullPath = GetAbsolutePath(filename);
@@ -191,7 +191,7 @@ BaseFileArchive* FileSystem::CreateMountPointFileArchive(const eastl::wstring& f
 //! Returns the string of the current working directory
 const eastl::wstring& FileSystem::GetWorkingDirectory()
 {
-	E_FILESYSTEM_TYPE type = m_FileSystemType;
+	BaseFileSystemType type = mFileSystemType;
 
 	if (type != FILESYSTEM_NATIVE)
 	{
@@ -202,10 +202,10 @@ const eastl::wstring& FileSystem::GetWorkingDirectory()
 		#if defined(_WINDOWS_API_)
 			wchar_t tmp[_MAX_PATH];
 			_wgetcwd(tmp, _MAX_PATH);
-			m_WorkingDirectory[FILESYSTEM_NATIVE] = tmp;
+			mWorkingDirectory[FILESYSTEM_NATIVE] = tmp;
 			eastl::replace(
-				m_WorkingDirectory[FILESYSTEM_NATIVE].begin(), 
-				m_WorkingDirectory[FILESYSTEM_NATIVE].end(), L'\\', L'/');
+				mWorkingDirectory[FILESYSTEM_NATIVE].begin(), 
+				mWorkingDirectory[FILESYSTEM_NATIVE].end(), L'\\', L'/');
 		#endif
 
 		#if (defined(_POSIX_API_) || defined(_OSX_PLATFORM_))
@@ -228,10 +228,10 @@ const eastl::wstring& FileSystem::GetWorkingDirectory()
 			}
 		#endif
 
-		m_WorkingDirectory[type].validate();
+		mWorkingDirectory[type].validate();
 	}
 
-	return m_WorkingDirectory[type];
+	return mWorkingDirectory[type];
 }
 
 //! Changes the current Working Directory to the given string.
@@ -239,14 +239,14 @@ bool FileSystem::ChangeWorkingDirectoryTo(const eastl::wstring& newDirectory)
 {
 	bool success=false;
 
-	if (m_FileSystemType != FILESYSTEM_NATIVE)
+	if (mFileSystemType != FILESYSTEM_NATIVE)
 	{
-		m_WorkingDirectory[FILESYSTEM_VIRTUAL] = newDirectory;
+		mWorkingDirectory[FILESYSTEM_VIRTUAL] = newDirectory;
 		success = true;
 	}
 	else
 	{
-		m_WorkingDirectory[FILESYSTEM_NATIVE] = newDirectory;
+		mWorkingDirectory[FILESYSTEM_NATIVE] = newDirectory;
 		success = (_wchdir(newDirectory.c_str()) == 0);
 	}
 
@@ -312,16 +312,16 @@ bool FileSystem::ExistFile(const eastl::wstring& filename) const
 }
 
 //! Get the current file systen type
-E_FILESYSTEM_TYPE FileSystem::GetFileSystemType( )
+BaseFileSystemType FileSystem::GetFileSystemType( )
 {
-	return m_FileSystemType;
+	return mFileSystemType;
 }
 
 //! Sets the current file systen type
-E_FILESYSTEM_TYPE FileSystem::SetFileSystemType(E_FILESYSTEM_TYPE listType)
+BaseFileSystemType FileSystem::SetFileSystemType(BaseFileSystemType listType)
 {
-	E_FILESYSTEM_TYPE current = m_FileSystemType;
-	m_FileSystemType = listType;
+	BaseFileSystemType current = mFileSystemType;
+	mFileSystemType = listType;
 	return current;
 }
 

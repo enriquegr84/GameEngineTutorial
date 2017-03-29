@@ -76,26 +76,26 @@ class ResHandle
 	friend class ResCache;
 
 protected:
-	BaseResource	m_resource;
-	void*			m_buffer;	
-	bool			m_isRawBuffer;
-	unsigned int	m_size;
-	ResCache*		m_pResCache;
-	eastl::shared_ptr<BaseResourceExtraData> m_extra;
+	BaseResource	mResource;
+	void*			mBuffer;	
+	bool			mIsRawBuffer;
+	unsigned int	mSize;
+	ResCache*		mResCache;
+	eastl::shared_ptr<BaseResourceExtraData> mExtra;
 
 public:
-	ResHandle(BaseResource & resource, void *buffer, unsigned int size, bool isRawBuffer, ResCache *pResCache);
+	ResHandle(BaseResource & resource, void *buffer, unsigned int size, bool isRawBuffer, ResCache *resCache);
 
 	virtual ~ResHandle();
 
-	const eastl::wstring GetName() { return m_resource.m_name; }
-	unsigned int Size() const { return m_size; } 
-	bool IsRawBuffer() const { return m_isRawBuffer; }
-	void* Buffer() const { return m_buffer; }
-	void* WritableBuffer() { return m_buffer; }
+	const eastl::wstring GetName() { return mResource.mName; }
+	unsigned int Size() const { return mSize; } 
+	bool IsRawBuffer() const { return mIsRawBuffer; }
+	void* Buffer() const { return mBuffer; }
+	void* WritableBuffer() { return mBuffer; }
 
-	eastl::shared_ptr<BaseResourceExtraData> GetExtra() { return m_extra; }
-	void SetExtra(const eastl::shared_ptr<BaseResourceExtraData>& extra) { m_extra = extra; }
+	eastl::shared_ptr<BaseResourceExtraData> GetExtra() { return mExtra; }
+	void SetExtra(const eastl::shared_ptr<BaseResourceExtraData>& extra) { mExtra = extra; }
 };
 
 //
@@ -142,14 +142,14 @@ class ResCache
 	friend class ResHandle;
 
 	//lru (least recently used) list to track which resources are less frequently used than others
-	ResHandleList	m_lru;
-	ResHandleMap	m_resources;
-	ResourceLoaders m_resourceLoaders;
+	ResHandleList	mLRU;
+	ResHandleMap	mResources;
+	ResourceLoaders mResourceLoaders;
 
-	BaseResourceFile*	m_File;
+	BaseResourceFile*	mFile;
 
-	unsigned int	m_cacheSize;			// total memory size
-	unsigned int	m_allocated;			// total memory allocated
+	unsigned int	mCacheSize;			// total memory size
+	unsigned int	mAllocated;			// total memory allocated
 
 protected:
 
@@ -185,11 +185,9 @@ public:
 
     bool IsUsingDevelopmentDirectories(void) const 
 	{ 
-		LogAssert(m_File, "Invalid file"); 
-		return m_File->IsUsingDevelopmentDirectories(); 
+		LogAssert(mFile, "Invalid file"); 
+		return mFile->IsUsingDevelopmentDirectories(); 
 	}
-
 };
-
 
 #endif

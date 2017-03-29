@@ -81,7 +81,7 @@ enum SoundType
 	SOUND_TYPE_UNKNOWN,
 };
 
-extern char *gSoundExtentions[];
+extern char *SoundExtentions[];
 
 //////////////////////////////////////////////////////////////////////
 // class BaseAudioBuffer							- Chapter 13, page 409
@@ -123,28 +123,28 @@ public:
 class AudioBuffer : public BaseAudioBuffer
 {
 public: 
-	virtual eastl::shared_ptr<ResHandle> GetResource() { return m_Resource; }
-	virtual bool IsLooping() const { return m_isLooping; }
-	virtual int GetVolume() const { return m_Volume; }
+	virtual eastl::shared_ptr<ResHandle> GetResource() { return mResource; }
+	virtual bool IsLooping() const { return mIsLooping; }
+	virtual int GetVolume() const { return mVolume; }
 protected:
 	AudioBuffer(eastl::shared_ptr<ResHandle>resource)
 	{ 
-		m_Resource = resource; 
-		m_isPaused = false;
-		m_isLooping = false;
-		m_Volume = 0;
+		mResource = resource; 
+		mIsPaused = false;
+		mIsLooping = false;
+		mVolume = 0;
 	}	// disable public construction
 
-	eastl::shared_ptr<ResHandle> m_Resource;
+	eastl::shared_ptr<ResHandle> mResource;
 
 	// Is the sound paused
-	bool m_isPaused;
+	bool mIsPaused;
 
 	// Is the sound looping
-	bool m_isLooping;
+	bool mIsLooping;
 
 	//the volume
-	int m_Volume;
+	int mVolume;
 };
 
 /*
@@ -182,18 +182,18 @@ public:
 
 	virtual void Shutdown();
 	static bool HasSoundCard(void);
-	bool IsPaused() { return m_AllPaused; }
+	bool IsPaused() { return mAllPaused; }
+
+	// The unique audio object.
+	static Audio* AudioSystem;
 
 protected:
 
 	typedef eastl::list<BaseAudioBuffer *> AudioBufferList;
 
-	AudioBufferList m_AllSamples;	// List of all currently allocated audio buffers
-	bool m_AllPaused;				// Has the sound system been paused?
-	bool m_Initialized;				// Has the sound system been initialized?
+	AudioBufferList mAllSamples;	// List of all currently allocated audio buffers
+	bool mAllPaused;				// Has the sound system been paused?
+	bool mInitialized;				// Has the sound system been initialized?
 };
-
-extern Audio *g_pAudio;
-
 
 #endif

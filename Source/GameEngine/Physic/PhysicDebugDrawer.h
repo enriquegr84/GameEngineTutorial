@@ -52,7 +52,7 @@
 //
 class BulletDebugDrawer : public btIDebugDraw
 {
-	DebugDrawModes m_DebugModes;
+	DebugDrawModes mDebugModes;
 public:
 	// btIDebugDraw interface
 	virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB, 

@@ -57,58 +57,58 @@ unsigned int ProcessManager::UpdateProcesses(unsigned long deltaMs)
     unsigned short int successCount = 0;
     unsigned short int failCount = 0;
 
-    ProcessList::iterator it = m_processList.begin();
-    while (it != m_processList.end())
+    ProcessList::iterator it = mProcesses.begin();
+    while (it != mProcesses.end())
     {
         // grab the next process
-        eastl::shared_ptr<Process> pCurrProcess = (*it);
+        eastl::shared_ptr<Process> currProcess = (*it);
 
         // save the iterator and increment the old one in case we need to remove this process from the list
         ProcessList::iterator thisIt = it;
         ++it;
 
         // process is uninitialized, so initialize it
-        if (pCurrProcess->GetState() == Process::UNINITIALIZED)
-            pCurrProcess->OnInit();
+        if (currProcess->GetState() == Process::STATE_UNINITIALIZED)
+            currProcess->OnInit();
 
         // give the process an update tick if it's running
-        if (pCurrProcess->GetState() == Process::RUNNING)
-            pCurrProcess->OnUpdate(deltaMs);
+        if (currProcess->GetState() == Process::STATE_RUNNING)
+            currProcess->OnUpdate(deltaMs);
 
         // check to see if the process is dead
-        if (pCurrProcess->IsDead())
+        if (currProcess->IsDead())
         {
             // run the appropriate exit function
-            switch (pCurrProcess->GetState())
+            switch (currProcess->GetState())
             {
-                case Process::SUCCEEDED :
+                case Process::STATE_SUCCEEDED :
                 {
-                    pCurrProcess->OnSuccess();
-                    eastl::shared_ptr<Process> pChild = pCurrProcess->RemoveChild();
-                    if (pChild)
-                        AttachProcess(pChild);
+                    currProcess->OnSuccess();
+                    eastl::shared_ptr<Process> child = currProcess->RemoveChild();
+                    if (child)
+                        AttachProcess(child);
                     else
                         ++successCount;  // only counts if the whole chain completed
                     break;
                 }
 
-                case Process::FAILED :
+                case Process::STATE_FAILED :
                 {
-                    pCurrProcess->OnFail();
+                    currProcess->OnFail();
                     ++failCount;
                     break;
                 }
 
-                case Process::ABORTED :
+                case Process::STATE_ABORTED :
                 {
-                    pCurrProcess->OnAbort();
+                    currProcess->OnAbort();
                     ++failCount;
                     break;
                 }
             }
 
             // remove the process and destroy it
-            m_processList.erase(thisIt);
+            mProcesses.erase(thisIt);
         }
     }
 
@@ -121,7 +121,7 @@ unsigned int ProcessManager::UpdateProcesses(unsigned long deltaMs)
 //---------------------------------------------------------------------------------------------------------------------
 eastl::weak_ptr<Process> ProcessManager::AttachProcess(eastl::shared_ptr<Process> pProcess)
 {
-	m_processList.push_front(pProcess);
+	mProcesses.push_front(pProcess);
     return eastl::weak_ptr<Process>(pProcess);
 }
 
@@ -130,7 +130,7 @@ eastl::weak_ptr<Process> ProcessManager::AttachProcess(eastl::shared_ptr<Process
 //---------------------------------------------------------------------------------------------------------------------
 void ProcessManager::ClearAllProcesses(void)
 {
-    m_processList.clear();
+    mProcesses.clear();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -139,20 +139,20 @@ void ProcessManager::ClearAllProcesses(void)
 //---------------------------------------------------------------------------------------------------------------------
 void ProcessManager::AbortAllProcesses(bool immediate)
 {
-    ProcessList::iterator it = m_processList.begin();
-    while (it != m_processList.end())
+    ProcessList::iterator it = mProcesses.begin();
+    while (it != mProcesses.end())
     {
         ProcessList::iterator tempIt = it;
         ++it;
 
-        eastl::shared_ptr<Process> pProcess = *tempIt;
-        if (pProcess->IsAlive())
+        eastl::shared_ptr<Process> process = *tempIt;
+        if (process->IsAlive())
         {
-            pProcess->SetState(Process::ABORTED);
+            process->SetState(Process::STATE_ABORTED);
             if (immediate)
             {
-                pProcess->OnAbort();
-                m_processList.erase(tempIt);
+                process->OnAbort();
+                mProcesses.erase(tempIt);
             }
         }
     }

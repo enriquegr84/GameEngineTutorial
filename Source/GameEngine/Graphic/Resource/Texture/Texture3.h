@@ -15,8 +15,7 @@ class GRAPHIC_ITEM Texture3 : public TextureSingle
 public:
     // Construction.
     Texture3(DFType format, unsigned int width, unsigned int height,
-        unsigned int thickness, bool hasMipmaps = false,
-        bool createStorage = true);
+        unsigned int thickness, bool hasMipmaps = false, bool createStorage = true);
 
     // Texture dimensions.
     unsigned int GetWidth() const;

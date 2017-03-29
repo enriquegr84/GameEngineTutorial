@@ -47,20 +47,20 @@
 //
 BaseResource::BaseResource(const eastl::wstring &resourceName) 
 {
-	m_name = eastl::wstring(resourceName.c_str());
+	mName = eastl::wstring(resourceName.c_str());
 }
 
 //
 // ResHandle::ResHandle							- Chapter 8, page 223
 //
-ResHandle::ResHandle(BaseResource & resource, void *buffer, unsigned int size, bool isRawBuffer, ResCache *pResCache)
-: m_resource(resource)
+ResHandle::ResHandle(BaseResource & resource, void *buffer, unsigned int size, bool isRawBuffer, ResCache *resCache)
+: mResource(resource)
 {
-	m_buffer = buffer;
-	m_isRawBuffer = isRawBuffer;
-	m_size = size;
-	m_extra = NULL;
-	m_pResCache = pResCache;
+	mBuffer = buffer;
+	mIsRawBuffer = isRawBuffer;
+	mSize = size;
+	mExtra = NULL;
+	mResCache = resCache;
 }
 
 //
@@ -68,12 +68,12 @@ ResHandle::ResHandle(BaseResource & resource, void *buffer, unsigned int size, b
 //
 ResHandle::~ResHandle()
 {
-	if (m_isRawBuffer)
-		delete m_buffer;
+	if (mIsRawBuffer)
+		delete mBuffer;
 	else
-		delete[] m_buffer;
+		delete[] mBuffer;
 	
-	m_pResCache->MemoryHasBeenFreed(m_size);
+	mResCache->MemoryHasBeenFreed(mSize);
 }
 
 
@@ -82,9 +82,9 @@ ResHandle::~ResHandle()
 //
 ResCache::ResCache(const unsigned int sizeInMb, BaseResourceFile *resFile )
 {
-	m_cacheSize = sizeInMb * 1024 * 1024; // total memory size
-	m_allocated = 0; // total memory allocated
-	m_File = resFile;
+	mCacheSize = sizeInMb * 1024 * 1024; // total memory size
+	mAllocated = 0; // total memory allocated
+	mFile = resFile;
 }
 
 //
@@ -92,11 +92,11 @@ ResCache::ResCache(const unsigned int sizeInMb, BaseResourceFile *resFile )
 //
 ResCache::~ResCache()
 {
-	while (!m_lru.empty())
+	while (!mLRU.empty())
 	{
 		FreeOneResource();
 	}
-	delete m_File;
+	delete mFile;
 }
 
 //
@@ -105,7 +105,7 @@ ResCache::~ResCache()
 bool ResCache::Init()
 { 
 	bool retValue = false;
-	if ( m_File->Open() )
+	if ( mFile->Open() )
 	{
 		RegisterLoader(
 			eastl::shared_ptr<BaseResourceLoader>(new DefaultResourceLoader()));
@@ -122,7 +122,7 @@ bool ResCache::Init()
 //
 void ResCache::RegisterLoader(const eastl::shared_ptr<BaseResourceLoader>& loader )
 {
-	m_resourceLoaders.push_front(loader);
+	mResourceLoaders.push_front(loader);
 }
 
 
@@ -164,11 +164,11 @@ eastl::shared_ptr<ResHandle> ResCache::Load(BaseResource *r)
 	BaseResourceLoader* loader = 0;
 	eastl::shared_ptr<ResHandle> handle = 0;
 
-	for (ResourceLoaders::iterator it = m_resourceLoaders.begin(); it != m_resourceLoaders.end(); ++it)
+	for (ResourceLoaders::iterator it = mResourceLoaders.begin(); it != mResourceLoaders.end(); ++it)
 	{
 		BaseResourceLoader* testLoader = (*it).get();
 
-		if (testLoader->MatchResourceFormat(r->m_name))
+		if (testLoader->MatchResourceFormat(r->mName))
 		{
 			loader = testLoader;
 			break;
@@ -182,11 +182,11 @@ eastl::shared_ptr<ResHandle> ResCache::Load(BaseResource *r)
 	}
 
 	void* rawBuffer = NULL;
-	int rawSize = m_File->GetRawResource(*r, &rawBuffer);
+	int rawSize = mFile->GetRawResource(*r, &rawBuffer);
 	if (rawBuffer == NULL || rawSize < 0)
 	{
 		// resource cache out of memory
-		LogAssert(false, eastl::wstring("Resource not found ") + r->m_name);
+		LogAssert(false, eastl::wstring("Resource not found ") + r->mName);
 		return 0;
 	}
 	/*
@@ -224,8 +224,8 @@ eastl::shared_ptr<ResHandle> ResCache::Load(BaseResource *r)
 
 	if (handle)
 	{
-		m_lru.push_front(eastl::shared_ptr<ResHandle>(handle));
-		m_resources[r->m_name] = m_lru.front();
+		mLRU.push_front(eastl::shared_ptr<ResHandle>(handle));
+		mResources[r->mName] = mLRU.front();
 	}
 
 	LogAssert(loader, "Default resource loader not found!");
@@ -237,17 +237,17 @@ bool ResCache::ExistResource(BaseResource * r)
 	if (Find(r))
 		return true;
 
-	return m_File->ExistFile(r->m_name);
+	return mFile->ExistFile(r->mName);
 }
 
 bool ResCache::ExistDirectory(const eastl::wstring& dirname) 
 { 
-	return m_File->ExistDirectory(dirname);
+	return mFile->ExistDirectory(dirname);
 }
 
 int ResCache::GetResource(BaseResource * r, void** buffer) 
 { 
-	int size = m_File->GetRawResource(r->m_name, buffer);
+	int size = mFile->GetRawResource(r->mName, buffer);
 	if (buffer == NULL || size < 0)
 	{
 		// resource cache out of memory
@@ -262,8 +262,8 @@ int ResCache::GetResource(BaseResource * r, void** buffer)
 //
 eastl::shared_ptr<ResHandle> ResCache::Find(BaseResource * r)
 {
-	ResHandleMap::iterator i = m_resources.find(eastl::wstring(r->m_name.c_str()));
-	if (i==m_resources.end())
+	ResHandleMap::iterator i = mResources.find(eastl::wstring(r->mName.c_str()));
+	if (i==mResources.end())
 		return 0;
 
 	return i->second;
@@ -275,8 +275,8 @@ eastl::shared_ptr<ResHandle> ResCache::Find(BaseResource * r)
 */
 void ResCache::Update(const eastl::shared_ptr<ResHandle>& handle)
 {
-	m_lru.remove(handle);
-	m_lru.push_front(handle);
+	mLRU.remove(handle);
+	mLRU.push_front(handle);
 }
 
 /*
@@ -290,7 +290,7 @@ char* ResCache::Allocate(unsigned int size)
 	char *mem = new char[size];
 	if (mem)
 	{
-		m_allocated += size;
+		mAllocated += size;
 	}
 
 	return mem;
@@ -304,13 +304,13 @@ char* ResCache::Allocate(unsigned int size)
 */
 void ResCache::FreeOneResource()
 {
-	ResHandleList::iterator gonner = m_lru.end();
+	ResHandleList::iterator gonner = mLRU.end();
 	gonner--;
 
 	eastl::shared_ptr<ResHandle> handle = *gonner;
 
-	m_lru.pop_back();							
-	m_resources.erase(eastl::wstring(handle->m_resource.m_name.c_str()));
+	mLRU.pop_back();							
+	mResources.erase(eastl::wstring(handle->mResource.mName.c_str()));
 	// Note - you can't change the resource cache size yet - the resource bits could still actually be
 	// used by some sybsystem holding onto the ResHandle. Only when it goes out of scope can the memory
 	// be actually free again.
@@ -327,10 +327,10 @@ void ResCache::FreeOneResource()
 //
 void ResCache::Flush()
 {
-	while (!m_lru.empty())
+	while (!mLRU.empty())
 	{
-		Free(*(m_lru.begin()));
-		m_lru.pop_front();
+		Free(*(mLRU.begin()));
+		mLRU.pop_front();
 	}
 }
 
@@ -340,16 +340,16 @@ void ResCache::Flush()
 //
 bool ResCache::MakeRoom(unsigned int size)
 {
-	if (size > m_cacheSize)
+	if (size > mCacheSize)
 	{
 		return false;
 	}
 
 	// return null if there's no possible way to allocate the memory
-	while (size > (m_cacheSize - m_allocated))
+	while (size > (mCacheSize - mAllocated))
 	{
 		// The cache is empty, and there's still not enough room.
-		if (m_lru.empty())
+		if (mLRU.empty())
 			return false;
 
 		FreeOneResource();
@@ -363,8 +363,8 @@ bool ResCache::MakeRoom(unsigned int size)
 //
 void ResCache::Free(const eastl::shared_ptr<ResHandle>& gonner)
 {
-	m_lru.remove(gonner);
-	m_resources.erase(eastl::wstring(gonner->m_resource.m_name.c_str()));
+	mLRU.remove(gonner);
+	mResources.erase(eastl::wstring(gonner->mResource.mName.c_str()));
 	// Note - the resource might still be in use by something,
 	// so the cache can't actually count the memory freed until the
 	// ResHandle pointing to it is destroyed.
@@ -380,7 +380,7 @@ void ResCache::Free(const eastl::shared_ptr<ResHandle>& gonner)
 //
 void ResCache::MemoryHasBeenFreed(unsigned int size)
 {
-	m_allocated -= size;
+	mAllocated -= size;
 }
 
 //
@@ -392,7 +392,7 @@ void ResCache::MemoryHasBeenFreed(unsigned int size)
 eastl::vector<eastl::wstring> ResCache::Match(const eastl::wstring pattern)
 {
 	eastl::vector<eastl::wstring> matchingNames;
-	if (m_File==NULL)
+	if (mFile==NULL)
 		return matchingNames;
 
 	/*
@@ -405,10 +405,10 @@ eastl::vector<eastl::wstring> ResCache::Match(const eastl::wstring pattern)
 		searchDirectory = true;
 	*/
 
-	int numFiles = m_File->GetNumResources();
+	int numFiles = mFile->GetNumResources();
 	for (int i=0; i<numFiles; ++i)
 	{
-		eastl::wstring name(m_File->GetResourceName(i).c_str());
+		eastl::wstring name(mFile->GetResourceName(i).c_str());
 		/*
 		if (searchDirectory)
 			if (name.findLast ( '.' ) < 0)
@@ -431,19 +431,19 @@ eastl::vector<eastl::wstring> ResCache::Match(const eastl::wstring pattern)
 //
 int ResCache::Preload(const eastl::wstring pattern, void (*progressCallback)(int, bool &))
 {
-	if (m_File==NULL)
+	if (mFile==NULL)
 		return 0;
 
-	int numFiles = m_File->GetNumResources();
+	int numFiles = mFile->GetNumResources();
 	int loaded = 0;
 	bool cancel = false;
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	for (int i=0; i<numFiles; ++i)
 	{
-		BaseResource resource(m_File->GetResourceName(i));
+		BaseResource resource(mFile->GetResourceName(i));
 
-		if (WildcardMatch(pattern.c_str(), resource.m_name.c_str()))
+		if (WildcardMatch(pattern.c_str(), resource.mName.c_str()))
 		{
 			const eastl::shared_ptr<ResHandle>& handle = gameApp->mResCache->GetHandle(&resource);
 			++loaded;

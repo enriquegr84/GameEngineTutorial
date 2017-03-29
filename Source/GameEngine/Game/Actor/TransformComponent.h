@@ -49,25 +49,25 @@
 //---------------------------------------------------------------------------------------------------
 class TransformComponent : public ActorComponent
 {
-    Transform m_transform;
+    Transform mTransform;
 
 public:
-	static const char* g_Name;
-	virtual const char* GetName() const { return g_Name; }
+	static const char* Name;
+	virtual const char* GetName() const { return Name; }
 
-	TransformComponent(void) { m_transform.MakeIdentity(); }
+	TransformComponent(void) { mTransform.MakeIdentity(); }
     virtual bool Init(XMLElement* pData) override;
     virtual XMLElement* GenerateXml(void) override;
 
     // transform functions
-	Transform GetTransform(void) const { return m_transform; }
-    void SetTransform(const Transform& newTransform) { m_transform = newTransform; }
-    Vector3<float> GetPosition(void) const { return m_transform.GetTranslation(); }
-    void SetPosition(const Vector3<float>& pos) { m_transform.SetTranslation(pos); }
+	Transform GetTransform(void) const { return mTransform; }
+    void SetTransform(const Transform& newTransform) { mTransform = newTransform; }
+    Vector3<float> GetPosition(void) const { return mTransform.GetTranslation(); }
+    void SetPosition(const Vector3<float>& pos) { mTransform.SetTranslation(pos); }
 	EulerAngles<float> GetLookAt(void) const
 	{ 
 		EulerAngles<float> eulerAngles;
-		m_transform.GetRotation(eulerAngles); 
+		mTransform.GetRotation(eulerAngles); 
 		return eulerAngles;
 	}
 };

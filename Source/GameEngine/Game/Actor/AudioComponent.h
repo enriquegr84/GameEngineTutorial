@@ -48,16 +48,14 @@
 //---------------------------------------------------------------------------------------------------------------------
 class AudioComponent : public ActorComponent
 {
-	eastl::string m_audioResource;
-	bool m_looping;
-	float m_fadeInTime;
-	int m_volume;
+	eastl::string mAudioResource;
+	bool mLooping;
+	float mFadeInTime;
+	int mVolume;
 
 public:
-	static const char *g_Name;
-	virtual const char *GetName() const { return g_Name; }
-
-	bool Start();
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
 
     AudioComponent(void);
 

@@ -39,7 +39,7 @@ public:
 	virtual long GetSize() const;
 
 	//! returns if file is open
-	virtual bool IsOpen() const { return m_File != 0; }
+	virtual bool IsOpen() const { return mFile != 0; }
 
 	//! Get the current position in the file.
 	/** \return Current position in the file in bytes. */
@@ -57,9 +57,9 @@ private:
 	//! opens the file
 	void OpenFile();
 
-	FILE* m_File;
-	long m_FileSize;
-	eastl::wstring m_Filename;
+	FILE* mFile;
+	long mFileSize;
+	eastl::wstring mFileName;
 };
 
 

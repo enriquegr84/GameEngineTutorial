@@ -36,8 +36,6 @@
 //
 //========================================================================
 
-//#include <mmsystem.h>
-
 #include "GameLogic.h"
 
 //#include "AI/Pathing.h"
@@ -65,26 +63,26 @@
 
 GameLogic::GameLogic()
 {
-	m_LastActorId = 0;
-	m_Lifetime = 0;
+	mLastActorId = 0;
+	mLifetime = 0;
 
 	//m_Random.Randomize();
-	m_State = BGS_Initializing;
-	m_bProxy = false;
-	m_RenderDiagnostics = false;
-	m_ExpectedPlayers = 0;
-	m_ExpectedRemotePlayers = 0;
-	m_ExpectedAI = 0;
-	m_HumanPlayersAttached = 0;
-	m_AIPlayersAttached = 0;
-	m_HumanGamesLoaded = 0;
-	m_pActorFactory = NULL;
+	mGameState = BGS_INITIALIZING;
+	mIsProxy = false;
+	mIsRenderDiagnostics = false;
+	mExpectedPlayers = 0;
+	mExpectedRemotePlayers = 0;
+	mExpectedAI = 0;
+	mHumanPlayersAttached = 0;
+	mAIPlayersAttached = 0;
+	mHumanGamesLoaded = 0;
+	mActorFactory = NULL;
 	//m_pPathingGraph = NULL;
 
-	m_pProcessManager = new ProcessManager;
+	mProcessManager = new ProcessManager;
 	//mLevelManager = new LevelManager;
-	//GE_ASSERT(m_pProcessManager && mLevelManager);
-	//mLevelManager->Initialize(g_pGameApp->mResCache->Match(L"world\\*.xml"));
+	//GE_ASSERT(mProcessManager && mLevelManager);
+	//mLevelManager->Initialize(gameApp->mResCache->Match(L"world\\*.xml"));
 
     //	register script events from the engine
 	//  [mrmike] this was moved to the constructor post-press, since this function 
@@ -99,27 +97,27 @@ GameLogic::~GameLogic()
 	gameApp->RemoveViews();
 
 	delete mLevelManager;
-	delete m_pProcessManager;
-	delete m_pActorFactory;
+	delete mProcessManager;
+	delete mActorFactory;
 
     // destroy all actors
-    for (auto it = m_actors.begin(); it != m_actors.end(); ++it)
+    for (auto it = mActors.begin(); it != mActors.end(); ++it)
         it->second->Destroy();
-    m_actors.clear();
+    mActors.clear();
 
    BaseEventManager::Get()->RemoveListener(
 	   MakeDelegate(this, &GameLogic::RequestDestroyActorDelegate), 
-	   EvtData_Request_Destroy_Actor::sk_EventType);
+	   EventDataRequestDestroyActor::skEventType);
 }
 
 bool GameLogic::Init(void)
 {
-    m_pActorFactory = CreateActorFactory();
-    //m_pPathingGraph.reset(CreatePathingGraph());
+    mActorFactory = CreateActorFactory();
+    //mPathingGraph.reset(CreatePathingGraph());
 
     BaseEventManager::Get()->AddListener(
 		MakeDelegate(this, &GameLogic::RequestDestroyActorDelegate), 
-		EvtData_Request_Destroy_Actor::sk_EventType);
+		EventDataRequestDestroyActor::skEventType);
     return true;
 }
 
@@ -183,8 +181,8 @@ bool GameLogic::LoadGame(const char* levelResource)
 			if (pActor)
 			{
 				// fire an event letting everyone else know that we created a new actor
-				eastl::shared_ptr<EvtData_New_Actor> pNewActorEvent(
-					new EvtData_New_Actor(pActor->GetId()));
+				eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+					new EventDataNewActor(pActor->GetId()));
 				BaseEventManager::Get()->QueueEvent(pNewActorEvent);
 			}
         }
@@ -215,16 +213,16 @@ bool GameLogic::LoadGame(const char* levelResource)
 
 	//	trigger the Environment Loaded Game event - 
 	//	only then can player actors and AI be spawned!
-	if (m_bProxy)
+	if (mIsProxy)
 	{
-		eastl::shared_ptr<EvtData_Remote_Environment_Loaded> pNewGameEvent(
-			new EvtData_Remote_Environment_Loaded);
+		eastl::shared_ptr<EventDataRemoteEnvironmentLoaded> pNewGameEvent(
+			new EventDataRemoteEnvironmentLoaded);
 		BaseEventManager::Get()->TriggerEvent(pNewGameEvent);
 	}
 	else
 	{
-		eastl::shared_ptr<EvtData_Environment_Loaded> pNewGameEvent(
-			new EvtData_Environment_Loaded);
+		eastl::shared_ptr<EventDataEnvironmentLoaded> pNewGameEvent(
+			new EventDataEnvironmentLoaded);
 		BaseEventManager::Get()->TriggerEvent(pNewGameEvent);
 	}
 
@@ -235,11 +233,11 @@ bool GameLogic::LoadGame(const char* levelResource)
 
 void GameLogic::SetProxy() 
 {
-	m_bProxy = true; 
+	mIsProxy = true; 
 
     BaseEventManager::Get()->AddListener(
 		MakeDelegate(this, &GameLogic::RequestNewActorDelegate), 
-		EvtData_Request_New_Actor::sk_EventType);
+		EventDataRequestNewActor::skEventType);
 
 	mPhysics.reset(CreateNullPhysics());
 }
@@ -247,22 +245,22 @@ void GameLogic::SetProxy()
 eastl::shared_ptr<Actor> GameLogic::CreateActor(const eastl::string &actorResource, XMLElement *overrides, 
 	const Transform *initialTransform, const ActorId serversActorId)
 {
-    LogAssert(m_pActorFactory, "actor factory is not initialized");
-	if (!m_bProxy && serversActorId != INVALID_ACTOR_ID)
+    LogAssert(mActorFactory, "actor factory is not initialized");
+	if (!mIsProxy && serversActorId != INVALID_ACTOR_ID)
 		return eastl::shared_ptr<Actor>();
 
-	if (m_bProxy && serversActorId == INVALID_ACTOR_ID)
+	if (mIsProxy && serversActorId == INVALID_ACTOR_ID)
 		return eastl::shared_ptr<Actor>();
 
-    eastl::shared_ptr<Actor> pActor = m_pActorFactory->CreateActor(
+    eastl::shared_ptr<Actor> pActor = mActorFactory->CreateActor(
 		eastl::wstring(actorResource.c_str()).c_str(), overrides, initialTransform, serversActorId);
     if (pActor)
     {
-        m_actors.insert(eastl::make_pair(pActor->GetId(), pActor));
-		if (!m_bProxy && (m_State==BGS_SpawningPlayersActors || m_State==BGS_Running))
+        mActors.insert(eastl::make_pair(pActor->GetId(), pActor));
+		if (!mIsProxy && (mGameState==BGS_SPAWNINGPLAYERACTORS || mGameState==BGS_RUNNING))
 		{
-			eastl::shared_ptr<EvtData_Request_New_Actor> pNewActor(
-				new EvtData_Request_New_Actor(actorResource, initialTransform, pActor->GetId()));
+			eastl::shared_ptr<EventDataRequestNewActor> pNewActor(
+				new EventDataRequestNewActor(actorResource, initialTransform, pActor->GetId()));
 			BaseEventManager::Get()->TriggerEvent(pNewActor);
 		}
         return pActor;
@@ -278,21 +276,21 @@ void GameLogic::DestroyActor(const ActorId actorId)
 {
     //	We need to trigger a synchronous event to ensure that any systems responding to this 
 	//	event can still access a valid actor if need be. The actor will be destroyed after this.
-    eastl::shared_ptr<EvtData_Destroy_Actor> pEvent(new EvtData_Destroy_Actor(actorId));
+    eastl::shared_ptr<EventDataDestroyActor> pEvent(new EventDataDestroyActor(actorId));
     BaseEventManager::Get()->TriggerEvent(pEvent);
 
-    auto findIt = m_actors.find(actorId);
-    if (findIt != m_actors.end())
+    auto findIt = mActors.find(actorId);
+    if (findIt != mActors.end())
     {
         findIt->second->Destroy();
-        m_actors.erase(findIt);
+        mActors.erase(findIt);
     }
 }
 
 eastl::weak_ptr<Actor> GameLogic::GetActor(const ActorId actorId)
 {
-    ActorMap::iterator findIt = m_actors.find(actorId);
-    if (findIt != m_actors.end())
+    ActorMap::iterator findIt = mActors.find(actorId);
+    if (findIt != mActors.end())
         return findIt->second;
 
     return eastl::weak_ptr<Actor>();
@@ -300,35 +298,35 @@ eastl::weak_ptr<Actor> GameLogic::GetActor(const ActorId actorId)
 
 void GameLogic::ModifyActor(const ActorId actorId, XMLElement* overrides)
 {
-    LogAssert(m_pActorFactory, "actor factory is not initialized");
-	if (!m_pActorFactory)
+    LogAssert(mActorFactory, "actor factory is not initialized");
+	if (!mActorFactory)
 		return;
 
-	auto findIt = m_actors.find(actorId);
-    if (findIt != m_actors.end())
+	auto findIt = mActors.find(actorId);
+    if (findIt != mActors.end())
     {
-		m_pActorFactory->ModifyActor(findIt->second, overrides);
+		mActorFactory->ModifyActor(findIt->second, overrides);
 	}
 }
 
 void GameLogic::OnUpdate(float time, float elapsedTime)
 {
-	int deltaMilliseconds = int(elapsedTime * 1000.0f);
-	m_Lifetime += elapsedTime;
+	int deltaTime = int(elapsedTime * 1000.0f);
+	mLifetime += elapsedTime;
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 
-	switch(m_State)
+	switch(mGameState)
 	{
-		case BGS_Initializing:
+		case BGS_INITIALIZING:
 			// If we get to here we're ready to attach players
-			ChangeState(BGS_MainMenu);
+			ChangeState(BGS_MAINMENU);
 			break;
 
-		case BGS_MainMenu:
+		case BGS_MAINMENU:
 			break;
 
-		case BGS_LoadingGameEnvironment:
+		case BGS_LOADINGGAMEENVIRONMENT:
 /*
 			// [mrmike] This was modified a little from what you see in the book - 
 			//	LoadGame() is now called from GameLogic::ChangeState()
@@ -340,33 +338,33 @@ void GameLogic::OnUpdate(float time, float elapsedTime)
 */
 			break;
 
-		case BGS_WaitingForPlayersToLoadEnvironment:
-			if (m_ExpectedPlayers + m_ExpectedRemotePlayers <= m_HumanGamesLoaded)
+		case BGS_WAITINGFORPLAYERSTOLOADENVIRONMENT:
+			if (mExpectedPlayers + mExpectedRemotePlayers <= mHumanGamesLoaded)
 			{
-				ChangeState(BGS_SpawningPlayersActors);
+				ChangeState(BGS_SPAWNINGPLAYERACTORS);
 			}
 			break;
 
-		case BGS_SpawningPlayersActors:
-			ChangeState(BGS_Running);
+		case BGS_SPAWNINGPLAYERACTORS:
+			ChangeState(BGS_RUNNING);
 			break;
 
-		case BGS_WaitingForPlayers:
-			if (m_ExpectedPlayers + m_ExpectedRemotePlayers == m_HumanPlayersAttached ) 
+		case BGS_WAITINGFORPLAYERS:
+			if (mExpectedPlayers + mExpectedRemotePlayers == mHumanPlayersAttached ) 
 			{
 				// The server sends us the level name as a part of the login message. 
 				// We have to wait until it arrives before loading the level
-				if (!gameApp->mOption.m_Level.empty())
+				if (!gameApp->mOption.mLevel.empty())
 				{
-					ChangeState(BGS_LoadingGameEnvironment);
+					ChangeState(BGS_LOADINGGAMEENVIRONMENT);
 				}
 			}
 			break;
 
-		case BGS_Running:
-			m_pProcessManager->UpdateProcesses(deltaMilliseconds);
+		case BGS_RUNNING:
+			mProcessManager->UpdateProcesses(deltaTime);
 
-            if(mPhysics && !m_bProxy)
+            if(mPhysics && !mIsProxy)
             {
                 mPhysics->OnUpdate(elapsedTime);
                 mPhysics->SyncVisibleScene();
@@ -379,9 +377,9 @@ void GameLogic::OnUpdate(float time, float elapsedTime)
 	}
 
     // update game actors
-    for (ActorMap::const_iterator it = m_actors.begin(); it != m_actors.end(); ++it)
+    for (ActorMap::const_iterator it = mActors.begin(); it != mActors.end(); ++it)
     {
-        it->second->Update(deltaMilliseconds);
+        it->second->Update(deltaTime);
     }
 
 }
@@ -393,47 +391,47 @@ void GameLogic::ChangeState(BaseGameState newState)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 
-	if (newState==BGS_WaitingForPlayers)
+	if (newState==BGS_WAITINGFORPLAYERS)
 	{
 		// Get rid of the Main Menu...
 		gameApp->RemoveView();
 
 		// Note: Split screen support would require this to change!
-		m_ExpectedPlayers = 1;
-		m_ExpectedRemotePlayers = gameApp->mOption.m_expectedPlayers - 1;
-		m_ExpectedAI = gameApp->mOption.m_numAIs;
+		mExpectedPlayers = 1;
+		mExpectedRemotePlayers = gameApp->mOption.mExpectedPlayers - 1;
+		mExpectedAI = gameApp->mOption.mNumAIs;
 
-		if (!gameApp->mOption.m_gameHost.empty())
+		if (!gameApp->mOption.mGameHost.empty())
 		{
 			SetProxy();					
-			m_ExpectedAI = 0;				// the server will create these
-			m_ExpectedRemotePlayers = 0;	// the server will create these
+			mExpectedAI = 0;				// the server will create these
+			mExpectedRemotePlayers = 0;	// the server will create these
 			
 			if (!gameApp->AttachAsClient())
 			{
 				// Throw up a main menu
-				ChangeState(BGS_MainMenu);
+				ChangeState(BGS_MAINMENU);
 				return;
 			}
 		}
-		else if (m_ExpectedRemotePlayers > 0)
+		else if (mExpectedRemotePlayers > 0)
 		{
 			BaseSocketManager *pServer = new BaseSocketManager();
 			if (!pServer->Init())
 			{
 				// Throw up a main menu
-				ChangeState(BGS_MainMenu);	
+				ChangeState(BGS_MAINMENU);	
 				return;
 			}
 
 			pServer->AddSocket(
-				new GameServerListenSocket(gameApp->mOption.m_listenPort));
+				new GameServerListenSocket(gameApp->mOption.mListenPort));
 			gameApp->mBaseSocketManager.reset(pServer);
 		}
 	}
-	else if (newState == BGS_LoadingGameEnvironment)
+	else if (newState == BGS_LOADINGGAMEENVIRONMENT)
 	{
-		m_State = newState;
+		mGameState = newState;
 
 		if (!gameApp->LoadGame())
 		{
@@ -443,12 +441,12 @@ void GameLogic::ChangeState(BaseGameState newState)
 		else
 		{
 			// we must wait for all human player to report their environments are loaded.
-			ChangeState(BGS_WaitingForPlayersToLoadEnvironment);
+			ChangeState(BGS_WAITINGFORPLAYERSTOLOADENVIRONMENT);
 			return;
 		}
 	}
 
-	m_State = newState;
+	mGameState = newState;
 }
 
 
@@ -457,7 +455,7 @@ void GameLogic::ChangeState(BaseGameState newState)
 //   - but make the inherited logic choose the implementation
 void GameLogic::RenderDiagnostics() 
 { 
-	if (m_RenderDiagnostics)
+	if (mIsRenderDiagnostics)
 	{
 		mPhysics->RenderDiagnostics();
 	}
@@ -472,8 +470,8 @@ ActorFactory* GameLogic::CreateActorFactory(void)
 
 void GameLogic::RequestDestroyActorDelegate(BaseEventDataPtr pEventData)
 {
-    eastl::shared_ptr<EvtData_Request_Destroy_Actor> pCastEventData = 
-		eastl::static_pointer_cast<EvtData_Request_Destroy_Actor>(pEventData);
+    eastl::shared_ptr<EventDataRequestDestroyActor> pCastEventData = 
+		eastl::static_pointer_cast<EventDataRequestDestroyActor>(pEventData);
     DestroyActor(pCastEventData->GetActorId());
 }
 
@@ -484,8 +482,8 @@ void GameLogic::RequestDestroyActorDelegate(BaseEventDataPtr pEventData)
 
 void GameLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 {
-    eastl::shared_ptr<EvtData_Move_Actor> pCastEventData = 
-		eastl::static_pointer_cast<EvtData_Move_Actor>(pEventData);
+    eastl::shared_ptr<EventDataMoveActor> pCastEventData = 
+		eastl::static_pointer_cast<EventDataMoveActor>(pEventData);
     MoveActor(pCastEventData->GetId(), pCastEventData->GetMatrix());
 }
 
@@ -493,20 +491,20 @@ void GameLogic::RequestNewActorDelegate(BaseEventDataPtr pEventData)
 {
 	//	This should only happen if the game logic is a proxy, and there's a server 
 	//	asking us to create an actor.
-	LogAssert(m_bProxy, "Proxy not initialized");
-	if (!m_bProxy)
+	LogAssert(mIsProxy, "Proxy not initialized");
+	if (!mIsProxy)
 		return;
 
-    eastl::shared_ptr<EvtData_Request_New_Actor> pCastEventData = 
-		eastl::static_pointer_cast<EvtData_Request_New_Actor>(pEventData);
+    eastl::shared_ptr<EventDataRequestNewActor> pCastEventData = 
+		eastl::static_pointer_cast<EventDataRequestNewActor>(pEventData);
 
     // create the actor
 	eastl::shared_ptr<Actor> pActor = CreateActor(pCastEventData->GetActorResource(), 
 		NULL, pCastEventData->GetInitialTransform(), pCastEventData->GetServerActorId());
 	if (pActor)
 	{
-		eastl::shared_ptr<EvtData_New_Actor> pNewActorEvent(
-			new EvtData_New_Actor(pActor->GetId(), pCastEventData->GetViewId()));
+		eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+			new EventDataNewActor(pActor->GetId(), pCastEventData->GetViewId()));
         BaseEventManager::Get()->QueueEvent(pNewActorEvent);
 	}
 }

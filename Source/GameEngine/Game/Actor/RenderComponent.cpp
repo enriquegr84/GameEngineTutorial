@@ -42,13 +42,13 @@
 
 #include "Core/Logger/Logger.h"
 
-const char* MeshRenderComponent::g_Name = "MeshRenderComponent";
-const char* SphereRenderComponent::g_Name = "SphereRenderComponent";
-const char* TeapotRenderComponent::g_Name = "TeapotRenderComponent";
+const char* MeshRenderComponent::Name = "MeshRenderComponent";
+const char* SphereRenderComponent::Name = "SphereRenderComponent";
+const char* TeapotRenderComponent::Name = "TeapotRenderComponent";
 const char* GridRenderComponent::g_Name = "GridRenderComponent";
-const char* LightRenderComponent::g_Name = "LightRenderComponent";
-const char* SkyRenderComponent::g_Name = "SkyRenderComponent";
-const char* ParticleSystemRenderComponent::g_Name = "ParticleSystemRenderComponent";
+const char* LightRenderComponent::Name = "LightRenderComponent";
+const char* SkyRenderComponent::Name = "SkyRenderComponent";
+const char* ParticleSystemRenderComponent::Name = "ParticleSystemRenderComponent";
 
 //---------------------------------------------------------------------------------------------------------------------
 // MeshRenderComponent
@@ -62,8 +62,8 @@ bool MeshRenderComponent::DelegateInit(XMLElement* pData)
 {
     XMLElement* pMesh = pData->FirstChildElement("Mesh");
 
-	m_meshTextureFile = pMesh->Attribute("texture_file");
-	m_meshModelFile = pMesh->Attribute("model_file");
+	mMeshTextureFile = pMesh->Attribute("texture_file");
+	mMeshModelFile = pMesh->Attribute("model_file");
     //pMesh->Attribute("position", &segments);
 	//pMesh->Attribute("rotation", &segments);
 	//pMesh->Attribute("scale", &segments);
@@ -125,7 +125,7 @@ void MeshRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement
 //---------------------------------------------------------------------------------------------------------------------
 SphereRenderComponent::SphereRenderComponent(void)
 {
-    m_segments = 50;
+    mSegments = 50;
 }
 
 bool SphereRenderComponent::DelegateInit(XMLElement* pData)
@@ -135,8 +135,8 @@ bool SphereRenderComponent::DelegateInit(XMLElement* pData)
 	float radius = 1.0;
 	radius = pMesh->FloatAttribute("radius", radius);
     segments = pMesh->IntAttribute("segments", segments);
-	m_radius = (float)radius;
-    m_segments = (unsigned int)segments;
+	mRadius = (float)radius;
+    mSegments = (unsigned int)segments;
 
     return true;
 }
@@ -179,8 +179,8 @@ eastl::shared_ptr<SceneNode> SphereRenderComponent::CreateSceneNode(void)
 void SphereRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement)
 {
     XMLElement* pMesh = doc.NewElement("Sphere");
-	pMesh->SetAttribute("radius", eastl::to_string(m_radius).c_str());
-    pMesh->SetAttribute("segments", eastl::to_string(m_segments).c_str());
+	pMesh->SetAttribute("radius", eastl::to_string(mRadius).c_str());
+    pMesh->SetAttribute("segments", eastl::to_string(mSegments).c_str());
     pBaseElement->LinkEndChild(pBaseElement);
 }
 
@@ -242,8 +242,8 @@ void TeapotRenderComponent::CreateInheritedXMLElements(XMLDocument, XMLElement *
 //---------------------------------------------------------------------------------------------------------------------
 GridRenderComponent::GridRenderComponent(void)
 {
-    m_textureResource = "";
-    m_squares = 0;
+    mTextureResource = "";
+    mSquares = 0;
 }
 
 bool GridRenderComponent::DelegateInit(XMLElement* pData)
@@ -251,13 +251,13 @@ bool GridRenderComponent::DelegateInit(XMLElement* pData)
     XMLElement* pTexture = pData->FirstChildElement("Texture");
     if (pTexture)
 	{
-		m_textureResource = pTexture->FirstChild()->Value();
+		mTextureResource = pTexture->FirstChild()->Value();
 	}
 
     XMLElement* pDivision = pData->FirstChildElement("Division");
     if (pDivision)
 	{
-		m_squares = atoi(pDivision->FirstChild()->Value());
+		mSquares = atoi(pDivision->FirstChild()->Value());
 	}
 
     return true;
@@ -307,12 +307,12 @@ eastl::shared_ptr<SceneNode> GridRenderComponent::CreateSceneNode(void)
 void GridRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement *pBaseElement)
 {
     XMLElement* pTextureNode = doc.NewElement("Texture");
-    XMLText* pTextureText = doc.NewText(m_textureResource.c_str());
+    XMLText* pTextureText = doc.NewText(mTextureResource.c_str());
     pTextureNode->LinkEndChild(pTextureText);
     pBaseElement->LinkEndChild(pTextureNode);
 
     XMLElement* pDivisionNode = doc.NewElement("Division");
-	XMLText* pDivisionText = doc.NewText(eastl::to_string(m_squares).c_str());
+	XMLText* pDivisionText = doc.NewText(eastl::to_string(mSquares).c_str());
     pDivisionNode->LinkEndChild(pDivisionText);
     pBaseElement->LinkEndChild(pDivisionNode);
 }
@@ -407,8 +407,8 @@ bool LightRenderComponent::DelegateInit(XMLElement* pData)
 		XMLElement* pMaterial = pBillBoard->FirstChildElement("Material");
 		if (pMaterial)
 		{
-			m_billboardMaterial = pMaterial->Attribute("type");
-			m_billboardTexture = pMaterial->Attribute("texture");
+			mBillboardMaterial = pMaterial->Attribute("type");
+			mBillboardTexture = pMaterial->Attribute("texture");
 		}
 	}
 
@@ -559,7 +559,7 @@ bool SkyRenderComponent::DelegateInit(XMLElement* pData)
     XMLElement* pTexture = pData->FirstChildElement("Texture");
     if (pTexture)
 	{
-		m_textureResource = pTexture->FirstChild()->Value();
+		mTextureResource = pTexture->FirstChild()->Value();
 	}
 	return true;
 }
@@ -594,7 +594,7 @@ eastl::shared_ptr<SceneNode> SkyRenderComponent::CreateSceneNode(void)
 void SkyRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement *pBaseElement)
 {
     XMLElement* pTextureNode = doc.NewElement("Texture");
-    XMLText* pTextureText = doc.NewText(m_textureResource.c_str());
+    XMLText* pTextureText = doc.NewText(mTextureResource.c_str());
     pTextureNode->LinkEndChild(pTextureText);
     pBaseElement->LinkEndChild(pTextureNode);
 }

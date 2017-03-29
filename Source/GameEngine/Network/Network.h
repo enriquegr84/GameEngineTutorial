@@ -53,7 +53,7 @@
 #define RECV_BUFFER_SIZE (MAX_PACKET_SIZE * 512)
 #define MAX_QUEUE_PER_PLAYER (10000)
 
-#define MAGIC_NUMBER		(0x1f2e3d4c)
+#define MAGIC_NUMBER (0x1f2e3d4c)
 #define IPMANGLE(a,b,c,d) (((a)<<24)|((b)<<16)|((c)<<8)|((d)))
 #define INVALID_SOCKET_ID (-1)
 
@@ -88,18 +88,18 @@ public:
 class BinaryPacket : public BasePacket
 {
 protected:
-	char *m_Data;
+	char *mData;
 
 public:
 	inline BinaryPacket(char const * const data, u_long size);
 	inline BinaryPacket(u_long size);
-	virtual ~BinaryPacket() { delete m_Data; }
-	virtual char const * const GetType() const { return g_Type; }
-	virtual char const * const GetData() const { return m_Data; }
-	virtual u_long GetSize() const { return ntohl(*(u_long *)m_Data); }
+	virtual ~BinaryPacket() { delete mData; }
+	virtual char const * const GetType() const { return Type; }
+	virtual char const * const GetData() const { return mData; }
+	virtual u_long GetSize() const { return ntohl(*(u_long *)mData); }
 	inline void MemCpy(char const *const data, size_t size, int destOffset);
 
-	static const char *g_Type;
+	static const char *Type;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -107,15 +107,15 @@ public:
 //
 inline BinaryPacket::BinaryPacket(char const * const data, u_long size)
 {
-	m_Data = new char[size + sizeof(u_long)];
-	*(u_long *)m_Data = htonl(size+sizeof(u_long));
-	memcpy(m_Data+sizeof(u_long), data, size);
+	mData = new char[size + sizeof(u_long)];
+	*(u_long *)mData = htonl(size+sizeof(u_long));
+	memcpy(mData+sizeof(u_long), data, size);
 }
 
 inline BinaryPacket::BinaryPacket(u_long size)
 {
-	m_Data = new char[size + sizeof(u_long)];
-	*(u_long *)m_Data = htonl(size+sizeof(u_long));
+	mData = new char[size + sizeof(u_long)];
+	*(u_long *)mData = htonl(size+sizeof(u_long));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,7 +124,7 @@ inline BinaryPacket::BinaryPacket(u_long size)
 inline void BinaryPacket::MemCpy(char const *const data, size_t size, int destOffset)
 {
 	LogAssert(size+destOffset <= GetSize()-sizeof(u_long), "not enough space");
-	memcpy(m_Data + destOffset + sizeof(u_long), data, size);
+	memcpy(mData + destOffset + sizeof(u_long), data, size);
 }
 
 ////////////////////////////////////////////////////
@@ -137,9 +137,9 @@ class TextPacket : public BinaryPacket
 {
 public:
 	TextPacket(char const * const text);
-	virtual char const * const GetType() const { return g_Type; }
+	virtual char const * const GetType() const { return Type; }
 
-	static const char *g_Type;
+	static const char *Type;
 };
 
 
@@ -163,38 +163,38 @@ public:
 	void SetBlocking(bool blocking);
 	void Send(eastl::shared_ptr<BasePacket> pkt, bool clearTimeOut=1);
 
-	virtual int  HasOutput() { return !m_OutList.empty(); }
+	virtual int  HasOutput() { return !mOutList.empty(); }
 	virtual void HandleOutput();
 	virtual void HandleInput();
-	virtual void TimeOut() { m_timeOut=0; }
+	virtual void TimeOut() { mTimeOut=0; }
 
-	void HandleException() { m_deleteFlag |= 1; }
+	void HandleException() { mDeleteFlag |= 1; }
 
-	void SetTimeOut(unsigned int ms=45*1000) { m_timeOut = Timer::GetTime() + ms; }
+	void SetTimeOut(unsigned int ms=45*1000) { mTimeOut = Timer::GetTime() + ms; }
 
-	int GetIpAddress() { return m_ipaddr; }
+	int GetIpAddress() { return mIPAddr; }
 
 protected:
-    SOCKET m_sock;
-	int m_id;				// a unique ID given by the socket manager
+    SOCKET mSock;
+	int mID;				// a unique ID given by the socket manager
 
 	// note: if deleteFlag has bit 2 set, exceptions only close the
 	//   socket and set to INVALID_SOCKET, and do not delete the NetSocket
-    int m_deleteFlag;
+    int mDeleteFlag;
  
-	PacketList m_OutList;
-	PacketList m_InList;
+	PacketList mOutList;
+	PacketList mInList;
 
-	char m_recvBuf[RECV_BUFFER_SIZE];
-	unsigned int m_recvOfs, m_recvBegin;
-	bool m_bBinaryProtocol;
+	char mRecvBuf[RECV_BUFFER_SIZE];
+	unsigned int mRecvOfs, mRecvBegin;
+	bool mIsBinaryProtocol;
 
-    int m_sendOfs;
-	unsigned int m_timeOut;
-	unsigned int m_ipaddr;
+    int mSendOfs;
+	unsigned int mTimeOut;
+	unsigned int mIPAddr;
 
-	int m_internal;
-	int m_timeCreated;
+	int mInternal;
+	int mTimeCreated;
 };
 
 
@@ -204,24 +204,27 @@ protected:
 class BaseSocketManager
 {
 protected:
-	WSADATA m_WsaData;
+	WSADATA mWsaData;
 
 	typedef eastl::list<NetSocket *> SocketList;
 	typedef eastl::map<int, NetSocket *> SocketIdMap;
 
-	SocketList m_SockList;
-	SocketIdMap m_SockMap;
+	SocketList mSockList;
+	SocketIdMap mSockMap;
 
-	int m_NextSocketId;
-	unsigned int m_Inbound;
-	unsigned int m_Outbound;
-	unsigned int m_MaxOpenSockets;
-	unsigned int m_SubnetMask;
-	unsigned int m_Subnet;
+	int mNextSocketId;
+	unsigned int mInbound;
+	unsigned int mOutbound;
+	unsigned int mMaxOpenSockets;
+	unsigned int mSubnetMask;
+	unsigned int mSubNet;
 
 	NetSocket *FindSocket(int sockId);
 
 public:
+
+	static BaseSocketManager* SocketMngr;
+
 	BaseSocketManager();
 	virtual ~BaseSocketManager() { Shutdown(); }
 
@@ -241,19 +244,17 @@ public:
 
 	void SetSubnet(unsigned int subnet, unsigned int subnetMask)
 	{
-		m_Subnet = subnet;
-		m_SubnetMask = subnetMask;
+		mSubNet = subnet;
+		mSubnetMask = subnetMask;
 	}
 	bool IsInternal(unsigned int ipaddr);
 
 	bool Send(int sockId, eastl::shared_ptr<BasePacket> packet);
 
-	void AddToOutbound(int rc) { m_Outbound += rc; }
-	void AddToInbound(int rc) { m_Inbound += rc; }
+	void AddToOutbound(int rc) { mOutbound += rc; }
+	void AddToInbound(int rc) { mInbound += rc; }
 
 };
-
-extern BaseSocketManager *g_pSocketManager;
 
 
 //
@@ -261,14 +262,14 @@ extern BaseSocketManager *g_pSocketManager;
 //
 class ClientSocketManager : public BaseSocketManager
 {
-	eastl::string m_HostName;
-	unsigned int m_Port;
+	eastl::string mHostName;
+	unsigned int mPort;
 
 public:
 	ClientSocketManager(const eastl::string &hostName, unsigned int port)
 	{
-		m_HostName = hostName;
-		m_Port = port;
+		mHostName = hostName;
+		mPort = port;
 	}
 
 	bool Connect();
@@ -314,8 +315,8 @@ class RemoteEventSocket: public NetSocket
 public:
 	enum
 	{
-		NetMsg_Event,
-		NetMsg_PlayerLoginOk,
+		NMS_EVENT,
+		NMS_PLAYERLOGINOK,
 	};
 
 	// server accepting a client
@@ -346,7 +347,7 @@ protected:
 class NetworkEventForwarder
 {
 public:
-	NetworkEventForwarder(int sockId) { m_SockId = sockId;  }
+	NetworkEventForwarder(int sockId) { mSockId = sockId;  }
 
     // Delegate that forwards events through the network.  The game layer must register objects of this class for 
     // the events it wants.  See TeapotWarsApp::VCreateGameAndView() and TeapotWarsLogic::RemoteClientDelegate()
@@ -354,7 +355,7 @@ public:
     void ForwardEvent(BaseEventDataPtr pEventData);
 
 protected:
-	int m_SockId;
+	int mSockId;
 };
 
 
@@ -370,25 +371,25 @@ public:
 	virtual void OnRender(double fTime, float fElapsedTime) { }
 	virtual void OnAnimate(unsigned int uTime) { }
 	virtual bool OnLostDevice() { return true; }
-	virtual GameViewType GetType() { return GameView_Remote; }
-	virtual GameViewId GetId() const { return m_ViewId; }
+	virtual GameViewType GetType() { return GV_REMOTE; }
+	virtual GameViewId GetId() const { return mViewId; }
 	virtual void OnAttach(GameViewId vid, ActorId aid);
 	virtual bool OnMsgProc( const Event& event ) { return false; }
 	virtual void OnUpdate(unsigned long deltaMs);
 
 	void NewActorDelegate(BaseEventDataPtr pEventData);
 
-	void SetPlayerActorId(ActorId actorId) { m_ActorId = actorId; }
+	void SetPlayerActorId(ActorId actorId) { mActorId = actorId; }
 	void AttachRemotePlayer(int sockID);
 
-	int HasRemotePlayerAttached() { return m_SockId != INVALID_SOCKET_ID; }
+	int HasRemotePlayerAttached() { return mSockId != INVALID_SOCKET_ID; }
 
 	NetworkGameView();
 
 protected:
-	GameViewId m_ViewId;
-	ActorId m_ActorId;
-	int m_SockId;
+	GameViewId mViewId;
+	ActorId mActorId;
+	int mSockId;
 };
 
 #endif

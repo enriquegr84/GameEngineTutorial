@@ -47,26 +47,26 @@
 struct GameOption
 {
 	// Level option
-	eastl::string m_Level;
+	eastl::string mLevel;
 
 	// Rendering options
-	eastl::string m_Renderer;
-	Vector2<int> m_ScreenSize;
+	eastl::string mRenderer;
+	Vector2<int> mScreenSize;
 
 	// Sound options
-	float m_soundEffectsVolume;			
-	float m_musicVolume;				
+	float mSoundEffectsVolume;			
+	float mMusicVolume;				
 
 	// Multiplayer options
-	int m_expectedPlayers;				
-	int m_listenPort;					
-	eastl::string m_gameHost;				
-	int m_numAIs;
-	int m_maxAIs;
-	int m_maxPlayers;
+	int mExpectedPlayers;				
+	int mListenPort;					
+	eastl::string mGameHost;				
+	int mNumAIs;
+	int mMaxAIs;
+	int mMaxPlayers;
 
 	// XMLElement - look at this to find other options added by the developer
-	XMLElement *m_pRoot;
+	XMLElement *mRoot;
 
 	GameOption();
 	~GameOption() { }

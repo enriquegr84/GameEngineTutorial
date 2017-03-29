@@ -49,7 +49,6 @@ public:
     };
 
     // Construction and destruction.
-    FileIO ();
     FileIO (const eastl::string& filename, int mode);
     ~FileIO ();
 

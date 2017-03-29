@@ -49,210 +49,209 @@
 // Physics event implementation 
 //
 
-class EvtData_PhysTrigger_Enter : public EventData
+class EventDataPhysTriggerEnter : public EventData
 {
-	int m_triggerID;
-    ActorId m_other;
+	int mTriggerID;
+    ActorId mOther;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
 	virtual const BaseEventType & GetEventType( void ) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
-	EvtData_PhysTrigger_Enter()
+	EventDataPhysTriggerEnter()
 	{
-		m_triggerID = -1;
-		m_other = INVALID_ACTOR_ID;
+		mTriggerID = -1;
+		mOther = INVALID_ACTOR_ID;
 	}
 
-	explicit EvtData_PhysTrigger_Enter( int triggerID, ActorId other )
-		: m_triggerID(triggerID),
-		  m_other(other)
+	explicit EventDataPhysTriggerEnter( int triggerID, ActorId other )
+		: mTriggerID(triggerID), mOther(other)
 	{}
 
 	BaseEventDataPtr Copy() const 
 	{
-		return BaseEventDataPtr(new EvtData_PhysTrigger_Enter(m_triggerID, m_other));
+		return BaseEventDataPtr(new EventDataPhysTriggerEnter(mTriggerID, mOther));
 	}
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_PhysTrigger_Enter";
+        return "EventDataPhysTriggerEnter";
     }
 
     int GetTriggerId(void) const
     {
-        return m_triggerID;
+        return mTriggerID;
     }
 
     ActorId GetOtherActor(void) const
     {
-        return m_other;
+        return mOther;
     }
 };
 
-class EvtData_PhysTrigger_Leave : public EventData
+class EventDataPhysTriggerLeave : public EventData
 {
-	int m_triggerID;
-    ActorId m_other;
+	int mTriggerID;
+    ActorId mOther;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
 	virtual const BaseEventType & GetEventType( void ) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
-	EvtData_PhysTrigger_Leave()
+	EventDataPhysTriggerLeave()
 	{
-		m_triggerID = -1;
-		m_other = INVALID_ACTOR_ID;
+		mTriggerID = -1;
+		mOther = INVALID_ACTOR_ID;
 	}
 
-	explicit EvtData_PhysTrigger_Leave( int triggerID, ActorId other )
-		: m_triggerID(triggerID),
-		  m_other(other)
+	explicit EventDataPhysTriggerLeave( int triggerID, ActorId other )
+		: mTriggerID(triggerID),
+		  mOther(other)
 	{}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr ( new EvtData_PhysTrigger_Leave(m_triggerID, m_other) );
+		return BaseEventDataPtr ( new EventDataPhysTriggerLeave(mTriggerID, mOther) );
 	}
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_PhysTrigger_Leave";
+        return "EventDataPhysTriggerLeave";
     }
 
     int GetTriggerId(void) const
     {
-        return m_triggerID;
+        return mTriggerID;
     }
     
     ActorId GetOtherActor(void) const
     {
-        return m_other;
+        return mOther;
     }
 };
 
-class EvtData_PhysCollision : public EventData
+class EventDataPhysCollision : public EventData
 {
-	ActorId m_ActorA;
-    ActorId m_ActorB;
-	Vector3<float> m_SumNormalForce;
-    Vector3<float> m_SumFrictionForce;
-    eastl::list<Vector3<float>> m_CollisionPoints;
+	ActorId mActorA;
+    ActorId mActorB;
+	Vector3<float> mSumNormalForce;
+    Vector3<float> mSumFrictionForce;
+    eastl::list<Vector3<float>> mCollisionPoints;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
 	virtual const BaseEventType & GetEventType( void ) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
-	EvtData_PhysCollision()
+	EventDataPhysCollision()
 	{
-		m_ActorA = INVALID_ACTOR_ID;
-		m_ActorB = INVALID_ACTOR_ID;
-		m_SumNormalForce.MakeZero();
-		m_SumFrictionForce.MakeZero();
+		mActorA = INVALID_ACTOR_ID;
+		mActorB = INVALID_ACTOR_ID;
+		mSumNormalForce.MakeZero();
+		mSumFrictionForce.MakeZero();
 	}
 
-	explicit EvtData_PhysCollision(ActorId actorA, ActorId actorB,
+	explicit EventDataPhysCollision(ActorId actorA, ActorId actorB,
 		Vector3<float> sumNormalForce, Vector3<float> sumFrictionForce, eastl::list<Vector3<float>> collisionPoints )
-	:	m_ActorA(actorA),
-		m_ActorB(actorB),
-		m_SumNormalForce(sumNormalForce),
-		m_SumFrictionForce(sumFrictionForce),
-		m_CollisionPoints(collisionPoints)
+	:	mActorA(actorA),
+		mActorB(actorB),
+		mSumNormalForce(sumNormalForce),
+		mSumFrictionForce(sumFrictionForce),
+		mCollisionPoints(collisionPoints)
 	{}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr ( new EvtData_PhysCollision(
-			m_ActorA, m_ActorB, m_SumNormalForce, m_SumFrictionForce, m_CollisionPoints));
+		return BaseEventDataPtr ( new EventDataPhysCollision(
+			mActorA, mActorB, mSumNormalForce, mSumFrictionForce, mCollisionPoints));
 	}
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_PhysCollision";
+        return "EventDataPhysCollision";
     }
 
     ActorId GetActorA(void) const
     {
-        return m_ActorA;
+        return mActorA;
     }
 
     ActorId GetActorB(void) const
     {
-        return m_ActorB;
+        return mActorB;
     }
 
     const Vector3<float>& GetSumNormalForce(void) const
     {
-        return m_SumNormalForce;
+        return mSumNormalForce;
     }
 
     const Vector3<float>& GetSumFrictionForce(void) const
     {
-        return m_SumFrictionForce;
+        return mSumFrictionForce;
     }
 
     const eastl::list<Vector3<float>>& GetCollisionPoints(void) const
     {
-        return m_CollisionPoints;
+        return mCollisionPoints;
     }
 };
 
 
-class EvtData_PhysSeparation : public EventData
+class EventDataPhysSeparation : public EventData
 {
-	ActorId m_ActorA;
-    ActorId m_ActorB;
+	ActorId mActorA;
+    ActorId mActorB;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
 	virtual const BaseEventType & GetEventType( void ) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
-	EvtData_PhysSeparation()
+	EventDataPhysSeparation()
 	{
 
-		m_ActorA = INVALID_ACTOR_ID;
-		m_ActorB = INVALID_ACTOR_ID;
+		mActorA = INVALID_ACTOR_ID;
+		mActorB = INVALID_ACTOR_ID;
 	}
 
-	explicit EvtData_PhysSeparation(ActorId actorA, ActorId actorB)
-		: m_ActorA(actorA)
-		, m_ActorB(actorB)
+	explicit EventDataPhysSeparation(ActorId actorA, ActorId actorB)
+		: mActorA(actorA)
+		, mActorB(actorB)
 	{}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr ( new EvtData_PhysSeparation(m_ActorA, m_ActorB) );
+		return BaseEventDataPtr ( new EventDataPhysSeparation(mActorA, mActorB) );
 	}
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_PhysSeparation";
+        return "EventDataPhysSeparation";
     }
 
     ActorId GetActorA(void) const
     {
-        return m_ActorA;
+        return mActorA;
     }
 
     ActorId GetActorB(void) const
     {
-        return m_ActorB;
+        return mActorB;
     }
 };
 

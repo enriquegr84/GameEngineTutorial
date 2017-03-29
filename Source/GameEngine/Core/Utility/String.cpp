@@ -47,7 +47,7 @@ bool WildcardMatch(const wchar_t *pat, const wchar_t *str)
 {
 	int i, star;
 
-new_segment:
+newsegment:
 
 	star = 0;
 	if (*pat == '*') {
@@ -55,7 +55,7 @@ new_segment:
 		do { pat++; } while (*pat == '*'); // enddo
 	} // endif 
 
-test_match:
+testmatch:
 
 	for (i = 0; pat[i] && (pat[i] != '*'); i++) {
 		//if (mapCaseTable[str[i]] != mapCaseTable[pat[i]]) {
@@ -64,22 +64,22 @@ test_match:
 			if ((pat[i] == '?') && (str[i] != '.')) continue;
 			if (!star) return 0;
 			str++;
-			goto test_match;
+			goto testmatch;
 		}
 	}
 	if (pat[i] == '*') {
 		str += i;
 		pat += i;
-		goto new_segment;
+		goto newsegment;
 	}
 	if (!str[i]) return 1;
 	if (i && pat[i - 1] == '*') return 1;
 	if (!star) return 0;
 	str++;
-	goto test_match;
+	goto testmatch;
 }
 
-void* HashedString::hash_name(char const * pIdentStr)
+void* HashedString::HashName(char const * pIdentStr)
 {
 	// Relatively simple hash of arbitrary text string into a
 	// 32-bit identifier Output value is

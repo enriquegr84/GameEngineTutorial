@@ -468,30 +468,30 @@ enum UIEventType
 	//! A gui element has lost its focus.
 	/** GUIEvent.Caller is losing the focus to GUIEvent.Element.
 	If the event is absorbed then the focus will not be changed. */
-	UIET_ELEMENT_FOCUS_LOST = 0,
+	UIEVT_ELEMENT_FOCUS_LOST = 0,
 
 	//! A gui element has got the focus.
 	/** If the event is absorbed then the focus will not be changed. */
-	UIET_ELEMENT_Focused,
+	UIEVT_ELEMENT_Focused,
 
 	//! The mouse cursor hovered over a gui element.
 	/** If an element has sub-elements you also get this message for the subelements */
-	UIET_ELEMENT_HOVERED,
+	UIEVT_ELEMENT_HOVERED,
 
 	//! The mouse cursor left the hovered element.
 	/** If an element has sub-elements you also get this message for the subelements */
-	UIET_ELEMENT_LEFT,
+	UIEVT_ELEMENT_LEFT,
 
 	//! An element would like to close.
 	/** Windows and context menus use this event when they would like to close,
 	this can be cancelled by absorbing the event. */
-	UIET_ELEMENT_CLOSED,
+	UIEVT_ELEMENT_CLOSED,
 
 	//! A button was clicked.
-	UIET_BUTTON_CLICKED,
+	UIEVT_BUTTON_CLICKED,
 
 	//! No real event. Just for convenience to get number of events
-	UIET_COUNT
+	UIEVT_COUNT
 };
 
 //! Events hold information about an event. See EventReceiver for details on event handling.

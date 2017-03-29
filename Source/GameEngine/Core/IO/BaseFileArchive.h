@@ -9,31 +9,31 @@
 #include "BaseFileList.h"
 
 //! Contains the different types of archives
-enum E_FILE_ARCHIVE_TYPE
+enum FileArchiveType
 {
 	//! A PKZIP archive
-	EFAT_ZIP,
+	FAT_ZIP,
 
 	//! A gzip archive
-	EFAT_GZIP,
+	FAT_GZIP,
 
 	//! A virtual directory
-	EFAT_FOLDER,
+	FAT_FOLDER,
 
 	//! An ID Software PAK archive
-	EFAT_PAK,
+	FAT_PAK,
 
 	//! A Nebula Device archive
-	EFAT_NPK,
+	FAT_NPK,
 
 	//! A Tape ARchive
-	EFAT_TAR,
+	FAT_TAR,
 
 	//! A wad Archive, Quake2, Halflife
-	EFAT_WAD,
+	FAT_WAD,
 
 	//! The type of this archive is unknown
-	EFAT_UNKNOWN
+	FAT_UNKNOWN
 };
 
 //! The FileArchive manages archives and provides access to files inside them.
@@ -60,7 +60,7 @@ public:
 	virtual const BaseFileList* GetFileList() =0;
 
 	//! get the archive type
-	virtual E_FILE_ARCHIVE_TYPE GetType() const { return EFAT_UNKNOWN; }
+	virtual FileArchiveType GetType() const { return FAT_UNKNOWN; }
 
 	//! An optionally used password string
 	/** This variable is publicly accessible from the interface in order to

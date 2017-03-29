@@ -45,7 +45,7 @@
 #include "Physic.h"
 #include "Core/Event/Event.h"
 
-const BaseEventType EvtData_PhysTrigger_Enter::sk_EventType(0x99358c15);
-const BaseEventType EvtData_PhysTrigger_Leave::sk_EventType(0x3f49c41f);
-const BaseEventType EvtData_PhysCollision::sk_EventType(0x54c58d0d);
-const BaseEventType EvtData_PhysSeparation::sk_EventType(0x3dcea6e1);
+const BaseEventType EventDataPhysTriggerEnter::skEventType(0x99358c15);
+const BaseEventType EventDataPhysTriggerLeave::skEventType(0x3f49c41f);
+const BaseEventType EventDataPhysCollision::skEventType(0x54c58d0d);
+const BaseEventType EventDataPhysSeparation::skEventType(0x3dcea6e1);

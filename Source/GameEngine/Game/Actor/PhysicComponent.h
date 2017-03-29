@@ -52,8 +52,8 @@
 class PhysicComponent : public ActorComponent
 {
 public:
-	const static char *g_Name;
-	virtual const char *GetName() const override { return PhysicComponent::g_Name; }
+	const static char *Name;
+	virtual const char *GetName() const override { return PhysicComponent::Name; }
 
 public:
 	PhysicComponent(void);
@@ -85,19 +85,18 @@ public:
 
 
 protected:
-    void CreateShape();
     void BuildRigidBodyTransform(XMLElement* pTransformElement);
 
-    float m_acceleration, m_angularAcceleration;
-    float m_maxVelocity, m_maxAngularVelocity;
+    float mAcceleration, mAngularAcceleration;
+    float mMaxVelocity, mMaxAngularVelocity;
 
-	eastl::string m_shape;
-    eastl::string m_density;
-    eastl::string m_material;
+	eastl::string mShape;
+    eastl::string mDensity;
+    eastl::string mMaterial;
 	
-	Vector3<float> m_RigidBodyLocation; // rigid body is offset from the position of the actor.
-	Vector3<float> m_RigidBodyOrientation;	// ditto, orientation
-	Vector3<float> m_RigidBodyScale;			// ditto, scale
+	Vector3<float> mRigidBodyLocation; // rigid body is offset from the position of the actor.
+	Vector3<float> mRigidBodyOrientation;	// ditto, orientation
+	Vector3<float> mRigidBodyScale;			// ditto, scale
 };
 
 

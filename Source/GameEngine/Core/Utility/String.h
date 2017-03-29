@@ -52,22 +52,22 @@ class HashedString
 {
 public:
 	explicit HashedString(char const * const pIdentstring)
-		: m_ident(hash_name(pIdentstring)), m_identStr(pIdentstring)
+		: mID(HashName(pIdentstring)), mIDStr(pIdentstring)
 	{
 	}
 
 	unsigned long GetHashValue(void) const
 	{
 
-		return reinterpret_cast<unsigned long>(m_ident);
+		return reinterpret_cast<unsigned long>(mID);
 	}
 
 	const eastl::string & GetStr() const
 	{
-		return m_identStr;
+		return mIDStr;
 	}
 
-	void* hash_name(char const *  pIdentStr);
+	void* HashName(char const *  pIdentStr);
 
 	bool operator< (HashedString const & o) const
 	{
@@ -89,8 +89,8 @@ private:
 	// we're doing here and makes it easy to allow external code
 	// to assign event types as desired.
 
-	void * m_ident;
-	eastl::string m_identStr;
+	void * mID;
+	eastl::string mIDStr;
 };
 
 #endif

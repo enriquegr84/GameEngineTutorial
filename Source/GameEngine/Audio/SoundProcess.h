@@ -46,7 +46,6 @@
 
 #include "Core/Process/Process.h"
 
-
 /*
 	SoundProcess
 	This class provides a single object that manages individual sounds. Many of the methods 
@@ -62,13 +61,13 @@ class SoundProcess : public Process
 {
 protected:
 	// this is the raw sound data
-    eastl::shared_ptr<ResHandle> m_handle;	
+    eastl::shared_ptr<ResHandle> mHandle;	
 	// handle to the implementation dependent audio buffer (DSound, Miles) 
-	eastl::shared_ptr<BaseAudioBuffer> m_AudioBuffer;		
+	eastl::shared_ptr<BaseAudioBuffer> mAudioBuffer;		
 
 	// these hold the initial setting until the sound is actually launched.
-    int m_Volume;
-    bool m_isLooping;
+    int mVolume;
+    bool mIsLooping;
 
 public:
 	SoundProcess(eastl::shared_ptr<ResHandle> soundResource, int volume=100, bool looping=false);
@@ -80,9 +79,9 @@ public:
     void SetVolume(int volume);
     int GetVolume();
     int GetLengthMilli();
-    bool IsSoundValid() { return m_handle != NULL; }
+    bool IsSoundValid() { return mHandle != NULL; }
     bool IsPlaying();
-    bool IsLooping() { return m_AudioBuffer && m_AudioBuffer->IsLooping(); }
+    bool IsLooping() { return mAudioBuffer && mAudioBuffer->IsLooping(); }
     float GetProgress();
     void PauseSound(void);
 
@@ -96,7 +95,7 @@ protected:
 
 
 /////////////////////////////////////////////////////////////////////////////
-// c;ass ExplosionProcess						- Chapter 13, page 433
+// class ExplosionProcess						- Chapter 13, page 433
 //
 // This is an example of a process that uses a simple state machine
 // to control itself. 
@@ -105,11 +104,11 @@ protected:
 class ExplosionProcess : public Process
 {
 protected:
-    int m_Stage;
-	eastl::shared_ptr<SoundProcess> m_Sound;
+    int mStage;
+	eastl::shared_ptr<SoundProcess> mSound;
 
   public:
-  	ExplosionProcess() { m_Stage=0; }
+  	ExplosionProcess() { mStage=0; }
 
 protected:   
     virtual void OnInit();
@@ -127,12 +126,12 @@ protected:
 class FadeProcess : public Process
 {
 protected:
-	eastl::shared_ptr<SoundProcess> m_Sound;
+	eastl::shared_ptr<SoundProcess> mSound;
 	
-	int m_TotalFadeTime;
-	int m_ElapsedTime;
-	int m_StartVolume;
-	int m_EndVolume;
+	int mTotalFadeTime;
+	int mElapsedTime;
+	int mStartVolume;
+	int mEndVolume;
 
 public:
 	FadeProcess(eastl::shared_ptr<SoundProcess> sound, int fadeTime, int endVolume);

@@ -45,7 +45,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 Process::Process(void)
 {
-	m_state = UNINITIALIZED;
+	mState = STATE_UNINITIALIZED;
 	//m_pParent = NULL;
 	//m_pChild = NULL;
 }
@@ -55,9 +55,9 @@ Process::Process(void)
 //---------------------------------------------------------------------------------------------------------------------
 Process::~Process(void)
 {
-	if (m_pChild)
+	if (mChild)
 	{
-		m_pChild->OnAbort();
+		mChild->OnAbort();
 	}
 }
 
@@ -99,10 +99,10 @@ bool Process::AttachToParent(Process* pParent)
 //---------------------------------------------------------------------------------------------------------------------
 eastl::shared_ptr<Process> Process::RemoveChild(void)
 {
-	if (m_pChild)
+	if (mChild)
 	{
-        eastl::shared_ptr<Process> pChild = m_pChild;  // this keeps the child from getting destroyed when we clear it
-		m_pChild.reset();
+        eastl::shared_ptr<Process> pChild = mChild;  // this keeps the child from getting destroyed when we clear it
+		mChild.reset();
 		//pChild->SetParent(NULL);
         return pChild;
 	}

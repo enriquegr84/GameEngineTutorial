@@ -55,14 +55,14 @@ class BaseGamePhysic;
 
 enum BaseGameState
 {
-    BGS_Invalid,
-	BGS_Initializing,
-	BGS_MainMenu,
-	BGS_WaitingForPlayers,
-	BGS_LoadingGameEnvironment,
-	BGS_WaitingForPlayersToLoadEnvironment,
-	BGS_SpawningPlayersActors,
-	BGS_Running
+    BGS_INVALID,
+	BGS_INITIALIZING,
+	BGS_MAINMENU,
+	BGS_WAITINGFORPLAYERS,
+	BGS_LOADINGGAMEENVIRONMENT,
+	BGS_WAITINGFORPLAYERSTOLOADENVIRONMENT,
+	BGS_SPAWNINGPLAYERACTORS,
+	BGS_RUNNING
 };
 
 typedef eastl::map<ActorId, eastl::shared_ptr<Actor>> ActorMap;
@@ -94,24 +94,24 @@ class GameLogic : public BaseGameLogic
 	friend class GameApplication;					// This is only to gain access to the view list
 
 protected:
-	float m_Lifetime;								//indicates how long this game has been in session
-	ProcessManager* m_pProcessManager;				// a game logic entity
-	ActorMap m_actors;
-	ActorId m_LastActorId;
-	BaseGameState m_State;							// game state: loading, running, etc.
-	int m_ExpectedPlayers;							// how many local human players
-	int m_ExpectedRemotePlayers;					// expected remote human players
-	int m_ExpectedAI;								// how many AI players
-	int m_HumanPlayersAttached;
-	int m_AIPlayersAttached;
-	int m_HumanGamesLoaded;
-	//shared_ptr<PathingGraph> m_pPathingGraph;		// the pathing graph
-    ActorFactory* m_pActorFactory;
+	float mLifetime;								//indicates how long this game has been in session
+	ProcessManager* mProcessManager;				// a game logic entity
+	ActorMap mActors;
+	ActorId mLastActorId;
+	BaseGameState mGameState;							// game state: loading, running, etc.
+	int mExpectedPlayers;							// how many local human players
+	int mExpectedRemotePlayers;					// expected remote human players
+	int mExpectedAI;								// how many AI players
+	int mHumanPlayersAttached;
+	int mAIPlayersAttached;
+	int mHumanGamesLoaded;
+	//shared_ptr<PathingGraph> mPathingGraph;		// the pathing graph
+    ActorFactory* mActorFactory;
     
-	bool m_bProxy;									// set if this is a proxy game logic, not a real one
-	int m_remotePlayerId;							// if we are a remote player - what is out socket number on the server
+	bool mIsProxy;									// set if this is a proxy game logic, not a real one
+	int mRemotePlayerId;							// if we are a remote player - what is out socket number on the server
 
-	bool m_RenderDiagnostics;						// Are we rendering diagnostics?
+	bool mIsRenderDiagnostics;						// Are we rendering diagnostics?
 	eastl::shared_ptr<BaseGamePhysic> mPhysics;
 
 	LevelManager* mLevelManager;					// Manages loading and chaining levels
@@ -124,17 +124,17 @@ public:
 
 	void SetProxy(bool isProxy) 
 	{ 
-		m_bProxy = isProxy; 
+		mIsProxy = isProxy; 
 	}
-	const bool IsProxy() const { return m_bProxy; }
+	const bool IsProxy() const { return mIsProxy; }
 
 	// [mrmike] CanRunLua() is a bit of a hack - but I can't have Lua scripts running on the clients. They should belong to the logic.
 	// FUTURE WORK - Perhaps the scripts can have a marker or even a special place in the resource file for any scripts that can run on remote clients
-	const bool CanRunLua() const { return !IsProxy() || GetState()!=BGS_Running; }
+	const bool CanRunLua() const { return !IsProxy() || GetState()!=BGS_RUNNING; }
 
 	ActorId GetNewActorID( void )
 	{
-		return ++m_LastActorId;
+		return ++mLastActorId;
 	}
 	
 	//shared_ptr<PathingGraph> GetPathingGraph(void) { return m_pPathingGraph; }
@@ -164,15 +164,15 @@ public:
 
 	// Changing Game Logic State
 	virtual void ChangeState(BaseGameState newState);
-	const BaseGameState GetState() const { return m_State; }
+	const BaseGameState GetState() const { return mGameState; }
 
 	// Render Diagnostics
-	void ToggleRenderDiagnostics() { m_RenderDiagnostics = !m_RenderDiagnostics; }
+	void ToggleRenderDiagnostics() { mIsRenderDiagnostics = !mIsRenderDiagnostics; }
 	virtual void RenderDiagnostics();
 	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) { return mPhysics; }
 	
 	void AttachProcess(eastl::shared_ptr<Process> pProcess)
-	{ if (m_pProcessManager) {m_pProcessManager->AttachProcess(pProcess);} }
+	{ if (mProcessManager) {mProcessManager->AttachProcess(pProcess);} }
 
     // event delegates
     void RequestDestroyActorDelegate(BaseEventDataPtr pEventData);

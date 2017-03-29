@@ -47,206 +47,205 @@
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_New_Actor - This event is sent out when an actor is *actually* created.
+// EventDataNewActor - This event is sent out when an actor is *actually* created.
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_New_Actor : public EventData
+class EventDataNewActor : public EventData
 {
-	ActorId m_actorId;
-    GameViewId m_viewId;
+	ActorId mActorId;
+    GameViewId mViewId;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-	EvtData_New_Actor(void) 
+	EventDataNewActor(void) 
 	{
-		m_actorId = INVALID_ACTOR_ID;
-		m_viewId = InvalidGameViewId;
+		mActorId = INVALID_ACTOR_ID;
+		mViewId = INVALID_GAME_VIEW_ID;
 	}
 
-    explicit EvtData_New_Actor(ActorId actorId, GameViewId viewId = InvalidGameViewId) 
-        : m_actorId(actorId),
-          m_viewId(viewId)
+    explicit EventDataNewActor(ActorId actorId, GameViewId viewId = INVALID_GAME_VIEW_ID) 
+        : mActorId(actorId), mViewId(viewId)
 	{
 	}
 
     virtual void Deserialize(std::istrstream& in)
     {
-        in >> m_actorId;
-		in >> m_viewId;
+        in >> mActorId;
+		in >> mViewId;
     }
 
 	virtual const BaseEventType& GetEventType(void) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
 	virtual BaseEventDataPtr Copy(void) const
 	{
-		return BaseEventDataPtr(new EvtData_New_Actor(m_actorId, m_viewId));
+		return BaseEventDataPtr(new EventDataNewActor(mActorId, mViewId));
 	}
 
 	virtual void Serialize(std::ostrstream& out) const
 	{
-		out << m_actorId << " ";
-		out << m_viewId << " ";
+		out << mActorId << " ";
+		out << mViewId << " ";
 	}
 
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_New_Actor";
+        return "EventDataNewActor";
     }
 
 	const ActorId GetActorId(void) const
 	{
-		return m_actorId;
+		return mActorId;
 	}
 
     GameViewId GetViewId(void) const
     {
-        return m_viewId;
+        return mViewId;
     }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Destroy_Actor - sent when actors are destroyed	
+// EventDataDestroyActor - sent when actors are destroyed	
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Destroy_Actor : public EventData
+class EventDataDestroyActor : public EventData
 {
-    ActorId m_id;
+    ActorId mId;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-    explicit EvtData_Destroy_Actor(ActorId id = INVALID_ACTOR_ID)
-        : m_id(id)
+    explicit EventDataDestroyActor(ActorId id = INVALID_ACTOR_ID)
+        : mId(id)
     {
         //
     }
 
 	virtual const BaseEventType& GetEventType(void) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
 	virtual BaseEventDataPtr Copy(void) const
 	{
-		return BaseEventDataPtr ( new EvtData_Destroy_Actor ( m_id ) );
+		return BaseEventDataPtr ( new EventDataDestroyActor ( mId ) );
 	}
 
 	virtual void Serialize(std::ostrstream &out) const
 	{
-		out << m_id;
+		out << mId;
 	}
 
     virtual void Deserialize(std::istrstream& in)
     {
-        in >> m_id;
+        in >> mId;
     }
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_Destroy_Actor";
+        return "EventDataDestroyActor";
     }
 
-    ActorId GetId(void) const { return m_id; }
+    ActorId GetId(void) const { return mId; }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Move_Actor - sent when actors are moved
+// EventDataMoveActor - sent when actors are moved
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Move_Actor : public EventData
+class EventDataMoveActor : public EventData
 {
-    ActorId m_id;
-    Matrix4x4<float> m_matrix;
+    ActorId mId;
+    Matrix4x4<float> mMatrix;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
 	virtual const BaseEventType& GetEventType(void) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
-    EvtData_Move_Actor(void)
+    EventDataMoveActor(void)
     {
-        m_id = INVALID_ACTOR_ID;
+        mId = INVALID_ACTOR_ID;
     }
 
-	EvtData_Move_Actor(ActorId id, const Matrix4x4<float>& mat)
-        : m_id(id), m_matrix(mat)
+	EventDataMoveActor(ActorId id, const Matrix4x4<float>& mat)
+        : mId(id), mMatrix(mat)
 	{
         //
 	}
 
 	virtual void Serialize(std::ostrstream &out) const
 	{
-		out << m_id << " ";
+		out << mId << " ";
 		for (int i=0; i<4; ++i)
 		{
 			for (int j=0; j<4; ++j)
 			{
-				out << m_matrix(i,j) << " ";
+				out << mMatrix(i,j) << " ";
 			}
 		}
 	}
 
     virtual void Deserialize(std::istrstream& in)
     {
-        in >> m_id;
+        in >> mId;
         for (int i=0; i<4; ++i)
         {
             for (int j=0; j<4; ++j)
             {
-                in >> m_matrix(i,j);
+                in >> mMatrix(i,j);
             }
         }
     }
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new EvtData_Move_Actor(m_id, m_matrix));
+		return BaseEventDataPtr(new EventDataMoveActor(mId, mMatrix));
 	}
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_Move_Actor";
+        return "EventDataMoveActor";
     }
 
     ActorId GetId(void) const
     {
-        return m_id;
+        return mId;
     }
 
     const Matrix4x4<float>& GetMatrix(void) const
     {
-        return m_matrix;
+        return mMatrix;
     }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_New_Render_Component - This event is sent out when an actor is *actually* created.
+// EventDataNewRenderComponent - This event is sent out when an actor is *actually* created.
 //---------------------------------------------------------------------------------------------------------------------
 /*
-class EvtData_New_Render_Component : public EventData
+class EventDataNewRenderComponent : public EventData
 {
-    ActorId m_actorId;
-    eastl::shared_ptr<SceneNode> m_pSceneNode;
+    ActorId mActorId;
+    eastl::shared_ptr<SceneNode> mSceneNode;
 
 public:
-    static const Matrix4x4<float> sk_EventType;
+	static const BaseEventType skEventType;
 
-    EvtData_New_Render_Component(void) 
+    EventDataNewRenderComponent(void) 
     {
-        m_actorId = INVALID_ACTOR_ID;
+        mActorId = INVALID_ACTOR_ID;
     }
 
-    explicit EvtData_New_Render_Component(ActorId actorId, const eastl::shared_ptr<SceneNode>& pSceneNode) 
-        : m_actorId(actorId),
-          m_pSceneNode(pSceneNode)
+    explicit EventDataNewRenderComponent(ActorId actorId, const eastl::shared_ptr<SceneNode>& sceneNode) 
+        : mActorId(actorId),
+          mSceneNode(sceneNode)
     {
     }
 
@@ -262,235 +261,234 @@ public:
 
     virtual const BaseEventType& GetEventType(void) const
     {
-        return sk_EventType;
+        return skEventType;
     }
 
     virtual BaseEventDataPtr Copy(void) const
     {
-        return BaseEventDataPtr(new EvtData_New_Render_Component(m_actorId, m_pSceneNode));
+        return BaseEventDataPtr(new EventDataNewRenderComponent(mActorId, mSceneNode));
     }
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_New_Render_Component";
+        return "EventDataNewRenderComponent";
     }
 
     const ActorId GetActorId(void) const
     {
-        return m_actorId;
+        return mActorId;
     }
 
     const eastl::shared_ptr<SceneNode>& GetSceneNode(void) const
     {
-        return m_pSceneNode;
+        return mSceneNode;
     }
 };
 */
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Modified_Render_Component - This event is sent out when a render component is changed
+// EventDataModifiedRenderComponent - This event is sent out when a render component is changed
 //   NOTE: This class is not described in the book!
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Modified_Render_Component : public EventData
+class EventDataModifiedRenderComponent : public EventData
 {
-    ActorId m_id;
+    ActorId mId;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
 	virtual const BaseEventType& GetEventType(void) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
-    EvtData_Modified_Render_Component(void)
+    EventDataModifiedRenderComponent(void)
     {
-        m_id = INVALID_ACTOR_ID;
+        mId = INVALID_ACTOR_ID;
     }
 
-	EvtData_Modified_Render_Component(ActorId id)
-        : m_id(id)
+	EventDataModifiedRenderComponent(ActorId id)
+        : mId(id)
 	{
 	}
 
 	virtual void Serialize(std::ostrstream &out) const
 	{
-		out << m_id;
+		out << mId;
 	}
 
     virtual void Deserialize(std::istrstream& in)
     {
-        in >> m_id;
+        in >> mId;
     }
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new EvtData_Modified_Render_Component(m_id));
+		return BaseEventDataPtr(new EventDataModifiedRenderComponent(mId));
 	}
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_Modified_Render_Component";
+        return "EventDataModifiedRenderComponent";
     }
 
     ActorId GetActorId(void) const
     {
-        return m_id;
+        return mId;
     }
 };
 
 
-
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Environment_Loaded - this event is sent when a new game is started
+// EventDataEnvironmentLoaded - this event is sent when a new game is started
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Environment_Loaded : public EventData
+class EventDataEnvironmentLoaded : public EventData
 {
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-    EvtData_Environment_Loaded(void) { }
-	virtual const BaseEventType& GetEventType(void) const	{ return sk_EventType; }
-	virtual BaseEventDataPtr Copy(void) const { return BaseEventDataPtr( new EvtData_Environment_Loaded( ) ); }
+    EventDataEnvironmentLoaded(void) { }
+	virtual const BaseEventType& GetEventType(void) const	{ return skEventType; }
+	virtual BaseEventDataPtr Copy(void) const { return BaseEventDataPtr( new EventDataEnvironmentLoaded( ) ); }
     virtual const char* GetName(void) const  { return "EvtData_Environment_Loaded";  }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Environment_Loaded - this event is sent when a client has loaded its environment
+// EventtDataEnvironmentLoaded - this event is sent when a client has loaded its environment
 //   This is special because we only want this event to go from client to server, and stop there. The
-//   EvtData_Environment_Loaded is received by server and proxy logics alike. Thy to do this with just the above 
-//   event and you'll get into an endless loop of the EvtData_Environment_Loaded event making infinite round trips
+//   EventtDataEnvironmentLoaded is received by server and proxy logics alike. Thy to do this with just the above 
+//   event and you'll get into an endless loop of the EventtDataEnvironmentLoaded event making infinite round trips
 //   from client to server.
 //
 // FUTURE_WORK: It would be an interesting idea to add a "Private" type of event that is addressed only to a specific 
 //              listener. Of course, that might be a really dumb idea too - someone will have to try it!
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Remote_Environment_Loaded : public EventData
+class EventDataRemoteEnvironmentLoaded : public EventData
 {
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-    EvtData_Remote_Environment_Loaded(void) { }
-	virtual const BaseEventType& GetEventType(void) const	{ return sk_EventType; }
-	virtual BaseEventDataPtr Copy(void) const { return BaseEventDataPtr( new EvtData_Remote_Environment_Loaded( ) ); }
-    virtual const char* GetName(void) const  { return "EvtData_Remote_Environment_Loaded";  }
+    EventDataRemoteEnvironmentLoaded(void) { }
+	virtual const BaseEventType& GetEventType(void) const	{ return skEventType; }
+	virtual BaseEventDataPtr Copy(void) const { return BaseEventDataPtr( new EventDataRemoteEnvironmentLoaded( ) ); }
+    virtual const char* GetName(void) const  { return "EventDataRemoteEnvironmentLoaded";  }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Request_Start_Game - this is sent by the authoritative game logic to all views so they will load a game level.
+// EventDataRequestStartGame - this is sent by the authoritative game logic to all views so they will load a game level.
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Request_Start_Game : public EventData
+class EventDataRequestStartGame : public EventData
 {
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-    EvtData_Request_Start_Game(void) { }
+    EventDataRequestStartGame(void) { }
 
 	virtual const BaseEventType& GetEventType(void) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr( new EvtData_Request_Start_Game( ) );
+		return BaseEventDataPtr( new EventDataRequestStartGame( ) );
 	}
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_Request_Start_Game";
+        return "EventDataRequestStartGame";
     }
 };
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Remote_Client						- Chapter 19, page 687
+// EventDataRemoteClient						- Chapter 19, page 687
 // 
 //   Sent whenever a new client attaches to a game logic acting as a server				
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Remote_Client : public EventData
+class EventDataRemoteClient : public EventData
 {
-    int m_socketId;
-    int m_ipAddress;
+    int mSocketId;
+    int mIPAddress;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-    EvtData_Remote_Client(void)
+    EventDataRemoteClient(void)
     {
-        m_socketId = 0;
-        m_ipAddress = 0;
+        mSocketId = 0;
+        mIPAddress = 0;
     }
 
-	EvtData_Remote_Client( const int socketid, const int ipaddress )
-		: m_socketId( socketid ), m_ipAddress(ipaddress)
+	EventDataRemoteClient( const int socketid, const int ipaddress )
+		: mSocketId( socketid ), mIPAddress(ipaddress)
 	{
 	}
 
     virtual const BaseEventType & GetEventType( void ) const
     {
-        return sk_EventType;
+        return skEventType;
     }
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr( new EvtData_Remote_Client( m_socketId, m_ipAddress ) );
+		return BaseEventDataPtr( new EventDataRemoteClient( mSocketId, mIPAddress ) );
 	}
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_Remote_Client";
+        return "EventDataRemoteClient";
     }
 
 	virtual void Serialize(std::ostrstream &out) const
 	{
-		out << m_socketId << " ";
-		out << m_ipAddress;
+		out << mSocketId << " ";
+		out << mIPAddress;
 	}
 
     virtual void Deserialize( std::istrstream &in )
     {
-        in >> m_socketId;
-        in >> m_ipAddress;
+        in >> mSocketId;
+        in >> mIPAddress;
     }
 
     int GetSocketId(void) const
     {
-        return m_socketId;
+        return mSocketId;
     }
 
     int GetIpAddress(void) const
     {
-        return m_ipAddress;
+        return mIPAddress;
     }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Update_Tick - sent by the game logic each game tick
+// EventDataUpdateTick - sent by the game logic each game tick
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Update_Tick : public EventData
+class EventDataUpdateTick : public EventData
 {
-    int m_DeltaMilliseconds;
+    int mDeltaTime;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-    explicit EvtData_Update_Tick( const int deltaMilliseconds )
-        : m_DeltaMilliseconds( deltaMilliseconds )
+    explicit EventDataUpdateTick( const int dTime )
+        : mDeltaTime( dTime )
     {
     }
 
 	virtual const BaseEventType& GetEventType( void ) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr (new EvtData_Update_Tick ( m_DeltaMilliseconds ) );
+		return BaseEventDataPtr (new EventDataUpdateTick ( mDeltaTime ) );
 	}
 
 	virtual void Serialize( std::ostrstream & out )
@@ -500,88 +498,87 @@ public:
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_Update_Tick";
+        return "EventDataUpdateTick";
     }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Network_Player_Actor_Assignment - sent by the server to the clients when a network view is assigned a player number
+// EventDataNetworkPlayerActorAssignment - sent by the server to the clients when a network view is assigned a player number
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Network_Player_Actor_Assignment : public EventData
+class EventDataNetworkPlayerActorAssignment : public EventData
 {
-    ActorId m_ActorId;
-    int m_SocketId;
+    ActorId mActorId;
+    int mSocketId;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-	EvtData_Network_Player_Actor_Assignment()
+	EventDataNetworkPlayerActorAssignment()
 	{
-		m_ActorId = INVALID_ACTOR_ID;
-		m_SocketId = -1;
+		mActorId = INVALID_ACTOR_ID;
+		mSocketId = -1;
 	}
 
-    explicit EvtData_Network_Player_Actor_Assignment( const ActorId actorId, const int socketId )
-        : m_ActorId( actorId ), m_SocketId(socketId)
+    explicit EventDataNetworkPlayerActorAssignment( const ActorId actorId, const int socketId )
+        : mActorId( actorId ), mSocketId(socketId)
 
     {
     }
 
 	virtual const BaseEventType & GetEventType( void ) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		 return BaseEventDataPtr( new EvtData_Network_Player_Actor_Assignment( m_ActorId, m_SocketId ) ) ;
+		 return BaseEventDataPtr( new EventDataNetworkPlayerActorAssignment( mActorId, mSocketId ) ) ;
 	}
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_Network_Player_Actor_Assignment";
+        return "EventDataNetworkPlayerActorAssignment";
     }
 
 
 	virtual void Serialize(std::ostrstream &out) const
 	{
-		out << m_ActorId << " ";
-		out << m_SocketId;
+		out << mActorId << " ";
+		out << mSocketId;
 	}
 
     virtual void Deserialize( std::istrstream &in )
     {
-        in >> m_ActorId;
-        in >> m_SocketId;
+        in >> mActorId;
+        in >> mSocketId;
     }
 
     ActorId GetActorId(void) const
     {
-        return m_ActorId;
+        return mActorId;
     }
 
     ActorId GetSocketId(void) const
     {
-        return m_SocketId;
+        return mSocketId;
     }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Decompress_Request - sent to a multithreaded game event listener to decompress something in the resource file
+// EventDataDecompressRequest - sent to a multithreaded game event listener to decompress something in the resource file
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Decompress_Request : public EventData
+class EventDataDecompressRequest : public EventData
 {
-    eastl::wstring m_zipFileName;
-    eastl::string m_fileName;
+    eastl::wstring mZipFileName;
+    eastl::string mFileName;
 
 public:
 	static const BaseEventType sk_EventType;
 
-    explicit EvtData_Decompress_Request( eastl::wstring zipFileName, eastl::string filename  )
-        : m_zipFileName( zipFileName ),
-        m_fileName ( filename )
+    explicit EventDataDecompressRequest( eastl::wstring zipFileName, eastl::string filename  )
+        : mZipFileName( zipFileName ), mFileName( filename )
     {
     }
 
@@ -592,7 +589,7 @@ public:
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr (new EvtData_Decompress_Request ( m_zipFileName, m_fileName ) );
+		return BaseEventDataPtr (new EventDataDecompressRequest ( mZipFileName, mFileName ) );
 	}
 
 	virtual void Serialize( std::ostrstream & out )
@@ -602,49 +599,49 @@ public:
 
     const eastl::wstring& GetZipFilename(void) const
     {
-        return m_zipFileName;
+        return mZipFileName;
     }
 
     const eastl::string& GetFilename(void) const
     {
-        return m_fileName;
+        return mFileName;
     }
     virtual const char* GetName(void) const
     {
-        return "EvtData_Decompress_Request";
+        return "EventDataDecompressRequest";
     }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Decompression_Progress - sent by the decompression thread to report progress
+// EventDataDecompressionProgress - sent by the decompression thread to report progress
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Decompression_Progress : public EventData
+class EventDataDecompressionProgress : public EventData
 {
-    int m_progress;
-    eastl::wstring m_zipFileName;
-    eastl::string m_fileName;
-    void *m_buffer;
+    int mProgress;
+    eastl::wstring mZipFileName;
+    eastl::string mFileName;
+    void *mBuffer;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-    EvtData_Decompression_Progress( int progress, eastl::wstring zipFileName, eastl::string filename, void *buffer )
-        : m_progress(progress),
-        m_zipFileName( zipFileName ),
-        m_fileName ( filename ),
-        m_buffer (buffer)
+    EventDataDecompressionProgress( int progress, eastl::wstring zipFileName, eastl::string filename, void *buffer )
+        : mProgress(progress),
+        mZipFileName( zipFileName ),
+        mFileName ( filename ),
+        mBuffer (buffer)
     {
     }
 
 	virtual const BaseEventType & GetEventType( void ) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr (new EvtData_Decompression_Progress ( m_progress, m_zipFileName, m_fileName, m_buffer ) );
+		return BaseEventDataPtr (new EventDataDecompressionProgress ( mProgress, mZipFileName, mFileName, mBuffer ) );
 	}
 
 	virtual void Serialize( std::ostrstream & out )
@@ -654,203 +651,203 @@ public:
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_Decompression_Progress";
+        return "EventDataDecompressionProgress";
     }
 
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// class EvtData_Request_New_Actor				
+// class EventDataRequestNewActor				
 // This event is sent by a server asking Client proxy logics to create new actors from their local resources.
 // It can be sent from script or via code.
 // This event is also sent from the server game logic to client logics AFTER it has created a new actor. The logics will allow follow suit to stay in sync.
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Request_New_Actor : public EventData
+class EventDataRequestNewActor : public EventData
 {
-    eastl::string m_actorResource;
-	bool m_hasInitialTransform;
-	Transform m_initialTransform;
-	ActorId m_serverActorId;
-    GameViewId m_viewId;
+    eastl::string mActorResource;
+	bool mIsInitialTransform;
+	Transform mInitialTransform;
+	ActorId mServerActorId;
+    GameViewId mViewId;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
-	EvtData_Request_New_Actor()
+	EventDataRequestNewActor()
 	{
-		m_actorResource = "";
-		m_hasInitialTransform = false;
-		m_serverActorId = -1;
-		m_viewId = InvalidGameViewId;
+		mActorResource = "";
+		mIsInitialTransform = false;
+		mServerActorId = -1;
+		mViewId = INVALID_GAME_VIEW_ID;
 	}
 
-    explicit EvtData_Request_New_Actor(const eastl::string &actorResource, const Transform *initialTransform=NULL, 
-		const ActorId serverActorId = INVALID_ACTOR_ID, const GameViewId viewId = InvalidGameViewId)
+    explicit EventDataRequestNewActor(const eastl::string &actorResource, const Transform *initialTransform=NULL, 
+		const ActorId serverActorId = INVALID_ACTOR_ID, const GameViewId viewId = INVALID_GAME_VIEW_ID)
     {
-        m_actorResource = actorResource;
+        mActorResource = actorResource;
 		if (initialTransform)
 		{
-			m_hasInitialTransform = true;
-			m_initialTransform = *initialTransform;
+			mIsInitialTransform = true;
+			mInitialTransform = *initialTransform;
 		}
 		else
-			m_hasInitialTransform = false;
+			mIsInitialTransform = false;
 
-		m_serverActorId = serverActorId;
-        m_viewId = viewId;
+		mServerActorId = serverActorId;
+        mViewId = viewId;
     }
 
 	virtual const BaseEventType& GetEventType(void) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
 	virtual void Deserialize( std::istrstream & in )
 	{
 		std::string actorResource;
 		in >> actorResource;
-		m_actorResource = eastl::string(actorResource.c_str());
-		in >> m_hasInitialTransform;
-		if (m_hasInitialTransform)
+		mActorResource = eastl::string(actorResource.c_str());
+		in >> mIsInitialTransform;
+		if (mIsInitialTransform)
 		{
-			Matrix4x4<float> transform = m_initialTransform.GetMatrix();
+			Matrix4x4<float> transform = mInitialTransform.GetMatrix();
 			for (int i=0; i<4; ++i)
 				for (int j=0; j<4; ++j)
 					in >> transform(i,j);
 		}
-		in >> m_serverActorId;
-		in >> m_viewId;
+		in >> mServerActorId;
+		in >> mViewId;
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{	 
-		return BaseEventDataPtr (new EvtData_Request_New_Actor(
-			m_actorResource, (m_hasInitialTransform) ? &m_initialTransform : NULL, m_serverActorId, m_viewId));
+		return BaseEventDataPtr (new EventDataRequestNewActor(
+			mActorResource, (mIsInitialTransform) ? &mInitialTransform : NULL, mServerActorId, mViewId));
 	}
 
 	virtual void Serialize( std::ostrstream & out ) const
 	{
-		out << std::string(m_actorResource.c_str()) << " ";
-		out << m_hasInitialTransform << " ";
-		if (m_hasInitialTransform)
+		out << std::string(mActorResource.c_str()) << " ";
+		out << mIsInitialTransform << " ";
+		if (mIsInitialTransform)
 		{
-			Matrix4x4<float> transform = m_initialTransform.GetMatrix();
+			Matrix4x4<float> transform = mInitialTransform.GetMatrix();
 			for (int i=0; i<4; ++i)
 				for (int j=0; j<4; ++j)
 					out << transform(i,j) << " ";
 		}
-		out << m_serverActorId << " ";
-		out << m_viewId << " ";
+		out << mServerActorId << " ";
+		out << mViewId << " ";
 	}
 
-    virtual const char* GetName(void) const { return "EvtData_Request_New_Actor";  }
+    virtual const char* GetName(void) const { return "EventDataRequestNewActor";  }
 
-    const eastl::string &GetActorResource(void) const { return m_actorResource;  }
-	const Transform *GetInitialTransform(void) const { return (m_hasInitialTransform) ? &m_initialTransform : NULL; }
-	const ActorId GetServerActorId(void) const 	{ return m_serverActorId; }
-    GameViewId GetViewId(void) const { return m_viewId; }
+    const eastl::string &GetActorResource(void) const { return mActorResource;  }
+	const Transform *GetInitialTransform(void) const { return (mIsInitialTransform) ? &mInitialTransform : NULL; }
+	const ActorId GetServerActorId(void) const 	{ return mServerActorId; }
+    GameViewId GetViewId(void) const { return mViewId; }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_Request_Destroy_Actor - sent by any system requesting that the game logic destroy an actor	
+// EventDataRequestDestroyActor - sent by any system requesting that the game logic destroy an actor	
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_Request_Destroy_Actor : public EventData
+class EventDataRequestDestroyActor : public EventData
 {
-    ActorId m_actorId;
+    ActorId mActorId;
 
 public:
-    static const BaseEventType sk_EventType;
+    static const BaseEventType skEventType;
 
-    EvtData_Request_Destroy_Actor()
+    EventDataRequestDestroyActor()
     {
-        m_actorId = INVALID_ACTOR_ID;
+        mActorId = INVALID_ACTOR_ID;
     }
 
-    EvtData_Request_Destroy_Actor(ActorId actorId)
+    EventDataRequestDestroyActor(ActorId actorId)
     {
-        m_actorId = actorId;
+        mActorId = actorId;
     }
 
     virtual const BaseEventType& GetEventType(void) const
     {
-        return sk_EventType;
+        return skEventType;
     }
 
     virtual void Deserialize( std::istrstream & in )
     {
-        in >> m_actorId;
+        in >> mActorId;
     }
 
     virtual BaseEventDataPtr Copy() const
     {
-        return BaseEventDataPtr (new EvtData_Request_Destroy_Actor(m_actorId));
+        return BaseEventDataPtr (new EventDataRequestDestroyActor(mActorId));
     }
 
     virtual void Serialize( std::ostrstream & out ) const
     {
-        out << m_actorId;
+        out << mActorId;
     }
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_Request_Destroy_Actor";
+        return "EventDataRequestDestroyActor";
     }
 
     ActorId GetActorId(void) const
     {
-        return m_actorId;
+        return mActorId;
     }
 };
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EvtData_PlaySound - sent by any system wishing for a HumanView to play a sound
+// EventDataPlaySound - sent by any system wishing for a HumanView to play a sound
 //---------------------------------------------------------------------------------------------------------------------
-class EvtData_PlaySound : public EventData
+class EventDataPlaySound : public EventData
 {
-    eastl::string m_soundResource;
+    eastl::string mSoundResource;
 
 public:
-    static const BaseEventType sk_EventType;
+    static const BaseEventType skEventType;
 
-    EvtData_PlaySound(void) { }
-    EvtData_PlaySound(const eastl::string& soundResource)
-        : m_soundResource(soundResource)
+    EventDataPlaySound(void) { }
+    EventDataPlaySound(const eastl::string& soundResource)
+        : mSoundResource(soundResource)
     {
     }
 
     virtual const BaseEventType& GetEventType(void) const
     {
-        return sk_EventType;
+        return skEventType;
     }
 
     virtual BaseEventDataPtr Copy() const
     {
-        return BaseEventDataPtr(new EvtData_PlaySound(m_soundResource));
+        return BaseEventDataPtr(new EventDataPlaySound(mSoundResource));
     }
 
     virtual void Serialize(std::ostrstream& out) const
     {
-        out << std::string(m_soundResource.c_str());
+        out << std::string(mSoundResource.c_str());
     }
 
     virtual void Deserialize(std::istrstream& in)
     {
 		std::string soundResource;
         in >> soundResource;
-		m_soundResource = eastl::string(soundResource.c_str());
+		mSoundResource = eastl::string(soundResource.c_str());
     }
 
     const eastl::string& GetResource(void) const
     {
-        return m_soundResource;
+        return mSoundResource;
     }
 
     virtual const char* GetName(void) const
     {
-        return "EvtData_PlaySound";
+        return "EventDataPlaySound";
     }
 };
 

@@ -67,12 +67,12 @@ void BulletDebugDrawer::draw3dText(const btVector3& location, const char* text)
 
 void BulletDebugDrawer::setDebugMode(int debugMode)
 {
-    m_DebugModes = (DebugDrawModes) debugMode;
+    mDebugModes = (DebugDrawModes) debugMode;
 }
 
 int BulletDebugDrawer::getDebugMode() const
 {
-    return m_DebugModes;
+    return mDebugModes;
 }
 
 void BulletDebugDrawer::ReadOptions(XMLElement *pRoot)

@@ -44,11 +44,11 @@ public:
 
 private:
 
-	eastl::wstring m_Filename;
-	long m_AreaStart;
-	long m_AreaEnd;
-	long m_Pos;
-	eastl::shared_ptr<BaseReadFile> m_File;
+	eastl::wstring mFileName;
+	long mAreaStart;
+	long mAreaEnd;
+	long mPos;
+	eastl::shared_ptr<BaseReadFile> mFile;
 };
 
 #endif

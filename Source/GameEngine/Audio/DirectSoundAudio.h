@@ -55,7 +55,7 @@
 class DirectSoundAudioBuffer : public AudioBuffer
 {
 protected:
-	LPDIRECTSOUNDBUFFER m_Sample;
+	LPDIRECTSOUNDBUFFER mSample;
 
 public:
 	DirectSoundAudioBuffer(LPDIRECTSOUNDBUFFER sample, eastl::shared_ptr<ResHandle> resource);
@@ -89,8 +89,8 @@ private:
 class DirectSoundAudio : public Audio
 {
 public:
-	DirectSoundAudio() { m_pDS = NULL; }
-	virtual bool Active() { return m_pDS!=NULL; }
+	DirectSoundAudio() { mDS = NULL; }
+	virtual bool Active() { return mDS!=NULL; }
 
 	virtual BaseAudioBuffer *InitAudioBuffer(eastl::shared_ptr<ResHandle> handle);
 	virtual void ReleaseAudioBuffer(BaseAudioBuffer* audioBuffer);
@@ -100,7 +100,7 @@ public:
 
 protected:
 
-    IDirectSound8* m_pDS;
+    IDirectSound8* mDS;
 
 	HRESULT SetPrimaryBufferFormat( unsigned long dwPrimaryChannels, 
 									unsigned long dwPrimaryFreq, 

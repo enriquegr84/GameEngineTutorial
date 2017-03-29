@@ -36,9 +36,6 @@
 //
 //========================================================================
 
-//#include <mmsystem.h>
-//#include <mmreg.h>
-
 #include "Audio.h"
 #include "SoundResource.h"
 
@@ -48,16 +45,16 @@
 // Globals
 //////////////////////////////////////////////////////////////////////
 
-Audio *g_pAudio = NULL;
-char *gSoundExtentions[] = { ".mp3", ".wav", ".midi", ".ogg" };
+Audio* Audio::AudioSystem = NULL;
+char *SoundExtentions[] = { ".mp3", ".wav", ".midi", ".ogg" };
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
 Audio::Audio():
-	m_Initialized(false),
-	m_AllPaused(false)
+	mInitialized(false),
+	mAllPaused(false)
 {
 }
 
@@ -66,13 +63,13 @@ Audio::Audio():
 //
 void Audio::Shutdown()
 {
-	AudioBufferList::iterator i=m_AllSamples.begin();
+	AudioBufferList::iterator it=mAllSamples.begin();
 
-	while (i!=m_AllSamples.end())
+	while (it!=mAllSamples.end())
 	{
-		BaseAudioBuffer *audioBuffer = (*i);
+		BaseAudioBuffer *audioBuffer = (*it);
 		audioBuffer->Stop();
-		m_AllSamples.pop_front();
+		mAllSamples.pop_front();
 	}
 }
 
@@ -84,13 +81,13 @@ void Audio::PauseAllSounds()
 {
 	AudioBufferList::iterator i;
 	AudioBufferList::iterator end;
-	for(i=m_AllSamples.begin(), end=m_AllSamples.end(); i!=end; ++i)
+	for(i=mAllSamples.begin(), end=mAllSamples.end(); i!=end; ++i)
 	{
 		BaseAudioBuffer *audioBuffer = (*i);
 		audioBuffer->Pause();
 	}
 
-	m_AllPaused=true;
+	mAllPaused=true;
 }
 
 //
@@ -100,13 +97,13 @@ void Audio::ResumeAllSounds()
 {
 	AudioBufferList::iterator i;
 	AudioBufferList::iterator end;
-	for(i=m_AllSamples.begin(), end=m_AllSamples.end(); i!=end; ++i)
+	for(i=mAllSamples.begin(), end=mAllSamples.end(); i!=end; ++i)
 	{
 		BaseAudioBuffer *audioBuffer = (*i);
 		audioBuffer->Resume();
 	}
 
-	m_AllPaused=false;
+	mAllPaused=false;
 }
 
 //
@@ -118,13 +115,13 @@ void Audio::StopAllSounds()
 
 	AudioBufferList::iterator i;
 	AudioBufferList::iterator end;
-	for(i=m_AllSamples.begin(), end=m_AllSamples.end(); i!=end; ++i)
+	for(i=mAllSamples.begin(), end=mAllSamples.end(); i!=end; ++i)
 	{
 		audioBuffer = (*i);
 		audioBuffer->Stop();
 	}
 
-	m_AllPaused=false;
+	mAllPaused=false;
 }
 
 
@@ -135,7 +132,7 @@ void Audio::StopAllSounds()
 //
 bool Audio::HasSoundCard(void)
 {
-	return (g_pAudio && g_pAudio->Active());
+	return (Audio::AudioSystem && Audio::AudioSystem->Active());
 }
 
 

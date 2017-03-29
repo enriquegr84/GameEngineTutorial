@@ -44,19 +44,19 @@
 // To define a new event - you need a 32-bit UID. 
 // In Visual Studio, go to Tools->Create UID and grab the first bit.
 
-const BaseEventType EvtData_Environment_Loaded::sk_EventType(0xa3814acd);
-const BaseEventType EvtData_Remote_Environment_Loaded::sk_EventType(0x8E2AD6E6);
-const BaseEventType EvtData_New_Actor::sk_EventType(0xe86c7c31);
-const BaseEventType EvtData_Move_Actor::sk_EventType(0xeeaa0a40);
-const BaseEventType EvtData_Destroy_Actor::sk_EventType(0x77dd2b3a);
-//const BaseEventType EvtData_New_Render_Component::sk_EventType(0xaf4aff75);
-const BaseEventType EvtData_Modified_Render_Component::sk_EventType(0x80fe9766);
-const BaseEventType EvtData_Request_Start_Game::sk_EventType(0x11f2b19d);
-const BaseEventType EvtData_Remote_Client::sk_EventType(0x301693d5);
-const BaseEventType EvtData_Network_Player_Actor_Assignment::sk_EventType(0xa7c92f11);
-const BaseEventType EvtData_Update_Tick::sk_EventType(0xf0f5d183);
-const BaseEventType EvtData_Decompress_Request::sk_EventType(0xc128a129);
-const BaseEventType EvtData_Decompression_Progress::sk_EventType(0x68de1f28);
-const BaseEventType EvtData_Request_New_Actor::sk_EventType(0x40378c64);
-const BaseEventType EvtData_Request_Destroy_Actor::sk_EventType(0xf5395770);
-const BaseEventType EvtData_PlaySound::sk_EventType(0x3d8118ee);
+const BaseEventType EventDataEnvironmentLoaded::skEventType(0xa3814acd);
+const BaseEventType EventDataRemoteEnvironmentLoaded::skEventType(0x8E2AD6E6);
+const BaseEventType EventDataNewActor::skEventType(0xe86c7c31);
+const BaseEventType EventDataMoveActor::skEventType(0xeeaa0a40);
+const BaseEventType EventDataDestroyActor::skEventType(0x77dd2b3a);
+//const BaseEventType EventDataNewRenderComponent::skEventType(0xaf4aff75);
+const BaseEventType EventDataModifiedRenderComponent::skEventType(0x80fe9766);
+const BaseEventType EventDataRequestStartGame::skEventType(0x11f2b19d);
+const BaseEventType EventDataRemoteClient::skEventType(0x301693d5);
+const BaseEventType EventDataNetworkPlayerActorAssignment::skEventType(0xa7c92f11);
+const BaseEventType EventDataUpdateTick::skEventType(0xf0f5d183);
+const BaseEventType EventDataDecompressRequest::sk_EventType(0xc128a129);
+const BaseEventType EventDataDecompressionProgress::skEventType(0x68de1f28);
+const BaseEventType EventDataRequestNewActor::skEventType(0x40378c64);
+const BaseEventType EventDataRequestDestroyActor::skEventType(0xf5395770);
+const BaseEventType EventDataPlaySound::skEventType(0x3d8118ee);

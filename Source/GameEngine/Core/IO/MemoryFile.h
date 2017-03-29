@@ -39,11 +39,11 @@ public:
 
 private:
 
-	const void* m_Buffer;
-	long m_Len;
-	long m_Pos;
-	eastl::wstring m_Filename;
-	bool m_DeleteMemoryWhenDropped;
+	const void* mBuffer;
+	long mLen;
+	long mPos;
+	eastl::wstring mFileName;
+	bool mDeleteMemoryWhenDropped;
 };
 
 #endif

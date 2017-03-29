@@ -57,16 +57,16 @@ public:
     typedef eastl::map<ComponentId, eastl::shared_ptr<ActorComponent>> ActorComponents;
 
 private:
-    ActorId m_id;					// unique id for the actor
-    ActorType m_type;
+    ActorId mID;					// unique id for the actor
+    ActorType mType;
 
 	// all components this actor has
-	ActorComponents m_components;
+	ActorComponents mComponents;
 
 	// [mrmike] - these were added post press as editor helpers, 
 	// but will also be great for save game files if we ever make them.
 	// the XML file from which this actor was initialized (considered the "Archetype" file)
-	eastl::string m_resource;
+	eastl::string mResource;
 
 public:
     explicit Actor(ActorId id);
@@ -83,15 +83,15 @@ public:
 	eastl::string Actor::ToXML();
 
     // accessors
-    ActorId GetId(void) const { return m_id; }
-    ActorType GetType(void) const { return m_type; }
+    ActorId GetId(void) const { return mID; }
+    ActorType GetType(void) const { return mType; }
 
     // template function for retrieving components.
     template <class ComponentType>
     eastl::weak_ptr<ComponentType> GetComponent(ComponentId id)
     {
-        ActorComponents::iterator findIt = m_components.find(id);
-        if (findIt != m_components.end())
+        ActorComponents::iterator findIt = mComponents.find(id);
+        if (findIt != mComponents.end())
         {
             eastl::shared_ptr<ActorComponent> pBase(findIt->second);
 			// cast to subclass version of the pointer
@@ -111,8 +111,8 @@ public:
     eastl::weak_ptr<ComponentType> GetComponent(const char *name)
     {
 		ComponentId id = ActorComponent::GetIdFromName(name);
-        ActorComponents::iterator findIt = m_components.find(id);
-        if (findIt != m_components.end())
+        ActorComponents::iterator findIt = mComponents.find(id);
+        if (findIt != mComponents.end())
         {
             eastl::shared_ptr<ActorComponent> pBase(findIt->second);
 			// cast to subclass version of the pointer
@@ -125,7 +125,7 @@ public:
         else return eastl::weak_ptr<ComponentType>();
     }
 
-	const ActorComponents* GetComponents() { return &m_components; }
+	const ActorComponents* GetComponents() { return &mComponents; }
 
     void AddComponent(eastl::shared_ptr<ActorComponent> pComponent);
 };

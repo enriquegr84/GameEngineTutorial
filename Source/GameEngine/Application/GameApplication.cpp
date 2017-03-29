@@ -585,17 +585,17 @@ bool GameApplication::LoadGame(void)
 {
     // Read the game options and see what the current game
     // needs to be - all of the game graphics are initialized by now, too...
-	return mGame->LoadGame(mOption.m_Level.c_str());
+	return mGame->LoadGame(mOption.mLevel.c_str());
 }
 
 void GameApplication::RegisterEngineEvents(void)
 {
-    REGISTER_EVENT(EvtData_Environment_Loaded);
-    REGISTER_EVENT(EvtData_New_Actor);
-    REGISTER_EVENT(EvtData_Move_Actor);
-    REGISTER_EVENT(EvtData_Destroy_Actor);
-	REGISTER_EVENT(EvtData_Request_New_Actor);
-	REGISTER_EVENT(EvtData_Network_Player_Actor_Assignment);
+    REGISTER_EVENT(EventDataEnvironmentLoaded);
+    REGISTER_EVENT(EventDataNewActor);
+    REGISTER_EVENT(EventDataMoveActor);
+    REGISTER_EVENT(EventDataDestroyActor);
+	REGISTER_EVENT(EventDataRequestNewActor);
+	REGISTER_EVENT(EventDataNetworkPlayerActorAssignment);
 }
 
 void GameApplication::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId)
@@ -617,7 +617,7 @@ HumanView* GameApplication::GetHumanView()
 	HumanView *pView = NULL;
 	for (auto it = mGameViews.begin(); it != mGameViews.end(); ++it)
 	{
-		if ((*it)->GetType()==GameView_Human)
+		if ((*it)->GetType()==GV_HUMAN)
 		{
 			eastl::shared_ptr<BaseGameView> pBaseGameView(*it);
 			pView = static_cast<HumanView *>(&*pBaseGameView);
@@ -632,7 +632,7 @@ void GameApplication::InitHumanViews(XMLElement* pRoot)
 	for (auto it = mGameViews.begin(); it != mGameViews.end(); ++it)
 	{
 		eastl::shared_ptr<BaseGameView> pView = *it;
-		if (pView->GetType() == GameView_Human)
+		if (pView->GetType() == GV_HUMAN)
 		{
 			eastl::shared_ptr<HumanView> pHumanView =
 				eastl::static_pointer_cast<HumanView, BaseGameView>(pView);
@@ -663,7 +663,7 @@ void GameApplication::RemoveViews( )
 bool GameApplication::AttachAsClient()
 {
 	ClientSocketManager *pClient = 
-		new ClientSocketManager(mOption.m_gameHost, mOption.m_listenPort);
+		new ClientSocketManager(mOption.mGameHost, mOption.mListenPort);
 	if (!pClient->Connect())
 	{
 		return false;
@@ -687,11 +687,11 @@ void GameApplication::CreateNetworkEventForwarder(void)
 
     BaseEventManager* pGlobalEventManager = EventManager::Get();
 	pGlobalEventManager->AddListener(MakeDelegate(
-		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_Request_New_Actor::sk_EventType);
+		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataRequestNewActor::skEventType);
 	pGlobalEventManager->AddListener(MakeDelegate(
-		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_Environment_Loaded::sk_EventType);
+		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataEnvironmentLoaded::skEventType);
 	pGlobalEventManager->AddListener(MakeDelegate(
-		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_PhysCollision::sk_EventType);
+		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysCollision::skEventType);
 
 }
 
@@ -701,11 +701,11 @@ void GameApplication::DestroyNetworkEventForwarder(void)
     {
         BaseEventManager* pGlobalEventManager = EventManager::Get();
 		pGlobalEventManager->RemoveListener(MakeDelegate(
-			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_Request_New_Actor::sk_EventType);
+			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataRequestNewActor::skEventType);
 		pGlobalEventManager->RemoveListener(MakeDelegate(
-			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_Environment_Loaded::sk_EventType);
+			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataEnvironmentLoaded::skEventType);
 		pGlobalEventManager->RemoveListener(MakeDelegate(
-			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EvtData_PhysCollision::sk_EventType);
+			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysCollision::skEventType);
         
 		//delete mNetworkEventForwarder;
     }

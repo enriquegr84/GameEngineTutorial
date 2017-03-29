@@ -30,18 +30,18 @@
 
 struct Subtitle
 {
-    int m_from, m_to;
-    eastl::wstring m_text;
+    int mFrom, mTo;
+    eastl::wstring mText;
 
     Subtitle(int from, int to, eastl::wstring text)
     {
-        m_from = from;
-        m_to = to;
-        m_text = text;
+        mFrom = from;
+        mTo = to;
+        mText = text;
     }
-    int getFrom() const { return m_from; }
-    int getTo()   const { return m_to;   }
-    const eastl::wstring& getText() const { return m_text; }
+    int getFrom() const { return mFrom; }
+    int getTo()   const { return mTo;   }
+    const eastl::wstring& getText() const { return mText; }
 };
 
 /**
@@ -61,37 +61,37 @@ public:
     //float getDemoLength() const {return QuadGraph::get()->getLapLength();}
     // ------------------------------------------------------------------------
     /** Returns a unique identifier for this level (the directory name). */
-    const eastl::wstring& getIdent() const {return m_ident;}
+    const eastl::wstring& getIdent() const {return mID;}
     // ------------------------------------------------------------------------
 	/** Returns all groups this level belongs to. */
-	const eastl::vector<eastl::wstring>& GetGroups() const { return m_groups; }
+	const eastl::vector<eastl::wstring>& GetGroups() const { return mGroups; }
 	// ------------------------------------------------------------------------
     /** Returns the filename of this level. */
-    const eastl::wstring& getFilename() const { return m_filename; }
+    const eastl::wstring& getFilename() const { return mFileName; }
 
 private:
 
-	eastl::wstring m_ident;
-	eastl::wstring m_screenshot;
-	double m_gravity;
+	eastl::wstring mID;
+	eastl::wstring mScreenShot;
+	double mGravity;
 
-	eastl::vector<Subtitle> m_subtitles;
+	eastl::vector<Subtitle> mSubtitles;
 
-	eastl::vector<eastl::wstring> m_groups;
+	eastl::vector<eastl::wstring> mGroups;
 
 	/** The full filename of the config (xml) file. */
-	eastl::wstring m_filename;
+	eastl::wstring mFileName;
 
 	/** A simple class to keep information about a level mode. */
 	class LevelMode
 	{
 	public:
-		eastl::wstring m_name; /* Name / description of this mode. */
-		eastl::wstring m_scene; /* Name of the scene file to use.   */
+		eastl::wstring mName; /* Name / description of this mode. */
+		eastl::wstring mScene; /* Name of the scene file to use.   */
 
 		/** Default constructor, sets default names for all fields. */
 		LevelMode()
-			: m_name(L"default"), m_scene(L"scene.xml")
+			: mName(L"default"), mScene(L"scene.xml")
 		{
 
 		}
@@ -104,7 +104,7 @@ private:
 	};   // LevelMode
 
 		 /** Name of the level to display. */
-	eastl::string m_name;
+	eastl::string mName;
 
 	void LoadLevelInfo();
 	bool LoadMainLevel(const XMLElement* pNode);

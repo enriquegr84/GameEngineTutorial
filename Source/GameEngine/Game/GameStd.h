@@ -63,14 +63,14 @@ const ComponentId INVALID_COMPONENT_ID = 0;
 
 enum GameViewType
 {
-	GameView_Human,
-	GameView_Remote,
-	GameView_AI,
-	GameView_Recorder,
-	GameView_Other
+	GV_HUMAN,
+	GV_REMOTE,
+	GV_AI,
+	GV_RECORDER,
+	GV_OTHER
 };
 
 typedef unsigned int GameViewId;
-extern const GameViewId InvalidGameViewId;
+extern const GameViewId INVALID_GAME_VIEW_ID;
 
 #endif

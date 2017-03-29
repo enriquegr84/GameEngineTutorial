@@ -17,7 +17,7 @@
 class BaseResource
 {
 public:
-	eastl::wstring m_name;
+	eastl::wstring mName;
 	BaseResource(const eastl::wstring &name);
 };
 
@@ -50,7 +50,7 @@ public:
 	/** Check might look into the file.
 	\param enum FILE_ARCHIVE_TYPE FileArchive type to check.
 	\return True if file seems to be loadable. */
-	virtual bool IsALoadableFileFormat(E_FILE_ARCHIVE_TYPE fileType) const = 0;
+	virtual bool IsALoadableFileFormat(FileArchiveType fileType) const = 0;
 
 	//! Check if the file might be loaded by this class
 	/** Check might look into the file.

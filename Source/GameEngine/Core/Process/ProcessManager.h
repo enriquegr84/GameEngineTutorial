@@ -47,7 +47,7 @@ class ProcessManager
 {
 	typedef eastl::list<eastl::shared_ptr<Process>> ProcessList;
 
-	ProcessList m_processList;
+	ProcessList mProcesses;
 
 public:
 	// construction
@@ -57,11 +57,11 @@ public:
 	// updates all attached processes
 	unsigned int UpdateProcesses(unsigned long deltaMs);
 	// attaches a process to the process mgr
-	eastl::weak_ptr<Process> AttachProcess(eastl::shared_ptr<Process> pProcess);
+	eastl::weak_ptr<Process> AttachProcess(eastl::shared_ptr<Process> process);
 	void AbortAllProcesses(bool immediate);
 
 	// accessors
-	unsigned int GetProcessCount(void) const { return (unsigned int)m_processList.size(); }
+	unsigned int GetProcessCount(void) const { return (unsigned int)mProcesses.size(); }
 
 private:
 	void ClearAllProcesses(void);  // should only be called by the destructor

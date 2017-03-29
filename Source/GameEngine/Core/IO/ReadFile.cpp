@@ -6,7 +6,7 @@
 
 
 ReadFile::ReadFile(const eastl::wstring& fileName)
-: m_File(0), m_FileSize(0), m_Filename(fileName)
+: mFile(0), mFileSize(0), mFileName(fileName)
 {
 	OpenFile();
 }
@@ -14,8 +14,8 @@ ReadFile::ReadFile(const eastl::wstring& fileName)
 
 ReadFile::~ReadFile()
 {
-	if (m_File)
-		fclose(m_File);
+	if (mFile)
+		fclose(mFile);
 }
 
 
@@ -25,7 +25,7 @@ int ReadFile::Read(void* buffer, unsigned int sizeToRead)
 	if (!IsOpen())
 		return 0;
 
-	return (int)fread(buffer, 1, sizeToRead, m_File);
+	return (int)fread(buffer, 1, sizeToRead, mFile);
 }
 
 
@@ -37,40 +37,40 @@ bool ReadFile::Seek(long finalPos, bool relativeMovement)
 	if (!IsOpen())
 		return false;
 
-	return fseek(m_File, finalPos, relativeMovement ? SEEK_CUR : SEEK_SET) == 0;
+	return fseek(mFile, finalPos, relativeMovement ? SEEK_CUR : SEEK_SET) == 0;
 }
 
 
 //! returns size of file
 long ReadFile::GetSize() const
 {
-	return m_FileSize;
+	return mFileSize;
 }
 
 
 //! returns where in the file we are.
 long ReadFile::GetPos() const
 {
-	return ftell(m_File);
+	return ftell(mFile);
 }
 
 
 //! opens the file
 void ReadFile::OpenFile()
 {
-	if (m_Filename.size() == 0) // bugfix posted by rt
+	if (mFileName.size() == 0) // bugfix posted by rt
 	{
-		m_File = 0;
+		mFile = 0;
 		return;
 	}
 
-	m_File = _wfopen(m_Filename.c_str(), L"rb");
-	if (m_File)
+	mFile = _wfopen(mFileName.c_str(), L"rb");
+	if (mFile)
 	{
 		// get FileSize
-		fseek(m_File, 0, SEEK_END);
-		m_FileSize = GetPos();
-		fseek(m_File, 0, SEEK_SET);
+		fseek(mFile, 0, SEEK_END);
+		mFileSize = GetPos();
+		fseek(mFile, 0, SEEK_SET);
 	}
 }
 
@@ -78,7 +78,7 @@ void ReadFile::OpenFile()
 //! returns name of file
 const eastl::wstring& ReadFile::GetFileName() const
 {
-	return m_Filename;
+	return mFileName;
 }
 
 

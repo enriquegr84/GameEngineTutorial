@@ -17,102 +17,102 @@ class UISkin;
 class UIFont;
 class UIElementFactory;
 
-enum EUI_ALIGNMENT
+enum UIAlignment
 {
 	//! Aligned to parent's top or left side (default)
-	EUIA_UPPERLEFT = 0,
+	UIA_UPPERLEFT = 0,
 	//! Aligned to parent's bottom or right side
-	EUIA_LOWERRIGHT,
+	UIA_LOWERRIGHT,
 	//! Aligned to the center of parent
-	EUIA_CENTER,
+	UIA_CENTER,
 	//! Stretched to fit parent
-	EUIA_SCALE
+	UIA_SCALE
 };
 
 //! List of all basic Irrlicht GUI elements.
 /** An IGUIElement returns this when calling IGUIElement::GetType(); */
-enum EUI_ELEMENT_TYPE
+enum UIElementType
 {
 	//! A button (IGUIButton)
-	EUIET_BUTTON = 0,
+	UIET_BUTTON = 0,
 
 	//! A check box (IGUICheckBox)
-	EUIET_CHECK_BOX,
+	UIET_CHECK_BOX,
 
 	//! A combo box (IGUIComboBox)
-	EUIET_COMBO_BOX,
+	UIET_COMBO_BOX,
 
 	//! A context menu (IGUIContextMenu)
-	EUIET_CONTEXT_MENU,
+	UIET_CONTEXT_MENU,
 
 	//! A menu (IGUIMenu)
-	EUIET_MENU,
+	UIET_MENU,
 
 	//! An edit box (IGUIEditBox)
-	EUIET_EDIT_BOX,
+	UIET_EDIT_BOX,
 
 	//! A file open dialog (IGUIFileOpenDialog)
-	EUIET_FILE_OPEN_DIALOG,
+	UIET_FILE_OPEN_DIALOG,
 
 	//! A color select open dialog (IGUIColorSelectDialog)
-	EUIET_COLOR_SELECT_DIALOG,
+	UIET_COLOR_SELECT_DIALOG,
 
 	//! A in/out fader (IGUIInOutFader)
-	EUIET_IN_OUT_FADER,
+	UIET_IN_OUT_FADER,
 
 	//! An image (IGUIImage)
-	EUIET_IMAGE,
+	UIET_IMAGE,
 
 	//! A list box (IGUIListBox)
-	EUIET_LIST_BOX,
+	UIET_LIST_BOX,
 
 	//! A mesh viewer (IGUIMeshViewer)
-	EUIET_MESH_VIEWER,
+	UIET_MESH_VIEWER,
 
 	//! A message box (IGUIWindow)
-	EUIET_MESSAGE_BOX,
+	UIET_MESSAGE_BOX,
 
 	//! A modal screen
-	EUIET_MODAL_SCREEN,
+	UIET_MODAL_SCREEN,
 
 	//! A scroll bar (IGUIScrollBar)
-	EUIET_SCROLL_BAR,
+	UIET_SCROLL_BAR,
 
 	//! A spin box (IGUISpinBox)
-	EUIET_SPIN_BOX,
+	UIET_SPIN_BOX,
 
 	//! A static text (IGUIStaticText)
-	EUIET_STATIC_TEXT,
+	UIET_STATIC_TEXT,
 
 	//! A tab (IGUITab)
-	EUIET_TAB,
+	UIET_TAB,
 
 	//! A tab control
-	EUIET_TAB_CONTROL,
+	UIET_TAB_CONTROL,
 
 	//! A Table
-	EUIET_TABLE,
+	UIET_TABLE,
 
 	//! A tool bar (IGUIToolBar)
-	EUIET_TOOL_BAR,
+	UIET_TOOL_BAR,
 
 	//! A Tree View
-	EUIET_TREE_VIEW,
+	UIET_TREE_VIEW,
 
 	//! A window
-	EUIET_WINDOW,
+	UIET_WINDOW,
 
 	//! Unknown type.
-	EUIET_ELEMENT,
+	UIET_ELEMENT,
 
 	//! The root of the GUI
-	EUIET_ROOT,
+	UIET_ROOT,
 
 	//! Not an element, amount of elements in there
-	EUIET_COUNT,
+	UIET_COUNT,
 
 	//! This enum is never used, it only forces the compiler to compile this enumeration to 32 bit.
-	EUIET_FORCE_32_BIT = 0x7fffffff
+	UIET_FORCE_32_BIT = 0x7fffffff
 
 };
 
@@ -124,25 +124,25 @@ friend class BaseUI;
 public:
 
 	//! Constructor
-	UIElement(EUI_ELEMENT_TYPE type, int id, const RectangleBase<2, int>& rectangle)
-	:	Parent(0), RelativeRect(rectangle), AbsoluteRect(rectangle), AbsoluteClippingRect(rectangle), 
-		DesiredRect(rectangle), MaxSize{ 0,0 }, MinSize{ 1, 1 }, Visible(true), Enabled(true), SubElement(false),
-		NoClip(false), ID(id), TabStop(false), TabOrder(-1), TabGroup(false), AlignLeft(EUIA_UPPERLEFT), 
-		AlignRight(EUIA_UPPERLEFT), AlignTop(EUIA_UPPERLEFT), AlignBottom(EUIA_UPPERLEFT), Type(type)
+	UIElement(UIElementType type, int id, const RectangleBase<2, int>& rectangle)
+	:	mParent(0), mRelativeRect(rectangle), mAbsoluteRect(rectangle), mAbsoluteClippingRect(rectangle), 
+		mDesiredRect(rectangle), mMaxSize{ 0,0 }, mMinSize{ 1, 1 }, mVisible(true), mEnabled(true), mSubElement(false),
+		mNoClip(false), mID(id), mTabStop(false), mTabOrder(-1), mTabGroup(false), mAlignLeft(UIA_UPPERLEFT), 
+		mAlignRight(UIA_UPPERLEFT), mAlignTop(UIA_UPPERLEFT), mAlignBottom(UIA_UPPERLEFT), mType(type)
 	{
-		Children.clear();
+		mChildren.clear();
 	}
 
 	//! Destructor
 	virtual ~UIElement()
 	{
 		// delete all children
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
-		for (; it != Children.end(); ++it)
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+		for (; it != mChildren.end(); ++it)
 		{
-			(*it)->Parent = 0;
+			(*it)->mParent = 0;
 		}
-		Children.clear();
+		mChildren.clear();
 	}
 
 	//! set the parent of the element
@@ -159,14 +159,14 @@ public:
 	//! Returns parent of this element.
 	const eastl::shared_ptr<UIElement>& GetParent() const
 	{
-		return Parent;
+		return mParent;
 	}
 
 
 	//! Returns the relative rectangle of this element.
 	RectangleBase<2, int> GetRelativePosition() const
 	{
-		return RelativeRect;
+		return mRelativeRect;
 	}
 
 
@@ -174,33 +174,33 @@ public:
 	/** \param r The absolute position to set */
 	void SetRelativePosition(const RectangleBase<2, int>& r)
 	{
-		if (Parent)
+		if (mParent)
 		{
-			const RectangleBase<2, int>& rectangle = Parent->GetAbsolutePosition();
+			const RectangleBase<2, int>& rectangle = mParent->GetAbsolutePosition();
 
-			if (AlignLeft == EUIA_SCALE)
+			if (mAlignLeft == UIA_SCALE)
 			{
-				ScaleRect.center[0] = (float)r.center[0] / (float)rectangle.extent[0];
-				ScaleRect.extent[0] = (float)rectangle.extent[0];
+				mScaleRect.center[0] = (float)r.center[0] / (float)rectangle.extent[0];
+				mScaleRect.extent[0] = (float)rectangle.extent[0];
 			}
-			if (AlignRight == EUIA_SCALE)
+			if (mAlignRight == UIA_SCALE)
 			{
-				ScaleRect.center[0] = (float)r.center[0] / (float)rectangle.extent[0];
-				ScaleRect.extent[0] = (float)rectangle.extent[0];
+				mScaleRect.center[0] = (float)r.center[0] / (float)rectangle.extent[0];
+				mScaleRect.extent[0] = (float)rectangle.extent[0];
 			}
-			if (AlignTop == EUIA_SCALE)
+			if (mAlignTop == UIA_SCALE)
 			{
-				ScaleRect.center[1] = (float)r.center[1] / (float)rectangle.extent[1];
-				ScaleRect.extent[1] = (float)rectangle.extent[1];
+				mScaleRect.center[1] = (float)r.center[1] / (float)rectangle.extent[1];
+				mScaleRect.extent[1] = (float)rectangle.extent[1];
 			}
-			if (AlignBottom == EUIA_SCALE)
+			if (mAlignBottom == UIA_SCALE)
 			{
-				ScaleRect.center[1] = (float)r.center[1] / (float)rectangle.extent[1];
-				ScaleRect.extent[1] = (float)rectangle.extent[1];
+				mScaleRect.center[1] = (float)r.center[1] / (float)rectangle.extent[1];
+				mScaleRect.extent[1] = (float)rectangle.extent[1];
 			}
 		}
 
-		DesiredRect = r;
+		mDesiredRect = r;
 		UpdateAbsoluteTransformation();
 	}
 
@@ -208,11 +208,11 @@ public:
 	/** \param position The new relative position to set. Width and height will not be changed. */
 	void SetRelativePosition(const Vector2<int>& position)
 	{
-		Vector2<int> center(RelativeRect.center);
+		Vector2<int> center(mRelativeRect.center);
 		center[0] += position[0];
 		center[1] += position[1];
 		const RectangleBase<2, int> rectangle(
-			center, RelativeRect.axis, RelativeRect.extent);
+			center, mRelativeRect.axis, mRelativeRect.extent);
 		SetRelativePosition(rectangle);
 	}
 
@@ -224,10 +224,10 @@ public:
 	outside its parent. */
 	void SetRelativePositionProportional(const RectangleBase<2, float>& r)
 	{
-		if (!Parent)
+		if (!mParent)
 			return;
 
-		const RectangleBase<2, int>& rectangle = Parent->GetAbsolutePosition();
+		const RectangleBase<2, int>& rectangle = mParent->GetAbsolutePosition();
 		Vector2<int> center{ 
 			(int)floor(r.center[0] * rectangle.extent[0]), 
 			(int)floor(r.center[1] * rectangle.extent[1]) };
@@ -236,8 +236,8 @@ public:
 			axis[i] = Vector2<int>{ (int)r.axis[i][0], (int)r.axis[i][1] };
 		Vector2<int> extent{ (int)r.extent[0], (int)r.extent[1] };
 
-		DesiredRect = RectangleBase<2, int>(center, axis, extent);
-		ScaleRect = r;
+		mDesiredRect = RectangleBase<2, int>(center, axis, extent);
+		mScaleRect = r;
 
 		UpdateAbsoluteTransformation();
 	}
@@ -246,14 +246,14 @@ public:
 	//! Gets the absolute rectangle of this element
 	RectangleBase<2, int> GetAbsolutePosition() const
 	{
-		return AbsoluteRect;
+		return mAbsoluteRect;
 	}
 
 
 	//! Returns the visible area of the element.
 	RectangleBase<2, int> GetAbsoluteClippingRect() const
 	{
-		return AbsoluteClippingRect;
+		return mAbsoluteClippingRect;
 	}
 
 
@@ -261,7 +261,7 @@ public:
 	/** \param noClip If true, the element will not be clipped by its parent's clipping rectangle. */
 	void SetNotClipped(bool noClip)
 	{
-		NoClip = noClip;
+		mNoClip = noClip;
 		UpdateAbsoluteTransformation();
 	}
 
@@ -270,7 +270,7 @@ public:
 	/** \return true if the element is not clipped by its parent's clipping rectangle. */
 	bool IsNotClipped() const
 	{
-		return NoClip;
+		return mNoClip;
 	}
 
 
@@ -278,7 +278,7 @@ public:
 	/** If set to 0,0, there is no maximum size */
 	void SetMaxSize(Vector2<unsigned int> size)
 	{
-		MaxSize = size;
+		mMaxSize = size;
 		UpdateAbsoluteTransformation();
 	}
 
@@ -286,46 +286,46 @@ public:
 	//! Sets the minimum size allowed for this element
 	void SetMinSize(Vector2<unsigned int> size)
 	{
-		MinSize = size;
-		if (MinSize[0] < 1)
-			MinSize[0] = 1;
-		if (MinSize[1] < 1)
-			MinSize[1] = 1;
+		mMinSize = size;
+		if (mMinSize[0] < 1)
+			mMinSize[0] = 1;
+		if (mMinSize[1] < 1)
+			mMinSize[1] = 1;
 		UpdateAbsoluteTransformation();
 	}
 
 
 	//! The alignment defines how the borders of this element will be positioned when the parent element is resized.
-	void SetAlignment(EUI_ALIGNMENT left, EUI_ALIGNMENT right, EUI_ALIGNMENT top, EUI_ALIGNMENT bottom)
+	void SetAlignment(UIAlignment left, UIAlignment right, UIAlignment top, UIAlignment bottom)
 	{
-		AlignLeft = left;
-		AlignRight = right;
-		AlignTop = top;
-		AlignBottom = bottom;
+		mAlignLeft = left;
+		mAlignRight = right;
+		mAlignTop = top;
+		mAlignBottom = bottom;
 
-		if (Parent)
+		if (mParent)
 		{
-			const RectangleBase<2, int>& rectangle = Parent->GetAbsolutePosition();
+			const RectangleBase<2, int>& rectangle = mParent->GetAbsolutePosition();
 
-			if (AlignLeft == EUIA_SCALE)
+			if (mAlignLeft == UIA_SCALE)
 			{
-				ScaleRect.center[0] = (float)DesiredRect.center[0] / (float)rectangle.extent[0];
-				ScaleRect.extent[0] = (float)rectangle.extent[0];
+				mScaleRect.center[0] = (float)mDesiredRect.center[0] / (float)rectangle.extent[0];
+				mScaleRect.extent[0] = (float)rectangle.extent[0];
 			}
-			if (AlignRight == EUIA_SCALE)
+			if (mAlignRight == UIA_SCALE)
 			{
-				ScaleRect.center[0] = (float)DesiredRect.center[0] / (float)rectangle.extent[0];
-				ScaleRect.extent[0] = (float)rectangle.extent[0];
+				mScaleRect.center[0] = (float)mDesiredRect.center[0] / (float)rectangle.extent[0];
+				mScaleRect.extent[0] = (float)rectangle.extent[0];
 			}
-			if (AlignTop == EUIA_SCALE)
+			if (mAlignTop == UIA_SCALE)
 			{
-				ScaleRect.center[1] = (float)DesiredRect.center[1] / (float)rectangle.extent[1];
-				ScaleRect.extent[1] = (float)rectangle.extent[1];
+				mScaleRect.center[1] = (float)mDesiredRect.center[1] / (float)rectangle.extent[1];
+				mScaleRect.extent[1] = (float)rectangle.extent[1];
 			}
-			if (AlignBottom == EUIA_SCALE)
+			if (mAlignBottom == UIA_SCALE)
 			{
-				ScaleRect.center[1] = (float)DesiredRect.center[1] / (float)rectangle.extent[1];
-				ScaleRect.extent[1] = (float)rectangle.extent[1];
+				mScaleRect.center[1] = (float)mDesiredRect.center[1] / (float)rectangle.extent[1];
+				mScaleRect.extent[1] = (float)rectangle.extent[1];
 			}
 		}
 	}
@@ -337,8 +337,8 @@ public:
 		RecalculateAbsolutePosition(false);
 
 		// update all children
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
-		for (; it != Children.end(); ++it)
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+		for (; it != mChildren.end(); ++it)
 		{
 			(*it)->UpdateAbsoluteTransformation();
 		}
@@ -364,10 +364,10 @@ public:
 		// we have to search from back to front, because later children
 		// might be drawn over the top of earlier ones.
 
-		eastl::list<eastl::shared_ptr<UIElement>>::reverse_iterator it = Children.rbegin();
+		eastl::list<eastl::shared_ptr<UIElement>>::reverse_iterator it = mChildren.rbegin();
 		if (IsVisible())
 		{
-			while(it != Children.rend())
+			while(it != mChildren.rend())
 			{
 				target = (*it)->GetElementFromPoint(point);
 				if (target)
@@ -389,7 +389,7 @@ public:
 	virtual bool IsPointInside(const Vector2<int>& point) const
 	{
 		eastl::array<Vector2<int>, 4> vertex;
-		AbsoluteClippingRect.GetVertices(vertex);
+		mAbsoluteClippingRect.GetVertices(vertex);
 		return (
 			vertex[0][0] >= point[0] && vertex[0][1] >= point[1] &&
 			vertex[3][0] <= point[0] && vertex[3][1] <= point[1] );
@@ -407,13 +407,13 @@ public:
 	//! Removes a child.
 	virtual void RemoveChild(const eastl::shared_ptr<UIElement>& child)
 	{
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
-		for (; it != Children.end(); ++it)
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+		for (; it != mChildren.end(); ++it)
 		{
 			if ((*it) == child)
 			{
-				(*it)->Parent = 0;
-				Children.erase(it);
+				(*it)->mParent = 0;
+				mChildren.erase(it);
 				return;
 			}
 		}
@@ -423,8 +423,8 @@ public:
 	//! Removes this element from its parent.
 	virtual void Remove()
 	{
-		if (Parent)
-			Parent->RemoveChild(shared_from_this());
+		if (mParent)
+			mParent->RemoveChild(shared_from_this());
 	}
 
 
@@ -433,8 +433,8 @@ public:
 	{
 		if ( IsVisible() )
 		{
-			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
-			for (; it != Children.end(); ++it)
+			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+			for (; it != mChildren.end(); ++it)
 				(*it)->Draw();
 		}
 	}
@@ -445,8 +445,8 @@ public:
 	{
 		if ( IsVisible() )
 		{
-			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
-			for (; it != Children.end(); ++it)
+			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+			for (; it != mChildren.end(); ++it)
 				(*it)->OnPostRender( timeMs );
 		}
 	}
@@ -455,11 +455,11 @@ public:
 	//! Moves this element.
 	virtual void Move(Vector2<int> absoluteMovement)
 	{
-		Vector2<int> center(DesiredRect.center);
+		Vector2<int> center(mDesiredRect.center);
 		center[0] += absoluteMovement[0];
 		center[1] += absoluteMovement[1];
 		const RectangleBase<2, int> rectangle(
-			center, DesiredRect.axis, DesiredRect.extent);
+			center, mDesiredRect.axis, mDesiredRect.extent);
 
 		SetRelativePosition(rectangle);
 	}
@@ -468,7 +468,7 @@ public:
 	//! Returns true if element is visible.
 	virtual bool IsVisible() const
 	{
-		return Visible;
+		return mVisible;
 	}
 
 	//! Check whether the element is truly visible, taking into accounts its parents' visibility
@@ -476,26 +476,26 @@ public:
 	false if this or any parent element is invisible. */
 	virtual bool IsTrulyVisible() const
 	{
-		if(!Visible)
+		if(!mVisible)
 			return false;
 
-		if(!Parent)
+		if(!mParent)
 			return true;
 
-		return Parent->IsTrulyVisible();
+		return mParent->IsTrulyVisible();
 	}
 
 	//! Sets the visible state of this element.
 	virtual void SetVisible(bool visible)
 	{
-		Visible = visible;
+		mVisible = visible;
 	}
 
 
 	//! Returns true if this element was created as part of its parent control
 	virtual bool IsSubElement() const
 	{
-		return SubElement;
+		return mSubElement;
 	}
 
 
@@ -504,7 +504,7 @@ public:
 	SubElements are not saved to disk when calling guiEnvironment->saveUI() */
 	virtual void SetSubElement(bool subElement)
 	{
-		SubElement = subElement;
+		mSubElement = subElement;
 	}
 
 
@@ -513,14 +513,14 @@ public:
 	ctrl+tab will be used instead. */
 	void SetTabStop(bool enable)
 	{
-		TabStop = enable;
+		mTabStop = enable;
 	}
 
 
 	//! Returns true if this element can be Focused by navigating with the tab key
 	bool IsTabStop() const
 	{
-		return TabStop;
+		return mTabStop;
 	}
 
 
@@ -532,28 +532,28 @@ public:
 		// negative = autonumber
 		if (index < 0)
 		{
-			TabOrder = 0;
+			mTabOrder = 0;
 			eastl::shared_ptr<UIElement> el = GetTabGroup();
-			while (TabGroup && el && el->Parent)
-				el = el->Parent;
+			while (mTabGroup && el && el->mParent)
+				el = el->mParent;
 
 			const eastl::shared_ptr<UIElement>& first=0, closest=0;
 			if (el)
 			{
 				// find the highest element number
-				el->GetNextElement(-1, true, TabGroup, first, closest, true);
+				el->GetNextElement(-1, true, mTabGroup, first, closest, true);
 				if (first)
-					TabOrder = first->GetTabOrder() + 1;
+					mTabOrder = first->GetTabOrder() + 1;
 			}
 		}
-		else  TabOrder = index;
+		else  mTabOrder = index;
 	}
 
 
 	//! Returns the number in the tab order sequence
 	int GetTabOrder() const
 	{
-		return TabOrder;
+		return mTabOrder;
 	}
 
 
@@ -562,14 +562,14 @@ public:
 	Groups can be navigated using ctrl+tab, providing IsTabStop is true. */
 	void SetTabGroup(bool isGroup)
 	{
-		TabGroup = isGroup;
+		mTabGroup = isGroup;
 	}
 
 
 	//! Returns true if this element is a tab group.
 	bool IsTabGroup() const
 	{
-		return TabGroup;
+		return mTabGroup;
 	}
 
 
@@ -591,65 +591,65 @@ public:
 	*/
 	virtual bool IsEnabled() const
 	{
-		if ( IsSubElement() && Enabled && GetParent() )
+		if ( IsSubElement() && mEnabled && GetParent() )
 			return GetParent()->IsEnabled();
 
-		return Enabled;
+		return mEnabled;
 	}
 
 
 	//! Sets the enabled state of this element.
 	virtual void SetEnabled(bool enabled)
 	{
-		Enabled = enabled;
+		mEnabled = enabled;
 	}
 
 
 	//! Sets the new caption of this element.
 	virtual void SetText(const wchar_t* text)
 	{
-		Text = text;
+		mText = text;
 	}
 
 
 	//! Returns caption of this element.
 	virtual const wchar_t* GetText() const
 	{
-		return Text.c_str();
+		return mText.c_str();
 	}
 
 
 	//! Sets the new caption of this element.
 	virtual void SetToolTipText(const wchar_t* text)
 	{
-		ToolTipText = text;
+		mToolTipText = text;
 	}
 
 
 	//! Returns caption of this element.
 	virtual const eastl::wstring& GetToolTipText() const
 	{
-		return ToolTipText;
+		return mToolTipText;
 	}
 
 
 	//! Returns id. Can be used to identify the element.
 	virtual int GetID() const
 	{
-		return ID;
+		return mID;
 	}
 
 
 	//! Sets the id of this element
 	virtual void SetID(int id)
 	{
-		ID = id;
+		mID = id;
 	}
 
 	//! Called if an event happened.
 	virtual bool OnEvent(const Event& event)
 	{
-		return Parent ? Parent->OnEvent(event) : false;
+		return mParent ? mParent->OnEvent(event) : false;
 	}
 
 
@@ -657,13 +657,13 @@ public:
 	/** \return True if successful, false if not. */
 	virtual bool BringToFront(const eastl::shared_ptr<UIElement>& element)
 	{
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
-		for (; it != Children.end(); ++it)
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+		for (; it != mChildren.end(); ++it)
 		{
 			if (element == (*it))
 			{
-				Children.erase(it);
-				Children.push_back(element);
+				mChildren.erase(it);
+				mChildren.push_back(element);
 				return true;
 			}
 		}
@@ -676,16 +676,16 @@ public:
 	/** \return True if successful, false if not. */
 	virtual bool SendToBack(const eastl::shared_ptr<UIElement>& element)
 	{
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
+		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
 		if (element == (*it)) // already there
 			return true;
 
-		for (; it != Children.end(); ++it)
+		for (; it != mChildren.end(); ++it)
 		{
 			if (element == (*it))
 			{
-				Children.erase(it);
-				Children.push_front(element);
+				mChildren.erase(it);
+				mChildren.push_front(element);
 				return true;
 			}
 		}
@@ -696,7 +696,7 @@ public:
 	//! Returns list with children of this element
 	virtual const eastl::list<eastl::shared_ptr<UIElement>>& GetChildren() const
 	{
-		return Children;
+		return mChildren;
 	}
 
 
@@ -711,8 +711,8 @@ public:
 	{
 		eastl::shared_ptr<UIElement> e = 0;
 
-		eastl::list<eastl::shared_ptr<UIElement>>::const_iterator it = Children.begin();
-		for (; it != Children.end(); ++it)
+		eastl::list<eastl::shared_ptr<UIElement>>::const_iterator it = mChildren.begin();
+		for (; it != mChildren.end(); ++it)
 		{
 			if ((*it)->GetID() == id)
 				return (*it);
@@ -736,10 +736,10 @@ public:
 			return false;
 		do
 		{
-			if (child->Parent)
-				child = child->Parent.get();
+			if (child->mParent)
+				child = child->mParent.get();
 
-		} while (child->Parent && child != this);
+		} while (child->mParent && child != this);
 
 		return child == this;
 	}
@@ -762,10 +762,10 @@ public:
 		if (wanted==-2)
 			wanted = 1073741824; // maximum int
 
-		eastl::list<eastl::shared_ptr<UIElement>>::const_iterator it = Children.begin();
+		eastl::list<eastl::shared_ptr<UIElement>>::const_iterator it = mChildren.begin();
 
 		int closestOrder, currentOrder;
-		while(it != Children.end())
+		while(it != mChildren.end())
 		{
 			// ignore invisible elements and their children
 			if ( ( (*it)->IsVisible() || includeInvisible ) &&
@@ -831,9 +831,9 @@ public:
 	later for serializing and deserializing.
 	If you wrote your own UIElements, you need to set the type for your element as first parameter
 	in the constructor of UIElement. For own (=unknown) elements, simply use EUIET_ELEMENT as type */
-	EUI_ELEMENT_TYPE GetType() const
+	UIElementType GetType() const
 	{
-		return Type;
+		return mType;
 	}
 
 	//! Returns true if the gui element supports the given type.
@@ -845,16 +845,16 @@ public:
 	comparison check, because otherwise the base class usually just checks for the membervariable
 	Type which contains the type of your derived class.
 	*/
-	virtual bool HasType(EUI_ELEMENT_TYPE type) const
+	virtual bool HasType(UIElementType type) const
 	{
-		return type == Type;
+		return type == mType;
 	}
 
 	//! Returns the name of the element.
 	/** \return Name as character string. */
 	virtual const char* GetName() const
 	{
-		return Name.c_str();
+		return mName.c_str();
 	}
 
 
@@ -862,7 +862,7 @@ public:
 	/** \param name New name of the gui element. */
 	virtual void SetName(const char* name)
 	{
-		Name = name;
+		mName = name;
 	}
 
 
@@ -870,7 +870,7 @@ public:
 	/** \param name New name of the gui element. */
 	virtual void SetName(const eastl::string& name)
 	{
-		Name = name;
+		mName = name;
 	}
 
 protected:
@@ -881,9 +881,9 @@ protected:
 		if (child)
 		{
 			child->Remove(); // Remove from old parent
-			child->LastParentRect = GetAbsolutePosition();
-			child->Parent = shared_from_this();
-			Children.push_back(child);
+			child->mLastParentRect = GetAbsolutePosition();
+			child->mParent = shared_from_this();
+			mChildren.push_back(child);
 		}
 	}
 
@@ -894,119 +894,119 @@ protected:
 		RectangleBase<2, int> parentAbsoluteClip;
 		float fw=0.f, fh=0.f;
 
-		if (Parent)
+		if (mParent)
 		{
-			parentAbsolute = Parent->AbsoluteRect;
+			parentAbsolute = mParent->mAbsoluteRect;
 
-			if (NoClip)
+			if (mNoClip)
 			{
 				eastl::shared_ptr<UIElement> p(shared_from_this());
-				while (p->Parent)
-					p = p->Parent;
-				parentAbsoluteClip = p->AbsoluteClippingRect;
+				while (p->mParent)
+					p = p->mParent;
+				parentAbsoluteClip = p->mAbsoluteClippingRect;
 			}
 			else
-				parentAbsoluteClip = Parent->AbsoluteClippingRect;
+				parentAbsoluteClip = mParent->mAbsoluteClippingRect;
 		}
 
-		const int diffx = parentAbsolute.extent[0] - LastParentRect.extent[0];
-		const int diffy = parentAbsolute.extent[1] - LastParentRect.extent[1];
+		const int diffx = parentAbsolute.extent[0] - mLastParentRect.extent[0];
+		const int diffy = parentAbsolute.extent[1] - mLastParentRect.extent[1];
 
-		if (AlignLeft == EUIA_SCALE || AlignRight == EUIA_SCALE)
+		if (mAlignLeft == UIA_SCALE || mAlignRight == UIA_SCALE)
 			fw = (float)parentAbsolute.extent[0];
 
-		if (AlignTop == EUIA_SCALE || AlignBottom == EUIA_SCALE)
+		if (mAlignTop == UIA_SCALE || mAlignBottom == UIA_SCALE)
 			fh = (float)parentAbsolute.extent[1];
 
-		switch (AlignLeft)
+		switch (mAlignLeft)
 		{
-			case EUIA_UPPERLEFT:
+			case UIA_UPPERLEFT:
 				break;
-			case EUIA_LOWERRIGHT:
-				DesiredRect.center[0] += diffx;
+			case UIA_LOWERRIGHT:
+				mDesiredRect.center[0] += diffx;
 				break;
-			case EUIA_CENTER:
-				DesiredRect.center[0] += diffx/2;
+			case UIA_CENTER:
+				mDesiredRect.center[0] += diffx/2;
 				break;
-			case EUIA_SCALE:
-				DesiredRect.center[0] = (int)round(ScaleRect.center[0] * fw);
+			case UIA_SCALE:
+				mDesiredRect.center[0] = (int)round(mScaleRect.center[0] * fw);
 				break;
 		}
 
-		switch (AlignRight)
+		switch (mAlignRight)
 		{
-			case EUIA_UPPERLEFT:
+			case UIA_UPPERLEFT:
 				break;
-			case EUIA_LOWERRIGHT:
-				DesiredRect.center[0] += diffx;
+			case UIA_LOWERRIGHT:
+				mDesiredRect.center[0] += diffx;
 				break;
-			case EUIA_CENTER:
-				DesiredRect.center[0] += diffx / 2;
+			case UIA_CENTER:
+				mDesiredRect.center[0] += diffx / 2;
 				break;
-			case EUIA_SCALE:
-				DesiredRect.center[0] = (int)round(ScaleRect.center[0] * fw);
+			case UIA_SCALE:
+				mDesiredRect.center[0] = (int)round(mScaleRect.center[0] * fw);
 				break;
 		}
 
-		switch (AlignTop)
+		switch (mAlignTop)
 		{
-			case EUIA_UPPERLEFT:
+			case UIA_UPPERLEFT:
 				break;
-			case EUIA_LOWERRIGHT:
-				DesiredRect.center[1] += diffy;
+			case UIA_LOWERRIGHT:
+				mDesiredRect.center[1] += diffy;
 				break;
-			case EUIA_CENTER:
-				DesiredRect.center[1] += diffy / 2;
+			case UIA_CENTER:
+				mDesiredRect.center[1] += diffy / 2;
 				break;
-			case EUIA_SCALE:
-				DesiredRect.center[1] = (int)round(ScaleRect.center[1] * fh);
+			case UIA_SCALE:
+				mDesiredRect.center[1] = (int)round(mScaleRect.center[1] * fh);
 				break;
 		}
 
-		switch (AlignBottom)
+		switch (mAlignBottom)
 		{
-			case EUIA_UPPERLEFT:
+			case UIA_UPPERLEFT:
 				break;
-			case EUIA_LOWERRIGHT:
-				DesiredRect.center[1] += diffy;
+			case UIA_LOWERRIGHT:
+				mDesiredRect.center[1] += diffy;
 				break;
-			case EUIA_CENTER:
-				DesiredRect.center[1] += diffy / 2;
+			case UIA_CENTER:
+				mDesiredRect.center[1] += diffy / 2;
 				break;
-			case EUIA_SCALE:
-				DesiredRect.center[1] = (int)round(ScaleRect.center[1] * fh);
+			case UIA_SCALE:
+				mDesiredRect.center[1] = (int)round(mScaleRect.center[1] * fh);
 				break;
 		}
 
-		RelativeRect = DesiredRect;
+		mRelativeRect = mDesiredRect;
 
-		const int w = RelativeRect.extent[0];
-		const int h = RelativeRect.extent[1];
+		const int w = mRelativeRect.extent[0];
+		const int h = mRelativeRect.extent[1];
 
 		// make sure the desired rectangle is allowed
-		if (w < (int)MinSize[0])
-			RelativeRect.center[0] = RelativeRect.center[0] + MinSize[0];
-		if (h < (int)MinSize[1])
-			RelativeRect.center[1] = RelativeRect.center[1] + MinSize[1];
-		if (MaxSize[0] && w > (int)MaxSize[0])
-			RelativeRect.center[0] = RelativeRect.center[0] + MaxSize[0];
-		if (MaxSize[1] && h > (int)MaxSize[1])
-			RelativeRect.center[1] = RelativeRect.center[1] + MaxSize[1];
+		if (w < (int)mMinSize[0])
+			mRelativeRect.center[0] = mRelativeRect.center[0] + mMinSize[0];
+		if (h < (int)mMinSize[1])
+			mRelativeRect.center[1] = mRelativeRect.center[1] + mMinSize[1];
+		if (mMaxSize[0] && w > (int)mMaxSize[0])
+			mRelativeRect.center[0] = mRelativeRect.center[0] + mMaxSize[0];
+		if (mMaxSize[1] && h > (int)mMaxSize[1])
+			mRelativeRect.center[1] = mRelativeRect.center[1] + mMaxSize[1];
 
-		AbsoluteRect.center = RelativeRect.center + parentAbsolute.center;
+		mAbsoluteRect.center = mRelativeRect.center + parentAbsolute.center;
 
-		if (!Parent)
-			parentAbsoluteClip = AbsoluteRect;
+		if (!mParent)
+			parentAbsoluteClip = mAbsoluteRect;
 
-		AbsoluteClippingRect = AbsoluteRect;
+		mAbsoluteClippingRect = mAbsoluteRect;
 
-		LastParentRect = parentAbsolute;
+		mLastParentRect = parentAbsolute;
 
 		if ( recursive )
 		{
 			// update all children
-			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = Children.begin();
-			for (; it != Children.end(); ++it)
+			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+			for (; it != mChildren.end(); ++it)
 			{
 				(*it)->RecalculateAbsolutePosition(recursive);
 			}
@@ -1016,71 +1016,71 @@ protected:
 protected:
 
 	//! List of all children of this element
-	eastl::list<eastl::shared_ptr<UIElement>> Children;
+	eastl::list<eastl::shared_ptr<UIElement>> mChildren;
 
 	//! Pointer to the parent
-	eastl::shared_ptr<UIElement> Parent;
+	eastl::shared_ptr<UIElement> mParent;
 
 	//! relative rect of element
-	RectangleBase<2, int> RelativeRect;
+	RectangleBase<2, int> mRelativeRect;
 
 	//! absolute rect of element
-	RectangleBase<2, int> AbsoluteRect;
+	RectangleBase<2, int> mAbsoluteRect;
 
 	//! absolute clipping rect of element
-	RectangleBase<2, int> AbsoluteClippingRect;
+	RectangleBase<2, int> mAbsoluteClippingRect;
 
 	//! the rectangle the element would prefer to be,
 	//! if it was not constrained by parent or max/min size
-	RectangleBase<2, int> DesiredRect;
+	RectangleBase<2, int> mDesiredRect;
 
 	//! for calculating the difference when resizing parent
-	RectangleBase<2, int> LastParentRect;
+	RectangleBase<2, int> mLastParentRect;
 
 	//! relative scale of the element inside its parent
-	RectangleBase<2, float> ScaleRect;
+	RectangleBase<2, float> mScaleRect;
 
 	//! maximum and minimum size of the element
-	Vector2<unsigned int> MaxSize, MinSize;
+	Vector2<unsigned int> mMaxSize, mMinSize;
 
 	//! is visible?
-	bool Visible;
+	bool mVisible;
 
 	//! is enabled?
-	bool Enabled;
+	bool mEnabled;
 
 	//! is a part of a larger whole and should not be serialized?
-	bool SubElement;
+	bool mSubElement;
 
 	//! does this element ignore its parent's clipping rectangle?
-	bool NoClip;
+	bool mNoClip;
 
 	//! caption
-	eastl::wstring Text;
+	eastl::wstring mText;
 
 	//! tooltip
-	eastl::wstring ToolTipText;
+	eastl::wstring mToolTipText;
 
 	//! users can set this for identificating the element by string
-	eastl::string Name;
+	eastl::string mName;
 
 	//! users can set this for identificating the element by integer
-	int ID;
+	int mID;
 
 	//! tab stop like in windows
-	bool TabStop;
+	bool mTabStop;
 
 	//! tab order
-	int TabOrder;
+	int mTabOrder;
 
 	//! tab groups are containers like windows, use ctrl+tab to navigate
-	bool TabGroup;
+	bool mTabGroup;
 
 	//! tells the element how to act when its parent is resized
-	EUI_ALIGNMENT AlignLeft, AlignRight, AlignTop, AlignBottom;
+	UIAlignment mAlignLeft, mAlignRight, mAlignTop, mAlignBottom;
 
 	//! type of element
-	EUI_ELEMENT_TYPE Type;
+	UIElementType mType;
 };
 
 #endif

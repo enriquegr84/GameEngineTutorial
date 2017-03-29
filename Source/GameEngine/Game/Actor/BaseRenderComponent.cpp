@@ -51,7 +51,7 @@ bool BaseRenderComponent::Init(XMLElement* pData)
     XMLElement* pColorNode = pData->FirstChildElement("Color");
 	/*
     if (pColorNode)
-        m_color = LoadColor(pColorNode);
+        mColor = LoadColor(pColorNode);
 	*/
     return DelegateInit(pData);
 }
@@ -61,8 +61,8 @@ void BaseRenderComponent::PostInit(void)
 {
 	/*
 	eastl::shared_ptr<SceneNode> pSceneNode(GetSceneNode());
-	eastl::shared_ptr<EvtData_New_Render_Component> pEvent(
-		new EvtData_New_Render_Component(m_pOwner->GetId(), pSceneNode));
+	eastl::shared_ptr<EventDataNewRenderComponent> pEvent(
+		new EventDataNewRenderComponent(mOwner->GetId(), pSceneNode));
     BaseEventManager::Get()->TriggerEvent(pEvent);
 	*/
 }
@@ -71,8 +71,8 @@ void BaseRenderComponent::PostInit(void)
 void BaseRenderComponent::OnChanged(void)
 {
 	/*
-	eastl::shared_ptr<EvtData_Modified_Render_Component> pEvent(
-		new EvtData_Modified_Render_Component(m_pOwner->GetId()));
+	eastl::shared_ptr<EventDataModifiedRenderComponent> pEvent(
+		new EventDataModifiedRenderComponent(m_pOwner->GetId()));
     BaseEventManager::Get()->TriggerEvent(pEvent);
 	*/
 }
@@ -88,10 +88,10 @@ XMLElement* BaseRenderComponent::GenerateXml(void)
     // color
     XMLElement* pColor = doc.NewElement("Color");
 	/*
-    pColor->SetAttribute("r", eastl::string(m_color.GetRed()).c_str());
-    pColor->SetAttribute("g", eastl::string(m_color.GetGreen()).c_str());
-    pColor->SetAttribute("b", eastl::string(m_color.GetBlue()).c_str());
-    pColor->SetAttribute("a", eastl::string(m_color.GetAlpha()).c_str());
+    pColor->SetAttribute("r", eastl::string(mColor.GetRed()).c_str());
+    pColor->SetAttribute("g", eastl::string(mColor.GetGreen()).c_str());
+    pColor->SetAttribute("b", eastl::string(mColor.GetBlue()).c_str());
+    pColor->SetAttribute("a", eastl::string(mColor.GetAlpha()).c_str());
 	*/
     pBaseElement->LinkEndChild(pColor);
 
@@ -103,9 +103,9 @@ XMLElement* BaseRenderComponent::GenerateXml(void)
 /*
 const eastl::shared_ptr<SceneNode>& BaseRenderComponent::GetSceneNode(void)
 {
-    if (!m_pSceneNode)
-        m_pSceneNode = CreateSceneNode();
-    return m_pSceneNode;
+    if (!mSceneNode)
+        mSceneNode = CreateSceneNode();
+    return mSceneNode;
 }
 
 Color BaseRenderComponent::LoadColor(XMLElement* pData)

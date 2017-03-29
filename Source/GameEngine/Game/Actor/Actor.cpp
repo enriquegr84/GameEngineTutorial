@@ -50,33 +50,33 @@
 //---------------------------------------------------------------------------------------------------------------------
 Actor::Actor(ActorId id)
 {
-    m_id = id;
-    m_type = "Unknown";
+    mID = id;
+    mType = "Unknown";
 
 	// [mrmike] added post press - this is an editor helper
-	m_resource = "Unknown";
+	mResource = "Unknown";
 }
 
 Actor::~Actor(void)
 {
-    LogInformation("Destroying Actor " + eastl::to_string(m_id));
+    LogInformation("Destroying Actor " + eastl::to_string(mID));
 	// [rez] if this assert fires, the actor was destroyed without calling Actor::Destroy()
-    LogAssert(m_components.empty(), "components are empty");
+    LogAssert(mComponents.empty(), "components are empty");
 }
 
 bool Actor::Init(XMLElement* pData)
 {
-	m_type = pData->Attribute("type");
-	m_resource = pData->Attribute("resource");
-    LogInformation("Initializing Actor " + eastl::to_string(m_id) + " " + m_type);
+	mType = pData->Attribute("type");
+	mResource = pData->Attribute("resource");
+    LogInformation("Initializing Actor " + eastl::to_string(mID) + " " + mType);
 
     return true;
 }
 
 void Actor::PostInit(void)
 {
-	ActorComponents::iterator it = m_components.begin();
-    for (; it != m_components.end(); ++it)
+	ActorComponents::iterator it = mComponents.begin();
+    for (; it != mComponents.end(); ++it)
     {
         it->second->PostInit();
     }
@@ -84,13 +84,13 @@ void Actor::PostInit(void)
 
 void Actor::Destroy(void)
 {
-    m_components.clear();
+    mComponents.clear();
 }
 
 void Actor::Update(int deltaMs)
 {
-	ActorComponents::iterator it = m_components.begin();
-    for (; it != m_components.end(); ++it)
+	ActorComponents::iterator it = mComponents.begin();
+    for (; it != mComponents.end(); ++it)
     {
         it->second->Update(deltaMs);
     }
@@ -102,11 +102,11 @@ eastl::string Actor::ToXML()
 
     // Actor element
     XMLElement* pActorElement = outDoc.NewElement("Actor");
-    pActorElement->SetAttribute("type", m_type.c_str());
-	pActorElement->SetAttribute("resource", m_resource.c_str());
+    pActorElement->SetAttribute("type", mType.c_str());
+	pActorElement->SetAttribute("resource", mResource.c_str());
 
     // components
-    for (auto it = m_components.begin(); it != m_components.end(); ++it)
+    for (auto it = mComponents.begin(); it != mComponents.end(); ++it)
     {
         eastl::shared_ptr<ActorComponent> pComponent = it->second;
         XMLElement* pComponentElement = pComponent->GenerateXml();
@@ -124,7 +124,7 @@ eastl::string Actor::ToXML()
 void Actor::AddComponent(eastl::shared_ptr<ActorComponent> pComponent)
 {
     eastl::pair<ActorComponents::iterator, bool> success = 
-		m_components.insert(eastl::make_pair(pComponent->GetId(), pComponent));
+		mComponents.insert(eastl::make_pair(pComponent->GetId(), pComponent));
     LogAssert(success.second, "error add component");
 }
 

@@ -1783,9 +1783,6 @@
     <ClInclude Include="..\Game\View\UI\UISkin.h">
       <Filter>Game\View\UI</Filter>
     </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIElementTypes.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
     <ClInclude Include="..\Core\IO\FileList.h">
       <Filter>Core\IO</Filter>
     </ClInclude>

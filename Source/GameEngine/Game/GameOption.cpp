@@ -43,38 +43,38 @@
 GameOption::GameOption()
 {
 	// set all the options to decent default valu
-	m_Level = "";
-	m_Renderer = "Direct3D11";
-	m_soundEffectsVolume = 1.0f;			
-	m_musicVolume = 1.0f;				
-	m_expectedPlayers = 1;
-	m_listenPort = -1;					
-	m_gameHost = "GameHost";
-	m_numAIs = 1;
-	m_maxAIs = 4;
-	m_maxPlayers = 4;
-	m_ScreenSize = Vector2<int>{ 800,600 };
+	mLevel = "";
+	mRenderer = "Direct3D11";
+	mSoundEffectsVolume = 1.0f;			
+	mMusicVolume = 1.0f;				
+	mExpectedPlayers = 1;
+	mListenPort = -1;					
+	mGameHost = "GameHost";
+	mNumAIs = 1;
+	mMaxAIs = 4;
+	mMaxPlayers = 4;
+	mScreenSize = Vector2<int>{ 800,600 };
 
-	m_pRoot = NULL;
+	mRoot = NULL;
 }
 
 void GameOption::Init(const wchar_t* xmlFileName)
 {
 	// read the XML file
 	// if needed, override the XML file with options passed in on the command line.
-	m_pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(xmlFileName);
-    if (!m_pRoot)
+	mRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(xmlFileName);
+    if (!mRoot)
     {
         LogError(
 			L"Failed to load game options from file: " + eastl::wstring(xmlFileName));
         return;
     }
 
-	if (m_pRoot)
+	if (mRoot)
 	{
         // Loop through each child element and load the component
         XMLElement* pNode = NULL;
-		pNode = m_pRoot->FirstChildElement("Graphics"); 
+		pNode = mRoot->FirstChildElement("Graphics"); 
 		if (pNode)
 		{
 			eastl::string attribute;
@@ -85,36 +85,36 @@ void GameOption::Init(const wchar_t* xmlFileName)
 			}
 			else
 			{
-				m_Renderer = attribute;
+				mRenderer = attribute;
 			}
 
 			if (pNode->Attribute("width"))
 			{
-				m_ScreenSize[0] = pNode->IntAttribute("width", m_ScreenSize[0]);
-				if (m_ScreenSize[0] < 800) m_ScreenSize[0] = 800;
+				mScreenSize[0] = pNode->IntAttribute("width", mScreenSize[0]);
+				if (mScreenSize[0] < 800) mScreenSize[0] = 800;
 			}
 
 			if (pNode->Attribute("height"))
-				m_ScreenSize[1] = pNode->IntAttribute("height", m_ScreenSize[1]);
+				mScreenSize[1] = pNode->IntAttribute("height", mScreenSize[1]);
 		}
 
-		pNode = m_pRoot->FirstChildElement("Sound"); 
+		pNode = mRoot->FirstChildElement("Sound"); 
 		if (pNode)
 		{
-			m_musicVolume = atoi(pNode->Attribute("musicVolume")) / 100.0f;
-			m_soundEffectsVolume = atoi(pNode->Attribute("sfxVolume")) / 100.0f;
+			mMusicVolume = atoi(pNode->Attribute("musicVolume")) / 100.0f;
+			mSoundEffectsVolume = atoi(pNode->Attribute("sfxVolume")) / 100.0f;
 		}
 
-		pNode = m_pRoot->FirstChildElement("Multiplayer"); 
+		pNode = mRoot->FirstChildElement("Multiplayer"); 
 		if (pNode)
 		{
-			m_expectedPlayers = atoi(pNode->Attribute("expectedPlayers"));
-			m_numAIs = atoi(pNode->Attribute("numAIs"));
-			m_maxAIs = atoi(pNode->Attribute("maxAIs"));
-			m_maxPlayers = atoi(pNode->Attribute("maxPlayers"));
+			mExpectedPlayers = atoi(pNode->Attribute("expectedPlayers"));
+			mNumAIs = atoi(pNode->Attribute("numAIs"));
+			mMaxAIs = atoi(pNode->Attribute("maxAIs"));
+			mMaxPlayers = atoi(pNode->Attribute("maxPlayers"));
 			
-			m_listenPort = atoi(pNode->Attribute("listenPort"));
-			m_gameHost = pNode->Attribute("gameHost");
+			mListenPort = atoi(pNode->Attribute("listenPort"));
+			mGameHost = pNode->Attribute("gameHost");
 		}
 	}
 }

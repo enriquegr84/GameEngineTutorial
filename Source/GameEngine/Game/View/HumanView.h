@@ -80,13 +80,13 @@ public:
 	virtual void OnUpdate(const int deltaMilliseconds );
 	virtual void OnAnimate(unsigned int uTime);
 
-	virtual GameViewType GetType() { return GameView_Human; }
-	virtual GameViewId GetId() const { return m_ViewId; }
+	virtual GameViewType GetType() { return GV_HUMAN; }
+	virtual GameViewId GetId() const { return mViewId; }
 
 	virtual void OnAttach(GameViewId vid, ActorId aid)
 	{
-		m_ViewId = vid; 
-		m_ActorId = aid;
+		mViewId = vid; 
+		mActorId = aid;
 	}
 	virtual bool OnMsgProc( const Event& event );
 
@@ -102,7 +102,7 @@ public:
 		element is a strictly user interface thing and is a container for user interface controls 
 		like buttons and textboxes
 	*/
-	eastl::list<eastl::shared_ptr<BaseScreenElement>> m_ScreenElements; // a game screen entity
+	eastl::list<eastl::shared_ptr<BaseScreenElement>> mScreenElements; // a game screen entity
 																		
 	// Interface sensitive objects
 	/*
@@ -113,17 +113,17 @@ public:
 
 	// Initialize audio system
 	bool InitAudio();
-	ProcessManager* GetProcessManager() { return m_pProcessManager; }
+	ProcessManager* GetProcessManager() { return mProcessManager; }
 
 	//Camera adjustments.
 	//virtual void VSetActiveCameraOffset(const Vec4 & camOffset );
 
 	// Added post press
-	eastl::shared_ptr<ScreenElementScene> m_pScene;
-	eastl::shared_ptr<CameraSceneNode> m_pCamera;
+	eastl::shared_ptr<ScreenElementScene> mScene;
+	eastl::shared_ptr<CameraSceneNode> mCamera;
 
 	// Added post press - this helps the network system attach views to the right actor.
-	virtual void SetControlledActor(ActorId actorId) { m_ActorId = actorId; }
+	virtual void SetControlledActor(ActorId actorId) { mActorId = actorId; }
 
 	// Event delegates
 	void PlaySoundDelegate(BaseEventDataPtr pEventData);	
@@ -161,37 +161,37 @@ public:
 		void AddDisplayText( const eastl::wstring & newText );
 		void SetDisplayText( const eastl::wstring & newText );
 
-		void SetActive( const bool bIsActive )  { m_bActive = bIsActive; }
-		bool IsActive(void) const  { return m_bActive; }
+		void SetActive( const bool bIsActive )  { mIsActive = bIsActive; }
+		bool IsActive(void) const  { return mIsActive; }
 
 		void HandleKeyboardInput( const unsigned int keyVal, 
 			const unsigned int oemKeyVal, const bool bKeyDown );
 
 	private:
-		bool m_bActive;
+		bool mIsActive;
 
-		eastl::list<eastl::wstring> m_DisplayStrings;
+		eastl::list<eastl::wstring> mDisplayStrings;
 
-		//eastl::wstring m_CurrentOutputString;	//What's the current output string?
-		eastl::wstring m_CurrentInputString;	//What's the current input string?
+		//eastl::wstring mCurrentOutputString;	//What's the current output string?
+		eastl::wstring mCurrentInputString;	//What's the current input string?
 
-		int m_ConsoleInputSize;	//Height of the input console window
+		int mConsoleInputSize;	//Height of the input console window
 
-		int m_CursorBlinkTimer;	//Countdown to toggle cursor blink state
-		bool m_bCursorOn;	//Is the cursor currently displayed?
+		int mCursorBlinkTimer;	//Countdown to toggle cursor blink state
+		bool mIsCursorOn;	//Is the cursor currently displayed?
 
-		bool m_bShiftDown;	//Is the shift button down?
-		bool m_bCapsLockDown;	//Is the caps lock button down?
+		bool mIsShiftDown;	//Is the shift button down?
+		bool mIsCapsLockDown;	//Is the caps lock button down?
 
 		//If this is true, we have a string to execute on our next update cycle.  
 		//We have to do this because otherwise the user could interrupt in the midst
 		//of an ::Update() call in another system.  This causes problems.
-		bool m_bExecuteStringOnUpdate;
+		bool mIsExecuteStringOnUpdate;
 	};
 
 	Console & GetConsole( void )
 	{
-		return m_Console;
+		return mConsole;
 	}
 
 protected:
@@ -200,17 +200,17 @@ protected:
 		ViewId and ActorId makes easy for the game logic to determine if a view is attached
 		to a particular actor in the game universe
 	*/
-	GameViewId m_ViewId;
-	ActorId m_ActorId;
+	GameViewId mViewId;
+	ActorId mActorId;
 
 	/*
 		ProcessManager is a convenient manager for anything that takes multiple game loops
 		to accomplish, such as playing a sound effect or running an animation
 	*/
-	ProcessManager* m_pProcessManager;
-	bool m_runFullSpeed; // set to true if you want to run full speed
+	ProcessManager* mProcessManager;
+	bool mRunFullSpeed; // set to true if you want to run full speed
 
-	BaseGameState m_BaseGameState;	// Added post-press - what is the current game state
+	BaseGameState mGameState;	// Added post-press - what is the current game state
 	
 	/*
 		This member, once overloaded in an inherited class, is what is called when text-specific
@@ -225,7 +225,7 @@ protected:
 	*/
 	virtual bool LoadGameDelegate(XMLElement* pLevelData);
 
-	Console m_Console;
+	Console mConsole;
 
 private:
 	void RegisterAllDelegates(void);

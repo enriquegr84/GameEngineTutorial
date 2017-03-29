@@ -53,7 +53,7 @@
 */
 class ActorFactory
 {
-    ActorId m_lastActorId;
+    ActorId mLastActorId;
 
 protected:
     GenericObjectFactory<ActorComponent, ComponentId> m_componentFactory;
@@ -73,7 +73,7 @@ public:
     virtual eastl::shared_ptr<ActorComponent> CreateComponent(XMLElement* pData);
 
 private:
-    ActorId GetNextActorId(void) { ++m_lastActorId; return m_lastActorId; }
+    ActorId GetNextActorId(void) { ++mLastActorId; return mLastActorId; }
 };
 
 

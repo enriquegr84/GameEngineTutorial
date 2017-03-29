@@ -44,8 +44,8 @@
 
 //! constructor
 BaseUI::BaseUI()
-	: Hovered(0), HoveredNoSubelement(0), Focus(0), 
-	LastHoveredMousePos{ 0,0 }, CurrentSkin(0)
+	: mHovered(0), mHoveredNoSubelement(0), mFocus(0), 
+	mLastHoveredMousePos{ 0,0 }, mCurrentSkin(0)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	Vector2<unsigned int> screenSize(gameApp->mRenderer->GetScreenSize());
@@ -53,11 +53,11 @@ BaseUI::BaseUI()
 	screenRectangle.extent[0] = (int)screenSize[0];
 	screenRectangle.extent[1] = (int)screenSize[1];
 
-	Root = eastl::shared_ptr<UIElement>( 
-		new UIRoot(this, EUIET_ROOT, 0, screenRectangle));
+	mRoot = eastl::shared_ptr<UIElement>( 
+		new UIRoot(this, UIET_ROOT, 0, screenRectangle));
 
 	// environment is root tab group
-	Root->SetTabGroup(true);
+	mRoot->SetTabGroup(true);
 }
 
 
@@ -71,7 +71,7 @@ bool BaseUI::OnInit()
 {
 	//LoadBuiltInFont();
 
-	const eastl::shared_ptr<UISkin>& skin = CreateSkin( EGSTT_WINDOWS_CLASSIC );
+	const eastl::shared_ptr<UISkin>& skin = CreateSkin( GSTT_WINDOWS_CLASSIC );
 	SetSkin(skin);
 
 	return true;
@@ -82,18 +82,18 @@ bool BaseUI::OnRender(double fTime, float fElapsedTime)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	Vector2<unsigned int> screenSize(gameApp->mRenderer->GetScreenSize());
-	if (Root->AbsoluteRect.extent[0] != screenSize[0] ||
-		Root->AbsoluteRect.extent[1] != screenSize[1])
+	if (mRoot->mAbsoluteRect.extent[0] != screenSize[0] ||
+		mRoot->mAbsoluteRect.extent[1] != screenSize[1])
 	{
 		// resize gui environment
-		Root->DesiredRect.extent[0] = (int)screenSize[0];
-		Root->DesiredRect.extent[1] = (int)screenSize[1];
-		Root->AbsoluteClippingRect = Root->DesiredRect;
-		Root->AbsoluteRect = Root->DesiredRect;
-		Root->UpdateAbsoluteTransformation();
+		mRoot->mDesiredRect.extent[0] = (int)screenSize[0];
+		mRoot->mDesiredRect.extent[1] = (int)screenSize[1];
+		mRoot->mAbsoluteClippingRect = mRoot->mDesiredRect;
+		mRoot->mAbsoluteRect = mRoot->mDesiredRect;
+		mRoot->UpdateAbsoluteTransformation();
 	}
 
-	Root->Draw();
+	mRoot->Draw();
 
 	return OnPostRender ( Timer::GetTime () );
 }
@@ -103,14 +103,14 @@ bool BaseUI::OnRender(double fTime, float fElapsedTime)
 void BaseUI::Clear()
 {
 	// Remove the focus
-	if (Focus)
-		Focus = 0;
+	if (mFocus)
+		mFocus = 0;
 
-	if (Hovered && Hovered != Root)
-		Hovered = 0;
+	if (mHovered && mHovered != mRoot)
+		mHovered = 0;
 	
-	if ( HoveredNoSubelement && HoveredNoSubelement != Root)
-		HoveredNoSubelement = 0;
+	if ( mHoveredNoSubelement && mHoveredNoSubelement != mRoot)
+		mHoveredNoSubelement = 0;
 
 	// get the root's children in case the root changes in future
 	const eastl::list<eastl::shared_ptr<UIElement>>& children =
@@ -123,7 +123,7 @@ void BaseUI::Clear()
 //
 bool BaseUI::OnPostRender( unsigned int time )
 {
-	Root->OnPostRender ( time );
+	mRoot->OnPostRender ( time );
 	return true;
 }
 
@@ -131,20 +131,20 @@ bool BaseUI::OnPostRender( unsigned int time )
 //
 void BaseUI::UpdateHoveredElement(Vector2<int> mousePos)
 {
-	eastl::shared_ptr<UIElement> lastHovered = Hovered;
-	eastl::shared_ptr<UIElement> lastHoveredNoSubelement = HoveredNoSubelement;
-	LastHoveredMousePos = mousePos;
+	eastl::shared_ptr<UIElement> lastHovered = mHovered;
+	eastl::shared_ptr<UIElement> lastHoveredNoSubelement = mHoveredNoSubelement;
+	mLastHoveredMousePos = mousePos;
 
-	Hovered = Root->GetElementFromPoint(mousePos);
+	mHovered = mRoot->GetElementFromPoint(mousePos);
 
 	// for tooltips we want the element itself and not some of it's subelements
-	HoveredNoSubelement = Hovered;
-	while ( HoveredNoSubelement && HoveredNoSubelement->IsSubElement() )
+	mHoveredNoSubelement = mHovered;
+	while ( mHoveredNoSubelement && mHoveredNoSubelement->IsSubElement() )
 	{
-		HoveredNoSubelement = HoveredNoSubelement->GetParent();
+		mHoveredNoSubelement = mHoveredNoSubelement->GetParent();
 	}
 
-	if (Hovered != lastHovered)
+	if (mHovered != lastHovered)
 	{
 		Event ev;
 		ev.mEventType = ET_UI_EVENT;
@@ -153,16 +153,16 @@ void BaseUI::UpdateHoveredElement(Vector2<int> mousePos)
 		{
 			ev.mUIEvent.mCaller = lastHovered.get();
 			ev.mUIEvent.mElement = 0;
-			ev.mUIEvent.mEventType = UIET_ELEMENT_LEFT;
+			ev.mUIEvent.mEventType = UIEVT_ELEMENT_LEFT;
 			lastHovered->OnEvent(ev);
 		}
 
-		if ( Hovered )
+		if ( mHovered )
 		{
-			ev.mUIEvent.mCaller  = Hovered.get();
-			ev.mUIEvent.mElement = Hovered.get();
-			ev.mUIEvent.mEventType = UIET_ELEMENT_HOVERED;
-			Hovered->OnEvent(ev);
+			ev.mUIEvent.mCaller  = mHovered.get();
+			ev.mUIEvent.mElement = mHovered.get();
+			ev.mUIEvent.mEventType = UIEVT_ELEMENT_HOVERED;
+			mHovered->OnEvent(ev);
 		}
 	}
 }
@@ -180,23 +180,23 @@ bool BaseUI::OnMsgProc(const Event& ev)
 		UpdateHoveredElement(Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y});
 
 		if (ev.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
-			if ( (Hovered && Hovered != Focus) || !Focus )
+			if ( (mHovered && mHovered != mFocus) || !mFocus )
 		{
-			SetFocus(Hovered);
+			SetFocus(mHovered);
 		}
 
 		// sending input to focus
-		if (Focus && Focus->OnEvent(ev))
+		if (mFocus && mFocus->OnEvent(ev))
 			return true;
 
 		// focus could have died in last call
-		if (!Focus && Hovered)
-			return Hovered->OnEvent(ev);
+		if (!mFocus && mHovered)
+			return mHovered->OnEvent(ev);
 
 		break;
 	case ET_KEY_INPUT_EVENT:
 		{
-			if (Focus && Focus->OnEvent(ev))
+			if (mFocus && mFocus->OnEvent(ev))
 				return true;
 
 			// For keys we handle the event before changing focus to give elements 
@@ -207,7 +207,7 @@ bool BaseUI::OnMsgProc(const Event& ev)
 			{
 				const eastl::shared_ptr<UIElement>& next = 
 					GetNextElement(ev.mKeyInput.mShift, ev.mKeyInput.mControl);
-				if (next && next != Focus)
+				if (next && next != mFocus)
 				{
 					if (SetFocus(next))
 						return true;
@@ -227,24 +227,24 @@ bool BaseUI::OnMsgProc(const Event& ev)
 //! sets the focus to an element
 bool BaseUI::SetFocus(eastl::shared_ptr<UIElement> element)
 {
-	if (Focus == element)
+	if (mFocus == element)
 		return false;
 
 	// UI Environment should not get the focus
-	if (element == Root)
+	if (element == mRoot)
 		element = 0;
 
 	// focus may change or be removed in this call
 	eastl::shared_ptr<UIElement> currentFocus = 0;
-	if (Focus)
+	if (mFocus)
 	{
-		currentFocus = Focus;
+		currentFocus = mFocus;
 		Event ev;
 		ev.mEventType = ET_UI_EVENT;
-		ev.mUIEvent.mCaller = Focus.get();
+		ev.mUIEvent.mCaller = mFocus.get();
 		ev.mUIEvent.mElement = element.get();
-		ev.mUIEvent.mEventType = UIET_ELEMENT_FOCUS_LOST;
-		if (Focus->OnEvent(ev))
+		ev.mUIEvent.mEventType = UIEVT_ELEMENT_FOCUS_LOST;
+		if (mFocus->OnEvent(ev))
 			return false;
 
 		currentFocus = 0;
@@ -252,20 +252,20 @@ bool BaseUI::SetFocus(eastl::shared_ptr<UIElement> element)
 
 	if (element)
 	{
-		currentFocus = Focus;
+		currentFocus = mFocus;
 
 		// send Focused event
 		Event ev;
 		ev.mEventType = ET_UI_EVENT;
 		ev.mUIEvent.mCaller = element.get();
-		ev.mUIEvent.mElement = Focus.get();
-		ev.mUIEvent.mEventType = UIET_ELEMENT_Focused;
+		ev.mUIEvent.mElement = mFocus.get();
+		ev.mUIEvent.mEventType = UIEVT_ELEMENT_Focused;
 		if (element->OnEvent(ev))
 			return false;
 	}
 
 	// element is the new focus so it doesn't have to be dropped
-	Focus = element;
+	mFocus = element;
 
 	return true;
 }
@@ -274,32 +274,32 @@ bool BaseUI::SetFocus(eastl::shared_ptr<UIElement> element)
 //! returns the element with the focus
 const eastl::shared_ptr<UIElement>& BaseUI::GetFocus() const
 {
-	return Focus;
+	return mFocus;
 }
 
 //! returns the element last known to be under the mouse cursor
 const eastl::shared_ptr<UIElement>& BaseUI::GetHovered() const
 {
-	return Hovered;
+	return mHovered;
 }
 
 
 //! removes the focus from an element
 bool BaseUI::RemoveFocus(const eastl::shared_ptr<UIElement>& element)
 {
-	if (Focus && Focus==element)
+	if (mFocus && mFocus==element)
 	{
 		Event ev;
 		ev.mEventType = ET_UI_EVENT;
-		ev.mUIEvent.mCaller = Focus.get();
+		ev.mUIEvent.mCaller = mFocus.get();
 		ev.mUIEvent.mElement = 0;
-		ev.mUIEvent.mEventType = UIET_ELEMENT_FOCUS_LOST;
-		if (Focus->OnEvent(ev))
+		ev.mUIEvent.mEventType = UIEVT_ELEMENT_FOCUS_LOST;
+		if (mFocus->OnEvent(ev))
 			return false;
 	}
 
-	if (Focus)
-		Focus = 0;
+	if (mFocus)
+		mFocus = 0;
 
 	return true;
 }
@@ -308,13 +308,13 @@ bool BaseUI::RemoveFocus(const eastl::shared_ptr<UIElement>& element)
 //! Returns whether the element has focus
 bool BaseUI::HasFocus(const eastl::shared_ptr<UIElement>& element, bool checkSubElements) const
 {
-	if (element == Focus)
+	if (element == mFocus)
 		return true;
 
 	if ( !checkSubElements || !element )
 		return false;
 
-	eastl::shared_ptr<UIElement> f = Focus;
+	eastl::shared_ptr<UIElement> f = mFocus;
 	while ( f && f->IsSubElement() )
 	{
 		f = f->GetParent();
@@ -328,14 +328,14 @@ bool BaseUI::HasFocus(const eastl::shared_ptr<UIElement>& element, bool checkSub
 //! returns the current gui skin
 const eastl::shared_ptr<UISkin>& BaseUI::GetSkin() const
 {
-	return CurrentSkin;
+	return mCurrentSkin;
 }
 
 
 //! Sets a new UI Skin
 void BaseUI::SetSkin(const eastl::shared_ptr<UISkin>& skin)
 {
-	CurrentSkin = skin;
+	mCurrentSkin = skin;
 }
 
 
@@ -343,7 +343,7 @@ void BaseUI::SetSkin(const eastl::shared_ptr<UISkin>& skin)
 // \return Returns a pointer to the created skin.
 //	If you no longer need the skin, you should call BaseUISkin::drop().
 //	See IReferenceCounted::drop() for more information.
-eastl::shared_ptr<UISkin> BaseUI::CreateSkin(EUI_SKIN_THEME_TYPE type)
+eastl::shared_ptr<UISkin> BaseUI::CreateSkin(UISkinThemeType type)
 {
 	/*
 	eastl::shared_ptr<UISkin> skin(new UISkin(this, type));
@@ -581,7 +581,7 @@ eastl::shared_ptr<UIElementFactory> BaseUI::GetUIElementFactory(unsigned int ind
 //! Returns the root gui element.
 const eastl::shared_ptr<UIElement>& BaseUI::GetRootUIElement()
 {
-	return Root;
+	return mRoot;
 }
 
 
@@ -589,7 +589,7 @@ const eastl::shared_ptr<UIElement>& BaseUI::GetRootUIElement()
 eastl::shared_ptr<UIElement> BaseUI::GetNextElement(bool reverse, bool group)
 {
 	// start the search at the root of the current tab group
-	eastl::shared_ptr<UIElement> startPos = Focus ? Focus->GetTabGroup() : 0;
+	eastl::shared_ptr<UIElement> startPos = mFocus ? mFocus->GetTabGroup() : 0;
 	int startOrder = -1;
 
 	// if we're searching for a group
@@ -598,14 +598,14 @@ eastl::shared_ptr<UIElement> BaseUI::GetNextElement(bool reverse, bool group)
 		startOrder = startPos->GetTabOrder();
 	}
 	else
-	if (!group && Focus && !Focus->IsTabGroup())
+	if (!group && mFocus && !mFocus->IsTabGroup())
 	{
-		startOrder = Focus->GetTabOrder();
+		startOrder = mFocus->GetTabOrder();
 		if (startOrder == -1)
 		{
 			// this element is not part of the tab cycle,
 			// but its parent might be...
-			eastl::shared_ptr<UIElement> el = Focus;
+			eastl::shared_ptr<UIElement> el = mFocus;
 			while (el && el->GetParent() && startOrder == -1)
 			{
 				el = el->GetParent();
@@ -616,7 +616,7 @@ eastl::shared_ptr<UIElement> BaseUI::GetNextElement(bool reverse, bool group)
 	}
 
 	if (group || !startPos)
-		startPos = Root; // start at the root
+		startPos = mRoot; // start at the root
 
 	// find the element
 	eastl::shared_ptr<UIElement> closest = 0;
@@ -628,19 +628,19 @@ eastl::shared_ptr<UIElement> BaseUI::GetNextElement(bool reverse, bool group)
 	else if (first)
 		return first; // go to the end or the start
 	else if (group)
-		return Root; // no group found? root group
+		return mRoot; // no group found? root group
 	else
 		return 0;
 }
 
 //! adds a UI Element using its name
-eastl::shared_ptr<UIElement> BaseUI::AddUIElement(EUI_ELEMENT_TYPE elementType,
+eastl::shared_ptr<UIElement> BaseUI::AddUIElement(UIElementType elementType,
 	const eastl::shared_ptr<UIElement>& parent)
 {
 	eastl::shared_ptr<UIElement> node=0;
 
 	for (int i=UIElementFactoryList.size()-1; i>=0 && !node; --i)
-		node = UIElementFactoryList[i]->AddUIElement(elementType, parent ? parent : Root);
+		node = UIElementFactoryList[i]->AddUIElement(elementType, parent ? parent : mRoot);
 
 	return node;
 }

@@ -15,14 +15,14 @@ class UIRoot : public UIElement
 public:
 
 	//! constructor
-	UIRoot(BaseUI* ui, EUI_ELEMENT_TYPE type, int id, RectangleBase<2, int> rectangle);
+	UIRoot(BaseUI* ui, UIElementType type, int id, RectangleBase<2, int> rectangle);
 
 	//! called if an event happened.
 	virtual bool OnEvent(const Event& event);
 
 private:
 
-	BaseUI* UI;
+	BaseUI* mUI;
 };
 
 #endif

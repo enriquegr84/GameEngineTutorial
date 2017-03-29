@@ -51,8 +51,8 @@
 #include "Graphic/ScreenElement.h"
 #include "Graphic/Renderer/Renderer.h"
 
-const unsigned long g_QuitNoPrompt = MAKELPARAM(-1,-1);
-const UINT g_MsgEndModal = (WM_USER+100);
+const unsigned long QuitNoPrompt = MAKELPARAM(-1,-1);
+const UINT MsgEndModal = (WM_USER+100);
 
 enum
 {
@@ -90,8 +90,8 @@ public:
 	virtual bool OnRestore() { return true; }
 	virtual bool OnLostDevice() { return true; }
 
-	virtual bool IsVisible() { return Visible; }
-	virtual void SetVisible(bool visible) { Visible = visible; }
+	virtual bool IsVisible() { return mVisible; }
+	virtual void SetVisible(bool visible) { mVisible = visible; }
 
 	virtual void OnUpdate(int) { };
 
@@ -146,7 +146,7 @@ public:
 	/** \return Returns a pointer to the created skin.
 	If you no longer need the skin, you should call UISkin::drop().
 	See IReferenceCounted::drop() for more information. */
-	virtual eastl::shared_ptr<UISkin> CreateSkin(EUI_SKIN_THEME_TYPE type);
+	virtual eastl::shared_ptr<UISkin> CreateSkin(UISkinThemeType type);
 
 	//! returns default font
 	virtual eastl::shared_ptr<UIFont> GetBuiltInFont() const;
@@ -174,12 +174,12 @@ public:
 
 	//! Adds a UI Element by its name
 	virtual eastl::shared_ptr<UIElement> AddUIElement(
-		EUI_ELEMENT_TYPE elementType, const eastl::shared_ptr<UIElement>& parent = 0);
+		UIElementType elementType, const eastl::shared_ptr<UIElement>& parent = 0);
 
 
 protected:
-	eastl::shared_ptr<UIElement> Root;
-	bool Visible;
+	eastl::shared_ptr<UIElement> mRoot;
+	bool mVisible;
 
 private:
 
@@ -188,11 +188,11 @@ private:
 
 	eastl::vector<eastl::shared_ptr<UIElementFactory>> UIElementFactoryList;
 
-	eastl::shared_ptr<UIElement> Hovered;
-	eastl::shared_ptr<UIElement> HoveredNoSubelement;	// subelements replaced by their parent, so you only have 'real' elements here
-	eastl::shared_ptr<UIElement> Focus;
-	Vector2<int> LastHoveredMousePos;
-	eastl::shared_ptr<UISkin> CurrentSkin;
+	eastl::shared_ptr<UIElement> mHovered;
+	eastl::shared_ptr<UIElement> mHoveredNoSubelement;	// subelements replaced by their parent, so you only have 'real' elements here
+	eastl::shared_ptr<UIElement> mFocus;
+	Vector2<int> mLastHoveredMousePos;
+	eastl::shared_ptr<UISkin> mCurrentSkin;
 };
 
 

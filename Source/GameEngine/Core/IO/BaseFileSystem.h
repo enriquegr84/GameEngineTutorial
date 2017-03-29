@@ -9,8 +9,8 @@
 #include "BaseFileList.h"
 #include "BaseFileArchive.h"
 
-//! FileSystemType: which Filesystem should be used for e.g. browsing
-enum E_FILESYSTEM_TYPE
+//! BaseFileSystemType: which Filesystem should be used for e.g. browsing
+enum BaseFileSystemType
 {
 	FILESYSTEM_NATIVE = 0,	// Native OS FileSystem
 	FILESYSTEM_VIRTUAL	// Virtual FileSystem
@@ -135,10 +135,10 @@ public:
 	virtual eastl::wstring GetFileDir(const eastl::wstring& filename) const =0;
 
 	//! Set the active type of file system.
-	virtual E_FILESYSTEM_TYPE SetFileSystemType(E_FILESYSTEM_TYPE listType) =0;
+	virtual BaseFileSystemType SetFileSystemType(BaseFileSystemType listType) =0;
 
 	//! Get the active type of file system.
-	virtual E_FILESYSTEM_TYPE GetFileSystemType( ) =0;
+	virtual BaseFileSystemType GetFileSystemType( ) =0;
 };
 
 #endif

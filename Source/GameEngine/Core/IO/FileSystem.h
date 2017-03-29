@@ -97,17 +97,17 @@ public:
 	virtual eastl::wstring GetFileDir(const eastl::wstring& filename) const;
 
 	//! Set the active type of file system.
-	virtual E_FILESYSTEM_TYPE SetFileSystemType(E_FILESYSTEM_TYPE listType);
+	virtual BaseFileSystemType SetFileSystemType(BaseFileSystemType listType);
 
 	//! Get the active type of file system.
-	virtual E_FILESYSTEM_TYPE GetFileSystemType( );
+	virtual BaseFileSystemType GetFileSystemType( );
 
 private:
 
 	//! Currently used FileSystemType
-	E_FILESYSTEM_TYPE m_FileSystemType;
+	BaseFileSystemType mFileSystemType;
 	//! WorkingDirectory for Native and Virtual filesystems
-	eastl::wstring m_WorkingDirectory [2];
+	eastl::wstring mWorkingDirectory[2];
 };
 
 #endif

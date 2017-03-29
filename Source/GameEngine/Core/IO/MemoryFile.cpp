@@ -7,8 +7,8 @@
 
 MemoryReadFile::MemoryReadFile(const void* memory, long len, 
 	const eastl::wstring& fileName, bool d)
-:	m_Buffer(memory), m_Len(len), m_Pos(0), 
-	m_Filename(fileName), m_DeleteMemoryWhenDropped(d)
+:	mBuffer(memory), mLen(len), mPos(0), 
+	mFileName(fileName), mDeleteMemoryWhenDropped(d)
 {
 
 }
@@ -16,8 +16,8 @@ MemoryReadFile::MemoryReadFile(const void* memory, long len,
 
 MemoryReadFile::~MemoryReadFile()
 {
-	if (m_DeleteMemoryWhenDropped)
-		delete m_Buffer;
+	if (mDeleteMemoryWhenDropped)
+		delete mBuffer;
 }
 
 
@@ -25,15 +25,15 @@ MemoryReadFile::~MemoryReadFile()
 int MemoryReadFile::Read(void* buffer, unsigned int sizeToRead)
 {
 	int amount = static_cast<int>(sizeToRead);
-	if (m_Pos + amount > m_Len)
-		amount -= m_Pos + amount - m_Len;
+	if (mPos + amount > mLen)
+		amount -= mPos + amount - mLen;
 
 	if (amount <= 0)
 		return 0;
 
-	char* p = (char*)m_Buffer;
-	memcpy(buffer, p + m_Pos, amount);
-	m_Pos += amount;
+	char* p = (char*)mBuffer;
+	memcpy(buffer, p + mPos, amount);
+	mPos += amount;
 
 	return amount;
 }
@@ -45,17 +45,17 @@ bool MemoryReadFile::Seek(long finalPos, bool relativeMovement)
 {
 	if (relativeMovement)
 	{
-		if (m_Pos + finalPos > m_Len)
+		if (mPos + finalPos > mLen)
 			return false;
 
-		m_Pos += finalPos;
+		mPos += finalPos;
 	}
 	else
 	{
-		if (finalPos > m_Len)
+		if (finalPos > mLen)
 			return false;
 
-		m_Pos = finalPos;
+		mPos = finalPos;
 	}
 
 	return true;
@@ -65,21 +65,21 @@ bool MemoryReadFile::Seek(long finalPos, bool relativeMovement)
 //! returns size of file
 long MemoryReadFile::GetSize() const
 {
-	return m_Len;
+	return mLen;
 }
 
 
 //! returns where in the file we are.
 long MemoryReadFile::GetPos() const
 {
-	return m_Pos;
+	return mPos;
 }
 
 
 //! returns name of file
 const eastl::wstring& MemoryReadFile::GetFileName() const
 {
-	return m_Filename;
+	return mFileName;
 }
 
 BaseReadFile* CreateMemoryReadFile(const void* memory, long size, 

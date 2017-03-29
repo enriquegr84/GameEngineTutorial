@@ -103,9 +103,9 @@ typedef ThreadSafeQueue<BaseEventDataPtr> ThreadSafeEventQueue;
 //---------------------------------------------------------------------------------------------------------------------
 // Macro for event registration
 //---------------------------------------------------------------------------------------------------------------------
-extern GenericObjectFactory<BaseEventData, BaseEventType> g_eventFactory;
-#define REGISTER_EVENT(eventClass) g_eventFactory.Register<eventClass>(eventClass::sk_EventType)
-#define CREATE_EVENT(eventType) g_eventFactory.Create(eventType)
+extern GenericObjectFactory<BaseEventData, BaseEventType> EventFactory;
+#define REGISTER_EVENT(eventClass) EventFactory.Register<eventClass>(eventClass::skEventType)
+#define CREATE_EVENT(eventType) EventFactory.Create(eventType)
 
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -131,15 +131,15 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 class EventData : public BaseEventData
 {
-    const float m_timeStamp;
+    const float mTimeStamp;
 
 public:
-	explicit EventData(const float timeStamp = 0.0f) : m_timeStamp(timeStamp) { }
+	explicit EventData(const float timeStamp = 0.0f) : mTimeStamp(timeStamp) { }
 
 	// Returns the type of the event
 	virtual const BaseEventType& GetEventType(void) const = 0;
 
-	float GetTimeStamp(void) const { return m_timeStamp; }
+	float GetTimeStamp(void) const { return mTimeStamp; }
 
 	// Serializing for network input / output
 	virtual void Serialize(std::ostrstream &out) const	{ }
@@ -166,9 +166,9 @@ class BaseEventManager
 {
 public:
 
-	enum eConstants { kINFINITE = 0xffffffff };
+	enum eConstants { CONS_INFINITE = 0xffffffff };
 
-	explicit BaseEventManager(const char* pName, bool setAsGlobal);
+	explicit BaseEventManager(const char* name, bool setAsGlobal);
 	virtual ~BaseEventManager(void);
 
     // Registers a delegate function that will get called when the event type is triggered.  Returns true if 
@@ -180,12 +180,12 @@ public:
 
 	// Fire off event NOW.  This bypasses the queue entirely and immediately calls all delegate functions registered 
     // for the event.
-	virtual bool TriggerEvent(const BaseEventDataPtr& pEvent) const = 0;
+	virtual bool TriggerEvent(const BaseEventDataPtr& event) const = 0;
 
 	// Fire off event.  This uses the queue and will call the delegate function on the next call to VTick(), assuming
     // there's enough time.
-	virtual bool QueueEvent(const BaseEventDataPtr& pEvent) = 0;
-	virtual bool ThreadSafeQueueEvent(const BaseEventDataPtr& pEvent) = 0;
+	virtual bool QueueEvent(const BaseEventDataPtr& event) = 0;
+	virtual bool ThreadSafeQueueEvent(const BaseEventDataPtr& event) = 0;
 
 	// Find the next-available instance of the named event type and remove it from the processing queue.  This 
     // may be done up to the point that it is actively being processed ...  e.g.: is safe to happen during event
@@ -201,13 +201,16 @@ public:
     // may not in fact get processed.
 	//
 	// returns true if all messages ready for processing were completed, false otherwise (e.g. timeout )
-	virtual bool Update(unsigned long maxMillis = kINFINITE) = 0;
+	virtual bool Update(unsigned long maxTime = CONS_INFINITE) = 0;
 
     // Getter for the main global event manager. This is the event manager that is used by the majority of the 
     // engine, though you are free to define your own as long as you instantiate it with setAsGlobal set to false.
     // It is not valid to have more than one global event manager.
 	static BaseEventManager* Get(void);
 
+protected:
+
+	static BaseEventManager* EventMgr;
 };
 
 const unsigned int EVENTMANAGER_NUM_QUEUES = 2;
@@ -234,25 +237,25 @@ class EventManager : public BaseEventManager
 		There are two event queues here so that delegate methods can safely queue up new events. It is necessary
 		to controll the processed queues and also to point the currently active queue
 	*/
-	EventListenerMap m_eventListeners;
-	EventQueue m_queues[EVENTMANAGER_NUM_QUEUES];
-	int m_activeQueue;  // index of actively processing queue; events enque to the opposing queue
+	EventListenerMap mEventListeners;
+	EventQueue mQueues[EVENTMANAGER_NUM_QUEUES];
+	int mActiveQueue;  // index of actively processing queue; events enque to the opposing queue
 
-	ThreadSafeEventQueue m_realtimeEventQueue;
+	ThreadSafeEventQueue mRealtimeEventQueue;
 
 public:
-	explicit EventManager(const char* pName, bool setAsGlobal);
+	explicit EventManager(const char* name, bool setAsGlobal);
 	virtual ~EventManager(void);
 
 	virtual bool AddListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type);
 	virtual bool RemoveListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type);
 
-	virtual bool TriggerEvent(const BaseEventDataPtr& pEvent) const;
-	virtual bool QueueEvent(const BaseEventDataPtr& pEvent);
-	virtual bool ThreadSafeQueueEvent(const BaseEventDataPtr& pEvent);
+	virtual bool TriggerEvent(const BaseEventDataPtr& event) const;
+	virtual bool QueueEvent(const BaseEventDataPtr& event);
+	virtual bool ThreadSafeQueueEvent(const BaseEventDataPtr& event);
 	virtual bool AbortEvent(const BaseEventType& type, bool allOfType = false);
 
-	virtual bool Update(unsigned long maxMillis = kINFINITE);
+	virtual bool Update(unsigned long maxTime = CONS_INFINITE);
 };
 
 
