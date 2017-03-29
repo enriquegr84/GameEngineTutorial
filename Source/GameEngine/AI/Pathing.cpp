@@ -48,12 +48,12 @@
 void PathingNode::AddArc(PathingArc* pArc)
 {
 	LogAssert(pArc, "Invalid arc");
-	m_arcs.push_back(pArc);
+	mArcs.push_back(pArc);
 }
 
 void PathingNode::GetNeighbors(PathingNodeList& outNeighbors)
 {
-	for (PathingArcList::iterator it = m_arcs.begin(); it != m_arcs.end(); ++it)
+	for (PathingArcList::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		PathingArc* pArc = *it;
 		outNeighbors.push_back(pArc->GetNeighbor(this));
@@ -65,7 +65,7 @@ float PathingNode::GetCostFromNode(PathingNode* pFromNode)
 	LogAssert(pFromNode, "Invalid node");
 	PathingArc* pArc = FindArc(pFromNode);
 	LogAssert(pArc, "Invalid arc");
-	Vector3<float> diff = pFromNode->GetPos() - m_pos;
+	Vector3<float> diff = pFromNode->GetPos() - mPos;
 	return pArc->GetWeight() * Length(diff);
 }
 
@@ -73,7 +73,7 @@ PathingArc* PathingNode::FindArc(PathingNode* pLinkedNode)
 {
 	LogAssert(pLinkedNode, "Invalid node");
 	
-	for (PathingArcList::iterator it = m_arcs.begin(); it != m_arcs.end(); ++it)
+	for (PathingArcList::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		PathingArc* pArc = *it;
 		if (pArc->GetNeighbor(this) == pLinkedNode)
@@ -91,18 +91,18 @@ void PathingArc::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
 	LogAssert(pNodeA, "Invalid node");
 	LogAssert(pNodeB, "Invalid node");
 
-	m_pNodes[0] = pNodeA;
-	m_pNodes[1] = pNodeB;
+	mNodes[0] = pNodeA;
+	mNodes[1] = pNodeB;
 }
 
 PathingNode* PathingArc::GetNeighbor(PathingNode* pMe)
 {
 	LogAssert(pMe, "Invalid node");
 	
-	if (m_pNodes[0] == pMe)
-		return m_pNodes[1];
+	if (mNodes[0] == pMe)
+		return mNodes[1];
 	else
-		return m_pNodes[0];
+		return mNodes[0];
 }
 
 
@@ -111,10 +111,10 @@ PathingNode* PathingArc::GetNeighbor(PathingNode* pMe)
 //--------------------------------------------------------------------------------------------------------
 bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 {
-	if (m_index == m_path.end())
+	if (mIndex == mPath.end())
 		return false;
 
-	Vector3<float> diff = pos - (*m_index)->GetPos();
+	Vector3<float> diff = pos - (*mIndex)->GetPos();
 	
 	// DEBUG dump target orientation
 	/*
@@ -125,9 +125,9 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 	*/
 	// end DEBUG
 	
-	if (Length(diff) <= (*m_index)->GetTolerance())
+	if (Length(diff) <= (*mIndex)->GetTolerance())
 	{
-		++m_index;
+		++mIndex;
 		return true;
 	}
 	return false;
@@ -135,7 +135,7 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 
 bool PathPlan::CheckForEnd(void)
 {
-	if (m_index == m_path.end())
+	if (mIndex == mPath.end())
 		return true;
 	return false;
 }
@@ -143,7 +143,7 @@ bool PathPlan::CheckForEnd(void)
 void PathPlan::AddNode(PathingNode* pNode)
 {
 	LogAssert(pNode, "Invalid node");
-	m_path.push_front(pNode);
+	mPath.push_front(pNode);
 }
 
 
@@ -154,34 +154,34 @@ PathPlanNode::PathPlanNode(PathingNode* pNode, PathPlanNode* pPrevNode, PathingN
 {
 	LogAssert(pNode, "Invalid node");
 	
-	m_pPathingNode = pNode;
-	m_pPrev = pPrevNode;  // NULL is a valid value, though it should only be NULL for the start node
-	m_pGoalNode = pGoalNode;
-	m_closed = false;
+	mPathingNode = pNode;
+	mPrev = pPrevNode;  // NULL is a valid value, though it should only be NULL for the start node
+	mGoalNode = pGoalNode;
+	mClosed = false;
 	UpdateHeuristics();
 }
 
 void PathPlanNode::UpdatePrevNode(PathPlanNode* pPrev)
 {
 	LogAssert(pPrev, "Invalid node");
-	m_pPrev = pPrev;
+	mPrev = pPrev;
 	UpdateHeuristics();
 }
 
 void PathPlanNode::UpdateHeuristics(void)
 {
 	// total cost (g)
-	if (m_pPrev)
-		m_goal = m_pPrev->GetGoal() + m_pPathingNode->GetCostFromNode(m_pPrev->GetPathingNode());
+	if (mPrev)
+		mGoal = mPrev->GetGoal() + mPathingNode->GetCostFromNode(mPrev->GetPathingNode());
 	else
-		m_goal = 0;
+		mGoal = 0;
 
 	// heuristic (h)
-	Vector3<float> diff = m_pPathingNode->GetPos() - m_pGoalNode->GetPos();
-	m_heuristic = Length(diff);
+	Vector3<float> diff = mPathingNode->GetPos() - mGoalNode->GetPos();
+	mHeuristic = Length(diff);
 
 	// cost to goal (f)
-	m_fitness = m_goal + m_heuristic;
+	mFitness = mGoal + mHeuristic;
 }
 
 
@@ -190,8 +190,8 @@ void PathPlanNode::UpdateHeuristics(void)
 //--------------------------------------------------------------------------------------------------------
 AStar::AStar(void)
 {
-	m_pStartNode = NULL;
-	m_pGoalNode = NULL;
+	mStartNode = NULL;
+	mGoalNode = NULL;
 }
 
 AStar::~AStar(void)
@@ -202,16 +202,16 @@ AStar::~AStar(void)
 void AStar::Destroy(void)
 {
 	// destroy all the PathPlanNode objects and clear the map
-	for (PathingNodeToPathPlanNodeMap::iterator it = m_nodes.begin(); it != m_nodes.end(); ++it)
+	for (PathingNodeToPathPlanNodeMap::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 		delete it->second;
-	m_nodes.clear();
+	mNodes.clear();
 	
 	// clear the open set
-	m_openSet.clear();
+	mOpenSet.clear();
 	
 	// clear the start & goal nodes
-	m_pStartNode = NULL;
-	m_pGoalNode = NULL;
+	mStartNode = NULL;
+	mGoalNode = NULL;
 }
 
 
@@ -228,25 +228,25 @@ PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 		return NULL;
 
 	// set our members
-	m_pStartNode = pStartNode;
-	m_pGoalNode = pGoalNode;
+	mStartNode = pStartNode;
+	mGoalNode = pGoalNode;
 		
 	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
 	// we couldn't find a path to the goal.  The start node is the only node that is initially in 
 	// the open set.
-	AddToOpenSet(m_pStartNode, NULL);
+	AddToOpenSet(mStartNode, NULL);
 
-	while (!m_openSet.empty())
+	while (!mOpenSet.empty())
 	{
 		// grab the most likely candidate
-		PathPlanNode* pNode = m_openSet.front();
+		PathPlanNode* pNode = mOpenSet.front();
 
 		// If this node is our goal node, we've successfully found a path.
-		if (pNode->GetPathingNode() == m_pGoalNode)
+		if (pNode->GetPathingNode() == mGoalNode)
 			return RebuildPath(pNode);
 
 		// we're processing this node so remove it from the open set and add it to the closed set
-		m_openSet.pop_front();
+		mOpenSet.pop_front();
 		AddToClosedSet(pNode);
 
 		// get the neighboring nodes
@@ -259,11 +259,11 @@ PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 			PathingNode* pNodeToEvaluate = *it;
 
 			// Try and find a PathPlanNode object for this node.
-			PathingNodeToPathPlanNodeMap::iterator findIt = m_nodes.find(pNodeToEvaluate);
+			PathingNodeToPathPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
 			
 			// If one exists and it's in the closed list, we've already evaluated the node.  We can
 			// safely skip it.
-			if (findIt != m_nodes.end() && findIt->second->IsClosed())
+			if (findIt != mNodes.end() && findIt->second->IsClosed())
 				continue;
 			
 			// figure out the cost for this route through the node
@@ -273,7 +273,7 @@ PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 
 			// Grab the PathPlanNode if there is one.
 			PathPlanNode* pPathPlanNodeToEvaluate = NULL;
-			if (findIt != m_nodes.end())
+			if (findIt != mNodes.end())
 				pPathPlanNodeToEvaluate = findIt->second;
 
 			// No PathPlanNode means we've never evaluated this pathing node so we need to add it to 
@@ -308,12 +308,12 @@ PathPlanNode* AStar::AddToOpenSet(PathingNode* pNode, PathPlanNode* pPrevNode)
 	LogAssert(pNode, "Invalid node");
 
 	// create a new PathPlanNode if necessary
-	PathingNodeToPathPlanNodeMap::iterator it = m_nodes.find(pNode);
+	PathingNodeToPathPlanNodeMap::iterator it = mNodes.find(pNode);
 	PathPlanNode* pThisNode = NULL;
-	if (it == m_nodes.end())
+	if (it == mNodes.end())
 	{
-		pThisNode = new PathPlanNode(pNode,pPrevNode,m_pGoalNode);
-		m_nodes.insert(eastl::make_pair(pNode,pThisNode));
+		pThisNode = new PathPlanNode(pNode,pPrevNode,mGoalNode);
+		mNodes.insert(eastl::make_pair(pNode,pThisNode));
 	}
 	else
 	{
@@ -342,36 +342,36 @@ void AStar::InsertNode(PathPlanNode* pNode)
 	LogAssert(pNode, "Invalid node");
 	
 	// just add the node if the open set is empty
-	if (m_openSet.empty())
+	if (mOpenSet.empty())
 	{
-		m_openSet.push_back(pNode);
+		mOpenSet.push_back(pNode);
 		return;
 	}
 
 	// otherwise, perform an insertion sort	
-	PathPlanNodeList::iterator it = m_openSet.begin();
+	PathPlanNodeList::iterator it = mOpenSet.begin();
 	PathPlanNode* pCompare = *it;
 	while (pCompare->IsBetterChoiceThan(pNode))
 	{
 		++it;
 		
-		if (it != m_openSet.end())
+		if (it != mOpenSet.end())
 			pCompare = *it;
 		else
 			break;
 	}
-	m_openSet.insert(it,pNode);
+	mOpenSet.insert(it,pNode);
 }
 
 void AStar::ReinsertNode(PathPlanNode* pNode)
 {
 	LogAssert(pNode, "Invalid node");
 
-	for (PathPlanNodeList::iterator it = m_openSet.begin(); it != m_openSet.end(); ++it)
+	for (PathPlanNodeList::iterator it = mOpenSet.begin(); it != mOpenSet.end(); ++it)
 	{
 		if (pNode == (*it))
 		{
-			m_openSet.erase(it);
+			mOpenSet.erase(it);
 			InsertNode(pNode);
 			return;
 		}
@@ -405,23 +405,23 @@ PathPlan* AStar::RebuildPath(PathPlanNode* pGoalNode)
 void PathingGraph::DestroyGraph(void)
 {
 	// destroy all the nodes
-	for (PathingNodeVec::iterator it = m_nodes.begin(); it != m_nodes.end(); ++it)
+	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 		delete (*it);
-	m_nodes.clear();
+	mNodes.clear();
 	
 	// destroy all the arcs
-	for (PathingArcList::iterator it = m_arcs.begin(); it != m_arcs.end(); ++it)
+	for (PathingArcList::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 		delete (*it);
-	m_arcs.clear();
+	mArcs.clear();
 }
 
 PathingNode* PathingGraph::FindClosestNode(const Vector3<float>& pos)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
 	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
-	PathingNode* pClosestNode = m_nodes.front();
+	PathingNode* pClosestNode = mNodes.front();
 	float length = FLT_MAX;
-	for (PathingNodeVec::iterator it = m_nodes.begin(); it != m_nodes.end(); ++it)
+	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 	{
 		PathingNode* pNode = *it;
 		Vector3<float> diff = pos - pNode->GetPos();
@@ -439,9 +439,9 @@ PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
 	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
-	PathingNode* pFurthestNode = m_nodes.front();
+	PathingNode* pFurthestNode = mNodes.front();
 	float length = 0;
-	for (PathingNodeVec::iterator it = m_nodes.begin(); it != m_nodes.end(); ++it)
+	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 	{
 		PathingNode* pNode = *it;
 		Vector3<float> diff = pos - pNode->GetPos();
@@ -458,7 +458,7 @@ PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos)
 PathingNode* PathingGraph::FindRandomNode(void)
 {
 	// cache this since it's not guaranteed to be constant time
-	unsigned int numNodes = (unsigned int)m_nodes.size();
+	unsigned int numNodes = (unsigned int)mNodes.size();
 	
 	// choose a random node
 	unsigned int node = (int)(Randomizer::FRand() * numNodes);
@@ -466,7 +466,7 @@ PathingNode* PathingGraph::FindRandomNode(void)
 	// if we're in the lower half of the node list, start from the bottom
 	if (node <= numNodes / 2)
 	{
-		PathingNodeVec::iterator it = m_nodes.begin();
+		PathingNodeVec::iterator it = mNodes.begin();
 		for (unsigned int i = 0; i < node; i++)
 			++it;
 		return (*it);
@@ -475,7 +475,7 @@ PathingNode* PathingGraph::FindRandomNode(void)
 	// otherwise, start from the top
 	else
 	{
-		PathingNodeVec::iterator it = m_nodes.end();
+		PathingNodeVec::iterator it = mNodes.end();
 		for (unsigned int i = numNodes; i >= node; i--)
 			--it;
 		return (*it);
@@ -514,11 +514,11 @@ void PathingGraph::BuildTestGraph(void)
 {
 
 	// this should never occur, but better safe than sorry
-	if (!m_nodes.empty())
+	if (!mNodes.empty())
 		DestroyGraph();
 	
 	// keep from reallocating and copying the array
-	m_nodes.reserve(81);
+	mNodes.reserve(81);
 
 	// Create a simple grid of nodes.  Using these hard-coded values is a bit hacky but it's okay 
 	// because this is just a debug function.
@@ -529,17 +529,17 @@ void PathingGraph::BuildTestGraph(void)
 		{
 			// add the new node
 			PathingNode* pNode = new PathingNode(Vector3<float>{x, 0, z});
-			m_nodes.push_back(pNode);
+			mNodes.push_back(pNode);
 			
 			// link it to the previous node
 			int tempNode = index - 1;
 			if (tempNode >= 0)
-				LinkNodes(m_nodes[tempNode],pNode);
+				LinkNodes(mNodes[tempNode],pNode);
 				
 			// link it to the node above it
 			tempNode = index - 9;  // reusing tempNode
 			if (tempNode >= 0)
-				LinkNodes(m_nodes[tempNode],pNode);
+				LinkNodes(mNodes[tempNode],pNode);
 				
 			index++;
 		}
@@ -556,7 +556,7 @@ void PathingGraph::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
 	pArc->LinkNodes(pNodeA,pNodeB);
 	pNodeA->AddArc(pArc);
 	pNodeB->AddArc(pArc);
-	m_arcs.push_back(pArc);
+	mArcs.push_back(pArc);
 }
 
 

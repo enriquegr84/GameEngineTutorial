@@ -65,15 +65,15 @@ const float PATHING_DEFAULT_ARC_WEIGHT = 1.0f;
 //--------------------------------------------------------------------------------------------------------
 class PathingNode
 {
-	float m_tolerance;
-	Vector3<float> m_pos;
-	PathingArcList m_arcs;
+	float mTolerance;
+	Vector3<float> mPos;
+	PathingArcList mArcs;
 	
 public:
 	explicit PathingNode(const Vector3<float>& pos, float tolerance = PATHING_DEFAULT_NODE_TOLERANCE) 
-		: m_pos(pos) { m_tolerance = tolerance; }
-	const Vector3<float>& GetPos(void) const { return m_pos; }
-	float GetTolerance(void) const { return m_tolerance; }
+		: mPos(pos) { mTolerance = tolerance; }
+	const Vector3<float>& GetPos(void) const { return mPos; }
+	float GetTolerance(void) const { return mTolerance; }
 	void AddArc(PathingArc* pArc);
 	void GetNeighbors(PathingNodeList& outNeighbors);
 	float GetCostFromNode(PathingNode* pFromNode);
@@ -88,12 +88,12 @@ private:
 //--------------------------------------------------------------------------------------------------------
 class PathingArc
 {
-	float m_weight;
-	PathingNode* m_pNodes[2];  // an arc always connects two nodes
+	float mWeight;
+	PathingNode* mNodes[2];  // an arc always connects two nodes
 
 public:
-	explicit PathingArc(float weight = PATHING_DEFAULT_ARC_WEIGHT) { m_weight = weight; }
-	float GetWeight(void) const { return m_weight; }
+	explicit PathingArc(float weight = PATHING_DEFAULT_ARC_WEIGHT) { mWeight = weight; }
+	float GetWeight(void) const { return mWeight; }
 	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
 	PathingNode* GetNeighbor(PathingNode* pMe);
 };
@@ -107,15 +107,15 @@ class PathPlan
 {
 	friend class AStar;
 
-	PathingNodeList m_path;
-	PathingNodeList::iterator m_index;
+	PathingNodeList mPath;
+	PathingNodeList::iterator mIndex;
 	
 public:
-	PathPlan(void) { m_index = m_path.end(); }
+	PathPlan(void) { mIndex = mPath.end(); }
 	
-	void ResetPath(void) { m_index = m_path.begin(); }
+	void ResetPath(void) { mIndex = mPath.begin(); }
 	const Vector3<float>& GetCurrentNodePosition(void) const 
-	{ LogAssert(m_index != m_path.end(), "Invalid index"); return (*m_index)->GetPos(); }
+	{ LogAssert(mIndex != mPath.end(), "Invalid index"); return (*mIndex)->GetPos(); }
 	bool CheckForNextNode(const Vector3<float>& pos);
 	bool CheckForEnd(void);
 	
@@ -131,27 +131,27 @@ private:
 //--------------------------------------------------------------------------------------------------------
 class PathPlanNode
 {
-	PathPlanNode* m_pPrev;  // node we just came from
-	PathingNode* m_pPathingNode;  // pointer to the pathing node from the pathing graph
-	PathingNode* m_pGoalNode;  // pointer to the goal node
-	bool m_closed;  // the node is closed if it's already been processed
-	float m_goal;  // cost of the entire path up to this point (often called g)
-	float m_heuristic;  // estimated cost of this node to the goal (often called h)
-	float m_fitness;  // estimated cost from start to the goal through this node (often called f)
+	PathPlanNode* mPrev;  // node we just came from
+	PathingNode* mPathingNode;  // pointer to the pathing node from the pathing graph
+	PathingNode* mGoalNode;  // pointer to the goal node
+	bool mClosed;  // the node is closed if it's already been processed
+	float mGoal;  // cost of the entire path up to this point (often called g)
+	float mHeuristic;  // estimated cost of this node to the goal (often called h)
+	float mFitness;  // estimated cost from start to the goal through this node (often called f)
 	
 public:
 	explicit PathPlanNode(PathingNode* pNode, PathPlanNode* pPrevNode, PathingNode* pGoalNode);
-	PathPlanNode* GetPrev(void) const { return m_pPrev; }
-	PathingNode* GetPathingNode(void) const { return m_pPathingNode; }
-	bool IsClosed(void) const { return m_closed; }
-	float GetGoal(void) const { return m_goal; }
-	float GetHeuristic(void) const { return m_heuristic; }
-	float GetFitness(void) const { return m_fitness; }
+	PathPlanNode* GetPrev(void) const { return mPrev; }
+	PathingNode* GetPathingNode(void) const { return mPathingNode; }
+	bool IsClosed(void) const { return mClosed; }
+	float GetGoal(void) const { return mGoal; }
+	float GetHeuristic(void) const { return mHeuristic; }
+	float GetFitness(void) const { return mFitness; }
 	
 	void UpdatePrevNode(PathPlanNode* pPrev);
-	void SetClosed(bool toClose = true) { m_closed = toClose; }
+	void SetClosed(bool toClose = true) { mClosed = toClose; }
 	
-	bool IsBetterChoiceThan(PathPlanNode* pRight) { return (m_fitness < pRight->GetFitness()); }
+	bool IsBetterChoiceThan(PathPlanNode* pRight) { return (mFitness < pRight->GetFitness()); }
 	
 private:
 	void UpdateHeuristics(void);
@@ -164,10 +164,10 @@ private:
 //--------------------------------------------------------------------------------------------------------
 class AStar
 {
-	PathingNodeToPathPlanNodeMap m_nodes;
-	PathingNode* m_pStartNode;
-	PathingNode* m_pGoalNode;
-	PathPlanNodeList m_openSet;
+	PathingNodeToPathPlanNodeMap mNodes;
+	PathingNode* mStartNode;
+	PathingNode* mGoalNode;
+	PathPlanNodeList mOpenSet;
 	
 public:
 	AStar(void);
@@ -193,8 +193,8 @@ private:
 //--------------------------------------------------------------------------------------------------------
 class PathingGraph
 {
-	PathingNodeVec m_nodes;  // master list of all nodes
-	PathingArcList m_arcs;  // master list of all arcs
+	PathingNodeVec mNodes;  // master list of all nodes
+	PathingArcList mArcs;  // master list of all arcs
 	
 public:
 	PathingGraph(void) {}
