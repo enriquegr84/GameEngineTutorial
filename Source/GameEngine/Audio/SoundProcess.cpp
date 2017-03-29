@@ -94,9 +94,13 @@ int SoundProcess::GetLengthMilli()
     }
 }
 
-//
-// SoundProcess::OnInitialize					- Chapter 13, page 428
-//    note that the book incorrectly names this SoundProcess::OnInitialize
+/*
+	SoundProcess::OnInit
+	One important concept to understand about sounds is that the code might create a sound 
+	process long before the sound should be played or even loaded. Since sound effects tend 
+	to require a lot of data, it’s a good idea to be careful about when you instantiate sound
+	effects. After all, you don’t want the game to stutter or suffer wacky pauses.
+*/
 void SoundProcess::OnInit()
 {
     Process::OnInit();
@@ -119,9 +123,12 @@ void SoundProcess::OnInit()
 	Play(m_Volume, m_isLooping);
 }
 
-//
-// SoundProcess::OnUpdate						- Chapter 13, page 429
-//
+/*
+	SoundProcess::OnUpdate
+	The OnUpdate method monitors the sound effect as it’s being played. Once it is
+	finished, it kills the process and releases the audio buffer. If the sound is 
+	looping, it will play until some external call kills the process.
+*/
 void SoundProcess::OnUpdate(unsigned long deltaMs)
 {
     if (!IsPlaying())

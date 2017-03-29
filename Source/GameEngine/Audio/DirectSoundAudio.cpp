@@ -44,14 +44,19 @@
 
 //////////////////////////////////////////////////////////////////////
 // 
-// DirectSoundAudio::io Implementation
+// DirectSoundAudio::Audio Implementation
 //
 //////////////////////////////////////////////////////////////////////
 
 
-//
-// DirectSoundAudio::Initialize			- Chapter 13, page 415
-//
+/*
+	DirectSoundAudio::Initialize
+	It is initialized by setting the cooperative level on the DirectSound object, informing
+	to the sound driver you want more control over the sound system, specifically how the primary 
+	sound buffer is structured and how other applications run at the same time. The DSSCL_PRIORITY 
+	level is better than DSSCL_NORMAL because you can change the format of the output buffer. This 
+	is a good setting for games that still want to allow background applications
+*/
 bool DirectSoundAudio::Initialize(void* id)
 {
 	if(m_Initialized)
@@ -82,9 +87,14 @@ bool DirectSoundAudio::Initialize(void* id)
 	return true;
 }
 
-//
-// DirectSoundAudio::SetPrimaryBufferFormat		- Chapter 13, page 416
-//
+/*
+	DirectSoundAudio::SetPrimaryBufferFormat
+	It sets your primary buffer format to a flavor you want; most likely, it will be 44KHz, 
+	16-bit, and some number of channels that is a good trade-off between memory use and the 
+	number of simultaneous sound effects in a game. The memory which is spent with more channels 
+	is dependent on the sound hardware, so take into account the maximum number of channels that
+	the audio card support.
+*/
 HRESULT DirectSoundAudio::SetPrimaryBufferFormat( 
 	unsigned long dwPrimaryChannels, 
     unsigned long dwPrimaryFreq, 
@@ -110,6 +120,10 @@ HRESULT DirectSoundAudio::SetPrimaryBufferFormat(
 	dsbd.dwBufferBytes = 0;
 	dsbd.lpwfxFormat   = NULL;
 
+	/*
+		The method returns a pointer to the primary sound buffer where all the sound effects
+		are mixed into a single sound stream that is rendered by the sound card
+	*/
 	if( FAILED( hr = m_pDS->CreateSoundBuffer( &dsbd, &pDSBPrimary, NULL ) ) )
 		return S_OK;
 		//return DXUT_ERR( L"CreateSoundBuffer", hr );
@@ -123,6 +137,10 @@ HRESULT DirectSoundAudio::SetPrimaryBufferFormat(
 	wfx.nBlockAlign     = (WORD) (wfx.wBitsPerSample / 8 * wfx.nChannels);
 	wfx.nAvgBytesPerSec = (unsigned long) (wfx.nSamplesPerSec * wfx.nBlockAlign);
 
+	/*
+		SetFormat tells the sound driver to change the primary buffer's format to one
+		that you specify.
+	*/
 	if( FAILED( hr = pDSBPrimary->SetFormat(&wfx) ) )
 		return S_OK;
 
@@ -131,10 +149,10 @@ HRESULT DirectSoundAudio::SetPrimaryBufferFormat(
 	return S_OK;
 }
 
-
-//
-// DirectSoundAudio::Shutdown					- Chapter 13, page 417
-//
+/*
+	DirectSoundAudio::Shutdown
+	It is called to stop and release all the sounds still active
+*/
 void DirectSoundAudio::Shutdown()
 {
 	if(m_Initialized)
@@ -146,11 +164,12 @@ void DirectSoundAudio::Shutdown()
 	}
 }
 
-
-//
-// DirectSoundAudio::InitAudioBuffer			- Chapter 13, page 418
-//   Allocate a sample handle for the newborn sound (used by SoundResource) and tell you it's length
-//
+/*
+	DirectSoundAudio::InitAudioBuffer
+	Allocate a sample handle for the newborn sound (used by SoundResource) and tell you it's length.
+	In our platform-agnostic design, an audio buffer is created from a sound resource, presumably
+	something loaded from a file or more likely a resource file.
+*/
 BaseAudioBuffer *DirectSoundAudio::InitAudioBuffer(eastl::shared_ptr<ResHandle> resHandle)//const
 {
 	eastl::shared_ptr<SoundResourceExtraData> extra = 
@@ -159,6 +178,12 @@ BaseAudioBuffer *DirectSoundAudio::InitAudioBuffer(eastl::shared_ptr<ResHandle> 
     if( ! m_pDS )
         return NULL;
 
+	/*
+		It branches on the sound type, which signifies what kind of sound resource is about to play: 
+		WAV, MP3, OGG, or MIDI. To extend this system to play any kind of sound format, the new code
+		will be hooked in right here, in this case we are looking at WAV data or OGG data that has 
+		been decompressed.
+	*/
 	switch(extra->GetSoundType())
 	{
 		case SOUND_TYPE_OGG:
@@ -181,9 +206,14 @@ BaseAudioBuffer *DirectSoundAudio::InitAudioBuffer(eastl::shared_ptr<ResHandle> 
 
     LPDIRECTSOUNDBUFFER sampleHandle;
 
-    // Create the direct sound buffer, and only request the flags needed
-    // since each requires some overhead and limits if the buffer can 
-    // be hardware accelerated
+	/*
+		The call to CreateSoundBuffer() is preceded by setting various values of a DSBUFFERDESC 
+		structure that informs DirectSound what kind of sound is being created. It is only requested 
+		the flags needed since each requires some overhead and limits if the buffer can be hardware 
+		accelerated. The flags members controls what can happen to the sound. DSBCAPS_CTRLVOLUME flag,
+		which tells DirectSound that we want to be able to control the volume of this sound
+		effect. DSBCAPS_CTRL3D enables 3D sound, or DSBCAPS_CTRLPAN enables panning control.
+	*/
     DSBUFFERDESC dsbd;
     ZeroMemory( &dsbd, sizeof(DSBUFFERDESC) );
     dsbd.dwSize          = sizeof(DSBUFFERDESC);
@@ -203,13 +233,13 @@ BaseAudioBuffer *DirectSoundAudio::InitAudioBuffer(eastl::shared_ptr<ResHandle> 
 	m_AllSamples.push_front( audioBuffer);
 	
 	return audioBuffer;
-
 }
 
-//
-// DirectSoundAudio::ReleaseAudioBuffer			- Chapter 13, page 419
-//    Allocate a sample handle for the newborn sound (used by SoundResource)
-//
+/*
+	DirectSoundAudio::ReleaseAudioBuffer
+	Deallocate a sample handle for the old sound (used by SoundResource). It call Stop method
+	and remove it from the active sounds.
+*/
 void DirectSoundAudio::ReleaseAudioBuffer(BaseAudioBuffer *sampleHandle)//const
 {
 	sampleHandle->Stop();
@@ -516,9 +546,6 @@ HRESULT DirectSoundAudioBuffer::FillBufferWithSound( void )
 
     return S_OK;
 }
-
-
-
 
 //
 // DirectSoundAudioBuffer::GetProgress				- Chapter 13, page 426

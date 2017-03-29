@@ -47,15 +47,11 @@
 #include <mmsystem.h>
 #include <dsound.h>
 
-//////////////////////////////////////////////////////////////////////
-// DirectSoundAudio::ioBuffer						- Chapter 13, page 420
-//
-// Implements the rest of the IAudioBuffer interface left out by AudioBuffer.  
-// If you are interested in implementing a sound system using OpenAL 
-// you'd create a class OpenALAudioBuffer from AudioBuffer.
-// 
-//////////////////////////////////////////////////////////////////////
-
+/*
+	DirectSoundAudio::AudioBuffer
+	Platform-dependent implementation of the DirectSoundAudioBuffer. It picks up and defines
+	the remaining unimplemented virtual functions from the AudioBuffer interface
+*/
 class DirectSoundAudioBuffer : public AudioBuffer
 {
 protected:
@@ -84,16 +80,12 @@ private:
 };
 
 
-
-//////////////////////////////////////////////////////////////////////
-// class DirectSoundAudio::io						- Chapter 13, page 414
-//
-// Implements the rest of the BaseAudio interface left out by Audio.  
-// If you are interested in implementing a sound system using OpenAL 
-// you'd create a class OpenALAudioBuffer from AudioBuffer.
-// 
-//////////////////////////////////////////////////////////////////////
-
+/*
+	DirectSoundAudio::Audio
+	Implements the rest of the BaseAudio interface left out by Audio.
+	If you are interested in implementing a sound system using OpenAL
+	you'd create a class OpenALAudioBuffer from AudioBuffer.
+*/
 class DirectSoundAudio : public Audio
 {
 public:

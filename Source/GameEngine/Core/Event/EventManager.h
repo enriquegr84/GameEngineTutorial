@@ -54,8 +54,12 @@
 	in order to produce any change according to the recieved event. The game logic makes game
 	events to happen which are sent into the systems that know how to distribute the event to any 
 	subsystem that wants to listen. In a well-designed game, each subsystem should be responsible for 
-	subscribing to and handling game events as they pass through the system. The game event system is 
-	global to the application and therefore makes a good candidate to sit in the application layer. 
+	subscribing to and handling game events as they pass through the system. 
+	The game event system allows design complex systems that are decoupled from each other while still
+	it is possible to communicate to one another. This decoupling allows the systems to grow and change
+	organically without affecting any of the other systems they are attached to, as long as they still 
+	send and respond to the same events as before. It is global to the application and therefore makes 
+	a good candidate to sit in the application layer. 
 	It manages all communications going on between the game logic and game views. If the game logic
 	makes a change, an event is sent, and all the game views will receive it. If a game view wants to
 	send a command to the game logic, it does so through the event system.
@@ -199,7 +203,7 @@ public:
 	// returns true if all messages ready for processing were completed, false otherwise (e.g. timeout )
 	virtual bool Update(unsigned long maxMillis = kINFINITE) = 0;
 
-    // Getter for the main global event manager.  This is the event manager that is used by the majority of the 
+    // Getter for the main global event manager. This is the event manager that is used by the majority of the 
     // engine, though you are free to define your own as long as you instantiate it with setAsGlobal set to false.
     // It is not valid to have more than one global event manager.
 	static BaseEventManager* Get(void);
@@ -208,12 +212,28 @@ public:
 
 const unsigned int EVENTMANAGER_NUM_QUEUES = 2;
 
+/*
+	The implementation of EventManager manages two sets of objects: event data and listener delegates. As events
+	are processed by the system, the EventManager matches them up with subscribed listener delegate functions
+	and calls each one with events they care about. There are two ways to send events, by queue and by trigger.
+	By queue means the event will sit in line with other events until the game processes EventManager::Update().
+	By trigger means the event will be sent immediately by calling each delegate function directly.
+*/
 class EventManager : public BaseEventManager
 {
+	/*
+		The defined data structure are used to register listener delegate functions. Each event has a list of
+		delegates to call when the event is triggered. The EventQueue defines a list of smart pointers to
+		BaseEventData objects.
+	*/
 	typedef eastl::list<EventListenerDelegate> EventListenerList;
 	typedef eastl::map<BaseEventType, EventListenerList> EventListenerMap;
 	typedef eastl::list<BaseEventDataPtr> EventQueue;
 
+	/*
+		There are two event queues here so that delegate methods can safely queue up new events. It is necessary
+		to controll the processed queues and also to point the currently active queue
+	*/
 	EventListenerMap m_eventListeners;
 	EventQueue m_queues[EVENTMANAGER_NUM_QUEUES];
 	int m_activeQueue;  // index of actively processing queue; events enque to the opposing queue

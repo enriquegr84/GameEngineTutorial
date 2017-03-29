@@ -92,9 +92,12 @@ EventManager::~EventManager()
 }
 
 
-//---------------------------------------------------------------------------------------------------------------------
-// EventManager::AddListener
-//---------------------------------------------------------------------------------------------------------------------
+/*
+	EventManager AddListener walks through the list to see if the listener has already been registered. Registering
+	the same delegate for the same event more than once is an error, since processing the event would end up calling
+	the delegate function multiple times. If the delegate has never been registered for this event, it is added to 
+	the list.
+*/
 bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type)
 {
 	//GE_LOG("Events", eastl::string("Attempting to add delegate function for event type: ") + eastl::string(type, 16));
@@ -118,9 +121,11 @@ bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const
 }
 
 
-//---------------------------------------------------------------------------------------------------------------------
-// EventManager::RemoveListener
-//---------------------------------------------------------------------------------------------------------------------
+/*
+	EventManager RemoveListener walks through the list of listener attempting to find the delegate. The FastDelegate
+	classes all implement an overloaded comparison (==) operator, that way if the delegate is found, it is removed
+	from the list.
+*/
 bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type)
 {
 	//GE_LOG("Events", eastl::string("Attempting to remove delegate function from event type: ") + eastl::string(type, 16));
@@ -148,9 +153,13 @@ bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, co
 }
 
 
-//---------------------------------------------------------------------------------------------------------------------
-// EventManager::VTrigger
-//---------------------------------------------------------------------------------------------------------------------
+/*
+	TriggerEvent fires an event and have all listeners respond ot it inmediately, without using the event queue.
+	It breaks the paradigm of remote event handling, but it is still necessary for certain operations. It
+	tries to find the event listener list associated with this event type and then, iterates through all 
+	the delegates and calls each one. It returns true if any listener handled the event.
+	The most common and correct way of sending events is by using this method.
+*/
 bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 {
 	LogInformation("Events " + eastl::string("Attempting to trigger event ") + eastl::string(pEvent->GetName()));
@@ -173,9 +182,10 @@ bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 }
 
 
-//---------------------------------------------------------------------------------------------------------------------
-// EventManager::QueueEvent
-//---------------------------------------------------------------------------------------------------------------------
+/*
+	EventManager QueueEvent finds the associated event listener list. If it finds this list, it adds the event to the
+	currently active queue. This keeps the EventManager from processing events for which there are no listeners.
+*/
 bool EventManager::QueueEvent(const BaseEventDataPtr& pEvent)
 {
 	LogAssert(m_activeQueue >= 0, "Queue active");
@@ -204,7 +214,6 @@ bool EventManager::QueueEvent(const BaseEventDataPtr& pEvent)
 	}
 }
 
-
 //---------------------------------------------------------------------------------------------------------------------
 // EventManager::ThreadSafeQueueEvent
 //---------------------------------------------------------------------------------------------------------------------
@@ -214,10 +223,11 @@ bool EventManager::ThreadSafeQueueEvent(const BaseEventDataPtr& pEvent)
 	return true;
 }
 
-
-//---------------------------------------------------------------------------------------------------------------------
-// EventManager::AbortEvent
-//---------------------------------------------------------------------------------------------------------------------
+/*
+	EventManager AbortEvent method looks in the active queue for the event of a given type and erases it. Note that
+	this method can erase the first event in the queue of a given type or all events of a given type, depending on the
+	value of the second parameter. This method could be used to remove redundant messages from the queue.
+*/
 bool EventManager::AbortEvent(const BaseEventType& inType, bool allOfType)
 {
 	LogAssert(m_activeQueue >= 0, "Queue active");
@@ -251,9 +261,15 @@ bool EventManager::AbortEvent(const BaseEventType& inType, bool allOfType)
 }
 
 
-//---------------------------------------------------------------------------------------------------------------------
-// EventManager::Tick
-//---------------------------------------------------------------------------------------------------------------------
+/*
+	EventManager Update should be called on the main loop in order to process the queued messages. It takes
+	all the queued messages and calls the registered delegate methods. There is a double queue processing in
+	which one is used for events being actively processed and the other for new events, that way we keep track
+	of events which continually creates new events. Events are being pulled from one of the queues and it can 
+	be called with a maximum time allowed. If the amount of time is exceeded, the method exits, even if there 
+	are messages still in the queue. This can be pretty useful for smoothing out the frame rate stutter if it 
+	is attempted to handle too many events in one game loop.
+*/
 bool EventManager::Update(unsigned long maxMillis)
 {
 	unsigned long currMs = GetTickCount();
@@ -335,5 +351,3 @@ bool EventManager::Update(unsigned long maxMillis)
 
 	return queueFlushed;
 }
-
-

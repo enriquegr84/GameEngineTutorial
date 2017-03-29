@@ -45,6 +45,21 @@
 
 class SoundResourceExtraData;
 
+/*
+	Game Sound System Architecture. The audio system presented is a class hierarchy implementation 
+	which allows to integrate any audio subsystem right for the game. 
+	
+	The sound system inherits from BaseAudio. This object is responsible for the list of sounds 
+	currently active. The Audio class implements some implementation-generic routines, and the 
+	DirectSoundAudio class completes the implementation with DirectSound-specific calls.
+	
+	The sound system needs access to the bits that make up the raw sound. The BaseAudioBuffer
+	interface defines the methods for an implementation-generic sound buffer. AudioBuffer is a base
+	class that implements some of the BaseAudioBuffer interface, and the DirectSoundAudioBuffer
+	completes the implementation of the interface class using DirectSound calls. Each instance of a
+	sound effect will use one of these buffer objects.
+*/
+
 
 //////////////////////////////////////////////////////////////////////
 // SoundType Description
@@ -53,7 +68,6 @@ class SoundResourceExtraData;
 // streams the sound system can handle.
 //
 //////////////////////////////////////////////////////////////////////
-
 enum SoundType
 {
 	SOUND_TYPE_FIRST,
@@ -70,14 +84,13 @@ enum SoundType
 extern char *gSoundExtentions[];
 
 //////////////////////////////////////////////////////////////////////
-// class IAudioBuffer							- Chapter 13, page 409
+// class BaseAudioBuffer							- Chapter 13, page 409
 //
 // The interface class that defines the public API for audio buffers.
 // An audio buffer maps to one instance of a sound being played, 
-// which ISNT the sound data. Two different sounds can be played from
+// which isn't the sound data. Two different sounds can be played from
 // the same source data - such as two explosions in two different places.
 //////////////////////////////////////////////////////////////////////
-
 class BaseAudioBuffer
 {
 public:
@@ -101,13 +114,12 @@ public:
 	virtual float GetProgress()=0;
 };
 
-//////////////////////////////////////////////////////////////////////
-// class AudioBuffer							- Chapter 13, page 411 
-//
-// Implements IAudiobuffer interface using a smart pointer to SoundResource.
-//
-//////////////////////////////////////////////////////////////////////
-
+/*
+	AudioBuffer implements BaseAudiobuffer interface using a smart pointer to SoundResource.
+	This guarantees that the memory for your sound effect can’t go out of scope while the 
+	sound effect is being played. This class holds the smart pointer to your sound data managed 
+	by the resource cache and implements the BaseAudioBuffer interface.
+*/
 class AudioBuffer : public BaseAudioBuffer
 {
 public: 
@@ -135,14 +147,11 @@ protected:
 	int m_Volume;
 };
 
-
-//////////////////////////////////////////////////////////////////////
-// class BaseAudio									- Chapter 13, page 411
-//
-// This interface class describes the public interface for 
-// a game's audio system. 
-//////////////////////////////////////////////////////////////////////
-
+/*
+	BaseAudio interface class describes the public interface for a game's audio system. It
+	encapsulate the system that manages the list of actie sounds and has three main purposes:
+	create, manage and release audio buffers.
+*/
 class BaseAudio
 {
 public:
@@ -159,14 +168,9 @@ public:
 	virtual void Shutdown()=0;
 };
 
-//////////////////////////////////////////////////////////////////////
-// class Audio									- Chapter 13, page 412
-//
-// Implements BaseAudio interface - but not all the way - this is 
-// still a base class. See class DirectSoundAudio.
-// 
-//////////////////////////////////////////////////////////////////////
-
+/*
+	Audio is a platform-agnostic partial implementation of the BaseAudio interface
+*/
 class Audio : public BaseAudio
 {
 public:

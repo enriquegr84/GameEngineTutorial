@@ -46,22 +46,28 @@
 
 #include "Core/Process/Process.h"
 
-/////////////////////////////////////////////////////////////////////////////
-// class SoundProcess							- Chapter 13, page 426
-//
-//    A Sound Process, not to be confused with a Sound Resource (SoundResource)
-//	  manages a sound as it is being played. You can use this class to manage
-//    timing between sounds & animations.
-//
-/////////////////////////////////////////////////////////////////////////////
 
+/*
+	SoundProcess
+	This class provides a single object that manages individual sounds. Many of the methods 
+	are re-implementations of some BaseAudioBuffer methods. This class can be used to manage 
+	timing between sounds & animations.
+	The parameters to initialize this object are a ResHandle and initial sound settings. 
+	Every process has a type, and sound processes use this to distinguish themselves 
+	into sound categories such as sound effects, music, ambient background effects, or 
+	speech. This creates an easy way for a game to turn off or change the volume level
+	of a particular type of sound.
+*/
 class SoundProcess : public Process
 {
 protected:
-    eastl::shared_ptr<ResHandle> m_handle;			// this is the raw sound data
-	eastl::shared_ptr<BaseAudioBuffer> m_AudioBuffer;		// handle to the implementation dependent audio buffer (DSound, Miles) 
+	// this is the raw sound data
+    eastl::shared_ptr<ResHandle> m_handle;	
+	// handle to the implementation dependent audio buffer (DSound, Miles) 
+	eastl::shared_ptr<BaseAudioBuffer> m_AudioBuffer;		
 
-    int m_Volume;						// these hold the initial setting until the sound is actually launched.
+	// these hold the initial setting until the sound is actually launched.
+    int m_Volume;
     bool m_isLooping;
 
 public:
@@ -96,7 +102,6 @@ protected:
 // to control itself. 
 //
 /////////////////////////////////////////////////////////////////////////////
-
 class ExplosionProcess : public Process
 {
 protected:
@@ -119,7 +124,6 @@ protected:
 //   an AI barks and it must be heard above the other effects like too much freaking thunder.
 //
 /////////////////////////////////////////////////////////////////////////////
-
 class FadeProcess : public Process
 {
 protected:
