@@ -320,7 +320,7 @@ eastl::shared_ptr<SceneNode> Scene::GetSceneNode(ActorId id)
 }
 
 /*
-void Scene::NewRenderComponentDelegate(IEventDataPtr pEventData)
+void Scene::NewRenderComponentDelegate(BaseEventDataPtr pEventData)
 {
     shared_ptr<EvtData_New_Render_Component> pCastEventData = 
 		static_pointer_cast<EvtData_New_Render_Component>(pEventData);
@@ -331,15 +331,15 @@ void Scene::NewRenderComponentDelegate(IEventDataPtr pEventData)
     // FUTURE WORK: Add better error handling here.		
     if (FAILED(pSceneNode->OnRestore(this)))
     {
-        GE_ERROR(stringc("Failed to restore scene node to the scene for actorid ")
-				+ stringc(actorId));
+        GE_ERROR(eastl::string("Failed to restore scene node to the scene for actorid ")
+				+ eastl::string(actorId));
         return;
     }
 
     AddChild(actorId, pSceneNode);
 }
 
-void Scene::ModifiedRenderComponentDelegate(IEventDataPtr pEventData)
+void Scene::ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData)
 {
     shared_ptr<EvtData_Modified_Render_Component> pCastEventData = 
 		static_pointer_cast<EvtData_Modified_Render_Component>(pEventData);
@@ -358,19 +358,19 @@ void Scene::ModifiedRenderComponentDelegate(IEventDataPtr pEventData)
     // FUTURE WORK: Add better error handling here.		
     if (!pSceneNode  || FAILED(pSceneNode->OnRestore(this)))
     {
-        GE_ERROR(stringc("Failed to restore scene node to the scene for actorid ") 
-				+ stringc(actorId));
+        GE_ERROR(eastl::string("Failed to restore scene node to the scene for actorid ") 
+				+ eastl::string(actorId));
     }
 }
 
-void Scene::DestroyActorDelegate(IEventDataPtr pEventData)
+void Scene::DestroyActorDelegate(BaseEventDataPtr pEventData)
 {
     shared_ptr<EvtData_Destroy_Actor> pCastEventData = 
 		static_pointer_cast<EvtData_Destroy_Actor>(pEventData);
     RemoveChild(pCastEventData->GetId());
 }
 
-void Scene::MoveActorDelegate(IEventDataPtr pEventData)
+void Scene::MoveActorDelegate(BaseEventDataPtr pEventData)
 {
     shared_ptr<EvtData_Move_Actor> pCastEventData = 
 		static_pointer_cast<EvtData_Move_Actor>(pEventData);

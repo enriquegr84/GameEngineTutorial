@@ -28,16 +28,19 @@ eastl::vector<eastl::wstring> LevelManager::mLevelSearchPaths;
 /** Constructor (currently empty). The real work happens in loadLevelList.
  */
 LevelManager::LevelManager()
-{}   // LevelManager
+{
+
+} // LevelManager
 
 //-----------------------------------------------------------------------------
-/** Delete all levels.
+/*
+Delete all levels.
  */
 LevelManager::~LevelManager()
 {
     for(LevelList::iterator i = mLevels.begin(); i != mLevels.end(); ++i)
         delete *i;
-}   // ~TrackManager
+}// ~LevelManager
 
 //-----------------------------------------------------------------------------
 /** Adds a directory from which levels are loaded. The demos manager checks if

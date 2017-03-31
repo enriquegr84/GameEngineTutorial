@@ -105,6 +105,7 @@ protected:
 	int mHumanPlayersAttached;
 	int mAIPlayersAttached;
 	int mHumanGamesLoaded;
+
 	//shared_ptr<PathingGraph> mPathingGraph;		// the pathing graph
     ActorFactory* mActorFactory;
     
@@ -128,10 +129,6 @@ public:
 	}
 	const bool IsProxy() const { return mIsProxy; }
 
-	// [mrmike] CanRunLua() is a bit of a hack - but I can't have Lua scripts running on the clients. They should belong to the logic.
-	// FUTURE WORK - Perhaps the scripts can have a marker or even a special place in the resource file for any scripts that can run on remote clients
-	const bool CanRunLua() const { return !IsProxy() || GetState()!=BGS_RUNNING; }
-
 	ActorId GetNewActorID( void )
 	{
 		return ++mLastActorId;
@@ -148,7 +145,7 @@ public:
     virtual eastl::weak_ptr<Actor> GetActor(const ActorId actorId);
 	virtual void ModifyActor(const ActorId actorId, XMLElement *overrides);
 
-	virtual void MoveActor(const ActorId id, Matrix4x4<float> const &mat) {}
+	virtual void MoveActor(const ActorId id, Transform const &transform) {}
 
     // editor functions
 	eastl::string GetActorXml(const ActorId id);

@@ -81,7 +81,7 @@ public:
 	void RemoveView();
 
 	// You must define these functions to initialize your game.
-	virtual eastl::shared_ptr<GameLogic> CreateGameAndView() = 0;
+	virtual GameLogic* CreateGameAndView() = 0;
 	virtual bool LoadGame(void);
 
 	bool IsEditorRunning() { return mIsEditorRunning; }
@@ -114,7 +114,7 @@ public:
 	eastl::shared_ptr<System> mSystem;
 
 	// Game specific
-	eastl::shared_ptr<GameLogic> mGame;
+	GameLogic* mGame;
 	struct GameOption mOption;
 
 protected:
@@ -184,7 +184,7 @@ protected:
     int mWindowID;
 
 	// views that are attached to our game
-	eastl::list<eastl::shared_ptr<BaseGameView>> mGameViews;
+	GameViewList mGameViews;
 
 private:
 

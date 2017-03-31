@@ -1,7 +1,5 @@
 //========================================================================
-// GameView.h : Defines the GameView class of the GameEngine application
-//
-// Part of the GameEngine Application
+// DemosNetwork.h : source file for the sample game
 //
 // GameEngine is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
@@ -36,31 +34,16 @@
 //
 //========================================================================
 
-#ifndef GAMEVIEW_H
-#define GAMEVIEW_H
 
-#include "GameEngineStd.h"
+#ifndef GAMEDEMONETWORK_H_INCLUDED_
+#define GAMEDEMONETWORK_H_INCLUDED_
 
-#include "Application/System/EventSystem.h"
-
-class BaseGameView
-{
-public:
-	virtual bool OnRestore() = 0;
-	virtual void OnRender(double fTime, float fElapsedTime) = 0;
-	virtual void OnUpdate(unsigned long deltaMs) = 0;
-	virtual void OnAnimate(unsigned int uTime) = 0;
-
-	virtual bool OnLostDevice() = 0;
-	virtual GameViewType GetType() = 0;
-	virtual GameViewId GetId() const = 0;
-	virtual void OnAttach(GameViewId vid, ActorId aid) = 0;
-
-	virtual bool OnMsgProc(const Event& event) = 0;
-
-	virtual ~BaseGameView() { };
-};
-
-typedef eastl::list<eastl::shared_ptr<BaseGameView>> GameViewList;
+#include "Network/Network.h"
 
 #endif
+
+
+
+
+
+

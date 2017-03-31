@@ -1,5 +1,5 @@
 //========================================================================
-// GameView.h : Defines the GameView class of the GameEngine application
+// Demos.h : source file for the sample game
 //
 // Part of the GameEngine Application
 //
@@ -36,31 +36,29 @@
 //
 //========================================================================
 
-#ifndef GAMEVIEW_H
-#define GAMEVIEW_H
+#ifndef GAMEDEMOAPP_H
+#define GAMEDEMOAPP_H
 
-#include "GameEngineStd.h"
+#include "Application/GameApplication.h"
 
-#include "Application/System/EventSystem.h"
-
-class BaseGameView
+//---------------------------------------------------------------------------------------------------------------------
+// DemosApp class                          - Chapter 21, page 722
+// Note: Don't put anything in this class that needs to be destructed
+//---------------------------------------------------------------------------------------------------------------------
+class GameDemoApp : public GameApplication
 {
 public:
-	virtual bool OnRestore() = 0;
-	virtual void OnRender(double fTime, float fElapsedTime) = 0;
-	virtual void OnUpdate(unsigned long deltaMs) = 0;
-	virtual void OnAnimate(unsigned int uTime) = 0;
 
-	virtual bool OnLostDevice() = 0;
-	virtual GameViewType GetType() = 0;
-	virtual GameViewId GetId() const = 0;
-	virtual void OnAttach(GameViewId vid, ActorId aid) = 0;
+	virtual GameLogic* CreateGameAndView();
 
-	virtual bool OnMsgProc(const Event& event) = 0;
+	virtual eastl::wstring GetGameTitle() { return L"Game Demo"; }
+	virtual eastl::wstring GetGameAppDirectory() { return L"GameEngineDemos\\GameDemo"; }
+	//virtual HICON GetIcon();
 
-	virtual ~BaseGameView() { };
+protected:
+    virtual void RegisterGameEvents(void);
+    virtual void CreateNetworkEventForwarder(void);
+    virtual void DestroyNetworkEventForwarder(void);
 };
-
-typedef eastl::list<eastl::shared_ptr<BaseGameView>> GameViewList;
 
 #endif

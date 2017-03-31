@@ -107,10 +107,26 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\CameraRig.h" />
+    <ClInclude Include="..\GameDemo\GameDemo.h" />
+    <ClInclude Include="..\GameDemo\GameDemoApp.h" />
+    <ClInclude Include="..\GameDemo\GameDemoController.h" />
+    <ClInclude Include="..\GameDemo\GameDemoEvents.h" />
+    <ClInclude Include="..\GameDemo\GameDemoManager.h" />
+    <ClInclude Include="..\GameDemo\GameDemoNetwork.h" />
+    <ClInclude Include="..\GameDemo\GameDemoResources.h" />
+    <ClInclude Include="..\GameDemo\GameDemoStd.h" />
+    <ClInclude Include="..\GameDemo\GameDemoView.h" />
     <ClInclude Include="..\TriangleDemoApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\CameraRig.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemo.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoApp.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoController.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoEvents.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoManager.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoStd.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoView.cpp" />
     <ClCompile Include="..\TriangleDemoApp.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

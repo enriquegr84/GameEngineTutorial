@@ -78,7 +78,7 @@ int main(int numArguments, char* arguments[])
 	Environment::RemoveAllDirectories();
 
 	// Termination
-	delete(Application::App);
+	delete Application::App;
 
 	return exitCode;
 }

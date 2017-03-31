@@ -3,14 +3,65 @@
   <ItemGroup>
     <ClInclude Include="..\CameraRig.h" />
     <ClInclude Include="..\TriangleDemoApp.h" />
+    <ClInclude Include="..\GameDemo\GameDemoController.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoEvents.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoManager.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoNetwork.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoResources.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoStd.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoView.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoApp.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemo.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\CameraRig.cpp" />
     <ClCompile Include="..\TriangleDemoApp.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoController.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameDemo\GameDemoEvents.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameDemo\GameDemoManager.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameDemo\GameDemoStd.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameDemo\GameDemoView.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameDemo\GameDemoApp.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameDemo\GameDemo.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Graphics">
+    <Filter Include="Graphic">
       <UniqueIdentifier>{3456d0f4-9da9-4a04-848d-7fe770bb80e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Demo">
+      <UniqueIdentifier>{ce6ead9a-75e3-4556-82f9-64ef1a39a749}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

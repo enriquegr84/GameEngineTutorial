@@ -80,9 +80,9 @@ GameLogic::GameLogic()
 	//m_pPathingGraph = NULL;
 
 	mProcessManager = new ProcessManager;
-	//mLevelManager = new LevelManager;
-	//GE_ASSERT(mProcessManager && mLevelManager);
-	//mLevelManager->Initialize(gameApp->mResCache->Match(L"world\\*.xml"));
+	mLevelManager = new LevelManager;
+	LogAssert(mProcessManager && mLevelManager, "Uninitialized process and level mngr");
+	mLevelManager->AddLevelSearchDir(L"");
 
     //	register script events from the engine
 	//  [mrmike] this was moved to the constructor post-press, since this function 
@@ -157,7 +157,7 @@ bool GameLogic::LoadGame(const char* levelResource)
     }
 
     // load the pre-load script if there is one
-		GameApplication* gameApp = (GameApplication*)Application::App;
+	GameApplication* gameApp = (GameApplication*)Application::App;
 	/*
     if (preLoadScript)
     {
@@ -390,7 +390,6 @@ void GameLogic::OnUpdate(float time, float elapsedTime)
 void GameLogic::ChangeState(BaseGameState newState)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
-
 	if (newState==BGS_WAITINGFORPLAYERS)
 	{
 		// Get rid of the Main Menu...
@@ -456,9 +455,7 @@ void GameLogic::ChangeState(BaseGameState newState)
 void GameLogic::RenderDiagnostics() 
 { 
 	if (mIsRenderDiagnostics)
-	{
 		mPhysics->RenderDiagnostics();
-	}
 }
 
 
@@ -484,7 +481,7 @@ void GameLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 {
     eastl::shared_ptr<EventDataMoveActor> pCastEventData = 
 		eastl::static_pointer_cast<EventDataMoveActor>(pEventData);
-    MoveActor(pCastEventData->GetId(), pCastEventData->GetMatrix());
+    MoveActor(pCastEventData->GetId(), pCastEventData->GetTransform());
 }
 
 void GameLogic::RequestNewActorDelegate(BaseEventDataPtr pEventData)

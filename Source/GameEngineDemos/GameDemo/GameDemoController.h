@@ -1,5 +1,5 @@
 //========================================================================
-// GameView.h : Defines the GameView class of the GameEngine application
+// File: DemoController.h
 //
 // Part of the GameEngine Application
 //
@@ -36,31 +36,39 @@
 //
 //========================================================================
 
-#ifndef GAMEVIEW_H
-#define GAMEVIEW_H
+#ifndef GAMEDEMOCONTROLLER_H
+#define GAMEDEMOCONTROLLER_H
 
 #include "GameEngineStd.h"
 
 #include "Application/System/EventSystem.h"
 
-class BaseGameView
+class SceneNode;
+
+class GameDemoController : public BaseMouseHandler, public BaseKeyboardHandler
 {
+protected:
+	BYTE mKey[256];			// Which keys are up and down
+	eastl::shared_ptr<SceneNode> mObject;
+
 public:
-	virtual bool OnRestore() = 0;
-	virtual void OnRender(double fTime, float fElapsedTime) = 0;
-	virtual void OnUpdate(unsigned long deltaMs) = 0;
-	virtual void OnAnimate(unsigned int uTime) = 0;
+	GameDemoController(const eastl::shared_ptr<SceneNode>& object);
+	//void SetObject(const eastl::shared_ptr<SceneNode>& newObject);
 
-	virtual bool OnLostDevice() = 0;
-	virtual GameViewType GetType() = 0;
-	virtual GameViewId GetId() const = 0;
-	virtual void OnAttach(GameViewId vid, ActorId aid) = 0;
+	void OnUpdate(unsigned long const elapsedTime);
 
-	virtual bool OnMsgProc(const Event& event) = 0;
+public:
+	bool OnMouseMove(const Vector2<int> &mousePos, const int radius) { return true; }
+	bool OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
+	bool OnMouseButtonUp(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
+	{ return (buttonName == "PointerLeft"); }
 
-	virtual ~BaseGameView() { };
+	bool OnKeyDown(const KeyCode c);
+	bool OnKeyUp(const KeyCode c);
+
+	bool OnWheelRollDown() { return true; }
+	bool OnWheelRollUp() { return true; }
+
 };
-
-typedef eastl::list<eastl::shared_ptr<BaseGameView>> GameViewList;
 
 #endif

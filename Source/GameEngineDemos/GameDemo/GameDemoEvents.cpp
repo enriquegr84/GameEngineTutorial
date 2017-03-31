@@ -1,5 +1,5 @@
 //========================================================================
-// GameView.h : Defines the GameView class of the GameEngine application
+// DemosEvents.cpp : defines game-specific events for Demos
 //
 // Part of the GameEngine Application
 //
@@ -36,31 +36,18 @@
 //
 //========================================================================
 
-#ifndef GAMEVIEW_H
-#define GAMEVIEW_H
+#include "GameDemoStd.h"
+#include "GameDemoEvents.h"
 
-#include "GameEngineStd.h"
 
-#include "Application/System/EventSystem.h"
-
-class BaseGameView
-{
-public:
-	virtual bool OnRestore() = 0;
-	virtual void OnRender(double fTime, float fElapsedTime) = 0;
-	virtual void OnUpdate(unsigned long deltaMs) = 0;
-	virtual void OnAnimate(unsigned int uTime) = 0;
-
-	virtual bool OnLostDevice() = 0;
-	virtual GameViewType GetType() = 0;
-	virtual GameViewId GetId() const = 0;
-	virtual void OnAttach(GameViewId vid, ActorId aid) = 0;
-
-	virtual bool OnMsgProc(const Event& event) = 0;
-
-	virtual ~BaseGameView() { };
-};
-
-typedef eastl::list<eastl::shared_ptr<BaseGameView>> GameViewList;
-
-#endif
+// Note: these are game specific events, which really should be in TeapotEvents.cpp.
+// They aren't because of an annoying dependancy in Network.cpp, which creates events
+// from a bitstream. Once we get "real" streaming code in we can move these back to TeapotEvents.cpp.
+const BaseEventType EventDataFireWeapon::skEventType(0x1b15b6a7);
+const BaseEventType EventDataStartThrust::skEventType(0x1d62d48c);
+const BaseEventType EventDataEndThrust::skEventType(0xe60f88a4);
+const BaseEventType EventDataStartSteer::skEventType(0xf0b5b4fd);
+const BaseEventType EventDataEndSteer::skEventType(0x176645ef);
+//const BaseEventType EventDataPlaySound::skEventType(0x3d8118ee);
+const BaseEventType EventDataGameplayUIUpdate::skEventType(0x1002ded2);
+const BaseEventType EventDataSetControlledActor::skEventType(0xbe5e3388);

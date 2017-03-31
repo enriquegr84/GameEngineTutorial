@@ -159,7 +159,7 @@ public:
 class EventDataMoveActor : public EventData
 {
     ActorId mId;
-    Matrix4x4<float> mMatrix;
+    Transform mTransform;
 
 public:
 	static const BaseEventType skEventType;
@@ -174,8 +174,8 @@ public:
         mId = INVALID_ACTOR_ID;
     }
 
-	EventDataMoveActor(ActorId id, const Matrix4x4<float>& mat)
-        : mId(id), mMatrix(mat)
+	EventDataMoveActor(ActorId id, const Transform& trans)
+        : mId(id), mTransform(trans)
 	{
         //
 	}
@@ -184,29 +184,23 @@ public:
 	{
 		out << mId << " ";
 		for (int i=0; i<4; ++i)
-		{
 			for (int j=0; j<4; ++j)
-			{
-				out << mMatrix(i,j) << " ";
-			}
-		}
+				out << mTransform.GetMatrix()(i,j) << " ";
 	}
 
     virtual void Deserialize(std::istrstream& in)
     {
         in >> mId;
+
+		Matrix4x4<float> transform = mTransform.GetMatrix();
         for (int i=0; i<4; ++i)
-        {
             for (int j=0; j<4; ++j)
-            {
-                in >> mMatrix(i,j);
-            }
-        }
+                in >> transform(i,j);
     }
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new EventDataMoveActor(mId, mMatrix));
+		return BaseEventDataPtr(new EventDataMoveActor(mId, mTransform));
 	}
 
     virtual const char* GetName(void) const
@@ -219,9 +213,9 @@ public:
         return mId;
     }
 
-    const Matrix4x4<float>& GetMatrix(void) const
+    const Transform& GetTransform(void) const
     {
-        return mMatrix;
+        return mTransform;
     }
 };
 

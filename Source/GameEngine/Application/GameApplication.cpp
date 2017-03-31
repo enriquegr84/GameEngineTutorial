@@ -361,7 +361,7 @@ void GameApplication::OnTerminate()
 	//Logger::Destroy();
 
 	// release all the game systems in reverse order from which they were created
-	//delete mGame;
+	delete mGame;
 
 	//delete user_config;
 	//delete unlock_manager;
