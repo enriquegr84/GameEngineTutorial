@@ -48,8 +48,13 @@
 class GameDemoApp : public GameApplication
 {
 public:
+	// Abstract base class.
+	GameDemoApp();
+	virtual ~GameDemoApp();
 
 	virtual GameLogic* CreateGameAndView();
+
+	virtual void AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId = INVALID_ACTOR_ID);
 
 	virtual eastl::wstring GetGameTitle() { return L"Game Demo"; }
 	virtual eastl::wstring GetGameAppDirectory() { return L"GameEngineDemos\\GameDemo"; }

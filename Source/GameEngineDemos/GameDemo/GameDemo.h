@@ -43,6 +43,7 @@
 
 class PathingGraph;
 class BaseEventManager;
+class NetworkEventForwarder;
 
 //---------------------------------------------------------------------------------------------------------------------
 // GameDemoLogic class                        - Chapter 21, page 723
@@ -78,8 +79,6 @@ public:
 	void EndThrustDelegate(BaseEventDataPtr pEventData);
 	void StartSteerDelegate(BaseEventDataPtr pEventData);
 	void EndSteerDelegate(BaseEventDataPtr pEventData);
-
-	void TestScriptDelegate(BaseEventDataPtr pEventData);
 
 protected:
 	virtual bool LoadGameDelegate(XMLElement* pLevelData);

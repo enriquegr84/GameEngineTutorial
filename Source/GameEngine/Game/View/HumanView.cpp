@@ -446,7 +446,7 @@ void HumanView::RegisterAllDelegates(void)
 
     BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
 //	pGlobalEventManager->AddListener(
-//		MakeDelegate(this, &HumanView::GameStateDelegate), EvtData_Game_State::sk_EventType);
+//		MakeDelegate(this, &HumanView::GameStateDelegate), EventDataGame_State::sk_EventType);
     pGlobalEventManager->AddListener(
 		MakeDelegate(this, &HumanView::PlaySoundDelegate), EventDataPlaySound::skEventType);
 }
@@ -455,7 +455,7 @@ void HumanView::RemoveAllDelegates(void)
 {
     BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
 //	pGlobalEventManager->RemoveListener(
-//		MakeDelegate(this, &HumanView::GameStateDelegate), EvtData_Game_State::sk_EventType);
+//		MakeDelegate(this, &HumanView::GameStateDelegate), EventDataGame_State::sk_EventType);
     pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &HumanView::PlaySoundDelegate), EventDataPlaySound::skEventType);
 }
@@ -484,8 +484,8 @@ void HumanView::PlaySoundDelegate(BaseEventDataPtr pEventData)
 //
 void HumanView::GameStateDelegate(BaseEventDataPtr pEventData)
 {
-//    eastl::shared_ptr<EvtData_Game_State> pCastEventData = 
-//		static_pointer_cast<EvtData_Game_State>(pEventData);
+//    eastl::shared_ptr<EventDataGame_State> pCastEventData = 
+//		static_pointer_cast<EventDataGame_State>(pEventData);
 //    m_BaseGameState = pCastEventData->GetGameState(); 
 }
 

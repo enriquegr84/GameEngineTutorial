@@ -78,7 +78,7 @@ class BaseGameLogic
 public:
 	virtual eastl::weak_ptr<Actor> GetActor(const ActorId id) = 0;
 	virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource, 
-		XMLElement *overrides, const Matrix4x4<float> *initialTransform = NULL, 
+		XMLElement *overrides, const Transform *initialTransform = NULL, 
 		const ActorId serversActorId = INVALID_ACTOR_ID) = 0;
 	virtual void DestroyActor(const ActorId actorId) = 0;
 	virtual bool LoadGame(const char* levelResource) = 0;
@@ -106,7 +106,7 @@ protected:
 	int mAIPlayersAttached;
 	int mHumanGamesLoaded;
 
-	//shared_ptr<PathingGraph> mPathingGraph;		// the pathing graph
+	//eastl::shared_ptr<PathingGraph> mPathingGraph;	// the pathing graph
     ActorFactory* mActorFactory;
     
 	bool mIsProxy;									// set if this is a proxy game logic, not a real one
@@ -123,7 +123,7 @@ public:
 	virtual ~GameLogic();
     bool Init(void);
 
-	void SetProxy(bool isProxy) 
+	void SetIsProxy(bool isProxy) 
 	{ 
 		mIsProxy = isProxy; 
 	}
@@ -138,8 +138,9 @@ public:
 	//RandomGenerator& GetRNG(void) { return m_Random; }
 
 	// [rez] note: don't store this strong pointer outside of this class 
-    virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource, XMLElement *overrides,
-		const Transform *initialTransform=NULL, const ActorId serversActorId=INVALID_ACTOR_ID);
+    virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource, 
+		XMLElement *overrides, const Transform *initialTransform=NULL, 
+		const ActorId serversActorId=INVALID_ACTOR_ID);
 
     virtual void DestroyActor(const ActorId actorId);
     virtual eastl::weak_ptr<Actor> GetActor(const ActorId actorId);

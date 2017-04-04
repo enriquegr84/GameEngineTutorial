@@ -49,7 +49,7 @@
 // Nasty game dependent events here. We'll move this back into game specific TeapotEvents.h when real streaming code 
 // gets written so Network.cpp doesn't have to know about all events.
 //---------------------------------------------------------------------------------------------------------------------
-class EventDataFireWeapon : public BaseEventData
+class EventDataFireWeapon : public EventData
 {
     ActorId mId;
 
@@ -75,12 +75,12 @@ public:
         return BaseEventDataPtr(new EventDataFireWeapon(mId));
     }
 
-    virtual void VSerialize( std::ostrstream & out ) const
+    virtual void Serialize( std::ostrstream & out ) const
     {
         out << mId << " ";
     }
 
-    virtual void VDeserialize( std::istrstream & in )
+    virtual void Deserialize( std::istrstream & in )
     {
         in >> mId;
     }
@@ -100,7 +100,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // class EventDataStartThrust				        - Chapter 10, 279
 //---------------------------------------------------------------------------------------------------------------------
-class EventDataStartThrust : public BaseEventData
+class EventDataStartThrust : public EventData
 {
     ActorId mId;
     float mAcceleration;
@@ -166,7 +166,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // class EventDataEndThrust				        - Chapter 10, 279
 //---------------------------------------------------------------------------------------------------------------------
-class EventDataEndThrust : public BaseEventData
+class EventDataEndThrust : public EventData
 {
     ActorId mId;
 
@@ -224,7 +224,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // class EventDataStartSteer				             - Chapter 10, 279
 //---------------------------------------------------------------------------------------------------------------------
-class EventDataStartSteer : public BaseEventData
+class EventDataStartSteer : public EventData
 {
     ActorId mId;
     float mAcceleration;
@@ -290,7 +290,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // class EventDataEndSteer				        - Chapter 10, 279
 //---------------------------------------------------------------------------------------------------------------------
-class EventDataEndSteer : public BaseEventData
+class EventDataEndSteer : public EventData
 {
     ActorId mId;
 
@@ -348,7 +348,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // class EventDataGameplayUIUpdate				- Chapter 10, 279
 //---------------------------------------------------------------------------------------------------------------------
-class EventDataGameplayUIUpdate : public BaseEventData
+class EventDataGameplayUIUpdate : public EventData
 {
     eastl::string mGameplayUiString;
 
@@ -396,7 +396,7 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // class EventDataSetControlledActor				- Chapter 10, 279
 //---------------------------------------------------------------------------------------------------------------------
-class EventDataSetControlledActor : public BaseEventData
+class EventDataSetControlledActor : public EventData
 {
     ActorId mId;
 

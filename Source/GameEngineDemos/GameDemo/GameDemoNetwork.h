@@ -35,8 +35,8 @@
 //========================================================================
 
 
-#ifndef GAMEDEMONETWORK_H_INCLUDED_
-#define GAMEDEMONETWORK_H_INCLUDED_
+#ifndef GAMEDEMONETWORK_H
+#define GAMEDEMONETWORK_H
 
 #include "Network/Network.h"
 

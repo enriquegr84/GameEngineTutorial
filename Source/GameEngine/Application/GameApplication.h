@@ -75,8 +75,9 @@ public:
 
 	void InitHumanViews(XMLElement* pRoot);
 	const eastl::list<eastl::shared_ptr<BaseGameView>>& GetGameViews() { return mGameViews; }
-	void AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId = INVALID_ACTOR_ID);
-	void RemoveView(const eastl::shared_ptr<BaseGameView>& pView);
+	
+	virtual void AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId = INVALID_ACTOR_ID);
+	virtual void RemoveView(const eastl::shared_ptr<BaseGameView>& pView);
 	void RemoveViews();
 	void RemoveView();
 

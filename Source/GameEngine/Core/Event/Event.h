@@ -344,7 +344,7 @@ public:
     EventDataEnvironmentLoaded(void) { }
 	virtual const BaseEventType& GetEventType(void) const	{ return skEventType; }
 	virtual BaseEventDataPtr Copy(void) const { return BaseEventDataPtr( new EventDataEnvironmentLoaded( ) ); }
-    virtual const char* GetName(void) const  { return "EvtData_Environment_Loaded";  }
+    virtual const char* GetName(void) const  { return "EventDataEnvironmentLoaded";  }
 };
 
 

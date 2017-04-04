@@ -74,8 +74,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\;$(WindowsSDK_LibraryPath_x86)</AdditionalLibraryDirectories>
       <AdditionalDependencies>gameengine.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>libcmtd.lib</IgnoreSpecificDefaultLibraries>
       <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
@@ -100,8 +99,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\;$(WindowsSDK_LibraryPath_x86)</AdditionalLibraryDirectories>
       <AdditionalDependencies>gameengine.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>libcmtd.lib</IgnoreSpecificDefaultLibraries>
       <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>

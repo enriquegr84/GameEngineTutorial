@@ -67,10 +67,10 @@ Scene::Scene()
 	// [mrmike] - event delegates were added post-press
 	/*
     BaseEventManager* pEventMgr = BaseEventManager::Get();
-    pEventMgr->AddListener(MakeDelegate(this, &NewRenderComponentDelegate), EvtData_New_Render_Component::sk_EventType);
-    pEventMgr->AddListener(MakeDelegate(this, &DestroyActorDelegate), EvtData_Destroy_Actor::sk_EventType);
-    pEventMgr->AddListener(MakeDelegate(this, &MoveActorDelegate), EvtData_Move_Actor::sk_EventType);
-    pEventMgr->AddListener(MakeDelegate(this, &ModifiedRenderComponentDelegate), EvtData_Modified_Render_Component::sk_EventType);
+    pEventMgr->AddListener(MakeDelegate(this, &NewRenderComponentDelegate), EventDataNew_Render_Component::sk_EventType);
+    pEventMgr->AddListener(MakeDelegate(this, &DestroyActorDelegate), EventDataDestroyActor::sk_EventType);
+    pEventMgr->AddListener(MakeDelegate(this, &MoveActorDelegate), EventDataMove_Actor::sk_EventType);
+    pEventMgr->AddListener(MakeDelegate(this, &ModifiedRenderComponentDelegate), EventDataModified_Render_Component::sk_EventType);
 	*/
 }
 
@@ -99,11 +99,11 @@ Scene::~Scene()
 	// [mrmike] - event delegates were added post-press!
 	/*
     IEventManager* pEventMgr = IEventManager::Get();
-    pEventMgr->RemoveListener(MakeDelegate(this, &NewRenderComponentDelegate), EvtData_New_Render_Component::sk_EventType);
-    pEventMgr->RemoveListener(MakeDelegate(this, &DestroyActorDelegate), EvtData_Destroy_Actor::sk_EventType);
-    pEventMgr->RemoveListener(MakeDelegate(this, &MoveActorDelegate), EvtData_Move_Actor::sk_EventType);
+    pEventMgr->RemoveListener(MakeDelegate(this, &NewRenderComponentDelegate), EventDataNew_Render_Component::sk_EventType);
+    pEventMgr->RemoveListener(MakeDelegate(this, &DestroyActorDelegate), EventDataDestroyActor::sk_EventType);
+    pEventMgr->RemoveListener(MakeDelegate(this, &MoveActorDelegate), EventDataMove_Actor::sk_EventType);
 
-    pEventMgr->RemoveListener(MakeDelegate(this, &ModifiedRenderComponentDelegate), EvtData_Modified_Render_Component::sk_EventType);
+    pEventMgr->RemoveListener(MakeDelegate(this, &ModifiedRenderComponentDelegate), EventDataModified_Render_Component::sk_EventType);
 
 	//SAFE_RELEASE(m_MatrixStack);
 	//SAFE_DELETE(m_LightManager);
@@ -322,8 +322,8 @@ eastl::shared_ptr<SceneNode> Scene::GetSceneNode(ActorId id)
 /*
 void Scene::NewRenderComponentDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EvtData_New_Render_Component> pCastEventData = 
-		static_pointer_cast<EvtData_New_Render_Component>(pEventData);
+    shared_ptr<EventDataNew_Render_Component> pCastEventData = 
+		static_pointer_cast<EventDataNew_Render_Component>(pEventData);
 
     ActorId actorId = pCastEventData->GetActorId();
     shared_ptr<SceneNode> pSceneNode(pCastEventData->GetSceneNode());
@@ -341,8 +341,8 @@ void Scene::NewRenderComponentDelegate(BaseEventDataPtr pEventData)
 
 void Scene::ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EvtData_Modified_Render_Component> pCastEventData = 
-		static_pointer_cast<EvtData_Modified_Render_Component>(pEventData);
+    shared_ptr<EventDataModified_Render_Component> pCastEventData = 
+		static_pointer_cast<EventDataModified_Render_Component>(pEventData);
 
     ActorId actorId = pCastEventData->GetActorId();
 	if (actorId == INVALID_ACTOR_ID)
@@ -365,15 +365,15 @@ void Scene::ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData)
 
 void Scene::DestroyActorDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EvtData_Destroy_Actor> pCastEventData = 
-		static_pointer_cast<EvtData_Destroy_Actor>(pEventData);
+    shared_ptr<EventDataDestroyActor> pCastEventData = 
+		static_pointer_cast<EventDataDestroyActor>(pEventData);
     RemoveChild(pCastEventData->GetId());
 }
 
 void Scene::MoveActorDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EvtData_Move_Actor> pCastEventData = 
-		static_pointer_cast<EvtData_Move_Actor>(pEventData);
+    shared_ptr<EventDataMove_Actor> pCastEventData = 
+		static_pointer_cast<EventDataMove_Actor>(pEventData);
 
     ActorId id = pCastEventData->GetId();
     matrix4 transform = pCastEventData->GetMatrix();

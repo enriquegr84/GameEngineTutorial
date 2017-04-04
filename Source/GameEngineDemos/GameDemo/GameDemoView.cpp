@@ -66,6 +66,9 @@
 
 #include "Game/Config/User.h"
 */
+
+#include "GameDemo.h"
+#include "GameDemoApp.h"
 #include "GameDemoView.h"
 #include "GameDemoEvents.h"
 #include "GameDemoManager.h"
@@ -119,27 +122,27 @@ MainMenuUI::~MainMenuUI()
 bool MainMenuUI::OnInit()
 {
 	BaseUI::OnInit();
-	
+	/*
 	UIEngine::Init(this, NULL);
 	UIEngine::AddLoadingIcon(
-		gameDemoApp.m_pRenderer->GetTexture("art/gui/notes.png").get() );
-	//gameDemoApp.m_pPlatform->OnPause(1000);
+		gameApp->mRenderer->GetTexture("art/gui/notes.png").get() );
+	//gameApp->mSystem->OnPause(1000);
 	UIEngine::AddLoadingIcon( 
-		gameDemoApp.m_pRenderer->GetTexture("art/gui/cup_gold.png").get() );
-	//gameDemoApp.m_pPlatform->OnPause(1000);
+		gameApp.mRenderer->GetTexture("art/gui/cup_gold.png").get() );
+	//gameApp->mSystem->OnPause(1000);
     UIEngine::AddLoadingIcon( 
-		gameDemoApp.m_pRenderer->GetTexture("art/gui/options_video.png").get() );
-	//gameDemoApp.m_pPlatform->OnPause(1000);
+		gameApp.mRenderer->GetTexture("art/gui/options_video.png").get() );
+	//gameApp->mSystem->OnPause(1000);
     UIEngine::AddLoadingIcon( 
-		gameDemoApp.m_pRenderer->GetTexture("art/gui/gui_lock.png").get() );
-	//gameDemoApp.m_pPlatform->OnPause(1000);
+		gameApp.mRenderer->GetTexture("art/gui/gui_lock.png").get() );
+	//gameApp->mSystem->OnPause(1000);
     UIEngine::AddLoadingIcon( 
-		gameDemoApp.m_pRenderer->GetTexture("art/gui/gift.png").get() );
-	//gameDemoApp.m_pPlatform->OnPause(1000);
+		gameApp->mRenderer->GetTexture("art/gui/gift.png").get() );
+	//gameApp.mSystem->OnPause(1000);
     UIEngine::AddLoadingIcon( 
-		gameDemoApp.m_pRenderer->GetTexture("art/gui/banana.png").get() );
-	//gameDemoApp.m_pPlatform->OnPause(1000);
-	/*
+		gameApp->mRenderer->GetTexture("art/gui/banana.png").get() );
+	//gameApp->mSystem->OnPause(1000);
+
     if(!UserConfigParams::m_no_start_screen)
     {
         ScreenStateManager::Get()->PushScreen(ScreenMainMenu::GetInstance());
@@ -151,8 +154,8 @@ bool MainMenuUI::OnInit()
 bool MainMenuUI::OnRestore()
 {
     //mSampleUI.SetLocation( 
-	//	(gameDemoApp->GetScreenSize().x - SampleUIWidth)/2, 
-	//	(gameDemoApp->GetScreenSize().y - SampleUIHeight) / 2  );
+	//	(gameApp->GetScreenSize().x - SampleUIWidth)/2, 
+	//	(gameApp->GetScreenSize().y - SampleUIHeight) / 2  );
     //mSampleUI.SetSize( SampleUIWidth, SampleUIHeight );
 	return true;
 }
@@ -175,9 +178,9 @@ bool MainMenuUI::OnRender(double fTime, float fElapsedTime)
 		//g_SuperTuxKartApp.m_pRenderer->PreRender(
 		//	/*backBuffer clear*/ true, /*zBuffer*/ true, Color(255,100,101,140));
 
-		float dt = gameDemoApp.GetLimitedDt();
-		UIEngine::Update(dt);
-		UIEngine::Render(dt);
+		//float dt = gameApp->GetLimitedDt();
+		//UIEngine::Update(dt);
+		//UIEngine::Render(dt);
 
 		//g_SuperTuxKartApp.m_pRenderer->PostRender();
     }
@@ -209,16 +212,17 @@ bool MainMenuUI::OnMsgProc( const Event& evt )
 //
 bool MainMenuUI::OnEvent(const Event& evt)
 {
-    if (evt.mEventType == ET_GUI_EVENT)
+	/*
+    if (evt.mEventType == ET_UI_EVENT)
     {
 		return UIEventHandler::Get()->OnEvent(evt);
     }
-
+	*/
 	return false;
 }
 
 
-MainMenuView::MainMenuView() : HumanView(eastl::shared_ptr<Renderer>())
+MainMenuView::MainMenuView() : HumanView()
 {
 	mMainMenuUI.reset(new MainMenuUI); 
 	mMainMenuUI->OnInit();
@@ -237,9 +241,9 @@ void MainMenuView::RenderText()
 }
 
 
-void MainMenuView::OnUpdate(unsigned long deltaMs)
+void MainMenuView::OnUpdate(unsigned long deltaTime)
 {
-	HumanView::OnUpdate( deltaMs );
+	HumanView::OnUpdate( deltaTime );
 }
 
 
@@ -289,18 +293,18 @@ bool StandardHUD::OnInit()
 	To keep the standard font for tool tip text, we set it to
 	the built-in font.
 	
-	shared_ptr<IGUIFont> font(GetFont("fontcourier.bmp"));
+	eastl::shared_ptr<BaseUIFont> font(GetFont("fontcourier.bmp"));
 	if (font)
 		GetSkin()->SetFont(font);
 
     // Initialize dialogs
-	//m_HUD.Init( &D3DRenderer::g_DialogResourceManager );
-    //m_HUD.SetCallback( OnGUIEvent ); 
+	//mHUD.Init( &D3DRenderer::DialogResourceManager );
+    //mHUD.SetCallback( OnUIEvent ); 
 	int iY = 10; 
-	AddButton(Rect<s32>(35, iY, 160, iY + 22), 0, IDC_TOGGLEFULLSCREEN, L"Toggle full screen");
+	AddButton(RectangleBase<int>(35, iY, 160, iY + 22), 0, IDC_TOGGLEFULLSCREEN, L"Toggle full screen");
 	iY += 24;
-	AddButton(Rect<s32>(35, iY, 160, iY + 22), 0, IDC_TOGGLEREF, L"Toggle REF (F3)");
-    //m_HUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 35, iY += 24, 125, 22 );
+	AddButton(RectangleBase<int>(35, iY, 160, iY + 22), 0, IDC_TOGGLEREF, L"Toggle REF (F3)");
+    //mHUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 35, iY += 24, 125, 22 );
 	*/
 	return true;
 }
@@ -337,19 +341,20 @@ bool StandardHUD::OnMsgProc( const Event& evt )
 //
 bool StandardHUD::OnEvent(const Event& evt)
 {
+	GameApplication* gameApp = (GameApplication*)Application::App;
 	if (evt.mEventType == ET_UI_EVENT)
 	{
 		int id = evt.mUIEvent.mCaller->GetID();
 
 		switch(evt.mUIEvent.mEventType)
 		{
-			case GET_BUTTON_CLICKED:
+			case UIEVT_BUTTON_CLICKED:
 				switch (id)
 				{
 				case IDC_TOGGLEFULLSCREEN: 
-					gameDemoApp.m_pPlatform->SwitchToFullScreen(); break;
+					gameApp->mSystem->SwitchToFullScreen(); break;
 				case IDC_TOGGLEREF:        
-					gameDemoApp.m_pPlatform->SetResizable(); break;
+					gameApp->mSystem->SetResizable(); break;
 				}
 				break;
 		}
@@ -367,8 +372,8 @@ bool StandardHUD::OnEvent(const Event& evt)
 //
 // GameDemoHumanView::GameDemoHumanView	- Chapter 19, page 724
 //
-GameDemoHumanView::GameDemoHumanView(eastl::shared_ptr<Renderer> renderer) 
-	: HumanView(renderer)
+GameDemoHumanView::GameDemoHumanView() 
+	: HumanView()
 { 
 	mShowUI = true; 
     RegisterAllDelegates();
@@ -388,12 +393,13 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 	if (HumanView::OnMsgProc(evt))
 		return 1;
 
+	GameApplication* gameApp = (GameApplication*)Application::App;
 	switch(evt.mEventType)
 	{
-	case ET_UI_EVENT:
-		// hey, why is the user sending gui events..?
-		break;
-	case ET_KEY_INPUT_EVENT:
+		case ET_UI_EVENT:
+			// hey, why is the user sending gui events..?
+			break;
+		case ET_KEY_INPUT_EVENT:
 		{
 			if (evt.mKeyInput.mPressedDown)
 			{
@@ -402,7 +408,7 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 					case KEY_KEY_1:
 					{
 						mShowUI = !mShowUI;
-						//mStandardHUD->VSetVisible(m_bShowUI);
+						//mStandardHUD->SetVisible(m_bShowUI);
 						return true;
 					}
 
@@ -431,78 +437,59 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 					{
 						//extern void CreateThreads();
 						//CreateThreads();
-
-						extern void testThreading(ProcessManager *procMgr, bool runProtected);
-						testThreading(mProcessManager, true);
-
-						return true;
-
-						Sleep(5000);
-						testThreading(mProcessManager, false);
-						Sleep(5000);
-
-						extern void testRealtimeEvents(ProcessManager *procMgr);
-						testRealtimeEvents(mProcessManager);
-
-						extern void testRealtimeDecompression(ProcessManager *procMgr);
-						testRealtimeDecompression(mProcessManager);
 					}
 					break;
 
 					case KEY_KEY_4:
 					{
-						Resource resource("scripts\\test.lua");
+						BaseResource resource(L"scripts\\test.lua");
 						// this actually loads the Lua file from the zip file
 						eastl::shared_ptr<ResHandle> pResourceHandle = 
-							gameApp->m_ResCache->GetHandle(&resource);
+							gameApp->mResCache->GetHandle(&resource);
 					}
 					break;
 
 					case KEY_KEY_5:
 					{
-						/*
-							eastl::shared_ptr<EventDataScriptEventTestToLua> pEvent(
-								new EventDataScriptEventTestToLua);
-							EventManager::Get()->QueueEvent(pEvent);
-						*/
+
 					}
 					break;
 
 					case KEY_KEY_6:
 					{
-						//LuaStateManager::Get()->ExecuteString("TestProcess()");
+
 					}
 					break;
 
 					case KEY_KEY_7:
 					{
-						GameDemoLogic *twg = static_cast<DemosLogic *>(g_pGameApp->m_pGame);
+						GameDemoLogic* twg = static_cast<GameDemoLogic *>(gameApp->mGame);
 						twg->ToggleRenderDiagnostics();
 					}	
 					break;
 
 					case KEY_KEY_8:
 					{
-						m_KeyboardHandler = m_pDemoController;
-						m_MouseHandler = m_pDemoController;
-						m_pCamera->SetTarget(m_pTeapot);
-						//m_pTeapot->SetAlpha(0.8f);
+						mKeyboardHandler = mGameDemoController;
+						mMouseHandler = mGameDemoController;
+						//mCamera->SetTarget(mTeapot);
+						//mTeapot->SetAlpha(0.8f);
 						//ReleaseCapture();
 						return true;
 					}
 
 					case KEY_KEY_9:
 					{
-						m_KeyboardHandler = m_pFreeCameraController;
-						m_MouseHandler = m_pFreeCameraController;
-						m_pCamera->ClearTarget();
-						//m_pTeapot->SetAlpha(fOPAQUE);
-						//SetCapture((HWND)g_pGameApp->m_pPlatform->GetID());
+						//mKeyboardHandler = mFreeCameraController;
+						//mMouseHandler = mFreeCameraController;
+						//mCamera->ClearTarget();
+						//mTeapot->SetAlpha(fOPAQUE);
+						//SetCapture((HWND)gameApp->mSystem->GetID());
 						return true;
 					}
 
 					case KEY_ESCAPE:
-						g_pGameApp->SetQuitting(true);
+						gameApp->SetQuitting(true);
 						return true;
 				}
 			}
@@ -519,59 +506,59 @@ void GameDemoHumanView::RenderText()
 {
 	HumanView::RenderText();
 	/*
-	D3DRenderer::g_pTextHelper->Begin();
+	D3DRenderer::TextHelper->Begin();
 
     // Gameplay UI (with shadow)....
-    if (!m_gameplayText.empty())
+    if (!mGameplayText.empty())
     {
-	    D3DRenderer::g_pTextHelper->SetInsertionPos( g_pApp->GetScreenSize().x/2, 5 );
-	    D3DRenderer::g_pTextHelper->SetForegroundColor( D3DXCOLOR( 0.0f, 0.0f, 0.0f, 1.0f ) );
-	    D3DRenderer::g_pTextHelper->DrawTextLine(m_gameplayText.c_str());
-	    D3DRenderer::g_pTextHelper->SetInsertionPos( g_pApp->GetScreenSize().x/2-1, 5-1 );
-	    D3DRenderer::g_pTextHelper->SetForegroundColor( D3DXCOLOR( 0.25f, 1.0f, 0.25f, 1.0f ) );
-	    D3DRenderer::g_pTextHelper->DrawTextLine(m_gameplayText.c_str());
+	    D3DRenderer::TextHelper->SetInsertionPos( gameApp->GetScreenSize().x/2, 5 );
+	    D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	    D3DRenderer::TextHelper->DrawTextLine(mGameplayText.c_str());
+	    D3DRenderer::TextHelper->SetInsertionPos( gameApp->GetScreenSize().x/2-1, 5-1 );
+	    D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 0.25f, 1.0f, 0.25f, 1.0f ) );
+	    D3DRenderer::TextHelper->DrawTextLine(mGameplayText.c_str());
     }
 	// ...Gameplay UI
 
-	if( m_bShowUI )
+	if( mIsShowUI )
 	{
 		// Output statistics...
-		D3DRenderer::g_pTextHelper->SetInsertionPos( 5, 5 );
-		D3DRenderer::g_pTextHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 1.0f, 0.0f, 1.0f ) );
-		D3DRenderer::g_pTextHelper->DrawTextLine( DXUTGetFrameStats() );
-		D3DRenderer::g_pTextHelper->DrawTextLine( DXUTGetDeviceStats() );
+		D3DRenderer::TextHelper->SetInsertionPos( 5, 5 );
+		D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 1.0f, 0.0f, 1.0f ) );
+		D3DRenderer::TextHelper->DrawTextLine( DXUTGetFrameStats() );
+		D3DRenderer::TextHelper->DrawTextLine( DXUTGetDeviceStats() );
 		//...output statistics
 		
-		D3DRenderer::g_pTextHelper->SetForegroundColor( D3DXCOLOR( 0.0f, 0.0f, 0.0f, 0.5f ) );
+		D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 0.0f, 0.0f, 0.0f, 0.5f ) );
 
 		//Game State...
-		switch (m_BaseGameState)
+		switch (mBaseGameState)
 		{
-			case BGS_Initializing:
-				D3DRenderer::g_pTextHelper->DrawTextLine(g_pApp->GetString(_T("IDS_INITIALIZING")).c_str());
+			case BGS_INITIALIZING:
+				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_INITIALIZING")).c_str());
 				break;
 
-			case BGS_MainMenu:
-				D3DRenderer::g_pTextHelper->DrawTextLine(L"Main Menu");
+			case BGS_MAINMENU:
+				D3DRenderer::TextHelper->DrawTextLine(L"Main Menu");
 				break;
 
-//			case BGS_SpawnAI:
-//				D3DRenderer::g_pTextHelper->DrawTextLine(L"Spawn AI");
+//			case BGS_SPAWNAI:
+//				D3DRenderer::TextHelper->DrawTextLine(L"Spawn AI");
 //				break;
 
-			case BGS_WaitingForPlayers:
-				D3DRenderer::g_pTextHelper->DrawTextLine(g_pApp->GetString(_T("IDS_WAITING")).c_str());
+			case BGS_WAITINGFORPLAYERS:
+				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_WAITING")).c_str());
 				break;
 
-			case BGS_LoadingGameEnvironment:
-				D3DRenderer::g_pTextHelper->DrawTextLine(g_pApp->GetString(_T("IDS_LOADING")).c_str());
+			case BGS_LOADINGGAMEENVIRONMENT:
+				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_LOADING")).c_str());
 				break;
 
-			case BGS_Running:
+			case BGS_RUNNING:
 #ifndef DISABLE_PHYSICS
-				D3DRenderer::g_pTextHelper->DrawTextLine(g_pApp->GetString(_T("IDS_RUNNING")).c_str());
+				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_RUNNING")).c_str());
 #else
-				D3DRenderer::g_pTextHelper->DrawTextLine(g_pApp->GetString(_T("IDS_NOPHYSICS")).c_str());
+				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_NOPHYSICS")).c_str());
 #endif //!DISABLE_PHYSICS
 				break;
 		}
@@ -581,29 +568,29 @@ void GameDemoHumanView::RenderText()
 		fschar_t buffer[256];
 		const fschar_t *s = NULL;
 		matrix4 toWorld, fromWorld;
-		if (m_pCamera)
+		if (mCamera)
 		{	
-			m_pCamera->VGet()->Transform(&toWorld, &fromWorld);
+			mCamera->Get()->Transform(&toWorld, &fromWorld);
 		}
-		swprintf(buffer, g_pApp->GetString(_T("IDS_CAMERA_LOCATION")).c_str(), toWorld.m[3][0], toWorld.m[3][1], toWorld.m[3][2]);
-		D3DRenderer::g_pTextHelper->DrawTextLine( buffer );
+		swprintf(buffer, gameApp->GetString(_T("IDS_CAMERA_LOCATION")).c_str(), toWorld.m[3][0], toWorld.m[3][1], toWorld.m[3][2]);
+		D3DRenderer::TextHelper->DrawTextLine( buffer );
 		//...Camera
 
 		//Help text.  Right justified, lower right of screen.
 		RECT helpRect;
 		helpRect.left = 0;
-		helpRect.right = g_pApp->GetScreenSize().x - 10;
-		helpRect.top = g_pApp->GetScreenSize().y - 15*8;
-		helpRect.bottom = g_pApp->GetScreenSize().y;
-		D3DRenderer::g_pTextHelper->SetInsertionPos( helpRect.right, helpRect.top );
-		D3DRenderer::g_pTextHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 0.75f, 0.0f, 1.0f ) );
-		D3DRenderer::g_pTextHelper->DrawTextLine( helpRect, DT_RIGHT, g_pApp->GetString(_T("IDS_CONTROLS_HEADER")).c_str() );
-		helpRect.top = g_pApp->GetScreenSize().y-15*7;
-		D3DRenderer::g_pTextHelper->DrawTextLine( helpRect, DT_RIGHT, g_pApp->GetString(_T("IDS_CONTROLS")).c_str() );
+		helpRect.right = gameApp->GetScreenSize().x - 10;
+		helpRect.top = gameApp->GetScreenSize().y - 15*8;
+		helpRect.bottom = gameApp->GetScreenSize().y;
+		D3DRenderer::TextHelper->SetInsertionPos( helpRect.right, helpRect.top );
+		D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 0.75f, 0.0f, 1.0f ) );
+		D3DRenderer::TextHelper->DrawTextLine( helpRect, DT_RIGHT, g_pApp->GetString(_T("IDS_CONTROLS_HEADER")).c_str() );
+		helpRect.top = gameApp->GetScreenSize().y-15*7;
+		D3DRenderer::TextHelper->DrawTextLine( helpRect, DT_RIGHT, g_pApp->GetString(_T("IDS_CONTROLS")).c_str() );
 		//...Help
 	}//end if (m_bShowUI)
 
-	D3DRenderer::g_pTextHelper->End();
+	D3DRenderer::TextHelper->End();
 	*/
 }
 
@@ -611,23 +598,23 @@ void GameDemoHumanView::RenderText()
 //
 // GameDemoHumanView::OnUpdate				- Chapter 19, page 730
 //
-void GameDemoHumanView::OnUpdate(unsigned long deltaMs)
+void GameDemoHumanView::OnUpdate(unsigned long deltaTime)
 {
-	HumanView::OnUpdate( deltaMs );
+	HumanView::OnUpdate( deltaTime );
 
-	if (m_pFreeCameraController)
+	if (mFreeCameraController)
 	{
-		m_pFreeCameraController->OnUpdate(deltaMs);
+		//mFreeCameraController->OnUpdate(deltaMs);
 	}
 
-	if (m_pDemoController)
+	if (mGameDemoController)
 	{
-		m_pDemoController->OnUpdate(deltaMs);
+		mGameDemoController->OnUpdate(deltaTime);
 	}
 
 	//Send out a tick to listeners.
-	shared_ptr<EvtData_Update_Tick> pTickEvent(new EvtData_Update_Tick(deltaMs));
-    IEventManager::Get()->TriggerEvent(pTickEvent);
+	eastl::shared_ptr<EventDataUpdateTick> pTickEvent(new EventDataUpdateTick(deltaTime));
+    BaseEventManager::Get()->TriggerEvent(pTickEvent);
 }
 
 //
@@ -638,61 +625,61 @@ void GameDemoHumanView::OnAttach(GameViewId vid, ActorId aid)
 	HumanView::OnAttach(vid, aid);
 }
 
-bool GameDemoHumanView::LoadGameDelegate(TiXmlElement* pLevelData)
+bool GameDemoHumanView::LoadGameDelegate(XMLElement* pLevelData)
 {
 	if (!HumanView::LoadGameDelegate(pLevelData))
 		return false;
 
-    m_StandardHUD.reset(new StandardHUD);
-	m_StandardHUD->OnInit();
-    PushElement(m_StandardHUD);
+    mStandardHUD.reset(new StandardHUD);
+	mStandardHUD->OnInit();
+    PushElement(mStandardHUD);
 
     // A movement controller is going to control the camera, 
     // but it could be constructed with any of the objects you see in this
     // function. You can have your very own remote controlled sphere. What fun...
-    m_pFreeCameraController.reset(new MovementController(m_pCamera, 0, 0, false));
+    //mFreeCameraController.reset(new MovementController(mCamera, 0, 0, false));
 
-    m_pScene->OnRestore();
+    mScene->OnRestore();
     return true;
 }
 
 void GameDemoHumanView::SetControlledActor(ActorId actorId)
 { 
-	m_pTeapot = m_pScene->GetSceneNode(actorId);
-    if (!m_pTeapot)
+	mTeapot = mScene->GetSceneNode(actorId);
+    if (!mTeapot)
     {
-        GE_ERROR("Invalid teapot");
+        LogError("Invalid teapot");
         return;
     }
 
 	HumanView::SetControlledActor(actorId);
 
-    m_pDemoController.reset(new DemoController(m_pTeapot));
-    m_KeyboardHandler = m_pDemoController;
-    m_MouseHandler = m_pDemoController;
-    m_pCamera->SetTarget(m_pTeapot);
-    //m_pTeapot->SetAlpha(0.8f);
+    mGameDemoController.reset(new GameDemoController(mTeapot));
+    mKeyboardHandler = mGameDemoController;
+    mMouseHandler = mGameDemoController;
+    //mCamera->SetTarget(mTeapot);
+    //mTeapot->SetAlpha(0.8f);
 }
 
 void GameDemoHumanView::GameplayUiUpdateDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EvtData_Gameplay_UI_Update> pCastEventData = 
-		static_pointer_cast<EvtData_Gameplay_UI_Update>(pEventData);
+    eastl::shared_ptr<EventDataGameplayUIUpdate> pCastEventData = 
+		eastl::static_pointer_cast<EventDataGameplayUIUpdate>(pEventData);
     if (!pCastEventData->GetUiString().empty())
-        m_gameplayText = pCastEventData->GetUiString();
+        mGameplayText = pCastEventData->GetUiString();
     else
-        m_gameplayText.clear();
+		mGameplayText.clear();
 }
 
 void GameDemoHumanView::SetControlledActorDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EvtData_Set_Controlled_Actor> pCastEventData = 
-		static_pointer_cast<EvtData_Set_Controlled_Actor>(pEventData);
-    //SetControlledActor(pCastEventData->GetActorId());
+    eastl::shared_ptr<EventDataSetControlledActor> pCastEventData = 
+		eastl::static_pointer_cast<EventDataSetControlledActor>(pEventData);
+    SetControlledActor(pCastEventData->GetActorId());
 
-	HumanView::SetControlledActor(m_pFreeCameraController->GetTarget()->Get()->ActorId());
-	m_KeyboardHandler = m_pFreeCameraController;
-	m_MouseHandler = m_pFreeCameraController;
+	//HumanView::SetControlledActor(mFreeCameraController->GetTarget()->Get()->ActorId());
+	//mKeyboardHandler = mFreeCameraController;
+	//mMouseHandler = mFreeCameraController;
 
 }
 
@@ -700,16 +687,24 @@ void GameDemoHumanView::RegisterAllDelegates(void)
 {
 	// [mrmike] Move, New, and Destroy actor events are now handled by the HumanView, as are the PlaySound and GameState events
 
-    IEventManager* pGlobalEventManager = IEventManager::Get();
-    pGlobalEventManager->AddListener(MakeDelegate(this, &DemosHumanView::GameplayUiUpdateDelegate), EvtData_Gameplay_UI_Update::sk_EventType);
-    pGlobalEventManager->AddListener(MakeDelegate(this, &DemosHumanView::SetControlledActorDelegate), EvtData_Set_Controlled_Actor::sk_EventType);
+    BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
+    pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoHumanView::GameplayUiUpdateDelegate), 
+		EventDataGameplayUIUpdate::skEventType);
+    pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoHumanView::SetControlledActorDelegate), 
+		EventDataSetControlledActor::skEventType);
 }
 
 void GameDemoHumanView::RemoveAllDelegates(void)
 {
-    IEventManager* pGlobalEventManager = IEventManager::Get();
-    pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosHumanView::GameplayUiUpdateDelegate), EvtData_Gameplay_UI_Update::sk_EventType);
-    pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosHumanView::SetControlledActorDelegate), EvtData_Set_Controlled_Actor::sk_EventType);
+	BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
+    pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoHumanView::GameplayUiUpdateDelegate), 
+		EventDataGameplayUIUpdate::skEventType);
+    pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoHumanView::SetControlledActorDelegate), 
+		EventDataSetControlledActor::skEventType);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -717,7 +712,7 @@ void GameDemoHumanView::RemoveAllDelegates(void)
 // AITeapotView::AITeapotView					- Chapter 19, page 737
 //
 AITeapotView::AITeapotView(eastl::shared_ptr<PathingGraph> pPathingGraph) 
-	: GameView(), mPathingGraph(pPathingGraph)
+	: BaseGameView(), mPathingGraph(pPathingGraph)
 {
     //
 }

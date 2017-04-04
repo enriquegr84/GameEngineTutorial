@@ -33,25 +33,25 @@ class GameDemoManager
 {
 private:
     /** All directories in which tracks are searched. */
-    static eastl::vector<eastl::string> mGameDemoSearchPath;
+    static eastl::vector<eastl::wstring> mGameDemoSearchPath;
 
     /** All directories in which tracks were found. */
-    eastl::vector<eastl::string> mAllGameDemoDirs;
+    eastl::vector<eastl::wstring> mAllGameDemoDirs;
 
     typedef eastl::vector<GameDemo*> GameDemoList;
 
     /** All track objects. */
     GameDemoList mGameDemos;
 
-    typedef eastl::map<eastl::string, eastl::vector<int> > GroupToIndices;
+    typedef eastl::map<eastl::wstring, eastl::vector<int> > GroupToIndices;
     /** List of all racing track groups. */
     GroupToIndices mGameDemoGroups;
 
     /** List of all groups (for both normal tracks and arenas) */
-    //eastl::vector<eastl::string> mAllGroupNames;
+    eastl::vector<eastl::wstring> mAllGameDemoGroupNames;
 
     /** List of the names of all groups containing tracks */
-    eastl::vector<eastl::string> mDemoGroupNames;
+    eastl::vector<eastl::wstring> mGameDemoGroupNames;
 
     /** Flag if this track is available or not. Tracks are set unavailable
      *  if they are not available on all clients (applies only to network mode)
@@ -64,33 +64,33 @@ public:
 	GameDemoManager();
 	~GameDemoManager();
 
-    static void AddGameDemoSearchDir(const eastl::string &dir);
+    static void AddGameDemoSearchDir(const eastl::wstring &dir);
     /** Returns a list of all demo identifiers. */
-    eastl::vector<eastl::string> GetAllGameDemosIdentifiers();
+    eastl::vector<eastl::wstring> GetAllGameDemoIdentifiers();
 
     /** Load all demo files from all directories */
     void  LoadGameDemosList();
-    void  RemoveGameDemo(const eastl::string &ident);
-    bool  LoadGameDemo(const eastl::string& dirname);
+    void  RemoveGameDemo(const eastl::wstring &ident);
+    bool  LoadGameDemo(const eastl::wstring& dirname);
     void  RemoveAllCachedData();
-	GameDemo* GetGameDemo(const eastl::string& ident) const;
+	GameDemo* GetGameDemo(const eastl::wstring& ident) const;
     // ------------------------------------------------------------------------
     /** Sets a list of demos as being unavailable (e.g. in network mode the
      *  demo is not on all connected machines.
      *  \param demos List of demos to mark as unavilable. */
-    void SetUnavailableGameDemos(const eastl::vector<eastl::string> &tracks);
+    void SetUnavailableGameDemos(const eastl::vector<eastl::wstring> &tracks);
     // ------------------------------------------------------------------------
     /** \brief Returns a list of all directories that contain a track. */
-    const eastl::vector<eastl::string>* GetAllGameDemoDirs() const
+    const eastl::vector<eastl::wstring>* GetAllGameDemoDirs() const
     {
         return &mAllGameDemoDirs;
     }   // getAllDemoDirs
     // ------------------------------------------------------------------------
     /** \brief Returns a list of the names of all used demo groups. */
-    const eastl::vector<eastl::string>& GetAllGameDemoGroups() const
+    const eastl::vector<eastl::wstring>& GetAllGameDemoGroups() const
     {
-        return mDemoGroupNames;
-    }   // getAllDemoGroups
+        return mAllGameDemoGroupNames;
+    }   // getAllGameDemoGroups
     // ------------------------------------------------------------------------
     /** Returns the number of demos. */
     size_t GetNumberOfDemos() const { return mGameDemos.size(); }
@@ -105,7 +105,7 @@ public:
     // ------------------------------------------------------------------------
     /** Returns a list of all demos in a given group.
      *  \param g Name of the group. */
-    const eastl::vector<int>& GetGameDemosInGroup(const eastl::string& g)
+    const eastl::vector<int>& GetGameDemosInGroup(const eastl::wstring& g)
     {
         return mGameDemoGroups[g];
     }   // getTracksInGroup

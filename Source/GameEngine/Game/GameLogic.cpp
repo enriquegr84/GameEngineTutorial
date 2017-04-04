@@ -39,7 +39,7 @@
 #include "GameLogic.h"
 
 //#include "AI/Pathing.h"
-#include "Core/Event/Event.h"				// only for EvtData_Game_State
+#include "Core/Event/Event.h"				// only for EventDataGame_State
 #include "Core/Process/Process.h"
 #include "Core/IO/XmlResource.h"
 
@@ -228,8 +228,6 @@ bool GameLogic::LoadGame(const char* levelResource)
 
     return true;
 }
-
-
 
 void GameLogic::SetProxy() 
 {

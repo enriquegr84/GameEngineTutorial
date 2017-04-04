@@ -114,6 +114,8 @@ public:
 class BaseEventManager;
 class SoundProcess;
 class GameDemoController;
+class MovementController;
+class SceneNode;
 
 class MainMenuView : public HumanView
 {
@@ -141,12 +143,12 @@ protected:
 	eastl::shared_ptr<StandardHUD> mStandardHUD;
 
 public:
-	GameDemoHumanView(eastl::shared_ptr<Renderer> renderer);
+	GameDemoHumanView();
 	virtual ~GameDemoHumanView();
 
 	virtual bool OnMsgProc( const Event& event );	
 	virtual void RenderText();	
-	virtual void OnUpdate(unsigned long deltaMs);
+	virtual void OnUpdate(unsigned long deltaTime);
 	virtual void OnAttach(GameViewId vid, ActorId aid);
 
 	virtual void SetControlledActor(ActorId actorId);

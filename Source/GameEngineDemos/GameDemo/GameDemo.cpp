@@ -6,7 +6,13 @@
 
 #include "GameDemoView.h"
 
+#include "Physic/Physic.h"
+#include "Physic/PhysicEventListener.h"
+
 #include "GameDemo.h"
+#include "GameDemoApp.h"
+#include "GameDemoNetwork.h"
+#include "GameDemoEvents.h"
 
 //
 // GameDemoLogic::GameDemoLogic
@@ -31,7 +37,7 @@ GameDemoLogic::~GameDemoLogic()
 void GameDemoLogic::SetProxy()
 {
 	// FUTURE WORK: This can go in the base game logic!!!!
-	BaseGameLogic::SetProxy();
+	GameLogic::SetProxy();
 }
 
 
@@ -40,155 +46,133 @@ void GameDemoLogic::SetProxy()
 //
 void GameDemoLogic::ChangeState(BaseGameState newState)
 {
-	BaseGameLogic::ChangeState(newState);
+	GameLogic::ChangeState(newState);
 
+	GameApplication* gameApp = (GameApplication*)Application::App;
 	switch (newState)
 	{
-	case BGS_WAITINGFORPLAYERS:
-	{
-
-		// spawn all local players (should only be one, though we might support more in the future)
-		LogAssert(mExpectedPlayers == 1, "needs two players at least");
-		for (int i = 0; i < mExpectedPlayers; ++i)
+		case BGS_WAITINGFORPLAYERS:
 		{
-			eastl::shared_ptr<BaseGameView> playersView(
-				new GameDemoHumanView(gameApp->mRenderer));
-			gameApp->AddView(playersView);
 
-			if (mProxy)
+			// spawn all local players (should only be one, though we might support more in the future)
+			LogAssert(mExpectedPlayers == 1, "needs two players at least");
+			for (int i = 0; i < mExpectedPlayers; ++i)
 			{
-				// if we are a remote player, all we have to do is spawn our view - the server will do the rest.
+				eastl::shared_ptr<BaseGameView> playersView(new GameDemoHumanView());
+				gameApp->AddView(playersView);
+
+				if (mIsProxy)
+				{
+					// if we are a remote player, all we have to do is spawn our view - the server will do the rest.
+					return;
+				}
+			}
+			// spawn all remote player's views on the game
+			for (int i = 0; i < mExpectedRemotePlayers; ++i)
+			{
+				eastl::shared_ptr<BaseGameView> remoteGameView(new NetworkGameView);
+				gameApp->AddView(remoteGameView);
+			}
+
+			// spawn all AI's views on the game
+			for (int i = 0; i < mExpectedAI; ++i)
+			{
+				eastl::shared_ptr<BaseGameView> aiView(new AITeapotView(eastl::shared_ptr<PathingGraph>()));
+				gameApp->AddView(aiView);
+			}
+
+			break;
+		}
+
+		case BGS_SPAWNINGPLAYERACTORS:
+		{
+			if (mIsProxy)
+			{
+				// only the server needs to do this.
 				return;
 			}
-		}
-		// spawn all remote player's views on the game
-		for (int i = 0; i < mExpectedRemotePlayers; ++i)
-		{
-			eastl::shared_ptr<BaseGameView> remoteGameView(new NetworkGameView);
-			AddView(remoteGameView);
-		}
-		/*
-		// spawn all AI's views on the game
-		for (int i = 0; i < m_ExpectedAI; ++i)
-		{
-		shared_ptr<IGameView> aiView(new AITeapotView(shared_ptr<PathingGraph>()));
-		AddView(aiView);
-		}
-		*/
-		break;
-	}
 
-
-	case BGS_SpawningPlayersActors:
-	{
-		if (m_bProxy)
-		{
-			// only the server needs to do this.
-			return;
-		}
-
-		const GameViewList& gameViews = g_DemosApp.GetGameViews();
-		for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
-		{
-			shared_ptr<IGameView> pView = *it;
-			if (pView->GetType() == GameView_Human)
+			const GameViewList& gameViews = gameApp->GetGameViews();
+			for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
 			{
-				StrongActorPtr pActor = CreateActor("actors\\player_teapot.xml", NULL);
-				if (pActor)
+				eastl::shared_ptr<BaseGameView> pView = *it;
+				if (pView->GetType() == GV_HUMAN)
 				{
-					shared_ptr<EvtData_New_Actor> pNewActorEvent(
-						new EvtData_New_Actor(pActor->GetId(), pView->GetId()));
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\player_teapot.xml", NULL);
+					if (pActor)
+					{
+						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+							new EventDataNewActor(pActor->GetId(), pView->GetId()));
 
-					// [rez] This needs to happen asap because the constructor function for Lua 
-					// (which is called in through VCreateActor()) queues an event that expects 
-					// this event to have been handled
-					IEventManager::Get()->TriggerEvent(pNewActorEvent);
+						// [rez] This needs to happen asap because the constructor function for Lua 
+						// (which is called in through VCreateActor()) queues an event that expects 
+						// this event to have been handled
+						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
+					}
+				}
+				else if (pView->GetType() == GV_REMOTE)
+				{
+					eastl::shared_ptr<NetworkGameView> pNetworkGameView =
+						eastl::static_pointer_cast<NetworkGameView, BaseGameView>(pView);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\remote_teapot.xml", NULL);
+					if (pActor)
+					{
+						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+							new EventDataNewActor(pActor->GetId(), pNetworkGameView->GetId()));
+						BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+					}
+				}
+				else if (pView->GetType() == GV_AI)
+				{
+					eastl::shared_ptr<AITeapotView> pAiView = 
+						eastl::static_pointer_cast<AITeapotView, BaseGameView>(pView);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\ai_teapot.xml", NULL);
+					if (pActor)
+					{
+						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+							new EventDataNewActor(pActor->GetId(), pAiView->GetId()));
+						BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+					}
 				}
 			}
-			else if (pView->GetType() == GameView_Remote)
-			{
-				shared_ptr<NetworkGameView> pNetworkGameView =
-					static_pointer_cast<NetworkGameView, IGameView>(pView);
-				StrongActorPtr pActor = CreateActor("actors\\remote_teapot.xml", NULL);
-				if (pActor)
-				{
-					shared_ptr<EvtData_New_Actor> pNewActorEvent(
-						new EvtData_New_Actor(pActor->GetId(), pNetworkGameView->GetId()));
-					IEventManager::Get()->QueueEvent(pNewActorEvent);
-				}
-			}
-			/*
-			else if (pView->GetType() == GameView_AI)
-			{
-			shared_ptr<AITeapotView> pAiView = static_pointer_cast<AITeapotView, IGameView>(pView);
-			StrongActorPtr pActor = CreateActor("actors\\ai_teapot.xml", NULL);
-			if (pActor)
-			{
-			shared_ptr<EvtData_New_Actor> pNewActorEvent(
-			new EvtData_New_Actor(pActor->GetId(), pAiView->GetId()));
-			IEventManager::Get()->QueueEvent(pNewActorEvent);
-			}
-			}
-			*/
-		}
 
-		break;
-	}
+			break;
+		}
 	}
 }
 
-//
-// GameDemoLogic::AddView
-//
-void GameDemoLogic::AddView(shared_ptr<IGameView> pView, ActorId actor)
+void GameDemoLogic::MoveActor(const ActorId id, Transform const &transform)
 {
-	g_DemosApp.AddView(pView, actor);
-	//  This is commented out because while the view is created and waiting, the player has NOT attached yet. 
-	//	if (pView->GetType() == GameView_Remote)
-	//	{
-	//		m_HumanPlayersAttached++;
-	//	}
-	if (pView->GetType() == GameView_Human)
-	{
-		m_HumanPlayersAttached++;
-	}
-	else if (pView->GetType() == GameView_AI)
-	{
-		m_AIPlayersAttached++;
-	}
-}
+	GameLogic::MoveActor(id, transform);
 
-void GameDemoLogic::MoveActor(const ActorId id, matrix4 const &mat)
-{
-	BaseGameLogic::MoveActor(id, mat);
-
-	// [rez] HACK: This will be removed whenever the gameplay update stuff is in.  This is meant to model the death
-	// zone under the grid.
+	// [rez] HACK: This will be removed whenever the gameplay update stuff is in.  
+	//	This is meant to model the death zone under the grid.
 
 	// FUTURE WORK - This would make a great basis for a Trigger actor that ran a LUA script when other
 	//               actors entered or left it!
 
-	StrongActorPtr pActor = MakeStrongPtr(GetActor(id));
+	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(GetActor(id));
 	if (pActor)
 	{
-		shared_ptr<TransformComponent> pTransformComponent =
-			MakeStrongPtr(pActor->GetComponent<TransformComponent>(TransformComponent::g_Name));
-		if (pTransformComponent && pTransformComponent->GetPosition().Y < -25)
+		eastl::shared_ptr<TransformComponent> pTransformComponent = 
+			eastl::shared_ptr<TransformComponent>(
+				pActor->GetComponent<TransformComponent>(TransformComponent::Name));
+		if (pTransformComponent && pTransformComponent->GetPosition()[1] < -25)
 		{
-			shared_ptr<EvtData_Destroy_Actor> pDestroyActorEvent(new EvtData_Destroy_Actor(id));
-			IEventManager::Get()->QueueEvent(pDestroyActorEvent);
+			eastl::shared_ptr<EventDataDestroyActor> pDestroyActorEvent(new EventDataDestroyActor(id));
+			BaseEventManager::Get()->QueueEvent(pDestroyActorEvent);
 		}
 	}
 }
 
 void GameDemoLogic::RequestStartGameDelegate(BaseEventDataPtr pEventData)
 {
-	ChangeState(BGS_WaitingForPlayers);
+	ChangeState(BGS_WAITINGFORPLAYERS);
 }
 
 void GameDemoLogic::EnvironmentLoadedDelegate(BaseEventDataPtr pEventData)
 {
-	++m_HumanGamesLoaded;
+	++mHumanGamesLoaded;
 }
 
 
@@ -197,23 +181,26 @@ void GameDemoLogic::RemoteClientDelegate(BaseEventDataPtr pEventData)
 {
 	// This event is always sent from clients to the game server.
 
-	shared_ptr<EvtData_Remote_Client> pCastEventData = static_pointer_cast<EvtData_Remote_Client>(pEventData);
+	eastl::shared_ptr<EventDataRemoteClient> pCastEventData = 
+		eastl::static_pointer_cast<EventDataRemoteClient>(pEventData);
 	const int sockID = pCastEventData->GetSocketId();
 	const int ipAddress = pCastEventData->GetIpAddress();
 
 	// go find a NetworkGameView that doesn't have a socket ID, and attach this client to that view.
-	const GameViewList& gameViews = g_DemosApp.GetGameViews();
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	const GameViewList& gameViews = gameApp->GetGameViews();
 	for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
 	{
-		shared_ptr<IGameView> pView = *it;
-		if (pView->GetType() == GameView_Remote)
+		eastl::shared_ptr<BaseGameView> pView = *it;
+		if (pView->GetType() == GV_REMOTE)
 		{
-			shared_ptr<NetworkGameView> pNetworkGameView = static_pointer_cast<NetworkGameView, IGameView>(pView);
+			eastl::shared_ptr<NetworkGameView> pNetworkGameView = 
+				eastl::static_pointer_cast<NetworkGameView, BaseGameView>(pView);
 			if (!pNetworkGameView->HasRemotePlayerAttached())
 			{
 				pNetworkGameView->AttachRemotePlayer(sockID);
 				CreateNetworkEventForwarder(sockID);
-				m_HumanPlayersAttached++;
+				mHumanPlayersAttached++;
 
 				return;
 			}
@@ -224,29 +211,30 @@ void GameDemoLogic::RemoteClientDelegate(BaseEventDataPtr pEventData)
 
 void GameDemoLogic::NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEventData)
 {
-	if (!m_bProxy)
+	if (!mIsProxy)
 		return;
 
 	// we're a remote client getting an actor assignment.
 	// the server assigned us a playerId when we first attached (the server's socketId, actually)
-	shared_ptr<EvtData_Network_Player_Actor_Assignment> pCastEventData =
-		static_pointer_cast<EvtData_Network_Player_Actor_Assignment>(pEventData);
+	eastl::shared_ptr<EventDataNetworkPlayerActorAssignment> pCastEventData =
+		eastl::static_pointer_cast<EventDataNetworkPlayerActorAssignment>(pEventData);
 
 	if (pCastEventData->GetActorId() == INVALID_ACTOR_ID)
 	{
-		m_remotePlayerId = pCastEventData->GetSocketId();
+		mRemotePlayerId = pCastEventData->GetSocketId();
 		return;
 	}
 
-	const GameViewList& gameViews = g_DemosApp.GetGameViews();
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	const GameViewList& gameViews = gameApp->GetGameViews();
 	for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
 	{
-		shared_ptr<IGameView> pView = *it;
-		if (pView->GetType() == GameView_Human)
+		eastl::shared_ptr<BaseGameView> pView = *it;
+		if (pView->GetType() == GV_HUMAN)
 		{
-			shared_ptr<DemosHumanView> pHumanView =
-				static_pointer_cast<DemosHumanView, IGameView>(pView);
-			if (m_remotePlayerId == pCastEventData->GetSocketId())
+			eastl::shared_ptr<GameDemoHumanView> pHumanView =
+				eastl::static_pointer_cast<GameDemoHumanView, BaseGameView>(pView);
+			if (mRemotePlayerId == pCastEventData->GetSocketId())
 			{
 				pHumanView->SetControlledActor(pCastEventData->GetActorId());
 			}
@@ -254,168 +242,231 @@ void GameDemoLogic::NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEvent
 		}
 	}
 
-	GE_ERROR("Could not find HumanView to attach actor to!");
+	LogError("Could not find HumanView to attach actor to!");
 }
 
 void GameDemoLogic::StartThrustDelegate(BaseEventDataPtr pEventData)
 {
-	shared_ptr<EvtData_StartThrust> pCastEventData =
-		static_pointer_cast<EvtData_StartThrust>(pEventData);
-	StrongActorPtr pActor = MakeStrongPtr(GetActor(pCastEventData->GetActorId()));
+	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
+		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
+	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(
+		GetActor(pCastEventData->GetActorId()));
 	if (pActor)
 	{
-		shared_ptr<PhysicsComponent> pPhysicalComponent =
-			MakeStrongPtr(pActor->GetComponent<PhysicsComponent>(PhysicsComponent::g_Name));
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent = 
+			eastl::shared_ptr<PhysicComponent>(
+				pActor->GetComponent<PhysicComponent>(PhysicComponent::Name));
 		if (pPhysicalComponent)
-		{
 			pPhysicalComponent->ApplyAcceleration(pCastEventData->GetAcceleration());
-		}
 	}
 }
 
 void GameDemoLogic::EndThrustDelegate(BaseEventDataPtr pEventData)
 {
-	shared_ptr<EvtData_StartThrust> pCastEventData =
-		static_pointer_cast<EvtData_StartThrust>(pEventData);
-	StrongActorPtr pActor = MakeStrongPtr(GetActor(pCastEventData->GetActorId()));
+	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
+		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
+	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(
+		GetActor(pCastEventData->GetActorId()));
 	if (pActor)
 	{
-		shared_ptr<PhysicsComponent> pPhysicalComponent =
-			MakeStrongPtr(pActor->GetComponent<PhysicsComponent>(PhysicsComponent::g_Name));
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			eastl::shared_ptr<PhysicComponent>(
+				pActor->GetComponent<PhysicComponent>(PhysicComponent::Name));
 		if (pPhysicalComponent)
-		{
 			pPhysicalComponent->RemoveAcceleration();
-		}
 	}
 }
 
 void GameDemoLogic::StartSteerDelegate(BaseEventDataPtr pEventData)
 {
-	shared_ptr<EvtData_StartThrust> pCastEventData =
-		static_pointer_cast<EvtData_StartThrust>(pEventData);
-	StrongActorPtr pActor = MakeStrongPtr(GetActor(pCastEventData->GetActorId()));
+	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
+		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
+	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(
+		GetActor(pCastEventData->GetActorId()));
 	if (pActor)
 	{
-		shared_ptr<PhysicsComponent> pPhysicalComponent = MakeStrongPtr(
-			pActor->GetComponent<PhysicsComponent>(PhysicsComponent::g_Name));
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent = 
+			eastl::shared_ptr<PhysicComponent>(
+				pActor->GetComponent<PhysicComponent>(PhysicComponent::Name));
 		if (pPhysicalComponent)
-		{
 			pPhysicalComponent->ApplyAngularAcceleration(pCastEventData->GetAcceleration());
-		}
 	}
 }
 
 void GameDemoLogic::EndSteerDelegate(BaseEventDataPtr pEventData)
 {
-	shared_ptr<EvtData_StartThrust> pCastEventData =
-		static_pointer_cast<EvtData_StartThrust>(pEventData);
-	StrongActorPtr pActor = MakeStrongPtr(GetActor(pCastEventData->GetActorId()));
+	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
+		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
+	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(
+		GetActor(pCastEventData->GetActorId()));
 	if (pActor)
 	{
-		shared_ptr<PhysicsComponent> pPhysicalComponent =
-			MakeStrongPtr(pActor->GetComponent<PhysicsComponent>(PhysicsComponent::g_Name));
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			eastl::shared_ptr<PhysicComponent>(
+				pActor->GetComponent<PhysicComponent>(PhysicComponent::Name));
 		if (pPhysicalComponent)
-		{
 			pPhysicalComponent->RemoveAngularAcceleration();
-		}
 	}
 }
 
-void GameDemoLogic::TestScriptDelegate(BaseEventDataPtr pEventData)
-{
-	shared_ptr<EvtData_ScriptEventTest_FromLua> pCastEventData =
-		static_pointer_cast<EvtData_ScriptEventTest_FromLua>(pEventData);
-	GE_LOG("Lua", eastl::string("Event received in C++ from Lua: ") + eastl::string(pCastEventData->GetNum()));
-}
 
 void GameDemoLogic::RegisterAllDelegates(void)
 {
 	// FUTURE WORK: Lots of these functions are ok to go into the base game logic!
-	IEventManager* pGlobalEventManager = IEventManager::Get();
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::RemoteClientDelegate), EvtData_Remote_Client::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::MoveActorDelegate), EvtData_Move_Actor::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::RequestStartGameDelegate), EvtData_Request_Start_Game::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::NetworkPlayerActorAssignmentDelegate), EvtData_Network_Player_Actor_Assignment::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::EnvironmentLoadedDelegate), EvtData_Environment_Loaded::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::EnvironmentLoadedDelegate), EvtData_Remote_Environment_Loaded::sk_EventType);
+	BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::RemoteClientDelegate), 
+		EventDataRemoteClient::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::MoveActorDelegate), 
+		EventDataMoveActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::RequestStartGameDelegate), 
+		EventDataRequestStartGame::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::NetworkPlayerActorAssignmentDelegate), 
+		EventDataNetworkPlayerActorAssignment::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::EnvironmentLoadedDelegate), 
+		EventDataEnvironmentLoaded::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::EnvironmentLoadedDelegate), 
+		EventDataRemoteEnvironmentLoaded::skEventType);
 
 	// FUTURE WORK: Only these belong in Demos.
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::StartThrustDelegate), EvtData_StartThrust::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::EndThrustDelegate), EvtData_EndThrust::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::StartSteerDelegate), EvtData_StartSteer::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::EndSteerDelegate), EvtData_EndSteer::sk_EventType);
-
-	pGlobalEventManager->AddListener(MakeDelegate(this, &DemosLogic::TestScriptDelegate), EvtData_ScriptEventTest_FromLua::sk_EventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::StartThrustDelegate), 
+		EventDataStartThrust::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::EndThrustDelegate), 
+		EventDataEndThrust::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::StartSteerDelegate), 
+		EventDataStartSteer::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::EndSteerDelegate), 
+		EventDataEndSteer::skEventType);
 }
 
 void GameDemoLogic::RemoveAllDelegates(void)
 {
 	// FUTURE WORK: See the note in RegisterDelegates above....
-	IEventManager* pGlobalEventManager = IEventManager::Get();
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::RemoteClientDelegate), EvtData_Remote_Client::sk_EventType);
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::MoveActorDelegate), EvtData_Move_Actor::sk_EventType);
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::RequestStartGameDelegate), EvtData_Request_Start_Game::sk_EventType);
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::NetworkPlayerActorAssignmentDelegate), EvtData_Network_Player_Actor_Assignment::sk_EventType);
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::EnvironmentLoadedDelegate), EvtData_Environment_Loaded::sk_EventType);
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::EnvironmentLoadedDelegate), EvtData_Remote_Environment_Loaded::sk_EventType);
-	if (m_bProxy)
+	BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::RemoteClientDelegate), 
+		EventDataRemoteClient::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::MoveActorDelegate), 
+		EventDataMoveActor::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::RequestStartGameDelegate), 
+		EventDataRequestStartGame::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::NetworkPlayerActorAssignmentDelegate), 
+		EventDataNetworkPlayerActorAssignment::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::EnvironmentLoadedDelegate), 
+		EventDataEnvironmentLoaded::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::EnvironmentLoadedDelegate), 
+		EventDataRemoteEnvironmentLoaded::skEventType);
+	if (mIsProxy)
 	{
-		pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::RequestNewActorDelegate), EvtData_Request_New_Actor::sk_EventType);
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(this, &GameDemoLogic::RequestNewActorDelegate), 
+			EventDataRequestNewActor::skEventType);
 	}
 
 	// FUTURE WORK: These belong in teapot wars!
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::StartThrustDelegate), EvtData_StartThrust::sk_EventType);
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::EndThrustDelegate), EvtData_EndThrust::sk_EventType);
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::StartSteerDelegate), EvtData_StartSteer::sk_EventType);
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::EndSteerDelegate), EvtData_EndSteer::sk_EventType);
-
-	pGlobalEventManager->RemoveListener(MakeDelegate(this, &DemosLogic::TestScriptDelegate), EvtData_ScriptEventTest_FromLua::sk_EventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::StartThrustDelegate), 
+		EventDataStartThrust::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::EndThrustDelegate), 
+		EventDataEndThrust::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::StartSteerDelegate), 
+		EventDataStartSteer::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::EndSteerDelegate), 
+		EventDataEndSteer::skEventType);
 }
 
 void GameDemoLogic::CreateNetworkEventForwarder(const int socketId)
 {
 	NetworkEventForwarder* pNetworkEventForwarder = new NetworkEventForwarder(socketId);
 
-	IEventManager* pGlobalEventManager = IEventManager::Get();
+	BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
 
 	// then add those events that need to be sent along to amy attached clients
-	pGlobalEventManager->AddListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_PhysCollision::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Destroy_Actor::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Fire_Weapon::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Environment_Loaded::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_New_Actor::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Move_Actor::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Request_New_Actor::sk_EventType);
-	pGlobalEventManager->AddListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Network_Player_Actor_Assignment::sk_EventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		EventDataPhysCollision::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		EventDataDestroyActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		EventDataFireWeapon::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		EventDataEnvironmentLoaded::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		EventDataNewActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		EventDataMoveActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		EventDataRequestNewActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		EventDataNetworkPlayerActorAssignment::skEventType);
 
-	m_networkEventForwarders.push_back(pNetworkEventForwarder);
+	mNetworkEventForwarders.push_back(pNetworkEventForwarder);
 }
 
 void GameDemoLogic::DestroyAllNetworkEventForwarders(void)
 {
-	for (auto it = m_networkEventForwarders.begin(); it != m_networkEventForwarders.end(); ++it)
+	for (auto it = mNetworkEventForwarders.begin(); it != mNetworkEventForwarders.end(); ++it)
 	{
 		NetworkEventForwarder* pNetworkEventForwarder = (*it);
 
-		IEventManager* pGlobalEventManager = IEventManager::Get();
-		pGlobalEventManager->RemoveListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_PhysCollision::sk_EventType);
-		pGlobalEventManager->RemoveListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Destroy_Actor::sk_EventType);
-		pGlobalEventManager->RemoveListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Fire_Weapon::sk_EventType);
-		pGlobalEventManager->RemoveListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Environment_Loaded::sk_EventType);
-		pGlobalEventManager->RemoveListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_New_Actor::sk_EventType);
-		pGlobalEventManager->RemoveListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Move_Actor::sk_EventType);
-		pGlobalEventManager->RemoveListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Request_New_Actor::sk_EventType);
-		pGlobalEventManager->RemoveListener(MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Network_Player_Actor_Assignment::sk_EventType);
+		BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+			EventDataPhysCollision::skEventType);
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+			EventDataDestroyActor::skEventType);
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+			EventDataFireWeapon::skEventType);
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+			EventDataEnvironmentLoaded::skEventType);
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+			EventDataNewActor::skEventType);
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+			EventDataMoveActor::skEventType);
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+			EventDataRequestNewActor::skEventType);
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+			EventDataNetworkPlayerActorAssignment::skEventType);
 
 		delete pNetworkEventForwarder;
 	}
 
-	m_networkEventForwarders.clear();
+	mNetworkEventForwarders.clear();
 }
 
 
-bool GameDemoLogic::LoadGameDelegate(TiXmlElement* pLevelData)
+bool GameDemoLogic::LoadGameDelegate(XMLElement* pLevelData)
 {
-	RegisterTeapotScriptEvents();
 	return true;
 }

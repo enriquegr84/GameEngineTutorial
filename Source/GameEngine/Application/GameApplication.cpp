@@ -239,10 +239,10 @@ bool GameApplication::OnInitialize()
 				 Are your paths set up correctly?");
 		return false;
 	}
-
+	
 	extern eastl::shared_ptr<BaseResourceLoader> CreateWAVResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateOGGResourceLoader();
-
+	/*
 	extern eastl::shared_ptr<BaseResourceLoader> CreateBMPResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateDDSResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateJPGResourceLoader();
@@ -267,15 +267,15 @@ bool GameApplication::OnInitialize()
 	extern eastl::shared_ptr<BaseResourceLoader> CreateOgreMeshResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreatePLYMeshResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateXMeshResourceLoader();
-
+	*/
 	extern eastl::shared_ptr<BaseResourceLoader> CreateXmlResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateScriptResourceLoader();
+	//extern eastl::shared_ptr<BaseResourceLoader> CreateScriptResourceLoader();
 
 	//	Note - register these in order from least specific to most specific! 
 	//	They get pushed onto a list.
 	mResCache->RegisterLoader(CreateWAVResourceLoader());
 	mResCache->RegisterLoader(CreateOGGResourceLoader());
-
+	/*
 	mResCache->RegisterLoader(CreateDDSResourceLoader());
 	mResCache->RegisterLoader(CreateBMPResourceLoader());
 	mResCache->RegisterLoader(CreateJPGResourceLoader());
@@ -300,11 +300,11 @@ bool GameApplication::OnInitialize()
 	mResCache->RegisterLoader(CreateOgreMeshResourceLoader());
 	mResCache->RegisterLoader(CreatePLYMeshResourceLoader());
 	mResCache->RegisterLoader(CreateXMeshResourceLoader());
-
+	*/
 	mResCache->RegisterLoader(CreateXmlResourceLoader());
-	mResCache->RegisterLoader(CreateScriptResourceLoader());
+	//mResCache->RegisterLoader(CreateScriptResourceLoader());
 
-	//m_Option.Init(L"Config/PlayerOptions.xml");
+	//mOption.Init(L"Config/PlayerOptions.xml");
 
 	// Init the minimum managers so that user config exists, then
 	// handle all command line options that do not need (or must

@@ -17,6 +17,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "GameDemoManager.h"
+#include "GameDemoApp.h"
 
 #include "Game/Game.h"
 /*
@@ -26,7 +27,7 @@
 #include "tracks/track.hpp"
 */
 
-eastl::vector<eastl::string>  GameDemoManager::mGameDemoSearchPath;
+eastl::vector<eastl::wstring>  GameDemoManager::mGameDemoSearchPath;
 
 /** Constructor (currently empty). The real work happens in loadTrackList.
  */
@@ -40,8 +41,10 @@ GameDemoManager::GameDemoManager()
  */
 GameDemoManager::~GameDemoManager()
 {
+	/*
     for(GameDemoList::iterator it = mGameDemos.begin(); it != mGameDemos.end(); ++it)
         delete (*it);
+	*/
 }   // ~GameDemoManager
 
 //-----------------------------------------------------------------------------
@@ -50,7 +53,7 @@ GameDemoManager::~GameDemoManager()
  *  contains a demo.
  *  \param dir The directory to add.
  */
-void GameDemoManager::AddGameDemoSearchDir(const eastl::string &dir)
+void GameDemoManager::AddGameDemoSearchDir(const eastl::wstring &dir)
 {
 	mGameDemoSearchPath.push_back(dir);
 }   // addTrackDir
@@ -60,14 +63,15 @@ void GameDemoManager::AddGameDemoSearchDir(const eastl::string &dir)
  *  \param ident Identifier = basename of the directory the demo is in.
  *  \return      The corresponding demo object, or NULL if not found
  */
-GameDemo* GameDemoManager::GetGameDemo(const eastl::string& ident) const
+GameDemo* GameDemoManager::GetGameDemo(const eastl::wstring& ident) const
 {
+	/*
     for(GameDemoList::const_iterator it = mGameDemos.begin(); it != mGameDemos.end(); ++it)
     {
         if ((*it)->GetIdent() == ident)
             return *it;
     }
-
+	*/
     return NULL;
 
 }   // getTrack
@@ -78,8 +82,10 @@ GameDemo* GameDemoManager::GetGameDemo(const eastl::string& ident) const
  */
 void GameDemoManager::RemoveAllCachedData()
 {
+	/*
 	for (GameDemoList::const_iterator it = mGameDemos.begin(); it != mGameDemos.end(); ++it)
-        (*it)->removeCachedData();
+        (*it)->RemoveCachedData();
+	*/
 }   // removeAllCachedData
 //-----------------------------------------------------------------------------
 /** Sets all demos that are not in the list a to be unavailable. This is used
@@ -87,8 +93,9 @@ void GameDemoManager::RemoveAllCachedData()
  *  a client.
  *  \param demos List of all demos identifiers (available on a client).
  */
-void GameDemoManager::SetUnavailableGameDemos(const eastl::vector<eastl::string> &demos)
+void GameDemoManager::SetUnavailableGameDemos(const eastl::vector<eastl::wstring> &demos)
 {
+	/*
 	for (GameDemoList::const_iterator it = mGameDemos.begin(); it != mGameDemos.end(); ++it)
     {
         if(!mGameDemosAvailable[it - mGameDemos.begin()]) continue;
@@ -99,21 +106,23 @@ void GameDemoManager::SetUnavailableGameDemos(const eastl::vector<eastl::string>
             fprintf(stderr, "GameDemo '%s' not available on all clients, disabled.\n", id.c_str());
         }   // if id not in tracks
     }   // for all available tracks in track manager
-
+	*/
 }   // setUnavailableDemos
 
 //-----------------------------------------------------------------------------
 /** Returns a list with all demos identifiers.
  */
-eastl::vector<eastl::string> GameDemoManager::GetAllGameDemosIdentifiers()
+eastl::vector<eastl::wstring> GameDemoManager::GetAllGameDemoIdentifiers()
 {
-    eastl::vector<eastl::string> all;
+    eastl::vector<eastl::wstring> all;
+	/*
 	for (GameDemoList::const_iterator it = mGameDemos.begin(); it != mGameDemos.end(); ++it)
 	{
         all.push_back((*it)->GetIdent());
     }
+	*/
     return all;
-}   // getAllDemoNames
+}   // GetAllGameDemoIdentifiers
 
 //-----------------------------------------------------------------------------
 /** Loads all demos from the track directory (data/demo).
@@ -126,9 +135,10 @@ void GameDemoManager::LoadGameDemosList()
     mGameDemosAvailable.clear();
     mGameDemos.clear();
 
+	GameApplication* gameApp = (GameApplication*)Application::App;
     for(unsigned int i=0; i<mGameDemoSearchPath.size(); i++)
     {
-        const eastl::string &dir = mGameDemoSearchPath[i];
+        const eastl::wstring &dir = mGameDemoSearchPath[i];
 
         // First test if the directory itself contains a track:
         // ----------------------------------------------------
@@ -136,14 +146,14 @@ void GameDemoManager::LoadGameDemosList()
 
         // Then see if a subdir of this dir contains tracks
         // ------------------------------------------------
-        eastl::set<eastl::string> dirs;
-		gameApp->m_pFileSystem->ListFiles(
-			dirs, eastl::string("../../../Assets/SuperTuxKart/") + dir);
-        for(eastl::set<eastl::string>::iterator subdir = dirs.begin();
+        eastl::set<eastl::wstring> dirs;
+		gameApp->mFileSystem->ListFiles(
+			dirs, eastl::wstring("../../../Assets/SuperTuxKart/") + dir);
+        for(eastl::set<eastl::wstring>::iterator subdir = dirs.begin();
             subdir != dirs.end(); subdir++)
         {
-            if(*subdir=="." || *subdir=="..") continue;
-            LoadGameDemo(dir+*subdir+"/");
+            if(*subdir==L"." || *subdir==L"..") continue;
+            LoadGameDemo(dir+*subdir+L"/");
         }   // for dir in dirs
     }   // for i <m_demo_search_path.size()
 }  // loadDemosList
@@ -153,26 +163,28 @@ void GameDemoManager::LoadGameDemosList()
  *  successfully loaded.
  *  \param dirname Name of the directory to load the demo from.
  */
-bool GameDemoManager::LoadGameDemo(const eastl::string& dirname)
+bool GameDemoManager::LoadGameDemo(const eastl::wstring& dirname)
 {
-    eastl::string config_file = dirname+"demo.xml";
-	if (!gameApp->m_pFileSystem->ExistFile(config_file))
+	GameApplication* gameApp = (GameApplication*)Application::App;
+
+    eastl::wstring configFile = dirname + L"demo.xml";
+	if (!gameApp->mFileSystem->ExistFile(configFile))
         return false;
 
     GameDemo *gameDemo;
     try
     {
-		gameDemo = new GameDemo(config_file);
+		//gameDemo = new GameDemo(configFile);
     }
     catch (std::exception& e)
     {
-        fprintf(stderr, "[TrackManager] ERROR: Cannot load track <%s> : %s\n",
+        fprintf(stderr, "[TrackManager] ERROR: Cannot load track <%ws> : %s\n",
                 dirname.c_str(), e.what());
         return false;
     }
 	/*
-    if (demo->getVersion()<stk_config->m_min_track_version ||
-        demo->getVersion()>stk_config->m_max_track_version)
+    if (gameDemo->getVersion()<stk_config->m_min_track_version ||
+        gameDemo->getVersion()>stk_config->m_max_track_version)
     {
         fprintf(stderr, "[TrackManager] Warning: track '%s' is not supported "
                         "by this binary, ignored. (Track is version %i, this "
@@ -195,15 +207,15 @@ bool GameDemoManager::LoadGameDemo(const eastl::string& dirname)
 /** Removes a demo.
  *  \param ident Identifier of the demo (i.e. the name of the directory).
  */
-void GameDemoManager::RemoveGameDemo(const eastl::string& ident)
+void GameDemoManager::RemoveGameDemo(const eastl::wstring& ident)
 {
     GameDemo* gameDemo = GetGameDemo(ident);
     if (NULL == NULL)
     {
-        fprintf(stderr, "[TrackManager] ERROR: There is no demo named '%s'!!\n", ident.c_str());
+        fprintf(stderr, "[TrackManager] ERROR: There is no demo named '%ws'!!\n", ident.c_str());
         return;
     }
-
+	/*
     if (gameDemo->IsInternal()) return;
 
     eastl::vector<GameDemo*>::iterator it = eastl::find(mGameDemos.begin(), mGameDemos.end(), gameDemo);
@@ -217,9 +229,9 @@ void GameDemoManager::RemoveGameDemo(const eastl::string& ident)
     // Remove the demo from all groups it belongs to
     GroupToIndices &groupToIndices = mGameDemoGroups;
 
-    eastl::vector<eastl::string> &groupNames = mGameDemoGroupNames;
+    eastl::vector<eastl::wstring> &groupNames = mGameDemoGroupNames;
 
-    const eastl::vector<eastl::string>& groups= gameDemo->GetGroups();
+    const eastl::vector<eastl::wstring>& groups= gameDemo->GetGroups();
     for(unsigned int i=0; i<groups.size(); i++)
     {
         eastl::vector<int> &indices = groupToIndices[groups[i]];
@@ -233,7 +245,7 @@ void GameDemoManager::RemoveGameDemo(const eastl::string& ident)
         if(indices.size()==0)
         {
 			groupToIndices.erase(groups[i]);
-            eastl::vector<eastl::string>::iterator itg;
+            eastl::vector<eastl::wstring>::iterator itg;
             itg = eastl::find(groupNames.begin(), groupNames.end(), groups[i]);
             LogAssert(itg != groupNames.end(), "group out of range");
             groupNames.erase(itg);
@@ -258,6 +270,7 @@ void GameDemoManager::RemoveGameDemo(const eastl::string& ident)
     mAllGameDemoDirs.erase(mAllGameDemoDirs.begin()+index);
     mGameDemosAvailable.erase(mGameDemosAvailable.begin()+index);
     delete gameDemo;
+	*/
 }   // removeDemo
 
 // ----------------------------------------------------------------------------
@@ -266,13 +279,14 @@ void GameDemoManager::RemoveGameDemo(const eastl::string& ident)
   */
 void GameDemoManager::UpdateGroups(const GameDemo* gameDemo)
 {
+	/*
     if (gameDemo->isInternal()) return;
 
-    const eastl::vector<eastl::string>& newGroups = gameDemo->getGroups();
+    const eastl::vector<eastl::wstring>& newGroups = gameDemo->getGroups();
 
-    Group2Indices &groupToIndices = mGameDemoGroups;
+    GroupToIndices &groupToIndices = mGameDemoGroups;
 
-    eastl::vector<eastl::string> &group_names = mGameDemoGroupNames;
+    eastl::vector<eastl::wstring> &groupNames = mGameDemoGroupNames;
 
     const unsigned int groupsAmount = newGroups.size();
     for(unsigned int i=0; i<groupsAmount; i++)
@@ -283,6 +297,7 @@ void GameDemoManager::UpdateGroups(const GameDemo* gameDemo)
             groupNames.push_back(newGroups[i]);
         groupToIndices[newGroups[i]].push_back(mGameDemos.size()-1);
     }
-}   // updateGroups
+	*/
+}   // UpdateGroups
 
 // ----------------------------------------------------------------------------

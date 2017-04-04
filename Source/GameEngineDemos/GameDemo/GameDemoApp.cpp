@@ -105,8 +105,8 @@ int main()
 	Environment::InsertDirectory(Application::ApplicationPath);
 
 	// Initialization
-	GameDemoApp* demoApp = new GameDemoApp();
-	Application::App = demoApp;
+	GameDemoApp* gameDemoApp = new GameDemoApp();
+	Application::App = gameDemoApp;
 
 	int exitCode = -1;
 	try
@@ -138,6 +138,18 @@ int main()
 //
 //========================================================================
 
+//----------------------------------------------------------------------------
+GameDemoApp::GameDemoApp()
+	: GameApplication("GameDemo", 0, 0, 800, 600, { 0.392f, 0.584f, 0.929f, 1.0f })
+{
+	Environment::InsertDirectory(ProjectApplicationPath + "Effects/");
+}
+
+//----------------------------------------------------------------------------
+GameDemoApp::~GameDemoApp()
+{
+
+}
 
 //
 // GameDemoApp::CreateGameAndView
@@ -147,10 +159,33 @@ GameLogic *GameDemoApp::CreateGameAndView()
 	mGame = new GameDemoLogic();
 	mGame->Init();
 
-	shared_ptr<IGameView> menuView(new MainMenuView());
+	eastl::shared_ptr<BaseGameView> menuView(new MainMenuView());
 	AddView(menuView);
 
-	return m_pGame;
+	return mGame;
+}
+
+//
+// GameDemoLogic::AddView
+//
+void GameDemoApp::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actor)
+{
+	AddView(pView, actor);
+	//  This is commented out because while the view is created and waiting, the player has NOT attached yet. 
+	/*
+	if (pView->GetType() == GV_REMOTE)
+	{
+		mHumanPlayersAttached++;
+	}
+	*/
+	if (pView->GetType() == GV_HUMAN)
+	{
+		//mHumanPlayersAttached++;
+	}
+	else if (pView->GetType() == GV_AI)
+	{
+		//mAIPlayersAttached++;
+	}
 }
 
 /*
@@ -170,36 +205,59 @@ void GameDemoApp::RegisterGameEvents(void)
 
 void GameDemoApp::CreateNetworkEventForwarder(void)
 {
-	GameEngineApp::CreateNetworkEventForwarder();
-    if (m_pNetworkEventForwarder != NULL)
+	GameApplication::CreateNetworkEventForwarder();
+    if (mNetworkEventForwarder != NULL)
     {
-	    IEventManager* pGlobalEventManager = IEventManager::Get();
-		// FUTURE WORK - Events should have a "classification" that signals if they are sent from client to server, from server to client, or both.
-		//               Then as events are created, they are automatically added to the right network forwarders.
-		//               This could also detect a 
+	    BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
+		//	FUTURE WORK - Events should have a "classification" that signals if 
+		//	they are sent from client to server, from server to client, or both.
+		//	Then as events are created, they are automatically added to the right 
+		//	network forwarders. This could also detect a 
 
-	    pGlobalEventManager->AddListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataFireWeapon::skEventType);
-        pGlobalEventManager->AddListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataStartThrust::skEventType);
-        pGlobalEventManager->AddListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataEndThrust::skEventType);
-        pGlobalEventManager->AddListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataStartSteer::skEventType);
-        pGlobalEventManager->AddListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataEndSteer::skEventType);
+	    pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), 
+			EventDataFireWeapon::skEventType);
+        pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), 
+			EventDataStartThrust::skEventType);
+        pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataEndThrust::skEventType);
+        pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataStartSteer::skEventType);
+        pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataEndSteer::skEventType);
 
 	}
 }
 
 void GameDemoApp::DestroyNetworkEventForwarder(void)
 {
-	GameEngineApp::DestroyNetworkEventForwarder();
-    if (m_pNetworkEventForwarder)
+	GameApplication::DestroyNetworkEventForwarder();
+    if (mNetworkEventForwarder)
     {
-        IEventManager* pGlobalEventManager = IEventManager::Get();
+        BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
 
-        pGlobalEventManager->RemoveListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataFireWeapon::skEventType);
-        pGlobalEventManager->RemoveListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataStartThrust::skEventType);
-        pGlobalEventManager->RemoveListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataEndThrust::skEventType);
-        pGlobalEventManager->RemoveListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataStartSteer::skEventType);
-        pGlobalEventManager->RemoveListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EventDataEndSteer::skEventType);
-		pGlobalEventManager->RemoveListener(MakeDelegate(m_pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), EvtData_Environment_Loaded::sk_EventType);
-        SAFE_DELETE(m_pNetworkEventForwarder);
+        pGlobalEventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataFireWeapon::skEventType);
+        pGlobalEventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataStartThrust::skEventType);
+        pGlobalEventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataEndThrust::skEventType);
+        pGlobalEventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataStartSteer::skEventType);
+        pGlobalEventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataEndSteer::skEventType);
+		pGlobalEventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataEnvironmentLoaded::skEventType);
+        delete mNetworkEventForwarder.get();
     }
 }
