@@ -730,6 +730,9 @@
     <ClCompile Include="..\Graphic\Scene\Scene.cpp">
       <Filter>Graphic\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="..\Core\Utility\StringUtil.cpp">
+      <Filter>Core\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -1828,12 +1831,6 @@
     <ClInclude Include="..\Game\GameStd.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\Core\Utility\String.h">
-      <Filter>Core\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Core\Utility\String.cpp">
-      <Filter>Core\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="..\Mathematic\Algebra\Transform.h">
       <Filter>Mathematic\Algebra</Filter>
     </ClInclude>
@@ -1857,6 +1854,9 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\ScreenElement.h">
       <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Utility\StringUtil.h">
+      <Filter>Core\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

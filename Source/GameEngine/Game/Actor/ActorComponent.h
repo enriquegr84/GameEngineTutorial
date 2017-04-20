@@ -41,7 +41,7 @@
 
 #include "GameEngineStd.h"
 
-#include "Core/Utility/String.h"
+#include "Core/Utility/StringUtil.h"
 
 /*
 	class ActorComponent describes any actor in the game. Components is the chosen architecture

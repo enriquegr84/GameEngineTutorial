@@ -10,7 +10,7 @@
 #define CORE_H
 
 // Utility
-#include "Utility/String.h"
+#include "Utility/StringUtil.h"
 
 // IO
 #include "IO/Environment.h"

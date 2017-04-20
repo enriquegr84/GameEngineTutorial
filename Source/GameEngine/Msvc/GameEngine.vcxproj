@@ -64,6 +64,7 @@
     <ClCompile Include="..\Core\OS\OS.cpp" />
     <ClCompile Include="..\Core\Process\Process.cpp" />
     <ClCompile Include="..\Core\Process\ProcessManager.cpp" />
+    <ClCompile Include="..\Core\Utility\StringUtil.cpp" />
     <ClCompile Include="..\GameEngineStd.cpp" />
     <ClCompile Include="..\Game\Actor\Actor.cpp" />
     <ClCompile Include="..\Game\Actor\ActorFactory.cpp" />
@@ -372,8 +373,7 @@
     <ClInclude Include="..\Core\Process\ProcessManager.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeMap.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeQueue.h" />
-    <ClInclude Include="..\Core\Utility\String.cpp" />
-    <ClInclude Include="..\Core\Utility\String.h" />
+    <ClInclude Include="..\Core\Utility\StringUtil.h" />
     <ClInclude Include="..\GameEngineStd.h" />
     <ClInclude Include="..\Game\Actor\Actor.h" />
     <ClInclude Include="..\Game\Actor\ActorComponent.h" />
@@ -679,7 +679,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -698,6 +698,7 @@
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -737,7 +738,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

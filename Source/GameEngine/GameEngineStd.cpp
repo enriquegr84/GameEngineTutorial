@@ -10,6 +10,8 @@
 	#if defined(_DEBUG)
 		#pragma comment(lib, "bullet3collision_debug.lib")
 		#pragma comment(lib, "bullet3dynamics_debug.lib")
+		#pragma comment(lib, "bulletcollision_debug.lib")
+		#pragma comment(lib, "bulletdynamics_debug.lib")
 		#pragma comment(lib, "linearmath_debug.lib")
 	#else
 		#pragma comment(lib, "bullet3collision.lib")

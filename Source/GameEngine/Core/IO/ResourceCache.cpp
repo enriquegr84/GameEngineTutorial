@@ -38,7 +38,7 @@
 
 #include "ResourceCache.h"
 
-#include "Core/Utility/String.h"
+#include "Core/Utility/StringUtil.h"
 
 #include "Application/GameApplication.h"
 

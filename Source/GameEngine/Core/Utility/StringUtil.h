@@ -36,8 +36,8 @@
 //
 //========================================================================
 
-#ifndef STRING_H
-#define STRING_H
+#ifndef STRINGUTIL_H
+#define STRINGUTIL_H
 
 #include "EASTL/string.h"
 
@@ -67,7 +67,7 @@ public:
 		return mIDStr;
 	}
 
-	void* HashName(char const *  pIdentStr);
+	void* HashName(char const * pIdentStr);
 
 	bool operator< (HashedString const & o) const
 	{
