@@ -12,7 +12,7 @@
 #include "Graphic/GraphicStd.h"
 
 #include "TriangleDemoApp.h"
-
+/*
 //----------------------------------------------------------------------------
 int main(int numArguments, char* arguments[])
 {
@@ -82,7 +82,7 @@ int main(int numArguments, char* arguments[])
 
 	return exitCode;
 }
-
+*/
 
 //----------------------------------------------------------------------------
 TriangleDemoApplication::TriangleDemoApplication()
