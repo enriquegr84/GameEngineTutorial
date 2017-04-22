@@ -1,12 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.9
+VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameEngineDemos", "GameEngineDemos.vcxproj", "{63B8049B-62EF-4FA0-BDC3-6B7FC807C03A}"
-	ProjectSection(ProjectDependencies) = postProject
-		{5F8DE669-F90C-498F-891B-EE6ACE0CA1BD} = {5F8DE669-F90C-498F-891B-EE6ACE0CA1BD}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameEngine", "..\..\GameEngine\Msvc\GameEngine.vcxproj", "{5F8DE669-F90C-498F-891B-EE6ACE0CA1BD}"
 EndProject

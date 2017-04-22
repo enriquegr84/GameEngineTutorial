@@ -25,6 +25,8 @@ public:
 
 	void addArgs(int argc, char**argv)
 	{
+		using namespace std;
+
 	    for (int i = 1; i < argc; i++)
 	    {
 	        std::string arg = argv[i];
@@ -53,7 +55,8 @@ public:
 
 	bool CheckCmdLineFlag(const char* arg_name)
 	{
-		std::map<std::string, std::string>::iterator itr;
+		using namespace std;
+		map<std::string, std::string>::iterator itr;
 		if ((itr = pairs.find(arg_name)) != pairs.end()) {
 			return true;
 	    }
@@ -72,9 +75,10 @@ public:
 template <typename T>
 inline bool b3CommandLineArgs::GetCmdLineArgument(const char *arg_name, T &val)
 {
-	std::map<std::string, std::string>::iterator itr;
+	using namespace std;
+	map<std::string, std::string>::iterator itr;
 	if ((itr = pairs.find(arg_name)) != pairs.end()) {
-		std::istringstream strstream(itr->second);
+		istringstream strstream(itr->second);
 		strstream >> val;
 		return true;
     }
@@ -84,7 +88,8 @@ inline bool b3CommandLineArgs::GetCmdLineArgument(const char *arg_name, T &val)
 template <>
 inline bool b3CommandLineArgs::GetCmdLineArgument<char*>(const char* arg_name, char* &val)
 {
-	std::map<std::string, std::string>::iterator itr;
+	using namespace std;
+	map<std::string, std::string>::iterator itr;
 	if ((itr = pairs.find(arg_name)) != pairs.end()) {
 
 		std::string s = itr->second;

@@ -218,7 +218,7 @@ unsigned long long int btClock::getTimeNanoseconds()
 		QueryPerformanceCounter(&currentTime);
 		elapsedTime.QuadPart = currentTime.QuadPart - 
 			m_data->mStartTime.QuadPart;
-		elapsedTime.QuadPart *= 1000000000;
+		elapsedTime.QuadPart *= 1e9;
 		elapsedTime.QuadPart /= m_data->mClockFrequency.QuadPart;
 
 		return (unsigned long long) elapsedTime.QuadPart;
@@ -287,7 +287,7 @@ static btClock gProfileClock;
 
 inline void Profile_Get_Ticks(unsigned long int * ticks)
 {
-	*ticks = (unsigned long int)gProfileClock.getTimeMicroseconds();
+	*ticks = gProfileClock.getTimeMicroseconds();
 }
 
 inline float Profile_Get_Tick_Rate(void)
@@ -687,11 +687,7 @@ unsigned int btQuickprofGetCurrentThreadIndex2()
 {
 	const unsigned int kNullIndex = ~0U;
 #ifdef _WIN32
-    #if defined(__MINGW32__) || defined(__MINGW64__)
-        static __thread unsigned int sThreadIndex = kNullIndex;
-    #else
-        __declspec( thread ) static unsigned int sThreadIndex = kNullIndex;
-    #endif
+	__declspec( thread ) static unsigned int sThreadIndex = kNullIndex;
 #else
 #ifdef __APPLE__
 	#if TARGET_OS_IPHONE

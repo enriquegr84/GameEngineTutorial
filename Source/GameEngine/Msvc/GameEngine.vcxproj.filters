@@ -199,8 +199,11 @@
     <Filter Include="Mathematic\Geometric">
       <UniqueIdentifier>{05df6e4f-cf5b-4cc4-b341-7d13604d9e07}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Physic\bullet3">
-      <UniqueIdentifier>{c209923a-2bee-42b7-9073-40b2ed866537}</UniqueIdentifier>
+    <Filter Include="Physic\3rdParty">
+      <UniqueIdentifier>{ba19fec4-d058-4d76-96a6-b6a8c2e6e1d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physic\3rdParty\bullet3">
+      <UniqueIdentifier>{ecf7cf4b-7472-4106-b71c-bd5b5faf62cb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
