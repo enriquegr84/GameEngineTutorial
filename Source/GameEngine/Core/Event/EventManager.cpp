@@ -291,10 +291,10 @@ bool EventManager::Update(unsigned long maxTime)
 	int queueToProcess = mActiveQueue;
 	mActiveQueue = (mActiveQueue + 1) % EVENTMANAGER_NUM_QUEUES;
 	mQueues[mActiveQueue].clear();
-
+	/*
 	LogInformation("EventLoop " + eastl::string("Processing Event Queue ") + eastl::to_string(queueToProcess) + "; "
 		+ eastl::to_string((unsigned long)mQueues[queueToProcess].size()) + eastl::string(" events to process"));
-
+	*/
 	// Process the queue
 	while (!mQueues[queueToProcess].empty())
 	{

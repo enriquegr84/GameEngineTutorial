@@ -170,22 +170,8 @@ GameLogic *GameDemoApp::CreateGameAndView()
 //
 void GameDemoApp::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actor)
 {
-	AddView(pView, actor);
-	//  This is commented out because while the view is created and waiting, the player has NOT attached yet. 
-	/*
-	if (pView->GetType() == GV_REMOTE)
-	{
-		mHumanPlayersAttached++;
-	}
-	*/
-	if (pView->GetType() == GV_HUMAN)
-	{
-		//mHumanPlayersAttached++;
-	}
-	else if (pView->GetType() == GV_AI)
-	{
-		//mAIPlayersAttached++;
-	}
+	GameApplication::AddView(pView, actor);
+	mGame->UpdateViewType(pView);
 }
 
 /*

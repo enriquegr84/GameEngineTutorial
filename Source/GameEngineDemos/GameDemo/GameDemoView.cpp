@@ -122,6 +122,7 @@ MainMenuUI::~MainMenuUI()
 bool MainMenuUI::OnInit()
 {
 	BaseUI::OnInit();
+
 	/*
 	UIEngine::Init(this, NULL);
 	UIEngine::AddLoadingIcon(
@@ -147,8 +148,131 @@ bool MainMenuUI::OnInit()
     {
         ScreenStateManager::Get()->PushScreen(ScreenMainMenu::GetInstance());
 	}
+
+	int iY = 10;
+	int iX = 35;
+	int iX2 = g_SampleUIWidth / 2;
+	int width = (g_SampleUIWidth / 2) - 10;
+	int height = 25;
+	int lineHeight = height + 2;
+
+	// grab defaults from the game options.
+	m_NumAIs = g_pApp->m_Options.m_numAIs;
+	m_NumPlayers = g_pApp->m_Options.m_expectedPlayers;
+	m_HostName = g_pApp->m_Options.m_gameHost;
+	m_HostListenPort = g_pApp->m_Options.m_listenPort;
+	m_ClientAttachPort = g_pApp->m_Options.m_listenPort;
+
+	m_bCreatingGame = true;
+
+	D3DCOLOR color = 0x50505050;
+	m_SampleUI.SetBackgroundColors(color);
+
+	m_SampleUI.SetFont(0, L"Ariel", height, 0);
+
+	m_SampleUI.AddStatic(0, L"Teapot Wars Main Menu", iX - 20, iY, g_SampleUIWidth, height * 2);
+	iY += (lineHeight * 3);
+
+	m_SampleUI.AddRadioButton(CID_CREATE_GAME_RADIO, 1, L"Create Game", iX, iY, g_SampleUIWidth, height);
+	iY += lineHeight;
+
+	m_SampleUI.AddStatic(CID_LEVEL_LABEL, L"Level", iX, iY, width, height);
+	m_SampleUI.AddListBox(CID_LEVEL_LISTBOX, iX2, iY, width, lineHeight * 5);
+	std::vector<Level> levels = g_pApp->GetGameLogic()->GetLevelManager()->GetLevels();
+	m_Levels.reserve(levels.size());
+	int count = 0;
+	for (std::vector<Level>::iterator i = levels.begin(); i != levels.end(); ++i, ++count)
+	{
+		m_Levels.push_back(s2ws(*i));
+		m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->AddItem(m_Levels[count].c_str(), NULL);
+	}
+	iY += (lineHeight * 5);
+	//m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->GetElement(0)->SetFont(0, 0x0);
+
+	m_SampleUI.AddStatic(CID_NUM_AI_LABEL, L"", iX, iY, width, height);
+	m_SampleUI.AddSlider(CID_NUM_AI_SLIDER, iX2, iY, width, height);
+	m_SampleUI.GetSlider(CID_NUM_AI_SLIDER)->SetRange(0, g_pApp->m_Options.m_maxAIs);
+	m_SampleUI.GetSlider(CID_NUM_AI_SLIDER)->SetValue(m_NumAIs); // should be ai options default
+	iY += lineHeight;
+
+	m_SampleUI.AddStatic(CID_NUM_PLAYER_LABEL, L"", iX, iY, width, height);
+	m_SampleUI.AddSlider(CID_NUM_PLAYER_SLIDER, iX2, iY, width, height);
+	m_SampleUI.GetSlider(CID_NUM_PLAYER_SLIDER)->SetRange(1, g_pApp->m_Options.m_maxPlayers);
+	m_SampleUI.GetSlider(CID_NUM_PLAYER_SLIDER)->SetValue(m_NumPlayers);  // should be player options default
+	iY += lineHeight;
+
+	m_SampleUI.AddStatic(CID_HOST_LISTEN_PORT_LABEL, L"Host Listen Port", iX, iY, width, height);
+	m_SampleUI.AddEditBox(CID_HOST_LISTEN_PORT, L"57", iX2, iY, width, height * 2);
+	CDXUTEditBox *eb = m_SampleUI.GetEditBox(CID_HOST_LISTEN_PORT);
+	eb->SetVisible(false);
+	iY += lineHeight * 3;
+
+	m_SampleUI.AddRadioButton(CID_JOIN_GAME_RADIO, 1, L"Join Game", iX, iY, width, height);
+	m_SampleUI.GetRadioButton(CID_JOIN_GAME_RADIO)->SetChecked(true);
+	iY += lineHeight;
+
+	m_SampleUI.AddStatic(CID_CLIENT_ATTACH_PORT_LABEL, L"Host Attach Port", iX, iY, width, height);
+	m_SampleUI.AddEditBox(CID_CLIENT_ATTACH_PORT, L"57", iX2, iY, width, height * 2);
+	iY += lineHeight * 3;
+
+
+	m_SampleUI.AddStatic(CID_HOST_NAME_LABEL, L"Host Name", iX, iY, width, height);
+	m_SampleUI.AddEditBox(CID_HOST_NAME, L"sunshine", iX2, iY, width, height * 2);
+	iY += lineHeight;
+
+	m_SampleUI.AddButton(CID_START_BUTTON, L"Start Game", (g_SampleUIWidth - (width / 2)) / 2, iY += lineHeight, width / 2, height);
+
+	m_SampleUI.GetRadioButton(CID_CREATE_GAME_RADIO)->SetChecked(true);
+
+	Set();
 	*/
 	return true;
+}
+
+void MainMenuUI::Set()
+{
+	/*
+	WCHAR buffer[256];
+	CHAR ansiBuffer[256];
+
+	m_LevelIndex = m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->GetSelectedIndex();
+	m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->SetVisible(m_bCreatingGame);
+
+	m_NumAIs = m_SampleUI.GetSlider(CID_NUM_AI_SLIDER)->GetValue();
+	m_SampleUI.GetSlider(CID_NUM_AI_SLIDER)->SetVisible(m_bCreatingGame);
+
+	wsprintf(buffer, _T("%s: %d\n"), L"Number of AIs", m_NumAIs);
+	m_SampleUI.GetStatic(CID_NUM_AI_LABEL)->SetText(buffer);
+	m_SampleUI.GetStatic(CID_NUM_AI_LABEL)->SetVisible(m_bCreatingGame);
+
+	m_NumPlayers = m_SampleUI.GetSlider(CID_NUM_PLAYER_SLIDER)->GetValue();
+	m_SampleUI.GetSlider(CID_NUM_PLAYER_SLIDER)->SetVisible(m_bCreatingGame);
+	wsprintf(buffer, _T("%s: %d\n"), L"Number of Players", m_NumPlayers);
+	m_SampleUI.GetStatic(CID_NUM_PLAYER_LABEL)->SetText(buffer);
+	m_SampleUI.GetStatic(CID_NUM_PLAYER_LABEL)->SetVisible(m_bCreatingGame);
+
+	m_SampleUI.GetStatic(CID_HOST_LISTEN_PORT_LABEL)->SetVisible(m_NumPlayers>1 && m_bCreatingGame);
+	m_SampleUI.GetEditBox(CID_HOST_LISTEN_PORT)->SetVisible(m_NumPlayers>1 && m_bCreatingGame);
+	if (m_bCreatingGame)
+	{
+		WideToAnsiCch(ansiBuffer, m_SampleUI.GetEditBox(CID_HOST_LISTEN_PORT)->GetText(), 256);
+		m_HostListenPort = ansiBuffer;
+	}
+
+	m_SampleUI.GetStatic(CID_HOST_NAME_LABEL)->SetVisible(!m_bCreatingGame);
+	m_SampleUI.GetEditBox(CID_HOST_NAME)->SetVisible(!m_bCreatingGame);
+
+	WideToAnsiCch(ansiBuffer, m_SampleUI.GetEditBox(CID_HOST_NAME)->GetText(), 256);
+	m_HostName = ansiBuffer;
+
+	m_SampleUI.GetStatic(CID_CLIENT_ATTACH_PORT_LABEL)->SetVisible(!m_bCreatingGame);
+	m_SampleUI.GetEditBox(CID_CLIENT_ATTACH_PORT)->SetVisible(!m_bCreatingGame);
+	if (!m_bCreatingGame)
+	{
+		WideToAnsiCch(ansiBuffer, m_SampleUI.GetEditBox(CID_CLIENT_ATTACH_PORT)->GetText(), 256);
+		m_ClientAttachPort = ansiBuffer;
+	}
+	*/
 }
 
 bool MainMenuUI::OnRestore()
@@ -194,7 +318,13 @@ bool MainMenuUI::OnRender(double fTime, float fElapsedTime)
     // menu.
     //if(World::getWorld() && World::getWorld()->isRacePhase())
     //    printRenderStats();
-
+	/*
+	HRESULT hr;
+	DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"TeapotWarsHUD"); // These events are to help PIX identify what the code is doing
+	V(m_SampleUI.OnRender(fElapsedTime));
+	DXUT_EndPerfEvent();
+	return S_OK;
+	*/
 	return true;
 };
 
@@ -217,6 +347,65 @@ bool MainMenuUI::OnEvent(const Event& evt)
     {
 		return UIEventHandler::Get()->OnEvent(evt);
     }
+
+	switch (nControlID)
+	{
+		case CID_CREATE_GAME_RADIO:
+		{
+			m_bCreatingGame = true;
+			break;
+		}
+
+		case CID_JOIN_GAME_RADIO:
+		{
+			m_bCreatingGame = false;
+			break;
+		}
+
+		case CID_LEVEL_LISTBOX:
+		case CID_NUM_AI_SLIDER:
+		case CID_NUM_PLAYER_SLIDER:
+		case CID_HOST_LISTEN_PORT:
+		case CID_CLIENT_ATTACH_PORT:
+		case CID_HOST_NAME:
+		{
+			break;
+		}
+
+		case CID_START_BUTTON:
+		{
+			g_pApp->m_Options.m_numAIs = m_NumAIs;
+			g_pApp->m_Options.m_expectedPlayers = m_NumPlayers;
+			if (m_bCreatingGame)
+			{
+				if (m_LevelIndex == -1)
+				{
+					// FUTURE WORK - AN ERROR DIALOG WOULD BE GOOD HERE, OR JUST DEFALT THE SELECTION TO SOMETHING VALID
+					return;
+				}
+				g_pApp->m_Options.m_Level = ws2s(m_Levels[m_LevelIndex]);
+				g_pApp->m_Options.m_gameHost = "";
+				g_pApp->m_Options.m_listenPort = atoi(m_HostListenPort.c_str());
+			}
+			else
+			{
+				g_pApp->m_Options.m_gameHost = m_HostName;
+				g_pApp->m_Options.m_listenPort = atoi(m_ClientAttachPort.c_str());
+			}
+
+			VSetVisible(false);
+
+			shared_ptr<EvtData_Request_Start_Game> pRequestStartGameEvent(GCC_NEW EvtData_Request_Start_Game());
+			IEventManager::Get()->VQueueEvent(pRequestStartGameEvent);
+
+			break;
+		}
+
+		default:
+		{
+			GCC_ERROR("Unknown control.");
+		}
+	}
 	*/
 	return false;
 }
@@ -273,7 +462,14 @@ bool MainMenuView::OnMsgProc( const Event& evt )
 
 StandardHUD::StandardHUD()
 {
-
+	/*
+	// Initialize dialogs
+	m_HUD.Init(&D3DRenderer::g_DialogResourceManager);
+	m_HUD.SetCallback(OnGUIEvent); int iY = 10;
+	m_HUD.AddButton(IDC_TOGGLEFULLSCREEN, L"Toggle full screen", 35, iY, 125, 22);
+	m_HUD.AddButton(IDC_TOGGLEREF, L"Toggle REF (F3)", 35, iY += 24, 125, 22);
+	//m_HUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 35, iY += 24, 125, 22 );
+	*/
 }
 
 
@@ -311,8 +507,10 @@ bool StandardHUD::OnInit()
 
 bool StandardHUD::OnRestore()
 {
-    //mHUD.SetLocation( gameApp->GetScreenSize().x - 170, 0 );
-    //mHUD.SetSize( 170, 170 );
+	/*
+    mHUD.SetLocation( gameApp->GetScreenSize().x - 170, 0 );
+    mHUD.SetSize( 170, 170 );
+	*/
 	return BaseUI::OnRestore();
 }
 

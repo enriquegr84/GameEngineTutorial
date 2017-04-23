@@ -34,6 +34,27 @@ GameDemoLogic::~GameDemoLogic()
 }
 
 
+void GameDemoLogic::UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView)
+{
+	GameLogic::UpdateViewType(pView);
+
+	//  This is commented out because while the view is created and waiting, the player has NOT attached yet. 
+	/*
+	if (pView->GetType() == GV_REMOTE)
+	{
+	mHumanPlayersAttached++;
+	}
+	*/
+	if (pView->GetType() == GV_HUMAN)
+	{
+		mHumanPlayersAttached++;
+	}
+	else if (pView->GetType() == GV_AI)
+	{
+		mAIPlayersAttached++;
+	}
+}
+
 void GameDemoLogic::SetProxy()
 {
 	// FUTURE WORK: This can go in the base game logic!!!!

@@ -62,6 +62,8 @@ protected:
 	eastl::string mHostListenPort;
 	eastl::string mClientAttachPort;
 
+	void Set();
+
 public:
 	MainMenuUI();
 	virtual ~MainMenuUI();

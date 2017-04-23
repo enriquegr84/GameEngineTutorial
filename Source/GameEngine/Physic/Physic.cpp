@@ -426,7 +426,6 @@ bool BulletPhysics::Initialize()
 	}
 
 	mDynamicsWorld->setDebugDrawer( mDebugDrawer );
-
 	
 	// and set the internal tick callback to our own method "BulletInternalTickCallback"
 	mDynamicsWorld->setInternalTickCallback( BulletInternalTickCallback );

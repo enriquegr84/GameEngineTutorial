@@ -112,9 +112,11 @@ public:
 	virtual bool MatchResourceFormat(eastl::wstring name) 
 	{
 		if (name.rfind('.') != eastl::string::npos)
-			return name.substr(name.rfind('.') + 1) == eastl::wstring("wav");
-		else
-			return false;
+		{
+			eastl::wstring extension = name.substr(name.rfind('.') + 1);
+			return extension.compare(L"wav") == 0;
+		}
+		else return false;
 	}
 
 protected:
@@ -139,9 +141,11 @@ public:
 	virtual bool MatchResourceFormat(eastl::wstring name) 
 	{
 		if (name.rfind('.') != eastl::string::npos)
-			return name.substr(name.rfind('.') + 1) == eastl::wstring("ogg");
-		else
-			return false;
+		{
+			eastl::wstring extension = name.substr(name.rfind('.') + 1);
+			return extension.compare(L"ogg") == 0;
+		}
+		else return false;
 	}
 
 protected:

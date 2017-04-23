@@ -416,15 +416,15 @@ eastl::shared_ptr<UIFont> BaseUI::GetFont(const eastl::string& filename)
 	// Loop through each child element and load the component
     for (XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
     {
-		if (eastl::string("font") == eastl::string(pNode->Value()))
+		if (eastl::string("font").compare(eastl::string(pNode->Value())) == 0)
 		{
 			eastl::string type(pNode->Attribute("type"));
-			if (eastl::string("vector") == type)
+			if (eastl::string("vector").compare(type) == 0)
 			{
 				t = EGFT_VECTOR;
 				found=true;
 			}
-			else if (eastl::string("bitmap") == type)
+			else if (eastl::string("bitmap").compare(type) == 0)
 			{
 				t = EGFT_BITMAP;
 				found=true;

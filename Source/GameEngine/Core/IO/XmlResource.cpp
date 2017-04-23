@@ -47,12 +47,14 @@ void XmlResourceExtraData::ParseXml(char* pRawBuffer)
 
 //! returns true if the file maybe is able to be loaded by this class
 //! based on the file extension (e.g. ".xml")
-bool XmlResourceLoader::IsALoadableFileExtension(const eastl::wstring& filename) const
+bool XmlResourceLoader::IsALoadableFileExtension(const eastl::wstring& fileName) const
 {
-	if (filename.rfind('.') != eastl::string::npos)
-		return filename.substr(filename.rfind('.') + 1) == eastl::wstring("xml");
-	else
-		return false;
+	if (fileName.rfind('.') != eastl::string::npos)
+	{
+		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
+		return fileExtension.compare(L"xml") == 0;
+	}
+	else return false;
 }
 
 bool XmlResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)

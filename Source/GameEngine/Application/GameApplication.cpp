@@ -304,7 +304,7 @@ bool GameApplication::OnInitialize()
 	mResCache->RegisterLoader(CreateXmlResourceLoader());
 	//mResCache->RegisterLoader(CreateScriptResourceLoader());
 
-	//mOption.Init(L"Config/PlayerOptions.xml");
+	mOption.Init(L"Config/PlayerOptions.xml");
 
 	// Init the minimum managers so that user config exists, then
 	// handle all command line options that do not need (or must

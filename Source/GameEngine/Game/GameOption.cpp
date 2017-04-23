@@ -69,8 +69,7 @@ void GameOption::Init(const wchar_t* xmlFileName)
 			L"Failed to load game options from file: " + eastl::wstring(xmlFileName));
         return;
     }
-
-	if (mRoot)
+	else
 	{
         // Loop through each child element and load the component
         XMLElement* pNode = NULL;
@@ -79,7 +78,7 @@ void GameOption::Init(const wchar_t* xmlFileName)
 		{
 			eastl::string attribute;
 			attribute = pNode->Attribute("renderer");
-			if (attribute != "Direct3D9" && attribute != "Direct3D11")
+			if (attribute != "Direct3D 11")
 			{
 				LogError("Bad Renderer setting in Graphics options.");
 			}

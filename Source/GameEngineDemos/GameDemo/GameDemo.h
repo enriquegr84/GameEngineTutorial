@@ -41,7 +41,6 @@
 
 #include "Game/Game.h"
 
-class PathingGraph;
 class BaseEventManager;
 class NetworkEventForwarder;
 
@@ -63,6 +62,8 @@ public:
 	virtual void SetProxy();
 
 	virtual void MoveActor(const ActorId id, Transform const &transform);
+
+	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView);
 
 	// Overloads
 	virtual void ChangeState(BaseGameState newState);

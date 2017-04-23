@@ -51,6 +51,7 @@
 class PathingGraph;
 class ActorFactory;
 class LevelManager;
+class BaseGameView;
 class BaseGamePhysic;
 
 enum BaseGameState
@@ -156,6 +157,8 @@ public:
 	// [rez] Subclasses shouldn't override this function; use LoadGameDelegate() instead
     virtual bool LoadGame(const char* levelResource) override;  
 	virtual void SetProxy();
+
+	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView) { }
 
 	// Logic Update
 	virtual void OnUpdate(float time, float elapsedTime);
