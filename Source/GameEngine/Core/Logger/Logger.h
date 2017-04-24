@@ -64,7 +64,7 @@ public:
 	static void Unsubscribe(Listener* listener);
 
 private:
-	eastl::string mMessage;
+	static eastl::string mMessage;
 
 	static std::mutex msMutex;
 	static eastl::set<Listener*> msListeners;

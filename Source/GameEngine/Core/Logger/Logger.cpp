@@ -7,6 +7,10 @@
 
 #include "Logger.h"
 
+eastl::string Logger::mMessage;
+std::mutex Logger::msMutex;
+eastl::set<Logger::Listener*> Logger::msListeners;
+
 Logger::Logger(char const* file, char const* function, int line, eastl::string const& message)
 {
 	mMessage =
@@ -130,7 +134,3 @@ void Logger::Listener::Report(eastl::string const&)
 {
 	// Stub for derived classes.
 }
-
-
-std::mutex Logger::msMutex;
-eastl::set<Logger::Listener*> Logger::msListeners;

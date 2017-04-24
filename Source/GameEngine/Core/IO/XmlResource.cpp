@@ -57,7 +57,8 @@ bool XmlResourceLoader::IsALoadableFileExtension(const eastl::wstring& fileName)
 	else return false;
 }
 
-bool XmlResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)
+bool XmlResourceLoader::LoadResource(
+	void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)
 {
     if (rawSize <= 0)
         return false;
