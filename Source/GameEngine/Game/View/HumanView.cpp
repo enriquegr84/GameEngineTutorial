@@ -39,7 +39,7 @@
 #include "HumanView.h"
 
 #include "Game/Actor/AudioComponent.h"
-#include "Game/Actor/RenderComponentInterface.h"
+#include "Game/Actor/RenderComponent.h"
 
 //events related
 #include "Audio/DirectSoundAudio.h"
@@ -83,14 +83,14 @@ HumanView::HumanView()
 	RegisterAllDelegates();
 	mGameState = BGS_INITIALIZING;		// what is the current game state
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	if (gameApp->mRenderer)
+	Renderer* renderer = Renderer::Get();
+	if (renderer)
 	{
 		// Moved to the HumanView class post press
 		mScene.reset(new ScreenElementScene());
 		/*
 		mCamera.reset(new CameraSceneNode(
-			gameApp->mGame->GetNewActorID(), mScene.get(), Matrix4x4<float>::Identity));
+			GameLogic::Get()->GetNewActorID(), mScene.get(), Matrix4x4<float>::Identity));
 		LogAssert(m_pScene && mCamera, "Out of memory");
 		mCamera->SetFarValue(20000.f); // this increase a shadow visible range.
 
@@ -141,8 +141,8 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 	int deltaTime = int(fElapsedTime * 1000.0f);
 
 	// It is time to draw ?
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	//if (gameApp->mRenderer->PreRender())
+	Renderer* renderer = Renderer::Get();
+	//if (renderer->PreRender())
 	{
 		if( mRunFullSpeed || ( deltaTime > SCREEN_REFRESH_RATE) )
 		{
@@ -162,10 +162,10 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 			// Let the console render.
 			mConsole.OnRender(fTime, fElapsedTime);
 
-			//gameApp->mGame->RenderDiagnostics();
+			//GameLogic::Get()->RenderDiagnostics();
 		}
     }
-	//gameApp->mRenderer->PostRender();
+	//renderer->PostRender();
 }
 
 /*
@@ -218,8 +218,8 @@ bool HumanView::InitAudio()
 	if (!Audio::AudioSystem)
 		return false;
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	if (!Audio::AudioSystem->Initialize(gameApp->mSystem->GetID()))
+	System* system = System::Get();
+	if (!Audio::AudioSystem->Initialize(system->GetID()))
 		return false;
 
 	return true;
@@ -470,10 +470,10 @@ void HumanView::PlaySoundDelegate(BaseEventDataPtr pEventData)
 		eastl::static_pointer_cast<EventDataPlaySound>(pEventData);
 	/*
     // play the sound a bullet makes when it hits a teapot
-	GameApplication* gameApp = (GameApplication*)Application::App;
+	ResCache* resCache = ResCache::Get();
     BaseResource resource(pCastEventData->GetResource().c_str());
     eastl::shared_ptr<ResHandle> srh = 
-		eastl::static_pointer_cast<ResHandle>(gameApp->mResCache->GetHandle(&resource));
+		eastl::static_pointer_cast<ResHandle>(resCache->GetHandle(&resource));
     shared_ptr<SoundProcess> sfx(new SoundProcess(srh, 100, false));
     mProcessManager->AttachProcess(sfx);
 	*/
@@ -541,11 +541,18 @@ void HumanView::Console::SetDisplayText( const eastl::wstring & newText )
 bool HumanView::Console::OnInit( )
 {
 	BaseUI::OnInit();
+
 	/*
-	unsigned int width = mRenderer->GetScreenSize().Width;
-	unsigned int height = mRenderer->GetScreenSize().Height;
+	Renderer* renderer = Renderer::Get();
+	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
+	RectangleBase<2, int> screenRectangle;
+	screenRectangle.center[0] = 0;
+	screenRectangle.center[1] = (int)screenSize[1];
+	screenRectangle.extent[0] = (int)screenSize[0];
+	screenRectangle.extent[1] = (int)screenSize[1] - 10;
+
 	shared_ptr<BaseUIStaticText> consoleText(
-		AddStaticText(L">", RectangleBase<2, int>(0, height, width, height-10), false, true, 0, 1, true));
+		AddStaticText(L">", screenRectangle, false, true, 0, 1, true));
 	consoleText->SetOverrideColor(Color(1.0f, 1.0f, 1.0f, 1.0f)); //white font
 	consoleText->SetBackgroundColor(Color(1.0f, 0.0f, 0.0f, 0.0f)); //black background
 	*/

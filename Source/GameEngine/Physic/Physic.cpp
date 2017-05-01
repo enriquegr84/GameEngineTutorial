@@ -467,8 +467,7 @@ void BulletPhysics::SyncVisibleScene()
 			static_cast<ActorMotionState*>(it->second->getMotionState());
 		LogAssert( actorMotionState, "actor motion state null" );
 		
-		GameApplication* gameApp = (GameApplication*)Application::App;
-		eastl::shared_ptr<Actor> pGameActor(gameApp->mGame->GetActor(id));
+		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(id));
 		if (pGameActor && actorMotionState)
 		{
             eastl::shared_ptr<TransformComponent> pTransformComponent(

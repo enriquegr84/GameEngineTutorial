@@ -44,6 +44,8 @@
 #include "UIRoot.h"
 #include "UIFont.h"
 #include "UISkin.h"
+#include "UIButton.h"
+#include "UIWindow.h"
 #include "UIElement.h"
 #include "UIElementFactory.h"
 #include "DefaultUIElementFactory.h"
@@ -115,20 +117,20 @@ public:
 	virtual void Clear();
 
 	//! returns the font
-	virtual eastl::shared_ptr<UIFont> GetFont(const eastl::string& filename);
+	virtual eastl::shared_ptr<BaseUIFont> GetFont(const eastl::string& filename);
 
 	//! add an externally loaded font
-	virtual const eastl::shared_ptr<UIFont>& AddFont(
-		const eastl::string& name, const eastl::shared_ptr<UIFont>& font);
+	virtual const eastl::shared_ptr<BaseUIFont>& AddFont(
+		const eastl::string& name, const eastl::shared_ptr<BaseUIFont>& font);
 
 	//! Returns the element with the focus
-	virtual const eastl::shared_ptr<UIElement>& GetFocus() const;
+	virtual const eastl::shared_ptr<BaseUIElement>& GetFocus() const;
 
 	//! Returns the element last known to be under the mouse
-	virtual const eastl::shared_ptr<UIElement>& GetHovered() const;
+	virtual const eastl::shared_ptr<BaseUIElement>& GetHovered() const;
 
 	//! Returns the root gui element.
-	virtual const eastl::shared_ptr<UIElement>& GetRootUIElement();
+	virtual const eastl::shared_ptr<BaseUIElement>& GetRootUIElement();
 
 	//! Returns the default element factory which can create all built in elements
 	virtual eastl::shared_ptr<UIElementFactory> GetDefaultUIElementFactory();
@@ -137,32 +139,32 @@ public:
 	virtual eastl::shared_ptr<UIElementFactory> GetUIElementFactory(unsigned int index) const;
 
 	//! returns the current gui skin
-	virtual const eastl::shared_ptr<UISkin>& GetSkin() const;
+	virtual const eastl::shared_ptr<BaseUISkin>& GetSkin() const;
 
 	//! Sets a new UI Skin
-	virtual void SetSkin(const eastl::shared_ptr<UISkin>& skin);
+	virtual void SetSkin(const eastl::shared_ptr<BaseUISkin>& skin);
 
 	//! Creates a new UI Skin based on a template.
 	/** \return Returns a pointer to the created skin.
 	If you no longer need the skin, you should call UISkin::drop().
 	See IReferenceCounted::drop() for more information. */
-	virtual eastl::shared_ptr<UISkin> CreateSkin(UISkinThemeType type);
+	virtual eastl::shared_ptr<BaseUISkin> CreateSkin(UISkinThemeType type);
 
 	//! returns default font
-	virtual eastl::shared_ptr<UIFont> GetBuiltInFont() const;
+	virtual eastl::shared_ptr<BaseUIFont> GetBuiltInFont() const;
 
 	//! remove loaded font
-	virtual void RemoveFont(const eastl::shared_ptr<UIFont>& font);
+	virtual void RemoveFont(const eastl::shared_ptr<BaseUIFont>& font);
 
 	//! sets the focus to an element
-	virtual bool SetFocus(eastl::shared_ptr<UIElement> element);
+	virtual bool SetFocus(eastl::shared_ptr<BaseUIElement> element);
 
 	//! removes the focus from an element
-	virtual bool RemoveFocus(const eastl::shared_ptr<UIElement>& element);
+	virtual bool RemoveFocus(const eastl::shared_ptr<BaseUIElement>& element);
 
 	//! Returns if the element has focus
 	virtual bool HasFocus(
-		const eastl::shared_ptr<UIElement>& element, bool checkSubElements = false) const;
+		const eastl::shared_ptr<BaseUIElement>& element, bool checkSubElements = false) const;
 
 	//! Adds an element factory to the gui environment.
 	/** Use this to extend the gui environment with new element types which it should be
@@ -173,26 +175,35 @@ public:
 	virtual unsigned int GetRegisteredUIElementFactoryCount() const;
 
 	//! Adds a UI Element by its name
-	virtual eastl::shared_ptr<UIElement> AddUIElement(
-		UIElementType elementType, const eastl::shared_ptr<UIElement>& parent = 0);
+	virtual eastl::shared_ptr<BaseUIElement> AddUIElement(
+		UIElementType elementType, const eastl::shared_ptr<BaseUIElement>& parent = 0);
+
+	//! adds an button. The returned pointer must not be dropped.
+	virtual eastl::shared_ptr<BaseUIButton> AddButton(const RectangleBase<2, int>& rectangle,
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0, 
+		const wchar_t* tooltiptext = 0);
+
+	//! adds a window. The returned pointer must not be dropped.
+	virtual eastl::shared_ptr<BaseUIWindow> AddWindow(const RectangleBase<2, int>& rectangle, bool modal = false,
+		const wchar_t* text = 0, const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
 
 
 protected:
-	eastl::shared_ptr<UIElement> mRoot;
+	eastl::shared_ptr<BaseUIElement> mRoot;
 	bool mVisible;
 
 private:
 
-	eastl::shared_ptr<UIElement> GetNextElement(bool reverse = false, bool group = false);
+	eastl::shared_ptr<BaseUIElement> GetNextElement(bool reverse = false, bool group = false);
 	void UpdateHoveredElement(Vector2<int> mousePos);
 
 	eastl::vector<eastl::shared_ptr<UIElementFactory>> UIElementFactoryList;
 
-	eastl::shared_ptr<UIElement> mHovered;
-	eastl::shared_ptr<UIElement> mHoveredNoSubelement;	// subelements replaced by their parent, so you only have 'real' elements here
-	eastl::shared_ptr<UIElement> mFocus;
+	eastl::shared_ptr<BaseUIElement> mHovered;
+	eastl::shared_ptr<BaseUIElement> mHoveredNoSubelement;	// subelements replaced by their parent, so you only have 'real' elements here
+	eastl::shared_ptr<BaseUIElement> mFocus;
 	Vector2<int> mLastHoveredMousePos;
-	eastl::shared_ptr<UISkin> mCurrentSkin;
+	eastl::shared_ptr<BaseUISkin> mCurrentSkin;
 };
 
 

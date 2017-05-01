@@ -79,12 +79,16 @@
     <ClCompile Include="..\Game\Level\LevelManager.cpp" />
     <ClCompile Include="..\Game\View\HumanView.cpp" />
     <ClCompile Include="..\Game\View\UI\DefaultUIElementFactory.cpp" />
+    <ClCompile Include="..\Game\View\UI\UIButton.cpp" />
+    <ClCompile Include="..\Game\View\UI\UIFont.cpp" />
     <ClCompile Include="..\Game\View\UI\UIRoot.cpp" />
+    <ClCompile Include="..\Game\View\UI\UISkin.cpp" />
+    <ClCompile Include="..\Game\View\UI\UIWindow.cpp" />
     <ClCompile Include="..\Game\View\UI\UserInterface.cpp" />
     <ClCompile Include="..\Graphic\Effect\Font.cpp" />
     <ClCompile Include="..\Graphic\Effect\FontArialW400H18.cpp" />
     <ClCompile Include="..\Graphic\Effect\TextEffect.cpp" />
-    <ClCompile Include="..\Graphic\Effect\TriangleEffect.cpp" />
+    <ClCompile Include="..\Graphic\Effect\BasicEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\VisualEffect.cpp" />
     <ClCompile Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.cpp" />
     <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLBaseBuffer.cpp" />
@@ -382,7 +386,6 @@
     <ClInclude Include="..\Game\Actor\BaseRenderComponent.h" />
     <ClInclude Include="..\Game\Actor\PhysicComponent.h" />
     <ClInclude Include="..\Game\Actor\RenderComponent.h" />
-    <ClInclude Include="..\Game\Actor\RenderComponentInterface.h" />
     <ClInclude Include="..\Game\Actor\TransformComponent.h" />
     <ClInclude Include="..\Game\GameLogic.h" />
     <ClInclude Include="..\Game\Game.h" />
@@ -393,11 +396,13 @@
     <ClInclude Include="..\Game\View\GameView.h" />
     <ClInclude Include="..\Game\View\HumanView.h" />
     <ClInclude Include="..\Game\View\UI\DefaultUIElementFactory.h" />
+    <ClInclude Include="..\Game\View\UI\UIButton.h" />
     <ClInclude Include="..\Game\View\UI\UIElement.h" />
     <ClInclude Include="..\Game\View\UI\UIElementFactory.h" />
     <ClInclude Include="..\Game\View\UI\UIFont.h" />
     <ClInclude Include="..\Game\View\UI\UIRoot.h" />
     <ClInclude Include="..\Game\View\UI\UISkin.h" />
+    <ClInclude Include="..\Game\View\UI\UIWindow.h" />
     <ClInclude Include="..\Game\View\UI\UserInterface.h" />
     <ClInclude Include="..\Graphic\3rdParty\assimp\include\ai_assert.h" />
     <ClInclude Include="..\Graphic\3rdParty\assimp\include\anim.h" />
@@ -435,7 +440,7 @@
     <ClInclude Include="..\Graphic\Effect\Font.h" />
     <ClInclude Include="..\Graphic\Effect\FontArialW400H18.h" />
     <ClInclude Include="..\Graphic\Effect\TextEffect.h" />
-    <ClInclude Include="..\Graphic\Effect\TriangleEffect.h" />
+    <ClInclude Include="..\Graphic\Effect\BasicEffect.h" />
     <ClInclude Include="..\Graphic\Effect\VisualEffect.h" />
     <ClInclude Include="..\Graphic\Graphic.h" />
     <ClInclude Include="..\Graphic\GraphicStd.h" />
@@ -589,7 +594,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GameEngine</RootNamespace>
     <ProjectName>GameEngine</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

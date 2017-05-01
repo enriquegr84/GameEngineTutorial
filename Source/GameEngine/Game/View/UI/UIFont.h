@@ -5,28 +5,34 @@
 #ifndef UIFONT_H
 #define UIFONT_H
 
+#include "UIElement.h"
+
+#include "Graphic/Resource/Texture/Texture.h"
+
+class BaseUISpriteBank;
+
 //! An enum for the different types of UI font.
 enum UIFontType
 {
 	//! Bitmap fonts loaded from an XML file or a texture.
-	GFT_BITMAP = 0,
+	FT_BITMAP = 0,
 
 	//! Scalable vector fonts loaded from an XML file.
 	/** These fonts reside in system memory and use no video memory
 	until they are displayed. These are slower than bitmap fonts
 	but can be easily scaled and rotated. */
-	GFT_VECTOR,
+	FT_VECTOR,
 
 	//! A font which uses a the native API provided by the operating system.
 	/** Currently not used. */
-	GFT_OS,
+	FT_OS,
 
 	//! An external font type provided by the user.
-	GFT_CUSTOM
+	FT_CUSTOM
 };
 
 //! Font interface.
-class UIFont
+class BaseUIFont
 {
 public:
 
@@ -84,8 +90,113 @@ public:
 	virtual void SetInvisibleCharacters( const wchar_t *s ) = 0;
 
 	//! Returns the type of this font
-	virtual UIFontType GetType() const { return GFT_CUSTOM; }
+	virtual UIFontType GetType() const { return FT_CUSTOM; }
+};
+
+//! Font interface.
+class UIFontBitmap : public BaseUIFont
+{
+public:
+
+	//! Returns the type of this font
+	virtual UIFontType GetType() const { return FT_BITMAP; }
+
+	//! returns the parsed Symbol Information
+	virtual const eastl::shared_ptr<BaseUISpriteBank>& GetSpriteBank() const = 0;
+
+	//! returns the sprite number from a given character
+	virtual unsigned int GetSpriteNoFromChar(const wchar_t *c) = 0;
+
+	//! Gets kerning values (distance between letters) for the font. If no parameters are provided,
+	/** the global kerning distance is returned.
+	\param thisLetter: If this parameter is provided, the left side kerning for this letter is added
+	to the global kerning value. For example, a space might only be one pixel wide, but it may
+	be displayed as several pixels.
+	\param previousLetter: If provided, kerning is calculated for both letters and added to the global
+	kerning value. For example, EGFT_BITMAP will add the right kerning value of previousLetter to the
+	left side kerning value of thisLetter, then add the global value.
+	*/
+	virtual int GetKerningWidth(const wchar_t* thisLetter = 0, const wchar_t* previousLetter = 0) = 0;
+};
+
+
+class BaseUI;
+
+
+class UIFont : public UIFontBitmap
+{
+public:
+
+	//! constructor
+	UIFont(BaseUI* ui, const eastl::wstring& filename);
+
+	//! destructor
+	virtual ~UIFont();
+
+	//! loads a font from a texture file
+	bool Load(const eastl::wstring& filename);
+
+	//! loads a font from an XML file
+	bool Load(XMLElement* pRoot);
+
+	//! draws an text and clips it to the specified rectangle if wanted
+	virtual void Draw(const eastl::wstring& text, const RectangleBase<2, int>& position,
+		eastl::array<float, 4> color, bool hcenter = false, bool vcenter = false, const RectangleBase<2, int>* clip = 0);
+
+	//! returns the dimension of a text
+	virtual Vector2<unsigned int> GetDimension(const wchar_t* text);
+
+	//! Calculates the index of the character in the text which is on a specific position.
+	virtual int GetCharacterFromPos(const wchar_t* text, int pixelX);
+
+	//! set an Pixel Offset on drawing ( scale position on width )
+	virtual void SetKerningWidth(int kerning);
+	virtual void SetKerningHeight(int kerning);
+
+	//! set an Pixel Offset on drawing ( scale position on width )
+	virtual int GetKerningWidth(const wchar_t* thisLetter = 0, const wchar_t* previousLetter = 0);
+	virtual int GetKerningHeight();
+
+	//! gets the sprite bank
+	virtual const eastl::shared_ptr<BaseUISpriteBank>& GetSpriteBank() const;
+
+	//! returns the sprite number from a given character
+	virtual unsigned int GetSpriteNoFromChar(const wchar_t *c);
+
+	virtual void SetInvisibleCharacters(const wchar_t *s);
+
+	//! Returns the type of this font
+	virtual UIFontType GetType() const { return FT_BITMAP; }
+
+private:
+
+	struct FontArea
+	{
+		FontArea() : underhang(0), overhang(0), width(0), spriteno(0) {}
+		int				underhang;
+		int				overhang;
+		int				width;
+		unsigned int	spriteno;
+	};
+
+	//! load & prepare font from ITexture
+	bool LoadTexture(Texture* image, const eastl::wstring& name);
+
+	void ReadPositions(Texture* texture, int& lowerRightPositions);
+
+	int GetAreaFromCharacter(const wchar_t c);
+	void SetMaxHeight();
+
+	BaseUI* mUI;
+
+	eastl::vector<FontArea> mAreas;
+	eastl::map<wchar_t, int> mCharacterMap;
+	eastl::shared_ptr<BaseUISpriteBank>	mSpriteBank;
+	unsigned int mWrongCharacter;
+	int mMaxHeight;
+	int mGlobalKerningWidth, mGlobalKerningHeight;
+
+	eastl::wstring mInvisible;
 };
 
 #endif
-

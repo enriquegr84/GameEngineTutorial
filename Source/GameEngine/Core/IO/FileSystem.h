@@ -102,12 +102,40 @@ public:
 	//! Get the active type of file system.
 	virtual BaseFileSystemType GetFileSystemType( );
 
+	// Support for paths to locate files. For platform independence, use
+	// "/" for the path separator. Please terminate the input 'directory'
+	// values with "/". The Insert/Remove functions return 'true' iff the
+	// operation was successful.
+	virtual bool InsertDirectory(const eastl::string& directory);
+	virtual bool RemoveDirectory(const eastl::string& directory);
+	virtual void RemoveAllDirectories();
+
+	// The GetPath* function searches the list of directories and returns the
+	// fully decorated file name, assuming it satisfies the required
+	// conditions, or returns "" if conditions are not met. 
+	eastl::string GetPath(const eastl::string& filename);
+
+	// Getter for the main global filesystem. This is the filesystem that is used by 
+	// the majority of the engine, though you are free to define your own as long as 
+	// you instantiate it. It is not valid to have more than one global filesystem.
+	static FileSystem* Get(void);
+
+protected:
+
+	static FileSystem* mFileSystem;
+
 private:
 
 	//! Currently used FileSystemType
 	BaseFileSystemType mFileSystemType;
 	//! WorkingDirectory for Native and Virtual filesystems
 	eastl::wstring mWorkingDirectory[2];
+
+	// The list of directories for GetPath to search. The list is
+	// allocated during InitTerm::ExecuteInitializers. As with other
+	// classes in GameEngine, no dynamic allocation occurs pre-main to
+	// assist in tracking memory problems.
+	eastl::vector<eastl::string>* msDirectories;
 };
 
 #endif

@@ -12,6 +12,7 @@
 #include "Application.h"
 
 #include "System/System.h"
+#include "Core/IO/FileSystem.h"
 #include "Graphic/Renderer/Renderer.h"
 
 //	Window abstracts the platform-dependent implementations
@@ -71,6 +72,7 @@ protected:
 	
 	//main services
 	eastl::shared_ptr<ProgramFactory> mProgramFactory;
+	eastl::shared_ptr<FileSystem> mFileSystem;
 	eastl::shared_ptr<Renderer> mRenderer;
 	eastl::shared_ptr<System> mSystem;
 };

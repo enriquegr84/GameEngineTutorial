@@ -103,9 +103,9 @@ typedef ThreadSafeQueue<BaseEventDataPtr> ThreadSafeEventQueue;
 //---------------------------------------------------------------------------------------------------------------------
 // Macro for event registration
 //---------------------------------------------------------------------------------------------------------------------
-extern GenericObjectFactory<BaseEventData, BaseEventType> EventFactory;
-#define REGISTER_EVENT(eventClass) EventFactory.Register<eventClass>(eventClass::skEventType)
-#define CREATE_EVENT(eventType) EventFactory.Create(eventType)
+extern GenericObjectFactory<BaseEventData, BaseEventType> mEventFactory;
+#define REGISTER_EVENT(eventClass) mEventFactory.Register<eventClass>(eventClass::skEventType)
+#define CREATE_EVENT(eventType) mEventFactory.Create(eventType)
 
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -210,7 +210,7 @@ public:
 
 protected:
 
-	static BaseEventManager* EventMgr;
+	static BaseEventManager* mEventMgr;
 };
 
 const unsigned int EVENTMANAGER_NUM_QUEUES = 2;

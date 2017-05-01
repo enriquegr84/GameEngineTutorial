@@ -10,6 +10,14 @@
 
 #include "Renderer.h"
 
+Renderer* Renderer::mRenderer = NULL;
+
+Renderer* Renderer::Get(void)
+{
+	LogAssert(Renderer::mRenderer, "Renderer doesn't exist");
+	return Renderer::mRenderer;
+}
+
 //----------------------------------------------------------------------------
 Renderer::Renderer()
 	:
@@ -21,11 +29,21 @@ Renderer::Renderer()
 {
 	mClearColor.fill(1.0f);
 	mCreateGraphicObject.fill(nullptr);
+
+	if (Renderer::mRenderer)
+	{
+		LogError("Attempting to create two global renderer! \
+					The old one will be destroyed and overwritten with this one.");
+		delete Renderer::mRenderer;
+	}
+
+	Renderer::mRenderer = this;
 }
 //----------------------------------------------------------------------------
 Renderer::~Renderer()
 {
-
+	if (Renderer::mRenderer == this)
+		Renderer::mRenderer = nullptr;
 }
 //----------------------------------------------------------------------------
 void Renderer::SetFont(eastl::shared_ptr<Font> const& font)

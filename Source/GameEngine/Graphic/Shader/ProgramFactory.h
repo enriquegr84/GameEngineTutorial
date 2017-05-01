@@ -17,9 +17,10 @@
 class GRAPHIC_ITEM ProgramFactory
 {
 public:
+	ProgramFactory();
+
     // Abstract base class.
     virtual ~ProgramFactory();
-    ProgramFactory();
 
     // All members are in public scope, because there are no side effects
     // when the values are modified.  The current values are used in the
@@ -67,7 +68,15 @@ public:
     void PushFlags();
     void PopFlags();
 
+	// Getter for the main global program factory. This is the program factory that is used by 
+	// the majority of the engine, though you are free to define your own as long as you instantiate it.
+	// It is not valid to have more than one global program factory.
+	static eastl::shared_ptr<ProgramFactory> Get(void);
+
 protected:
+
+	static eastl::shared_ptr<ProgramFactory> mProgramFactory;
+
 	virtual eastl::shared_ptr<VisualProgram> CreateFromNamedFiles(
 		eastl::string const& vsName, eastl::string const& vsFile,
 		eastl::string const& psName, eastl::string const& psFile,

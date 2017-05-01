@@ -135,7 +135,6 @@ void GameDemoManager::LoadGameDemosList()
     mGameDemosAvailable.clear();
     mGameDemos.clear();
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
     for(unsigned int i=0; i<mGameDemoSearchPath.size(); i++)
     {
         const eastl::wstring &dir = mGameDemoSearchPath[i];
@@ -147,7 +146,7 @@ void GameDemoManager::LoadGameDemosList()
         // Then see if a subdir of this dir contains tracks
         // ------------------------------------------------
         eastl::set<eastl::wstring> dirs;
-		gameApp->mFileSystem->ListFiles(
+		FileSystem::Get()->ListFiles(
 			dirs, eastl::wstring("../../../Assets/SuperTuxKart/") + dir);
         for(eastl::set<eastl::wstring>::iterator subdir = dirs.begin();
             subdir != dirs.end(); subdir++)
@@ -165,10 +164,8 @@ void GameDemoManager::LoadGameDemosList()
  */
 bool GameDemoManager::LoadGameDemo(const eastl::wstring& dirname)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-
     eastl::wstring configFile = dirname + L"demo.xml";
-	if (!gameApp->mFileSystem->ExistFile(configFile))
+	if (!FileSystem::Get()->ExistFile(configFile))
         return false;
 
     GameDemo *gameDemo;

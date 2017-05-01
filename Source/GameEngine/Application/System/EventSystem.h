@@ -460,7 +460,7 @@ enum MouseButtonStateMask
 	MBSM_FORCE_32_BIT = 0x7fffffff
 };
 
-class UIElement;
+class BaseUIElement;
 
 //! Enumeration for all events which are sendable by the gui system
 enum UIEventType
@@ -472,7 +472,7 @@ enum UIEventType
 
 	//! A gui element has got the focus.
 	/** If the event is absorbed then the focus will not be changed. */
-	UIEVT_ELEMENT_Focused,
+	UIEVT_ELEMENT_FOCUSED,
 
 	//! The mouse cursor hovered over a gui element.
 	/** If an element has sub-elements you also get this message for the subelements */
@@ -500,11 +500,11 @@ struct Event
 	//! Any kind of UI event.
 	struct UIEvent
 	{
-		//! UIElement who called the event
-		UIElement* mCaller;
+		//! BaseUIElement who called the event
+		BaseUIElement* mCaller;
 
 		//! If the event has something to do with another element, it will be held here.
-		UIElement* mElement;
+		BaseUIElement* mElement;
 
 		//! Type of UI Event
 		UIEventType mEventType;

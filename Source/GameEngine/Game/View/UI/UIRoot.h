@@ -10,7 +10,7 @@
 #include "UIElement.h"
 
 //! Root Element from all UIElements in the scene
-class UIRoot : public UIElement
+class UIRoot : public BaseUIElement
 {
 public:
 

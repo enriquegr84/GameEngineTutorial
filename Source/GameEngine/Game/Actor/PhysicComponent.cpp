@@ -37,8 +37,9 @@
 //========================================================================
 
 #include "PhysicComponent.h"
+#include "TransformComponent.h"
 
-#include "Application/GameApplication.h"
+#include "Game/GameLogic.h"
 
 // all times are units-per-second
 const float DEFAULT_MAX_VELOCITY = 7.5f;
@@ -66,16 +67,14 @@ PhysicComponent::PhysicComponent(void)
 
 PhysicComponent::~PhysicComponent(void)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
 	gamePhysics->RemoveActor(mOwner->GetId());
 }
 
 bool PhysicComponent::Init(XMLElement* pData)
 {
     // no point in having a physics component with no game physics
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
     if (!gamePhysics)
         return false;
 
@@ -162,9 +161,7 @@ void PhysicComponent::PostInit(void)
 {
     if (mOwner)
     {
-		GameApplication* gameApp = (GameApplication*)Application::App;
-		BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
-
+		BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
 		if (mShape == "Sphere")
 		{
 			gamePhysics->AddSphere((float)mRigidBodyScale[0], mOwner, mDensity, mMaterial);
@@ -191,8 +188,7 @@ void PhysicComponent::Update(int deltaMs)
         return;
     }
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
 	if (mAcceleration != 0)
     {
         // calculate the acceleration this frame
@@ -282,22 +278,19 @@ void PhysicComponent::BuildRigidBodyTransform(XMLElement* pTransformElement)
 
 void PhysicComponent::ApplyForce(const Vector3<float>& direction, float forceNewtons)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
     gamePhysics->ApplyForce(direction, forceNewtons, mOwner->GetId());
 }
 
 void PhysicComponent::ApplyTorque(const Vector3<float>& direction, float forceNewtons)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
     gamePhysics->ApplyTorque(direction, forceNewtons, mOwner->GetId());
 }
 
 bool PhysicComponent::KinematicMove(const Transform &transform)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
 	return gamePhysics->KinematicMove(transform, mOwner->GetId());
 }
 
@@ -323,15 +316,13 @@ void PhysicComponent::RemoveAngularAcceleration(void)
 
 Vector3<float> PhysicComponent::GetVelocity(void)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
     return gamePhysics->GetVelocity(mOwner->GetId());
 }
 
 void PhysicComponent::SetVelocity(const Vector3<float>& velocity)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
     gamePhysics->SetVelocity(mOwner->GetId(), velocity);
 }
 
@@ -373,7 +364,6 @@ void PhysicComponent::SetPosition(float x, float y, float z)
 
 void PhysicComponent::Stop(void)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	BaseGamePhysic* gamePhysics = gameApp->mGame->GetGamePhysics().get();
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
     return gamePhysics->StopActor(mOwner->GetId());
 }

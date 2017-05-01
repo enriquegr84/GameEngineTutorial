@@ -18,6 +18,7 @@
 // GameDemoLogic::GameDemoLogic
 //
 GameDemoLogic::GameDemoLogic()
+	: GameLogic()
 {
 	mPhysics.reset(CreateGamePhysics());
 	RegisterAllDelegates();

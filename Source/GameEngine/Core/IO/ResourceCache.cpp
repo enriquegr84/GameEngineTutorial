@@ -40,8 +40,6 @@
 
 #include "Core/Utility/StringUtil.h"
 
-#include "Application/GameApplication.h"
-
 //
 //  Resource::Resource
 //
@@ -77,6 +75,14 @@ ResHandle::~ResHandle()
 }
 
 
+ResCache* ResCache::mResCache = NULL;
+
+ResCache* ResCache::Get(void)
+{
+	LogAssert(ResCache::mResCache, "Resource cache doesn't exist");
+	return ResCache::mResCache;
+}
+
 //
 // ResCache::ResCache							- Chapter 8, page 227
 //
@@ -85,6 +91,15 @@ ResCache::ResCache(const unsigned int sizeInMb, BaseResourceFile *resFile )
 	mCacheSize = sizeInMb * 1024 * 1024; // total memory size
 	mAllocated = 0; // total memory allocated
 	mFile = resFile;
+
+	if (ResCache::mResCache)
+	{
+		LogError("Attempting to create two global resource cache! \
+					The old one will be destroyed and overwritten with this one.");
+		delete ResCache::mResCache;
+	}
+
+	ResCache::mResCache = this;
 }
 
 //
@@ -97,6 +112,9 @@ ResCache::~ResCache()
 		FreeOneResource();
 	}
 	delete mFile;
+
+	if (ResCache::mResCache == this)
+		ResCache::mResCache = nullptr;
 }
 
 //
@@ -396,9 +414,10 @@ eastl::vector<eastl::wstring> ResCache::Match(const eastl::wstring pattern)
 		return matchingNames;
 
 	/*
-	GameApplication* gameApp = (GameApplication*)Application::App;
+	FileSystem* fileSystem = FileSystem::Get();
+
 	bool searchDirectory = false;
-	eastl::string directory = gameApp->mFileSystem->GetFileDir(pattern);
+	eastl::string directory = FileSystem->GetFileDir(pattern);
 	eastl::string filePattern = Utils::GetFileBasename(pattern);
 	eastl::string currentDirectory = ".";
 	if ( directory != ".")
@@ -438,14 +457,14 @@ int ResCache::Preload(const eastl::wstring pattern, void (*progressCallback)(int
 	int loaded = 0;
 	bool cancel = false;
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
 	for (int i=0; i<numFiles; ++i)
 	{
 		BaseResource resource(mFile->GetResourceName(i));
 
 		if (WildcardMatch(pattern.c_str(), resource.mName.c_str()))
 		{
-			const eastl::shared_ptr<ResHandle>& handle = gameApp->mResCache->GetHandle(&resource);
+			const eastl::shared_ptr<ResHandle>& handle = 
+				ResCache::Get()->GetHandle(&resource);
 			++loaded;
 		}
 

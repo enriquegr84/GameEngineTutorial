@@ -42,7 +42,7 @@
 
 #include "GameEngineStd.h"
 
-#include "RenderComponentInterface.h"
+#include "ActorComponent.h"
 
 //---------------------------------------------------------------------------------------------------------------------
 // RenderComponent base class.  This class does most of the work except actually creating the scene, which is 
@@ -50,11 +50,16 @@
 // http://en.wikipedia.org/wiki/Factory_method_pattern
 //---------------------------------------------------------------------------------------------------------------------
 
-class BaseRenderComponent : public RenderComponentInterface
+class BaseRenderComponent : public ActorComponent
 {
 protected:
     //Color mColor;
     //eastl::shared_ptr<SceneNode> mSceneNode;
+
+	// virtual ComponentId GetComponentId(void) const override { return COMPONENT_ID; }
+
+	// RenderComponentInterface
+	//virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) = 0;
 
 public:
     virtual bool Init(XMLElement* pData) override;

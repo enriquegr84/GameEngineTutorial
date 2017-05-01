@@ -9,6 +9,8 @@
 
 #include "Application/System/EventSystem.h"
 
+#include "Core/IO/FileSystem.h"
+
 #include "Mathematic/Algebra/Vector2.h"
 #include "Mathematic/Geometric/Rectangle.h"
 
@@ -117,14 +119,14 @@ enum UIElementType
 };
 
 //! Base class of all UI elements.
-class UIElement : public eastl::enable_shared_from_this<UIElement>
+class BaseUIElement : public eastl::enable_shared_from_this<BaseUIElement>
 {
 friend class BaseUI;
 
 public:
 
 	//! Constructor
-	UIElement(UIElementType type, int id, const RectangleBase<2, int>& rectangle)
+	BaseUIElement(UIElementType type, int id, const RectangleBase<2, int>& rectangle)
 	:	mParent(0), mRelativeRect(rectangle), mAbsoluteRect(rectangle), mAbsoluteClippingRect(rectangle), 
 		mDesiredRect(rectangle), mMaxSize{ 0,0 }, mMinSize{ 1, 1 }, mVisible(true), mEnabled(true), mSubElement(false),
 		mNoClip(false), mID(id), mTabStop(false), mTabOrder(-1), mTabGroup(false), mAlignLeft(UIA_UPPERLEFT), 
@@ -134,10 +136,10 @@ public:
 	}
 
 	//! Destructor
-	virtual ~UIElement()
+	virtual ~BaseUIElement()
 	{
 		// delete all children
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+		eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
 		for (; it != mChildren.end(); ++it)
 		{
 			(*it)->mParent = 0;
@@ -146,7 +148,7 @@ public:
 	}
 
 	//! set the parent of the element
-	void SetParent(const eastl::shared_ptr<UIElement>& parent)
+	void SetParent(const eastl::shared_ptr<BaseUIElement>& parent)
 	{
 		if (parent)
 		{
@@ -157,7 +159,7 @@ public:
 	}
 
 	//! Returns parent of this element.
-	const eastl::shared_ptr<UIElement>& GetParent() const
+	const eastl::shared_ptr<BaseUIElement>& GetParent() const
 	{
 		return mParent;
 	}
@@ -337,7 +339,7 @@ public:
 		RecalculateAbsolutePosition(false);
 
 		// update all children
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+		eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
 		for (; it != mChildren.end(); ++it)
 		{
 			(*it)->UpdateAbsoluteTransformation();
@@ -357,14 +359,14 @@ public:
 	\return The topmost UI element at that point, or 0 if there are
 	no candidate elements at this point.
 	*/
-	eastl::shared_ptr<UIElement> GetElementFromPoint(const Vector2<int>& point)
+	eastl::shared_ptr<BaseUIElement> GetElementFromPoint(const Vector2<int>& point)
 	{
-		eastl::shared_ptr<UIElement> target = 0;
+		eastl::shared_ptr<BaseUIElement> target = 0;
 
 		// we have to search from back to front, because later children
 		// might be drawn over the top of earlier ones.
 
-		eastl::list<eastl::shared_ptr<UIElement>>::reverse_iterator it = mChildren.rbegin();
+		eastl::list<eastl::shared_ptr<BaseUIElement>>::reverse_iterator it = mChildren.rbegin();
 		if (IsVisible())
 		{
 			while(it != mChildren.rend())
@@ -397,7 +399,7 @@ public:
 
 
 	//! Adds a UI element as new child of this element.
-	virtual void AddChild(const eastl::shared_ptr<UIElement>& child)
+	virtual void AddChild(const eastl::shared_ptr<BaseUIElement>& child)
 	{
 		AddChildToEnd(child);
 		if (child)
@@ -405,9 +407,9 @@ public:
 	}
 
 	//! Removes a child.
-	virtual void RemoveChild(const eastl::shared_ptr<UIElement>& child)
+	virtual void RemoveChild(const eastl::shared_ptr<BaseUIElement>& child)
 	{
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+		eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
 		for (; it != mChildren.end(); ++it)
 		{
 			if ((*it) == child)
@@ -433,7 +435,7 @@ public:
 	{
 		if ( IsVisible() )
 		{
-			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+			eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
 			for (; it != mChildren.end(); ++it)
 				(*it)->Draw();
 		}
@@ -445,7 +447,7 @@ public:
 	{
 		if ( IsVisible() )
 		{
-			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+			eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
 			for (; it != mChildren.end(); ++it)
 				(*it)->OnPostRender( timeMs );
 		}
@@ -533,11 +535,11 @@ public:
 		if (index < 0)
 		{
 			mTabOrder = 0;
-			eastl::shared_ptr<UIElement> el = GetTabGroup();
+			eastl::shared_ptr<BaseUIElement> el = GetTabGroup();
 			while (mTabGroup && el && el->mParent)
 				el = el->mParent;
 
-			const eastl::shared_ptr<UIElement>& first=0, closest=0;
+			const eastl::shared_ptr<BaseUIElement>& first=0, closest=0;
 			if (el)
 			{
 				// find the highest element number
@@ -574,9 +576,9 @@ public:
 
 
 	//! Returns the container element which holds all elements in this element's tab group.
-	eastl::shared_ptr<UIElement> GetTabGroup()
+	eastl::shared_ptr<BaseUIElement> GetTabGroup()
 	{
-		eastl::shared_ptr<UIElement> ret(shared_from_this());
+		eastl::shared_ptr<BaseUIElement> ret(shared_from_this());
 		while (ret && !ret->IsTabGroup())
 			ret = ret->GetParent();
 
@@ -655,9 +657,9 @@ public:
 
 	//! Brings a child to front
 	/** \return True if successful, false if not. */
-	virtual bool BringToFront(const eastl::shared_ptr<UIElement>& element)
+	virtual bool BringToFront(const eastl::shared_ptr<BaseUIElement>& element)
 	{
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+		eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
 		for (; it != mChildren.end(); ++it)
 		{
 			if (element == (*it))
@@ -674,9 +676,9 @@ public:
 
 	//! Moves a child to the back, so it's siblings are drawn on top of it
 	/** \return True if successful, false if not. */
-	virtual bool SendToBack(const eastl::shared_ptr<UIElement>& element)
+	virtual bool SendToBack(const eastl::shared_ptr<BaseUIElement>& element)
 	{
-		eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+		eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
 		if (element == (*it)) // already there
 			return true;
 
@@ -694,7 +696,7 @@ public:
 	}
 
 	//! Returns list with children of this element
-	virtual const eastl::list<eastl::shared_ptr<UIElement>>& GetChildren() const
+	virtual const eastl::list<eastl::shared_ptr<BaseUIElement>>& GetChildren() const
 	{
 		return mChildren;
 	}
@@ -707,11 +709,11 @@ public:
 	should be searched too.
 	\return Returns the first element with the given id. If no element
 	with this id was found, 0 is returned. */
-	virtual eastl::shared_ptr<UIElement> GetElementFromId(int id, bool searchchildren=false) const
+	virtual eastl::shared_ptr<BaseUIElement> GetElementFromId(int id, bool searchchildren=false) const
 	{
-		eastl::shared_ptr<UIElement> e = 0;
+		eastl::shared_ptr<BaseUIElement> e = 0;
 
-		eastl::list<eastl::shared_ptr<UIElement>>::const_iterator it = mChildren.begin();
+		eastl::list<eastl::shared_ptr<BaseUIElement>>::const_iterator it = mChildren.begin();
 		for (; it != mChildren.end(); ++it)
 		{
 			if ((*it)->GetID() == id)
@@ -730,7 +732,7 @@ public:
 
 	//! returns true if the given element is a child of this one.
 	//! \param child: The child element to check
-	bool IsMyChild(UIElement* child) const
+	bool IsMyChild(BaseUIElement* child) const
 	{
 		if (!child)
 			return false;
@@ -754,7 +756,7 @@ public:
 	\param includeInvisible: includes invisible elements in the search (default=false)
 	\return true if successfully found an element, false to continue searching/fail */
 	bool GetNextElement(int startOrder, bool reverse, bool group,
-		eastl::shared_ptr<UIElement> first, eastl::shared_ptr<UIElement> closest, 
+		eastl::shared_ptr<BaseUIElement> first, eastl::shared_ptr<BaseUIElement> closest,
 		bool includeInvisible=false) const
 	{
 		// we'll stop searching if we find this number
@@ -762,7 +764,7 @@ public:
 		if (wanted==-2)
 			wanted = 1073741824; // maximum int
 
-		eastl::list<eastl::shared_ptr<UIElement>>::const_iterator it = mChildren.begin();
+		eastl::list<eastl::shared_ptr<BaseUIElement>>::const_iterator it = mChildren.begin();
 
 		int closestOrder, currentOrder;
 		while(it != mChildren.end())
@@ -876,7 +878,7 @@ public:
 protected:
 
 	// not virtual because needed in constructor
-	void AddChildToEnd(const eastl::shared_ptr<UIElement>& child)
+	void AddChildToEnd(const eastl::shared_ptr<BaseUIElement>& child)
 	{
 		if (child)
 		{
@@ -900,7 +902,7 @@ protected:
 
 			if (mNoClip)
 			{
-				eastl::shared_ptr<UIElement> p(shared_from_this());
+				eastl::shared_ptr<BaseUIElement> p(shared_from_this());
 				while (p->mParent)
 					p = p->mParent;
 				parentAbsoluteClip = p->mAbsoluteClippingRect;
@@ -1005,7 +1007,7 @@ protected:
 		if ( recursive )
 		{
 			// update all children
-			eastl::list<eastl::shared_ptr<UIElement>>::iterator it = mChildren.begin();
+			eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
 			for (; it != mChildren.end(); ++it)
 			{
 				(*it)->RecalculateAbsolutePosition(recursive);
@@ -1016,10 +1018,10 @@ protected:
 protected:
 
 	//! List of all children of this element
-	eastl::list<eastl::shared_ptr<UIElement>> mChildren;
+	eastl::list<eastl::shared_ptr<BaseUIElement>> mChildren;
 
 	//! Pointer to the parent
-	eastl::shared_ptr<UIElement> mParent;
+	eastl::shared_ptr<BaseUIElement> mParent;
 
 	//! relative rect of element
 	RectangleBase<2, int> mRelativeRect;

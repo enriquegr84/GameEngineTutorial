@@ -60,6 +60,13 @@
 //
 //========================================================================
 
+GameLogic* GameLogic::mGame = NULL;
+
+GameLogic* GameLogic::Get(void)
+{
+	LogAssert(GameLogic::mGame, "Game doesn't exist");
+	return GameLogic::mGame;
+}
 
 GameLogic::GameLogic()
 {
@@ -88,6 +95,15 @@ GameLogic::GameLogic()
 	//  [mrmike] this was moved to the constructor post-press, since this function 
 	//	can be called when new levels are loaded by the game or editor
     //RegisterEngineScriptEvents();
+
+	if (GameLogic::mGame)
+	{
+		LogError("Attempting to create two global game! \
+					The old one will be destroyed and overwritten with this one.");
+		delete GameLogic::mGame;
+	}
+
+	GameLogic::mGame = this;
 }
 
 GameLogic::~GameLogic()
@@ -108,6 +124,9 @@ GameLogic::~GameLogic()
    BaseEventManager::Get()->RemoveListener(
 	   MakeDelegate(this, &GameLogic::RequestDestroyActorDelegate), 
 	   EventDataRequestDestroyActor::skEventType);
+
+   if (GameLogic::mGame == this)
+	   GameLogic::mGame = nullptr;
 }
 
 bool GameLogic::Init(void)
@@ -157,14 +176,13 @@ bool GameLogic::LoadGame(const char* levelResource)
     }
 
     // load the pre-load script if there is one
-	GameApplication* gameApp = (GameApplication*)Application::App;
 	/*
     if (preLoadScript)
     {
         BaseResource resource(preLoadScript);
 		// this actually loads the XML file from the zip file
         eastl::shared_ptr<ResHandle> pResourceHandle = 
-			gameApp->mResCache->GetHandle(&resource);
+			ResCache::Get()->GetHandle(&resource);
     }
 	*/
 
@@ -189,6 +207,7 @@ bool GameLogic::LoadGame(const char* levelResource)
     }
 
     // initialize all human views
+	GameApplication* gameApp = (GameApplication*)Application::App;
 	gameApp->InitHumanViews(pRoot);
 
     //	register script events from the engine
@@ -207,7 +226,7 @@ bool GameLogic::LoadGame(const char* levelResource)
         BaseResource resource(postLoadScript);
 		// this actually loads the XML file from the zip file
         const eastl::shared_ptr<ResHandle>& pResourceHandle = 
-			gameApp->mResCache->GetHandle(&resource);
+			ResCache::Get()->GetHandle(&resource);
     }
 	*/
 

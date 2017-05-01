@@ -40,36 +40,36 @@
 
 #include "Core/Logger/Logger.h"
 
-BaseEventManager* BaseEventManager::EventMgr = NULL;
-GenericObjectFactory<BaseEventData, BaseEventType> EventFactory;
+BaseEventManager* BaseEventManager::mEventMgr = NULL;
+GenericObjectFactory<BaseEventData, BaseEventType> mEventFactory;
 
 //GE_MEMORY_WATCHER_DEFINITION(EventData);
 
 BaseEventManager* BaseEventManager::Get(void)
 {
-    LogAssert(BaseEventManager::EventMgr, "Event manager doesn't exist");
-	return BaseEventManager::EventMgr;
+    LogAssert(BaseEventManager::mEventMgr, "Event manager doesn't exist");
+	return BaseEventManager::mEventMgr;
 }
 
 BaseEventManager::BaseEventManager(const char* pName, bool setAsGlobal)
 {
 	if (setAsGlobal)
     {
-        if (BaseEventManager::EventMgr)
+        if (BaseEventManager::mEventMgr)
         {
             LogError("Attempting to create two global event managers! \
 					The old one will be destroyed and overwritten with this one.");
-            delete BaseEventManager::EventMgr;
+            delete BaseEventManager::mEventMgr;
         }
 
-		BaseEventManager::EventMgr = this;
+		BaseEventManager::mEventMgr = this;
     }
 }
 
 BaseEventManager::~BaseEventManager(void)
 {
-	if (BaseEventManager::EventMgr == this)
-		BaseEventManager::EventMgr = NULL;
+	if (BaseEventManager::mEventMgr == this)
+		BaseEventManager::mEventMgr = nullptr;
 }
 
 

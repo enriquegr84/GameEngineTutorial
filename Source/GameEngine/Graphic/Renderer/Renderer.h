@@ -171,7 +171,15 @@ public:
 	inline bool Unbind(eastl::shared_ptr<GraphicObject> const& object);
 	inline bool Unbind(eastl::shared_ptr<DrawTarget> const& target);
 
+	// Getter for the main global renderer. This is the renderer that is used by the majority of the 
+	// engine, though you are free to define your own as long as you instantiate it.
+	// It is not valid to have more than one global renderer.
+	static Renderer* Get(void);
+
 protected:
+
+	static Renderer* mRenderer;
+
 	// Support for drawing.  If occlusion queries are enabled, the return
 	// values are the number of samples that passed the depth and stencil
 	// tests, effectively the number of pixels drawn.  If occlusion queries

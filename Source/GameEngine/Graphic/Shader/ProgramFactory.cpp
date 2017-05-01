@@ -9,8 +9,12 @@
 #include "ProgramFactory.h"
 #include <fstream>
 
-ProgramFactory::~ProgramFactory()
+eastl::shared_ptr<ProgramFactory> ProgramFactory::mProgramFactory = NULL;
+
+eastl::shared_ptr<ProgramFactory> ProgramFactory::Get(void)
 {
+	LogAssert(ProgramFactory::mProgramFactory, "ProgramFactory doesn't exist");
+	return ProgramFactory::mProgramFactory;
 }
 
 ProgramFactory::ProgramFactory()
@@ -23,6 +27,19 @@ ProgramFactory::ProgramFactory()
     defines(),
     flags(0)
 {
+	if (ProgramFactory::mProgramFactory)
+	{
+		LogError("Attempting to create two global program factory! \
+					The old one will be destroyed and overwritten with this one.");
+	}
+
+	ProgramFactory::mProgramFactory.reset(this);
+}
+
+ProgramFactory::~ProgramFactory()
+{
+	if (ProgramFactory::mProgramFactory.get() == this)
+		ProgramFactory::mProgramFactory = nullptr;
 }
 
 eastl::shared_ptr<VisualProgram> ProgramFactory::CreateFromFiles(

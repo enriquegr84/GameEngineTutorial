@@ -52,7 +52,7 @@ public:
 	GameDemoApp();
 	virtual ~GameDemoApp();
 
-	virtual GameLogic* CreateGameAndView();
+	virtual void CreateGameAndView();
 
 	virtual void AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId = INVALID_ACTOR_ID);
 

@@ -7,7 +7,7 @@
 
 //! constructor
 UIRoot::UIRoot(BaseUI* ui, UIElementType type, int id, RectangleBase<2, int> rectangle)
-:	UIElement(type, id, rectangle), mUI(ui)
+:	BaseUIElement(type, id, rectangle), mUI(ui)
 {
 }
 

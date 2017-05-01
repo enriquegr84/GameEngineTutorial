@@ -45,9 +45,7 @@ GameApplication::GameApplication(const char* windowTitle, int xPosition,
 	mLastTime(-1000.0), mAccumulatedTime(0.0), mFrameRate(0.0), mFrameCount(0), 
 	mFramesPerSecond(0), mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
 {
-	ProjectApplicationPath = Environment::GetAbsolutePath("../");
-
-	mGame = NULL;
+	ProjectApplicationPath = Environment::GetAbsolutePath("") + '/';
 
 	mIsRunning = false;
 	mIsEditorRunning = false;
@@ -118,35 +116,35 @@ void GameApplication::UpdateFrameCount()
 float GameApplication::GetLimitedDt()
 {
 	unsigned int currTime = mTimer;
-    unsigned int prevTime = currTime;
+	unsigned int prevTime = currTime;
 
-    float dt;  // needed outside of the while loop
-    while( 1 )
-    {
+	float dt;  // needed outside of the while loop
+	while (1)
+	{
 		currTime = Timer::GetRealTime();
-        dt = (float)(currTime - prevTime);
+		dt = (float)(currTime - prevTime);
 
-        // don't allow the game to run slower than a certain amount.
-        // when the computer can't keep it up, slow down the shown time instead
-        static const float max_elapsed_time = 3.0f*1.0f/60.0f*1000.0f; /* time 3 internal substeps take */
-        if(dt > max_elapsed_time) dt=max_elapsed_time;
+		// don't allow the game to run slower than a certain amount.
+		// when the computer can't keep it up, slow down the shown time instead
+		static const float max_elapsed_time = 3.0f*1.0f / 60.0f*1000.0f; /* time 3 internal substeps take */
+		if (dt > max_elapsed_time) dt = max_elapsed_time;
 
-        // Throttle fps if more than maximum, which can reduce
-        // the noise the fan on a graphics card makes.
-        // When in menus, reduce FPS much, it's not necessary to push to the maximum for plain menus
-        const int max_fps = 60;//(StateManager::get()->throttleFPS() ? 35 : UserConfigParams::m_max_fps);
-        const int current_fps = (int)(1000.0f/dt);
-        if( current_fps > max_fps)// && !ProfileWorld::isProfileMode())
-        {
-            int wait_time = 1000/max_fps - 1000/current_fps;
-            if(wait_time < 1) wait_time = 1;
+		// Throttle fps if more than maximum, which can reduce
+		// the noise the fan on a graphics card makes.
+		// When in menus, reduce FPS much, it's not necessary to push to the maximum for plain menus
+		const int max_fps = 60;//(StateManager::get()->throttleFPS() ? 35 : UserConfigParams::m_max_fps);
+		const int current_fps = (int)(1000.0f / dt);
+		if (current_fps > max_fps)// && !ProfileWorld::isProfileMode())
+		{
+			int wait_time = 1000 / max_fps - 1000 / current_fps;
+			if (wait_time < 1) wait_time = 1;
 
 			mSystem->OnPause(wait_time);
-        }
-        else break;
-    }
-    dt *= 0.001f;
-    return dt;
+		}
+		else break;
+	}
+	dt *= 0.001f;
+	return dt;
 }   // GetLimitedDt
 
 //----------------------------------------------------------------------------
@@ -180,12 +178,12 @@ bool GameApplication::OnInitialize()
 
 #ifdef USE_DX11
 
+	mProgramFactory = eastl::make_shared<HLSLProgramFactory>();
+
 	mRenderer = eastl::shared_ptr<Renderer>(new Dx11Renderer(
 		handle, mWidth, mHeight, D3D_FEATURE_LEVEL_11_0));
 
 	if (mRenderer == 0) return false; // initialization failed
-
-	mProgramFactory = eastl::make_shared<HLSLProgramFactory>();
 
 #endif
 
@@ -222,6 +220,9 @@ bool GameApplication::OnInitialize()
 	RegisterGameEvents();
 
 	mFileSystem = eastl::shared_ptr<FileSystem>(new FileSystem());
+	// Always check the application directory.
+	mFileSystem->InsertDirectory(Application::ApplicationPath);
+	mFileSystem->InsertDirectory(ProjectApplicationPath + "../../../Assets/");
 
 	/*
 		ResCache is created and initialized to 50MB and assocaited to a concreted mount point where 
@@ -331,9 +332,9 @@ bool GameApplication::OnInitialize()
 	}
 
 	// Create the game logic and all the views that attach to the game logic
-	mGame = CreateGameAndView();
+	CreateGameAndView();
 
-	if (!mGame)
+	if (!GameLogic::mGame)
 		return false;
 
 	/*
@@ -359,9 +360,10 @@ void GameApplication::OnTerminate()
 {
 	//Destroy the logging system at the last possible moment
 	//Logger::Destroy();
+	mFileSystem->RemoveAllDirectories();
 
 	// release all the game systems in reverse order from which they were created
-	delete mGame;
+	delete GameLogic::mGame;
 
 	//delete user_config;
 	//delete unlock_manager;
@@ -492,7 +494,7 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 	}
 
 	//Rendering for debug purpose
-	mGame->RenderDiagnostics();
+	GameLogic::mGame->RenderDiagnostics();
 
 	// Temporarily pause execution and let other processes run.
 	//mSystem->OnPause(100);
@@ -508,14 +510,14 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 */
 void GameApplication::OnUpdateGame(unsigned int elapsedTime)
 {
-	if (mGame)
+	if (GameLogic::mGame)
 	{
 		BaseEventManager::Get()->Update(20); // allow event queue to process for up to 20 ms
 
 		if (mBaseSocketManager)
 			mBaseSocketManager->DoSelect(0);	// pause 0 microseconds
 
-		mGame->OnUpdate((float)Timer::GetTime(), (float)elapsedTime);
+		GameLogic::mGame->OnUpdate((float)Timer::GetTime(), (float)elapsedTime);
 	}
 }
 
@@ -585,7 +587,7 @@ bool GameApplication::LoadGame(void)
 {
     // Read the game options and see what the current game
     // needs to be - all of the game graphics are initialized by now, too...
-	return mGame->LoadGame(mOption.mLevel.c_str());
+	return GameLogic::mGame->LoadGame(mOption.mLevel.c_str());
 }
 
 void GameApplication::RegisterEngineEvents(void)

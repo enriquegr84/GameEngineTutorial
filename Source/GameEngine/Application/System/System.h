@@ -176,7 +176,14 @@ public:
 	*/
 	unsigned int CheckSuccessiveClicks(signed int mouseX, signed int mouseY, MouseInputEvent inputEvent);
 
+	// Getter for the main global system. This is the system that is used by the majority of the 
+	// engine, though you are free to define your own as long as you instantiate it.
+	// It is not valid to have more than one global system.
+	static System* Get(void);
+
 protected:
+
+	static System* mSystem;
 
 	struct MouseMultiClicks
 	{

@@ -82,6 +82,7 @@
 //
 //========================================================================
 
+#define CID_DEMO_WINDOW					(1)
 #define CID_CREATE_GAME_RADIO			(2)
 #define CID_JOIN_GAME_RADIO				(3)
 #define CID_NUM_AI_SLIDER				(4)
@@ -123,26 +124,55 @@ bool MainMenuUI::OnInit()
 {
 	BaseUI::OnInit();
 
+	// set a nicer font
+	const eastl::shared_ptr<BaseUIFont>& font = GetFont("fontlucida.png");
+	if (font) GetSkin()->SetFont(font);
+
+	GetSkin()->SetColor(DC_BUTTON_TEXT, 
+		eastl::array<float, 4U>{240/ 255.f, 170 / 255.f, 170 / 255.f, 170 / 255.f});
+	GetSkin()->SetColor(DC_3D_HIGH_LIGHT, 
+		eastl::array<float, 4U>{240 / 255.f, 34 / 255.f, 34 / 255.f, 34 / 255.f});
+	GetSkin()->SetColor(DC_3D_FACE, 
+		eastl::array<float, 4U>{240 / 255.f, 68 / 255.f, 68 / 255.f, 68 / 255.f});
+	GetSkin()->SetColor(DC_EDITABLE, 
+		eastl::array<float, 4U>{240 / 255.f, 68 / 255.f, 68 / 255.f, 68 / 255.f});
+	GetSkin()->SetColor(DC_FOCUSED_EDITABLE, 
+		eastl::array<float, 4U>{240 / 255.f, 84 / 255.f, 84 / 255.f, 84 / 255.f});
+	GetSkin()->SetColor(DC_WINDOW, 
+		eastl::array<float, 4U>{240 / 255.f, 102 / 255.f, 102 / 255.f, 102 / 255.f});
+
+	//gui size
+	Renderer* renderer = Renderer::Get();
+	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
+	RectangleBase<2, int> screenRectangle;
+	screenRectangle.extent[0] = (int)screenSize[0];
+	screenRectangle.extent[1] = (int)screenSize[1];
+
+	eastl::shared_ptr<BaseUIWindow> window = AddWindow(
+		screenRectangle, false, L"Quake3 Explorer", 0, CID_DEMO_WINDOW);
+	window->SetToolTipText(L"Quake3Explorer. Loads and show various BSP File Format and Shaders.");
+	window->GetCloseButton()->SetToolTipText(L"Quit Quake3 Explorer");
+
 	/*
 	UIEngine::Init(this, NULL);
 	UIEngine::AddLoadingIcon(
-		gameApp->mRenderer->GetTexture("art/gui/notes.png").get() );
-	//gameApp->mSystem->OnPause(1000);
+		Renderer::Get()->GetTexture("art/gui/notes.png").get() );
+	//System::Get()->OnPause(1000);
 	UIEngine::AddLoadingIcon( 
-		gameApp.mRenderer->GetTexture("art/gui/cup_gold.png").get() );
-	//gameApp->mSystem->OnPause(1000);
+		Renderer::Get()->GetTexture("art/gui/cup_gold.png").get() );
+	//System::Get()->OnPause(1000);
     UIEngine::AddLoadingIcon( 
-		gameApp.mRenderer->GetTexture("art/gui/options_video.png").get() );
-	//gameApp->mSystem->OnPause(1000);
+		Renderer::Get()->GetTexture("art/gui/options_video.png").get() );
+	//System::Get()->OnPause(1000);
     UIEngine::AddLoadingIcon( 
-		gameApp.mRenderer->GetTexture("art/gui/gui_lock.png").get() );
-	//gameApp->mSystem->OnPause(1000);
+		Renderer::Get()->GetTexture("art/gui/gui_lock.png").get() );
+	//System::Get()->OnPause(1000);
     UIEngine::AddLoadingIcon( 
-		gameApp->mRenderer->GetTexture("art/gui/gift.png").get() );
-	//gameApp.mSystem->OnPause(1000);
+		Renderer::Get()->GetTexture("art/gui/gift.png").get() );
+	//System::Get()->OnPause(1000);
     UIEngine::AddLoadingIcon( 
-		gameApp->mRenderer->GetTexture("art/gui/banana.png").get() );
-	//gameApp->mSystem->OnPause(1000);
+		Renderer::Get()->GetTexture("art/gui/banana.png").get() );
+	//System::Get()->OnPause(1000);
 
     if(!UserConfigParams::m_no_start_screen)
     {
@@ -226,7 +256,49 @@ bool MainMenuUI::OnInit()
 
 	Set();
 	*/
+	SetUIActive(1);
 	return true;
+}
+
+
+// enable GUI elements
+void MainMenuUI::SetUIActive(int command)
+{
+	bool inputState = false;
+
+	//ICameraSceneNode * camera = Game->Device->getSceneManager()->getActiveCamera ();
+	int guiActive = -1;
+	switch (command)
+	{
+		case 0: guiActive = 0; inputState = !guiActive; break;
+		case 1: guiActive = 1; inputState = !guiActive; break;
+		case 2: guiActive ^= 1; inputState = !guiActive; break;
+		case 3:
+			//	if ( camera )
+			//		inputState = !camera->isInputReceiverEnabled();
+		break;
+	}
+	/*
+	if ( camera )
+	{
+	camera->setInputReceiverEnabled ( inputState );
+	game->Device->getCursorControl()->setVisible( !inputState );
+	}
+	*/
+	const eastl::shared_ptr<BaseUIElement>& root = GetRootUIElement();
+	const eastl::shared_ptr<BaseUIElement>& window = root->GetElementFromId(CID_DEMO_WINDOW);
+	if (window)
+		window->SetVisible(guiActive != 0);
+	/*
+	IGUITreeView* sceneTree = (IGUITreeView*)root->GetElementFromId(CID_SCENETREE_VIEW).get();
+	if (guiActive && sceneTree && GetFocus().get() != sceneTree)
+	{
+		sceneTree->GetRoot()->ClearChildren();
+		AddSceneTreeItem(
+			g_DemosApp.GetHumanView()->m_pScene->GetRootSceneNode().get(), sceneTree->GetRoot().get());
+	}
+	*/
+	SetFocus(guiActive ? window : 0);
 }
 
 void MainMenuUI::Set()
@@ -278,8 +350,8 @@ void MainMenuUI::Set()
 bool MainMenuUI::OnRestore()
 {
     //mSampleUI.SetLocation( 
-	//	(gameApp->GetScreenSize().x - SampleUIWidth)/2, 
-	//	(gameApp->GetScreenSize().y - SampleUIHeight) / 2  );
+	//	(System::Get()->GetScreenSize().x - SampleUIWidth)/2, 
+	//	(System::Get()->GetScreenSize().y - SampleUIHeight) / 2  );
     //mSampleUI.SetSize( SampleUIWidth, SampleUIHeight );
 	return true;
 }
@@ -325,7 +397,7 @@ bool MainMenuUI::OnRender(double fTime, float fElapsedTime)
 	DXUT_EndPerfEvent();
 	return S_OK;
 	*/
-	return true;
+	return BaseUI::OnRender(fTime, fElapsedTime);
 };
 
 bool MainMenuUI::OnMsgProc( const Event& evt )
@@ -407,7 +479,7 @@ bool MainMenuUI::OnEvent(const Event& evt)
 		}
 	}
 	*/
-	return false;
+	return BaseUI::OnEvent(evt);
 }
 
 
@@ -508,7 +580,7 @@ bool StandardHUD::OnInit()
 bool StandardHUD::OnRestore()
 {
 	/*
-    mHUD.SetLocation( gameApp->GetScreenSize().x - 170, 0 );
+    mHUD.SetLocation( System::Get()->GetScreenSize().x - 170, 0 );
     mHUD.SetSize( 170, 170 );
 	*/
 	return BaseUI::OnRestore();
@@ -539,7 +611,6 @@ bool StandardHUD::OnMsgProc( const Event& evt )
 //
 bool StandardHUD::OnEvent(const Event& evt)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
 	if (evt.mEventType == ET_UI_EVENT)
 	{
 		int id = evt.mUIEvent.mCaller->GetID();
@@ -550,9 +621,9 @@ bool StandardHUD::OnEvent(const Event& evt)
 				switch (id)
 				{
 				case IDC_TOGGLEFULLSCREEN: 
-					gameApp->mSystem->SwitchToFullScreen(); break;
+					System::Get()->SwitchToFullScreen(); break;
 				case IDC_TOGGLEREF:        
-					gameApp->mSystem->SetResizable(); break;
+					System::Get()->SetResizable(); break;
 				}
 				break;
 		}
@@ -591,7 +662,6 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 	if (HumanView::OnMsgProc(evt))
 		return 1;
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
 	switch(evt.mEventType)
 	{
 		case ET_UI_EVENT:
@@ -616,7 +686,7 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 						/*
 						POINT ptCursor;
 						GetCursorPos( &ptCursor );
-						ScreenToClient( gameApp->GetHwnd(), &ptCursor );
+						ScreenToClient( System::Get()->GetHwnd(), &ptCursor );
 
 						RayCast rayCast(ptCursor);
 						mScene->Pick(&rayCast);
@@ -643,7 +713,7 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 						BaseResource resource(L"scripts\\test.lua");
 						// this actually loads the Lua file from the zip file
 						eastl::shared_ptr<ResHandle> pResourceHandle = 
-							gameApp->mResCache->GetHandle(&resource);
+							ResCache::Get()->GetHandle(&resource);
 					}
 					break;
 
@@ -661,7 +731,7 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 
 					case KEY_KEY_7:
 					{
-						GameDemoLogic* twg = static_cast<GameDemoLogic *>(gameApp->mGame);
+						GameDemoLogic* twg = static_cast<GameDemoLogic *>(GameLogic::Get());
 						twg->ToggleRenderDiagnostics();
 					}	
 					break;
@@ -682,11 +752,12 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 						//mMouseHandler = mFreeCameraController;
 						//mCamera->ClearTarget();
 						//mTeapot->SetAlpha(fOPAQUE);
-						//SetCapture((HWND)gameApp->mSystem->GetID());
+						//SetCapture((HWND)System::Get()->GetID());
 						return true;
 					}
 
 					case KEY_ESCAPE:
+						GameApplication* gameApp = (GameApplication*)Application::App;
 						gameApp->SetQuitting(true);
 						return true;
 				}
@@ -709,10 +780,10 @@ void GameDemoHumanView::RenderText()
     // Gameplay UI (with shadow)....
     if (!mGameplayText.empty())
     {
-	    D3DRenderer::TextHelper->SetInsertionPos( gameApp->GetScreenSize().x/2, 5 );
+	    D3DRenderer::TextHelper->SetInsertionPos( Renderer::Get()->GetScreenSize().x/2, 5 );
 	    D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	    D3DRenderer::TextHelper->DrawTextLine(mGameplayText.c_str());
-	    D3DRenderer::TextHelper->SetInsertionPos( gameApp->GetScreenSize().x/2-1, 5-1 );
+	    D3DRenderer::TextHelper->SetInsertionPos( Renderer::Get()->GetScreenSize().x/2-1, 5-1 );
 	    D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 0.25f, 1.0f, 0.25f, 1.0f ) );
 	    D3DRenderer::TextHelper->DrawTextLine(mGameplayText.c_str());
     }

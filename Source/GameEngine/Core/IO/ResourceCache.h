@@ -151,20 +151,8 @@ class ResCache
 	unsigned int	mCacheSize;			// total memory size
 	unsigned int	mAllocated;			// total memory allocated
 
-protected:
-
-	bool MakeRoom(unsigned int size);
-	char *Allocate(unsigned int size);
-	void Free(const eastl::shared_ptr<ResHandle>& gonner);
-
-	eastl::shared_ptr<ResHandle> Load(BaseResource * r);
-	eastl::shared_ptr<ResHandle> Find(BaseResource * r);
-	void Update(const eastl::shared_ptr<ResHandle>& handle);
-
-	void FreeOneResource();
-	void MemoryHasBeenFreed(unsigned int size);
-
 public:
+
 	ResCache(const unsigned int sizeInMb, BaseResourceFile *file);
 	virtual ~ResCache();
 
@@ -188,6 +176,26 @@ public:
 		LogAssert(mFile, "Invalid file"); 
 		return mFile->IsUsingDevelopmentDirectories(); 
 	}
+
+	// Getter for the main global resource cache. This is the resource cache that is used by the majority of the 
+	// engine, though you are free to define your own as long as you instantiate it.
+	// It is not valid to have more than one global resource cache.
+	static ResCache* Get(void);
+
+protected:
+
+	static ResCache* mResCache;
+
+	bool MakeRoom(unsigned int size);
+	char *Allocate(unsigned int size);
+	void Free(const eastl::shared_ptr<ResHandle>& gonner);
+
+	eastl::shared_ptr<ResHandle> Load(BaseResource * r);
+	eastl::shared_ptr<ResHandle> Find(BaseResource * r);
+	void Update(const eastl::shared_ptr<ResHandle>& handle);
+
+	void FreeOneResource();
+	void MemoryHasBeenFreed(unsigned int size);
 };
 
 #endif

@@ -40,8 +40,6 @@
 #include "SoundProcess.h"
 #include "SoundResource.h"
 
-#include "Application/GameApplication.h"
-
 //////////////////////////////////////////////////////////////////////
 // SoundProcess Implementation
 //////////////////////////////////////////////////////////////////////
@@ -235,8 +233,7 @@ void ExplosionProcess::OnInit()
 
 	BaseResource resource(L"explosion.wav");
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	eastl::shared_ptr<ResHandle> srh = gameApp->mResCache->GetHandle(&resource);
+	eastl::shared_ptr<ResHandle> srh = ResCache::Get()->GetHandle(&resource);
 	mSound.reset(new SoundProcess(srh));
 
 	// Imagine cool explosion graphics setup code here!!!!

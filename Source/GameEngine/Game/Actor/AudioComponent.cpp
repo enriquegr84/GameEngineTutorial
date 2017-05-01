@@ -136,7 +136,7 @@ void AudioComponent::PostInit()
 		// The editor can play sounds, but it shouldn't run them when AudioComponents are initialized.
 		/*
 		BaseResource resource(m_audioResource);
-		eastl::shared_ptr<ResHandle> rh = gameApp->mResCache->GetHandle(&resource);
+		eastl::shared_ptr<ResHandle> rh = ResCache::Get()->GetHandle(&resource);
 		eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, 0, true));
 		processManager->AttachProcess(sound);
 

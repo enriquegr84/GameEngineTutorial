@@ -63,6 +63,7 @@ protected:
 	eastl::string mClientAttachPort;
 
 	void Set();
+	void SetUIActive(int command);
 
 public:
 	MainMenuUI();

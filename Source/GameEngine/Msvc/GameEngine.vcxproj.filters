@@ -208,9 +208,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
-    <ClCompile Include="..\Core\IO\Environment.cpp">
-      <Filter>Core\IO</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Renderer\Renderer.cpp">
       <Filter>Graphic\Renderer</Filter>
     </ClCompile>
@@ -610,9 +607,6 @@
     <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp">
       <Filter>Graphic\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Effect\TriangleEffect.cpp">
-      <Filter>Graphic\Effect</Filter>
-    </ClCompile>
     <ClCompile Include="..\Core\3rdParty\tinyxml2\tinyxml2.cpp">
       <Filter>Core\3rdParty\tinyxml2</Filter>
     </ClCompile>
@@ -736,6 +730,24 @@
     <ClCompile Include="..\Core\Utility\StringUtil.cpp">
       <Filter>Core\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIWindow.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIButton.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIFont.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UISkin.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\BasicEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\IO\Environment.cpp">
+      <Filter>Core\IO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -744,9 +756,6 @@
     </ClInclude>
     <ClInclude Include="..\Core\CoreStd.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Core\IO\Environment.h">
-      <Filter>Core\IO</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Renderer\Renderer.h">
       <Filter>Graphic\Renderer</Filter>
@@ -1579,9 +1588,6 @@
     <ClInclude Include="..\Graphic\Scene\MeshFactory.h">
       <Filter>Graphic\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Effect\TriangleEffect.h">
-      <Filter>Graphic\Effect</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\3rdParty\assimp\include\ai_assert.h">
       <Filter>Graphic\3rdParty\assimp\include</Filter>
     </ClInclude>
@@ -1700,9 +1706,6 @@
       <Filter>Game\Actor</Filter>
     </ClInclude>
     <ClInclude Include="..\Game\Actor\RenderComponent.h">
-      <Filter>Game\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\Actor\RenderComponentInterface.h">
       <Filter>Game\Actor</Filter>
     </ClInclude>
     <ClInclude Include="..\Game\Actor\TransformComponent.h">
@@ -1860,6 +1863,18 @@
     </ClInclude>
     <ClInclude Include="..\Core\Utility\StringUtil.h">
       <Filter>Core\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIWindow.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIButton.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\BasicEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\IO\Environment.h">
+      <Filter>Core\IO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

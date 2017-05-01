@@ -12,10 +12,10 @@ DefaultUIElementFactory::DefaultUIElementFactory(BaseUI* ui)
 
 
 //! adds an element to the env based on its type id
-eastl::shared_ptr<UIElement> DefaultUIElementFactory::AddUIElement(
-	UIElementType type, const eastl::shared_ptr<UIElement>& parent)
+eastl::shared_ptr<BaseUIElement> DefaultUIElementFactory::AddUIElement(
+	UIElementType type, const eastl::shared_ptr<BaseUIElement>& parent)
 {
-	return eastl::shared_ptr<UIElement>();
+	return eastl::shared_ptr<BaseUIElement>();
 }
 
 //! Returns the amount of element types this factory is able to create.

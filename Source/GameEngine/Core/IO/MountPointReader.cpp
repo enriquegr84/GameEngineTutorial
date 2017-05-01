@@ -4,9 +4,8 @@
 
 #include "MountPointReader.h"
 
+#include "FileSystem.h"
 #include "ReadFile.h"
-
-#include "Application/GameApplication.h"
 
 //! Constructor
 ResourceMountPointFile::ResourceMountPointFile(const eastl::wstring resFileName)
@@ -28,8 +27,7 @@ bool ResourceMountPointFile::IsALoadableFileFormat(const eastl::wstring& filenam
 	if (!fname.size())
 		return ret;
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	FileSystem* fileSystem = gameApp->mFileSystem.get();
+	FileSystem* fileSystem = FileSystem::Get();
 	BaseFileSystemType current = fileSystem->SetFileSystemType(FILESYSTEM_NATIVE);
 
 	const eastl::wstring save = fileSystem->GetWorkingDirectory();
@@ -79,8 +77,7 @@ bool ResourceMountPointFile::Open()
 	bool ignoreCase = true;
 	bool ignorePaths = false;
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	FileSystem* fileSystem = gameApp->mFileSystem.get();
+	FileSystem* fileSystem = FileSystem::Get();
 	if (IsALoadableFileFormat(mResFileName))
 	{
 		mMountPointFile.reset(dynamic_cast<MountPointReader*>(
@@ -147,8 +144,7 @@ MountPointReader::MountPointReader(const eastl::wstring& basename, bool ignoreCa
 	if (mFileListPath[mFileListPath.size() - 1] != '/') 
 		mFileListPath += '/';
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	FileSystem* fileSystem = gameApp->mFileSystem.get();
+	FileSystem* fileSystem = FileSystem::Get();
 	const eastl::wstring& work = fileSystem->GetWorkingDirectory();
 
 	fileSystem->ChangeWorkingDirectoryTo(basename);
@@ -167,8 +163,7 @@ const BaseFileList* MountPointReader::GetFileList()
 
 void MountPointReader::BuildDirectory()
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	FileSystem* fileSystem = gameApp->mFileSystem.get();
+	FileSystem* fileSystem = FileSystem::Get();
 	BaseFileList * list = fileSystem->CreateFileList();
 	if (!list)
 		return;

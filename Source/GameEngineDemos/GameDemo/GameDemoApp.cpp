@@ -101,9 +101,6 @@ int main()
 	}
 	Application::ApplicationPath += "/";
 
-	// Always check the application directory.
-	Environment::InsertDirectory(Application::ApplicationPath);
-
 	// Initialization
 	GameDemoApp* gameDemoApp = new GameDemoApp();
 	Application::App = gameDemoApp;
@@ -124,8 +121,6 @@ int main()
 	}
 	//delete0(Application::TheCommand);
 
-	Environment::RemoveAllDirectories();
-
 	// Termination
 	delete Application::App;
 
@@ -142,27 +137,23 @@ int main()
 GameDemoApp::GameDemoApp()
 	: GameApplication("GameDemo", 0, 0, 800, 600, { 0.392f, 0.584f, 0.929f, 1.0f })
 {
-	Environment::InsertDirectory(ProjectApplicationPath + "Effects/");
 }
 
 //----------------------------------------------------------------------------
 GameDemoApp::~GameDemoApp()
 {
-
 }
 
 //
 // GameDemoApp::CreateGameAndView
 //
-GameLogic *GameDemoApp::CreateGameAndView()
+void GameDemoApp::CreateGameAndView()
 {
-	mGame = new GameDemoLogic();
-	mGame->Init();
+	GameDemoLogic* game = new GameDemoLogic();
+	game->Init();
 
 	eastl::shared_ptr<BaseGameView> menuView(new MainMenuView());
 	AddView(menuView);
-
-	return mGame;
 }
 
 //
@@ -171,7 +162,7 @@ GameLogic *GameDemoApp::CreateGameAndView()
 void GameDemoApp::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actor)
 {
 	GameApplication::AddView(pView, actor);
-	mGame->UpdateViewType(pView);
+	GameLogic::Get()->UpdateViewType(pView);
 }
 
 /*

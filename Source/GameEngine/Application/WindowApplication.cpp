@@ -31,8 +31,7 @@ WindowApplication::WindowApplication(const char* windowTitle, int xPosition,
 	mLastTime(-1000.0), mAccumulatedTime(0.0), mFrameRate(0.0), mFrameCount(0), 
 	mFramesPerSecond(0), mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
 {
-	ProjectApplicationPath = Environment::GetAbsolutePath("../");
-
+	ProjectApplicationPath = Environment::GetAbsolutePath("") + '/';
 
 	mQuitRequested = false;
 	mQuitting = false;
@@ -163,6 +162,8 @@ bool WindowApplication::OnInitialize()
 	// WindowApplication::Main function before OnInitialize is called.  Thus,
 	// at this point the device state may be modified.
 	mRenderer->SetClearColor(mClearColor);
+
+	mFileSystem = eastl::shared_ptr<FileSystem>(new FileSystem());
 
 	InitTime();
 

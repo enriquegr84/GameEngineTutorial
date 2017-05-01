@@ -78,7 +78,7 @@ void Resource::DestroyStorage()
     // is required to free the memory.
     if (mStorage.size() > 0 && mData == mStorage.data())
     {
-        mData = nullptr;
+		mData = nullptr;
         mStorage.clear();
         mStorage.shrink_to_fit();
     }

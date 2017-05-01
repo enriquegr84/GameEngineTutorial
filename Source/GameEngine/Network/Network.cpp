@@ -45,8 +45,6 @@
 #include "Core/Event/Event.h"
 #include "Core/Event/EventManager.h"
 
-#include "Application/GameApplication.h"
-
 #pragma comment(lib, "Ws2_32")
 
 const char *BinaryPacket::Type = "BinaryPacket";
@@ -1040,8 +1038,7 @@ void NetworkGameView::NewActorDelegate(BaseEventDataPtr pEventData)
 		eastl::static_pointer_cast<EventDataNewActor>(pEventData);
 	ActorId actorId = pCastEventData->GetActorId();
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	eastl::shared_ptr<Actor> pActor(gameApp->mGame->GetActor(actorId));
+	eastl::shared_ptr<Actor> pActor(GameLogic::Get()->GetActor(actorId));
 
 	// FUTURE WORK: This could be in a script.
     if (pActor && pActor->GetType() == "Teapot")

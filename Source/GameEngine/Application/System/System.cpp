@@ -10,6 +10,14 @@
 
 #include "Core/Core.h"
 
+System* System::mSystem = NULL;
+
+System* System::Get(void)
+{
+	LogAssert(System::mSystem, "System doesn't exist");
+	return System::mSystem;
+}
+
 //----------------------------------------------------------------------------
 System::System (int width, int height)
 	: mClose(false), mFullscreen(false), mEventListener(0), mWidth(width), mHeight(height)
@@ -24,12 +32,22 @@ System::System (int width, int height)
 	mResized = false;
 	mExternalWindow = false;
 	mChangedToFullScreen = false;
+
+	if (System::mSystem)
+	{
+		LogError("Attempting to create two global system! \
+					The old one will be destroyed and overwritten with this one.");
+		delete System::mSystem;
+	}
+
+	System::mSystem = this;
 }
 //----------------------------------------------------------------------------
 
 System::~System()
 {
-
+	if (System::mSystem == this)
+		System::mSystem = nullptr;
 }
 
 //----------------------------------------------------------------------------

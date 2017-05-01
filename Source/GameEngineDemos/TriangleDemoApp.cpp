@@ -52,9 +52,6 @@ int main(int numArguments, char* arguments[])
 	}
 	Application::ApplicationPath += "/";
 
-	// Always check the application directory.
-	Environment::InsertDirectory(Application::ApplicationPath);
-
 	// Initialization
 	TriangleDemoApplication* demoApp = new TriangleDemoApplication();
 	Application::App = demoApp;
@@ -75,8 +72,6 @@ int main(int numArguments, char* arguments[])
 	}
 	//delete0(Application::TheCommand);
 
-	Environment::RemoveAllDirectories();
-
 	// Termination
 	delete Application::App;
 
@@ -89,7 +84,7 @@ TriangleDemoApplication::TriangleDemoApplication()
 :	WindowApplication("TriangleDemo", 0, 0, 800, 600, { 0.392f, 0.584f, 0.929f, 1.0f }),
 	mCamera(eastl::make_shared<Camera>(true, true))
 {
-	Environment::InsertDirectory(ProjectApplicationPath + "Effects/");
+
 }
 
 //----------------------------------------------------------------------------
@@ -120,9 +115,9 @@ bool TriangleDemoApplication::CreateScene()
 {
 	mScene = eastl::make_shared<Node>();
 	/*
-	eastl::string path = Environment::GetPathR("BasicEffect.fx");
-	eastl::shared_ptr<TriangleEffect> effect = 
-		eastl::make_shared<TriangleEffect>(mProgramFactory, path);
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	eastl::shared_ptr<BasicEffect> effect = 
+		eastl::make_shared<BasicEffect>(mProgramFactory, path);
 
 	struct Vertex
 	{

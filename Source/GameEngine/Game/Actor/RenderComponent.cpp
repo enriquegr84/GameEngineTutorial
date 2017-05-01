@@ -83,11 +83,11 @@ eastl::shared_ptr<SceneNode> MeshRenderComponent::CreateSceneNode(void)
     }
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
-	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->m_pScene;
+	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 	Transform transform = pTransformComponent->GetTransform();
 	eastl::weak_ptr<BaseRenderComponent> wbrcp(this);
 
-	if (g_pGameApp->GetRendererImpl() == ERT_DIRECT3D9)
+	if (gameApp->GetRendererImpl() == ERT_DIRECT3D9)
 	{
 		eastl::shared_ptr<IAnimatedMesh> mesh = pScene->GetMesh(m_meshModelFile);
 		
@@ -157,7 +157,7 @@ eastl::shared_ptr<SceneNode> SphereRenderComponent::CreateSceneNode(void)
 	Transform transform = pTransformComponent->GetTransform();
 	eastl::weak_ptr<BaseRenderComponent> wbrcp(this);
 
-	if (g_pGameApp->GetRendererImpl() == ERT_DIRECT3D9)
+	if (gameApp->GetRendererImpl() == ERT_DIRECT3D9)
 	{
 		// create a sphere node with specified radius and poly count.
 		eastl::shared_ptr<SceneNode> sphere =
@@ -165,7 +165,7 @@ eastl::shared_ptr<SceneNode> SphereRenderComponent::CreateSceneNode(void)
 		if (sphere)
 		{
 			sphere->SetPosition(transform.GetTranslation());
-			sphere->SetMaterialTexture(0, gameApp->m_pRenderer->GetTexture("art/textures/wall.bmp").get());
+			sphere->SetMaterialTexture(0, Renderer::Get()->GetTexture("art/textures/wall.bmp").get());
 			sphere->SetMaterialFlag(EMF_LIGHTING, false);
 		}
 
@@ -208,7 +208,7 @@ eastl::shared_ptr<SceneNode> TeapotRenderComponent::CreateSceneNode(void)
 			if (sphere)
 			{
 				sphere->SetPosition(transform.GetTranslation());
-				sphere->SetMaterialTexture(0, gameApp->m_pRenderer->GetTexture("art/textures/wall.bmp").get());
+				sphere->SetMaterialTexture(0, Renderer::Get()->GetTexture("art/textures/wall.bmp").get());
 				sphere->SetMaterialFlag(EMF_LIGHTING, false);
 			}
 
@@ -291,7 +291,7 @@ eastl::shared_ptr<SceneNode> GridRenderComponent::CreateSceneNode(void)
 				//plane->SetRotation(Vector3(270,0,0));
 
 				plane->SetMaterialTexture(
-					0, gameApp->m_pRenderer->GetTexture("art/textures/t351sml.jpg").get());
+					0, Renderer::Get()->GetTexture("art/textures/t351sml.jpg").get());
 				plane->SetMaterialFlag(EMF_LIGHTING, false);
 				plane->SetMaterialFlag(EMF_BACK_FACE_CULLING, true);
 			}
@@ -577,12 +577,12 @@ eastl::shared_ptr<SceneNode> SkyRenderComponent::CreateSceneNode(void)
 		// add skybox
 		sky = pScene->AddSkyBoxSceneNode(
 			m_pOwner->GetId(), wbrcp, 0, &g_IdentityMatrix4,
-			gameApp->mRenderer->GetTexture(m_textureResource + "t.jpg"),
-			gameApp->mRenderer->GetTexture(m_textureResource + "b.jpg"),
-			gameApp->mRenderer->GetTexture(m_textureResource + "e.jpg"),
-			gameApp->mRenderer->GetTexture(m_textureResource + "w.jpg"),
-			gameApp->mRenderer->GetTexture(m_textureResource + "n.jpg"),
-			gameApp->mRenderer->GetTexture(m_textureResource + "s.jpg"));
+			Renderer::Get()->GetTexture(m_textureResource + "t.jpg"),
+			Renderer::Get()->GetTexture(m_textureResource + "b.jpg"),
+			Renderer::Get()->GetTexture(m_textureResource + "e.jpg"),
+			Renderer::Get()->GetTexture(m_textureResource + "w.jpg"),
+			Renderer::Get()->GetTexture(m_textureResource + "n.jpg"),
+			Renderer::Get()->GetTexture(m_textureResource + "s.jpg"));
 
 		return sky;
 	}

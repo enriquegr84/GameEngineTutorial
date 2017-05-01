@@ -5,11 +5,11 @@
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // File Version: 3.0.0 (2016/06/19)
 
-#include "TriangleEffect.h"
+#include "BasicEffect.h"
 
 #include "Mathematic/Algebra/Vector2.h"
 
-TriangleEffect::TriangleEffect(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path)
+BasicEffect::BasicEffect(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path)
 	:
 	mPVWMatrix(nullptr)
 {
@@ -24,7 +24,7 @@ TriangleEffect::TriangleEffect(eastl::shared_ptr<ProgramFactory> const& factory,
 	}
 }
 
-void TriangleEffect::SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix)
+void BasicEffect::SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix)
 {
 	mPVWMatrixConstant = pvwMatrix;
 	mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);

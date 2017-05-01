@@ -18,9 +18,9 @@
 
 #include "LevelManager.h"
 
+#include "Core/IO/FileSystem.h"
+#include "Core/IO/ResourceCache.h"
 #include "Core/Logger/Logger.h"
-
-#include "Application/GameApplication.h"
 
 LevelManager* LevelManager::LevelMngr = NULL;
 eastl::vector<eastl::wstring> LevelManager::mLevelSearchPaths;
@@ -127,7 +127,6 @@ void LevelManager::LoadLevelList(const eastl::wstring& levelname)
     mLevelAvailables.clear();
     mLevels.clear();
 
-	GameApplication* gameApp = (GameApplication*)Application::App;
     for(unsigned int i=0; i<mLevelSearchPaths.size(); i++)
     {
         const eastl::wstring &dir = mLevelSearchPaths[i];
@@ -139,7 +138,7 @@ void LevelManager::LoadLevelList(const eastl::wstring& levelname)
         // Then see if a subdir of this dir contains levels
         // ------------------------------------------------
 		eastl::vector<eastl::wstring> files = 
-			gameApp->mResCache->Match(eastl::wstring(L"world/*/") + levelname);
+			ResCache::Get()->Match(eastl::wstring(L"world/*/") + levelname);
 
         for(eastl::vector<eastl::wstring>::iterator itFile = files.begin(); 
 			itFile != files.end(); itFile++)
@@ -156,8 +155,8 @@ void LevelManager::LoadLevelList(const eastl::wstring& levelname)
  */
 bool LevelManager::LoadLevel(const eastl::wstring& levelname)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	if (!gameApp->mFileSystem->ExistFile(levelname))
+	FileSystem* fileSystem = FileSystem::Get();
+	if (!fileSystem->ExistFile(levelname))
 		return false;
 
     Level *level;
@@ -188,7 +187,7 @@ bool LevelManager::LoadLevel(const eastl::wstring& levelname)
         return false;
     }
 	*/
-	mAllLevelDirs.push_back(gameApp->mFileSystem->GetFileDir(levelname));
+	mAllLevelDirs.push_back(FileSystem::Get()->GetFileDir(levelname));
     mLevels.push_back(level);
     mLevelAvailables.push_back(true);
     UpdateGroups(level);

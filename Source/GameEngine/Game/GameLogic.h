@@ -94,7 +94,88 @@ class GameLogic : public BaseGameLogic
 {
 	friend class GameApplication;					// This is only to gain access to the view list
 
+
+public:
+
+	GameLogic();
+
+	virtual ~GameLogic();
+
+	bool Init(void);
+
+	void SetIsProxy(bool isProxy)
+	{
+		mIsProxy = isProxy;
+	}
+	const bool IsProxy() const { return mIsProxy; }
+
+	ActorId GetNewActorID(void)
+	{
+		return ++mLastActorId;
+	}
+
+	//shared_ptr<PathingGraph> GetPathingGraph(void) { return m_pPathingGraph; }
+	//RandomGenerator& GetRNG(void) { return m_Random; }
+
+	// [rez] note: don't store this strong pointer outside of this class 
+	virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource,
+		XMLElement *overrides, const Transform *initialTransform = NULL,
+		const ActorId serversActorId = INVALID_ACTOR_ID);
+
+	virtual void DestroyActor(const ActorId actorId);
+	virtual eastl::weak_ptr<Actor> GetActor(const ActorId actorId);
+	virtual void ModifyActor(const ActorId actorId, XMLElement *overrides);
+
+	virtual void MoveActor(const ActorId id, Transform const &transform) {}
+
+	// editor functions
+	eastl::string GetActorXml(const ActorId id);
+
+	// Level management
+	const LevelManager* GetLevelManager() { return mLevelManager; }
+	// [rez] Subclasses shouldn't override this function; use LoadGameDelegate() instead
+	virtual bool LoadGame(const char* levelResource) override;
+	virtual void SetProxy();
+
+	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView) { }
+
+	// Logic Update
+	virtual void OnUpdate(float time, float elapsedTime);
+
+	// Changing Game Logic State
+	virtual void ChangeState(BaseGameState newState);
+	const BaseGameState GetState() const { return mGameState; }
+
+	// Render Diagnostics
+	void ToggleRenderDiagnostics() { mIsRenderDiagnostics = !mIsRenderDiagnostics; }
+	virtual void RenderDiagnostics();
+	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) { return mPhysics; }
+
+	void AttachProcess(eastl::shared_ptr<Process> pProcess)
+	{
+		if (mProcessManager) { mProcessManager->AttachProcess(pProcess); }
+	}
+
+	// event delegates
+	void RequestDestroyActorDelegate(BaseEventDataPtr pEventData);
+
+	// Getter for the main global game. This is the game that is used by the majority of the 
+	// engine, though you are free to define your own as long as you instantiate it.
+	// It is not valid to have more than one global game.
+	static GameLogic* Get(void);
+
 protected:
+
+	static GameLogic* mGame;
+
+	virtual ActorFactory* CreateActorFactory(void);
+
+	// [rez] Override this function to do any game-specific loading.
+	virtual bool LoadGameDelegate(XMLElement* pLevelData) { return true; }
+
+	void MoveActorDelegate(BaseEventDataPtr pEventData);
+	void RequestNewActorDelegate(BaseEventDataPtr pEventData);
+
 	float mLifetime;								//indicates how long this game has been in session
 	ProcessManager* mProcessManager;				// a game logic entity
 	ActorMap mActors;
@@ -118,74 +199,6 @@ protected:
 
 	LevelManager* mLevelManager;					// Manages loading and chaining levels
 
-public:
-
-	GameLogic();
-	virtual ~GameLogic();
-    bool Init(void);
-
-	void SetIsProxy(bool isProxy) 
-	{ 
-		mIsProxy = isProxy; 
-	}
-	const bool IsProxy() const { return mIsProxy; }
-
-	ActorId GetNewActorID( void )
-	{
-		return ++mLastActorId;
-	}
-	
-	//shared_ptr<PathingGraph> GetPathingGraph(void) { return m_pPathingGraph; }
-	//RandomGenerator& GetRNG(void) { return m_Random; }
-
-	// [rez] note: don't store this strong pointer outside of this class 
-    virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource, 
-		XMLElement *overrides, const Transform *initialTransform=NULL, 
-		const ActorId serversActorId=INVALID_ACTOR_ID);
-
-    virtual void DestroyActor(const ActorId actorId);
-    virtual eastl::weak_ptr<Actor> GetActor(const ActorId actorId);
-	virtual void ModifyActor(const ActorId actorId, XMLElement *overrides);
-
-	virtual void MoveActor(const ActorId id, Transform const &transform) {}
-
-    // editor functions
-	eastl::string GetActorXml(const ActorId id);
-
-	// Level management
-	const LevelManager* GetLevelManager() { return mLevelManager; }
-	// [rez] Subclasses shouldn't override this function; use LoadGameDelegate() instead
-    virtual bool LoadGame(const char* levelResource) override;  
-	virtual void SetProxy();
-
-	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView) { }
-
-	// Logic Update
-	virtual void OnUpdate(float time, float elapsedTime);
-
-	// Changing Game Logic State
-	virtual void ChangeState(BaseGameState newState);
-	const BaseGameState GetState() const { return mGameState; }
-
-	// Render Diagnostics
-	void ToggleRenderDiagnostics() { mIsRenderDiagnostics = !mIsRenderDiagnostics; }
-	virtual void RenderDiagnostics();
-	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) { return mPhysics; }
-	
-	void AttachProcess(eastl::shared_ptr<Process> pProcess)
-	{ if (mProcessManager) {mProcessManager->AttachProcess(pProcess);} }
-
-    // event delegates
-    void RequestDestroyActorDelegate(BaseEventDataPtr pEventData);
-
-protected:
-    virtual ActorFactory* CreateActorFactory(void);
-
-    // [rez] Override this function to do any game-specific loading.
-    virtual bool LoadGameDelegate(XMLElement* pLevelData) { return true; }
-
-    void MoveActorDelegate(BaseEventDataPtr pEventData);
-    void RequestNewActorDelegate(BaseEventDataPtr pEventData);
 };
 
 

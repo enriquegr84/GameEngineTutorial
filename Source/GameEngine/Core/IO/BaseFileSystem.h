@@ -139,6 +139,19 @@ public:
 
 	//! Get the active type of file system.
 	virtual BaseFileSystemType GetFileSystemType( ) =0;
+
+	// Support for paths to locate files. For platform independence, use
+	// "/" for the path separator. Please terminate the input 'directory'
+	// values with "/". The Insert/Remove functions return 'true' iff the
+	// operation was successful.
+	virtual bool InsertDirectory(const eastl::string& directory) =0;
+	virtual bool RemoveDirectory(const eastl::string& directory) =0;
+	virtual void RemoveAllDirectories() =0;
+
+	// The GetPath* function searches the list of directories and returns the
+	// fully decorated file name, assuming it satisfies the required
+	// conditions, or returns "" if conditions are not met. 
+	virtual eastl::string GetPath(const eastl::string& filename) =0;
 };
 
 #endif

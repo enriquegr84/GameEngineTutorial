@@ -38,9 +38,8 @@
 
 #include "PhysicDebugDrawer.h"
 
+#include "Graphic/Renderer/Renderer.h"
 #include "Core/Logger/Logger.h"
-
-#include "Application/GameApplication.h"
 
 void BulletDebugDrawer::drawContactPoint(
 	const btVector3& PointOnB, const btVector3& normalOnB, 
@@ -186,6 +185,6 @@ void BulletDebugDrawer::drawLine(
 	vTo[2] = to.z();
 
 	eastl::array<float, 4> color{ 0, 255 * lineColor.x(), 255 * lineColor.y(), 255 * lineColor.z() };
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	//gameApp->mRenderer->Draw3DLine(vFrom, vTo, color);
+	Renderer* renderer = Renderer::Get();
+	//renderer->Draw3DLine(vFrom, vTo, color);
 }

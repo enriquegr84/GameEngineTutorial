@@ -350,7 +350,7 @@ public:
 	NetworkEventForwarder(int sockId) { mSockId = sockId;  }
 
     // Delegate that forwards events through the network.  The game layer must register objects of this class for 
-    // the events it wants.  See TeapotWarsApp::VCreateGameAndView() and TeapotWarsLogic::RemoteClientDelegate()
+    // the events it wants.  See TeapotWarsApp::CreateGameAndView() and TeapotWarsLogic::RemoteClientDelegate()
     // for examples of this happening.
     void ForwardEvent(BaseEventDataPtr pEventData);
 

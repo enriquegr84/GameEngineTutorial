@@ -40,24 +40,24 @@
 
 #include "Core/OS/Os.h"
 
-#include "Application/GameApplication.h"
-
 //! constructor
 BaseUI::BaseUI()
 	: mHovered(0), mHoveredNoSubelement(0), mFocus(0), 
 	mLastHoveredMousePos{ 0,0 }, mCurrentSkin(0)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	Vector2<unsigned int> screenSize(gameApp->mRenderer->GetScreenSize());
+	Renderer* renderer = Renderer::Get();
+	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
 	RectangleBase<2, int> screenRectangle;
 	screenRectangle.extent[0] = (int)screenSize[0];
 	screenRectangle.extent[1] = (int)screenSize[1];
 
-	mRoot = eastl::shared_ptr<UIElement>( 
+	mRoot = eastl::shared_ptr<BaseUIElement>(
 		new UIRoot(this, UIET_ROOT, 0, screenRectangle));
 
 	// environment is root tab group
 	mRoot->SetTabGroup(true);
+
+	SetSkin(CreateSkin(STT_WINDOWS_METALLIC));
 }
 
 
@@ -71,7 +71,7 @@ bool BaseUI::OnInit()
 {
 	//LoadBuiltInFont();
 
-	const eastl::shared_ptr<UISkin>& skin = CreateSkin( GSTT_WINDOWS_CLASSIC );
+	const eastl::shared_ptr<BaseUISkin>& skin = CreateSkin( STT_WINDOWS_CLASSIC );
 	SetSkin(skin);
 
 	return true;
@@ -80,8 +80,8 @@ bool BaseUI::OnInit()
 //! draws all gui elements
 bool BaseUI::OnRender(double fTime, float fElapsedTime)
 {
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	Vector2<unsigned int> screenSize(gameApp->mRenderer->GetScreenSize());
+	Renderer* renderer = Renderer::Get();
+	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
 	if (mRoot->mAbsoluteRect.extent[0] != screenSize[0] ||
 		mRoot->mAbsoluteRect.extent[1] != screenSize[1])
 	{
@@ -113,7 +113,7 @@ void BaseUI::Clear()
 		mHoveredNoSubelement = 0;
 
 	// get the root's children in case the root changes in future
-	const eastl::list<eastl::shared_ptr<UIElement>>& children =
+	const eastl::list<eastl::shared_ptr<BaseUIElement>>& children =
 		GetRootUIElement()->GetChildren();
 
 	while (!children.empty())
@@ -131,8 +131,8 @@ bool BaseUI::OnPostRender( unsigned int time )
 //
 void BaseUI::UpdateHoveredElement(Vector2<int> mousePos)
 {
-	eastl::shared_ptr<UIElement> lastHovered = mHovered;
-	eastl::shared_ptr<UIElement> lastHoveredNoSubelement = mHoveredNoSubelement;
+	eastl::shared_ptr<BaseUIElement> lastHovered = mHovered;
+	eastl::shared_ptr<BaseUIElement> lastHoveredNoSubelement = mHoveredNoSubelement;
 	mLastHoveredMousePos = mousePos;
 
 	mHovered = mRoot->GetElementFromPoint(mousePos);
@@ -205,7 +205,7 @@ bool BaseUI::OnMsgProc(const Event& ev)
 				ev.mKeyInput.mPressedDown &&
 				ev.mKeyInput.mKey == KEY_TAB)
 			{
-				const eastl::shared_ptr<UIElement>& next = 
+				const eastl::shared_ptr<BaseUIElement>& next =
 					GetNextElement(ev.mKeyInput.mShift, ev.mKeyInput.mControl);
 				if (next && next != mFocus)
 				{
@@ -225,7 +225,7 @@ bool BaseUI::OnMsgProc(const Event& ev)
 
 
 //! sets the focus to an element
-bool BaseUI::SetFocus(eastl::shared_ptr<UIElement> element)
+bool BaseUI::SetFocus(eastl::shared_ptr<BaseUIElement> element)
 {
 	if (mFocus == element)
 		return false;
@@ -235,7 +235,7 @@ bool BaseUI::SetFocus(eastl::shared_ptr<UIElement> element)
 		element = 0;
 
 	// focus may change or be removed in this call
-	eastl::shared_ptr<UIElement> currentFocus = 0;
+	eastl::shared_ptr<BaseUIElement> currentFocus = 0;
 	if (mFocus)
 	{
 		currentFocus = mFocus;
@@ -259,7 +259,7 @@ bool BaseUI::SetFocus(eastl::shared_ptr<UIElement> element)
 		ev.mEventType = ET_UI_EVENT;
 		ev.mUIEvent.mCaller = element.get();
 		ev.mUIEvent.mElement = mFocus.get();
-		ev.mUIEvent.mEventType = UIEVT_ELEMENT_Focused;
+		ev.mUIEvent.mEventType = UIEVT_ELEMENT_FOCUSED;
 		if (element->OnEvent(ev))
 			return false;
 	}
@@ -272,20 +272,20 @@ bool BaseUI::SetFocus(eastl::shared_ptr<UIElement> element)
 
 
 //! returns the element with the focus
-const eastl::shared_ptr<UIElement>& BaseUI::GetFocus() const
+const eastl::shared_ptr<BaseUIElement>& BaseUI::GetFocus() const
 {
 	return mFocus;
 }
 
 //! returns the element last known to be under the mouse cursor
-const eastl::shared_ptr<UIElement>& BaseUI::GetHovered() const
+const eastl::shared_ptr<BaseUIElement>& BaseUI::GetHovered() const
 {
 	return mHovered;
 }
 
 
 //! removes the focus from an element
-bool BaseUI::RemoveFocus(const eastl::shared_ptr<UIElement>& element)
+bool BaseUI::RemoveFocus(const eastl::shared_ptr<BaseUIElement>& element)
 {
 	if (mFocus && mFocus==element)
 	{
@@ -306,7 +306,7 @@ bool BaseUI::RemoveFocus(const eastl::shared_ptr<UIElement>& element)
 
 
 //! Returns whether the element has focus
-bool BaseUI::HasFocus(const eastl::shared_ptr<UIElement>& element, bool checkSubElements) const
+bool BaseUI::HasFocus(const eastl::shared_ptr<BaseUIElement>& element, bool checkSubElements) const
 {
 	if (element == mFocus)
 		return true;
@@ -314,7 +314,7 @@ bool BaseUI::HasFocus(const eastl::shared_ptr<UIElement>& element, bool checkSub
 	if ( !checkSubElements || !element )
 		return false;
 
-	eastl::shared_ptr<UIElement> f = mFocus;
+	eastl::shared_ptr<BaseUIElement> f = mFocus;
 	while ( f && f->IsSubElement() )
 	{
 		f = f->GetParent();
@@ -326,14 +326,14 @@ bool BaseUI::HasFocus(const eastl::shared_ptr<UIElement>& element, bool checkSub
 
 
 //! returns the current gui skin
-const eastl::shared_ptr<UISkin>& BaseUI::GetSkin() const
+const eastl::shared_ptr<BaseUISkin>& BaseUI::GetSkin() const
 {
 	return mCurrentSkin;
 }
 
 
 //! Sets a new UI Skin
-void BaseUI::SetSkin(const eastl::shared_ptr<UISkin>& skin)
+void BaseUI::SetSkin(const eastl::shared_ptr<BaseUISkin>& skin)
 {
 	mCurrentSkin = skin;
 }
@@ -343,23 +343,23 @@ void BaseUI::SetSkin(const eastl::shared_ptr<UISkin>& skin)
 // \return Returns a pointer to the created skin.
 //	If you no longer need the skin, you should call BaseUISkin::drop().
 //	See IReferenceCounted::drop() for more information.
-eastl::shared_ptr<UISkin> BaseUI::CreateSkin(UISkinThemeType type)
+eastl::shared_ptr<BaseUISkin> BaseUI::CreateSkin(UISkinThemeType type)
 {
-	/*
-	eastl::shared_ptr<UISkin> skin(new UISkin(this, type));
 
+	eastl::shared_ptr<UISkin> skin(new UISkin(this, type));
+	/*
 	To make the font a little bit nicer, we load an external font
 	and set it as the new default font in the skin.
-
-	eastl::shared_ptr<UIFont> font(GetFont("art/fonts/builtinfont.bmp"));
+	*/
+	eastl::shared_ptr<BaseUIFont> font(GetFont("art/fonts/builtinfont.bmp"));
 	if (font)
 		skin->SetFont(font);
 
 	UIFontBitmap* bitfont = 0;
-	if (font && font->GetType() == EGFT_BITMAP)
+	if (font && font->GetType() == FT_BITMAP)
 		bitfont = (UIFontBitmap*)font.get();
 
-	eastl::shared_ptr<UISpriteBank> bank = 0;
+	eastl::shared_ptr<BaseUISpriteBank> bank = 0;
 	skin->SetFont(font);
 
 	if (bitfont)
@@ -367,12 +367,10 @@ eastl::shared_ptr<UISkin> BaseUI::CreateSkin(UISkinThemeType type)
 
 	skin->SetSpriteBank(bank);
 	return skin;
-	*/
-	return eastl::shared_ptr<UISkin>();
 }
 
 //! returns the font
-eastl::shared_ptr<UIFont> BaseUI::GetFont(const eastl::string& filename)
+eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 {
 	/*
 	// search existing font
@@ -438,19 +436,18 @@ eastl::shared_ptr<UIFont> BaseUI::GetFont(const eastl::string& filename)
 	eastl::shared_ptr<UIFont> font=0;
 	if (t==EGFT_BITMAP)
 	{
-		const eastl::shared_ptr<FileSystem>& fileSystem = g_pGameApp->m_pFileSystem;
 		font = eastl::shared_ptr<UIFont>(new UIFont(shared_from_this(), filename));
 		// change working directory, for loading textures
-		path workingDir = fileSystem->GetWorkingDirectory();
-		fileSystem->ChangeWorkingDirectoryTo(
-			fileSystem->GetFileDir(f.FontNamedPath.GetPath()));
+		path workingDir = FileSystem::Get()->GetWorkingDirectory();
+		FileSystem::Get()->ChangeWorkingDirectoryTo(
+			FileSystem::Get()->GetFileDir(f.FontNamedPath.GetPath()));
 
 		// load the font
 		if (!((UIFont*)font.get())->Load(pRoot))
 			font  = 0;
 
 		// change working dir back again
-		fileSystem->ChangeWorkingDirectoryTo( workingDir );
+		FileSystem::Get()->ChangeWorkingDirectoryTo( workingDir );
 	}
 	else if (t==EGFT_VECTOR)
 	{
@@ -480,13 +477,13 @@ eastl::shared_ptr<UIFont> BaseUI::GetFont(const eastl::string& filename)
 	Fonts.push_back(f);
 	return font;
 	*/
-	return eastl::shared_ptr<UIFont>();
+	return eastl::shared_ptr<BaseUIFont>();
 }
 
 
 //! add an externally loaded font
-const eastl::shared_ptr<UIFont>& BaseUI::AddFont(
-	const eastl::string& name, const eastl::shared_ptr<UIFont>& font)
+const eastl::shared_ptr<BaseUIFont>& BaseUI::AddFont(
+	const eastl::string& name, const eastl::shared_ptr<BaseUIFont>& font)
 {
 	/*
 	if (font)
@@ -508,7 +505,7 @@ const eastl::shared_ptr<UIFont>& BaseUI::AddFont(
 }
 
 //! remove loaded font
-void BaseUI::RemoveFont(const eastl::shared_ptr<UIFont>& font)
+void BaseUI::RemoveFont(const eastl::shared_ptr<BaseUIFont>& font)
 {
 	if ( !font )
 		return;
@@ -527,7 +524,7 @@ void BaseUI::RemoveFont(const eastl::shared_ptr<UIFont>& font)
 }
 
 //! returns default font
-eastl::shared_ptr<UIFont> BaseUI::GetBuiltInFont() const
+eastl::shared_ptr<BaseUIFont> BaseUI::GetBuiltInFont() const
 {
 	/*
 	if (Fonts.empty())
@@ -535,7 +532,7 @@ eastl::shared_ptr<UIFont> BaseUI::GetBuiltInFont() const
 
 	return Fonts.front().GuiFont;
 	*/
-	return eastl::shared_ptr<UIFont>();
+	return eastl::shared_ptr<BaseUIFont>();
 }
 
 //! Returns the default element factory which can create all built in elements
@@ -579,17 +576,17 @@ eastl::shared_ptr<UIElementFactory> BaseUI::GetUIElementFactory(unsigned int ind
 
 
 //! Returns the root gui element.
-const eastl::shared_ptr<UIElement>& BaseUI::GetRootUIElement()
+const eastl::shared_ptr<BaseUIElement>& BaseUI::GetRootUIElement()
 {
 	return mRoot;
 }
 
 
 //! Returns the next element in the tab group starting at the Focused element
-eastl::shared_ptr<UIElement> BaseUI::GetNextElement(bool reverse, bool group)
+eastl::shared_ptr<BaseUIElement> BaseUI::GetNextElement(bool reverse, bool group)
 {
 	// start the search at the root of the current tab group
-	eastl::shared_ptr<UIElement> startPos = mFocus ? mFocus->GetTabGroup() : 0;
+	eastl::shared_ptr<BaseUIElement> startPos = mFocus ? mFocus->GetTabGroup() : 0;
 	int startOrder = -1;
 
 	// if we're searching for a group
@@ -605,7 +602,7 @@ eastl::shared_ptr<UIElement> BaseUI::GetNextElement(bool reverse, bool group)
 		{
 			// this element is not part of the tab cycle,
 			// but its parent might be...
-			eastl::shared_ptr<UIElement> el = mFocus;
+			eastl::shared_ptr<BaseUIElement> el = mFocus;
 			while (el && el->GetParent() && startOrder == -1)
 			{
 				el = el->GetParent();
@@ -619,8 +616,8 @@ eastl::shared_ptr<UIElement> BaseUI::GetNextElement(bool reverse, bool group)
 		startPos = mRoot; // start at the root
 
 	// find the element
-	eastl::shared_ptr<UIElement> closest = 0;
-	eastl::shared_ptr<UIElement> first = 0;
+	eastl::shared_ptr<BaseUIElement> closest = 0;
+	eastl::shared_ptr<BaseUIElement> first = 0;
 	startPos->GetNextElement(startOrder, reverse, group, first, closest);
 
 	if (closest)
@@ -634,13 +631,55 @@ eastl::shared_ptr<UIElement> BaseUI::GetNextElement(bool reverse, bool group)
 }
 
 //! adds a UI Element using its name
-eastl::shared_ptr<UIElement> BaseUI::AddUIElement(UIElementType elementType,
-	const eastl::shared_ptr<UIElement>& parent)
+eastl::shared_ptr<BaseUIElement> BaseUI::AddUIElement(UIElementType elementType,
+	const eastl::shared_ptr<BaseUIElement>& parent)
 {
-	eastl::shared_ptr<UIElement> node=0;
+	eastl::shared_ptr<BaseUIElement> node=0;
 
 	for (int i=UIElementFactoryList.size()-1; i>=0 && !node; --i)
 		node = UIElementFactoryList[i]->AddUIElement(elementType, parent ? parent : mRoot);
 
 	return node;
+}
+
+//! adds a button. The returned pointer must not be dropped.
+eastl::shared_ptr<BaseUIButton> BaseUI::AddButton(const RectangleBase<2, int>& rectangle,
+	const eastl::shared_ptr<BaseUIElement>& parent, int id, const wchar_t* text, const wchar_t *tooltiptext)
+{
+	eastl::shared_ptr<BaseUIButton> button(new UIButton(this, id, rectangle));
+	button->SetParent(parent ? parent : mRoot);
+	button->OnInit();
+	if (text)
+		button->SetText(text);
+
+	if (tooltiptext)
+		button->SetToolTipText(tooltiptext);
+
+	return button;
+}
+
+
+//! adds a window. The returned pointer must not be dropped.
+eastl::shared_ptr<BaseUIWindow> BaseUI::AddWindow(const RectangleBase<2, int>& rectangle, bool modal,
+	const wchar_t* text, const eastl::shared_ptr<BaseUIElement>& parent, int id)
+{
+	eastl::shared_ptr<BaseUIWindow> win(new UIWindow(this, id, rectangle));
+	win->SetParent(parent ? parent : mRoot);
+	win->OnInit();
+	if (text)
+		win->SetText(text);
+
+	if (modal)
+	{
+		// Careful, don't just set the modal as parent above. That will mess up the focus 
+		// (and is hard to change because we have to be very careful not to get virtual function 
+		//	call, like OnEvent, in the window.
+		/*
+		eastl::shared_ptr<BaseUIModalScreen> modalScreen(new UIModalScreen(this, parent ? parent : Root, -1));
+		modalScreen->SetParent(parent ? parent : mRoot);
+		modalScreen->AddChild(win);
+		*/
+	}
+
+	return win;
 }
