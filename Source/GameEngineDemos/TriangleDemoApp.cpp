@@ -114,7 +114,7 @@ void TriangleDemoApplication::InitializeCamera(
 bool TriangleDemoApplication::CreateScene()
 {
 	mScene = eastl::make_shared<Node>();
-	/*
+
 	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
 	eastl::shared_ptr<BasicEffect> effect = 
 		eastl::make_shared<BasicEffect>(mProgramFactory, path);
@@ -143,7 +143,7 @@ bool TriangleDemoApplication::CreateScene()
 
 	mScene->AttachChild(mTriangle);
 	mTriangle->Update();
-	*/
+
 	return true;
 }
 

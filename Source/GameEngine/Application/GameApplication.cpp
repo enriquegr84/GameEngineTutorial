@@ -487,6 +487,9 @@ void GameApplication::OnUpdateView(unsigned int elapsedTime)
 */
 void GameApplication::OnRender(unsigned int elapsedTime)
 {
+	// lear the buffers before rendering
+	mRenderer->ClearBuffers();
+
 	eastl::list<eastl::shared_ptr<BaseGameView>>::iterator it = mGameViews.begin();
 	for (; it != mGameViews.end(); ++it)
 	{
@@ -495,6 +498,8 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 
 	//Rendering for debug purpose
 	GameLogic::mGame->RenderDiagnostics();
+
+	mRenderer->DisplayColorBuffer(0);
 
 	// Temporarily pause execution and let other processes run.
 	//mSystem->OnPause(100);

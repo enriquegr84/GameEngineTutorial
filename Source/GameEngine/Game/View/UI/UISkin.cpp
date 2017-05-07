@@ -498,7 +498,7 @@ RectangleBase<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Bas
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
-	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 3);
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 
 	eastl::array<Vector2<int>, 4> vertices;
 	rect.GetVertices(vertices);

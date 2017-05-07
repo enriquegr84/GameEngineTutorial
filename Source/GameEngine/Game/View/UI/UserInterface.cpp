@@ -56,8 +56,6 @@ BaseUI::BaseUI()
 
 	// environment is root tab group
 	mRoot->SetTabGroup(true);
-
-	SetSkin(CreateSkin(STT_WINDOWS_METALLIC));
 }
 
 
