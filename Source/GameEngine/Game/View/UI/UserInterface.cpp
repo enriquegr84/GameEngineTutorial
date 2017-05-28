@@ -657,6 +657,17 @@ eastl::shared_ptr<BaseUIButton> BaseUI::AddButton(const RectangleBase<2, int>& r
 }
 
 
+//! adds a static text. The returned pointer must not be dropped.
+eastl::shared_ptr<BaseUIStaticText> BaseUI::AddStaticText(const wchar_t* text, const RectangleBase<2, int>& rectangle,
+	bool border, bool wordWrap, const eastl::shared_ptr<BaseUIElement>& parent, int id, bool background)
+{
+	eastl::shared_ptr<BaseUIStaticText> staticText(new UIStaticText(this, id, text, border, rectangle, background));
+	staticText->SetParent(parent ? parent : mRoot);
+	staticText->SetWordWrap(wordWrap);
+	return staticText;
+}
+
+
 //! adds a window. The returned pointer must not be dropped.
 eastl::shared_ptr<BaseUIWindow> BaseUI::AddWindow(const RectangleBase<2, int>& rectangle, bool modal,
 	const wchar_t* text, const eastl::shared_ptr<BaseUIElement>& parent, int id)

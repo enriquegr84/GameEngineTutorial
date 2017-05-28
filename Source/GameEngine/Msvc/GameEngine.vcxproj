@@ -83,6 +83,7 @@
     <ClCompile Include="..\Game\View\UI\UIFont.cpp" />
     <ClCompile Include="..\Game\View\UI\UIRoot.cpp" />
     <ClCompile Include="..\Game\View\UI\UISkin.cpp" />
+    <ClCompile Include="..\Game\View\UI\UIStaticText.cpp" />
     <ClCompile Include="..\Game\View\UI\UIWindow.cpp" />
     <ClCompile Include="..\Game\View\UI\UserInterface.cpp" />
     <ClCompile Include="..\Graphic\Effect\Font.cpp" />
@@ -402,6 +403,7 @@
     <ClInclude Include="..\Game\View\UI\UIFont.h" />
     <ClInclude Include="..\Game\View\UI\UIRoot.h" />
     <ClInclude Include="..\Game\View\UI\UISkin.h" />
+    <ClInclude Include="..\Game\View\UI\UIStaticText.h" />
     <ClInclude Include="..\Game\View\UI\UIWindow.h" />
     <ClInclude Include="..\Game\View\UI\UserInterface.h" />
     <ClInclude Include="..\Graphic\3rdParty\assimp\include\ai_assert.h" />

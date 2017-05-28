@@ -153,6 +153,12 @@ bool MainMenuUI::OnInit()
 	window->SetToolTipText(L"Quake3Explorer. Loads and show various BSP File Format and Shaders.");
 	window->GetCloseButton()->SetToolTipText(L"Quit Quake3 Explorer");
 
+	// add a status line help text
+	RectangleBase<2, int> statusRectangle;
+	statusRectangle.extent[0] = (int)screenSize[0];
+	statusRectangle.extent[1] = 50;
+	AddStaticText(0, statusRectangle, false, false, window, -1, true);
+
 	/*
 	UIEngine::Init(this, NULL);
 	UIEngine::AddLoadingIcon(

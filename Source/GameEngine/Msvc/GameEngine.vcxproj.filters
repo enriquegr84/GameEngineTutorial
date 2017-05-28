@@ -748,6 +748,9 @@
     <ClCompile Include="..\Core\IO\Environment.cpp">
       <Filter>Core\IO</Filter>
     </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIStaticText.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -1875,6 +1878,9 @@
     </ClInclude>
     <ClInclude Include="..\Core\IO\Environment.h">
       <Filter>Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIStaticText.h">
+      <Filter>Game\View\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

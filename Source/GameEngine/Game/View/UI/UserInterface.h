@@ -47,6 +47,7 @@
 #include "UIButton.h"
 #include "UIWindow.h"
 #include "UIElement.h"
+#include "UIStaticText.h"
 #include "UIElementFactory.h"
 #include "DefaultUIElementFactory.h"
 
@@ -186,6 +187,10 @@ public:
 	//! adds a window. The returned pointer must not be dropped.
 	virtual eastl::shared_ptr<BaseUIWindow> AddWindow(const RectangleBase<2, int>& rectangle, bool modal = false,
 		const wchar_t* text = 0, const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
+
+	//! adds a static text. The returned pointer must not be dropped.
+	virtual eastl::shared_ptr<BaseUIStaticText> AddStaticText(const wchar_t* text, const RectangleBase<2, int>& rectangle,
+		bool border = false, bool wordWrap = true, const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, bool drawBackground = false);
 
 
 protected:
