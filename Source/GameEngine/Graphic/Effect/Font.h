@@ -27,7 +27,7 @@ public:
 
     // Populate the vertex buffer for the specified string.
     void Typeset(int viewportWidth, int viewportHeight, int x, int y,
-		Vector4<float> const& color, eastl::string const& message) const;
+		Vector4<float> const& color, eastl::wstring const& message) const;
 
 protected:
     unsigned int mMaxMessageLength;

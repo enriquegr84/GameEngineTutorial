@@ -76,7 +76,7 @@ bool BaseUI::OnInit()
 }
 
 //! draws all gui elements
-bool BaseUI::OnRender(double fTime, float fElapsedTime)
+bool BaseUI::OnRender(double time, float elapsedTime)
 {
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
@@ -370,10 +370,9 @@ eastl::shared_ptr<BaseUISkin> BaseUI::CreateSkin(UISkinThemeType type)
 //! returns the font
 eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 {
-	/*
 	// search existing font
-	eastl::vector<Font>::iterator itFont = Fonts.begin();
-	for (; itFont != Fonts.end(); itFont++)
+	eastl::array<eastl::shared_ptr<Font>>::iterator itFont = mFonts.begin();
+	for (; itFont != mFonts.end(); itFont++)
 	{
 		if ((*itFont).FontNamedPath == filename)
 			return (*itFont).GuiFont;
@@ -397,7 +396,6 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 	Fonts.push_back(f);
 	return font;
 
-	/*
 	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(filename.c_str());
     // font doesn't exist, attempt to load it
 	if (!pRoot)
@@ -408,7 +406,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 	
 	bool found=false;
 	// this is an XML font, but we need to know what type
-	UI_FONT_TYPE t = GFT_CUSTOM;
+	UIFontType t = FT_CUSTOM;
 	// Loop through each child element and load the component
     for (XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
     {
@@ -417,12 +415,12 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 			eastl::string type(pNode->Attribute("type"));
 			if (eastl::string("vector").compare(type) == 0)
 			{
-				t = EGFT_VECTOR;
+				t = FT_VECTOR;
 				found=true;
 			}
 			else if (eastl::string("bitmap").compare(type) == 0)
 			{
-				t = EGFT_BITMAP;
+				t = FT_BITMAP;
 				found=true;
 			}
 			else found=true;
@@ -432,7 +430,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
     }
 
 	eastl::shared_ptr<UIFont> font=0;
-	if (t==EGFT_BITMAP)
+	if (t==FT_BITMAP)
 	{
 		font = eastl::shared_ptr<UIFont>(new UIFont(shared_from_this(), filename));
 		// change working directory, for loading textures
@@ -474,8 +472,6 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 	f.GuiFont = font;
 	Fonts.push_back(f);
 	return font;
-	*/
-	return eastl::shared_ptr<BaseUIFont>();
 }
 
 
@@ -483,7 +479,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 const eastl::shared_ptr<BaseUIFont>& BaseUI::AddFont(
 	const eastl::string& name, const eastl::shared_ptr<BaseUIFont>& font)
 {
-	/*
+
 	if (font)
 	{
 		eastl::vector<Font>::iterator itFont = Fonts.begin();
@@ -498,7 +494,7 @@ const eastl::shared_ptr<BaseUIFont>& BaseUI::AddFont(
 		f.FontNamedPath.SetPath(name);
 		Fonts.push_back(f);
 	}
-	*/
+
 	return font;
 }
 
@@ -507,7 +503,7 @@ void BaseUI::RemoveFont(const eastl::shared_ptr<BaseUIFont>& font)
 {
 	if ( !font )
 		return;
-	/*
+
 	eastl::vector<Font>::iterator itFont = Fonts.begin();
 	for (; itFont != Fonts.end(); itFont++)
 	{
@@ -518,18 +514,18 @@ void BaseUI::RemoveFont(const eastl::shared_ptr<BaseUIFont>& font)
 			return;
 		}
 	}
-	*/
+
 }
 
 //! returns default font
 eastl::shared_ptr<BaseUIFont> BaseUI::GetBuiltInFont() const
 {
-	/*
+
 	if (Fonts.empty())
 		return 0;
 
 	return Fonts.front().GuiFont;
-	*/
+
 	return eastl::shared_ptr<BaseUIFont>();
 }
 

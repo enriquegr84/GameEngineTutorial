@@ -113,7 +113,7 @@ public:
 	uint64_t Draw(eastl::vector<eastl::shared_ptr<Visual>> const& visuals);
 
 	// Draw 2D text.
-	uint64_t Draw(int x, int y, eastl::array<float, 4> const& color, eastl::string const& message);
+	uint64_t Draw(int x, int y, eastl::array<float, 4> const& color, eastl::wstring const& message);
 
 	inline const Vector2<unsigned int>& GetScreenSize() const;
 

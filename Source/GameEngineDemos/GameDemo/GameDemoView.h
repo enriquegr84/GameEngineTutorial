@@ -62,6 +62,8 @@ protected:
 	eastl::string mHostListenPort;
 	eastl::string mClientAttachPort;
 
+	eastl::shared_ptr<BaseUIStaticText> mStatusLine;
+
 	void Set();
 	void SetUIActive(int command);
 
@@ -78,7 +80,7 @@ public:
 	virtual void OnAnimate(unsigned int uTime) { }
 
 	//! draws all gui elements
-	virtual bool OnRender(double fTime, float fElapsedTime);
+	virtual bool OnRender(double time, float elapsedTime);
 
 	virtual bool OnEvent(const Event& evt);
 	virtual bool OnMsgProc(const Event& evt);
@@ -104,7 +106,7 @@ public:
 	virtual void OnAnimate(unsigned int uTime) { }
 
 	//! draws all gui elements
-	virtual bool OnRender(double fTime, float fElapsedTime);
+	virtual bool OnRender(double time, float elapsedTime);
 
 	virtual bool OnEvent(const Event& evt);
 	virtual bool OnMsgProc(const Event& evt);
@@ -182,7 +184,7 @@ public:
 	virtual ~AITeapotView();
 
 	virtual bool OnRestore() { return true; }
-	virtual void OnRender(double fTime, float fElapsedTime) {}
+	virtual void OnRender(double time, float elapsedTime) {}
 	virtual void OnAnimate(unsigned int uTime) {}
 	virtual bool OnLostDevice() { return true; }
 	virtual GameViewType GetType() { return GV_AI; }

@@ -183,8 +183,8 @@ void TriangleDemoApplication::OnIdle()
 	for (auto const& visual : mCuller.GetVisibleSet())
 		mRenderer->Draw(visual);
 
-	char message[256];
-	sprintf(message, "fps: %i", mFramesPerSecond);
+	wchar_t message[256];
+	wsprintf(message, L"fps: %i", mFramesPerSecond);
 	mRenderer->Draw(8, mHeight - 8, { 1.0f, 1.0f, 1.0f, 1.0f }, message);
 
 	mRenderer->DisplayColorBuffer(0);

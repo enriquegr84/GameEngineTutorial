@@ -160,7 +160,7 @@ uint64_t Renderer::Draw(eastl::vector<eastl::shared_ptr<Visual>> const& visuals)
 	return numPixelsDrawn;
 }
 
-uint64_t Renderer::Draw(int x, int y, eastl::array<float, 4> const& color, eastl::string const& message)
+uint64_t Renderer::Draw(int x, int y, eastl::array<float, 4> const& color, eastl::wstring const& message)
 {
 	uint64_t numPixelsDrawn;
 

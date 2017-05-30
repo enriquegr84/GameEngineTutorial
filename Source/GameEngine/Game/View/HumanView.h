@@ -76,7 +76,7 @@ public:
 	virtual bool OnRestore();
 	virtual bool OnLostDevice();
 
-	virtual void OnRender(double fTime, float fElapsedTime);
+	virtual void OnRender(double time, float elapsedTime);
 	virtual void OnUpdate(const int deltaMilliseconds );
 	virtual void OnAnimate(unsigned int uTime);
 
@@ -150,7 +150,7 @@ public:
 		virtual void OnAnimate(unsigned int uTime) { }
 
 		//! draws all gui elements
-		virtual bool OnRender(double fTime, float fElapsedTime);
+		virtual bool OnRender(double time, float elapsedTime);
 
 		virtual bool OnEvent(const Event& evt) { return false; }
 		virtual bool OnMsgProc(const Event& evt) { return false; }

@@ -47,7 +47,7 @@ class BaseGameView
 {
 public:
 	virtual bool OnRestore() = 0;
-	virtual void OnRender(double fTime, float fElapsedTime) = 0;
+	virtual void OnRender(double time, float elapsedTime) = 0;
 	virtual void OnUpdate(unsigned long deltaMs) = 0;
 	virtual void OnAnimate(unsigned int uTime) = 0;
 

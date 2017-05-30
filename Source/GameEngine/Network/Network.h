@@ -368,7 +368,7 @@ class NetworkGameView : public BaseGameView
 public:
 	// BaseGameView Implementation - everything is stubbed out.
 	virtual bool OnRestore() { return true; }
-	virtual void OnRender(double fTime, float fElapsedTime) { }
+	virtual void OnRender(double time, float elapsedTime) { }
 	virtual void OnAnimate(unsigned int uTime) { }
 	virtual bool OnLostDevice() { return true; }
 	virtual GameViewType GetType() { return GV_REMOTE; }

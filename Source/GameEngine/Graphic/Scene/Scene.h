@@ -250,7 +250,7 @@ public:
 
 	virtual void OnUpdate(int deltaMS) { Scene::OnUpdate(deltaMS); };
 	virtual void OnAnimate(unsigned int uTime) { Scene::OnAnimate(uTime); };
-	virtual bool OnRender(double fTime, float fElapsedTime) { Scene::OnRender(); return true; }
+	virtual bool OnRender(double time, float elapsedTime) { Scene::OnRender(); return true; }
 
 	virtual int GetZOrder() const { return 0; }
 	virtual void SetZOrder(int const zOrder) { }

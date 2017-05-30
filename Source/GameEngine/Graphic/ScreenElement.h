@@ -65,7 +65,7 @@ public:
 	virtual bool OnRestore() = 0;
 	virtual bool OnLostDevice() = 0;
 
-	virtual bool OnRender(double fTime, float fElapsedTime) = 0;
+	virtual bool OnRender(double time, float elapsedTime) = 0;
 	virtual void OnUpdate(int deltaMilliseconds) = 0;
 	virtual void OnAnimate(unsigned int uTime) = 0;
 

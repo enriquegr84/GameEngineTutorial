@@ -136,9 +136,9 @@ bool HumanView::LoadGame(XMLElement* pLevelData)
 	Next it is rendered any text applied directly to the screen.
 	PostRender() method finalizes the render process and presents the screen to the viewer
 */
-void HumanView::OnRender(double fTime, float fElapsedTime )
+void HumanView::OnRender(double time, float elapsedTime )
 {
-	int deltaTime = int(fElapsedTime * 1000.0f);
+	int deltaTime = int(elapsedTime * 1000.0f);
 
 	// It is time to draw ?
 	Renderer* renderer = Renderer::Get();
@@ -153,14 +153,14 @@ void HumanView::OnRender(double fTime, float fElapsedTime )
 			{
 				if ((*it)->IsVisible())
 				{
-					(*it)->OnRender(fTime, fElapsedTime);
+					(*it)->OnRender(time, elapsedTime);
 				}
 			}
 
             RenderText();
 
 			// Let the console render.
-			mConsole.OnRender(fTime, fElapsedTime);
+			mConsole.OnRender(time, elapsedTime);
 
 			//GameLogic::Get()->RenderDiagnostics();
 		}
@@ -616,7 +616,7 @@ void HumanView::Console::OnUpdate( const int deltaTime )
 	}
 }
 
-bool HumanView::Console::OnRender(double fTime, float fElapsedTime)
+bool HumanView::Console::OnRender(double time, float elapsedTime)
 {
 	//Don't do anything if not active.
 	if ( !mIsActive )
@@ -624,7 +624,7 @@ bool HumanView::Console::OnRender(double fTime, float fElapsedTime)
 		return false;	//Bail!
 	}
 
-	return BaseUI::OnRender(fTime, fElapsedTime);
+	return BaseUI::OnRender(time, elapsedTime);
 }
 
 void HumanView::Console::HandleKeyboardInput( const unsigned int keyVal, 

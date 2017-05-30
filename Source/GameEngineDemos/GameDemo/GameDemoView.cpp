@@ -157,7 +157,7 @@ bool MainMenuUI::OnInit()
 	RectangleBase<2, int> statusRectangle;
 	statusRectangle.extent[0] = (int)screenSize[0];
 	statusRectangle.extent[1] = 50;
-	AddStaticText(0, statusRectangle, false, false, window, -1, true);
+	mStatusLine = AddStaticText(L"", statusRectangle, false, false, window, -1, true);
 
 	/*
 	UIEngine::Init(this, NULL);
@@ -362,7 +362,7 @@ bool MainMenuUI::OnRestore()
 	return true;
 }
 
-bool MainMenuUI::OnRender(double fTime, float fElapsedTime)
+bool MainMenuUI::OnRender(double time, float elapsedTime)
 {
     // If the resolution should be switched, do it now. This will delete the
     // old device and create a new one.
@@ -399,11 +399,18 @@ bool MainMenuUI::OnRender(double fTime, float fElapsedTime)
 	/*
 	HRESULT hr;
 	DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"TeapotWarsHUD"); // These events are to help PIX identify what the code is doing
-	V(m_SampleUI.OnRender(fElapsedTime));
+	V(m_SampleUI.OnRender(elapsedTime));
 	DXUT_EndPerfEvent();
 	return S_OK;
 	*/
-	return BaseUI::OnRender(fTime, fElapsedTime);
+	wchar_t msg[128];
+	swprintf(msg, 128,
+		L"%03f fps, F1 GUI on/off, F2 respawn, F3-F6 toggle Nodes, F7 Collision on/off"
+		L", F8 Gravity on/off, Right Mouse Toggle GUI", elapsedTime);
+	if (mStatusLine)
+		mStatusLine->SetText(msg);
+
+	return BaseUI::OnRender(time, elapsedTime);
 };
 
 bool MainMenuUI::OnMsgProc( const Event& evt )
@@ -597,7 +604,7 @@ bool StandardHUD::OnRender(double time, float elapsedTime)
 	/*
 	HRESULT hr;
 	DXUT_BeginPerfEvent( DXUT_PERFEVENTCOLOR, L"StandardUI" ); // These events are to help PIX identify what the code is doing
-	V( mHUD.OnRender( fElapsedTime ) );
+	V( mHUD.OnRender( elapsedTime ) );
 	DXUT_EndPerfEvent();
 	*/
 	return BaseUI::OnRender(time, elapsedTime);

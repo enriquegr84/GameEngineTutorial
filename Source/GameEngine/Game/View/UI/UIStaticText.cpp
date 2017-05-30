@@ -154,7 +154,8 @@ eastl::shared_ptr<BaseUIFont> UIStaticText::GetActiveFont() const
 {
 	if ( mOverrideFont )
 		return mOverrideFont;
-	
+	if (mUI->GetSkin())
+		return mUI->GetSkin()->GetFont();
 	return eastl::shared_ptr<BaseUIFont>();
 }
 

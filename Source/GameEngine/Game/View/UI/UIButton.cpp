@@ -346,8 +346,9 @@ eastl::shared_ptr<BaseUIFont> UIButton::GetActiveFont() const
 {
 	if ( mOverrideFont )
 		return mOverrideFont;
-	
-	return eastl::shared_ptr<BaseUIFont>();// BaseUIElement::GetFont();
+	if (mUI->GetSkin())
+		return mUI->GetSkin()->GetFont();
+	return eastl::shared_ptr<BaseUIFont>();
 }
 
 //! Sets an image which should be displayed on the button when it is in normal state.

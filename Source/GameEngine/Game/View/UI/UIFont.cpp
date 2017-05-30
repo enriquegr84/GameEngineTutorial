@@ -565,6 +565,7 @@ void UIFont::Draw(const eastl::wstring& text, const RectangleBase<2, int>& posit
 	}
 
 	//mSpriteBank->Draw2DSpriteBatch(indices, offsets, clip, color);
+	Renderer::Get()->Draw(offset[0], offset[1], color, text);
 }
 
 

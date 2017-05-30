@@ -86,7 +86,7 @@ Font::Font(eastl::shared_ptr<ProgramFactory> const& factory, unsigned int width,
 }
 
 void Font::Typeset(int viewportWidth, int viewportHeight, int x, int y,
-	Vector4<float> const& color, eastl::string const& message) const
+	Vector4<float> const& color, eastl::wstring const& message) const
 {
     // Get texel translation units, depends on viewport width and height.
     float const vdx = 1.0f / static_cast<float>(viewportWidth);

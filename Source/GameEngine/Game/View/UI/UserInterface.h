@@ -99,7 +99,7 @@ public:
 	virtual void OnUpdate(int) { };
 
 	//! draws all gui elements
-	virtual bool OnRender(double fTime, float fElapsedTime);
+	virtual bool OnRender(double time, float elapsedTime);
 
 	virtual bool OnPostRender( unsigned int time );
 
@@ -204,6 +204,7 @@ private:
 
 	eastl::vector<eastl::shared_ptr<UIElementFactory>> UIElementFactoryList;
 
+	eastl::array<eastl::shared_ptr<Font>> mFonts;
 	eastl::shared_ptr<BaseUIElement> mHovered;
 	eastl::shared_ptr<BaseUIElement> mHoveredNoSubelement;	// subelements replaced by their parent, so you only have 'real' elements here
 	eastl::shared_ptr<BaseUIElement> mFocus;
