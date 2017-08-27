@@ -9,8 +9,9 @@
 
 #include "Mathematic/Algebra/Vector2.h"
 
-Font::Font(eastl::shared_ptr<ProgramFactory> const& factory, unsigned int width, unsigned int height,
-    char const* texels, float const* characterData, unsigned int maxMessageLength)
+Font::Font(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path, 
+	unsigned int width, unsigned int height, char const* texels, float const* characterData, 
+	unsigned int maxMessageLength)
     : mMaxMessageLength(maxMessageLength)
 {
     // Create a vertex buffer to hold the maximum specified message.
@@ -82,7 +83,7 @@ Font::Font(eastl::shared_ptr<ProgramFactory> const& factory, unsigned int width,
 	std::memcpy(mCharacterData, characterData, 257 * sizeof(float));
 
     // Create an effect for drawing text.
-    mTextEffect = eastl::make_shared<TextEffect>(factory, mTexture);
+    mTextEffect = eastl::make_shared<TextEffect>(factory, path, mTexture);
 }
 
 void Font::Typeset(int viewportWidth, int viewportHeight, int x, int y,

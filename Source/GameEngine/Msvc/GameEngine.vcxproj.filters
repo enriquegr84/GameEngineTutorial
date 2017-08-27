@@ -751,6 +751,33 @@
     <ClCompile Include="..\Game\View\UI\UIStaticText.cpp">
       <Filter>Game\View\UI</Filter>
     </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UISpriteBank.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\Texture2Effect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UICheckBox.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIComboBox.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIEditBox.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIImage.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIListBox.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UIScrollBar.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Game\View\UI\UITreeView.cpp">
+      <Filter>Game\View\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -1880,6 +1907,33 @@
       <Filter>Core\IO</Filter>
     </ClInclude>
     <ClInclude Include="..\Game\View\UI\UIStaticText.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UISpriteBank.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\Texture2Effect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UICheckBox.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIComboBox.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIEditBox.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIImage.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIListBox.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UIScrollBar.h">
+      <Filter>Game\View\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\View\UI\UITreeView.h">
       <Filter>Game\View\UI</Filter>
     </ClInclude>
   </ItemGroup>

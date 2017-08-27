@@ -17,8 +17,9 @@ class GRAPHIC_ITEM Font
 {
 public:
     // Construction.
-    Font(eastl::shared_ptr<ProgramFactory> const& factory, unsigned int width, unsigned int height,
-        char const* texels, float const* characterData, unsigned int maxMessageLength);
+    Font(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path, 
+		unsigned int width, unsigned int height, char const* texels, float const* characterData, 
+		unsigned int maxMessageLength);
 
     // Member access.
     inline eastl::shared_ptr<VertexBuffer> const& GetVertexBuffer() const;
@@ -36,13 +37,6 @@ protected:
 	eastl::shared_ptr<Texture2> mTexture;
 	eastl::shared_ptr<TextEffect> mTextEffect;
     float mCharacterData[257];
-
-    // Shader source code as strings.
-    static eastl::string const msGLSLVSSource;
-    static eastl::string const msGLSLPSSource;
-    static eastl::string const msHLSLSource;
-    static eastl::string const* msVSSource[ProgramFactory::PF_NUM_API];
-    static eastl::string const* msPSSource[ProgramFactory::PF_NUM_API];
 };
 
 

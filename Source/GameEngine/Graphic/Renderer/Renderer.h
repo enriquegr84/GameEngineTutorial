@@ -112,7 +112,7 @@ public:
 	uint64_t Draw(eastl::shared_ptr<Visual> const& visual);
 	uint64_t Draw(eastl::vector<eastl::shared_ptr<Visual>> const& visuals);
 
-	// Draw 2D text.
+	// Draw 2D text
 	uint64_t Draw(int x, int y, eastl::array<float, 4> const& color, eastl::wstring const& message);
 
 	inline const Vector2<unsigned int>& GetScreenSize() const;
@@ -130,7 +130,7 @@ public:
 	// is Arial (height 18, no italics, no bold).
 	virtual void SetFont(eastl::shared_ptr<Font> const& font);
 	inline eastl::shared_ptr<Font> const& GetFont() const;
-	inline void SetDefaultFont();
+	inline void SetDefaultFont(eastl::shared_ptr<Font> const& font);
 	inline eastl::shared_ptr<Font> const& GetDefaultFont() const;
 
 	// Global drawing state.
@@ -285,8 +285,9 @@ inline eastl::shared_ptr<Font> const& Renderer::GetFont() const
 	return mActiveFont;
 }
 //----------------------------------------------------------------------------
-inline void Renderer::SetDefaultFont()
+inline void Renderer::SetDefaultFont(eastl::shared_ptr<Font> const& font)
 {
+	mDefaultFont = font;
 	SetFont(mDefaultFont);
 }
 //----------------------------------------------------------------------------

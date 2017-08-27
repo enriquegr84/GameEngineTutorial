@@ -48,6 +48,7 @@
 #include "UIWindow.h"
 #include "UIElement.h"
 #include "UIStaticText.h"
+#include "UISpriteBank.h"
 #include "UIElementFactory.h"
 #include "DefaultUIElementFactory.h"
 
@@ -118,11 +119,11 @@ public:
 	virtual void Clear();
 
 	//! returns the font
-	virtual eastl::shared_ptr<BaseUIFont> GetFont(const eastl::string& filename);
+	virtual eastl::shared_ptr<BaseUIFont> GetFont(const eastl::wstring& fileName);
 
 	//! add an externally loaded font
 	virtual const eastl::shared_ptr<BaseUIFont>& AddFont(
-		const eastl::string& name, const eastl::shared_ptr<BaseUIFont>& font);
+		const eastl::wstring& name, const eastl::shared_ptr<BaseUIFont>& font);
 
 	//! Returns the element with the focus
 	virtual const eastl::shared_ptr<BaseUIElement>& GetFocus() const;
@@ -152,7 +153,13 @@ public:
 	virtual eastl::shared_ptr<BaseUISkin> CreateSkin(UISkinThemeType type);
 
 	//! returns default font
-	virtual eastl::shared_ptr<BaseUIFont> GetBuiltInFont() const;
+	virtual eastl::shared_ptr<BaseUIFont> GetBuiltInFont();
+
+	//! returns the sprite bank
+	virtual eastl::shared_ptr<BaseUISpriteBank> GetSpriteBank(const eastl::wstring& filename);
+
+	//! returns the sprite bank
+	virtual eastl::shared_ptr<BaseUISpriteBank> AddEmptySpriteBank(const eastl::wstring& filename);
 
 	//! remove loaded font
 	virtual void RemoveFont(const eastl::shared_ptr<BaseUIFont>& font);
@@ -189,9 +196,37 @@ public:
 		const wchar_t* text = 0, const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
 
 	//! adds a static text. The returned pointer must not be dropped.
-	virtual eastl::shared_ptr<BaseUIStaticText> AddStaticText(const wchar_t* text, const RectangleBase<2, int>& rectangle,
-		bool border = false, bool wordWrap = true, const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, bool drawBackground = false);
+	virtual eastl::shared_ptr<BaseUIStaticText> AddStaticText(const wchar_t* text, 
+		const RectangleBase<2, int>& rectangle, bool border = false, bool wordWrap = true, 
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, bool drawBackground = false);
 
+	//! Adds an image element.
+	virtual eastl::shared_ptr<BaseUIImage> AddImage(Texture2* image, Vector2<int> pos, bool useAlphaChannel = true, 
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, s32 id = -1, const wchar_t* text = 0);
+
+	//! adds an image. The returned pointer must not be dropped.
+	virtual eastl::shared_ptr<BaseUIImage> AddImage(const core::rect<s32>& rectangle,
+		IGUIElement* parent = 0, s32 id = -1, const wchar_t* text = 0, bool useAlphaChannel = true);
+
+	//! adds a scrollbar. The returned pointer must not be dropped.
+	virtual IGUIScrollBar* addScrollBar(bool horizontal, const core::rect<s32>& rectangle,
+		IGUIElement* parent = 0, s32 id = -1);
+
+	//! adds a checkbox
+	virtual IGUICheckBox* addCheckBox(bool checked, const core::rect<s32>& rectangle, IGUIElement* parent = 0, s32 id = -1, const wchar_t* text = 0);
+
+	//! adds a list box
+	virtual IGUIListBox* addListBox(const core::rect<s32>& rectangle,
+		IGUIElement* parent = 0, s32 id = -1, bool drawBackground = false);
+
+	//! adds a tree view
+	virtual IGUITreeView* addTreeView(const core::rect<s32>& rectangle,
+		IGUIElement* parent = 0, s32 id = -1, bool drawBackground = false,
+		bool scrollBarVertical = true, bool scrollBarHorizontal = false);
+
+	//! Adds a combo box to the environment.
+	virtual IGUIComboBox* addComboBox(const core::rect<s32>& rectangle,
+		IGUIElement* parent = 0, s32 id = -1);
 
 protected:
 	eastl::shared_ptr<BaseUIElement> mRoot;
@@ -204,7 +239,8 @@ private:
 
 	eastl::vector<eastl::shared_ptr<UIElementFactory>> UIElementFactoryList;
 
-	eastl::array<eastl::shared_ptr<Font>> mFonts;
+	eastl::map<eastl::wstring, eastl::shared_ptr<BaseUISpriteBank>> mBanks;
+	eastl::map<eastl::wstring, eastl::shared_ptr<BaseUIFont>> mFonts;
 	eastl::shared_ptr<BaseUIElement> mHovered;
 	eastl::shared_ptr<BaseUIElement> mHoveredNoSubelement;	// subelements replaced by their parent, so you only have 'real' elements here
 	eastl::shared_ptr<BaseUIElement> mFocus;

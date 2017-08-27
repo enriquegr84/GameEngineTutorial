@@ -38,6 +38,7 @@
 
 #include "UserInterface.h"
 
+#include "Core/IO/XmlResource.h"
 #include "Core/OS/Os.h"
 
 //! constructor
@@ -48,6 +49,8 @@ BaseUI::BaseUI()
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
 	RectangleBase<2, int> screenRectangle;
+	screenRectangle.center[0] = screenSize[0] / 2;
+	screenRectangle.center[1] = screenSize[1] / 2;
 	screenRectangle.extent[0] = (int)screenSize[0];
 	screenRectangle.extent[1] = (int)screenSize[1];
 
@@ -67,7 +70,11 @@ BaseUI::~BaseUI()
 
 bool BaseUI::OnInit()
 {
-	//LoadBuiltInFont();
+	//LoadBuiltInFont
+	eastl::string path = FileSystem::Get()->GetPath("Effects/TextEffect.hlsl");
+	eastl::shared_ptr<Font> builtInFont = eastl::make_shared<FontArialW400H18>(ProgramFactory::Get(), path, 256);
+	Renderer::Get()->SetDefaultFont(builtInFont);
+	mFonts[L"DefaultFont"] = eastl::shared_ptr<BaseUIFont>(new UIFont(this, L"DefaultFont", builtInFont));
 
 	const eastl::shared_ptr<BaseUISkin>& skin = CreateSkin( STT_WINDOWS_CLASSIC );
 	SetSkin(skin);
@@ -80,12 +87,15 @@ bool BaseUI::OnRender(double time, float elapsedTime)
 {
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
-	if (mRoot->mAbsoluteRect.extent[0] != screenSize[0] ||
-		mRoot->mAbsoluteRect.extent[1] != screenSize[1])
+	if ((mRoot->mAbsoluteRect.center[0] + (int)round(mRoot->mAbsoluteRect.extent[0] / 2.f)) != screenSize[0] ||
+		(mRoot->mAbsoluteRect.center[1] + (int)round(mRoot->mAbsoluteRect.extent[1] / 2.f)) != screenSize[1])
 	{
 		// resize gui environment
-		mRoot->mDesiredRect.extent[0] = (int)screenSize[0];
-		mRoot->mDesiredRect.extent[1] = (int)screenSize[1];
+		Vector2<int> center(mRoot->mDesiredRect.center);
+		mRoot->mDesiredRect.center[0] = (int)screenSize[0] - (int)round(mRoot->mDesiredRect.extent[0] / 2.f);
+		mRoot->mDesiredRect.center[1] = (int)screenSize[1] - (int)round(mRoot->mDesiredRect.extent[1] / 2.f);
+		mRoot->mDesiredRect.extent[0] = 2 * ((int)screenSize[0] - center[0]);
+		mRoot->mDesiredRect.extent[1] = 2 * ((int)screenSize[1] - center[1]);
 		mRoot->mAbsoluteClippingRect = mRoot->mDesiredRect;
 		mRoot->mAbsoluteRect = mRoot->mDesiredRect;
 		mRoot->UpdateAbsoluteTransformation();
@@ -116,6 +126,20 @@ void BaseUI::Clear()
 
 	while (!children.empty())
 		children.back()->Remove();
+	/*
+	// delete all sprite banks
+	for (int i = 0; i < mBanks.size(); ++i)
+		if (mBanks[i].mBank)
+			delete mBanks[i].mBank;
+
+	// delete all fonts
+	for (int i = 0; i < mFonts.size(); ++i)
+		delete mFonts[i]->mFont;
+
+	// remove all factories
+	for (int i = 0; i < UIElementFactoryList.size(); ++i)
+		delete UIElementFactoryList[i];
+	*/
 }
 
 //
@@ -349,58 +373,34 @@ eastl::shared_ptr<BaseUISkin> BaseUI::CreateSkin(UISkinThemeType type)
 	To make the font a little bit nicer, we load an external font
 	and set it as the new default font in the skin.
 	*/
-	eastl::shared_ptr<BaseUIFont> font(GetFont("art/fonts/builtinfont.bmp"));
-	if (font)
-		skin->SetFont(font);
+	eastl::shared_ptr<BaseUIFont> font(GetFont(L"DefaultFont"));
+	if (font) skin->SetFont(font);
 
 	UIFontBitmap* bitfont = 0;
 	if (font && font->GetType() == FT_BITMAP)
 		bitfont = (UIFontBitmap*)font.get();
 
-	eastl::shared_ptr<BaseUISpriteBank> bank = 0;
 	skin->SetFont(font);
 
+	eastl::shared_ptr<BaseUISpriteBank> bank = 0;
 	if (bitfont)
 		bank = bitfont->GetSpriteBank();
-
 	skin->SetSpriteBank(bank);
+
 	return skin;
 }
 
 //! returns the font
-eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
+eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::wstring& fileName)
 {
-	// search existing font
-	eastl::array<eastl::shared_ptr<Font>>::iterator itFont = mFonts.begin();
-	for (; itFont != mFonts.end(); itFont++)
-	{
-		if ((*itFont).FontNamedPath == filename)
-			return (*itFont).GuiFont;
-	}
+	auto itFont = mFonts.find(fileName);
+	if (itFont != mFonts.end()) return mFonts[fileName];
 
-	eastl::shared_ptr<UIFont> font=0;
-	if (!font)
-	{
-		font = eastl::shared_ptr<UIFont>(new UIFont(this, filename));
-		if (!((UIFont*)font.get())->Load(filename))
-		{
-			font = 0;
-			return 0;
-		}
-	}
-
-	// add to fonts.
-	Font f;
-	f.GuiFont = font;
-	f.FontNamedPath.SetPath(filename);
-	Fonts.push_back(f);
-	return font;
-
-	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(filename.c_str());
+	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(fileName.c_str());
     // font doesn't exist, attempt to load it
 	if (!pRoot)
     {
-        LogError("Failed to find level resource file: " + filename);
+        LogError(L"Failed to find resource file: " + fileName);
         return 0;
     }
 	
@@ -432,11 +432,10 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 	eastl::shared_ptr<UIFont> font=0;
 	if (t==FT_BITMAP)
 	{
-		font = eastl::shared_ptr<UIFont>(new UIFont(shared_from_this(), filename));
+		font = eastl::shared_ptr<UIFont>(new UIFont(this, fileName));
 		// change working directory, for loading textures
-		path workingDir = FileSystem::Get()->GetWorkingDirectory();
-		FileSystem::Get()->ChangeWorkingDirectoryTo(
-			FileSystem::Get()->GetFileDir(f.FontNamedPath.GetPath()));
+		eastl::wstring workingDir = FileSystem::Get()->GetWorkingDirectory();
+		FileSystem::Get()->ChangeWorkingDirectoryTo(FileSystem::Get()->GetFileDir(fileName));
 
 		// load the font
 		if (!((UIFont*)font.get())->Load(pRoot))
@@ -445,10 +444,10 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 		// change working dir back again
 		FileSystem::Get()->ChangeWorkingDirectoryTo( workingDir );
 	}
-	else if (t==EGFT_VECTOR)
+	else if (t==FT_VECTOR)
 	{
 		// todo: vector fonts
-		LogError("Unable to load font, XML vector fonts are not supported yet " + f.FontNamedPath);
+		LogError(L"Unable to load font, XML vector fonts are not supported yet " + fileName);
 
 		//UIFontVector* fontVector = new UIFontVector(Driver);
 		//font = eastl::shared_ptr<BaseUIFont>(font);
@@ -457,11 +456,8 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 
 	if (!font)
 	{
-
-		font = eastl::shared_ptr<UIFont>(
-			new UIFont(shared_from_this(), f.FontNamedPath.GetPath()));
-
-		if (!((UIFont*)font.get())->Load(f.FontNamedPath.GetPath()))
+		font = eastl::shared_ptr<UIFont>(new UIFont(this, fileName));
+		if (!font->Load(fileName))
 		{
 			font = 0;
 			return 0;
@@ -469,30 +465,19 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::string& filename)
 	}
 
 	// add to fonts.
-	f.GuiFont = font;
-	Fonts.push_back(f);
+	mFonts[fileName] = font;
 	return font;
 }
 
 
 //! add an externally loaded font
 const eastl::shared_ptr<BaseUIFont>& BaseUI::AddFont(
-	const eastl::string& name, const eastl::shared_ptr<BaseUIFont>& font)
+	const eastl::wstring& name, const eastl::shared_ptr<BaseUIFont>& font)
 {
-
 	if (font)
 	{
-		eastl::vector<Font>::iterator itFont = Fonts.begin();
-		for (; itFont != Fonts.end(); itFont++)
-		{
-			if ((*itFont).FontNamedPath == name)
-				return (*itFont).GuiFont;
-		}
-
-		Font f;
-		f.GuiFont = font;
-		f.FontNamedPath.SetPath(name);
-		Fonts.push_back(f);
+		auto itFont = mFonts.find(name);
+		if (itFont == mFonts.end()) mFonts[name] = font;
 	}
 
 	return font;
@@ -504,29 +489,53 @@ void BaseUI::RemoveFont(const eastl::shared_ptr<BaseUIFont>& font)
 	if ( !font )
 		return;
 
-	eastl::vector<Font>::iterator itFont = Fonts.begin();
-	for (; itFont != Fonts.end(); itFont++)
+	auto itFont = mFonts.begin();
+	for (; itFont != mFonts.end(); itFont++)
 	{
-		if ((*itFont).GuiFont== font)
+		if ((*itFont).second == font)
 		{
-			(*itFont).GuiFont=0;
-			Fonts.erase(itFont);
+			mFonts.erase(itFont);
 			return;
 		}
 	}
-
 }
 
 //! returns default font
-eastl::shared_ptr<BaseUIFont> BaseUI::GetBuiltInFont() const
+eastl::shared_ptr<BaseUIFont> BaseUI::GetBuiltInFont()
 {
-
-	if (Fonts.empty())
+	if (mFonts.empty())
 		return 0;
 
-	return Fonts.front().GuiFont;
+	return mFonts[L"DefaultFont"];
+}
 
-	return eastl::shared_ptr<BaseUIFont>();
+eastl::shared_ptr<BaseUISpriteBank> BaseUI::GetSpriteBank(const eastl::wstring& fileName)
+{
+	auto itBank = mBanks.find(fileName);
+	if (itBank != mBanks.end()) return mBanks[fileName];
+
+	// todo: load it!
+	/*
+	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(fileName.c_str());
+	// font doesn't exist, attempt to load it
+	if (!pRoot)
+	{
+		LogError(L"Failed to find resource file: " + fileName);
+		return 0;
+	}
+	*/
+	return 0;
+}
+
+
+eastl::shared_ptr<BaseUISpriteBank> BaseUI::AddEmptySpriteBank(const eastl::wstring& fileName)
+{
+	// no duplicate names allowed
+	auto itBank = mBanks.find(fileName);
+	if (itBank != mBanks.end()) return mBanks[fileName];
+
+	mBanks[fileName] = eastl::shared_ptr<UISpriteBank>(new UISpriteBank(this));
+	return mBanks[fileName];
 }
 
 //! Returns the default element factory which can create all built in elements

@@ -21,7 +21,7 @@ class GRAPHIC_ITEM TextEffect : public VisualEffect
 public:
     // Construction.
     TextEffect(eastl::shared_ptr<ProgramFactory> const& factory,
-		eastl::shared_ptr<Texture2> const& texture);
+		eastl::string path, eastl::shared_ptr<Texture2> const& texture);
 
     // Support for typesetting.
 	eastl::shared_ptr<ConstantBuffer> const& GetTranslate() const;
@@ -33,13 +33,6 @@ private:
 	eastl::shared_ptr<ConstantBuffer> mTranslate;
 	eastl::shared_ptr<ConstantBuffer> mColor;
 	eastl::shared_ptr<SamplerState> mSamplerState;
-
-    // Shader source code as strings.
-    static eastl::string const msGLSLVSSource;
-    static eastl::string const msGLSLPSSource;
-    static eastl::string const msHLSLSource;
-    static eastl::string const* msVSSource[ProgramFactory::PF_NUM_API];
-    static eastl::string const* msPSSource[ProgramFactory::PF_NUM_API];
 };
 
 #endif

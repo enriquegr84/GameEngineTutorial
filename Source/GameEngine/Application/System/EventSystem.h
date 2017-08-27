@@ -490,6 +490,54 @@ enum UIEventType
 	//! A button was clicked.
 	UIEVT_BUTTON_CLICKED,
 
+	//! A scrollbar has changed its position.
+	UIEVT_SCROLL_BAR_CHANGED,
+
+	//! A checkbox has changed its check state.
+	UIEVT_CHECKBOX_CHANGED,
+
+	//! A new item in a listbox was selected.
+	/** NOTE: You also get this event currently when the same item was clicked again after more than 500 ms. */
+	UIEVT_LISTBOX_CHANGED,
+
+	//! An item in the listbox was selected, which was already selected.
+	/** NOTE: You get the event currently only if the item was clicked again within 500 ms or selected by "enter" or "space". */
+	UIEVT_LISTBOX_SELECTED_AGAIN,
+
+	//! In an editbox 'ENTER' was pressed
+	UIEVT_EDITBOX_ENTER,
+
+	//! The text in an editbox was changed. This does not include automatic changes in text-breaking.
+	UIEVT_EDITBOX_CHANGED,
+
+	//! The marked area in an editbox was changed.
+	UIEVT_EDITBOX_MARKING_CHANGED,
+
+	//! The tab was changed in an tab control
+	UIEVT_TAB_CHANGED,
+
+	//! A menu item was selected in a (context) menu
+	UIEVT_MENU_ITEM_SELECTED,
+
+	//! The selection in a combo box has been changed
+	UIEVT_COMBO_BOX_CHANGED,
+
+	//! A tree view node lost selection. See IGUITreeView::getLastEventNode().
+	UIEVT_TREEVIEW_NODE_DESELECT,
+
+	//! A tree view node was selected. See IGUITreeView::getLastEventNode().
+	UIEVT_TREEVIEW_NODE_SELECT,
+
+	//! A tree view node was expanded. See IGUITreeView::getLastEventNode().
+	UIEVT_TREEVIEW_NODE_EXPAND,
+
+	//! A tree view node was collapsed. See IGUITreeView::getLastEventNode().
+	UIEVT_TREEVIEW_NODE_COLLAPSE,
+
+	//! deprecated - use EGET_TREEVIEW_NODE_COLLAPSE instead. This
+	//! may be removed by Irrlicht 1.9
+	UIEVT_TREEVIEW_NODE_COLLAPS = UIEVT_TREEVIEW_NODE_COLLAPSE,
+
 	//! No real event. Just for convenience to get number of events
 	UIEVT_COUNT
 };

@@ -115,10 +115,6 @@ bool TriangleDemoApplication::CreateScene()
 {
 	mScene = eastl::make_shared<Node>();
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
-	eastl::shared_ptr<BasicEffect> effect = 
-		eastl::make_shared<BasicEffect>(mProgramFactory, path);
-
 	struct Vertex
 	{
 		Vector3<float> position;
@@ -127,6 +123,10 @@ bool TriangleDemoApplication::CreateScene()
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	eastl::shared_ptr<BasicEffect> effect =
+		eastl::make_shared<BasicEffect>(mProgramFactory, path);
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);

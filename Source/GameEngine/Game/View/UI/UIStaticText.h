@@ -8,6 +8,9 @@
 #include "UIElement.h"
 #include "UIFont.h"
 
+#include "Graphic/Effect/BasicEffect.h"
+#include "Graphic/Scene/Element/Visual.h"
+
 //! Multi or single line text label.
 class BaseUIStaticText : public BaseUIElement
 {
@@ -229,6 +232,8 @@ private:
 	bool mRightToLeft;
 
 	eastl::array<float, 4> mOverrideColor, mBGColor;
+	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<BasicEffect> mEffect;
 	eastl::shared_ptr<BaseUIFont> mOverrideFont;
 	eastl::shared_ptr<BaseUIFont> mLastBreakFont; // stored because: if skin changes, line break must be recalculated.
 

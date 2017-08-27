@@ -8,8 +8,6 @@
 #include "UIFont.h"
 #include "UIElement.h"
 
-#include "Graphic/Effect/BasicEffect.h"
-
 //! Enumeration of available default skins.
 /** To set one of the skins, use the following code, for example to set
 the Windows classic skin:
@@ -281,6 +279,12 @@ public:
 	//! sets a default font
 	virtual void SetFont(const eastl::shared_ptr<BaseUIFont>& font, UIDefaultFont which=DF_DEFAULT) = 0;
 
+	//! sets the sprite bank used for drawing icons
+	virtual void SetSpriteBank(const eastl::shared_ptr<BaseUISpriteBank>& bank) = 0;
+
+	//! gets the sprite bank used for drawing icons
+	virtual const eastl::shared_ptr<BaseUISpriteBank>& GetSpriteBank() const = 0;
+
 	//! Returns a default icon
 	/** Returns the sprite index within the sprite bank */
 	virtual unsigned int GetIcon(UIDefaultIcon icon) const = 0;
@@ -295,47 +299,45 @@ public:
 	//! draws a standard 3d button pane
 	/** Used for drawing for example buttons in normal state.
 	It uses the colors EGDC_3D_DARK_SHADOW, EGDC_3D_HIGH_LIGHT, EGDC_3D_SHADOW and
-	EGDC_3D_FACE for this. See EUI_DEFAULT_COLOR for details.
-	\param element: Pointer to the element which wishes to draw this. This parameter
-	is usually not used by UISkin, but can be used for example by more complex
-	implementations to find out how to draw the part exactly.
+	EGDC_3D_FACE for this. See EGUI_DEFAULT_COLOR for details.
 	\param rect: Defining area where to draw.
-	\param clip: Clip area. */
-	virtual void Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>& element,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0) = 0;
+	\param clip: Clip area.
+	\param element: Pointer to the element which wishes to draw this. This parameter
+	is usually not used by ISkin, but can be used for example by more complex
+	implementations to find out how to draw the part exactly. */
+	virtual void Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>&,
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
 
 	//! draws a pressed 3d button pane
 	/** Used for drawing for example buttons in pressed state.
 	It uses the colors EGDC_3D_DARK_SHADOW, EGDC_3D_HIGH_LIGHT, EGDC_3D_SHADOW and
-	EGDC_3D_FACE for this. See EUI_DEFAULT_COLOR for details.
-	\param element: Pointer to the element which wishes to draw this. This parameter
-	is usually not used by UISkin, but can be used for example by more complex
-	implementations to find out how to draw the part exactly.
+	EGDC_3D_FACE for this. See EGUI_DEFAULT_COLOR for details.
 	\param rect: Defining area where to draw.
-	\param clip: Clip area. */
-	virtual void Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>& element,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0) = 0;
+	\param clip: Clip area.
+	\param element: Pointer to the element which wishes to draw this. This parameter
+	is usually not used by ISkin, but can be used for example by more complex
+	implementations to find out how to draw the part exactly. */
+	virtual void Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>&,
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
 
 	//! draws a sunken 3d pane
 	/** Used for drawing the background of edit, combo or check boxes.
 	\param element: Pointer to the element which wishes to draw this. This parameter
-	is usually not used by UISkin, but can be used for example by more complex
+	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly.
 	\param bgcolor: Background color.
 	\param flat: Specifies if the sunken pane should be flat or displayed as sunken
 	deep into the ground.
-	\param fillBackGround: Specifies if the background should be filled with the background
-	color or not be drawn at all.
 	\param rect: Defining area where to draw.
-	\param clip: Clip area. */
+	\param clip: Clip area.	*/
 	virtual void Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element,
-		eastl::array<float, 4> const bgcolor, bool flat, bool fillBackGround, 
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0) = 0;
+		eastl::array<float, 4> const bgcolor, bool flat, bool fillBackGround,
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
 
 	//! draws a window background
 	/** Used for drawing the background of dialogs and windows.
 	\param element: Pointer to the element which wishes to draw this. This parameter
-	is usually not used by UISkin, but can be used for example by more complex
+	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly.
 	\param titleBarColor: Title color.
 	\param drawTitleBar: True to enable title drawing.
@@ -347,71 +349,69 @@ public:
 	\return Returns rect where it would be good to draw title bar text. This will
 	work even when checkClientArea is set to a non-null value.*/
 	virtual RectangleBase<2, int> Draw3DWindowBackground(const eastl::shared_ptr<BaseUIElement>& element,
+		const eastl::shared_ptr<Visual>& visualBackground, const eastl::shared_ptr<Visual>& visualTitle,
 		bool drawTitleBar, eastl::array<float, 4> const titleBarColor, const RectangleBase<2, int>& rect,
-		const RectangleBase<2, int>* clip=0, RectangleBase<2, int>* checkClientArea=0) = 0;
+		const RectangleBase<2, int>* clip = 0, RectangleBase<2, int>* checkClientArea = 0) = 0;
 
 	//! draws a standard 3d menu pane
 	/** Used for drawing for menus and context menus.
 	It uses the colors EGDC_3D_DARK_SHADOW, EGDC_3D_HIGH_LIGHT, EGDC_3D_SHADOW and
-	EGDC_3D_FACE for this. See EUI_DEFAULT_COLOR for details.
+	EGDC_3D_FACE for this. See EGUI_DEFAULT_COLOR for details.
 	\param element: Pointer to the element which wishes to draw this. This parameter
-	is usually not used by UISkin, but can be used for example by more complex
+	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly.
 	\param rect: Defining area where to draw.
-	\param clip: Clip area. */
-	virtual void Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element, const RectangleBase<2, int>& rect,
-		const RectangleBase<2, int>* clip=0) = 0;
+	\param clip: Clip area.	*/
+	virtual void Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
 
 	//! draws a standard 3d tool bar
 	/** Used for drawing for toolbars and menus.
 	\param element: Pointer to the element which wishes to draw this. This parameter
-	is usually not used by UISkin, but can be used for example by more complex
+	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly.
 	\param rect: Defining area where to draw.
-	\param clip: Clip area. */
-	virtual void Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element, const RectangleBase<2, int>& rect,
-		const RectangleBase<2, int>* clip=0) = 0;
+	\param clip: Clip area.	*/
+	virtual void Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
 
 	//! draws a tab button
 	/** Used for drawing for tab buttons on top of tabs.
 	\param element: Pointer to the element which wishes to draw this. This parameter
-	is usually not used by UISkin, but can be used for example by more complex
+	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly.
 	\param active: Specifies if the tab is currently active.
 	\param rect: Defining area where to draw.
-	\param clip: Clip area.
-	\param alignment Alignment of UI element. */
+	\param clip: Clip area.	*/
 	virtual void Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bool active,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0, 
-		UIAlignment alignment=UIA_UPPERLEFT) = 0;
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0,
+		UIAlignment alignment = UIA_UPPERLEFT) = 0;
 
 	//! draws a tab control body
 	/** \param element: Pointer to the element which wishes to draw this. This parameter
-	is usually not used by UISkin, but can be used for example by more complex
+	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly.
 	\param border: Specifies if the border should be drawn.
 	\param background: Specifies if the background should be drawn.
 	\param rect: Defining area where to draw.
-	\param clip: Clip area.
-	\param tabHeight Height of tab.
-	\param alignment Alignment of UI element. */
-	virtual void Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool border,
-		bool background, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip=0, 
-		int tabHeight=-1, UIAlignment alignment=UIA_UPPERLEFT ) = 0;
+	\param clip: Clip area.	*/
+	virtual void Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool border, bool background,
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0,
+		int tabHeight = -1, UIAlignment alignment = UIA_UPPERLEFT) = 0;
 
 	//! draws an icon, usually from the skin's sprite bank
 	/** \param element: Pointer to the element which wishes to draw this icon.
-	This parameter is usually not used by UISkin, but can be used for example
+	This parameter is usually not used by IGUISkin, but can be used for example
 	by more complex implementations to find out how to draw the part exactly.
 	\param icon: Specifies the icon to be drawn.
 	\param position: The position to draw the icon
 	\param starttime: The time at the start of the animation
 	\param currenttime: The present time, used to calculate the frame number
 	\param loop: Whether the animation should loop or not
-	\param clip: Clip area. */
+	\param clip: Clip area.	*/
 	virtual void DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon,
-		const Vector2<int> position, unsigned int starttime=0, unsigned int currenttime=0,
-		bool loop=false, const RectangleBase<2, int>* clip=0) = 0;
+		const Vector2<int> position, const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>* clip = 0,
+		unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = false) = 0;
 
 	//! draws a 2d rectangle.
 	/** \param element: Pointer to the element which wishes to draw this icon.
@@ -496,7 +496,7 @@ public:
 	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly. */
 	virtual void Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>&,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
 
 	//! draws a pressed 3d button pane
 	/** Used for drawing for example buttons in pressed state.
@@ -508,7 +508,7 @@ public:
 	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly. */
 	virtual void Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>&,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
 
 	//! draws a sunken 3d pane
 	/** Used for drawing the background of edit, combo or check boxes.
@@ -522,7 +522,7 @@ public:
 	\param clip: Clip area.	*/
 	virtual void Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element,
 		eastl::array<float, 4> const bgcolor, bool flat, bool fillBackGround,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
 
 	//! draws a window background
 	/** Used for drawing the background of dialogs and windows.
@@ -539,7 +539,8 @@ public:
 	\return Returns rect where it would be good to draw title bar text. This will
 	work even when checkClientArea is set to a non-null value.*/
 	virtual RectangleBase<2, int> Draw3DWindowBackground(const eastl::shared_ptr<BaseUIElement>& element,
-		bool drawTitleBar, eastl::array<float, 4> const titleBarColor, const RectangleBase<2, int>& rect,
+		const eastl::shared_ptr<Visual>& visualBackground, const eastl::shared_ptr<Visual>& visualTitle, 
+		bool drawTitleBar, eastl::array<float, 4> const titleBarColor, const RectangleBase<2, int>& rect, 
 		const RectangleBase<2, int>* clip = 0, RectangleBase<2, int>* checkClientArea = 0);
 
 	//! draws a standard 3d menu pane
@@ -552,7 +553,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
 
 	//! draws a standard 3d tool bar
 	/** Used for drawing for toolbars and menus.
@@ -562,7 +563,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
 
 	//! draws a tab button
 	/** Used for drawing for tab buttons on top of tabs.
@@ -573,7 +574,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bool active,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0, 
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0, 
 		UIAlignment alignment = UIA_UPPERLEFT);
 
 	//! draws a tab control body
@@ -585,8 +586,8 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool border, bool background,
-		const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0, int tabHeight = -1, 
-		UIAlignment alignment = UIA_UPPERLEFT);
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0, 
+		int tabHeight = -1, UIAlignment alignment = UIA_UPPERLEFT);
 
 	//! draws an icon, usually from the skin's sprite bank
 	/** \param element: Pointer to the element which wishes to draw this icon.
@@ -598,9 +599,9 @@ public:
 	\param currenttime: The present time, used to calculate the frame number
 	\param loop: Whether the animation should loop or not
 	\param clip: Clip area.	*/
-	virtual void DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon,
-		const Vector2<int> position, unsigned int starttime = 0, unsigned int currenttime = 0,
-		bool loop = false, const RectangleBase<2, int>* clip = 0);
+	virtual void DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon, 
+		const Vector2<int> position, const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>* clip = 0, 
+		unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = false);
 
 	//! draws a 2d rectangle.
 	/** \param element: Pointer to the element which wishes to draw this icon.
@@ -612,8 +613,8 @@ public:
 	\param clip: Pointer to rectangle against which the rectangle will be clipped.
 	If the pointer is null, no clipping will be performed. */
 	virtual void Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element, 
-		const eastl::array<float, 4> &color, const RectangleBase<2, int>& pos, 
-		const RectangleBase<2, int>* clip = 0);
+		const eastl::array<float, 4> &color, const eastl::shared_ptr<Visual>& visual, 
+		const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip = 0 );
 
 	//! get the type of this skin
 	virtual UISkinThemeType GetType() const;
@@ -625,7 +626,6 @@ private:
 	eastl::array<float, 4> mColors[DC_COUNT];
 	int mSizes[DS_COUNT];
 	unsigned int mIcons[DI_COUNT];
-	eastl::shared_ptr<BasicEffect> mEffect;
 	eastl::shared_ptr<BaseUIFont> mFonts[DF_COUNT];
 	eastl::shared_ptr<BaseUISpriteBank> mSpriteBank;
 	eastl::wstring mTexts[DT_COUNT];

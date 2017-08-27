@@ -52,7 +52,7 @@ void Renderer::SetFont(eastl::shared_ptr<Font> const& font)
 	{
 		if (font != mActiveFont)
 		{
-			// Destroy font resources in GPU memory.  The mActiveFont should
+			// Destroy font resources in GPU memory. The mActiveFont should
 			// be null once, only when the mDefaultFont is created.
 			if (mActiveFont)
 			{

@@ -32,6 +32,9 @@
 //Function
 #include "Function/Constants.h"
 
+//Geometric
+#include "Geometric/Rectangle.h"
+
 //Surface
 #include "Surface/VertexAttribute.h"
 #include "Surface/IndexAttribute.h"

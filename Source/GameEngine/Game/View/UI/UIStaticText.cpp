@@ -29,6 +29,26 @@ UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text,
 	{
 		mBGColor = mUI->GetSkin()->GetColor(DC_3D_FACE);
 	}
+
+	// Create a vertex buffer for a single triangle.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	// Create the geometric object for drawing.
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 }
 
 
@@ -51,7 +71,6 @@ void UIStaticText::Draw( )
 	RectangleBase<2, int> frameRect(mAbsoluteRect);
 
 	// draw background
-
 	if (mBackground)
 	{
 		if ( !mOverrideBGColorEnabled )	// skin-colors can change
@@ -64,8 +83,10 @@ void UIStaticText::Draw( )
 
 	if (mBorder)
 	{
-		skin->Draw3DSunkenPane(shared_from_this(), eastl::array<float, 4>(), true, false, frameRect, &mAbsoluteClippingRect);
-		frameRect.extent[0] += skin->GetSize(DS_TEXT_DISTANCE_X);
+		skin->Draw3DSunkenPane(
+			shared_from_this(), eastl::array<float, 4>(), true, false, mVisual, frameRect, &mAbsoluteClippingRect);
+		frameRect.center[0] += (int)round(skin->GetSize(DS_TEXT_DISTANCE_X) / 2);
+		frameRect.extent[0] -= skin->GetSize(DS_TEXT_DISTANCE_X);
 	}
 
 	// draw the text
@@ -79,13 +100,14 @@ void UIStaticText::Draw( )
 			{
 				if (mVAlign == UIA_LOWERRIGHT)
 				{
-					frameRect.extent[1] = frameRect.extent[1] -
-						font->GetDimension(L"A")[1] - font->GetKerningHeight();
+					frameRect.center[1] += (int)round(frameRect.extent[1] / 2.f);
+					frameRect.extent[1] = 0;
 				}
+
 				if (mHAlign == UIA_LOWERRIGHT)
 				{
-					frameRect.extent[0] = frameRect.extent[0] -
-						font->GetDimension(mText.c_str())[0];
+					frameRect.center[0] += (int)round(frameRect.extent[0] / 2.f);
+					frameRect.extent[0] = 0;
 				}
 
 				font->Draw(mText.c_str(), frameRect,
@@ -98,31 +120,28 @@ void UIStaticText::Draw( )
 					BreakText();
 
 				RectangleBase<2, int> r = frameRect;
-				int height = font->GetDimension(L"A")[1] + font->GetKerningHeight();
-				int totalHeight = height * mBrokenText.size();
 				if (mVAlign == UIA_CENTER)
 				{
-					r.extent[1] = r.center[1] - (totalHeight / 2);
+					r.extent[1] -= r.center[1];
+					r.center[1] += r.center[1];
 				}
 				else if (mVAlign == UIA_LOWERRIGHT)
 				{
-					r.extent[1] = r.extent[1] - totalHeight;
+					r.center[1] += (int)round(r.extent[1] / 2.f);
+					r.extent[1] = 0;
 				}
 
 				for (unsigned int i=0; i<mBrokenText.size(); ++i)
 				{
 					if (mHAlign == UIA_LOWERRIGHT)
 					{
-						r.extent[0] = frameRect.extent[0] -
-							font->GetDimension(mBrokenText[i].c_str())[0];
+						r.center[0] += (int)round(frameRect.extent[0] / 2.f);
+						r.extent[0] = 0;
 					}
 
 					font->Draw(mBrokenText[i].c_str(), r,
 						mOverrideColorEnabled ? mOverrideColor : skin->GetColor(IsEnabled() ? DC_BUTTON_TEXT : DC_GRAY_TEXT),
 						mHAlign == UIA_CENTER, false, (mRestrainTextInside ? &mAbsoluteClippingRect : NULL));
-
-					r.extent[1] += height;
-					r.extent[1] += height;
 				}
 			}
 		}
@@ -342,58 +361,6 @@ void UIStaticText::BreakText()
 
 			if ( isWhitespace || i == (size-1))
 			{
-				if (word.size())
-				{
-					// here comes the next whitespace, look if
-					// we must break the last word to the next line.
-					const int whitelgth = font->GetDimension(whitespace.c_str())[0];
-					const int wordlgth = font->GetDimension(word.c_str())[0];
-
-					if (wordlgth > elWidth)
-					{
-						// This word is too long to fit in the available space, look for
-						// the Unicode Soft HYphen (SHY / 00AD) character for a place to
-						// break the word at
-						int where = word.find_first_of( wchar_t(0x00AD) );
-						if (where != -1)
-						{
-							eastl::wstring first  = word.substr(0, where);
-							eastl::wstring second = word.substr(where, word.size() - where);
-							mBrokenText.push_back(line + first + L"-");
-							const int secondLength = font->GetDimension(second.c_str())[0];
-
-							length = secondLength;
-							line = second;
-						}
-						else
-						{
-							// No soft hyphen found, so there's nothing more we can do
-							// break to next line
-							if (length)
-								mBrokenText.push_back(line);
-							length = wordlgth;
-							line = word;
-						}
-					}
-					else if (length && (length + wordlgth + whitelgth > elWidth))
-					{
-						// break to next line
-						mBrokenText.push_back(line);
-						length = wordlgth;
-						line = word;
-					}
-					else
-					{
-						// add word to line
-						line += whitespace;
-						line += word;
-						length += whitelgth + wordlgth;
-					}
-
-					word = L"";
-					whitespace = L"";
-				}
-
 				if ( isWhitespace )
 				{
 					whitespace += c;
@@ -443,32 +410,6 @@ void UIStaticText::BreakText()
 
 			if (c==L' ' || c==0 || i==0)
 			{
-				if (word.size())
-				{
-					// here comes the next whitespace, look if
-					// we must break the last word to the next line.
-					const int whitelgth = font->GetDimension(whitespace.c_str())[0];
-					const int wordlgth = font->GetDimension(word.c_str())[0];
-
-					if (length && (length + wordlgth + whitelgth > elWidth))
-					{
-						// break to next line
-						mBrokenText.push_back(line);
-						length = wordlgth;
-						line = word;
-					}
-					else
-					{
-						// add word to line
-						line = whitespace + line;
-						line = word + line;
-						length += whitelgth + wordlgth;
-					}
-
-					word = L"";
-					whitespace = L"";
-				}
-
 				if (c != 0)
 					whitespace = eastl::wstring(&c, 1) + whitespace;
 
@@ -520,12 +461,7 @@ int UIStaticText::GetTextHeight() const
 	if (!font)
 		return 0;
 
-	int height = font->GetDimension(L"A")[1] + font->GetKerningHeight();
-
-	if (mWordWrap)
-		height *= mBrokenText.size();
-
-	return height;
+	return 0;
 }
 
 
@@ -535,22 +471,5 @@ int UIStaticText::GetTextWidth() const
 	if(!font)
 		return 0;
 
-	if(mWordWrap)
-	{
-		int widest = 0;
-
-		for(unsigned int line = 0; line < mBrokenText.size(); ++line)
-		{
-			int width = font->GetDimension(mBrokenText[line].c_str())[0];
-
-			if(width > widest)
-				widest = width;
-		}
-
-		return widest;
-	}
-	else
-	{
-		return font->GetDimension(mText.c_str())[0];
-	}
+	return 0;
 }

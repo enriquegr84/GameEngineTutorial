@@ -557,9 +557,6 @@ bool Dx11Renderer::CreateBackBuffer(UINT xSize, UINT ySize)
 
 void Dx11Renderer::CreateDefaultObjects()
 {
-	mDefaultFont = eastl::make_shared<FontArialW400H18>(ProgramFactory::Get(), 256);
-	SetDefaultFont();
-
 	CreateDefaultGlobalState();
 }
 

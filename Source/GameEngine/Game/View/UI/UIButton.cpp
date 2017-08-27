@@ -19,8 +19,27 @@ UIButton::UIButton(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 	mPressed(false), mUseAlphaChannel(false), mDrawBorder(true), mScaleImage(false)
 {
 	#ifdef _DEBUG
-	//setDebugName("GUIButton");
+	//setDebugName("UIButton");
 	#endif
+
+	// Create a vertex buffer for a single triangle.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+
+	// Create the geometric object for drawing.
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 }
 
 
@@ -226,12 +245,12 @@ void UIButton::Draw( )
 	{
 		if (mDrawBorder)
 			skin->Draw3DButtonPaneStandard(
-				shared_from_this(), mAbsoluteRect, &mAbsoluteClippingRect);
+				shared_from_this(), mVisual, mAbsoluteRect, &mAbsoluteClippingRect);
 
 		if (mImage)
 		{
 			Vector2<int> pos = spritePos;
-			pos[0] -= mImageRect.extent[0]/ 2;
+			pos[0] -= mImageRect.extent[0] / 2;
 			pos[1] -= mImageRect.extent[1] / 2;
 			/*
 			Renderer::Get()->Draw2DImage(mImage.get(), mScaleImage ? mAbsoluteRect : 
@@ -243,7 +262,8 @@ void UIButton::Draw( )
 	else
 	{
 		if (mDrawBorder)
-			skin->Draw3DButtonPanePressed(shared_from_this(), mAbsoluteRect, &mAbsoluteClippingRect);
+			skin->Draw3DButtonPanePressed(
+				shared_from_this(), mVisual, mAbsoluteRect, &mAbsoluteClippingRect);
 
 		if (mPressedImage)
 		{
@@ -270,11 +290,9 @@ void UIButton::Draw( )
 		unsigned int state = mPressed ? (unsigned int)BS_BUTTON_DOWN : (unsigned int)BS_BUTTON_UP;
 		if (mButtonSprites[state].Index != -1)
 		{
-			/*
 			mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, spritePos,
 			 	&mAbsoluteClippingRect, mButtonSprites[state].Color, mClickTime, Timer::GetTime(),
 				mButtonSprites[state].Loop, true);
-			*/
 		}
 
 		// Focused / unFocused animation
@@ -282,11 +300,9 @@ void UIButton::Draw( )
 			(unsigned int)BS_BUTTON_Focused : (unsigned int)BS_BUTTON_NOT_Focused;
 		if (mButtonSprites[state].Index != -1)
 		{
-			/*
 			mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, spritePos,
 			 	&mAbsoluteClippingRect, mButtonSprites[state].Color, mFocusTime, Timer::GetTime(),
 				mButtonSprites[state].Loop, true);
-			*/
 		}
 
 		// mouse over / off animation
@@ -296,11 +312,9 @@ void UIButton::Draw( )
 				(unsigned int)BS_BUTTON_MOUSE_OVER : (unsigned int)BS_BUTTON_MOUSE_OFF;
 			if (mButtonSprites[state].Index != -1)
 			{
-				/*
 				mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, spritePos,
 				 	&mAbsoluteClippingRect, mButtonSprites[state].Color, mHoverTime, Timer::GetTime(),
 					mButtonSprites[state].Loop, true);
-				*/
 			}
 		}
 	}
@@ -313,7 +327,9 @@ void UIButton::Draw( )
 		if (mPressed)
 		{
 			rect.center[0] += skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_X);
+			rect.extent[0] -= skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_X);
 			rect.center[1] += skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_Y);
+			rect.extent[1] -= skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_Y);
 		}
 
 		if (font)
@@ -359,6 +375,8 @@ void UIButton::SetImage(const eastl::shared_ptr<Texture>& image)
 	if (image)
 	{
 		mImageRect = RectangleBase<2, int>();
+		mImageRect.center[0] = image->GetDimension(0) / 2;
+		mImageRect.center[1] = image->GetDimension(1) / 2;
 		mImageRect.extent[0] = image->GetDimension(0);
 		mImageRect.extent[1] = image->GetDimension(1);
 	}
@@ -384,8 +402,10 @@ void UIButton::SetPressedImage(const eastl::shared_ptr<Texture>& image)
 	if (image)
 	{
 		mPressedImageRect = RectangleBase<2, int>();
-		mPressedImageRect.extent[0] = image->GetDimension(0);
-		mPressedImageRect.extent[1] = image->GetDimension(1);
+		mImageRect.center[0] = image->GetDimension(0) / 2;
+		mImageRect.center[1] = image->GetDimension(1) / 2;
+		mImageRect.extent[0] = image->GetDimension(0);
+		mImageRect.extent[1] = image->GetDimension(1);
 	}
 }
 

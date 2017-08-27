@@ -7,9 +7,7 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Resource/Texture/Texture.h"
-
-class BaseUISpriteBank;
+#include "Graphic/Renderer/Renderer.h"
 
 //! An enum for the different types of UI font.
 enum UIFontType
@@ -31,6 +29,8 @@ enum UIFontType
 	FT_CUSTOM
 };
 
+class BaseUISpriteBank;
+
 //! Font interface.
 class BaseUIFont
 {
@@ -48,47 +48,6 @@ public:
 		eastl::array<float, 4> const& color, bool hcenter=false, bool vcenter=false, 
 		const RectangleBase<2, int>* clip=0) = 0;
 
-	//! Calculates the width and height of a given string of text.
-	/** \return Returns width and height of the area covered by the text if
-	it would be drawn. */
-	virtual Vector2<unsigned int> GetDimension(const wchar_t* text) = 0;
-
-	//! Calculates the index of the character in the text which is on a specific position.
-	/** \param text: Text string.
-	\param pixel_x: X pixel position of which the index of the character will be returned.
-	\return Returns zero based index of the character in the text, and -1 if no no character
-	is on this position. (=the text is too short). */
-	virtual int GetCharacterFromPos(const wchar_t* text, int pixel_x) = 0;
-
-	//! Sets global kerning width for the font.
-	virtual void SetKerningWidth (int kerning) = 0;
-
-	//! Sets global kerning height for the font.
-	virtual void SetKerningHeight (int kerning) = 0;
-
-	//! Gets kerning values (distance between letters) for the font. If no parameters are provided,
-	/** the global kerning distance is returned.
-	\param thisLetter: If this parameter is provided, the left side kerning
-	for this letter is added to the global kerning value. For example, a
-	space might only be one pixel wide, but it may be displayed as several
-	pixels.
-	\param previousLetter: If provided, kerning is calculated for both
-	letters and added to the global kerning value. For example, in a font
-	which supports kerning pairs a string such as 'Wo' may have the 'o'
-	tucked neatly under the 'W'.
-	*/
-	virtual int GetKerningWidth(const wchar_t* thisLetter=0, const wchar_t* previousLetter=0) = 0;
-
-	//! Returns the distance between letters
-	virtual int GetKerningHeight() = 0;
-
-	//! Define which characters should not be drawn by the font.
-	/** For example " " would not draw any space which is usually blank in
-	most fonts.
-	\param s String of symbols which are not send down to the videodriver
-	*/
-	virtual void SetInvisibleCharacters( const wchar_t *s ) = 0;
-
 	//! Returns the type of this font
 	virtual UIFontType GetType() const { return FT_CUSTOM; }
 };
@@ -102,21 +61,7 @@ public:
 	virtual UIFontType GetType() const { return FT_BITMAP; }
 
 	//! returns the parsed Symbol Information
-	virtual const eastl::shared_ptr<BaseUISpriteBank>& GetSpriteBank() const = 0;
-
-	//! returns the sprite number from a given character
-	virtual unsigned int GetSpriteNoFromChar(const wchar_t *c) = 0;
-
-	//! Gets kerning values (distance between letters) for the font. If no parameters are provided,
-	/** the global kerning distance is returned.
-	\param thisLetter: If this parameter is provided, the left side kerning for this letter is added
-	to the global kerning value. For example, a space might only be one pixel wide, but it may
-	be displayed as several pixels.
-	\param previousLetter: If provided, kerning is calculated for both letters and added to the global
-	kerning value. For example, EGFT_BITMAP will add the right kerning value of previousLetter to the
-	left side kerning value of thisLetter, then add the global value.
-	*/
-	virtual int GetKerningWidth(const wchar_t* thisLetter = 0, const wchar_t* previousLetter = 0) = 0;
+	virtual eastl::shared_ptr<BaseUISpriteBank> GetSpriteBank() const = 0;
 };
 
 
@@ -128,7 +73,8 @@ class UIFont : public UIFontBitmap
 public:
 
 	//! constructor
-	UIFont(BaseUI* ui, const eastl::wstring& filename);
+	UIFont(BaseUI* ui, eastl::wstring fileName);
+	UIFont(BaseUI* ui, eastl::wstring fileName, const eastl::shared_ptr<Font> font);
 
 	//! destructor
 	virtual ~UIFont();
@@ -141,32 +87,14 @@ public:
 
 	//! draws an text and clips it to the specified rectangle if wanted
 	virtual void Draw(const eastl::wstring& text, const RectangleBase<2, int>& position,
-		eastl::array<float, 4> color, bool hcenter = false, bool vcenter = false, const RectangleBase<2, int>* clip = 0);
-
-	//! returns the dimension of a text
-	virtual Vector2<unsigned int> GetDimension(const wchar_t* text);
-
-	//! Calculates the index of the character in the text which is on a specific position.
-	virtual int GetCharacterFromPos(const wchar_t* text, int pixelX);
-
-	//! set an Pixel Offset on drawing ( scale position on width )
-	virtual void SetKerningWidth(int kerning);
-	virtual void SetKerningHeight(int kerning);
-
-	//! set an Pixel Offset on drawing ( scale position on width )
-	virtual int GetKerningWidth(const wchar_t* thisLetter = 0, const wchar_t* previousLetter = 0);
-	virtual int GetKerningHeight();
-
-	//! gets the sprite bank
-	virtual const eastl::shared_ptr<BaseUISpriteBank>& GetSpriteBank() const;
-
-	//! returns the sprite number from a given character
-	virtual unsigned int GetSpriteNoFromChar(const wchar_t *c);
-
-	virtual void SetInvisibleCharacters(const wchar_t *s);
+		eastl::array<float, 4> const& color, bool hcenter = false, bool vcenter = false, 
+		const RectangleBase<2, int>* clip = 0);
 
 	//! Returns the type of this font
 	virtual UIFontType GetType() const { return FT_BITMAP; }
+
+	//! returns the parsed Symbol Information
+	virtual eastl::shared_ptr<BaseUISpriteBank> GetSpriteBank() const { return mSpriteBank; }
 
 private:
 
@@ -182,21 +110,10 @@ private:
 	//! load & prepare font from ITexture
 	bool LoadTexture(Texture* image, const eastl::wstring& name);
 
-	void ReadPositions(Texture* texture, int& lowerRightPositions);
-
-	int GetAreaFromCharacter(const wchar_t c);
-	void SetMaxHeight();
-
 	BaseUI* mUI;
 
-	eastl::vector<FontArea> mAreas;
-	eastl::map<wchar_t, int> mCharacterMap;
-	eastl::shared_ptr<BaseUISpriteBank>	mSpriteBank;
-	unsigned int mWrongCharacter;
-	int mMaxHeight;
-	int mGlobalKerningWidth, mGlobalKerningHeight;
-
-	eastl::wstring mInvisible;
+	eastl::shared_ptr<Font> mFont;
+	eastl::shared_ptr<BaseUISpriteBank> mSpriteBank;
 };
 
 #endif

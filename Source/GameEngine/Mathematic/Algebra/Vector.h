@@ -396,10 +396,9 @@ Vector<N, Real>& operator/=(Vector<N, Real>& v, Real scalar)
 {
     if (scalar != (Real)0)
     {
-        Real invScalar = ((Real)1) / scalar;
         for (int i = 0; i < N; ++i)
         {
-            v[i] *= invScalar;
+            v[i] /= scalar;
         }
     }
     else

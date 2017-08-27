@@ -20,6 +20,30 @@ UIWindow::UIWindow(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 	//SetDebugName("UIWindow");
 #endif
 
+	// Create a vertex buffer for a single triangle.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+
+	// Create the geometric object for drawing.
+	mVisualBackground = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+
+	vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	// Create the geometric object for drawing.
+	mVisualTitle = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 }
 
 //! destructor
@@ -36,13 +60,13 @@ void UIWindow::RefreshSprites()
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 	if (!skin)
 		return;
-	/*
+
 	const eastl::shared_ptr<BaseUISpriteBank>& sprites = skin->GetSpriteBank();
 	if (!sprites)
 		return;
-	*/
+
 	mCurrentIconColor = skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL);
-	/*
+
 	if (sprites)
 	{
 		mCloseButton->SetSpriteBank(sprites);
@@ -57,7 +81,6 @@ void UIWindow::RefreshSprites()
 		mMinButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_WINDOW_MINIMIZE), mCurrentIconColor);
 		mMinButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_WINDOW_MINIMIZE), mCurrentIconColor);
 	}
-	*/
 }
 
 
@@ -78,16 +101,16 @@ void UIWindow::OnInit()
 	int posx = mRelativeRect.extent[0] - buttonw - 4;
 	
 	RectangleBase<2, int> rect;
-	rect.center[0] = posx;
-	rect.center[1] = 3;
-	rect.extent[0] = posx + buttonw;
-	rect.extent[1] = 3 + buttonw;
+	rect.center[0] = posx + (int)round(buttonw / 2.f);
+	rect.center[1] = 3 + (int)round(buttonw / 2.f);
+	rect.extent[0] = buttonw;
+	rect.extent[1] = buttonw;
 	mCloseButton = mUI->AddButton(rect, shared_from_this(), -1,
 		L"", skin ? skin->GetDefaultText(DT_WINDOW_CLOSE) : L"Close");
 	mCloseButton->SetSubElement(true);
 	mCloseButton->SetTabStop(false);
 	mCloseButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
-	posx -= buttonw + 2;
+	rect.center[0] -= buttonw + 2;
 
 	mRestoreButton = mUI->AddButton(rect, shared_from_this(), -1,
 		L"", skin ? skin->GetDefaultText(DT_WINDOW_RESTORE) : L"Restore");
@@ -95,7 +118,7 @@ void UIWindow::OnInit()
 	mRestoreButton->SetSubElement(true);
 	mRestoreButton->SetTabStop(false);
 	mRestoreButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
-	posx -= buttonw + 2;
+	rect.center[0] -= buttonw + 2;
 
 	mMinButton = mUI->AddButton(rect, shared_from_this(), -1,
 		L"", skin ? skin->GetDefaultText(DT_WINDOW_MINIMIZE) : L"Minimize");
@@ -243,19 +266,19 @@ void UIWindow::Draw()
 		// draw body fast
 		if (mDrawBackground)
 		{
-			rect = skin->Draw3DWindowBackground(shared_from_this(), mDrawTitlebar,
-				skin->GetColor(mIsActive ? DC_ACTIVE_BORDER : DC_INACTIVE_BORDER),
+			rect = skin->Draw3DWindowBackground(shared_from_this(), mVisualBackground,
+				mVisualTitle, mDrawTitlebar, skin->GetColor(mIsActive ? DC_ACTIVE_BORDER : DC_INACTIVE_BORDER),
 				mAbsoluteRect, &mAbsoluteClippingRect);
 
 			if (mDrawTitlebar && mText.size())
 			{
-				rect.center[0] += skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X);
-				rect.center[1] += skin->GetSize(DS_TITLEBARTEXT_DISTANCE_Y);
-				rect.center[0] -= skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 5;
+				rect.center[0] += (int)round(skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X) / 2);
+				rect.center[0] -= (skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 5 )/ 2;
+				rect.center[1] += (int)round(skin->GetSize(DS_TITLEBARTEXT_DISTANCE_Y) / 2);
 
-				rect.extent[0] += skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X);
-				rect.extent[1] += skin->GetSize(DS_TITLEBARTEXT_DISTANCE_Y);
+				rect.extent[0] -= skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X);
 				rect.extent[0] -= skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 5;
+				rect.extent[1] -= skin->GetSize(DS_TITLEBARTEXT_DISTANCE_Y);
 
 				eastl::shared_ptr<BaseUIFont> font = skin->GetFont(DF_WINDOW);
 				if (font)
@@ -342,8 +365,9 @@ void UIWindow::UpdateClientRect()
 {
 	if (!mDrawBackground)
 	{
-		Vector2<int> center;
-		mClientRect = RectangleBase<2, int>(center, mAbsoluteRect.axis, mAbsoluteRect.extent);
+		mClientRect = RectangleBase<2, int>();
+		mClientRect.center = mAbsoluteRect.extent / 2;
+		mClientRect.extent = mAbsoluteRect.extent;
 		return;
 	}
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
@@ -352,7 +376,7 @@ void UIWindow::UpdateClientRect()
 		skin->GetColor(mIsActive ? DC_ACTIVE_BORDER : DC_INACTIVE_BORDER),
 		mAbsoluteRect, &mAbsoluteClippingRect, &mClientRect);
 	*/
-	mClientRect.center -= mAbsoluteRect.center;
+	mClientRect.center -= mAbsoluteRect.center - (mAbsoluteRect.extent / 2);
 }
 
 

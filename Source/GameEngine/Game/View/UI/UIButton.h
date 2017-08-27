@@ -7,10 +7,10 @@
 
 #include "UIElement.h"
 #include "UIFont.h"
-#include "UIButton.h"
-//#include "UISpriteBank.h"
+#include "UISpriteBank.h"
 
-class BaseUISpriteBank;
+#include "Graphic/Effect/BasicEffect.h"
+#include "Graphic/Scene/Element/Visual.h"
 
 enum UIButtonState
 {
@@ -236,6 +236,8 @@ private:
 
 	BaseUI* mUI;
 
+	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<BasicEffect> mEffect;
 	eastl::shared_ptr<BaseUISpriteBank> mSpriteBank;
 	eastl::shared_ptr<BaseUIFont> mOverrideFont;
 

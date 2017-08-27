@@ -15,23 +15,35 @@
 //#include "Graphic/Image/ImageLoader.h"
 
 //! constructor
-UIFont::UIFont(BaseUI* ui, const eastl::wstring& filename)
-:	mSpriteBank(0), mWrongCharacter(0), mMaxHeight(0), 
-	mGlobalKerningWidth(0), mGlobalKerningHeight(0), mUI(ui)
+UIFont::UIFont(BaseUI* ui, eastl::wstring fileName, const eastl::shared_ptr<Font> font)
+:	mUI(ui), mFont(font)
 {
 	#ifdef _DEBUG
-	//setDebugName("GUIFont");
+	//setDebugName("UIFont");
 	#endif
-	/*
+
 	if (mUI)
 	{
-		mSpriteBank = mUI->GetSpriteBank(filename);
+		mSpriteBank = mUI->GetSpriteBank(fileName);
 		if (!mSpriteBank)	// could be default-font which has no file
-			mSpriteBank = mUI->AddEmptySpriteBank(filename);
+			mSpriteBank = mUI->AddEmptySpriteBank(fileName);
 	}
-	else mSpriteBank.reset(new UISpriteBank(NULL));
-	*/
-	SetInvisibleCharacters ( L" " );
+}
+
+//! constructor
+UIFont::UIFont(BaseUI* ui, eastl::wstring fileName)
+	: mUI(ui), mFont(0)
+{
+#ifdef _DEBUG
+	//setDebugName("UIFont");
+#endif
+
+	if (mUI)
+	{
+		mSpriteBank = mUI->GetSpriteBank(fileName);
+		if (!mSpriteBank)	// could be default-font which has no file
+			mSpriteBank = mUI->AddEmptySpriteBank(fileName);
+	}
 }
 
 
@@ -48,7 +60,7 @@ UIFont::~UIFont()
 //! loads a font file from xml
 bool UIFont::Load(XMLElement* pRoot)
 {
-	if (!mSpriteBank || !Renderer::Get())
+	if (!Renderer::Get())
 		return false;
 
 	//mSpriteBank->Clear();
@@ -199,26 +211,6 @@ bool UIFont::Load(XMLElement* pRoot)
 }
 
 
-void UIFont::SetMaxHeight()
-{
-	if ( !mSpriteBank )
-		return;
-	/*
-	mMaxHeight = 0;
-	int t;
-
-	eastl::vector< RectangleBase<2, int> >& p = mSpriteBank->GetPositions();
-
-	for (unsigned int i=0; i<p.size(); ++i)
-	{
-		t = p[i].extent[1];
-		if (t>mMaxHeight)
-			mMaxHeight = t;
-	}
-	*/
-}
-
-
 //! loads a font file, native file needed, for texture parsing
 bool UIFont::Load(const eastl::wstring& filename)
 {
@@ -245,7 +237,7 @@ bool UIFont::Load(const eastl::wstring& filename)
 //! load & prepare font from ITexture
 bool UIFont::LoadTexture(Texture* image, const eastl::wstring& name)
 {
-	if (!image || !mSpriteBank || !Renderer::Get())
+	if (!image || !Renderer::Get())
 		return false;
 
 	bool ret = false;
@@ -311,287 +303,22 @@ bool UIFont::LoadTexture(Texture* image, const eastl::wstring& name)
 }
 
 
-void UIFont::ReadPositions(Texture* image, int& lowerRightPositions)
-{
-	if (!mSpriteBank )
-		return;
-	/*
-	const Vector2<unsigned int> size = image->GetDimension();
-
-	eastl::array<float, 4> colorTopLeft = image->GetPixel(0,0);
-	colorTopLeft.SetAlpha(1.f);
-	image->SetPixel(0,0,colorTopLeft);
-	Color colorLowerRight = image->GetPixel(1,0);
-	Color colorBackGround = image->GetPixel(2,0);
-	Color colorBackGroundTransparent = 0;
-
-	image->SetPixel(1,0,colorBackGround);
-
-	// start parsing
-
-	Vector2<int> pos{ 0,0 };
-	for (pos.Y=0; pos[1]<(int)size.Height; ++pos.Y)
-	{
-		for (pos.X=0; pos[0]<(int)size.Width; ++pos.X)
-		{
-			const eastl::array<float, 4> c = image->GetPixel(pos.X, pos.Y);
-			if (c == colorTopLeft)
-			{
-				image->SetPixel(pos.X, pos.Y, colorBackGroundTransparent);
-				mSpriteBank->GetPositions().push_back(RectangleBase<2, int>(pos, pos));
-			}
-			else
-			if (c == colorLowerRight)
-			{
-				// too many lower right points
-				if (mSpriteBank->GetPositions().size()<=(unsigned int)lowerRightPositions)
-				{
-					lowerRightPositions = 0;
-					return;
-				}
-
-				image->SetPixel(pos.X, pos.Y, colorBackGroundTransparent);
-				mSpriteBank->GetPositions()[lowerRightPositions].LowerRightCorner = pos;
-				// add frame to sprite bank
-				UISpriteFrame f;
-				f.rectNumber = lowerRightPositions;
-				f.textureNumber = 0;
-				UISprite s;
-				s.Frames.push_back(f);
-				s.frameTime = 0;
-				mSpriteBank->GetSprites().push_back(s);
-				// add character to font
-				FontArea a;
-				a.overhang = 0;
-				a.underhang = 0;
-				a.spriteno = lowerRightPositions;
-				a.width = mSpriteBank->GetPositions()[lowerRightPositions].GetWidth();
-				mAreas.push_back(a);
-				// map letter to character
-				wchar_t ch = (wchar_t)(lowerRightPositions + 32);
-				mCharacterMap[ch] = lowerRightPositions;
-
-				++lowerRightPositions;
-			}
-			else
-			if (c == colorBackGround)
-				image->SetPixel(pos.X, pos.Y, colorBackGroundTransparent);
-		}
-	}
-	*/
-}
-
-
-//! set an Pixel Offset on drawing ( scale position on width )
-void UIFont::SetKerningWidth(int kerning)
-{
-	mGlobalKerningWidth = kerning;
-}
-
-
-//! set an Pixel Offset on drawing ( scale position on width )
-int UIFont::GetKerningWidth(const wchar_t* thisLetter, const wchar_t* previousLetter)
-{
-	int ret = mGlobalKerningWidth;
-
-	if (thisLetter)
-	{
-		ret += mAreas[GetAreaFromCharacter(*thisLetter)].overhang;
-
-		if (previousLetter)
-		{
-			ret += mAreas[GetAreaFromCharacter(*previousLetter)].underhang;
-		}
-	}
-
-	return ret;
-}
-
-
-//! set an Pixel Offset on drawing ( scale position on height )
-void UIFont::SetKerningHeight(int kerning)
-{
-	mGlobalKerningHeight = kerning;
-}
-
-
-//! set an Pixel Offset on drawing ( scale position on height )
-int UIFont::GetKerningHeight ()
-{
-	return mGlobalKerningHeight;
-}
-
-
-//! returns the sprite number from a given character
-unsigned int UIFont::GetSpriteNoFromChar(const wchar_t *c)
-{
-	return mAreas[GetAreaFromCharacter(*c)].spriteno;
-}
-
-
-int UIFont::GetAreaFromCharacter(const wchar_t c)
-{
-	eastl::map<wchar_t, int>::iterator itChar = mCharacterMap.find(c);
-
-	if (itChar != mCharacterMap.end())
-		return itChar->second;
-	else
-		return mWrongCharacter;
-}
-
-void UIFont::SetInvisibleCharacters( const wchar_t *s )
-{
-	mInvisible = s;
-}
-
-
-//! returns the dimension of text
-Vector2<unsigned int> UIFont::GetDimension(const wchar_t* text)
-{
-	Vector2<unsigned int> dim{ 0, 0 };
-	Vector2<unsigned int> thisLine{ 0, (unsigned int)mMaxHeight };
-
-	for (const wchar_t* p = text; *p; ++p)
-	{
-		bool lineBreak=false;
-		if (*p == L'\r') // Mac or Windows breaks
-		{
-			lineBreak = true;
-			if (p[1] == L'\n') // Windows breaks
-				++p;
-		}
-		else if (*p == L'\n') // Unix breaks
-		{
-			lineBreak = true;
-		}
-		if (lineBreak)
-		{
-			dim[1] += thisLine[1];
-			if (dim[0] < thisLine[0])
-				dim[0] = thisLine[0];
-			thisLine[0] = 0;
-			continue;
-		}
-
-		const FontArea &area = mAreas[GetAreaFromCharacter(*p)];
-
-		thisLine[0] += area.underhang;
-		thisLine[0] += area.width + area.overhang + mGlobalKerningWidth;
-	}
-
-	dim[1] += thisLine[1];
-	if (dim[0] < thisLine[0])
-		dim[0] = thisLine[0];
-
-	return dim;
-}
-
 //! draws some text and clips it to the specified rectangle if wanted
 void UIFont::Draw(const eastl::wstring& text, const RectangleBase<2, int>& position,
-	eastl::array<float, 4> color, bool hcenter, bool vcenter, const RectangleBase<2, int>* clip)
+	eastl::array<float, 4> const& color, bool hcenter, bool vcenter, const RectangleBase<2, int>* clip)
 {
-	if (!Renderer::Get() || !mSpriteBank)
+	if (!Renderer::Get())
 		return;
 
-	// NOTE: don't make this u32 or the >> later on can fail when the dimension width is < position width
-	Vector2<unsigned int> textDimension;
-	Vector2<int> offset = position.center;
-
-	if (hcenter || vcenter || clip)
-		textDimension = GetDimension(text.c_str());
+	Vector2<int> offset;
+	offset[0] = position.center[0] - (position.extent[0] / 2);
+	offset[1] = position.center[1];
 
 	if (hcenter)
-		offset[0] += (position.extent[0] - textDimension[0]) >> 1;
+		offset[0] = position.center[0];
 
 	if (vcenter)
-		offset[1] += (position.extent[1] - textDimension[1]) >> 1;
+		offset[1] = position.center[1] + (int)round(position.extent[1] / 2.f);
 
-	if (clip)
-	{
-		RectangleBase<2, int> clippedRect;
-		clippedRect.center = offset;
-		clippedRect.extent[0] = textDimension[0];
-		clippedRect.extent[1] = textDimension[1];
-		/*
-		clippedRect.ClipAgainst(*clip);
-		if (!clippedRect.IsValid())
-			return;
-		*/
-	}
-
-	eastl::vector<unsigned int> indices(text.size());
-	eastl::vector<Vector2<int>> offsets(text.size());
-
-	for(unsigned int i = 0;i < text.size();i++)
-	{
-		wchar_t c = text[i];
-
-		bool lineBreak=false;
-		if ( c == L'\r') // Mac or Windows breaks
-		{
-			lineBreak = true;
-			if ( text[i + 1] == L'\n') // Windows breaks
-				c = text[++i];
-		}
-		else if ( c == L'\n') // Unix breaks
-		{
-			lineBreak = true;
-		}
-
-		if (lineBreak)
-		{
-			offset[1] += mMaxHeight;
-			offset[0] = position.center[0];
-
-			if ( hcenter )
-			{
-				offset[0] += (position.extent[0] - textDimension[0]) >> 1;
-			}
-			continue;
-		}
-
-		FontArea& area = mAreas[GetAreaFromCharacter(c)];
-
-		offset[0] += area.underhang;
-		/*
-		if ( mInvisible.findFirst ( c ) < 0 )
-		{
-			indices.push_back(area.spriteno);
-			offsets.push_back(offset);
-		}
-		*/
-
-		offset[0] += area.width + area.overhang + mGlobalKerningWidth;
-	}
-
-	//mSpriteBank->Draw2DSpriteBatch(indices, offsets, clip, color);
 	Renderer::Get()->Draw(offset[0], offset[1], color, text);
-}
-
-
-//! Calculates the index of the character in the text which is on a specific position.
-int UIFont::GetCharacterFromPos(const wchar_t* text, int pixelX)
-{
-	int x = 0;
-	int idx = 0;
-
-	while (text[idx])
-	{
-		const FontArea& a = mAreas[GetAreaFromCharacter(text[idx])];
-
-		x += a.width + a.overhang + a.underhang + mGlobalKerningWidth;
-
-		if (x >= pixelX)
-			return idx;
-
-		++idx;
-	}
-
-	return -1;
-}
-
-
-const eastl::shared_ptr<BaseUISpriteBank>& UIFont::GetSpriteBank() const
-{
-	return mSpriteBank;
 }

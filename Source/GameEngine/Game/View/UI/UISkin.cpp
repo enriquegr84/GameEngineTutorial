@@ -129,26 +129,26 @@ UISkin::UISkin(BaseUI* ui, UISkinThemeType type)
 	mTexts[DT_WINDOW_MINIMIZE] = L"Minimize";
 	mTexts[DT_WINDOW_MAXIMIZE] = L"Maximize";
 
-	mIcons[DI_WINDOW_MAXIMIZE] = 0;
-	mIcons[DI_WINDOW_RESTORE] = 0;
-	mIcons[DI_WINDOW_CLOSE] = 0;
-	mIcons[DI_WINDOW_MINIMIZE] = 0;
-	mIcons[DI_CURSOR_UP] = 0;
-	mIcons[DI_CURSOR_DOWN] = 0;
-	mIcons[DI_CURSOR_LEFT] = 0;
-	mIcons[DI_CURSOR_RIGHT] = 0;
-	mIcons[DI_MENU_MORE] = 0;
-	mIcons[DI_CHECK_BOX_CHECKED] = 0;
-	mIcons[DI_DROP_DOWN] = 0;
-	mIcons[DI_SMALL_CURSOR_UP] = 0;
-	mIcons[DI_SMALL_CURSOR_DOWN] = 0;
-	mIcons[DI_RADIO_BUTTON_CHECKED] = 0;
-	mIcons[DI_MORE_LEFT] = 0;
-	mIcons[DI_MORE_RIGHT] = 0;
-	mIcons[DI_MORE_UP] = 0;
-	mIcons[DI_MORE_DOWN] = 0;
-	mIcons[DI_WINDOW_RESIZE] = 0;
-	mIcons[DI_EXPAND] = 0;
+	mIcons[DI_WINDOW_MAXIMIZE] = 225;
+	mIcons[DI_WINDOW_RESTORE] = 226;
+	mIcons[DI_WINDOW_CLOSE] = 227;
+	mIcons[DI_WINDOW_MINIMIZE] = 228;
+	mIcons[DI_CURSOR_UP] = 229;
+	mIcons[DI_CURSOR_DOWN] = 230;
+	mIcons[DI_CURSOR_LEFT] = 231;
+	mIcons[DI_CURSOR_RIGHT] = 232;
+	mIcons[DI_MENU_MORE] = 232;
+	mIcons[DI_CHECK_BOX_CHECKED] = 233;
+	mIcons[DI_DROP_DOWN] = 234;
+	mIcons[DI_SMALL_CURSOR_UP] = 235;
+	mIcons[DI_SMALL_CURSOR_DOWN] = 236;
+	mIcons[DI_RADIO_BUTTON_CHECKED] = 237;
+	mIcons[DI_MORE_LEFT] = 238;
+	mIcons[DI_MORE_RIGHT] = 239;
+	mIcons[DI_MORE_UP] = 240;
+	mIcons[DI_MORE_DOWN] = 241;
+	mIcons[DI_WINDOW_RESIZE] = 242;
+	mIcons[DI_EXPAND] = 243;
 	mIcons[DI_COLLAPSE] = 244;
 
 	mIcons[DI_FILE] = 245;
@@ -158,9 +158,6 @@ UISkin::UISkin(BaseUI* ui, UISkinThemeType type)
 		mFonts[i] = 0;
 
 	mUseGradient = (mType == STT_WINDOWS_METALLIC) || (mType == STT_BURNING_SKIN) ;
-
-	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
-	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
 }
 
 
@@ -290,48 +287,69 @@ EGDC_3D_FACE for this. See EGUI_DEFAULT_COLOR for details.
 is usually not used by ISkin, but can be used for example by more complex
 implementations to find out how to draw the part exactly. */
 void UISkin::Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>& element,
-					const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
-	/*
+
 	RectangleBase<2, int> rect = r;
+	Vector2<int> dimension(rect.center);
+	if (element->GetParent())
+		dimension = element->GetParent()->GetAbsolutePosition().center;
 
-	if ( mType == STT_BURNING_SKIN )
+	struct Vertex
 	{
-		rect.extent[0] += 2;
-		rect.extent[1] += 2;
-		Draw3DSunkenPane(element,
-			GetColor( DC_WINDOW ).GetInterpolated( 0xFFFFFFFF, 0.9f ),false, true, rect, clip);
-		return;
-	}
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
 
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), rect, clip);
-
-	rect.extent[0] += 1;
-	rect.extent[1] += 1;
-	rect.center[0] -= 1;
-	rect.center[1] -= 1;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);
-
-	rect.extent[0] += 1;
-	rect.extent[1] += 1;
-	rect.center[0] += 1;
-	rect.center[1] += 1;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);
-
-	rect.extent[0] += 1;
-	rect.extent[1] += 1;
-	rect.center[0] -= 1;
-	rect.center[1] -= 1;
 	if (mUseGradient)
 	{
 		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
-		const eastl::array<float, 4> c2 = c1.GetInterpolated(GetColor(DC_3D_DARK_SHADOW), 0.4f);
-		Renderer::Get()->Draw2DRectangle(rect, c1, c1, c2, c2, clip);
+		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
-	else Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_FACE), rect, clip);*/
+	else
+	{
+		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
+
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { color[0], color[1], color[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { color[0], color[1], color[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { color[0], color[1], color[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { color[0], color[1], color[2], 1.0f };
+	}
+
+	// Create the geometric object for drawing.
+	Renderer::Get()->Draw(visual);
 }
 
 
@@ -345,40 +363,69 @@ EGDC_3D_FACE for this. See EGUI_DEFAULT_COLOR for details.
 is usually not used by ISkin, but can be used for example by more complex
 implementations to find out how to draw the part exactly. */
 void UISkin::Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>& element,
-				const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
-	/*
+
 	RectangleBase<2, int> rect = r;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);
+	Vector2<int> dimension(rect.center);
+	if (element->GetParent())
+		dimension = element->GetParent()->GetAbsolutePosition().center;
 
-	rect.extent[0] += 1;
-	rect.extent[1] += 1;
-	rect.center[0] -= 1;
-	rect.center[1] -= 1;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), rect, clip);
-
-	rect.extent[0] += 1;
-	rect.extent[1] += 1;
-	rect.center[0] += 1;
-	rect.center[1] += 1;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);
-
-	rect.extent[0] += 1;
-	rect.extent[1] += 1;
-	rect.center[0] += 1;
-	rect.center[1] += 1;
-	if (!mUseGradient)
+	struct Vertex
 	{
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_FACE), rect, clip);
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
+
+	if (mUseGradient)
+	{
+		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
+		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
+
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
 	else
 	{
-		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
-		const eastl::array<float, 4> c2 = c1.GetInterpolated(GetColor(DC_3D_DARK_SHADOW), 0.4f);
-		Renderer::Get()->Draw2DRectangle(rect, c1, c1, c2, c2, clip);
-	}*/
+		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
+
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { color[0], color[1], color[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { color[0], color[1], color[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { color[0], color[1], color[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { color[0], color[1], color[2], 1.0f };
+	}
+
+	// Create the geometric object for drawing.
+	Renderer::Get()->Draw(visual);
 }
 
 
@@ -392,91 +439,81 @@ implementations to find out how to draw the part exactly.
 deep into the ground.
 \param rect: Defining area where to draw.
 \param clip: Clip area.	*/
-void UISkin::Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element, eastl::array<float, 4> bgcolor,
-			bool flat, bool fillBackGround, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+void UISkin::Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element, 
+	eastl::array<float, 4> bgcolor, bool flat, bool fillBackGround,
+	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, 
+	const RectangleBase<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
-	/*
+
 	RectangleBase<2, int> rect = r;
+	Vector2<int> dimension(rect.center);
+	if (element->GetParent())
+		dimension = element->GetParent()->GetAbsolutePosition().center;
 
-	if (fillBackGround)
-		Renderer::Get()->Draw2DRectangle(bgcolor, rect, clip);
-
-	if (flat)
+	struct Vertex
 	{
-		// draw flat sunken pane
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
 
-		rect.LowerRightCorner.Y = rect.UpperLeftCorner.Y + 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);	// top
+	if (mUseGradient)
+	{
+		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
+		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
-		++rect.UpperLeftCorner.Y;
-		rect.LowerRightCorner.Y = r.LowerRightCorner.Y;
-		rect.LowerRightCorner.X = rect.UpperLeftCorner.X + 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);	// left
-
-		rect = r;
-		++rect.UpperLeftCorner.Y;
-		rect.UpperLeftCorner.X = rect.LowerRightCorner.X - 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);	// right
-
-		rect = r;
-		++rect.UpperLeftCorner.X;
-		rect.UpperLeftCorner.Y = r.LowerRightCorner.Y - 1;
-		--rect.LowerRightCorner.X;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);	// bottom
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
 	else
 	{
-		// draw deep sunken pane
-		rect.LowerRightCorner.Y = rect.UpperLeftCorner.Y + 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);	// top
-		++rect.UpperLeftCorner.X;
-		++rect.UpperLeftCorner.Y;
-		--rect.LowerRightCorner.X;
-		++rect.LowerRightCorner.Y;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), rect, clip);
+		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
 
-		rect.UpperLeftCorner.X = r.UpperLeftCorner.X;
-		rect.UpperLeftCorner.Y = r.UpperLeftCorner.Y+1;
-		rect.LowerRightCorner.X = rect.UpperLeftCorner.X + 1;
-		rect.LowerRightCorner.Y = r.LowerRightCorner.Y;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);	// left
-		++rect.UpperLeftCorner.X;
-		++rect.UpperLeftCorner.Y;
-		++rect.LowerRightCorner.X;
-		--rect.LowerRightCorner.Y;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), rect, clip);
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { color[0], color[1], color[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { color[0], color[1], color[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { color[0], color[1], color[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { color[0], color[1], color[2], 1.0f };
+	}
 
-		rect = r;
-		rect.UpperLeftCorner.X = rect.LowerRightCorner.X - 1;
-		++rect.UpperLeftCorner.Y;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);	// right
-		--rect.UpperLeftCorner.X;
-		++rect.UpperLeftCorner.Y;
-		--rect.LowerRightCorner.X;
-		--rect.LowerRightCorner.Y;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_LIGHT), rect, clip);
-
-		rect = r;
-		++rect.UpperLeftCorner.X;
-		rect.UpperLeftCorner.Y = r.LowerRightCorner.Y - 1;
-		--rect.LowerRightCorner.X;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);	// bottom
-		++rect.UpperLeftCorner.X;
-		--rect.UpperLeftCorner.Y;
-		--rect.LowerRightCorner.X;
-		--rect.LowerRightCorner.Y;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_LIGHT), rect, clip);
-	}*/
+	// Create the geometric object for drawing.
+	Renderer::Get()->Draw(visual);
 }
 
 
 //! draws a window background
 // return where to draw title bar text.
 RectangleBase<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<BaseUIElement>& element, 
-		bool drawTitleBar, eastl::array<float, 4> titleBarColor, const RectangleBase<2, int>& r,
-		const RectangleBase<2, int>* clip, RectangleBase<2, int>* checkClientArea)
+	const eastl::shared_ptr<Visual>& visualBackground, const eastl::shared_ptr<Visual>& visualTitle, 
+	bool drawTitleBar, eastl::array<float, 4> titleBarColor, const RectangleBase<2, int>& r, 
+	const RectangleBase<2, int>* clip, RectangleBase<2, int>* checkClientArea)
 {
 	if (!Renderer::Get())
 	{
@@ -488,165 +525,81 @@ RectangleBase<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Bas
 	}
 	
 	RectangleBase<2, int> rect = r;
+	Vector2<int> dimension(rect.center);
+	if (element->GetParent())
+		dimension = element->GetParent()->GetAbsolutePosition().center;
 
-	// Create a vertex buffer for a single triangle.
 	struct Vertex
 	{
 		Vector3<float> position;
 		Vector4<float> color;
 	};
-	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
-	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
-
-	eastl::array<Vector2<int>, 4> vertices;
-	rect.GetVertices(vertices);
+	Vertex* vertex = visualBackground->GetVertexBuffer()->Get<Vertex>();
 
 	const eastl::array<float, 4> c2 = GetColor(DC_3D_SHADOW);
 	const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
 
-	Vertex* vertex = vbuffer->Get<Vertex>();
-	vertex[0].position = { (float)vertices[0][0], (float)vertices[0][1], 0.0f };
+	vertex[0].position = {
+		(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
 	vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
-	vertex[1].position = { (float)vertices[1][0], (float)vertices[1][1], 0.0f };
-	vertex[1].color = { c1[0], c1[1], c1[2], 1.0f };
-	vertex[2].position = { (float)vertices[2][0], (float)vertices[2][1], 0.0f };
+	vertex[1].position = {
+		(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+	vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+	vertex[2].position = {
+		(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
 	vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
-	vertex[3].position = { (float)vertices[3][0], (float)vertices[3][1], 0.0f };
-	vertex[3].color = { c2[0], c2[1], c2[2], 1.0f };
-
-	// Create an indexless buffer for a triangle mesh with one triangle.
-	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	vertex[3].position = {
+		(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+	vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 
 	// Create the geometric object for drawing.
-	Renderer::Get()->Draw(eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect));
-	/*
-	// top border
-	rect.LowerRightCorner.Y = rect.UpperLeftCorner.Y + 1;
-	if ( !checkClientArea )
-	{
-		//Renderer::Get()->Draw(mSurface);
-
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);
-	}
-
-	// left border
-	rect.LowerRightCorner.Y = r.LowerRightCorner.Y;
-	rect.LowerRightCorner.X = rect.UpperLeftCorner.X + 1;
-	if ( !checkClientArea )
-	{
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);
-	}
-
-	// right border dark outer line
-	rect.UpperLeftCorner.X = r.LowerRightCorner.X - 1;
-	rect.LowerRightCorner.X = r.LowerRightCorner.X;
-	rect.UpperLeftCorner.Y = r.UpperLeftCorner.Y;
-	rect.LowerRightCorner.Y = r.LowerRightCorner.Y;
-	if ( !checkClientArea )
-	{
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), rect, clip);
-	}
-
-	// right border bright innner line
-	rect.UpperLeftCorner.X -= 1;
-	rect.LowerRightCorner.X -= 1;
-	rect.UpperLeftCorner.Y += 1;
-	rect.LowerRightCorner.Y -= 1;
-	if ( !checkClientArea )
-	{
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);
-	}
-
-	// bottom border dark outer line
-	rect.UpperLeftCorner.X = r.UpperLeftCorner.X;
-	rect.UpperLeftCorner.Y = r.LowerRightCorner.Y - 1;
-	rect.LowerRightCorner.Y = r.LowerRightCorner.Y;
-	rect.LowerRightCorner.X = r.LowerRightCorner.X;
-	if ( !checkClientArea )
-	{
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), rect, clip);
-	}
-
-	// bottom border bright inner line
-	rect.UpperLeftCorner.X += 1;
-	rect.LowerRightCorner.X -= 1;
-	rect.UpperLeftCorner.Y -= 1;
-	rect.LowerRightCorner.Y -= 1;
-	if ( !checkClientArea )
-	{
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);
-	}
-
-	// client area for background
-	rect = r;
-	rect.UpperLeftCorner.X +=1;
-	rect.UpperLeftCorner.Y +=1;
-	rect.LowerRightCorner.X -= 2;
-	rect.LowerRightCorner.Y -= 2;
-	if (checkClientArea)
-	{
-		*checkClientArea = rect;
-	}
-
-	if ( !checkClientArea )
-	{
-		if (!mUseGradient)
-		{
-			Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_FACE), rect, clip);
-		}
-		else if ( mType == STT_BURNING_SKIN )
-		{
-			const eastl::array<float, 4> c1 = 
-				GetColor(DC_WINDOW).GetInterpolated ( 0xFFFFFFFF, 0.9f );
-			const eastl::array<float, 4> c2 = 
-				GetColor(DC_WINDOW).GetInterpolated ( 0xFFFFFFFF, 0.8f );
-
-			Renderer::Get()->Draw2DRectangle(rect, c1, c1, c2, c2, clip);
-		}
-		else
-		{
-			const eastl::array<float, 4> c2 = GetColor(DC_3D_SHADOW);
-			const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
-			Renderer::Get()->Draw2DRectangle(rect, c1, c1, c1, c2, clip);
-		}
-	}
+	Renderer::Get()->Draw(visualBackground);
 
 	// title bar
 	rect = r;
-	rect.UpperLeftCorner.X += 2;
-	rect.UpperLeftCorner.Y += 2;
-	rect.LowerRightCorner.X -= 2;
-	rect.LowerRightCorner.Y = rect.UpperLeftCorner.Y + GetSize(DS_WINDOW_BUTTON_WIDTH) + 2;
+	rect.extent[0] -= 2;
+	rect.center[1] += 1;
+	rect.extent[1] -= 2;
+	rect.center[1] = (rect.center[1] - rect.extent[1] / 2) + (GetSize(DS_WINDOW_BUTTON_WIDTH) + 2) / 2;
+	rect.extent[1] = GetSize(DS_WINDOW_BUTTON_WIDTH) + 2;
 
-	if (drawTitleBar )
+	if (drawTitleBar)
 	{
-		if (checkClientArea)
+		if (!checkClientArea)
 		{
-			(*checkClientArea).UpperLeftCorner.Y = rect.LowerRightCorner.Y;
+			Vertex* vertex = visualTitle->GetVertexBuffer()->Get<Vertex>();
+
+			// draw title bar
+			vertex[0].position = {
+				(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+				(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			vertex[0].color = { titleBarColor[0], titleBarColor[1], titleBarColor[2], 1.0f };
+			vertex[1].position = {
+				(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+				(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			vertex[1].color = { titleBarColor[0], titleBarColor[1], titleBarColor[2], 1.0f };
+			vertex[2].position = {
+				(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+				(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			vertex[2].color = { titleBarColor[0], titleBarColor[1], titleBarColor[2], 1.0f };
+			vertex[3].position = {
+				(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+				(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			vertex[3].color = { titleBarColor[0], titleBarColor[1], titleBarColor[2], 1.0f };
+
+			// Create the geometric object for drawing.
+			Renderer::Get()->Draw(visualTitle);
 		}
 		else
 		{
-			// draw title bar
-			//if (!UseGradient)
-			//	Driver->Draw2DRectangle(titleBarColor, rect, clip);
-			//else
-			if ( mType == STT_BURNING_SKIN )
-			{
-				const eastl::array<float, 4> c = titleBarColor.GetInterpolated(
-					eastl::array<float, 4>(titleBarColor.GetAlpha(),255,255,255), 0.8f);
-				Renderer::Get()->Draw2DRectangle(rect, titleBarColor, titleBarColor, c, c, clip);
-			}
-			else
-			{
-				const eastl::array<float, 4> c = titleBarColor.GetInterpolated(
-					eastl::array<float, 4>(titleBarColor.GetAlpha(),0,0,0), 0.2f);
-				Renderer::Get()->Draw2DRectangle(rect, titleBarColor, c, titleBarColor, c, clip);
-			}
+			(*checkClientArea).center[1] = (*checkClientArea).center[1] + (int)round((*checkClientArea).extent[1] / 2.f);
+			(*checkClientArea).extent[1] = 0;
 		}
 	}
-	*/
 	return rect;
 }
 
@@ -661,73 +614,69 @@ implementations to find out how to draw the part exactly.
 \param rect: Defining area where to draw.
 \param clip: Clip area.	*/
 void UISkin::Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
-			const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
-	/*
+
 	RectangleBase<2, int> rect = r;
+	Vector2<int> dimension(rect.center);
+	if (element->GetParent())
+		dimension = element->GetParent()->GetAbsolutePosition().center;
 
-	if ( mType == STT_BURNING_SKIN )
+	struct Vertex
 	{
-		rect.UpperLeftCorner.Y -= 3;
-		Draw3DButtonPaneStandard(element, rect, clip);
-		return;
-	}
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
 
-	// in this skin, this is exactly what non pressed buttons look like,
-	// so we could simply call
-	// Draw3DButtonPaneStandard(element, rect, clip);
-	// here.
-	// but if the skin is transparent, this doesn't look that nice. So
-	// We draw it a little bit better, with some more Draw2DRectangle calls,
-	// but there aren't that much menus visible anyway.
-
-	rect.LowerRightCorner.Y = rect.UpperLeftCorner.Y + 1;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);
-
-	rect.LowerRightCorner.Y = r.LowerRightCorner.Y;
-	rect.LowerRightCorner.X = rect.UpperLeftCorner.X + 1;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), rect, clip);
-
-	rect.UpperLeftCorner.X = r.LowerRightCorner.X - 1;
-	rect.LowerRightCorner.X = r.LowerRightCorner.X;
-	rect.UpperLeftCorner.Y = r.UpperLeftCorner.Y;
-	rect.LowerRightCorner.Y = r.LowerRightCorner.Y;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), rect, clip);
-
-	rect.UpperLeftCorner.X -= 1;
-	rect.LowerRightCorner.X -= 1;
-	rect.UpperLeftCorner.Y += 1;
-	rect.LowerRightCorner.Y -= 1;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);
-
-	rect.UpperLeftCorner.X = r.UpperLeftCorner.X;
-	rect.UpperLeftCorner.Y = r.LowerRightCorner.Y - 1;
-	rect.LowerRightCorner.Y = r.LowerRightCorner.Y;
-	rect.LowerRightCorner.X = r.LowerRightCorner.X;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), rect, clip);
-
-	rect.UpperLeftCorner.X += 1;
-	rect.LowerRightCorner.X -= 1;
-	rect.UpperLeftCorner.Y -= 1;
-	rect.LowerRightCorner.Y -= 1;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);
-
-	rect = r;
-	rect.UpperLeftCorner.X +=1;
-	rect.UpperLeftCorner.Y +=1;
-	rect.LowerRightCorner.X -= 2;
-	rect.LowerRightCorner.Y -= 2;
-
-	if (!mUseGradient)
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_FACE), rect, clip);
-	else
+	if (mUseGradient)
 	{
 		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
-		const eastl::array<float, 4> c2 = GetColor(DC_3D_SHADOW);
-		Renderer::Get()->Draw2DRectangle(rect, c1, c1, c2, c2, clip);
-	}*/
+		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
+
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
+	}
+	else
+	{
+		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
+
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { color[0], color[1], color[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { color[0], color[1], color[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { color[0], color[1], color[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { color[0], color[1], color[2], 1.0f };
+	}
+
+	// Create the geometric object for drawing.
+	Renderer::Get()->Draw(visual);
 }
 
 
@@ -739,41 +688,69 @@ implementations to find out how to draw the part exactly.
 \param rect: Defining area where to draw.
 \param clip: Clip area.	*/
 void UISkin::Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
-				const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
-	/*
+
 	RectangleBase<2, int> rect = r;
+	Vector2<int> dimension(rect.center);
+	if (element->GetParent())
+		dimension = element->GetParent()->GetAbsolutePosition().center;
 
-	rect.UpperLeftCorner.X = r.UpperLeftCorner.X;
-	rect.UpperLeftCorner.Y = r.LowerRightCorner.Y - 1;
-	rect.LowerRightCorner.Y = r.LowerRightCorner.Y;
-	rect.LowerRightCorner.X = r.LowerRightCorner.X;
-	Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), rect, clip);
-
-	rect = r;
-	rect.LowerRightCorner.Y -= 1;
-
-	if (!mUseGradient)
+	struct Vertex
 	{
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_FACE), rect, clip);
-	}
-	else
-	if ( mType == STT_BURNING_SKIN )
-	{
-		const eastl::array<float, 4> c1 = 0xF0000000 | GetColor(DC_3D_FACE).color;
-		const eastl::array<float, 4> c2 = 0xF0000000 | GetColor(DC_3D_SHADOW).color;
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
 
-		rect.LowerRightCorner.Y += 1;
-		Renderer::Get()->Draw2DRectangle(rect, c1, c2, c1, c2, clip);
-	}
-	else
+	if (mUseGradient)
 	{
 		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
-		const eastl::array<float, 4> c2 = GetColor(DC_3D_SHADOW);
-		Renderer::Get()->Draw2DRectangle(rect, c1, c1, c2, c2, clip);
-	}*/
+		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
+
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
+	}
+	else
+	{
+		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
+
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { color[0], color[1], color[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { color[0], color[1], color[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { color[0], color[1], color[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { color[0], color[1], color[2], 1.0f };
+	}
+
+	// Create the geometric object for drawing.
+	Renderer::Get()->Draw(visual);
 }
 
 
@@ -786,75 +763,70 @@ implementations to find out how to draw the part exactly.
 \param rect: Defining area where to draw.
 \param clip: Clip area.	*/
 void UISkin::Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bool active,
-	const RectangleBase<2, int>& frameRect, const RectangleBase<2, int>* clip, UIAlignment alignment)
+	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip, 
+	UIAlignment alignment)
 {
 	if (!Renderer::Get())
 		return;
-	/*
-	RectangleBase<2, int> tr = frameRect;
 
-	if ( alignment == UIA_UPPERLEFT )
+	RectangleBase<2, int> rect = r;
+	Vector2<int> dimension(rect.center);
+	if (element->GetParent())
+		dimension = element->GetParent()->GetAbsolutePosition().center;
+
+	struct Vertex
 	{
-		tr.LowerRightCorner.X -= 2;
-		tr.LowerRightCorner.Y = tr.UpperLeftCorner.Y + 1;
-		tr.UpperLeftCorner.X += 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), tr, clip);
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
 
-		// draw left highlight
-		tr = frameRect;
-		tr.LowerRightCorner.X = tr.UpperLeftCorner.X + 1;
-		tr.UpperLeftCorner.Y += 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), tr, clip);
+	if (mUseGradient)
+	{
+		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
+		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
-		// draw grey background
-		tr = frameRect;
-		tr.UpperLeftCorner.X += 1;
-		tr.UpperLeftCorner.Y += 1;
-		tr.LowerRightCorner.X -= 2;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_FACE), tr, clip);
-
-		// draw right middle gray shadow
-		tr.LowerRightCorner.X += 1;
-		tr.UpperLeftCorner.X = tr.LowerRightCorner.X - 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), tr, clip);
-
-		tr.LowerRightCorner.X += 1;
-		tr.UpperLeftCorner.X += 1;
-		tr.UpperLeftCorner.Y += 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), tr, clip);
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
 	else
 	{
-		tr.LowerRightCorner.X -= 2;
-		tr.UpperLeftCorner.Y = tr.LowerRightCorner.Y - 1;
-		tr.UpperLeftCorner.X += 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), tr, clip);
+		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
 
-		// draw left highlight
-		tr = frameRect;
-		tr.LowerRightCorner.X = tr.UpperLeftCorner.X + 1;
-		tr.LowerRightCorner.Y -= 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), tr, clip);
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { color[0], color[1], color[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { color[0], color[1], color[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { color[0], color[1], color[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { color[0], color[1], color[2], 1.0f };
+	}
 
-		// draw grey background
-		tr = frameRect;
-		tr.UpperLeftCorner.X += 1;
-		tr.UpperLeftCorner.Y -= 1;
-		tr.LowerRightCorner.X -= 2;
-		tr.LowerRightCorner.Y -= 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_FACE), tr, clip);
-
-		// draw right middle gray shadow
-		tr.LowerRightCorner.X += 1;
-		tr.UpperLeftCorner.X = tr.LowerRightCorner.X - 1;
-		//tr.LowerRightCorner.Y -= 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), tr, clip);
-
-		tr.LowerRightCorner.X += 1;
-		tr.UpperLeftCorner.X += 1;
-		tr.LowerRightCorner.Y -= 1;
-		Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_DARK_SHADOW), tr, clip);
-	}*/
+	// Create the geometric object for drawing.
+	Renderer::Get()->Draw(visual);
 }
 
 
@@ -867,84 +839,70 @@ implementations to find out how to draw the part exactly.
 \param rect: Defining area where to draw.
 \param clip: Clip area.	*/
 void UISkin::Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool border, bool background,
-	const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip, int tabHeight, UIAlignment alignment)
+	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip, 
+	int tabHeight, UIAlignment alignment)
 {
 	if (!Renderer::Get())
 		return;
 
-	RectangleBase<2, int> tr = rect;
-	/*
-	if ( tabHeight == -1 )
-		tabHeight = GetSize(DS_BUTTON_HEIGHT);
+	RectangleBase<2, int> rect = r;
+	Vector2<int> dimension(rect.center);
+	if (element->GetParent())
+		dimension = element->GetParent()->GetAbsolutePosition().center;
 
-	// draw border.
-	if (border)
+	struct Vertex
 	{
-		if ( alignment == UIA_UPPERLEFT )
-		{
-			// draw left hightlight
-			tr.UpperLeftCorner.Y += tabHeight + 2;
-			tr.LowerRightCorner.X = tr.UpperLeftCorner.X + 1;
-			Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), tr, clip);
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
 
-			// draw right shadow
-			tr.UpperLeftCorner.X = rect.LowerRightCorner.X - 1;
-			tr.LowerRightCorner.X = tr.UpperLeftCorner.X + 1;
-			Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), tr, clip);
+	if (mUseGradient)
+	{
+		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
+		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
-			// draw lower shadow
-			tr = rect;
-			tr.UpperLeftCorner.Y = tr.LowerRightCorner.Y - 1;
-			Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), tr, clip);
-		}
-		else
-		{
-			// draw left hightlight
-			tr.LowerRightCorner.Y -= tabHeight + 2;
-			tr.LowerRightCorner.X = tr.UpperLeftCorner.X + 1;
-			Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), tr, clip);
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
+	}
+	else
+	{
+		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
 
-			// draw right shadow
-			tr.UpperLeftCorner.X = rect.LowerRightCorner.X - 1;
-			tr.LowerRightCorner.X = tr.UpperLeftCorner.X + 1;
-			Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_SHADOW), tr, clip);
-
-			// draw lower shadow
-			tr = rect;
-			tr.LowerRightCorner.Y = tr.UpperLeftCorner.Y + 1;
-			Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_HIGH_LIGHT), tr, clip);
-		}
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { color[0], color[1], color[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { color[0], color[1], color[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { color[0], color[1], color[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { color[0], color[1], color[2], 1.0f };
 	}
 
-	if (background)
-	{
-		if ( alignment == UIA_UPPERLEFT )
-		{
-			tr = rect;
-			tr.UpperLeftCorner.Y += tabHeight + 2;
-			tr.LowerRightCorner.X -= 1;
-			tr.UpperLeftCorner.X += 1;
-			tr.LowerRightCorner.Y -= 1;
-		}
-		else
-		{
-			tr = rect;
-			tr.UpperLeftCorner.X += 1;
-			tr.UpperLeftCorner.Y -= 1;
-			tr.LowerRightCorner.X -= 1;
-			tr.LowerRightCorner.Y -= tabHeight + 2;
-			//tr.UpperLeftCorner.X += 1;
-		}
-
-		if (!mUseGradient)
-			Renderer::Get()->Draw2DRectangle(GetColor(DC_3D_FACE), tr, clip);
-		else
-		{
-			eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
-			eastl::array<float, 4> c2 = GetColor(DC_3D_SHADOW);
-			Renderer::Get()->Draw2DRectangle(tr, c1, c1, c2, c2, clip);
-		}
-	}*/
+	// Create the geometric object for drawing.
+	Renderer::Get()->Draw(visual);
 }
 
 
@@ -958,9 +916,9 @@ by more complex implementations to find out how to draw the part exactly.
 \param currenttime: The present time, used to calculate the frame number
 \param loop: Whether the animation should loop or not
 \param clip: Clip area.	*/
-void UISkin::DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon, 
-	const Vector2<int> position, unsigned int starttime, unsigned int currenttime, bool loop, 
-	const RectangleBase<2, int>* clip)
+void UISkin::DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon,
+	const Vector2<int> position, const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>* clip, 
+	unsigned int starttime, unsigned int currenttime, bool loop)
 {
 	if (!mSpriteBank)
 		return;
@@ -981,10 +939,68 @@ UISkinThemeType UISkin::GetType() const
 
 //! draws a 2d rectangle.
 void UISkin::Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element, 
-	const eastl::array<float, 4> &color, const RectangleBase<2, int>& pos, const RectangleBase<2, int>* clip)
+	const eastl::array<float, 4> &color, const eastl::shared_ptr<Visual>& visual, 
+	const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
 
-	//Renderer::Get()->Draw2DRectangle(color, pos, clip);
+	RectangleBase<2, int> rect = r;
+	Vector2<int> dimension(rect.center);
+	if (element->GetParent())
+		dimension = element->GetParent()->GetAbsolutePosition().center;
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
+
+	if (mUseGradient)
+	{
+		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
+		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
+
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
+	}
+	else
+	{
+		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
+
+		vertex[0].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { color[0], color[1], color[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { color[0], color[1], color[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { color[0], color[1], color[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { color[0], color[1], color[2], 1.0f };
+	}
+
+	// Create the geometric object for drawing.
+	Renderer::Get()->Draw(visual);
 }

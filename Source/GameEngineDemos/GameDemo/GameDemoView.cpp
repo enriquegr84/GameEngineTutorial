@@ -56,16 +56,9 @@
 #include "Physic/PhysicEventListener.h"
 
 #include "Game/View/HumanView.h"
-//#include "Game/View/UI/MessageBox.h"
+
 #include "Game/Actor/Actor.h"
 #include "Game/Actor/RenderComponent.h"
-/*
-#include "Game/View/UI/UIEngine.h"
-#include "Game/View/UI/ScreenStateManager.h"
-#include "Game/View/UI/Screens/ScreenMainMenu.h"
-
-#include "Game/Config/User.h"
-*/
 
 #include "GameDemo.h"
 #include "GameDemoApp.h"
@@ -125,7 +118,7 @@ bool MainMenuUI::OnInit()
 	BaseUI::OnInit();
 
 	// set a nicer font
-	const eastl::shared_ptr<BaseUIFont>& font = GetFont("fontlucida.png");
+	const eastl::shared_ptr<BaseUIFont>& font = GetFont(L"DefaultFont");
 	if (font) GetSkin()->SetFont(font);
 
 	GetSkin()->SetColor(DC_BUTTON_TEXT, 
@@ -145,6 +138,8 @@ bool MainMenuUI::OnInit()
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
 	RectangleBase<2, int> screenRectangle;
+	screenRectangle.center[0] = screenSize[0] / 2;
+	screenRectangle.center[1] = screenSize[1] / 2;
 	screenRectangle.extent[0] = (int)screenSize[0];
 	screenRectangle.extent[1] = (int)screenSize[1];
 
@@ -155,35 +150,167 @@ bool MainMenuUI::OnInit()
 
 	// add a status line help text
 	RectangleBase<2, int> statusRectangle;
-	statusRectangle.extent[0] = (int)screenSize[0];
-	statusRectangle.extent[1] = 50;
+	statusRectangle.center[0] = screenSize[0] / 2 + 5;
+	statusRectangle.center[1] = screenSize[1];
+	statusRectangle.extent[0] = screenSize[0] - 10;
+	statusRectangle.extent[1] = 10;
 	mStatusLine = AddStaticText(L"", statusRectangle, false, false, window, -1, true);
 
-	/*
-	UIEngine::Init(this, NULL);
-	UIEngine::AddLoadingIcon(
-		Renderer::Get()->GetTexture("art/gui/notes.png").get() );
-	//System::Get()->OnPause(1000);
-	UIEngine::AddLoadingIcon( 
-		Renderer::Get()->GetTexture("art/gui/cup_gold.png").get() );
-	//System::Get()->OnPause(1000);
-    UIEngine::AddLoadingIcon( 
-		Renderer::Get()->GetTexture("art/gui/options_video.png").get() );
-	//System::Get()->OnPause(1000);
-    UIEngine::AddLoadingIcon( 
-		Renderer::Get()->GetTexture("art/gui/gui_lock.png").get() );
-	//System::Get()->OnPause(1000);
-    UIEngine::AddLoadingIcon( 
-		Renderer::Get()->GetTexture("art/gui/gift.png").get() );
-	//System::Get()->OnPause(1000);
-    UIEngine::AddLoadingIcon( 
-		Renderer::Get()->GetTexture("art/gui/banana.png").get() );
-	//System::Get()->OnPause(1000);
+	RectangleBase<2, int> videoRectangle;
+	videoRectangle.center[0] = screenSize[0] - 355;
+	videoRectangle.center[1] = 32;
+	videoRectangle.extent[0] = 90;
+	videoRectangle.extent[1] = 16;
+	AddStaticText(L"", videoRectangle, false, false, window, -1, true);
+	AddComboBox()
 
-    if(!UserConfigParams::m_no_start_screen)
-    {
-        ScreenStateManager::Get()->PushScreen(ScreenMainMenu::GetInstance());
+	/*
+	env->addStaticText(L"VideoDriver:", rect<s32>(dim.Width - 400, 24, dim.Width - 310, 40), false, false, gui.Window, -1, false);
+	gui.VideoDriver = env->addComboBox(rect<s32>(dim.Width - 300, 24, dim.Width - 10, 40), gui.Window);
+	gui.VideoDriver->addItem(L"Direct3D 9.0c", EDT_DIRECT3D9);
+	gui.VideoDriver->addItem(L"Direct3D 8.1", EDT_DIRECT3D8);
+	gui.VideoDriver->addItem(L"OpenGL 1.5", EDT_OPENGL);
+	gui.VideoDriver->addItem(L"Software Renderer", EDT_SOFTWARE);
+	gui.VideoDriver->addItem(L"Burning's Video (TM) Thomas Alten", EDT_BURNINGSVIDEO);
+	gui.VideoDriver->setSelected(gui.VideoDriver->getIndexForItemData(Game->deviceParam.DriverType));
+	gui.VideoDriver->setToolTipText(L"Use a VideoDriver");
+
+	env->addStaticText(L"VideoMode:", rect<s32>(dim.Width - 400, 44, dim.Width - 310, 60), false, false, gui.Window, -1, false);
+	gui.VideoMode = env->addComboBox(rect<s32>(dim.Width - 300, 44, dim.Width - 10, 60), gui.Window);
+	gui.VideoMode->setToolTipText(L"Supported Screenmodes");
+	IVideoModeList *modeList = Game->Device->getVideoModeList();
+	if (modeList)
+	{
+		s32 i;
+		for (i = 0; i != modeList->getVideoModeCount(); ++i)
+		{
+			u16 d = modeList->getVideoModeDepth(i);
+			if (d < 16)
+				continue;
+
+			u16 w = modeList->getVideoModeResolution(i).Width;
+			u16 h = modeList->getVideoModeResolution(i).Height;
+			u32 val = w << 16 | h;
+
+			if (gui.VideoMode->getIndexForItemData(val) >= 0)
+				continue;
+
+			f32 aspect = (f32)w / (f32)h;
+			const c8 *a = "";
+			if (core::equals(aspect, 1.3333333333f)) a = "4:3";
+			else if (core::equals(aspect, 1.6666666f)) a = "15:9 widescreen";
+			else if (core::equals(aspect, 1.7777777f)) a = "16:9 widescreen";
+			else if (core::equals(aspect, 1.6f)) a = "16:10 widescreen";
+			else if (core::equals(aspect, 2.133333f)) a = "20:9 widescreen";
+
+			snprintf(buf, sizeof(buf), "%d x %d, %s", w, h, a);
+			gui.VideoMode->addItem(stringw(buf).c_str(), val);
+		}
 	}
+	gui.VideoMode->setSelected(gui.VideoMode->getIndexForItemData(
+		Game->deviceParam.WindowSize.Width << 16 |
+		Game->deviceParam.WindowSize.Height));
+
+	gui.FullScreen = env->addCheckBox(Game->deviceParam.Fullscreen, rect<s32>(dim.Width - 400, 64, dim.Width - 300, 80), gui.Window, -1, L"Fullscreen");
+	gui.FullScreen->setToolTipText(L"Set Fullscreen or Window Mode");
+
+	gui.Bit32 = env->addCheckBox(Game->deviceParam.Bits == 32, rect<s32>(dim.Width - 300, 64, dim.Width - 240, 80), gui.Window, -1, L"32Bit");
+	gui.Bit32->setToolTipText(L"Use 16 or 32 Bit");
+
+	env->addStaticText(L"MultiSample:", rect<s32>(dim.Width - 235, 64, dim.Width - 150, 80), false, false, gui.Window, -1, false);
+	gui.MultiSample = env->addScrollBar(true, rect<s32>(dim.Width - 150, 64, dim.Width - 70, 80), gui.Window, -1);
+	gui.MultiSample->setMin(0);
+	gui.MultiSample->setMax(8);
+	gui.MultiSample->setSmallStep(1);
+	gui.MultiSample->setLargeStep(1);
+	gui.MultiSample->setPos(Game->deviceParam.AntiAlias);
+	gui.MultiSample->setToolTipText(L"Set the MultiSample (disable, 1x, 2x, 4x, 8x )");
+
+	gui.SetVideoMode = env->addButton(rect<s32>(dim.Width - 60, 64, dim.Width - 10, 80), gui.Window, -1, L"set");
+	gui.SetVideoMode->setToolTipText(L"Set Video Mode with current values");
+
+	env->addStaticText(L"Gamma:", rect<s32>(dim.Width - 400, 104, dim.Width - 310, 120), false, false, gui.Window, -1, false);
+	gui.Gamma = env->addScrollBar(true, rect<s32>(dim.Width - 300, 104, dim.Width - 10, 120), gui.Window, -1);
+	gui.Gamma->setMin(50);
+	gui.Gamma->setMax(350);
+	gui.Gamma->setSmallStep(1);
+	gui.Gamma->setLargeStep(10);
+	gui.Gamma->setPos(core::floor32(Game->GammaValue * 100.f));
+	gui.Gamma->setToolTipText(L"Adjust Gamma Ramp ( 0.5 - 3.5)");
+	Game->Device->setGammaRamp(Game->GammaValue, Game->GammaValue, Game->GammaValue, 0.f, 0.f);
+
+
+	env->addStaticText(L"Tesselation:", rect<s32>(dim.Width - 400, 124, dim.Width - 310, 140), false, false, gui.Window, -1, false);
+	gui.Tesselation = env->addScrollBar(true, rect<s32>(dim.Width - 300, 124, dim.Width - 10, 140), gui.Window, -1);
+	gui.Tesselation->setMin(2);
+	gui.Tesselation->setMax(12);
+	gui.Tesselation->setSmallStep(1);
+	gui.Tesselation->setLargeStep(1);
+	gui.Tesselation->setPos(Game->loadParam.patchTesselation);
+	gui.Tesselation->setToolTipText(L"How smooth should curved surfaces be rendered");
+
+	gui.Collision = env->addCheckBox(true, rect<s32>(dim.Width - 400, 150, dim.Width - 300, 166), gui.Window, -1, L"Collision");
+	gui.Collision->setToolTipText(L"Set collision on or off ( flythrough ). \nPress F7 on your Keyboard");
+	gui.Visible_Map = env->addCheckBox(true, rect<s32>(dim.Width - 300, 150, dim.Width - 240, 166), gui.Window, -1, L"Map");
+	gui.Visible_Map->setToolTipText(L"Show or not show the static part the Level. \nPress F3 on your Keyboard");
+	gui.Visible_Shader = env->addCheckBox(true, rect<s32>(dim.Width - 240, 150, dim.Width - 170, 166), gui.Window, -1, L"Shader");
+	gui.Visible_Shader->setToolTipText(L"Show or not show the Shader Nodes. \nPress F4 on your Keyboard");
+	gui.Visible_Fog = env->addCheckBox(true, rect<s32>(dim.Width - 170, 150, dim.Width - 110, 166), gui.Window, -1, L"Fog");
+	gui.Visible_Fog->setToolTipText(L"Show or not show the Fog Nodes. \nPress F5 on your Keyboard");
+	gui.Visible_Unresolved = env->addCheckBox(true, rect<s32>(dim.Width - 110, 150, dim.Width - 10, 166), gui.Window, -1, L"Unresolved");
+	gui.Visible_Unresolved->setToolTipText(L"Show the or not show the Nodes the Engine can't handle. \nPress F6 on your Keyboard");
+	gui.Visible_Skydome = env->addCheckBox(true, rect<s32>(dim.Width - 110, 180, dim.Width - 10, 196), gui.Window, -1, L"Skydome");
+	gui.Visible_Skydome->setToolTipText(L"Show the or not show the Skydome.");
+
+	//Respawn = env->addButton ( rect<s32>( dim.Width - 260, 90, dim.Width - 10, 106 ), 0,-1, L"Respawn" );
+
+	env->addStaticText(L"Archives:", rect<s32>(5, dim.Height - 530, dim.Width - 600, dim.Height - 514), false, false, gui.Window, -1, false);
+
+	gui.ArchiveAdd = env->addButton(rect<s32>(dim.Width - 725, dim.Height - 530, dim.Width - 665, dim.Height - 514), gui.Window, -1, L"add");
+	gui.ArchiveAdd->setToolTipText(L"Add an archive, usually packed zip-archives (*.pk3) to the Filesystem");
+	gui.ArchiveRemove = env->addButton(rect<s32>(dim.Width - 660, dim.Height - 530, dim.Width - 600, dim.Height - 514), gui.Window, -1, L"del");
+	gui.ArchiveRemove->setToolTipText(L"Remove the selected archive from the FileSystem.");
+	gui.ArchiveUp = env->addButton(rect<s32>(dim.Width - 575, dim.Height - 530, dim.Width - 515, dim.Height - 514), gui.Window, -1, L"up");
+	gui.ArchiveUp->setToolTipText(L"Arrange Archive Look-up Hirachy. Move the selected Archive up");
+	gui.ArchiveDown = env->addButton(rect<s32>(dim.Width - 510, dim.Height - 530, dim.Width - 440, dim.Height - 514), gui.Window, -1, L"down");
+	gui.ArchiveDown->setToolTipText(L"Arrange Archive Look-up Hirachy. Move the selected Archive down");
+
+
+	gui.ArchiveList = env->addTable(rect<s32>(5, dim.Height - 510, dim.Width - 450, dim.Height - 410), gui.Window);
+	gui.ArchiveList->addColumn(L"Type", 0);
+	gui.ArchiveList->addColumn(L"Real File Path", 1);
+	gui.ArchiveList->setColumnWidth(0, 60);
+	gui.ArchiveList->setColumnWidth(1, 284);
+	gui.ArchiveList->setToolTipText(L"Show the attached Archives");
+
+
+	env->addStaticText(L"Maps:", rect<s32>(5, dim.Height - 400, dim.Width - 450, dim.Height - 380), false, false, gui.Window, -1, false);
+	gui.MapList = env->addListBox(rect<s32>(5, dim.Height - 380, dim.Width - 450, dim.Height - 40), gui.Window, -1, true);
+	gui.MapList->setToolTipText(L"Show the current Maps in all Archives.\n Double-Click the Map to start the level");
+
+
+	// create a visible Scene Tree
+	env->addStaticText(L"Scenegraph:", rect<s32>(dim.Width - 400, dim.Height - 400, dim.Width - 5, dim.Height - 380), false, false, gui.Window, -1, false);
+	gui.SceneTree = env->addTreeView(rect<s32>(dim.Width - 400, dim.Height - 380, dim.Width - 5, dim.Height - 40),
+		gui.Window, -1, true, true, false);
+	gui.SceneTree->setToolTipText(L"Show the current Scenegraph");
+	gui.SceneTree->getRoot()->clearChildren();
+	addSceneTreeItem(Game->Device->getSceneManager()->getRootSceneNode(), gui.SceneTree->getRoot());
+
+
+	IGUIImageList* imageList = env->createImageList(driver->getTexture("iconlist.png"),
+		dimension2di(32, 32), true);
+
+	if (imageList)
+	{
+		gui.SceneTree->setImageList(imageList);
+		imageList->drop();
+	}
+
+
+	// load the engine logo
+	gui.Logo = env->addImage(driver->getTexture("irrlichtlogo3.png"), position2d<s32>(5, 16), true, 0);
+	gui.Logo->setToolTipText(L"The great Irrlicht Engine");
 
 	int iY = 10;
 	int iX = 35;
@@ -405,8 +532,8 @@ bool MainMenuUI::OnRender(double time, float elapsedTime)
 	*/
 	wchar_t msg[128];
 	swprintf(msg, 128,
-		L"%03f fps, F1 GUI on/off, F2 respawn, F3-F6 toggle Nodes, F7 Collision on/off"
-		L", F8 Gravity on/off, Right Mouse Toggle GUI", elapsedTime);
+		L"%03i fps, F1 GUI on/off, F2 respawn, F3-F6 toggle Nodes, F7 Collision on/off"
+		L", F8 Gravity on/off, Right Mouse Toggle GUI", (int)elapsedTime);
 	if (mStatusLine)
 		mStatusLine->SetText(msg);
 

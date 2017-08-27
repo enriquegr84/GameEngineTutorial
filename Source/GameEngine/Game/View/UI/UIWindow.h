@@ -8,6 +8,9 @@
 #include "UIElement.h"
 //#include "EMessageBoxFlags.h"
 
+#include "Graphic/Effect/BasicEffect.h"
+#include "Graphic/Scene/Element/Visual.h"
+
 class BaseUIButton;
 
 //! Default moveable window GUI element with border, caption and close icons.
@@ -125,6 +128,9 @@ protected:
 
 	BaseUI* mUI;
 
+	eastl::shared_ptr<BasicEffect> mEffect;
+	eastl::shared_ptr<Visual> mVisualTitle;
+	eastl::shared_ptr<Visual> mVisualBackground;
 	eastl::shared_ptr<BaseUIButton> mCloseButton;
 	eastl::shared_ptr<BaseUIButton> mMinButton;
 	eastl::shared_ptr<BaseUIButton> mRestoreButton;
