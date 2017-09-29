@@ -11,8 +11,7 @@
 
 #include "Core/IO/FileSystem.h"
 
-#include "Mathematic/Algebra/Vector2.h"
-#include "Mathematic/Geometric/Rectangle.h"
+#include "Mathematic/Mathematic.h"
 
 class BaseUI;
 class UISkin;
@@ -208,7 +207,7 @@ public:
 		}
 
 		mDesiredRect = r;
-		UpdateAbsoluteTransformation();
+		UpdateAbsolutePosition();
 	}
 
 	//! Sets the relative rectangle of this element, maintaining its current width and height
@@ -246,7 +245,7 @@ public:
 		mDesiredRect = RectangleBase<2, int>(center, axis, extent);
 		mScaleRect = r;
 
-		UpdateAbsoluteTransformation();
+		UpdateAbsolutePosition();
 	}
 
 
@@ -269,7 +268,7 @@ public:
 	void SetNotClipped(bool noClip)
 	{
 		mNoClip = noClip;
-		UpdateAbsoluteTransformation();
+		UpdateAbsolutePosition();
 	}
 
 
@@ -286,7 +285,7 @@ public:
 	void SetMaxSize(Vector2<unsigned int> size)
 	{
 		mMaxSize = size;
-		UpdateAbsoluteTransformation();
+		UpdateAbsolutePosition();
 	}
 
 
@@ -298,7 +297,7 @@ public:
 			mMinSize[0] = 1;
 		if (mMinSize[1] < 1)
 			mMinSize[1] = 1;
-		UpdateAbsoluteTransformation();
+		UpdateAbsolutePosition();
 	}
 
 
@@ -344,7 +343,7 @@ public:
 
 
 	//! Updates the absolute position.
-	virtual void UpdateAbsoluteTransformation()
+	virtual void UpdateAbsolutePosition()
 	{
 		RecalculateAbsolutePosition(false);
 
@@ -352,7 +351,7 @@ public:
 		eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
 		for (; it != mChildren.end(); ++it)
 		{
-			(*it)->UpdateAbsoluteTransformation();
+			(*it)->UpdateAbsolutePosition();
 		}
 	}
 
@@ -400,11 +399,20 @@ public:
 	/** Elements with a shape other than a rectangle should override this method */
 	virtual bool IsPointInside(const Vector2<int>& point) const
 	{
-		eastl::array<Vector2<int>, 4> vertex;
-		mAbsoluteClippingRect.GetVertices(vertex);
 		return (
-			vertex[0][0] >= point[0] && vertex[0][1] >= point[1] &&
-			vertex[3][0] <= point[0] && vertex[3][1] <= point[1] );
+			mAbsoluteClippingRect.center[0] - (mAbsoluteClippingRect.extent[0] / 2) >= point[0] && 
+			mAbsoluteClippingRect.center[1] - (mAbsoluteClippingRect.extent[1] / 2) >= point[1] &&
+			mAbsoluteClippingRect.center[0] + (int)round(mAbsoluteClippingRect.extent[0] / 2.f) <= point[0] &&
+			mAbsoluteClippingRect.center[1] + (int)round(mAbsoluteClippingRect.extent[1] / 2.f) <= point[1] );
+	}
+
+	virtual bool IsPointInside(const RectangleBase<2, int>& rectangle, const Vector2<int>& point) const
+	{
+		return (
+			rectangle.center[0] - (rectangle.extent[0] / 2) >= point[0] &&
+			rectangle.center[1] - (rectangle.extent[1] / 2) >= point[1] &&
+			rectangle.center[0] + (int)round(rectangle.extent[0] / 2.f) <= point[0] &&
+			rectangle.center[1] + (int)round(rectangle.extent[1] / 2.f) <= point[1]);
 	}
 
 
@@ -413,7 +421,7 @@ public:
 	{
 		AddChildToEnd(child);
 		if (child)
-			child->UpdateAbsoluteTransformation();
+			child->UpdateAbsolutePosition();
 	}
 
 	//! Removes a child.

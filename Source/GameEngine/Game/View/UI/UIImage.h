@@ -2,74 +2,97 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#ifndef __C_GUI_IMAGE_H_INCLUDED__
-#define __C_GUI_IMAGE_H_INCLUDED__
+#ifndef UIIMAGE_H
+#define UIIMAGE_H
 
-#include "IrrCompileConfig.h"
-#ifdef _IRR_COMPILE_WITH_GUI_
+#include "UIElement.h"
 
-#include "IGUIImage.h"
+#include "Graphic/Effect/Texture2Effect.h"
+#include "Graphic/Scene/Element/Visual.h"
 
-namespace irr
+//! BaseUI element displaying an image.
+class BaseUIImage : public BaseUIElement
 {
-namespace gui
+public:
+
+	//! constructor
+	BaseUIImage(int id, RectangleBase<2, int> rectangle)
+		: BaseUIElement(UIET_IMAGE, id, rectangle) {}
+
+	//! Sets an image texture
+	virtual void SetImage(const eastl::shared_ptr<Texture2>& image = 0) = 0;
+
+	//! Gets the image texture
+	virtual const eastl::shared_ptr<Texture2>& GetImage() const = 0;
+
+	//! Sets the color of the image
+	virtual void SetColor(eastl::array<float, 4> color) = 0;
+
+	//! Sets if the image should scale to fit the element
+	virtual void SetScaleImage(bool scale) = 0;
+
+	//! Sets if the image should use its alpha channel to draw itself
+	virtual void SetUseAlphaChannel(bool use) = 0;
+
+	//! Gets the color of the image
+	virtual eastl::array<float, 4> GetColor() const = 0;
+
+	//! Returns true if the image is scaled to fit, false if not
+	virtual bool IsImageScaled() const = 0;
+
+	//! Returns true if the image is using the alpha channel, false if not
+	virtual bool IsAlphaChannelUsed() const = 0;
+};
+
+class UIImage : public BaseUIImage
 {
+public:
 
-	class CGUIImage : public IGUIImage
-	{
-	public:
+	//! constructor
+	UIImage(BaseUI* ui, int id, RectangleBase<2, int> rectangle);
 
-		//! constructor
-		CGUIImage(IGUIEnvironment* environment, IGUIElement* parent, s32 id, core::rect<s32> rectangle);
+	//! destructor
+	virtual ~UIImage();
 
-		//! destructor
-		virtual ~CGUIImage();
+	//! Sets an image texture
+	virtual void SetImage(const eastl::shared_ptr<Texture2>& image = 0);
 
-		//! sets an image
-		virtual void setImage(video::ITexture* image);
+	//! Gets the image texture
+	virtual const eastl::shared_ptr<Texture2>& GetImage() const;
 
-		//! Gets the image texture
-		virtual video::ITexture* getImage() const;
+	//! Sets the color of the image
+	virtual void SetColor(eastl::array<float, 4> color);
 
-		//! sets the color of the image
-		virtual void setColor(video::SColor color);
+	//! Sets if the image should scale to fit the element
+	virtual void SetScaleImage(bool scale);
 
-		//! sets if the image should scale to fit the element
-		virtual void setScaleImage(bool scale);
+	//! Sets if the image should use its alpha channel to draw itself
+	virtual void SetUseAlphaChannel(bool use);
 
-		//! draws the element and its children
-		virtual void draw();
+	//! Gets the color of the image
+	virtual eastl::array<float, 4> GetColor() const;
 
-		//! sets if the image should use its alpha channel to draw itself
-		virtual void setUseAlphaChannel(bool use);
+	//! Returns true if the image is scaled to fit, false if not
+	virtual bool IsImageScaled() const;
 
-		//! Gets the color of the image
-		virtual video::SColor getColor() const;
+	//! Returns true if the image is using the alpha channel, false if not
+	virtual bool IsAlphaChannelUsed() const;
 
-		//! Returns true if the image is scaled to fit, false if not
-		virtual bool isImageScaled() const;
+	//! draws the element and its children
+	virtual void Draw();
 
-		//! Returns true if the image is using the alpha channel, false if not
-		virtual bool isAlphaChannelUsed() const;
+private:
 
-		//! Writes attributes of the element.
-		virtual void serializeAttributes(io::IAttributes* out, io::SAttributeReadWriteOptions* options) const;
+	BaseUI* mUI;
 
-		//! Reads attributes of the element
-		virtual void deserializeAttributes(io::IAttributes* in, io::SAttributeReadWriteOptions* options);
+	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<Texture2Effect> mEffect;
 
-	private:
-		video::ITexture* Texture;
-		video::SColor Color;
-		bool UseAlphaChannel;
-		bool ScaleImage;
+	eastl::shared_ptr<Texture2> mTexture;
+	eastl::array<float, 4> mColor;
+	bool mUseAlphaChannel;
+	bool mScaleImage;
 
-	};
+};
 
-
-} // end namespace gui
-} // end namespace irr
-
-#endif // _IRR_COMPILE_WITH_GUI_
-
-#endif // __C_GUI_IMAGE_H_INCLUDED__
+#endif

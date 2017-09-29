@@ -20,6 +20,25 @@ UICheckBox::UICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool
 	//setDebugName("CGUICheckBox");
 	#endif
 
+	// Create a vertex buffer for a single triangle.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+
+	// Create the geometric object for drawing.
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+
 	// this element can be tabbed into
 	SetTabStop(true);
 	SetTabOrder(-1);
@@ -127,38 +146,38 @@ void UICheckBox::Draw()
 	{
 		const int height = skin->GetSize(DS_CHECK_BOX_WIDTH);
 
-		core::rect<s32> checkRect(AbsoluteRect.UpperLeftCorner.X,
-					((AbsoluteRect.getHeight() - height) / 2) + AbsoluteRect.UpperLeftCorner.Y,
-					0, 0);
+		RectangleBase<2, int> checkRect;
+		checkRect.extent[0] = height;
+		checkRect.extent[1] = height;
+		checkRect.center[0] = mAbsoluteRect.center[0];
+		checkRect.center[1] = mAbsoluteRect.center[1];
 
-		checkRect.LowerRightCorner.X = checkRect.UpperLeftCorner.X + height;
-		checkRect.LowerRightCorner.Y = checkRect.UpperLeftCorner.Y + height;
+		UIDefaultColor col = DC_GRAY_EDITABLE;
+		if (IsEnabled())
+			col = mPressed ? DC_FOCUSED_EDITABLE : DC_EDITABLE;
+		skin->Draw3DSunkenPane(shared_from_this(), skin->GetColor(col),
+			false, true, mVisual, checkRect, &mAbsoluteClippingRect);
 
-		EGUI_DEFAULT_COLOR col = EGDC_GRAY_EDITABLE;
-		if ( isEnabled() )
-			col = Pressed ? EGDC_FOCUSED_EDITABLE : EGDC_EDITABLE;
-		skin->draw3DSunkenPane(this, skin->getColor(col),
-			false, true, checkRect, &AbsoluteClippingRect);
-
-		if (Checked)
+		if (mChecked)
 		{
-			skin->drawIcon(this, EGDI_CHECK_BOX_CHECKED, checkRect.getCenter(),
-				checkTime, os::Timer::getTime(), false, &AbsoluteClippingRect);
+			skin->DrawIcon(shared_from_this(), DI_CHECK_BOX_CHECKED, checkRect.center, mVisual,
+				&mAbsoluteClippingRect, mCheckTime, Timer::GetTime(), false);
 		}
-		if (Text.size())
+		if (mText.size())
 		{
-			checkRect = AbsoluteRect;
-			checkRect.UpperLeftCorner.X += height + 5;
+			checkRect = mAbsoluteRect;
+			checkRect.extent[0] -= height + 5;
+			checkRect.center[0] += (int)round((height + 5) / 2.f);
 
-			IGUIFont* font = skin->getFont();
+			eastl::shared_ptr<BaseUIFont> font = skin->GetFont();
 			if (font)
 			{
-				font->draw(Text.c_str(), checkRect,
-						skin->getColor(isEnabled() ? EGDC_BUTTON_TEXT : EGDC_GRAY_TEXT), false, true, &AbsoluteClippingRect);
+				font->Draw(mText.c_str(), checkRect,
+						skin->GetColor(IsEnabled() ? DC_BUTTON_TEXT : DC_GRAY_TEXT), false, true, &mAbsoluteClippingRect);
 			}
 		}
 	}
-	IGUIElement::draw();
+	BaseUIElement::Draw();
 }
 
 

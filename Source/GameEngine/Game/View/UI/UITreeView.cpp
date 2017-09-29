@@ -2,230 +2,180 @@
 // written by Reinhard Ostermeier, reinhard@nospam.r-ostermeier.de
 // expanded by burningwater
 
-#include "CGUITreeView.h"
+#include "UITreeView.h"
+#include "UISkin.h"
+#include "UIFont.h"
+#include "UIScrollBar.h"
 
-#ifdef _IRR_COMPILE_WITH_GUI_
+#include "UserInterface.h"
 
-#include "IGUISkin.h"
-#include "IGUIEnvironment.h"
-#include "IVideoDriver.h"
-#include "IGUIFont.h"
-#include "CGUIScrollBar.h"
-#include "os.h"
+#include "Graphic/Renderer/Renderer.h"
+#include "Core/OS/OS.h"
 
-namespace irr
+UITreeViewNode::UITreeViewNode(eastl::shared_ptr<BaseUIElement> owner, eastl::shared_ptr<BaseUITreeViewNode> parent )
+	: mOwner(owner), mParent(parent), mImageIndex(-1), mSelectedImageIndex(-1), mData(0), mData2(0), mExpanded(false)
 {
-namespace gui
-{
-
-CGUITreeViewNode::CGUITreeViewNode( CGUITreeView* owner, CGUITreeViewNode* parent )
-	: Owner(owner), Parent(parent), ImageIndex(-1), SelectedImageIndex(-1),
-	Data(0), Data2(0), Expanded(false)
-{
-#ifdef _DEBUG
-	setDebugName( "CGUITreeView" );
-#endif
+	#ifdef _DEBUG
+	//setDebugName( "CGUITreeView" );
+	#endif
 }
 
-CGUITreeViewNode::~CGUITreeViewNode()
+UITreeViewNode::~UITreeViewNode()
 {
-	if( Owner && this == Owner->getSelected() )
+	if( mOwner)
 	{
-		setSelected( false );
+		BaseUITreeView* owner = reinterpret_cast<BaseUITreeView*>(mOwner.get());
+		if (shared_from_this() == owner->GetSelected())
+			SetSelected( false );
 	}
 
-	clearChildren();
-
-	if( Data2 )
-	{
-		Data2->drop();
-	}
+	ClearChildren();
 }
 
-IGUITreeView* CGUITreeViewNode::getOwner() const
+eastl::shared_ptr<BaseUIElement> UITreeViewNode::GetOwner() const
 {
-	return Owner;
+	return mOwner;
 }
 
-IGUITreeViewNode* CGUITreeViewNode::getParent() const
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::GetParent() const
 {
-	return Parent;
+	return mParent;
 }
 
-void CGUITreeViewNode::setText( const wchar_t* text )
+void UITreeViewNode::SetText( const wchar_t* text )
 {
-	Text = text;
+	mText = text;
 }
 
-void CGUITreeViewNode::setIcon( const wchar_t* icon )
+void UITreeViewNode::SetIcon( const wchar_t* icon )
 {
-	Icon = icon;
+	mIcon = icon;
 }
 
-void CGUITreeViewNode::clearChildren()
+void UITreeViewNode::ClearChildren()
 {
-	core::list<CGUITreeViewNode*>::Iterator	it;
-
-	for( it = Children.begin(); it != Children.end(); it++ )
-	{
-		( *it )->drop();
-	}
-	Children.clear();
+	mChildren.clear();
 }
 
-IGUITreeViewNode* CGUITreeViewNode::addChildBack(
-	const wchar_t*		text,
-	const wchar_t*		icon /*= 0*/,
-	s32					imageIndex /*= -1*/,
-	s32					selectedImageIndex /*= -1*/,
-	void*					data /*= 0*/,
-	IReferenceCounted*			data2 /*= 0*/ )
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::AddChildBack(
+	const wchar_t* text, const wchar_t* icon /*= 0*/,
+	int imageIndex /*= -1*/, int selectedImageIndex /*= -1*/,
+	void* data /*= 0*/, void* data2 /*= 0*/ )
 {
-	CGUITreeViewNode*	newChild = new CGUITreeViewNode( Owner, this );
+	eastl::shared_ptr<UITreeViewNode> newChild(new UITreeViewNode( mOwner, shared_from_this() ));
 
-	Children.push_back( newChild );
-	newChild->Text = text;
-	newChild->Icon = icon;
-	newChild->ImageIndex = imageIndex;
-	newChild->SelectedImageIndex = selectedImageIndex;
-	newChild->Data = data;
-	newChild->Data2 = data2;
-	if( data2 )
-	{
-		data2->grab();
-	}
+	mChildren.push_back( newChild );
+	newChild->mText = text;
+	newChild->mIcon = icon;
+	newChild->mImageIndex = imageIndex;
+	newChild->mSelectedImageIndex = selectedImageIndex;
+	newChild->mData = data;
+	newChild->mData2 = data2;
+
 	return newChild;
 }
 
-IGUITreeViewNode* CGUITreeViewNode::addChildFront(
-	const wchar_t*		text,
-	const wchar_t*		icon /*= 0*/,
-	s32					imageIndex /*= -1*/,
-	s32					selectedImageIndex /*= -1*/,
-	void*					data /*= 0*/,
-	IReferenceCounted*			data2 /*= 0*/ )
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::AddChildFront(
+	const wchar_t* text, const wchar_t* icon /*= 0*/,
+	int imageIndex /*= -1*/, int selectedImageIndex /*= -1*/,
+	void* data /*= 0*/, void* data2 /*= 0*/ )
 {
-	CGUITreeViewNode*	newChild = new CGUITreeViewNode( Owner, this );
+	eastl::shared_ptr<UITreeViewNode> newChild(new UITreeViewNode( mOwner, shared_from_this() ));
 
-	Children.push_front( newChild );
-	newChild->Text = text;
-	newChild->Icon = icon;
-	newChild->ImageIndex = imageIndex;
-	newChild->SelectedImageIndex = selectedImageIndex;
-	newChild->Data = data;
-	newChild->Data2 = data2;
-	if( data2 )
-	{
-		data2->grab();
-	}
+	mChildren.push_front( newChild );
+	newChild->mText = text;
+	newChild->mIcon = icon;
+	newChild->mImageIndex = imageIndex;
+	newChild->mSelectedImageIndex = selectedImageIndex;
+	newChild->mData = data;
+	newChild->mData2 = data2;
+
 	return newChild;
 }
 
-IGUITreeViewNode* CGUITreeViewNode::insertChildAfter(
-	IGUITreeViewNode*	other,
-	const wchar_t*		text,
-	const wchar_t*		icon /*= 0*/,
-	s32					imageIndex /*= -1*/,
-	s32					selectedImageIndex /*= -1*/,
-	void*					data /*= 0*/,
-	IReferenceCounted*			data2/* = 0*/ )
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::InsertChildAfter(
+	eastl::shared_ptr<BaseUITreeViewNode> other,
+	const wchar_t* text, const wchar_t* icon /*= 0*/,
+	int imageIndex /*= -1*/, int selectedImageIndex /*= -1*/,
+	void* data /*= 0*/, void* data2/* = 0*/ )
 {
-	core::list<CGUITreeViewNode*>::Iterator	itOther;
-	CGUITreeViewNode*									newChild = 0;
+	eastl::shared_ptr<UITreeViewNode> newChild = 0;
 
-	for( itOther = Children.begin(); itOther != Children.end(); itOther++ )
+	for( auto itOther = mChildren.begin(); itOther != mChildren.end(); itOther++ )
 	{
 		if( other == *itOther )
 		{
-			newChild = new CGUITreeViewNode( Owner, this );
-			newChild->Text = text;
-			newChild->Icon = icon;
-			newChild->ImageIndex = imageIndex;
-			newChild->SelectedImageIndex = selectedImageIndex;
-			newChild->Data = data;
-			newChild->Data2 = data2;
-			if( data2 )
-			{
-				data2->grab();
-			}
-			Children.insert_after( itOther, newChild );
+			newChild.reset(new UITreeViewNode( mOwner, shared_from_this() ));
+			newChild->mText = text;
+			newChild->mIcon = icon;
+			newChild->mImageIndex = imageIndex;
+			newChild->mSelectedImageIndex = selectedImageIndex;
+			newChild->mData = data;
+			newChild->mData2 = data2;
+
+			mChildren.insert( itOther, newChild );
 			break;
 		}
 	}
 	return newChild;
 }
 
-IGUITreeViewNode* CGUITreeViewNode::insertChildBefore(
-	IGUITreeViewNode*	other,
-	const wchar_t*		text,
-	const wchar_t*		icon /*= 0*/,
-	s32					imageIndex /*= -1*/,
-	s32					selectedImageIndex /*= -1*/,
-	void*					data /*= 0*/,
-	IReferenceCounted*			data2/* = 0*/ )
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::InsertChildBefore(
+	eastl::shared_ptr<BaseUITreeViewNode> other,
+	const wchar_t* text, const wchar_t* icon /*= 0*/,
+	int imageIndex /*= -1*/, int selectedImageIndex /*= -1*/,
+	void* data /*= 0*/, void* data2/* = 0*/ )
 {
-	core::list<CGUITreeViewNode*>::Iterator	itOther;
-	CGUITreeViewNode*									newChild = 0;
+	eastl::shared_ptr<UITreeViewNode> newChild = 0;
 
-	for( itOther = Children.begin(); itOther != Children.end(); itOther++ )
+	for( auto itOther = mChildren.begin(); itOther != mChildren.end(); itOther++ )
 	{
 		if( other == *itOther )
 		{
-			newChild = new CGUITreeViewNode( Owner, this );
-			newChild->Text = text;
-			newChild->Icon = icon;
-			newChild->ImageIndex = imageIndex;
-			newChild->SelectedImageIndex = selectedImageIndex;
-			newChild->Data = data;
-			newChild->Data2 = data2;
-			if( data2 )
-			{
-				data2->grab();
-			}
-			Children.insert_before( itOther, newChild );
+			newChild.reset(new UITreeViewNode(mOwner, shared_from_this()));
+			newChild->mText = text;
+			newChild->mIcon = icon;
+			newChild->mImageIndex = imageIndex;
+			newChild->mSelectedImageIndex = selectedImageIndex;
+			newChild->mData = data;
+			newChild->mData2 = data2;
+
+			mChildren.insert( itOther, newChild );
 			break;
 		}
 	}
 	return newChild;
 }
 
-IGUITreeViewNode* CGUITreeViewNode::getFirstChild() const
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::GetFrontChild() const
 {
-	if( Children.empty() )
-	{
+	if( mChildren.empty() )
 		return 0;
-	}
 	else
-	{
-		return *( Children.begin() );
-	}
+		return mChildren.front();
 }
 
-IGUITreeViewNode* CGUITreeViewNode::getLastChild() const
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::GetBackChild() const
 {
-	if( Children.empty() )
-	{
+	if( mChildren.empty() )
 		return 0;
-	}
 	else
-	{
-		return *( Children.getLast() );
-	}
+		return mChildren.back();
 }
 
-IGUITreeViewNode* CGUITreeViewNode::getPrevSibling() const
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::GetPrevNode() const
 {
-	core::list<CGUITreeViewNode*>::Iterator	itThis;
-	core::list<CGUITreeViewNode*>::Iterator	itOther;
-	CGUITreeViewNode*									other = 0;
+	eastl::list<eastl::shared_ptr<BaseUITreeViewNode>>::iterator itOther;
+	eastl::shared_ptr<BaseUITreeViewNode> other = 0;
 
-	if( Parent )
+	if(mParent)
 	{
-		for( itThis = Parent->Children.begin(); itThis != Parent->Children.end(); itThis++ )
+		UITreeViewNode* parent = reinterpret_cast<UITreeViewNode*>(mParent.get());
+		for( auto itThis = parent->mChildren.begin(); itThis != parent->mChildren.end(); itThis++ )
 		{
-			if( this == *itThis )
+			if( shared_from_this() == *itThis )
 			{
-				if( itThis != Parent->Children.begin() )
+				if( itThis != parent->mChildren.begin() )
 				{
 					other = *itOther;
 				}
@@ -237,18 +187,18 @@ IGUITreeViewNode* CGUITreeViewNode::getPrevSibling() const
 	return other;
 }
 
-IGUITreeViewNode* CGUITreeViewNode::getNextSibling() const
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::GetNextNode() const
 {
-	core::list<CGUITreeViewNode*>::Iterator	itThis;
-	CGUITreeViewNode*									other = 0;
+	eastl::shared_ptr<BaseUITreeViewNode> other = 0;
 
-	if( Parent )
+	if( mParent )
 	{
-		for( itThis = Parent->Children.begin(); itThis != Parent->Children.end(); itThis++ )
+		UITreeViewNode* parent = reinterpret_cast<UITreeViewNode*>(mParent.get());
+		for (auto itThis = parent->mChildren.begin(); itThis != parent->mChildren.end(); itThis++)
 		{
-			if( this == *itThis )
+			if( shared_from_this() == *itThis )
 			{
-				if( itThis != Parent->Children.getLast() )
+				if( *itThis != parent->mChildren.back() )
 				{
 					other = *( ++itThis );
 				}
@@ -259,44 +209,34 @@ IGUITreeViewNode* CGUITreeViewNode::getNextSibling() const
 	return other;
 }
 
-IGUITreeViewNode* CGUITreeViewNode::getNextVisible() const
+eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::GetNextVisible() const
 {
-	IGUITreeViewNode*	next = 0;
-	IGUITreeViewNode*	node = 0;
+	eastl::shared_ptr<BaseUITreeViewNode> next = 0;
+	eastl::shared_ptr<const BaseUITreeViewNode> node = shared_from_this();
 
-	node = const_cast<CGUITreeViewNode*>( this );
-
-	if( node->getExpanded() && node->hasChildren() )
-	{
-		next = node->getFirstChild();
-	}
+	if( node->GetExpanded() && node->HasChildren() )
+		next = node->GetFrontChild();
 	else
+		next = node->GetNextNode();
+
+	while( !next && node->GetParent() )
 	{
-		next = node->getNextSibling();
-	}
-	while( !next && node->getParent() )
-	{
-		next = node->getParent()->getNextSibling();
-		if( !next )
-		{
-			node = node->getParent();
-		}
+		next = node->GetParent()->GetNextNode();
+		if( !next ) node = node->GetParent();
 	}
 
 	return next;
 }
 
-bool CGUITreeViewNode::deleteChild( IGUITreeViewNode* child )
+bool UITreeViewNode::DeleteChild( eastl::shared_ptr<BaseUITreeViewNode> child )
 {
-	core::list<CGUITreeViewNode*>::Iterator	itChild;
-	bool	deleted = false;
+	bool deleted = false;
 
-	for( itChild = Children.begin(); itChild != Children.end(); itChild++ )
+	for( auto itChild = mChildren.begin(); itChild != mChildren.end(); itChild++ )
 	{
 		if( child == *itChild )
 		{
-			child->drop();
-			Children.erase( itChild );
+			mChildren.erase( itChild );
 			deleted = true;
 			break;
 		}
@@ -304,18 +244,17 @@ bool CGUITreeViewNode::deleteChild( IGUITreeViewNode* child )
 	return deleted;
 }
 
-bool CGUITreeViewNode::moveChildUp( IGUITreeViewNode* child )
+bool UITreeViewNode::MoveChildUp( eastl::shared_ptr<BaseUITreeViewNode> child )
 {
-	core::list<CGUITreeViewNode*>::Iterator	itChild;
-	core::list<CGUITreeViewNode*>::Iterator	itOther;
-	CGUITreeViewNode*									nodeTmp;
-	bool													moved = false;
+	eastl::list<eastl::shared_ptr<BaseUITreeViewNode>>::iterator itOther;
+	eastl::shared_ptr<BaseUITreeViewNode> nodeTmp;
+	bool moved = false;
 
-	for( itChild = Children.begin(); itChild != Children.end(); itChild++ )
+	for( auto itChild = mChildren.begin(); itChild != mChildren.end(); itChild++ )
 	{
 		if( child == *itChild )
 		{
-			if( itChild != Children.begin() )
+			if( itChild != mChildren.begin() )
 			{
 				nodeTmp = *itChild;
 				*itChild = *itOther;
@@ -329,18 +268,17 @@ bool CGUITreeViewNode::moveChildUp( IGUITreeViewNode* child )
 	return moved;
 }
 
-bool CGUITreeViewNode::moveChildDown( IGUITreeViewNode* child )
+bool UITreeViewNode::MoveChildDown(eastl::shared_ptr<BaseUITreeViewNode> child )
 {
-	core::list<CGUITreeViewNode*>::Iterator	itChild;
-	core::list<CGUITreeViewNode*>::Iterator	itOther;
-	CGUITreeViewNode*									nodeTmp;
-	bool													moved = false;
+	eastl::list<eastl::shared_ptr<BaseUITreeViewNode>>::iterator itOther;
+	eastl::shared_ptr<BaseUITreeViewNode> nodeTmp;
+	bool moved = false;
 
-	for( itChild = Children.begin(); itChild != Children.end(); itChild++ )
+	for( auto itChild = mChildren.begin(); itChild != mChildren.end(); itChild++ )
 	{
 		if( child == *itChild )
 		{
-			if( itChild != Children.getLast() )
+			if( *itChild != mChildren.back() )
 			{
 				itOther = itChild;
 				++itOther;
@@ -355,51 +293,53 @@ bool CGUITreeViewNode::moveChildDown( IGUITreeViewNode* child )
 	return moved;
 }
 
-void CGUITreeViewNode::setExpanded( bool expanded )
+void UITreeViewNode::SetExpanded( bool expanded )
 {
-	Expanded = expanded;
+	mExpanded = expanded;
 }
 
-void CGUITreeViewNode::setSelected( bool selected )
+void UITreeViewNode::SetSelected( bool selected )
 {
-	if( Owner )
+	if( mOwner )
 	{
-		if( selected )
+		UITreeView* owner = reinterpret_cast<UITreeView*>(mOwner.get());
+		if (selected)
 		{
-			Owner->Selected = this;
+			owner->mSelected = shared_from_this();
 		}
 		else
 		{
-			if( Owner->Selected == this )
-			{
-				Owner->Selected = 0;
-			}
+			if (owner->mSelected == shared_from_this())
+				owner->mSelected.reset();
 		}
 	}
 }
 
-bool CGUITreeViewNode::getSelected() const
+bool UITreeViewNode::GetSelected() const
 {
-	if( Owner )
+	if( mOwner )
 	{
-		return Owner->Selected == (IGUITreeViewNode*)this;
+		UITreeView* owner = reinterpret_cast<UITreeView*>(mOwner.get());
+		return owner->mSelected == shared_from_this();
 	}
-	else
-	{
-		return false;
-	}
+	else return false;
 }
 
-bool CGUITreeViewNode::isRoot() const
+bool UITreeViewNode::IsRoot() const
 {
-	return ( Owner && ( this == Owner->Root ) );
+	if (mOwner)
+	{
+		UITreeView* owner = reinterpret_cast<UITreeView*>(mOwner.get());
+		return ( shared_from_this() == owner->mRoot );
+	}
+	else return false;
 }
 
-s32 CGUITreeViewNode::getLevel() const
+int UITreeViewNode::GetLevel() const
 {
-	if( Parent )
+	if( mParent )
 	{
-		return Parent->getLevel() + 1;
+		return mParent->GetLevel() + 1;
 	}
 	else
 	{
@@ -407,11 +347,11 @@ s32 CGUITreeViewNode::getLevel() const
 	}
 }
 
-bool CGUITreeViewNode::isVisible() const
+bool UITreeViewNode::IsVisible() const
 {
-	if( Parent )
+	if( mParent )
 	{
-		return Parent->getExpanded() && Parent->isVisible();
+		return mParent->GetExpanded() && mParent->IsVisible();
 	}
 	else
 	{
@@ -421,301 +361,257 @@ bool CGUITreeViewNode::isVisible() const
 
 
 //! constructor
-CGUITreeView::CGUITreeView(IGUIEnvironment* environment, IGUIElement* parent,
-	s32 id, core::rect<s32> rectangle, bool clip,
-	bool drawBack,bool scrollBarVertical, bool scrollBarHorizontal)
-	: IGUITreeView( environment, parent, id, rectangle ),
-	Root(0), Selected(0),
-	ItemHeight( 0 ),
-	IndentWidth( 0 ),
-	TotalItemHeight( 0 ),
-	TotalItemWidth ( 0 ),
-	Font( 0 ),
-	IconFont( 0 ),
-	ScrollBarH( 0 ),
-	ScrollBarV( 0 ),
-	ImageList( 0 ),
-	LastEventNode( 0 ),
-	LinesVisible( true ),
-	Selecting( false ),
-	Clip( clip ),
-	DrawBack( drawBack ),
-	ImageLeftOfIcon( true )
+UITreeView::UITreeView(BaseUI* ui, int id, RectangleBase<2, int> rectangle, 
+	bool clip, bool drawBack, bool scrollBarVertical, bool scrollBarHorizontal)
+	: BaseUITreeView( id, rectangle ), mUI(ui), mRoot(0), mSelected(0), mItemHeight( 0 ), mIndentWidth( 0 ), 
+	mTotalItemHeight( 0 ), mTotalItemWidth ( 0 ), mFont( 0 ), mIconFont( 0 ), mScrollBarH( 0 ), mScrollBarV( 0 ), 
+	mLastEventNode( 0 ), mLinesVisible( true ), mSelecting( false ), mClip( clip ), mDrawBack( drawBack ), mImageLeftOfIcon( true )
 {
 #ifdef _DEBUG
-	setDebugName( "CGUITreeView" );
+//setDebugName( "UITreeView" );
 #endif
 
-	IGUISkin* skin = Environment->getSkin();
-	s32 s = skin->getSize( EGDS_SCROLLBAR_SIZE );
+	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
+	int s = skin->GetSize( DS_SCROLLBAR_SIZE );
 
 	if ( scrollBarVertical )
 	{
-		ScrollBarV = new CGUIScrollBar( false, Environment, this, 0,
-			core::rect<s32>(	RelativeRect.getWidth() - s,
-			0,
-			RelativeRect.getWidth(),
-			RelativeRect.getHeight() - (scrollBarHorizontal ? s : 0 )
-			),
-			!clip );
-		ScrollBarV->drop();
+		RectangleBase<2, int> rectangle;
+		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
+		rectangle.center[1] = (mRelativeRect.extent[1] - scrollBarHorizontal ? s : 0) / 2;
+		rectangle.extent[0] = s;
+		rectangle.extent[1] = mRelativeRect.extent[1] - scrollBarHorizontal ? s : 0;
 
-		ScrollBarV->setSubElement(true);
-		ScrollBarV->setPos( 0 );
-		ScrollBarV->grab();
+		mScrollBarV.reset(new UIScrollBar(ui, 0, rectangle, false, !clip));
+		mScrollBarV->SetSubElement(true);
+		mScrollBarV->SetPos( 0 );
 	}
 
 	if ( scrollBarHorizontal )
 	{
-		ScrollBarH = new CGUIScrollBar( true, Environment, this, 1,
-			core::rect<s32>( 0, RelativeRect.getHeight() - s, RelativeRect.getWidth() - s, RelativeRect.getHeight() ),
-			!clip );
-		ScrollBarH->drop();
+		RectangleBase<2, int> rectangle;
+		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
+		rectangle.center[1] = mRelativeRect.extent[1] - ( s / 2 );
+		rectangle.extent[0] = mRelativeRect.extent[0] - s;
+		rectangle.extent[1] = s;
 
-		ScrollBarH->setSubElement(true);
-		ScrollBarH->setPos( 0 );
-		ScrollBarH->grab();
+		mScrollBarH.reset(new UIScrollBar(ui, 0, rectangle, false, !clip));
+		mScrollBarH->SetSubElement(true);
+		mScrollBarH->SetPos( 0 );
 	}
 
-	Root = new CGUITreeViewNode( this, 0 );
-	Root->Expanded = true;
+	mRoot.reset(new UITreeViewNode( shared_from_this(), 0 ));
+	UITreeViewNode* root = reinterpret_cast<UITreeViewNode*>(mRoot.get());
+	root->mExpanded = true;
 
-	recalculateItemHeight();
+	RecalculateItemHeight();
+
+	// Create a vertex buffer for a single triangle.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	// Create the geometric object for drawing.
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 }
 
 
 //! destructor
-CGUITreeView::~CGUITreeView()
+UITreeView::~UITreeView()
 {
-	if( ScrollBarV )
-	{
-		ScrollBarV->drop();
-	}
 
-	if( ScrollBarH )
-	{
-		ScrollBarH->drop();
-	}
-
-	if( Font )
-	{
-		Font->drop();
-	}
-
-	if( IconFont )
-	{
-		IconFont->drop();
-	}
-
-	if( ImageList )
-	{
-		ImageList->drop();
-	}
-
-	if( Root )
-	{
-		Root->drop();
-	}
 }
 
-void CGUITreeView::recalculateItemHeight()
+void UITreeView::RecalculateItemHeight()
 {
-	IGUISkin*		skin = Environment->getSkin();
-	IGUITreeViewNode*	node;
+	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 
-	if( Font != skin->getFont() )
+	eastl::shared_ptr<BaseUITreeViewNode> node;
+
+	if( mFont != skin->GetFont() )
 	{
+		mFont = skin->GetFont();
+		mItemHeight = 0;
+		/*
 		if( Font )
-		{
-			Font->drop();
-		}
-
-		Font = skin->getFont();
-		ItemHeight = 0;
-
-		if( Font )
-		{
-			ItemHeight = Font->getDimension( L"A" ).Height + 4;
-			Font->grab();
-		}
+			ItemHeight = Font->GetDimension( L"A" ).Height + 4;
 
 		if( IconFont )
 		{
-			s32 height = IconFont->getDimension( L" " ).Height;
+			int height = IconFont->GetDimension( L" " ).Height;
 			if( height > ItemHeight )
-			{
 				ItemHeight = height;
-			}
 		}
-		if( ImageList )
-		{
-			if( ImageList->getImageSize().Height + 1 > ItemHeight )
-			{
-				ItemHeight = ImageList->getImageSize().Height + 1;
-			}
-		}
+		*/
 	}
 
-	IndentWidth = ItemHeight;
-	if( IndentWidth < 9 )
+	mIndentWidth = mItemHeight;
+	if( mIndentWidth < 9 )
 	{
-		IndentWidth = 9;
+		mIndentWidth = 9;
 	}
-	else if( IndentWidth > 15 )
+	else if( mIndentWidth > 15 )
 	{
-		IndentWidth = 15;
+		mIndentWidth = 15;
 	}
 	else
 	{
-		if( ( ( IndentWidth >> 1 ) << 1 ) - IndentWidth == 0 )
+		if( ( ( mIndentWidth >> 1 ) << 1 ) - mIndentWidth == 0 )
 		{
-			--IndentWidth;
+			--mIndentWidth;
 		}
 	}
 
-	TotalItemHeight = 0;
-	TotalItemWidth = AbsoluteRect.getWidth() * 2;
-	node = Root->getFirstChild();
+	mTotalItemHeight = 0;
+	mTotalItemWidth = mAbsoluteRect.extent[0] * 2;
+	node = mRoot->GetFrontChild();
 	while( node )
 	{
-		TotalItemHeight += ItemHeight;
-		node = node->getNextVisible();
+		mTotalItemHeight += mItemHeight;
+		node = node->GetNextVisible();
 	}
 
-	if ( ScrollBarV )
-		ScrollBarV->setMax( core::max_(0,TotalItemHeight - AbsoluteRect.getHeight()) );
+	if ( mScrollBarV )
+		mScrollBarV->SetMax( eastl::max(0,mTotalItemHeight - mAbsoluteRect.extent[1]));
 
-	if ( ScrollBarH )
-		ScrollBarH->setMax( core::max_(0, TotalItemWidth - AbsoluteRect.getWidth()) );
+	if ( mScrollBarH )
+		mScrollBarH->SetMax( eastl::max(0, mTotalItemWidth - mAbsoluteRect.extent[0]));
 
 }
 
 //! called if an event happened.
-bool CGUITreeView::OnEvent( const SEvent &event )
+bool UITreeView::OnEvent( const Event &event )
 {
-	if ( isEnabled() )
+	if ( IsEnabled() )
 	{
-		switch( event.EventType )
+		switch( event.mEventType )
 		{
-		case EET_GUI_EVENT:
-			switch( event.GUIEvent.EventType )
-			{
-			case gui::EGET_SCROLL_BAR_CHANGED:
-				if( event.GUIEvent.Caller == ScrollBarV || event.GUIEvent.Caller == ScrollBarH )
+			case ET_UI_EVENT:
+				switch( event.mUIEvent.mEventType )
 				{
-					//s32 pos = ( ( gui::IGUIScrollBar* )event.GUIEvent.Caller )->getPos();
-					return true;
+					case UIEVT_SCROLL_BAR_CHANGED:
+						if( event.mUIEvent.mCaller == mScrollBarV.get() || event.mUIEvent.mCaller == mScrollBarH.get() )
+						{
+							//s32 pos = ( ( gui::IGUIScrollBar* )event.GUIEvent.Caller )->getPos();
+							return true;
+						}
+						break;
+					case UIEVT_ELEMENT_FOCUS_LOST:
+						{
+							mSelecting = false;
+							return false;
+						}
+						break;
+					default:
+						break;
 				}
 				break;
-			case gui::EGET_ELEMENT_FOCUS_LOST:
+			case ET_MOUSE_INPUT_EVENT:
 				{
-					Selecting = false;
-					return false;
+					Vector2<int> p{ event.mMouseInput.X, event.mMouseInput.Y };
+
+					switch( event.mMouseInput.mEvent )
+					{
+						case MIE_MOUSE_WHEEL:
+							if ( mScrollBarV )
+								mScrollBarV->SetPos( mScrollBarV->GetPos() + (event.mMouseInput.mWheel < 0 ? -1 : 1) * -10 );
+							return true;
+							break;
+
+						case MIE_LMOUSE_PRESSED_DOWN:
+
+							if (mUI->HasFocus(shared_from_this()) && !IsPointInside(p) )
+							{
+								mUI->RemoveFocus(shared_from_this());
+								return false;
+							}
+
+							if( mUI->HasFocus(shared_from_this()) &&
+								((mScrollBarV && IsPointInside(mScrollBarV->GetAbsolutePosition(), p) && mScrollBarV->OnEvent( event ) ) ||
+								(mScrollBarH && IsPointInside(mScrollBarH->GetAbsolutePosition(),  p) && mScrollBarH->OnEvent( event ) )))
+							{
+								return true;
+							}
+
+							mSelecting = true;
+							mUI->SetFocus( shared_from_this() );
+							return true;
+							break;
+
+						case MIE_LMOUSE_LEFT_UP:
+							if( mUI->HasFocus(shared_from_this()) &&
+								((mScrollBarV && IsPointInside(mScrollBarV->GetAbsolutePosition(), p) && mScrollBarV->OnEvent( event ) ) ||
+								(mScrollBarH && IsPointInside(mScrollBarH->GetAbsolutePosition(), p) && mScrollBarH->OnEvent( event ) )))
+							{
+								return true;
+							}
+
+							mSelecting = false;
+							mUI->RemoveFocus(shared_from_this());
+							MouseAction( event.mMouseInput.X, event.mMouseInput.Y );
+							return true;
+							break;
+
+						case MIE_MOUSE_MOVED:
+							if( mSelecting )
+							{
+								if( IsPointInside(GetAbsolutePosition(), p) )
+								{
+									MouseAction( event.mMouseInput.X, event.mMouseInput.Y, true );
+									return true;
+								}
+							}
+							break;
+						default:
+							break;
+					}
 				}
 				break;
 			default:
 				break;
-			}
-			break;
-		case EET_MOUSE_INPUT_EVENT:
-			{
-				core::position2d<s32> p( event.MouseInput.X, event.MouseInput.Y );
-
-				switch( event.MouseInput.Event )
-				{
-				case EMIE_MOUSE_WHEEL:
-					if ( ScrollBarV )
-						ScrollBarV->setPos( ScrollBarV->getPos() + (event.MouseInput.Wheel < 0 ? -1 : 1) * -10 );
-					return true;
-					break;
-
-				case EMIE_LMOUSE_PRESSED_DOWN:
-
-					if (Environment->hasFocus(this) && !AbsoluteClippingRect.isPointInside(p) )
-					{
-						Environment->removeFocus(this);
-						return false;
-					}
-
-					if( Environment->hasFocus( this ) &&
-						(	( ScrollBarV && ScrollBarV->getAbsolutePosition().isPointInside( p ) && ScrollBarV->OnEvent( event ) ) ||
-						( ScrollBarH && ScrollBarH->getAbsolutePosition().isPointInside( p ) &&	ScrollBarH->OnEvent( event ) )
-						)
-						)
-					{
-						return true;
-					}
-
-					Selecting = true;
-					Environment->setFocus( this );
-					return true;
-					break;
-
-				case EMIE_LMOUSE_LEFT_UP:
-					if( Environment->hasFocus( this ) &&
-						(	( ScrollBarV && ScrollBarV->getAbsolutePosition().isPointInside( p ) && ScrollBarV->OnEvent( event ) ) ||
-						( ScrollBarH && ScrollBarH->getAbsolutePosition().isPointInside( p ) &&	ScrollBarH->OnEvent( event ) )
-						)
-						)
-					{
-						return true;
-					}
-
-					Selecting = false;
-					Environment->removeFocus( this );
-					mouseAction( event.MouseInput.X, event.MouseInput.Y );
-					return true;
-					break;
-
-				case EMIE_MOUSE_MOVED:
-					if( Selecting )
-					{
-						if( getAbsolutePosition().isPointInside( p ) )
-						{
-							mouseAction( event.MouseInput.X, event.MouseInput.Y, true );
-							return true;
-						}
-					}
-					break;
-				default:
-					break;
-				}
-			}
-			break;
-		default:
-			break;
 		}
 	}
 
-	return Parent ? Parent->OnEvent( event ) : false;
+	return mParent ? mParent->OnEvent( event ) : false;
 }
 
 /*!
 */
-void CGUITreeView::mouseAction( s32 xpos, s32 ypos, bool onlyHover /*= false*/ )
+void UITreeView::MouseAction( int xpos, int ypos, bool onlyHover /*= false*/ )
 {
-	IGUITreeViewNode*		oldSelected = Selected;
-	IGUITreeViewNode*		hitNode = 0;
-	s32						selIdx=-1;
-	s32						n;
-	IGUITreeViewNode*		node;
-	SEvent					event;
+	eastl::shared_ptr<BaseUITreeViewNode> oldSelected = mSelected;
+	eastl::shared_ptr<BaseUITreeViewNode> hitNode = 0;
+	int selIdx=-1;
+	int n;
+	eastl::shared_ptr<BaseUITreeViewNode> node;
 
-	event.EventType			= EET_GUI_EVENT;
-	event.GUIEvent.Caller	= this;
-	event.GUIEvent.Element = 0;
+	Event event;
+	event.mEventType = ET_UI_EVENT;
+	event.mUIEvent.mCaller = this;
+	event.mUIEvent.mElement = 0;
 
-	xpos -= AbsoluteRect.UpperLeftCorner.X;
-	ypos -= AbsoluteRect.UpperLeftCorner.Y;
+	xpos -= mAbsoluteRect.center[0] - mAbsoluteRect.extent[0] / 2;
+	ypos -= mAbsoluteRect.center[1] - mAbsoluteRect.extent[1] / 2;
 
 	// find new selected item.
-	if( ItemHeight != 0 && ScrollBarV )
+	if( mItemHeight != 0 && mScrollBarV )
 	{
-		selIdx = ( ( ypos - 1 ) + ScrollBarV->getPos() ) / ItemHeight;
+		selIdx = ( ( ypos - 1 ) + mScrollBarV->GetPos() ) / mItemHeight;
 	}
 
 	hitNode = 0;
-	node = Root->getFirstChild();
+	node = mRoot->GetFrontChild();
 	n = 0;
 	while( node )
 	{
@@ -724,378 +620,199 @@ void CGUITreeView::mouseAction( s32 xpos, s32 ypos, bool onlyHover /*= false*/ )
 			hitNode = node;
 			break;
 		}
-		node = node->getNextVisible();
+		node = node->GetNextVisible();
 		++n;
 	}
 
-	if( hitNode && xpos > hitNode->getLevel() * IndentWidth )
+	if( hitNode && xpos > hitNode->GetLevel() * mIndentWidth )
 	{
-		Selected = hitNode;
+		mSelected = hitNode;
 	}
 
 	if( hitNode && !onlyHover
-		&& xpos < hitNode->getLevel() * IndentWidth
-		&& xpos > ( hitNode->getLevel() - 1 ) * IndentWidth
-		&& hitNode->hasChildren() )
+		&& xpos < hitNode->GetLevel() * mIndentWidth
+		&& xpos > ( hitNode->GetLevel() - 1 ) * mIndentWidth
+		&& hitNode->HasChildren() )
 	{
-		hitNode->setExpanded( !hitNode->getExpanded() );
+		hitNode->SetExpanded( !hitNode->GetExpanded() );
 
 		// post expand/collaps news
-		if( hitNode->getExpanded() )
+		if( hitNode->GetExpanded() )
 		{
-			event.GUIEvent.EventType = EGET_TREEVIEW_NODE_EXPAND;
+			event.mUIEvent.mEventType = UIEVT_TREEVIEW_NODE_EXPAND;
 		}
 		else
 		{
-			event.GUIEvent.EventType = EGET_TREEVIEW_NODE_COLLAPS;
+			event.mUIEvent.mEventType = UIEVT_TREEVIEW_NODE_COLLAPS;
 		}
-		LastEventNode = hitNode;
-		Parent->OnEvent( event );
-		LastEventNode = 0;
+		mLastEventNode = hitNode;
+		mParent->OnEvent( event );
+		mLastEventNode = 0;
 	}
 
-	if( Selected && !Selected->isVisible() )
+	if( mSelected && !mSelected->IsVisible() )
 	{
-		Selected = 0;
+		mSelected = 0;
 	}
 
 	// post selection news
 
-	if( Parent && !onlyHover && Selected != oldSelected )
+	if(mParent && !onlyHover && mSelected != oldSelected )
 	{
 		if( oldSelected )
 		{
-			event.GUIEvent.EventType = EGET_TREEVIEW_NODE_DESELECT;
-			LastEventNode = oldSelected;
-			Parent->OnEvent( event );
-			LastEventNode = 0;
+			event.mUIEvent.mEventType = UIEVT_TREEVIEW_NODE_DESELECT;
+			mLastEventNode = oldSelected;
+			mParent->OnEvent( event );
+			mLastEventNode = 0;
 		}
-		if( Selected )
+		if( mSelected )
 		{
-			event.GUIEvent.EventType = EGET_TREEVIEW_NODE_SELECT;
-			LastEventNode = Selected;
-			Parent->OnEvent( event );
-			LastEventNode = 0;
+			event.mUIEvent.mEventType = UIEVT_TREEVIEW_NODE_SELECT;
+			mLastEventNode = mSelected;
+			mParent->OnEvent( event );
+			mLastEventNode = 0;
 		}
 	}
 }
 
 
 //! draws the element and its children
-void CGUITreeView::draw()
+void UITreeView::Draw()
 {
-	if( !IsVisible )
+	if( !IsVisible() )
 	{
 		return;
 	}
 
-	recalculateItemHeight(); // if the font changed
+	RecalculateItemHeight(); // if the font changed
 
-	IGUISkin* skin = Environment->getSkin();
-	irr::video::IVideoDriver* driver = Environment->getVideoDriver();
+	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 
-	core::rect<s32>* clipRect = 0;
-	if( Clip )
-	{
-		clipRect = &AbsoluteClippingRect;
-	}
+	RectangleBase<2, int>* clipRect = 0;
+	if( mClip )
+		clipRect = &mAbsoluteClippingRect;
 
 	// draw background
-	core::rect<s32> frameRect( AbsoluteRect );
+	RectangleBase<2, int> frameRect(mAbsoluteRect);
 
-	if( DrawBack )
-	{
-		driver->draw2DRectangle( skin->getColor( EGDC_3D_HIGH_LIGHT ), frameRect,
-			clipRect );
-	}
-
-	// draw the border
-	frameRect.LowerRightCorner.Y = frameRect.UpperLeftCorner.Y + 1;
-	driver->draw2DRectangle( skin->getColor( EGDC_3D_SHADOW ), frameRect,
-		clipRect );
-
-	frameRect.LowerRightCorner.Y = AbsoluteRect.LowerRightCorner.Y;
-	frameRect.LowerRightCorner.X = frameRect.UpperLeftCorner.X + 1;
-	driver->draw2DRectangle( skin->getColor( EGDC_3D_SHADOW ), frameRect,
-		clipRect );
-
-	frameRect = AbsoluteRect;
-	frameRect.UpperLeftCorner.X = frameRect.LowerRightCorner.X - 1;
-	driver->draw2DRectangle( skin->getColor( EGDC_3D_HIGH_LIGHT ), frameRect,
-		clipRect );
-
-	frameRect = AbsoluteRect;
-	frameRect.UpperLeftCorner.Y = AbsoluteRect.LowerRightCorner.Y - 1;
-	frameRect.LowerRightCorner.Y = AbsoluteRect.LowerRightCorner.Y;
-	driver->draw2DRectangle( skin->getColor( EGDC_3D_HIGH_LIGHT ), frameRect,
-		clipRect );
-
+	if( mDrawBack )
+		skin->Draw2DRectangle( shared_from_this(), skin->GetColor(DC_3D_HIGH_LIGHT), mVisual, frameRect, clipRect );
 
 	// draw items
 
-	core::rect<s32> clientClip( AbsoluteRect );
-	clientClip.UpperLeftCorner.Y += 1;
-	clientClip.UpperLeftCorner.X += 1;
-	clientClip.LowerRightCorner.X = AbsoluteRect.LowerRightCorner.X;
-	clientClip.LowerRightCorner.Y -= 1;
+	RectangleBase<2, int> clientClip( mAbsoluteRect );
 
-	if ( ScrollBarV )
-		clientClip.LowerRightCorner.X -= skin->getSize( EGDS_SCROLLBAR_SIZE );
-	if ( ScrollBarH )
-		clientClip.LowerRightCorner.Y -= skin->getSize( EGDS_SCROLLBAR_SIZE );
-
-	if( clipRect )
+	if (mScrollBarV)
 	{
-		clientClip.clipAgainst( *clipRect );
+		clientClip.center[0] -= skin->GetSize(DS_SCROLLBAR_SIZE) / 2;
+		clientClip.extent[0] -= skin->GetSize(DS_SCROLLBAR_SIZE);
+	}
+	if ( mScrollBarH )
+	{
+		clientClip.center[1] -= skin->GetSize(DS_SCROLLBAR_SIZE) / 2;
+		clientClip.extent[1] -= skin->GetSize(DS_SCROLLBAR_SIZE);
 	}
 
-	frameRect = AbsoluteRect;
-	frameRect.LowerRightCorner.X = AbsoluteRect.LowerRightCorner.X - skin->getSize( EGDS_SCROLLBAR_SIZE );
-	frameRect.LowerRightCorner.Y = AbsoluteRect.UpperLeftCorner.Y + ItemHeight;
+	//if( clipRect )
+	//	clientClip.clipAgainst( *clipRect );
 
-	if ( ScrollBarV )
+	frameRect = mAbsoluteRect;
+	frameRect.extent[0] -= skin->GetSize( DS_SCROLLBAR_SIZE );
+	frameRect.extent[1] += mItemHeight;
+
+	if ( mScrollBarV )
 	{
-		frameRect.UpperLeftCorner.Y -= ScrollBarV->getPos();
-		frameRect.LowerRightCorner.Y -= ScrollBarV->getPos();
+		frameRect.extent[1] -= 2 * mScrollBarV->GetPos();
 	}
 
-	if ( ScrollBarH )
+	if ( mScrollBarH )
 	{
-		frameRect.UpperLeftCorner.X -= ScrollBarH->getPos();
-		frameRect.LowerRightCorner.X -= ScrollBarH->getPos();
+		frameRect.extent[0] -= 2 * mScrollBarH->GetPos();
 	}
 
-	IGUITreeViewNode* node = Root->getFirstChild();
+	eastl::shared_ptr<BaseUITreeViewNode> node = mRoot->GetFrontChild();
 	while( node )
 	{
-		frameRect.UpperLeftCorner.X = AbsoluteRect.UpperLeftCorner.X + 1 + node->getLevel() * IndentWidth;
+		frameRect.extent[0] = mAbsoluteRect.extent[0] + 1 + node->GetLevel() * mIndentWidth;
 
-		if( frameRect.LowerRightCorner.Y >= AbsoluteRect.UpperLeftCorner.Y
-			&& frameRect.UpperLeftCorner.Y <= AbsoluteRect.LowerRightCorner.Y )
+		if (frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= mAbsoluteRect.center[1] - (mAbsoluteRect.center[1] / 2) && 
+			frameRect.center[1] - (frameRect.center[1] / 2) <= mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f))
 		{
-			if( node == Selected )
+			if( node == mSelected )
+				skin->Draw2DRectangle( shared_from_this(), skin->GetColor( DC_HIGH_LIGHT ), mVisual, frameRect, &clientClip );
+
+			RectangleBase<2, int> textRect = frameRect;
+
+			if( mFont )
 			{
-				driver->draw2DRectangle( skin->getColor( EGDC_HIGH_LIGHT ), frameRect, &clientClip );
-			}
+				UIDefaultColor textCol = DC_GRAY_TEXT;
+				if ( IsEnabled() )
+					textCol = ( node == mSelected ) ? DC_HIGH_LIGHT_TEXT : DC_BUTTON_TEXT;
 
-			if( node->hasChildren() )
-			{
-				core::rect<s32> rc;
-				core::rect<s32> expanderRect;
-
-				expanderRect.UpperLeftCorner.X = frameRect.UpperLeftCorner.X - IndentWidth + 2;
-				expanderRect.UpperLeftCorner.Y = frameRect.UpperLeftCorner.Y + ( ( frameRect.getHeight() - ( IndentWidth - 4 ) ) >> 1 );
-				expanderRect.LowerRightCorner.X = expanderRect.UpperLeftCorner.X + IndentWidth - 4;
-				expanderRect.LowerRightCorner.Y = expanderRect.UpperLeftCorner.Y + IndentWidth - 4;
-
-				// box upper line
-				rc.UpperLeftCorner.X = expanderRect.UpperLeftCorner.X;
-				rc.UpperLeftCorner.Y = expanderRect.UpperLeftCorner.Y;
-				rc.LowerRightCorner.X = expanderRect.LowerRightCorner.X;
-				rc.LowerRightCorner.Y = rc.UpperLeftCorner.Y + 1;
-				driver->draw2DRectangle( skin->getColor( EGDC_3D_SHADOW ), rc,
-					clipRect );
-
-				// box left line
-				rc.UpperLeftCorner.X = expanderRect.UpperLeftCorner.X;
-				rc.UpperLeftCorner.Y = expanderRect.UpperLeftCorner.Y;
-				rc.LowerRightCorner.X = rc.UpperLeftCorner.X + 1;
-				rc.LowerRightCorner.Y = expanderRect.LowerRightCorner.Y;
-				driver->draw2DRectangle( skin->getColor( EGDC_3D_SHADOW ), rc,
-					clipRect );
-
-				// box right line
-				rc.UpperLeftCorner.X = expanderRect.LowerRightCorner.X - 1;
-				rc.UpperLeftCorner.Y = expanderRect.UpperLeftCorner.Y;
-				rc.LowerRightCorner.X = rc.UpperLeftCorner.X + 1;
-				rc.LowerRightCorner.Y = expanderRect.LowerRightCorner.Y;
-				driver->draw2DRectangle( skin->getColor( EGDC_3D_SHADOW ), rc,
-					clipRect );
-
-				// box bottom line
-				rc.UpperLeftCorner.X = expanderRect.UpperLeftCorner.X;
-				rc.UpperLeftCorner.Y = expanderRect.LowerRightCorner.Y - 1;
-				rc.LowerRightCorner.X = expanderRect.LowerRightCorner.X;
-				rc.LowerRightCorner.Y = rc.UpperLeftCorner.Y + 1;
-				driver->draw2DRectangle( skin->getColor( EGDC_3D_SHADOW ), rc,
-					clipRect );
-
-				// horizontal '-' line
-				rc.UpperLeftCorner.X = expanderRect.UpperLeftCorner.X + 2;
-				rc.UpperLeftCorner.Y = expanderRect.UpperLeftCorner.Y + ( expanderRect.getHeight() >> 1 );
-				rc.LowerRightCorner.X = rc.UpperLeftCorner.X + expanderRect.getWidth() - 4;
-				rc.LowerRightCorner.Y = rc.UpperLeftCorner.Y + 1;
-				driver->draw2DRectangle( skin->getColor( EGDC_BUTTON_TEXT ), rc,
-					clipRect );
-
-				if( !node->getExpanded() )
+				int iconWidth = 0;
+				for( int n = 0; n < 2; ++n )
 				{
-					// vertical '+' line
-					rc.UpperLeftCorner.X = expanderRect.UpperLeftCorner.X + ( expanderRect.getWidth() >> 1 );
-					rc.UpperLeftCorner.Y = expanderRect.UpperLeftCorner.Y + 2;
-					rc.LowerRightCorner.X = rc.UpperLeftCorner.X + 1;
-					rc.LowerRightCorner.Y = rc.UpperLeftCorner.Y + expanderRect.getHeight() - 4;
-					driver->draw2DRectangle( skin->getColor( EGDC_BUTTON_TEXT ), rc,
-						clipRect );
-				}
-			}
-
-			core::rect<s32> textRect = frameRect;
-
-			if( Font )
-			{
-				EGUI_DEFAULT_COLOR textCol = EGDC_GRAY_TEXT;
-				if ( isEnabled() )
-					textCol = ( node == Selected ) ? EGDC_HIGH_LIGHT_TEXT : EGDC_BUTTON_TEXT;
-
-				s32 iconWidth = 0;
-				for( s32 n = 0; n < 2; ++n )
-				{
-					s32 index = node->getImageIndex();
-					if( ( ImageList && index >= 0 )
-						&& ( ( ImageLeftOfIcon && n == 0 )
-						|| ( !ImageLeftOfIcon && n == 1 ) ) )
+					int index = node->GetImageIndex();
+					if( ( index >= 0 )
+						&& ( ( mImageLeftOfIcon && n == 0 )
+						|| ( !mImageLeftOfIcon && n == 1 ) ) )
 					{
-						index = node->getSelectedImageIndex();
-						if( node != Selected || index < 0 )
+						index = node->GetSelectedImageIndex();
+						if( node != mSelected || index < 0 )
 						{
-							index = node->getImageIndex();
+							index = node->GetImageIndex();
 						}
+						/*
 						ImageList->draw(
 							index,
 							core::position2d<s32>(
 							textRect.UpperLeftCorner.X,
 							textRect.UpperLeftCorner.Y + ( ( textRect.getHeight() - ImageList->getImageSize().Height ) >> 1 ) ),
 							&clientClip );
-						iconWidth += ImageList->getImageSize().Width + 3;
-						textRect.UpperLeftCorner.X += ImageList->getImageSize().Width + 3;
+						iconWidth += ImageList->GetImageSize().Width + 3;
+						textRect.UpperLeftCorner.X += ImageList->GetImageSize().Width + 3;
+						*/
 					}
-					else if( ( IconFont && reinterpret_cast<CGUITreeViewNode*>( node )->Icon.size() )
-						&& ( ( ImageLeftOfIcon && n == 1 )
-						|| ( !ImageLeftOfIcon && n == 0 ) ) )
+					else if( ( mIconFont && reinterpret_cast<UITreeViewNode*>( node.get() )->mIcon.size() )
+						&& ( ( mImageLeftOfIcon && n == 1 )
+						|| ( !mImageLeftOfIcon && n == 0 ) ) )
 					{
-						IconFont->draw( node->getIcon(), textRect, skin->getColor(textCol), false, true, &clientClip );
-						iconWidth += IconFont->getDimension( node->getIcon() ).Width + 3;
-						textRect.UpperLeftCorner.X += IconFont->getDimension( node->getIcon() ).Width + 3;
+						mIconFont->Draw( node->GetIcon(), textRect, skin->GetColor(textCol), false, true, &clientClip );
+						//iconWidth += IconFont->GetDimension( node->GetIcon() ).Width + 3;
+						//textRect.UpperLeftCorner.X += IconFont->GetDimension( node->GetIcon() ).Width + 3;
 					}
 				}
 
-				Font->draw( node->getText(), textRect, skin->getColor(textCol), false, true, &clientClip );
+				mFont->Draw( node->GetText(), textRect, skin->GetColor(textCol), false, true, &clientClip );
 
-				textRect.UpperLeftCorner.X -= iconWidth;
-			}
-
-			// draw the lines if neccessary
-			if( LinesVisible )
-			{
-				core::rect<s32> rc;
-
-				// horizontal line
-				rc.UpperLeftCorner.X = frameRect.UpperLeftCorner.X - IndentWidth - ( IndentWidth >> 1 ) - 1;
-				rc.UpperLeftCorner.Y = frameRect.UpperLeftCorner.Y + ( ( frameRect.getHeight() ) >> 1 );
-				if( node->hasChildren() )
-				{
-					rc.LowerRightCorner.X = frameRect.UpperLeftCorner.X - IndentWidth;
-				}
-				else
-				{
-					rc.LowerRightCorner.X = frameRect.UpperLeftCorner.X - 2;
-				}
-				rc.LowerRightCorner.Y = rc.UpperLeftCorner.Y + 1;
-				driver->draw2DRectangle( skin->getColor( EGDC_3D_SHADOW ), rc,
-					clipRect );
-
-				if( node->getParent() != Root )
-				{
-					// vertical line
-					if( node == node->getParent()->getFirstChild() )
-					{
-						rc.UpperLeftCorner.Y = frameRect.UpperLeftCorner.Y - ( ( frameRect.getHeight() - IndentWidth ) >> 1 );
-					}
-					else
-					{
-						rc.UpperLeftCorner.Y = frameRect.UpperLeftCorner.Y - ( frameRect.getHeight() >> 1 );
-					}
-					rc.LowerRightCorner.X = rc.UpperLeftCorner.X + 1;
-					driver->draw2DRectangle( skin->getColor( EGDC_3D_SHADOW ), rc,
-						clipRect );
-
-					// the vertical lines of all parents
-					IGUITreeViewNode* nodeTmp = node->getParent();
-					rc.UpperLeftCorner.Y = frameRect.UpperLeftCorner.Y - ( frameRect.getHeight() >> 1 );
-					for( s32 n = 0; n < node->getLevel() - 2; ++n )
-					{
-						rc.UpperLeftCorner.X -= IndentWidth;
-						rc.LowerRightCorner.X -= IndentWidth;
-						if( nodeTmp != nodeTmp->getParent()->getLastChild() )
-						{
-							driver->draw2DRectangle( skin->getColor( EGDC_3D_SHADOW ), rc,
-								clipRect );
-						}
-						nodeTmp = nodeTmp->getParent();
-					}
-				}
+				//textRect.UpperLeftCorner.X -= iconWidth;
 			}
 		}
+		frameRect.center[1] += mItemHeight;
 
-		frameRect.UpperLeftCorner.Y += ItemHeight;
-		frameRect.LowerRightCorner.Y += ItemHeight;
-
-		node = node->getNextVisible();
+		node = node->GetNextVisible();
 	}
 
-	IGUIElement::draw();
+	BaseUIElement::Draw();
 }
 
 //! Sets the font which should be used as icon font. This font is set to the Irrlicht engine
 //! built-in-font by default. Icons can be displayed in front of every list item.
 //! An icon is a string, displayed with the icon font. When using the build-in-font of the
 //! Irrlicht engine as icon font, the icon strings defined in GUIIcons.h can be used.
-void CGUITreeView::setIconFont( IGUIFont* font )
+void UITreeView::SetIconFont(eastl::shared_ptr<BaseUIFont> font)
 {
-	s32	height;
+	mIconFont = font;
+	/*
 
-	if ( font )
-		font->grab();
-	if ( IconFont )
-	{
-		IconFont->drop();
-	}
+	int	height;
 
-	IconFont = font;
 	if( IconFont )
 	{
-		height = IconFont->getDimension( L" " ).Height;
+		height = IconFont->GetDimension( L" " ).Height;
 		if( height > ItemHeight )
-		{
 			ItemHeight = height;
-		}
 	}
+	*/
 }
-
-//! Sets the image list which should be used for the image and selected image of every node.
-//! The default is 0 (no images).
-void CGUITreeView::setImageList( IGUIImageList* imageList )
-{
-	if (imageList )
-		imageList->grab();
-	if( ImageList )
-	{
-		ImageList->drop();
-	}
-
-	ImageList = imageList;
-	if( ImageList )
-	{
-		if( ImageList->getImageSize().Height + 1 > ItemHeight )
-		{
-			ItemHeight = ImageList->getImageSize().Height + 1;
-		}
-	}
-}
-
-} // end namespace gui
-} // end namespace irr
-
-
-#endif // _IRR_COMPILE_WITH_GUI_

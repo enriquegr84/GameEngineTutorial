@@ -27,10 +27,20 @@
 #include "Algebra/Vector4.h"
 
 // Arithmetic
+#include "Arithmetic/Arithmetic.h"
 #include "Arithmetic/BitHacks.h"
+#include "Arithmetic/BSNumber.h"
+#include "Arithmetic/BSPrecision.h"
+#include "Arithmetic/BSRational.h"
+#include "Arithmetic/IEEEBinary.h"
+#include "Arithmetic/IEEEBinary16.h"
+#include "Arithmetic/UIntegerALU32.h"
+#include "Arithmetic/UIntegerAP32.h"
+#include "Arithmetic/UIntegerFP32.h"
 
 //Function
 #include "Function/Constants.h"
+#include "Function/Functions.h"
 
 //Geometric
 #include "Geometric/Rectangle.h"

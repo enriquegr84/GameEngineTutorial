@@ -47,6 +47,13 @@
 #include "UIButton.h"
 #include "UIWindow.h"
 #include "UIElement.h"
+#include "UICheckBox.h"
+#include "UIComboBox.h"
+#include "UIEditBox.h"
+#include "UIImage.h"
+#include "UIListBox.h"
+#include "UIScrollBar.h"
+#include "UITreeView.h"
 #include "UIStaticText.h"
 #include "UISpriteBank.h"
 #include "UIElementFactory.h"
@@ -200,33 +207,39 @@ public:
 		const RectangleBase<2, int>& rectangle, bool border = false, bool wordWrap = true, 
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, bool drawBackground = false);
 
+	//! Adds an edit box. The returned pointer must not be dropped.
+	virtual eastl::shared_ptr<BaseUIEditBox> AddEditBox(const wchar_t* text, 
+		const RectangleBase<2, int>& rectangle, bool border = false, 
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
+
 	//! Adds an image element.
-	virtual eastl::shared_ptr<BaseUIImage> AddImage(Texture2* image, Vector2<int> pos, bool useAlphaChannel = true, 
-		const eastl::shared_ptr<BaseUIElement>& parent = 0, s32 id = -1, const wchar_t* text = 0);
+	virtual eastl::shared_ptr<BaseUIImage> AddImage(eastl::shared_ptr<Texture2> image, Vector2<int> pos, 
+		bool useAlphaChannel = true, const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0);
 
 	//! adds an image. The returned pointer must not be dropped.
-	virtual eastl::shared_ptr<BaseUIImage> AddImage(const core::rect<s32>& rectangle,
-		IGUIElement* parent = 0, s32 id = -1, const wchar_t* text = 0, bool useAlphaChannel = true);
+	virtual eastl::shared_ptr<BaseUIImage> AddImage(const RectangleBase<2, int>& rectangle,
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0, bool useAlphaChannel = true);
 
 	//! adds a scrollbar. The returned pointer must not be dropped.
-	virtual IGUIScrollBar* addScrollBar(bool horizontal, const core::rect<s32>& rectangle,
-		IGUIElement* parent = 0, s32 id = -1);
+	virtual eastl::shared_ptr<BaseUIScrollBar> AddScrollBar(bool horizontal, const RectangleBase<2, int>& rectangle,
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
 
 	//! adds a checkbox
-	virtual IGUICheckBox* addCheckBox(bool checked, const core::rect<s32>& rectangle, IGUIElement* parent = 0, s32 id = -1, const wchar_t* text = 0);
+	virtual eastl::shared_ptr<BaseUICheckBox> AddCheckBox(bool checked, const RectangleBase<2, int>& rectangle,
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0);
 
 	//! adds a list box
-	virtual IGUIListBox* addListBox(const core::rect<s32>& rectangle,
-		IGUIElement* parent = 0, s32 id = -1, bool drawBackground = false);
+	virtual eastl::shared_ptr<BaseUIListBox> AddListBox(const RectangleBase<2, int>& rectangle,
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, bool drawBackground = false);
 
 	//! adds a tree view
-	virtual IGUITreeView* addTreeView(const core::rect<s32>& rectangle,
-		IGUIElement* parent = 0, s32 id = -1, bool drawBackground = false,
+	virtual eastl::shared_ptr<BaseUITreeView> AddTreeView(const RectangleBase<2, int>& rectangle,
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, bool drawBackground = false,
 		bool scrollBarVertical = true, bool scrollBarHorizontal = false);
 
 	//! Adds a combo box to the environment.
-	virtual IGUIComboBox* addComboBox(const core::rect<s32>& rectangle,
-		IGUIElement* parent = 0, s32 id = -1);
+	virtual eastl::shared_ptr<BaseUIComboBox> AddComboBox(const RectangleBase<2, int>& rectangle,
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
 
 protected:
 	eastl::shared_ptr<BaseUIElement> mRoot;

@@ -2,112 +2,147 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#ifndef __C_GUI_SCROLL_BAR_H_INCLUDED__
-#define __C_GUI_SCROLL_BAR_H_INCLUDED__
+#ifndef UISCROLLBAR_H
+#define UISCROLLBAR_H
 
-#include "IrrCompileConfig.h"
-#ifdef _IRR_COMPILE_WITH_GUI_
+#include "UIElement.h"
 
-#include "IGUIScrollBar.h"
-#include "IGUIButton.h"
+#include "Graphic/Effect/Texture2Effect.h"
+#include "Graphic/Scene/Element/Visual.h"
 
-namespace irr
+class BaseUIButton;
+class BaseUIScrollBar;
+
+//! Default scroll bar GUI element.
+/** \par This element can create the following events of type EGUI_EVENT_TYPE:
+\li EGET_SCROLL_BAR_CHANGED
+*/
+class BaseUIScrollBar : public BaseUIElement
 {
-namespace gui
+public:
+
+	//! constructor
+	BaseUIScrollBar(int id, RectangleBase<2, int> rectangle)
+		: BaseUIElement(UIET_SCROLL_BAR, id, rectangle) {}
+
+	//! sets the maximum value of the scrollbar.
+	virtual void SetMax(int max) = 0;
+	//! gets the maximum value of the scrollbar.
+	virtual int GetMax() const = 0;
+
+	//! sets the minimum value of the scrollbar.
+	virtual void SetMin(int min) = 0;
+	//! gets the minimum value of the scrollbar.
+	virtual int GetMin() const = 0;
+
+	//! gets the small step value
+	virtual int GetSmallStep() const = 0;
+
+	//! Sets the small step
+	/** That is the amount that the value changes by when clicking
+	on the buttons or using the cursor keys. */
+	virtual void SetSmallStep(int step) = 0;
+
+	//! gets the large step value
+	virtual int GetLargeStep() const = 0;
+
+	//! Sets the large step
+	/** That is the amount that the value changes by when clicking
+	in the tray, or using the page up and page down keys. */
+	virtual void SetLargeStep(int step) = 0;
+
+	//! gets the current position of the scrollbar
+	virtual int GetPos() const = 0;
+
+	//! sets the current position of the scrollbar
+	virtual void SetPos(int pos) = 0;
+};
+
+class UIScrollBar : public BaseUIScrollBar
 {
+public:
 
-	class CGUIScrollBar : public IGUIScrollBar
-	{
-	public:
+	//! constructor
+	UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, 
+		bool horizontal, bool noclip=false);
 
-		//! constructor
-		CGUIScrollBar(bool horizontal, IGUIEnvironment* environment,
-			IGUIElement* parent, s32 id, core::rect<s32> rectangle,
-			bool noclip=false);
+	//! destructor
+	virtual ~UIScrollBar();
 
-		//! destructor
-		virtual ~CGUIScrollBar();
+	//! called if an event happened.
+	virtual bool OnEvent(const Event& event);
 
-		//! called if an event happened.
-		virtual bool OnEvent(const SEvent& event);
+	//! draws the element and its children
+	virtual void Draw();
 
-		//! draws the element and its children
-		virtual void draw();
-
-		virtual void OnPostRender(u32 timeMs);
+	virtual void OnPostRender(unsigned int timeMs);
 
 
-		//! gets the maximum value of the scrollbar.
-		virtual s32 getMax() const;
+	//! gets the maximum value of the scrollbar.
+	virtual int GetMax() const;
 
-		//! sets the maximum value of the scrollbar.
-		virtual void setMax(s32 max);
+	//! sets the maximum value of the scrollbar.
+	virtual void SetMax(int max);
 
-		//! gets the minimum value of the scrollbar.
-		virtual s32 getMin() const;
+	//! gets the minimum value of the scrollbar.
+	virtual int GetMin() const;
 
-		//! sets the minimum value of the scrollbar.
-		virtual void setMin(s32 min);
+	//! sets the minimum value of the scrollbar.
+	virtual void SetMin(int min);
 
-		//! gets the small step value
-		virtual s32 getSmallStep() const;
+	//! gets the small step value
+	virtual int GetSmallStep() const;
 
-		//! sets the small step value
-		virtual void setSmallStep(s32 step);
+	//! sets the small step value
+	virtual void SetSmallStep(int step);
 
-		//! gets the large step value
-		virtual s32 getLargeStep() const;
+	//! gets the large step value
+	virtual int GetLargeStep() const;
 
-		//! sets the large step value
-		virtual void setLargeStep(s32 step);
+	//! sets the large step value
+	virtual void SetLargeStep(int step);
 
-		//! gets the current position of the scrollbar
-		virtual s32 getPos() const;
+	//! gets the current position of the scrollbar
+	virtual int GetPos() const;
 
-		//! sets the position of the scrollbar
-		virtual void setPos(s32 pos);
+	//! sets the position of the scrollbar
+	virtual void SetPos(int pos);
 
-		//! updates the rectangle
-		virtual void updateAbsolutePosition();
+	//! updates the rectangle
+	virtual void UpdateAbsolutePosition();
 
-		//! Writes attributes of the element.
-		virtual void serializeAttributes(io::IAttributes* out, io::SAttributeReadWriteOptions* options) const;
+private:
 
-		//! Reads attributes of the element
-		virtual void deserializeAttributes(io::IAttributes* in, io::SAttributeReadWriteOptions* options);
+	void RefreshControls();
+	int GetPosFromMousePos(const Vector2<int> &p) const;
 
-	private:
+	eastl::shared_ptr<BaseUIButton> mUpButton;
+	eastl::shared_ptr<BaseUIButton> mDownButton;
 
-		void refreshControls();
-		s32 getPosFromMousePos(const core::position2di &p) const;
+	RectangleBase<2, int> mSliderRect;
 
-		IGUIButton* UpButton;
-		IGUIButton* DownButton;
+	BaseUI* mUI;
 
-		core::rect<s32> SliderRect;
+	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<Texture2Effect> mEffect;
 
-		bool Dragging;
-		bool Horizontal;
-		bool DraggedBySlider;
-		bool TrayClick;
-		s32 Pos;
-		s32 DrawPos;
-		s32 DrawHeight;
-		s32 Min;
-		s32 Max;
-		s32 SmallStep;
-		s32 LargeStep;
-		s32 DesiredPos;
-		u32 LastChange;
-		video::SColor CurrentIconColor;
+	bool mDragging;
+	bool mHorizontal;
+	bool mDraggedBySlider;
+	bool mTrayClick;
+	int mPos;
+	int mDrawPos;
+	int mDrawHeight;
+	int mMin;
+	int mMax;
+	int mSmallStep;
+	int mLargeStep;
+	int mDesiredPos;
+	unsigned int mLastChange;
+	eastl::array<float, 4> mCurrentIconColor;
 
-		f32 range () const { return (f32) ( Max - Min ); }
-	};
-
-} // end namespace gui
-} // end namespace irr
-
-#endif // _IRR_COMPILE_WITH_GUI_
+	float range () const { return (float) ( mMax - mMin ); }
+};
 
 #endif
 

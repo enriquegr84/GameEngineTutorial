@@ -12,6 +12,9 @@
 // hard-coded numbers lead to correctly rounded approximations of the
 // constants when using 'float' or 'double'.
 
+//! Constants rounding error.
+#define GE_ROUNDING_ERROR 0.0000001
+
 // Constants involving pi.
 #define GE_C_PI 3.1415926535897931
 #define GE_C_HALF_PI 1.5707963267948966

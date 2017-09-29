@@ -9,7 +9,7 @@
 #include "UIFont.h"
 #include "UISpriteBank.h"
 
-#include "Graphic/Effect/BasicEffect.h"
+#include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Scene/Element/Visual.h"
 
 enum UIButtonState
@@ -74,23 +74,23 @@ public:
 
 	//! Sets an image which should be displayed on the button when it is in normal state.
 	/** \param image: Image to be displayed */
-	virtual void SetImage(const eastl::shared_ptr<Texture>& image = 0) = 0;
+	virtual void SetImage(const eastl::shared_ptr<Texture2>& image = 0) = 0;
 
 	//! Sets a background image for the button when it is in normal state.
 	/** \param image: Texture containing the image to be displayed
 	\param pos: Position in the texture, where the image is located */
-	virtual void SetImage(const eastl::shared_ptr<Texture>& image, const RectangleBase<2, int>& pos) = 0;
+	virtual void SetImage(const eastl::shared_ptr<Texture2>& image, const RectangleBase<2, int>& pos) = 0;
 
 	//! Sets a background image for the button when it is in pressed state.
 	/** If no images is specified for the pressed state via
 	setPressedImage(), this image is also drawn in pressed state.
 	\param image: Image to be displayed */
-	virtual void SetPressedImage(const eastl::shared_ptr<Texture>& image = 0) = 0;
+	virtual void SetPressedImage(const eastl::shared_ptr<Texture2>& image = 0) = 0;
 
 	//! Sets an image which should be displayed on the button when it is in pressed state.
 	/** \param image: Texture containing the image to be displayed
 	\param pos: Position in the texture, where the image is located */
-	virtual void SetPressedImage(const eastl::shared_ptr<Texture>& image, const RectangleBase<2, int>& pos) = 0;
+	virtual void SetPressedImage(const eastl::shared_ptr<Texture2>& image, const RectangleBase<2, int>& pos) = 0;
 
 	//! Sets the sprite bank used by the button
 	virtual void SetSpriteBank(const eastl::shared_ptr<BaseUISpriteBank>& sprites = 0) = 0;
@@ -168,16 +168,16 @@ public:
 	virtual eastl::shared_ptr<BaseUIFont> GetActiveFont() const;
 
 	//! Sets an image which should be displayed on the button when it is in normal state.
-	virtual void SetImage(const eastl::shared_ptr<Texture>& image=0);
+	virtual void SetImage(const eastl::shared_ptr<Texture2>& image=0);
 
 	//! Sets an image which should be displayed on the button when it is in normal state.
-	virtual void SetImage(const eastl::shared_ptr<Texture>& image, const RectangleBase<2, int>& pos);
+	virtual void SetImage(const eastl::shared_ptr<Texture2>& image, const RectangleBase<2, int>& pos);
 
 	//! Sets an image which should be displayed on the button when it is in pressed state.
-	virtual void SetPressedImage(const eastl::shared_ptr<Texture>& image=0);
+	virtual void SetPressedImage(const eastl::shared_ptr<Texture2>& image=0);
 
 	//! Sets an image which should be displayed on the button when it is in pressed state.
-	virtual void SetPressedImage(const eastl::shared_ptr<Texture>& image, const RectangleBase<2, int>& pos);
+	virtual void SetPressedImage(const eastl::shared_ptr<Texture2>& image, const RectangleBase<2, int>& pos);
 
 	//! Sets the sprite bank used by the button
 	virtual void SetSpriteBank(const eastl::shared_ptr<BaseUISpriteBank>& sprites=0);
@@ -237,12 +237,12 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<BasicEffect> mEffect;
+	eastl::shared_ptr<Texture2Effect> mEffect;
 	eastl::shared_ptr<BaseUISpriteBank> mSpriteBank;
 	eastl::shared_ptr<BaseUIFont> mOverrideFont;
 
-	eastl::shared_ptr<Texture> mImage;
-	eastl::shared_ptr<Texture> mPressedImage;
+	eastl::shared_ptr<Texture2> mImage;
+	eastl::shared_ptr<Texture2> mPressedImage;
 
 	RectangleBase<2, int> mImageRect;
 	RectangleBase<2, int> mPressedImageRect;

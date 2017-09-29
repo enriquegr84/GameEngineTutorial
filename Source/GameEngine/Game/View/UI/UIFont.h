@@ -30,6 +30,7 @@ enum UIFontType
 };
 
 class BaseUISpriteBank;
+class BaseUI;
 
 //! Font interface.
 class BaseUIFont
@@ -53,7 +54,7 @@ public:
 };
 
 //! Font interface.
-class UIFontBitmap : public BaseUIFont
+class BaseUIFontBitmap : public BaseUIFont
 {
 public:
 
@@ -65,10 +66,7 @@ public:
 };
 
 
-class BaseUI;
-
-
-class UIFont : public UIFontBitmap
+class UIFont : public BaseUIFontBitmap
 {
 public:
 
@@ -90,11 +88,11 @@ public:
 		eastl::array<float, 4> const& color, bool hcenter = false, bool vcenter = false, 
 		const RectangleBase<2, int>* clip = 0);
 
-	//! Returns the type of this font
-	virtual UIFontType GetType() const { return FT_BITMAP; }
-
 	//! returns the parsed Symbol Information
 	virtual eastl::shared_ptr<BaseUISpriteBank> GetSpriteBank() const { return mSpriteBank; }
+
+	//! Returns the type of this font
+	virtual UIFontType GetType() const { return FT_BITMAP; }
 
 private:
 

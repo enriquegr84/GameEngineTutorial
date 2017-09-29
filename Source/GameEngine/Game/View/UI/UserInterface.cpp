@@ -98,7 +98,7 @@ bool BaseUI::OnRender(double time, float elapsedTime)
 		mRoot->mDesiredRect.extent[1] = 2 * ((int)screenSize[1] - center[1]);
 		mRoot->mAbsoluteClippingRect = mRoot->mDesiredRect;
 		mRoot->mAbsoluteRect = mRoot->mDesiredRect;
-		mRoot->UpdateAbsoluteTransformation();
+		mRoot->UpdateAbsolutePosition();
 	}
 
 	mRoot->Draw();
@@ -376,9 +376,9 @@ eastl::shared_ptr<BaseUISkin> BaseUI::CreateSkin(UISkinThemeType type)
 	eastl::shared_ptr<BaseUIFont> font(GetFont(L"DefaultFont"));
 	if (font) skin->SetFont(font);
 
-	UIFontBitmap* bitfont = 0;
+	BaseUIFontBitmap* bitfont = 0;
 	if (font && font->GetType() == FT_BITMAP)
-		bitfont = (UIFontBitmap*)font.get();
+		bitfont = (BaseUIFontBitmap*)font.get();
 
 	skin->SetFont(font);
 
@@ -696,4 +696,130 @@ eastl::shared_ptr<BaseUIWindow> BaseUI::AddWindow(const RectangleBase<2, int>& r
 	}
 
 	return win;
+}
+
+
+//! adds a scrollbar. The returned pointer must not be dropped.
+eastl::shared_ptr<BaseUIScrollBar> BaseUI::AddScrollBar(bool horizontal, const RectangleBase<2, int>& rectangle, 
+	const eastl::shared_ptr<BaseUIElement>& parent, int id)
+{
+	eastl::shared_ptr<BaseUIScrollBar> bar(new UIScrollBar(this, id, rectangle, horizontal));
+	bar->SetParent(parent ? parent : mRoot);
+	return bar;
+}
+
+
+//! Adds an image element.
+eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(eastl::shared_ptr<Texture2> image, Vector2<int> pos,
+	bool useAlphaChannel, const eastl::shared_ptr<BaseUIElement>& parent , int id, const wchar_t* text)
+{
+	Vector2<int> size;
+	if (image)
+	{
+		size[0] = image->GetDimension(0);
+		size[1] = image->GetDimension(1);
+	}
+
+	RectangleBase<2, int> rectangle;
+	rectangle.center[0] = pos[0] + (size[0] / 2);
+	rectangle.center[1] = pos[1] + (size[1] / 2);
+	rectangle.extent[0] = size[0];
+	rectangle.extent[1] = size[1];
+	eastl::shared_ptr<BaseUIImage> img(new UIImage(this, id, rectangle));
+	img->SetParent(parent ? parent : mRoot);
+
+	if (text)
+		img->SetText(text);
+
+	if (useAlphaChannel)
+		img->SetUseAlphaChannel(true);
+
+	if (image)
+		img->SetImage(image);
+
+	return img;
+}
+
+
+//! adds an image. The returned pointer must not be dropped.
+eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(const RectangleBase<2, int>& rectangle, 
+	const eastl::shared_ptr<BaseUIElement>& parent, int id, const wchar_t* text, bool useAlphaChannel)
+{
+	eastl::shared_ptr<BaseUIImage> img(new UIImage(this, id, rectangle));
+	img->SetParent(parent ? parent : mRoot);
+
+	if (text)
+		img->SetText(text);
+
+	if (useAlphaChannel)
+		img->SetUseAlphaChannel(true);
+
+	return img;
+}
+
+
+//! adds a checkbox
+eastl::shared_ptr<BaseUICheckBox> BaseUI::AddCheckBox(bool checked, const RectangleBase<2, int>& rectangle, 
+	const eastl::shared_ptr<BaseUIElement>& parent, int id, const wchar_t* text)
+{
+	eastl::shared_ptr<BaseUICheckBox> check(new UICheckBox(this, id, rectangle, checked));
+	check->SetParent(parent ? parent : mRoot);
+
+	if (text)
+		check->SetText(text);
+
+	return check;
+}
+
+
+//! adds a list box
+eastl::shared_ptr<BaseUIListBox> BaseUI::AddListBox(const RectangleBase<2, int>& rectangle,
+	const eastl::shared_ptr<BaseUIElement>& parent, int id, bool drawBackground)
+{
+	eastl::shared_ptr<BaseUIListBox> listBox(new UIListBox(this, id, rectangle, true, drawBackground, false));
+	listBox->SetParent(parent ? parent : mRoot);
+
+	if (mCurrentSkin && mCurrentSkin->GetSpriteBank())
+	{
+		listBox->SetSpriteBank(mCurrentSkin->GetSpriteBank());
+	}
+	else if (GetBuiltInFont() && GetBuiltInFont()->GetType() == FT_BITMAP)
+	{
+		listBox->SetSpriteBank(((BaseUIFontBitmap*)GetBuiltInFont().get())->GetSpriteBank());
+	}
+
+	return listBox;
+}
+
+//! adds a tree view
+eastl::shared_ptr<BaseUITreeView> BaseUI::AddTreeView(const RectangleBase<2, int>& rectangle,
+	const eastl::shared_ptr<BaseUIElement>& parent, int id, bool drawBackground, bool scrollBarVertical, bool scrollBarHorizontal)
+{
+	eastl::shared_ptr<BaseUITreeView> treeView(
+		new UITreeView(this, id, rectangle, true, drawBackground, scrollBarVertical, scrollBarHorizontal));
+	treeView->SetParent(parent ? parent : mRoot);
+
+	treeView->SetIconFont(GetBuiltInFont());
+	return treeView;
+}
+
+//! Adds an edit box. The returned pointer must not be dropped.
+eastl::shared_ptr<BaseUIEditBox> BaseUI::AddEditBox(const wchar_t* text,
+	const RectangleBase<2, int>& rectangle, bool border, 
+	const eastl::shared_ptr<BaseUIElement>& parent, int id)
+{
+	eastl::shared_ptr<BaseUIEditBox> treeView(new UIEditBox(text, border, this, id, rectangle));
+	treeView->SetParent(parent ? parent : mRoot);
+
+	return treeView;
+}
+
+//! Adds a combo box to the environment.
+eastl::shared_ptr<BaseUIComboBox> BaseUI::AddComboBox(const RectangleBase<2, int>& rectangle,
+	const eastl::shared_ptr<BaseUIElement>& parent, int id)
+{
+	eastl::shared_ptr<BaseUIComboBox> comboBox(new UIComboBox(this, id, rectangle));
+	comboBox->SetParent(parent ? parent : mRoot);
+
+	return comboBox;
 }

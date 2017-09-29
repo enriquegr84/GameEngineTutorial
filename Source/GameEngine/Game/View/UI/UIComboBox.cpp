@@ -22,108 +22,126 @@ UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 	//setDebugName("CGUIComboBox");
 	#endif
 
-	IGUISkin* skin = mUI->GetSkin();
+	eastl::shared_ptr<BaseUISkin> skin = mUI->GetSkin();
 
-	s32 width = 15;
+	int width = 15;
 	if (skin)
-		width = skin->getSize(EGDS_WINDOW_BUTTON_WIDTH);
+		width = skin->GetSize(DS_WINDOW_BUTTON_WIDTH);
 
-	core::rect<s32> r;
-	r.UpperLeftCorner.X = rectangle.getWidth() - width - 2;
-	r.LowerRightCorner.X = rectangle.getWidth() - 2;
+	RectangleBase<2, int> r;
+	r.extent[0] = width;
+	r.extent[1] = rectangle.extent[1];
+	r.center[0] = rectangle.extent[0] - (width / 2) - 1;
+	r.center[1] = rectangle.extent[1] - 1;
 
-	r.UpperLeftCorner.Y = 2;
-	r.LowerRightCorner.Y = rectangle.getHeight() - 2;
-
-	ListButton = Environment->addButton(r, this, -1, L"");
-	if (skin && skin->getSpriteBank())
+	mListButton = mUI->AddButton(r, shared_from_this(), -1, L"");
+	if (skin && skin->GetSpriteBank())
 	{
-		ListButton->setSpriteBank(skin->getSpriteBank());
-		ListButton->setSprite(EGBS_BUTTON_UP, skin->getIcon(EGDI_CURSOR_DOWN), skin->getColor(EGDC_WINDOW_SYMBOL));
-		ListButton->setSprite(EGBS_BUTTON_DOWN, skin->getIcon(EGDI_CURSOR_DOWN), skin->getColor(EGDC_WINDOW_SYMBOL));
+		mListButton->SetSpriteBank(skin->GetSpriteBank());
+		mListButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_CURSOR_DOWN), skin->GetColor(DC_WINDOW_SYMBOL));
+		mListButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_CURSOR_DOWN), skin->GetColor(DC_WINDOW_SYMBOL));
 	}
-	ListButton->setAlignment(EGUIA_LOWERRIGHT, EGUIA_LOWERRIGHT, EGUIA_UPPERLEFT, EGUIA_LOWERRIGHT);
-	ListButton->setSubElement(true);
-	ListButton->setTabStop(false);
+	mListButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
+	mListButton->SetSubElement(true);
+	mListButton->SetTabStop(false);
 
-	r.UpperLeftCorner.X = 2;
-	r.UpperLeftCorner.Y = 2;
-	r.LowerRightCorner.X = RelativeRect.getWidth() - (ListButton->getAbsolutePosition().getWidth() + 2);
-	r.LowerRightCorner.Y = RelativeRect.getHeight() - 2;
+	r.extent[0] = mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0] - 4;
+	r.extent[1] = mRelativeRect.extent[1] - 4;
+	r.center[0] = (mRelativeRect.extent[0] / 2) + 1;
+	r.center[1] = (mRelativeRect.extent[1] / 2) + 1;
 
-	SelectedText = Environment->addStaticText(L"", r, false, false, this, -1, false);
-	SelectedText->setSubElement(true);
-	SelectedText->setAlignment(EGUIA_UPPERLEFT, EGUIA_LOWERRIGHT, EGUIA_UPPERLEFT, EGUIA_LOWERRIGHT);
-	SelectedText->setTextAlignment(EGUIA_UPPERLEFT, EGUIA_CENTER);
+	mSelectedText = mUI->AddStaticText(L"", r, false, false, shared_from_this(), -1, false);
+	mSelectedText->SetSubElement(true);
+	mSelectedText->SetAlignment(UIA_UPPERLEFT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
+	mSelectedText->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 	if (skin)
-		SelectedText->setOverrideColor(skin->getColor(EGDC_BUTTON_TEXT));
-	SelectedText->enableOverrideColor(true);
+		mSelectedText->SetOverrideColor(skin->GetColor(DC_BUTTON_TEXT));
+	mSelectedText->EnableOverrideColor(true);
 
 	// this element can be tabbed to
-	setTabStop(true);
-	setTabOrder(-1);
+	SetTabStop(true);
+	SetTabOrder(-1);
+
+	// Create a vertex buffer for a single triangle.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+
+	// Create the geometric object for drawing.
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 }
 
 
-void CGUIComboBox::setTextAlignment(EGUI_ALIGNMENT horizontal, EGUI_ALIGNMENT vertical)
+void UIComboBox::SetTextAlignment(UIAlignment horizontal, UIAlignment vertical)
 {
-	HAlign = horizontal;
-	VAlign = vertical;
-	SelectedText->setTextAlignment(horizontal, vertical);
+	mHAlign = horizontal;
+	mVAlign = vertical;
+	mSelectedText->SetTextAlignment(horizontal, vertical);
 }
 
 
 //! Set the maximal number of rows for the selection listbox
-void CGUIComboBox::setMaxSelectionRows(u32 max)
+void UIComboBox::SetMaxSelectionRows(unsigned int max)
 {
-	MaxSelectionRows = max;
+	mMaxSelectionRows = max;
 
 	// force recalculation of open listbox
-	if (ListBox)
+	if (mListBox)
 	{
-		openCloseMenu();
-		openCloseMenu();
+		OpenCloseMenu();
+		OpenCloseMenu();
 	}
 }
 
 //! Get the maximimal number of rows for the selection listbox
-u32 CGUIComboBox::getMaxSelectionRows() const
+unsigned int UIComboBox::GetMaxSelectionRows() const
 {
-	return MaxSelectionRows;
+	return mMaxSelectionRows;
 }
 
 
 //! Returns amount of items in box
-u32 CGUIComboBox::getItemCount() const
+unsigned int UIComboBox::GetItemCount() const
 {
-	return Items.size();
+	return mItems.size();
 }
 
 
 //! returns string of an item. the idx may be a value from 0 to itemCount-1
-const wchar_t* CGUIComboBox::getItem(u32 idx) const
+const wchar_t* UIComboBox::GetItem(unsigned int idx) const
 {
-	if (idx >= Items.size())
+	if (idx >= mItems.size())
 		return 0;
 
-	return Items[idx].Name.c_str();
+	return mItems[idx].mName.c_str();
 }
 
 //! returns string of an item. the idx may be a value from 0 to itemCount-1
-u32 CGUIComboBox::getItemData(u32 idx) const
+unsigned int UIComboBox::GetItemData(unsigned int idx) const
 {
-	if (idx >= Items.size())
+	if (idx >= mItems.size())
 		return 0;
 
-	return Items[idx].Data;
+	return mItems[idx].mData;
 }
 
 //! Returns index based on item data
-s32 CGUIComboBox::getIndexForItemData(u32 data ) const
+int UIComboBox::GetIndexForItemData(unsigned int data ) const
 {
-	for ( u32 i = 0; i < Items.size (); ++i )
+	for (unsigned int i = 0; i < mItems.size (); ++i )
 	{
-		if ( Items[i].Data == data )
+		if ( mItems[i].mData == data )
 			return i;
 	}
 	return -1;
@@ -131,331 +149,344 @@ s32 CGUIComboBox::getIndexForItemData(u32 data ) const
 
 
 //! Removes an item from the combo box.
-void CGUIComboBox::removeItem(u32 idx)
+void UIComboBox::RemoveItem(unsigned int idx)
 {
-	if (idx >= Items.size())
+	if (idx >= mItems.size())
 		return;
 
-	if (Selected == (s32)idx)
-		setSelected(-1);
+	if (mSelected == (int)idx)
+		SetSelected(-1);
 
-	Items.erase(idx);
+	mItems.erase(mItems.begin() + idx);
 }
 
 
 //! Returns caption of this element.
-const wchar_t* CGUIComboBox::getText() const
+const wchar_t* UIComboBox::GetText() const
 {
-	return getItem(Selected);
+	return GetItem(mSelected);
 }
 
 
 //! adds an item and returns the index of it
-u32 CGUIComboBox::addItem(const wchar_t* text, u32 data)
+unsigned int UIComboBox::AddItem(const wchar_t* text, unsigned int data)
 {
-	Items.push_back( SComboData ( text, data ) );
+	mItems.push_back( ComboData ( text, data ) );
 
-	if (Selected == -1)
-		setSelected(0);
+	if (mSelected == -1)
+		SetSelected(0);
 
-	return Items.size() - 1;
+	return mItems.size() - 1;
 }
 
 
 //! deletes all items in the combo box
-void CGUIComboBox::clear()
+void UIComboBox::Clear()
 {
-	Items.clear();
-	setSelected(-1);
+	mItems.clear();
+	SetSelected(-1);
 }
 
 
 //! returns id of selected item. returns -1 if no item is selected.
-s32 CGUIComboBox::getSelected() const
+int UIComboBox::GetSelected() const
 {
-	return Selected;
+	return mSelected;
 }
 
 
 //! sets the selected item. Set this to -1 if no item should be selected
-void CGUIComboBox::setSelected(s32 idx)
+void UIComboBox::SetSelected(int idx)
 {
-	if (idx < -1 || idx >= (s32)Items.size())
+	if (idx < -1 || idx >= (int)mItems.size())
 		return;
 
-	Selected = idx;
-	if (Selected == -1)
-		SelectedText->setText(L"");
+	mSelected = idx;
+	if (mSelected == -1)
+		mSelectedText->SetText(L"");
 	else
-		SelectedText->setText(Items[Selected].Name.c_str());
+		mSelectedText->SetText(mItems[mSelected].mName.c_str());
 }
 
 
 //! called if an event happened.
-bool CGUIComboBox::OnEvent(const SEvent& event)
+bool UIComboBox::OnEvent(const Event& event)
 {
-	if (isEnabled())
+	if (IsEnabled())
 	{
-		switch(event.EventType)
+		switch(event.mEventType)
 		{
-
-		case EET_KEY_INPUT_EVENT:
-			if (ListBox && event.KeyInput.PressedDown && event.KeyInput.Key == KEY_ESCAPE)
-			{
-				// hide list box
-				openCloseMenu();
-				return true;
-			}
-			else
-			if (event.KeyInput.Key == KEY_RETURN || event.KeyInput.Key == KEY_SPACE)
-			{
-				if (!event.KeyInput.PressedDown)
+			case ET_KEY_INPUT_EVENT:
+				if (mListBox && event.mKeyInput.mPressedDown && event.mKeyInput.mKey == KEY_ESCAPE)
 				{
-					openCloseMenu();
+					// hide list box
+					OpenCloseMenu();
+					return true;
 				}
-
-				ListButton->setPressed(ListBox == 0);
-
-				return true;
-			}
-			else
-			if (event.KeyInput.PressedDown)
-			{
-				s32 oldSelected = Selected;
-				bool absorb = true;
-				switch (event.KeyInput.Key)
+				else
+				if (event.mKeyInput.mKey == KEY_RETURN || event.mKeyInput.mKey == KEY_SPACE)
 				{
-					case KEY_DOWN:
-						setSelected(Selected+1);
+					if (!event.mKeyInput.mPressedDown)
+					{
+						OpenCloseMenu();
+					}
+
+					mListButton->SetPressed(mListBox == 0);
+
+					return true;
+				}
+				else
+				if (event.mKeyInput.mPressedDown)
+				{
+					int oldSelected = mSelected;
+					bool absorb = true;
+					switch (event.mKeyInput.mKey)
+					{
+						case KEY_DOWN:
+							SetSelected(mSelected+1);
+							break;
+						case KEY_UP:
+							SetSelected(mSelected-1);
+							break;
+						case KEY_HOME:
+						case KEY_PRIOR:
+							SetSelected(0);
+							break;
+						case KEY_END:
+						case KEY_NEXT:
+							SetSelected(mItems.size()-1);
+							break;
+						default:
+							absorb = false;
+					}
+
+					if (mSelected < 0)
+						SetSelected(0);
+
+					if (mSelected >= (int)mItems.size())
+						SetSelected(mItems.size() -1);
+
+					if (mSelected != oldSelected)
+					{
+						SendSelectionChangedEvent();
+						return true;
+					}
+
+					if (absorb)
+						return true;
+				}
+				break;
+
+			case ET_UI_EVENT:
+
+				switch(event.mUIEvent.mEventType)
+				{
+					case UIEVT_ELEMENT_FOCUS_LOST:
+						if (mListBox &&
+							(mUI->HasFocus(mListBox) || mListBox->IsMyChild(event.mUIEvent.mCaller) ) &&
+							event.mUIEvent.mElement != this &&
+							!IsMyChild(event.mUIEvent.mElement) &&
+							!mListBox->IsMyChild(event.mUIEvent.mElement))
+						{
+							OpenCloseMenu();
+						}
 						break;
-					case KEY_UP:
-						setSelected(Selected-1);
+					case UIEVT_BUTTON_CLICKED:
+						if (event.mUIEvent.mCaller == mListButton.get())
+						{
+							OpenCloseMenu();
+							return true;
+						}
 						break;
-					case KEY_HOME:
-					case KEY_PRIOR:
-						setSelected(0);
-						break;
-					case KEY_END:
-					case KEY_NEXT:
-						setSelected((s32)Items.size()-1);
-						break;
+					case UIEVT_LISTBOX_SELECTED_AGAIN:
+					case UIEVT_LISTBOX_CHANGED:
+						if (event.mUIEvent.mCaller == mListBox.get())
+						{
+							SetSelected(mListBox->GetSelected());
+							if (mSelected <0 || mSelected >= (int)mItems.size())
+								SetSelected(-1);
+							OpenCloseMenu();
+
+							SendSelectionChangedEvent();
+						}
+						return true;
 					default:
-						absorb = false;
-				}
-
-				if (Selected <0)
-					setSelected(0);
-
-				if (Selected >= (s32)Items.size())
-					setSelected((s32)Items.size() -1);
-
-				if (Selected != oldSelected)
-				{
-					sendSelectionChangedEvent();
-					return true;
-				}
-
-				if (absorb)
-					return true;
-			}
-			break;
-
-		case EET_GUI_EVENT:
-
-			switch(event.GUIEvent.EventType)
-			{
-			case EGET_ELEMENT_FOCUS_LOST:
-				if (ListBox &&
-					(Environment->hasFocus(ListBox) || ListBox->isMyChild(event.GUIEvent.Caller) ) &&
-					event.GUIEvent.Element != this &&
-					!isMyChild(event.GUIEvent.Element) &&
-					!ListBox->isMyChild(event.GUIEvent.Element))
-				{
-					openCloseMenu();
+						break;
 				}
 				break;
-			case EGET_BUTTON_CLICKED:
-				if (event.GUIEvent.Caller == ListButton)
+			case ET_MOUSE_INPUT_EVENT:
+
+				switch(event.mMouseInput.mEvent)
 				{
-					openCloseMenu();
-					return true;
+					case MIE_LMOUSE_PRESSED_DOWN:
+						{
+							Vector2<int> p{ event.mMouseInput.X, event.mMouseInput.Y };
+
+							// send to list box
+							if (mListBox && mListBox->IsPointInside(p) && mListBox->OnEvent(event))
+								return true;
+
+							return true;
+						}
+					case MIE_LMOUSE_LEFT_UP:
+						{
+							Vector2<int> p{ event.mMouseInput.X, event.mMouseInput.Y };
+
+							// send to list box
+							if (!(mListBox &&
+								IsPointInside(mListBox->GetAbsolutePosition(), p) &&
+								mListBox->OnEvent(event)))
+							{
+								OpenCloseMenu();
+							}
+							return true;
+						}
+					case MIE_MOUSE_WHEEL:
+						{
+							int oldSelected = mSelected;
+							SetSelected( mSelected + ((event.mMouseInput.mWheel < 0) ? 1 : -1));
+
+							if (mSelected < 0 ) 
+								SetSelected(0);
+
+							if (mSelected >= (int)mItems.size())
+								SetSelected(mItems.size() -1);
+
+							if (mSelected != oldSelected)
+							{
+								SendSelectionChangedEvent();
+								return true;
+							}
+						}
+					default:
+						break;
 				}
 				break;
-			case EGET_LISTBOX_SELECTED_AGAIN:
-			case EGET_LISTBOX_CHANGED:
-				if (event.GUIEvent.Caller == ListBox)
-				{
-					setSelected(ListBox->getSelected());
-					if (Selected <0 || Selected >= (s32)Items.size())
-						setSelected(-1);
-					openCloseMenu();
-
-					sendSelectionChangedEvent();
-				}
-				return true;
 			default:
 				break;
-			}
-			break;
-		case EET_MOUSE_INPUT_EVENT:
-
-			switch(event.MouseInput.Event)
-			{
-			case EMIE_LMOUSE_PRESSED_DOWN:
-				{
-					core::position2d<s32> p(event.MouseInput.X, event.MouseInput.Y);
-
-					// send to list box
-					if (ListBox && ListBox->isPointInside(p) && ListBox->OnEvent(event))
-						return true;
-
-					return true;
-				}
-			case EMIE_LMOUSE_LEFT_UP:
-				{
-					core::position2d<s32> p(event.MouseInput.X, event.MouseInput.Y);
-
-					// send to list box
-					if (!(ListBox &&
-							ListBox->getAbsolutePosition().isPointInside(p) &&
-							ListBox->OnEvent(event)))
-					{
-						openCloseMenu();
-					}
-					return true;
-				}
-			case EMIE_MOUSE_WHEEL:
-				{
-					s32 oldSelected = Selected;
-					setSelected( Selected + ((event.MouseInput.Wheel < 0) ? 1 : -1));
-
-					if (Selected <0)
-						setSelected(0);
-
-					if (Selected >= (s32)Items.size())
-						setSelected((s32)Items.size() -1);
-
-					if (Selected != oldSelected)
-					{
-						sendSelectionChangedEvent();
-						return true;
-					}
-				}
-			default:
-				break;
-			}
-			break;
-		default:
-			break;
 		}
 	}
 
-	return IGUIElement::OnEvent(event);
+	return BaseUIElement::OnEvent(event);
 }
 
 
-void CGUIComboBox::sendSelectionChangedEvent()
+void UIComboBox::SendSelectionChangedEvent()
 {
-	if (Parent)
+	if (mParent)
 	{
-		SEvent event;
+		Event event;
 
-		event.EventType = EET_GUI_EVENT;
-		event.GUIEvent.Caller = this;
-		event.GUIEvent.Element = 0;
-		event.GUIEvent.EventType = EGET_COMBO_BOX_CHANGED;
-		Parent->OnEvent(event);
+		event.mEventType = ET_UI_EVENT;
+		event.mUIEvent.mCaller = this;
+		event.mUIEvent.mElement = 0;
+		event.mUIEvent.mEventType = UIEVT_COMBO_BOX_CHANGED;
+		mParent->OnEvent(event);
 	}
 }
 
 
 //! draws the element and its children
-void CGUIComboBox::draw()
+void UIComboBox::Draw()
 {
-	if (!IsVisible)
+	if (!IsVisible())
 		return;
 
-	IGUISkin* skin = Environment->getSkin();
-	IGUIElement *currentFocus = Environment->getFocus();
-	if (currentFocus != LastFocus)
+	eastl::shared_ptr<BaseUISkin> skin = mUI->GetSkin();
+	eastl::shared_ptr<BaseUIElement> currentFocus = mUI->GetFocus();
+	if (currentFocus != mLastFocus)
 	{
-		HasFocus = currentFocus == this || isMyChild(currentFocus);
-		LastFocus = currentFocus;
+		mHasFocus = currentFocus == shared_from_this() || IsMyChild(currentFocus.get());
+		mLastFocus = currentFocus;
 	}
 
 	// set colors each time as skin-colors can be changed
-	SelectedText->setBackgroundColor(skin->getColor(EGDC_HIGH_LIGHT));
-	if(isEnabled())
+	mSelectedText->SetBackgroundColor(skin->GetColor(DC_HIGH_LIGHT));
+	if(IsEnabled())
 	{
-		SelectedText->setDrawBackground(HasFocus);
-		SelectedText->setOverrideColor(skin->getColor(HasFocus ? EGDC_HIGH_LIGHT_TEXT : EGDC_BUTTON_TEXT));
+		mSelectedText->SetDrawBackground(mHasFocus);
+		mSelectedText->SetOverrideColor(skin->GetColor(mHasFocus ? DC_HIGH_LIGHT_TEXT : DC_BUTTON_TEXT));
 	}
 	else
 	{
-		SelectedText->setDrawBackground(false);
-		SelectedText->setOverrideColor(skin->getColor(EGDC_GRAY_TEXT));
+		mSelectedText->SetDrawBackground(false);
+		mSelectedText->SetOverrideColor(skin->GetColor(DC_GRAY_TEXT));
 	}
-	ListButton->setSprite(EGBS_BUTTON_UP, skin->getIcon(EGDI_CURSOR_DOWN), skin->getColor(isEnabled() ? EGDC_WINDOW_SYMBOL : EGDC_GRAY_WINDOW_SYMBOL));
-	ListButton->setSprite(EGBS_BUTTON_DOWN, skin->getIcon(EGDI_CURSOR_DOWN), skin->getColor(isEnabled() ? EGDC_WINDOW_SYMBOL : EGDC_GRAY_WINDOW_SYMBOL));
+	mListButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_CURSOR_DOWN), skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
+	mListButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_CURSOR_DOWN), skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
 
 
-	core::rect<s32> frameRect(AbsoluteRect);
+	RectangleBase<2, int> frameRect(mAbsoluteRect);
 
 	// draw the border
 
-	skin->draw3DSunkenPane(this, skin->getColor(EGDC_3D_HIGH_LIGHT),
-		true, true, frameRect, &AbsoluteClippingRect);
+	skin->Draw3DSunkenPane(shared_from_this(), skin->GetColor(DC_3D_HIGH_LIGHT),
+		true, true, mVisual, frameRect, &mAbsoluteClippingRect);
 
 	// draw children
-	IGUIElement::draw();
+	BaseUIElement::Draw();
 }
 
 
-void CGUIComboBox::openCloseMenu()
+void UIComboBox::OpenCloseMenu()
 {
-	if (ListBox)
+	if (mListBox)
 	{
 		// close list box
-		Environment->setFocus(this);
-		ListBox->remove();
-		ListBox = 0;
+		mUI->SetFocus(shared_from_this());
+		mListBox->Remove();
+		mListBox = 0;
 	}
 	else
 	{
-		if (Parent)
-			Parent->bringToFront(this);
+		if (mParent)
+			mParent->BringToFront(shared_from_this());
 
-		IGUISkin* skin = Environment->getSkin();
-		u32 h = Items.size();
+		eastl::shared_ptr<BaseUISkin> skin = mUI->GetSkin();
+		unsigned int height = mItems.size();
 
-		if (h > getMaxSelectionRows())
-			h = getMaxSelectionRows();
-		if (h == 0)
-			h = 1;
+		if (height > GetMaxSelectionRows())
+			height = GetMaxSelectionRows();
+		if (height == 0)
+			height = 1;
 
-		IGUIFont* font = skin->getFont();
+		eastl::shared_ptr<BaseUIFont> font = skin->GetFont();
+		/*
 		if (font)
-			h *= (font->getDimension(L"A").Height + 4);
-
+			height *= (font->GetDimension(L"A").Height + 4);
+		*/
 		// open list box
-		core::rect<s32> r(0, AbsoluteRect.getHeight(),
-			AbsoluteRect.getWidth(), AbsoluteRect.getHeight() + h);
+		RectangleBase<2, int> r;
+		r.extent[0] = mAbsoluteRect.extent[0];
+		r.extent[1] = height;
+		r.center[0] = mAbsoluteRect.extent[0] / 2;
+		r.center[1] = mAbsoluteRect.extent[1] + (int)round(height / 2.f);
 
-		ListBox = new CGUIListBox(Environment, this, -1, r, false, true, true);
-		ListBox->setSubElement(true);
-		ListBox->setNotClipped(true);
-		ListBox->drop();
+		mListBox.reset(new UIListBox(mUI, -1, r, false, true, true));
+		mListBox->SetParent(shared_from_this());
+		mListBox->SetSubElement(true);
+		mListBox->SetNotClipped(true);
 
 		// ensure that list box is always completely visible
-		if (ListBox->getAbsolutePosition().LowerRightCorner.Y > Environment->getRootGUIElement()->getAbsolutePosition().getHeight())
-			ListBox->setRelativePosition( core::rect<s32>(0, -ListBox->getAbsolutePosition().getHeight(), AbsoluteRect.getWidth(), 0) );
+		if (mListBox->GetAbsolutePosition().center[1] + 
+			(int)round(mListBox->GetAbsolutePosition().extent[1] / 2.f) >
+			mUI->GetRootUIElement()->GetAbsolutePosition().extent[1])
+		{
+			RectangleBase<2, int> rect;
+			rect.extent[0] = mAbsoluteRect.extent[0];
+			rect.extent[1] = mAbsoluteRect.extent[1];
+			rect.center[0] = mAbsoluteRect.extent[0] / 2;
+			rect.center[1] = -mAbsoluteRect.extent[1] / 2;
 
-		for (s32 i=0; i<(s32)Items.size(); ++i)
-			ListBox->addItem(Items[i].Name.c_str());
+			mListBox->SetRelativePosition(rect);
+		}
 
-		ListBox->setSelected(Selected);
+		for (int idx=0; idx < (int)mItems.size(); ++idx)
+			mListBox->AddItem(mItems[idx].mName.c_str());
+
+		mListBox->SetSelected(mSelected);
 
 		// set focus
-		Environment->setFocus(ListBox);
+		mUI->SetFocus(mListBox);
 	}
 }

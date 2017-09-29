@@ -43,7 +43,6 @@ UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text,
 	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
 	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
 
-
 	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
 
@@ -76,7 +75,7 @@ void UIStaticText::Draw( )
 		if ( !mOverrideBGColorEnabled )	// skin-colors can change
 			mBGColor = skin->GetColor(DC_3D_FACE);
 
-		//Renderer::Get()->Draw2DRectangle(mBGColor, frameRect, &mAbsoluteClippingRect);
+		skin->Draw2DRectangle(shared_from_this(), mBGColor, mVisual, frameRect, &mAbsoluteClippingRect);
 	}
 
 	// draw the border
@@ -449,7 +448,7 @@ void UIStaticText::SetText(const wchar_t* text)
 
 void UIStaticText::UpdateAbsoluteTransformation()
 {
-	BaseUIElement::UpdateAbsoluteTransformation();
+	BaseUIElement::UpdateAbsolutePosition();
 	BreakText();
 }
 

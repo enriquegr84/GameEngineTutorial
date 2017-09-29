@@ -2,163 +2,197 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#include "CGUIImage.h"
-#ifdef _IRR_COMPILE_WITH_GUI_
+#include "UIImage.h"
 
-#include "IGUISkin.h"
-#include "IGUIEnvironment.h"
-#include "IVideoDriver.h"
+#include "UISkin.h"
+#include "UIFont.h"
 
-namespace irr
-{
-namespace gui
-{
+#include "UserInterface.h"
 
+#include "Graphic/Renderer/Renderer.h"
 
 //! constructor
-CGUIImage::CGUIImage(IGUIEnvironment* environment, IGUIElement* parent, s32 id, core::rect<s32> rectangle)
-: IGUIImage(environment, parent, id, rectangle), Texture(0), Color(255,255,255,255),
-	UseAlphaChannel(false), ScaleImage(false)
+UIImage::UIImage(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+	: BaseUIImage(id, rectangle), mUI(ui), mTexture(0), mColor{ 1.f, 1.f, 1.f, 1.f },
+	mUseAlphaChannel(false), mScaleImage(false)
 {
 	#ifdef _DEBUG
-	setDebugName("CGUIImage");
+	//setDebugName("CGUIImage");
 	#endif
+
+	// Create a vertex buffer for a two-triangles square. The PNG is stored
+	// in left-handed coordinates. The texture coordinates are chosen to
+	// reflect the texture in the y-direction.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector2<float> tcoord;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	// Create an effect for the vertex and pixel shaders.  The texture is
+	// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
+	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+	mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, eastl::shared_ptr<Texture2>(),
+		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+
+	// Create the geometric object for drawing.
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 }
 
 
 //! destructor
-CGUIImage::~CGUIImage()
+UIImage::~UIImage()
 {
-	if (Texture)
-		Texture->drop();
 }
 
 
 //! sets an image
-void CGUIImage::setImage(video::ITexture* image)
+void UIImage::SetImage(const eastl::shared_ptr<Texture2>& image)
 {
-	if (image == Texture)
+	if (image == mTexture)
 		return;
-
-	if (Texture)
-		Texture->drop();
-
-	Texture = image;
-
-	if (Texture)
-		Texture->grab();
+	mTexture = image;
 }
 
 //! Gets the image texture
-video::ITexture* CGUIImage::getImage() const
+const eastl::shared_ptr<Texture2>& UIImage::GetImage() const
 {
-	return Texture;
+	return mTexture;
 }
 
 //! sets the color of the image
-void CGUIImage::setColor(video::SColor color)
+void UIImage::SetColor(eastl::array<float, 4> color)
 {
-	Color = color;
+	mColor = color;
 }
 
 //! Gets the color of the image
-video::SColor CGUIImage::getColor() const
+eastl::array<float, 4> UIImage::GetColor() const
 {
-	return Color;
+	return mColor;
 }
 
 //! draws the element and its children
-void CGUIImage::draw()
+void UIImage::Draw()
 {
-	if (!IsVisible)
+	if (!IsVisible())
 		return;
 
-	IGUISkin* skin = Environment->getSkin();
-	video::IVideoDriver* driver = Environment->getVideoDriver();
-
-	if (Texture)
+	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
+	if (mTexture)
 	{
-		if (ScaleImage)
+		if (mScaleImage)
 		{
-			const video::SColor Colors[] = {Color,Color,Color,Color};
+			const eastl::array<float, 4> colors[]{ mColor,mColor,mColor,mColor };
 
-			driver->draw2DImage(Texture, AbsoluteRect,
-				core::rect<s32>(core::position2d<s32>(0,0), core::dimension2di(Texture->getOriginalSize())),
-				&AbsoluteClippingRect, Colors, UseAlphaChannel);
+			const RectangleBase<2, int>& sourceRect = mAbsoluteRect;
+			Vector2<int> sourceSize(sourceRect.extent);
+			Vector2<int> sourcePos;
+			sourcePos[0] = sourceRect.center[0];
+			sourcePos[0] = sourceRect.center[1];
+
+			mEffect->SetTexture(mTexture.get());
+
+			struct Vertex
+			{
+				Vector3<float> position;
+				Vector2<float> tcoord;
+			};
+			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
+			vertex[0].position = {
+				(float)sourcePos[0] / mTexture->GetDimension(0),
+				(float)sourcePos[1] / mTexture->GetDimension(1), 0.0f };
+			vertex[0].tcoord = { 0.0f, 1.0f };
+			vertex[1].position = {
+				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mTexture->GetDimension(0),
+				(float)sourcePos[1] / mTexture->GetDimension(1), 0.0f };
+			vertex[1].tcoord = { 1.0f, 1.0f };
+			vertex[2].position = {
+				(float)sourcePos[0] / mTexture->GetDimension(0),
+				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mTexture->GetDimension(1), 0.0f };
+			vertex[2].tcoord = { 0.0f, 0.0f };
+			vertex[3].position = {
+				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mTexture->GetDimension(0),
+				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mTexture->GetDimension(1), 0.0f };
+			vertex[3].tcoord = { 1.0f, 0.0f };
 		}
 		else
 		{
-			driver->draw2DImage(Texture, AbsoluteRect.UpperLeftCorner,
-				core::rect<s32>(core::position2d<s32>(0,0), core::dimension2di(Texture->getOriginalSize())),
-				&AbsoluteClippingRect, Color, UseAlphaChannel);
+			const eastl::array<float, 4> colors[]{ mColor,mColor,mColor,mColor };
+
+			const RectangleBase<2, int>& sourceRect = mAbsoluteRect;
+			Vector2<int> sourceSize(sourceRect.extent);
+			Vector2<int> sourcePos;
+			sourcePos[0] = sourceRect.center[0] - (sourceSize[0] / 2);
+			sourcePos[0] = sourceRect.center[1] - (sourceSize[1] / 2);
+
+			mEffect->SetTexture(mTexture.get());
+
+			struct Vertex
+			{
+				Vector3<float> position;
+				Vector2<float> tcoord;
+			};
+			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
+			vertex[0].position = {
+				(float)sourcePos[0] / mTexture->GetDimension(0),
+				(float)sourcePos[1] / mTexture->GetDimension(1), 0.0f };
+			vertex[0].tcoord = { 0.0f, 1.0f };
+			vertex[1].position = {
+				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mTexture->GetDimension(0),
+				(float)sourcePos[1] / mTexture->GetDimension(1), 0.0f };
+			vertex[1].tcoord = { 1.0f, 1.0f };
+			vertex[2].position = {
+				(float)sourcePos[0] / mTexture->GetDimension(0),
+				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mTexture->GetDimension(1), 0.0f };
+			vertex[2].tcoord = { 0.0f, 0.0f };
+			vertex[3].position = {
+				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mTexture->GetDimension(0),
+				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mTexture->GetDimension(1), 0.0f };
+			vertex[3].tcoord = { 1.0f, 0.0f };
 		}
+
+		// Create the geometric object for drawing.
+		Renderer::Get()->Draw(mVisual);
 	}
 	else
 	{
-		skin->draw2DRectangle(this, skin->getColor(EGDC_3D_DARK_SHADOW), AbsoluteRect, &AbsoluteClippingRect);
+		skin->Draw2DRectangle(shared_from_this(), skin->GetColor(DC_3D_DARK_SHADOW), 
+			mVisual, mAbsoluteRect, &mAbsoluteClippingRect);
 	}
 
-	IGUIElement::draw();
+	BaseUIElement::Draw();
 }
 
 
 //! sets if the image should use its alpha channel to draw itself
-void CGUIImage::setUseAlphaChannel(bool use)
+void UIImage::SetUseAlphaChannel(bool use)
 {
-	UseAlphaChannel = use;
+	mUseAlphaChannel = use;
 }
 
 
 //! sets if the image should use its alpha channel to draw itself
-void CGUIImage::setScaleImage(bool scale)
+void UIImage::SetScaleImage(bool scale)
 {
-	ScaleImage = scale;
+	mScaleImage = scale;
 }
 
 
 //! Returns true if the image is scaled to fit, false if not
-bool CGUIImage::isImageScaled() const
+bool UIImage::IsImageScaled() const
 {
-	_IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX;
-	return ScaleImage;
+	return mScaleImage;
 }
 
 //! Returns true if the image is using the alpha channel, false if not
-bool CGUIImage::isAlphaChannelUsed() const
+bool UIImage::IsAlphaChannelUsed() const
 {
-	_IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX;
-	return UseAlphaChannel;
+	return mUseAlphaChannel;
 }
-
-
-//! Writes attributes of the element.
-void CGUIImage::serializeAttributes(io::IAttributes* out, io::SAttributeReadWriteOptions* options=0) const
-{
-	IGUIImage::serializeAttributes(out,options);
-
-	out->addTexture	("Texture", Texture);
-	out->addBool	("UseAlphaChannel", UseAlphaChannel);
-	out->addColor	("Color", Color);
-	out->addBool	("ScaleImage", ScaleImage);
-
-}
-
-
-//! Reads attributes of the element
-void CGUIImage::deserializeAttributes(io::IAttributes* in, io::SAttributeReadWriteOptions* options=0)
-{
-	IGUIImage::deserializeAttributes(in,options);
-
-	setImage(in->getAttributeAsTexture("Texture"));
-	setUseAlphaChannel(in->getAttributeAsBool("UseAlphaChannel"));
-	setColor(in->getAttributeAsColor("Color"));
-	setScaleImage(in->getAttributeAsBool("ScaleImage"));
-}
-
-
-} // end namespace gui
-} // end namespace irr
-
-
-#endif // _IRR_COMPILE_WITH_GUI_
-

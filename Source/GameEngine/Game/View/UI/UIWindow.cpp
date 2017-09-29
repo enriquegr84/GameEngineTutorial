@@ -214,12 +214,10 @@ bool UIWindow::OnEvent(const Event& ev)
 						// gui window should not be dragged outside its parent
 						if (mParent)
 						{
-							eastl::array<Vector2<int>, 4U> vertex;
-							mParent->GetAbsolutePosition().GetVertices(vertex);
-							if (ev.mMouseInput.X < vertex[1][0] + 1 ||
-								ev.mMouseInput.Y < vertex[1][1] + 1 ||
-								ev.mMouseInput.X > vertex[3][0] - 1 ||
-								ev.mMouseInput.Y > vertex[3][0] - 1)
+							if (ev.mMouseInput.X < mParent->GetAbsolutePosition().center[0] - (mParent->GetAbsolutePosition().extent[0] / 2) + 1 ||
+								ev.mMouseInput.Y < mParent->GetAbsolutePosition().center[1] - (mParent->GetAbsolutePosition().extent[1] / 2) + 1 ||
+								ev.mMouseInput.X > mParent->GetAbsolutePosition().center[0] + (int)round(mParent->GetAbsolutePosition().extent[0] / 2.f) - 1 ||
+								ev.mMouseInput.Y > mParent->GetAbsolutePosition().center[1] + (int)round(mParent->GetAbsolutePosition().extent[1] / 2.f) - 1)
 								return true;
 						}
 
@@ -244,7 +242,7 @@ bool UIWindow::OnEvent(const Event& ev)
 //! Updates the absolute position.
 void UIWindow::UpdateAbsoluteTransformation()
 {
-	BaseUIElement::UpdateAbsoluteTransformation();
+	BaseUIElement::UpdateAbsolutePosition();
 }
 
 

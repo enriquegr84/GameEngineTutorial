@@ -48,6 +48,9 @@ private:
 
 	BaseUI* mUI;
 
+	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<BasicEffect> mEffect;
+
 	unsigned int mCheckTime;
 	bool mPressed;
 	bool mChecked;

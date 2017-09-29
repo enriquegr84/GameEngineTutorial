@@ -36,7 +36,7 @@ public:
 	virtual unsigned int GetItemData(unsigned int idx) const = 0;
 
 	//! Returns index based on item data
-	virtual int getIndexForItemData(unsigned int data) const = 0;
+	virtual int GetIndexForItemData(unsigned int data) const = 0;
 
 	//! Adds an item and returns the index of it
 	virtual unsigned int AddItem(const wchar_t* text, unsigned int data = 0) = 0;
@@ -59,10 +59,10 @@ public:
 	EGUIA_LOWEERRIGHT for right justified, or EGUIA_CENTER for centered text.
 	\param vertical: EGUIA_UPPERLEFT to align with top edge,
 	EGUIA_LOWEERRIGHT for bottom edge, or EGUIA_CENTER for centered text (default). */
-	virtual void setTextAlignment(UIAlignment horizontal, UIAlignment vertical) = 0;
+	virtual void SetTextAlignment(UIAlignment horizontal, UIAlignment vertical) = 0;
 
 	//! Set the maximal number of rows for the selection listbox
-	virtual void setMaxSelectionRows(unsigned int max) = 0;
+	virtual void SetMaxSelectionRows(unsigned int max) = 0;
 
 	//! Get the maximimal number of rows for the selection listbox
 	virtual unsigned int GetMaxSelectionRows() const = 0;
@@ -126,14 +126,24 @@ private:
 	void OpenCloseMenu();
 	void SendSelectionChangedEvent();
 
+	struct ComboData
+	{
+		ComboData(const wchar_t * text, unsigned int data)
+			: mName(text), mData(data) {}
+
+		eastl::wstring mName;
+		unsigned int mData;
+	};
+	eastl::vector<ComboData> mItems;
+
+	BaseUI* mUI;
+
+	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<BasicEffect> mEffect;
 	eastl::shared_ptr<BaseUIButton> mListButton;
 	eastl::shared_ptr<BaseUIStaticText> mSelectedText;
 	eastl::shared_ptr<BaseUIListBox> mListBox;
 	eastl::shared_ptr<BaseUIElement> mLastFocus;
-
-	eastl::map<eastl::wstring, eastl::shared_ptr<unsigned int>> Items;
-
-	BaseUI* mUI;
 
 	int mSelected;
 	UIAlignment mHAlign, mVAlign;

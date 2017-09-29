@@ -22,21 +22,26 @@ UIButton::UIButton(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 	//setDebugName("UIButton");
 	#endif
 
-	// Create a vertex buffer for a single triangle.
+	// Create a vertex buffer for a two-triangles square. The PNG is stored
+	// in left-handed coordinates. The texture coordinates are chosen to
+	// reflect the texture in the y-direction.
 	struct Vertex
 	{
 		Vector3<float> position;
-		Vector4<float> color;
+		Vector2<float> tcoord;
 	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
 	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
-	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+	// Create an effect for the vertex and pixel shaders.  The texture is
+	// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
+	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+	mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, eastl::shared_ptr<Texture2>(),
+		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
 
 	// Create the geometric object for drawing.
 	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
@@ -249,14 +254,43 @@ void UIButton::Draw( )
 
 		if (mImage)
 		{
-			Vector2<int> pos = spritePos;
-			pos[0] -= mImageRect.extent[0] / 2;
-			pos[1] -= mImageRect.extent[1] / 2;
-			/*
-			Renderer::Get()->Draw2DImage(mImage.get(), mScaleImage ? mAbsoluteRect : 
-				RectangleBase<2, int>{ pos, mImageRect.axis, mImageRect.extent },
-				mImageRect, &mAbsoluteClippingRect, 0, mUseAlphaChannel);
-			*/
+			Vector2<int> sourceSize(mImageRect.extent);
+			Vector2<int> sourcePos = spritePos;
+			sourcePos[0] -= mImageRect.extent[0] / 2;
+			sourcePos[1] -= mImageRect.extent[1] / 2;
+			if (mScaleImage)
+			{
+				sourcePos = mAbsoluteRect.center - (mAbsoluteRect.extent / 2);
+				sourceSize = mAbsoluteRect.extent;
+			}
+
+			mEffect->SetTexture(mImage.get());
+
+			struct Vertex
+			{
+				Vector3<float> position;
+				Vector2<float> tcoord;
+			};
+			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
+			vertex[0].position = {
+				(float)sourcePos[0] / mImage->GetDimension(0),
+				(float)sourcePos[1] / mImage->GetDimension(1), 0.0f };
+			vertex[0].tcoord = { 0.0f, 1.0f };
+			vertex[1].position = {
+				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mImage->GetDimension(0),
+				(float)sourcePos[1] / mImage->GetDimension(1), 0.0f };
+			vertex[1].tcoord = { 1.0f, 1.0f };
+			vertex[2].position = {
+				(float)sourcePos[0] / mImage->GetDimension(0),
+				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mImage->GetDimension(1), 0.0f };
+			vertex[2].tcoord = { 0.0f, 0.0f };
+			vertex[3].position = {
+				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mImage->GetDimension(0),
+				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mImage->GetDimension(1), 0.0f };
+			vertex[3].tcoord = { 1.0f, 0.0f };
+
+			// Create the geometric object for drawing.
+			Renderer::Get()->Draw(mVisual);
 		}
 	}
 	else
@@ -267,20 +301,49 @@ void UIButton::Draw( )
 
 		if (mPressedImage)
 		{
-			Vector2<int> pos = spritePos;
-			pos[0] -= mPressedImageRect.extent[0] / 2;
-			pos[1] -= mPressedImageRect.extent[1] / 2;
+			Vector2<int> sourceSize(mImageRect.extent);
+			Vector2<int> sourcePos = spritePos;
+			sourcePos[0] -= mPressedImageRect.extent[0] / 2;
+			sourcePos[1] -= mPressedImageRect.extent[1] / 2;
 
 			if (mImage == mPressedImage && mPressedImageRect == mImageRect)
 			{
-				pos[0] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_X);
-				pos[1] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_Y);
+				sourcePos[0] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_X);
+				sourcePos[1] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_Y);
 			}
-			/*
-			Renderer::Get()->Draw2DImage(mPressedImage.get(), mScaleImage ? mAbsoluteRect : 
-				RectangleBase<2, int>{ pos, mPressedImageRect.axis, mPressedImageRect.extent },
-				mPressedImageRect, &mAbsoluteClippingRect, 0, mUseAlphaChannel);
-			*/
+			if (mScaleImage)
+			{
+				sourcePos = mAbsoluteRect.center - (mAbsoluteRect.extent / 2);
+				sourceSize = mAbsoluteRect.extent;
+			}
+
+			mEffect->SetTexture(mPressedImage.get());
+
+			struct Vertex
+			{
+				Vector3<float> position;
+				Vector2<float> tcoord;
+			};
+			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
+			vertex[0].position = {
+				(float)sourcePos[0] / mImage->GetDimension(0),
+				(float)sourcePos[1] / mImage->GetDimension(1), 0.0f };
+			vertex[0].tcoord = { 0.0f, 1.0f };
+			vertex[1].position = {
+				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mImage->GetDimension(0),
+				(float)sourcePos[1] / mImage->GetDimension(1), 0.0f };
+			vertex[1].tcoord = { 1.0f, 1.0f };
+			vertex[2].position = {
+				(float)sourcePos[0] / mImage->GetDimension(0),
+				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mImage->GetDimension(1), 0.0f };
+			vertex[2].tcoord = { 0.0f, 0.0f };
+			vertex[3].position = {
+				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mImage->GetDimension(0),
+				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mImage->GetDimension(1), 0.0f };
+			vertex[3].tcoord = { 1.0f, 0.0f };
+
+			// Create the geometric object for drawing.
+			Renderer::Get()->Draw(mVisual);
 		}
 	}
 
@@ -368,7 +431,7 @@ eastl::shared_ptr<BaseUIFont> UIButton::GetActiveFont() const
 }
 
 //! Sets an image which should be displayed on the button when it is in normal state.
-void UIButton::SetImage(const eastl::shared_ptr<Texture>& image)
+void UIButton::SetImage(const eastl::shared_ptr<Texture2>& image)
 {
 	mImage = image;
 
@@ -387,7 +450,7 @@ void UIButton::SetImage(const eastl::shared_ptr<Texture>& image)
 
 
 //! Sets the image which should be displayed on the button when it is in its normal state.
-void UIButton::SetImage(const eastl::shared_ptr<Texture>& image, const RectangleBase<2, int>& pos)
+void UIButton::SetImage(const eastl::shared_ptr<Texture2>& image, const RectangleBase<2, int>& pos)
 {
 	SetImage(image);
 	mImageRect = pos;
@@ -395,7 +458,7 @@ void UIButton::SetImage(const eastl::shared_ptr<Texture>& image, const Rectangle
 
 
 //! Sets an image which should be displayed on the button when it is in pressed state.
-void UIButton::SetPressedImage(const eastl::shared_ptr<Texture>& image)
+void UIButton::SetPressedImage(const eastl::shared_ptr<Texture2>& image)
 {
 	mPressedImage = image;
 
@@ -411,7 +474,7 @@ void UIButton::SetPressedImage(const eastl::shared_ptr<Texture>& image)
 
 
 //! Sets the image which should be displayed on the button when it is in its pressed state.
-void UIButton::SetPressedImage(const eastl::shared_ptr<Texture>& image, const RectangleBase<2, int>& pos)
+void UIButton::SetPressedImage(const eastl::shared_ptr<Texture2>& image, const RectangleBase<2, int>& pos)
 {
 	SetPressedImage(image);
 	mPressedImageRect = pos;

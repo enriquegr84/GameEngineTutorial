@@ -2,246 +2,208 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#include "CGUIEditBox.h"
-#ifdef _IRR_COMPILE_WITH_GUI_
+#include "UIEditBox.h"
 
-#include "IGUISkin.h"
-#include "IGUIEnvironment.h"
-#include "IGUIFont.h"
-#include "IVideoDriver.h"
-#include "rect.h"
-#include "os.h"
-#include "Keycodes.h"
+#include "UISkin.h"
+#include "UIFont.h"
 
-/*
-	todo:
-	optional scrollbars
-	ctrl+left/right to select word
-	double click/ctrl click: word select + drag to select whole words, triple click to select line
-	optional? dragging selected text
-	numerical
-*/
+#include "UserInterface.h"
 
-namespace irr
-{
-namespace gui
-{
+#include "Graphic/Renderer/Renderer.h"
+#include "Core/OS/OS.h"
 
 //! constructor
-CGUIEditBox::CGUIEditBox(const wchar_t* text, bool border,
-		IGUIEnvironment* environment, IGUIElement* parent, s32 id,
-		const core::rect<s32>& rectangle)
-	: IGUIEditBox(environment, parent, id, rectangle), MouseMarking(false),
-	Border(border), Background(true), OverrideColorEnabled(false), MarkBegin(0), MarkEnd(0),
-	OverrideColor(video::SColor(101,255,255,255)), OverrideFont(0), LastBreakFont(0),
-	Operator(0), BlinkStartTime(0), CursorPos(0), HScrollPos(0), VScrollPos(0), Max(0),
-	WordWrap(false), MultiLine(false), AutoScroll(true), PasswordBox(false),
-	PasswordChar(L'*'), HAlign(EGUIA_UPPERLEFT), VAlign(EGUIA_CENTER),
-	CurrentTextRect(0,0,1,1), FrameRect(rectangle)
+UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+	: BaseUIEditBox(ui, id, rectangle), mMouseMarking(false),
+	mBorder(border), mBackground(true), mOverrideColorEnabled(false), mMarkBegin(0), mMarkEnd(0),
+	mOverrideColor(eastl::array<float, 4>{101 / 255.f, 255 / 255.f, 255 / 255.f, 255 / 255.f}), 
+	mOverrideFont(0), mLastBreakFont(0), mBlinkStartTime(0), mCursorPos(0), mHScrollPos(0), 
+	mVScrollPos(0), mMax(0), mWordWrap(false), mMultiLine(false), mAutoScroll(true), 
+	mPasswordBox(false), mPasswordChar(L'*'), mHAlign(UIA_UPPERLEFT), mVAlign(UIA_CENTER), 
+	mFrameRect(rectangle)
 {
 	#ifdef _DEBUG
-	setDebugName("CGUIEditBox");
+	//setDebugName("CGUIEditBox");
 	#endif
 
-	Text = text;
-
-	if (Environment)
-		Operator = Environment->getOSOperator();
-
-	if (Operator)
-		Operator->grab();
+	mText = text;
 
 	// this element can be tabbed to
-	setTabStop(true);
-	setTabOrder(-1);
+	SetTabStop(true);
+	SetTabOrder(-1);
 
-	calculateFrameRect();
-	breakText();
+	CalculateFrameRect();
+	BreakText();
 
-	calculateScrollPos();
+	CalculateScrollPos();
 }
 
 
 //! destructor
-CGUIEditBox::~CGUIEditBox()
+UIEditBox::~UIEditBox()
 {
-	if (OverrideFont)
-		OverrideFont->drop();
-
-	if (Operator)
-		Operator->drop();
 }
 
 
 //! Sets another skin independent font.
-void CGUIEditBox::setOverrideFont(IGUIFont* font)
+void UIEditBox::SetOverrideFont(const eastl::shared_ptr<BaseUIFont>& font)
 {
-	if (OverrideFont == font)
+	if (mOverrideFont == font)
 		return;
 
-	if (OverrideFont)
-		OverrideFont->drop();
-
-	OverrideFont = font;
-
-	if (OverrideFont)
-		OverrideFont->grab();
-
-	breakText();
+	mOverrideFont = font;
+	BreakText();
 }
 
 //! Gets the override font (if any)
-IGUIFont * CGUIEditBox::getOverrideFont() const
+const eastl::shared_ptr<BaseUIFont>& UIEditBox::GetOverrideFont() const
 {
-	return OverrideFont;
+	return mOverrideFont;
 }
 
 //! Get the font which is used right now for drawing
-IGUIFont* CGUIEditBox::getActiveFont() const
+const eastl::shared_ptr<BaseUIFont>& UIEditBox::GetActiveFont() const
 {
-	if ( OverrideFont )
-		return OverrideFont;
-	IGUISkin* skin = Environment->getSkin();
-	if (skin)
-		return skin->getFont();
-	return 0;
+	if ( mOverrideFont )
+		return mOverrideFont;
+
+	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
+	if (!skin)
+		return skin->GetFont();
+
+	return eastl::shared_ptr<BaseUIFont>();
 }
 
 //! Sets another color for the text.
-void CGUIEditBox::setOverrideColor(video::SColor color)
+void UIEditBox::SetOverrideColor(eastl::array<float, 4> color)
 {
-	OverrideColor = color;
-	OverrideColorEnabled = true;
+	mOverrideColor = color;
+	mOverrideColorEnabled = true;
 }
 
 
-video::SColor CGUIEditBox::getOverrideColor() const
+eastl::array<float, 4> UIEditBox::GetOverrideColor() const
 {
-	return OverrideColor;
+	return mOverrideColor;
 }
 
 
 //! Turns the border on or off
-void CGUIEditBox::setDrawBorder(bool border)
+void UIEditBox::SetDrawBorder(bool border)
 {
-	Border = border;
+	mBorder = border;
 }
 
 //! Sets whether to draw the background
-void CGUIEditBox::setDrawBackground(bool draw)
+void UIEditBox::SetDrawBackground(bool draw)
 {
-	Background = draw;
+	mBackground = draw;
 }
 
 //! Sets if the text should use the overide color or the color in the gui skin.
-void CGUIEditBox::enableOverrideColor(bool enable)
+void UIEditBox::EnableOverrideColor(bool enable)
 {
-	OverrideColorEnabled = enable;
+	mOverrideColorEnabled = enable;
 }
 
-bool CGUIEditBox::isOverrideColorEnabled() const
+bool UIEditBox::IsOverrideColorEnabled() const
 {
-	_IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX;
-	return OverrideColorEnabled;
+	return mOverrideColorEnabled;
 }
 
 //! Enables or disables word wrap
-void CGUIEditBox::setWordWrap(bool enable)
+void UIEditBox::SetWordWrap(bool enable)
 {
-	WordWrap = enable;
-	breakText();
+	mWordWrap = enable;
+	BreakText();
 }
 
-
-void CGUIEditBox::updateAbsolutePosition()
+void UIEditBox::UpdateAbsolutePosition()
 {
-	core::rect<s32> oldAbsoluteRect(AbsoluteRect);
-	IGUIElement::updateAbsolutePosition();
-	if ( oldAbsoluteRect != AbsoluteRect )
+	RectangleBase<2, int> oldAbsoluteRect(mAbsoluteRect);
+	BaseUIElement::UpdateAbsolutePosition();
+
+	if ( oldAbsoluteRect != mAbsoluteRect )
 	{
-		calculateFrameRect();
-		breakText();
-		calculateScrollPos();
+		CalculateFrameRect();
+		BreakText();
+		CalculateScrollPos();
 	}
 }
 
 
 //! Checks if word wrap is enabled
-bool CGUIEditBox::isWordWrapEnabled() const
+bool UIEditBox::IsWordWrapEnabled() const
 {
-	_IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX;
-	return WordWrap;
+	return mWordWrap;
 }
 
 
 //! Enables or disables newlines.
-void CGUIEditBox::setMultiLine(bool enable)
+void UIEditBox::SetMultiLine(bool enable)
 {
-	MultiLine = enable;
-	breakText();
+	mMultiLine = enable;
+	BreakText();
 }
 
 
 //! Checks if multi line editing is enabled
-bool CGUIEditBox::isMultiLineEnabled() const
+bool UIEditBox::IsMultiLineEnabled() const
 {
-	_IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX;
-	return MultiLine;
+	return mMultiLine;
 }
 
 
-void CGUIEditBox::setPasswordBox(bool passwordBox, wchar_t passwordChar)
+void UIEditBox::SetPasswordBox(bool passwordBox, wchar_t passwordChar)
 {
-	PasswordBox = passwordBox;
-	if (PasswordBox)
+	mPasswordBox = passwordBox;
+	if (mPasswordBox)
 	{
-		PasswordChar = passwordChar;
-		setMultiLine(false);
-		setWordWrap(false);
-		BrokenText.clear();
+		mPasswordChar = passwordChar;
+		SetMultiLine(false);
+		SetWordWrap(false);
+		mBrokenText.clear();
 	}
 }
 
 
-bool CGUIEditBox::isPasswordBox() const
+bool UIEditBox::IsPasswordBox() const
 {
-	_IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX;
-	return PasswordBox;
+	return mPasswordBox;
 }
 
 
 //! Sets text justification
-void CGUIEditBox::setTextAlignment(EGUI_ALIGNMENT horizontal, EGUI_ALIGNMENT vertical)
+void UIEditBox::SetTextAlignment(UIAlignment horizontal, UIAlignment vertical)
 {
-	HAlign = horizontal;
-	VAlign = vertical;
+	mHAlign = horizontal;
+	mVAlign = vertical;
 }
 
 
 //! called if an event happened.
-bool CGUIEditBox::OnEvent(const SEvent& event)
+bool UIEditBox::OnEvent(const Event& event)
 {
-	if (isEnabled())
+	if (IsEnabled())
 	{
-
-		switch(event.EventType)
+		switch(event.mEventType)
 		{
-		case EET_GUI_EVENT:
-			if (event.GUIEvent.EventType == EGET_ELEMENT_FOCUS_LOST)
+		case ET_UI_EVENT:
+			if (event.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUS_LOST)
 			{
-				if (event.GUIEvent.Caller == this)
+				if (event.mUIEvent.mCaller == this)
 				{
-					MouseMarking = false;
-					setTextMarkers(0,0);
+					mMouseMarking = false;
+					SetTextMarkers(0,0);
 				}
 			}
 			break;
-		case EET_KEY_INPUT_EVENT:
-			if (processKey(event))
+		case ET_KEY_INPUT_EVENT:
+			if (ProcessKey(event))
 				return true;
 			break;
-		case EET_MOUSE_INPUT_EVENT:
-			if (processMouse(event))
+		case ET_MOUSE_INPUT_EVENT:
+			if (ProcessMouse(event))
 				return true;
 			break;
 		default:
@@ -249,891 +211,883 @@ bool CGUIEditBox::OnEvent(const SEvent& event)
 		}
 	}
 
-	return IGUIElement::OnEvent(event);
+	return BaseUIElement::OnEvent(event);
 }
 
 
-bool CGUIEditBox::processKey(const SEvent& event)
+bool UIEditBox::ProcessKey(const Event& event)
 {
-	if (!event.KeyInput.PressedDown)
+	if (!event.mKeyInput.mPressedDown)
 		return false;
 
 	bool textChanged = false;
-	s32 newMarkBegin = MarkBegin;
-	s32 newMarkEnd = MarkEnd;
+	int newMarkBegin = mMarkBegin;
+	int newMarkEnd = mMarkEnd;
 
 	// control shortcut handling
-
-	if (event.KeyInput.Control)
+	if (event.mKeyInput.mControl)
 	{
 		// german backlash '\' entered with control + '?'
-		if ( event.KeyInput.Char == '\\' )
+		if (event.mKeyInput.mChar == '\\' )
 		{
-			inputChar(event.KeyInput.Char);
+			InputChar(event.mKeyInput.mChar);
 			return true;
 		}
 
-		switch(event.KeyInput.Key)
+		switch(event.mKeyInput.mKey)
 		{
-		case KEY_KEY_A:
-			// select all
-			newMarkBegin = 0;
-			newMarkEnd = Text.size();
-			break;
-		case KEY_KEY_C:
-			// copy to clipboard
-			if (!PasswordBox && Operator && MarkBegin != MarkEnd)
-			{
-				const s32 realmbgn = MarkBegin < MarkEnd ? MarkBegin : MarkEnd;
-				const s32 realmend = MarkBegin < MarkEnd ? MarkEnd : MarkBegin;
-
-				core::stringc s;
-				s = Text.subString(realmbgn, realmend - realmbgn).c_str();
-				Operator->copyToClipboard(s.c_str());
-			}
-			break;
-		case KEY_KEY_X:
-			// cut to the clipboard
-			if (!PasswordBox && Operator && MarkBegin != MarkEnd)
-			{
-				const s32 realmbgn = MarkBegin < MarkEnd ? MarkBegin : MarkEnd;
-				const s32 realmend = MarkBegin < MarkEnd ? MarkEnd : MarkBegin;
-
-				// copy
-				core::stringc sc;
-				sc = Text.subString(realmbgn, realmend - realmbgn).c_str();
-				Operator->copyToClipboard(sc.c_str());
-
-				if (isEnabled())
-				{
-					// delete
-					core::stringw s;
-					s = Text.subString(0, realmbgn);
-					s.append( Text.subString(realmend, Text.size()-realmend) );
-					Text = s;
-
-					CursorPos = realmbgn;
-					newMarkBegin = 0;
-					newMarkEnd = 0;
-					textChanged = true;
-				}
-			}
-			break;
-		case KEY_KEY_V:
-			if ( !isEnabled() )
+			case KEY_KEY_A:
+				// select all
+				newMarkBegin = 0;
+				newMarkEnd = mText.size();
 				break;
+			case KEY_KEY_C:
+				// copy to clipboard
+				if (!mPasswordBox && mMarkBegin != mMarkEnd)
+				{
+					const int realmbgn = mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd;
+					const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
 
-			// paste from the clipboard
-			if (Operator)
+					eastl::wstring s;
+					s = mText.substr(realmbgn, realmend - realmbgn);
+					//Operator->copyToClipboard(s.c_str());
+				}
+				break;
+			case KEY_KEY_X:
+				// cut to the clipboard
+				if (!mPasswordBox && mMarkBegin != mMarkEnd)
+				{
+					const int realmbgn = mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd;
+					const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
+
+					// copy
+					eastl::wstring s;
+					s = mText.substr(realmbgn, realmend - realmbgn);
+					//Operator->copyToClipboard(s.c_str());
+
+					if (IsEnabled())
+					{
+						// delete
+						eastl::wstring s;
+						s = mText.substr(0, realmbgn);
+						s.append( mText.substr(realmend, mText.size()-realmend) );
+						mText = s;
+
+						mCursorPos = realmbgn;
+						newMarkBegin = 0;
+						newMarkEnd = 0;
+						textChanged = true;
+					}
+				}
+				break;
+			case KEY_KEY_V:
 			{
-				const s32 realmbgn = MarkBegin < MarkEnd ? MarkBegin : MarkEnd;
-				const s32 realmend = MarkBegin < MarkEnd ? MarkEnd : MarkBegin;
+				if (!IsEnabled())
+					break;
+
+				// paste from the clipboard
+				const int realmbgn = mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd;
+				const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
 
 				// add new character
-				const c8* p = Operator->getTextFromClipboard();
+				const char* p; // = Operator->getTextFromClipboard();
 				if (p)
 				{
 					// TODO: we should have such a function in core::string
 					size_t lenOld = strlen(p);
 					wchar_t *ws = new wchar_t[lenOld + 1];
-					size_t len = mbstowcs(ws,p,lenOld);
+					size_t len = mbstowcs(ws, p, lenOld);
 					ws[len] = 0;
-					irr::core::stringw widep(ws);
+					eastl::wstring widep(ws);
 					delete[] ws;
 
-					if (MarkBegin == MarkEnd)
+					if (mMarkBegin == mMarkEnd)
 					{
 						// insert text
-						core::stringw s = Text.subString(0, CursorPos);
+						eastl::wstring s = mText.substr(0, mCursorPos);
 						s.append(widep);
-						s.append( Text.subString(CursorPos, Text.size()-CursorPos) );
+						s.append(mText.substr(mCursorPos, mText.size() - mCursorPos));
 
-						if (!Max || s.size()<=Max) // thx to Fish FH for fix
+						if (!mMax || s.size() <= mMax) // thx to Fish FH for fix
 						{
-							Text = s;
+							mText = s;
 							s = widep;
-							CursorPos += s.size();
+							mCursorPos += s.size();
 						}
 					}
 					else
 					{
 						// replace text
-
-						core::stringw s = Text.subString(0, realmbgn);
+						eastl::wstring s = mText.substr(0, realmbgn);
 						s.append(widep);
-						s.append( Text.subString(realmend, Text.size()-realmend) );
+						s.append(mText.substr(realmend, mText.size() - realmend));
 
-						if (!Max || s.size()<=Max)  // thx to Fish FH for fix
+						if (!mMax || s.size() <= mMax)  // thx to Fish FH for fix
 						{
-							Text = s;
+							mText = s;
 							s = widep;
-							CursorPos = realmbgn + s.size();
+							mCursorPos = realmbgn + s.size();
 						}
 					}
-				}
 
-				newMarkBegin = 0;
-				newMarkEnd = 0;
-				textChanged = true;
+					newMarkBegin = 0;
+					newMarkEnd = 0;
+					textChanged = true;
+				}
+				break;
 			}
-			break;
-		case KEY_HOME:
-			// move/highlight to start of text
-			if (event.KeyInput.Shift)
-			{
-				newMarkEnd = CursorPos;
-				newMarkBegin = 0;
-				CursorPos = 0;
-			}
-			else
-			{
-				CursorPos = 0;
-				newMarkBegin = 0;
-				newMarkEnd = 0;
-			}
-			break;
-		case KEY_END:
-			// move/highlight to end of text
-			if (event.KeyInput.Shift)
-			{
-				newMarkBegin = CursorPos;
-				newMarkEnd = Text.size();
-				CursorPos = 0;
-			}
-			else
-			{
-				CursorPos = Text.size();
-				newMarkBegin = 0;
-				newMarkEnd = 0;
-			}
-			break;
-		default:
-			return false;
+			case KEY_HOME:
+				// move/highlight to start of text
+				if (event.mKeyInput.mShift)
+				{
+					newMarkEnd = mCursorPos;
+					newMarkBegin = 0;
+					mCursorPos = 0;
+				}
+				else
+				{
+					mCursorPos = 0;
+					newMarkBegin = 0;
+					newMarkEnd = 0;
+				}
+				break;
+			case KEY_END:
+				// move/highlight to end of text
+				if (event.mKeyInput.mShift)
+				{
+					newMarkBegin = mCursorPos;
+					newMarkEnd = mText.size();
+					mCursorPos = 0;
+				}
+				else
+				{
+					mCursorPos = mText.size();
+					newMarkBegin = 0;
+					newMarkEnd = 0;
+				}
+				break;
+			default:
+				return false;
 		}
 	}
 	// default keyboard handling
 	else
-	switch(event.KeyInput.Key)
 	{
-	case KEY_END:
+		switch (event.mKeyInput.mKey)
 		{
-			s32 p = Text.size();
-			if (WordWrap || MultiLine)
+			case KEY_END:
 			{
-				p = getLineFromPos(CursorPos);
-				p = BrokenTextPositions[p] + (s32)BrokenText[p].size();
-				if (p > 0 && (Text[p-1] == L'\r' || Text[p-1] == L'\n' ))
-					p-=1;
-			}
+				int p = mText.size();
+				if (mWordWrap || mMultiLine)
+				{
+					p = GetLineFromPos(mCursorPos);
+					p = mBrokenTextPositions[p] + mBrokenText[p].size();
+					if (p > 0 && (mText[p - 1] == L'\r' || mText[p - 1] == L'\n'))
+						p -= 1;
+				}
 
-			if (event.KeyInput.Shift)
-			{
-				if (MarkBegin == MarkEnd)
-					newMarkBegin = CursorPos;
+				if (event.mKeyInput.mShift)
+				{
+					if (mMarkBegin == mMarkEnd)
+						newMarkBegin = mCursorPos;
 
-				newMarkEnd = p;
-			}
-			else
-			{
-				newMarkBegin = 0;
-				newMarkEnd = 0;
-			}
-			CursorPos = p;
-			BlinkStartTime = os::Timer::getTime();
-		}
-		break;
-	case KEY_HOME:
-		{
-
-			s32 p = 0;
-			if (WordWrap || MultiLine)
-			{
-				p = getLineFromPos(CursorPos);
-				p = BrokenTextPositions[p];
-			}
-
-			if (event.KeyInput.Shift)
-			{
-				if (MarkBegin == MarkEnd)
-					newMarkBegin = CursorPos;
-				newMarkEnd = p;
-			}
-			else
-			{
-				newMarkBegin = 0;
-				newMarkEnd = 0;
-			}
-			CursorPos = p;
-			BlinkStartTime = os::Timer::getTime();
-		}
-		break;
-	case KEY_RETURN:
-		if (MultiLine)
-		{
-			inputChar(L'\n');
-		}
-		else
-		{
-			calculateScrollPos();
-			sendGuiEvent( EGET_EDITBOX_ENTER );
-		}
-		return true;
-	case KEY_LEFT:
-
-		if (event.KeyInput.Shift)
-		{
-			if (CursorPos > 0)
-			{
-				if (MarkBegin == MarkEnd)
-					newMarkBegin = CursorPos;
-
-				newMarkEnd = CursorPos-1;
-			}
-		}
-		else
-		{
-			newMarkBegin = 0;
-			newMarkEnd = 0;
-		}
-
-		if (CursorPos > 0) CursorPos--;
-		BlinkStartTime = os::Timer::getTime();
-		break;
-
-	case KEY_RIGHT:
-		if (event.KeyInput.Shift)
-		{
-			if (Text.size() > (u32)CursorPos)
-			{
-				if (MarkBegin == MarkEnd)
-					newMarkBegin = CursorPos;
-
-				newMarkEnd = CursorPos+1;
-			}
-		}
-		else
-		{
-			newMarkBegin = 0;
-			newMarkEnd = 0;
-		}
-
-		if (Text.size() > (u32)CursorPos) CursorPos++;
-		BlinkStartTime = os::Timer::getTime();
-		break;
-	case KEY_UP:
-		if (MultiLine || (WordWrap && BrokenText.size() > 1) )
-		{
-			s32 lineNo = getLineFromPos(CursorPos);
-			s32 mb = (MarkBegin == MarkEnd) ? CursorPos : (MarkBegin > MarkEnd ? MarkBegin : MarkEnd);
-			if (lineNo > 0)
-			{
-				s32 cp = CursorPos - BrokenTextPositions[lineNo];
-				if ((s32)BrokenText[lineNo-1].size() < cp)
-					CursorPos = BrokenTextPositions[lineNo-1] + core::max_((u32)1, BrokenText[lineNo-1].size())-1;
+					newMarkEnd = p;
+				}
 				else
-					CursorPos = BrokenTextPositions[lineNo-1] + cp;
+				{
+					newMarkBegin = 0;
+					newMarkEnd = 0;
+				}
+				mCursorPos = p;
+				mBlinkStartTime = Timer::GetTime();
 			}
-
-			if (event.KeyInput.Shift)
-			{
-				newMarkBegin = mb;
-				newMarkEnd = CursorPos;
-			}
-			else
-			{
-				newMarkBegin = 0;
-				newMarkEnd = 0;
-			}
-
-		}
-		else
-		{
-			return false;
-		}
-		break;
-	case KEY_DOWN:
-		if (MultiLine || (WordWrap && BrokenText.size() > 1) )
-		{
-			s32 lineNo = getLineFromPos(CursorPos);
-			s32 mb = (MarkBegin == MarkEnd) ? CursorPos : (MarkBegin < MarkEnd ? MarkBegin : MarkEnd);
-			if (lineNo < (s32)BrokenText.size()-1)
-			{
-				s32 cp = CursorPos - BrokenTextPositions[lineNo];
-				if ((s32)BrokenText[lineNo+1].size() < cp)
-					CursorPos = BrokenTextPositions[lineNo+1] + core::max_((u32)1, BrokenText[lineNo+1].size())-1;
-				else
-					CursorPos = BrokenTextPositions[lineNo+1] + cp;
-			}
-
-			if (event.KeyInput.Shift)
-			{
-				newMarkBegin = mb;
-				newMarkEnd = CursorPos;
-			}
-			else
-			{
-				newMarkBegin = 0;
-				newMarkEnd = 0;
-			}
-
-		}
-		else
-		{
-			return false;
-		}
-		break;
-
-	case KEY_BACK:
-		if ( !isEnabled() )
 			break;
-
-		if (Text.size())
-		{
-			core::stringw s;
-
-			if (MarkBegin != MarkEnd)
+			case KEY_HOME:
 			{
-				// delete marked text
-				const s32 realmbgn = MarkBegin < MarkEnd ? MarkBegin : MarkEnd;
-				const s32 realmend = MarkBegin < MarkEnd ? MarkEnd : MarkBegin;
+				int p = 0;
+				if (mWordWrap || mMultiLine)
+				{
+					p = GetLineFromPos(mCursorPos);
+					p = mBrokenTextPositions[p];
+				}
 
-				s = Text.subString(0, realmbgn);
-				s.append( Text.subString(realmend, Text.size()-realmend) );
-				Text = s;
-
-				CursorPos = realmbgn;
-			}
-			else
-			{
-				// delete text behind cursor
-				if (CursorPos>0)
-					s = Text.subString(0, CursorPos-1);
+				if (event.mKeyInput.mShift)
+				{
+					if (mMarkBegin == mMarkEnd)
+						newMarkBegin = mCursorPos;
+					newMarkEnd = p;
+				}
 				else
-					s = L"";
-				s.append( Text.subString(CursorPos, Text.size()-CursorPos) );
-				Text = s;
-				--CursorPos;
+				{
+					newMarkBegin = 0;
+					newMarkEnd = 0;
+				}
+				mCursorPos = p;
+				mBlinkStartTime = Timer::GetTime();
 			}
-
-			if (CursorPos < 0)
-				CursorPos = 0;
-			BlinkStartTime = os::Timer::getTime();
-			newMarkBegin = 0;
-			newMarkEnd = 0;
-			textChanged = true;
-		}
-		break;
-	case KEY_DELETE:
-		if ( !isEnabled() )
 			break;
+			case KEY_RETURN:
+				if (mMultiLine)
+				{
+					InputChar(L'\n');
+				}
+				else
+				{
+					CalculateScrollPos();
+					SendUIEvent(UIEVT_EDITBOX_ENTER);
+				}
+				return true;
+			case KEY_LEFT:
 
-		if (Text.size() != 0)
-		{
-			core::stringw s;
+				if (event.mKeyInput.mShift)
+				{
+					if (mCursorPos > 0)
+					{
+						if (mMarkBegin == mMarkEnd)
+							newMarkBegin = mCursorPos;
 
-			if (MarkBegin != MarkEnd)
-			{
-				// delete marked text
-				const s32 realmbgn = MarkBegin < MarkEnd ? MarkBegin : MarkEnd;
-				const s32 realmend = MarkBegin < MarkEnd ? MarkEnd : MarkBegin;
+						newMarkEnd = mCursorPos - 1;
+					}
+				}
+				else
+				{
+					newMarkBegin = 0;
+					newMarkEnd = 0;
+				}
 
-				s = Text.subString(0, realmbgn);
-				s.append( Text.subString(realmend, Text.size()-realmend) );
-				Text = s;
+				if (mCursorPos > 0) mCursorPos--;
+				mBlinkStartTime = Timer::GetTime();
+				break;
 
-				CursorPos = realmbgn;
-			}
-			else
-			{
-				// delete text before cursor
-				s = Text.subString(0, CursorPos);
-				s.append( Text.subString(CursorPos+1, Text.size()-CursorPos-1) );
-				Text = s;
-			}
+			case KEY_RIGHT:
+				if (event.mKeyInput.mShift)
+				{
+					if ((int)mText.size() > mCursorPos)
+					{
+						if (mMarkBegin == mMarkEnd)
+							newMarkBegin = mCursorPos;
 
-			if (CursorPos > (s32)Text.size())
-				CursorPos = (s32)Text.size();
+						newMarkEnd = mCursorPos + 1;
+					}
+				}
+				else
+				{
+					newMarkBegin = 0;
+					newMarkEnd = 0;
+				}
 
-			BlinkStartTime = os::Timer::getTime();
-			newMarkBegin = 0;
-			newMarkEnd = 0;
-			textChanged = true;
+				if ((int)mText.size() > mCursorPos) mCursorPos++;
+				mBlinkStartTime = Timer::GetTime();
+				break;
+			case KEY_UP:
+				if (mMultiLine || (mWordWrap && mBrokenText.size() > 1))
+				{
+					int lineNo = GetLineFromPos(mCursorPos);
+					int mb = (mMarkBegin == mMarkEnd) ? mCursorPos : (mMarkBegin > mMarkEnd ? mMarkBegin : mMarkEnd);
+					if (lineNo > 0)
+					{
+						int cp = mCursorPos - mBrokenTextPositions[lineNo];
+						if ((int)mBrokenText[lineNo - 1].size() < cp)
+							mCursorPos = mBrokenTextPositions[lineNo - 1] + eastl::max((unsigned int)1, (unsigned int)mBrokenText[lineNo - 1].size()) - 1;
+						else
+							mCursorPos = mBrokenTextPositions[lineNo - 1] + cp;
+					}
+
+					if (event.mKeyInput.mShift)
+					{
+						newMarkBegin = mb;
+						newMarkEnd = mCursorPos;
+					}
+					else
+					{
+						newMarkBegin = 0;
+						newMarkEnd = 0;
+					}
+				}
+				else
+				{
+					return false;
+				}
+				break;
+			case KEY_DOWN:
+				if (mMultiLine || (mWordWrap && mBrokenText.size() > 1))
+				{
+					int lineNo = GetLineFromPos(mCursorPos);
+					int mb = (mMarkBegin == mMarkEnd) ? mCursorPos : (mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd);
+					if (lineNo < (int)mBrokenText.size() - 1)
+					{
+						int cp = mCursorPos - mBrokenTextPositions[lineNo];
+						if ((int)mBrokenText[lineNo + 1].size() < cp)
+							mCursorPos = mBrokenTextPositions[lineNo + 1] + eastl::max((unsigned int)1, (unsigned int)mBrokenText[lineNo + 1].size()) - 1;
+						else
+							mCursorPos = mBrokenTextPositions[lineNo + 1] + cp;
+					}
+
+					if (event.mKeyInput.mShift)
+					{
+						newMarkBegin = mb;
+						newMarkEnd = mCursorPos;
+					}
+					else
+					{
+						newMarkBegin = 0;
+						newMarkEnd = 0;
+					}
+				}
+				else
+				{
+					return false;
+				}
+				break;
+
+			case KEY_BACK:
+				if (!IsEnabled())
+					break;
+
+				if (mText.size())
+				{
+					eastl::wstring s;
+
+					if (mMarkBegin != mMarkEnd)
+					{
+						// delete marked text
+						const int realmbgn = mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd;
+						const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
+
+						s = mText.substr(0, realmbgn);
+						s.append(mText.substr(realmend, mText.size() - realmend));
+						mText = s;
+
+						mCursorPos = realmbgn;
+					}
+					else
+					{
+						// delete text behind cursor
+						if (mCursorPos>0)
+							s = mText.substr(0, mCursorPos - 1);
+						else
+							s = L"";
+						s.append(mText.substr(mCursorPos, mText.size() - mCursorPos));
+						mText = s;
+						--mCursorPos;
+					}
+
+					if (mCursorPos < 0)
+						mCursorPos = 0;
+					mBlinkStartTime = Timer::GetTime();
+					newMarkBegin = 0;
+					newMarkEnd = 0;
+					textChanged = true;
+				}
+				break;
+			case KEY_DELETE:
+				if (!IsEnabled())
+					break;
+
+				if (mText.size() != 0)
+				{
+					eastl::wstring s;
+
+					if (mMarkBegin != mMarkEnd)
+					{
+						// delete marked text
+						const int realmbgn = mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd;
+						const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
+
+						s = mText.substr(0, realmbgn);
+						s.append(mText.substr(realmend, mText.size() - realmend));
+						mText = s;
+
+						mCursorPos = realmbgn;
+					}
+					else
+					{
+						// delete text before cursor
+						s = mText.substr(0, mCursorPos);
+						s.append(mText.substr(mCursorPos + 1, mText.size() - mCursorPos - 1));
+						mText = s;
+					}
+
+					if (mCursorPos > (int)mText.size())
+						mCursorPos = (int)mText.size();
+
+					mBlinkStartTime = Timer::GetTime();
+					newMarkBegin = 0;
+					newMarkEnd = 0;
+					textChanged = true;
+				}
+				break;
+
+			case KEY_ESCAPE:
+			case KEY_TAB:
+			case KEY_SHIFT:
+			case KEY_F1:
+			case KEY_F2:
+			case KEY_F3:
+			case KEY_F4:
+			case KEY_F5:
+			case KEY_F6:
+			case KEY_F7:
+			case KEY_F8:
+			case KEY_F9:
+			case KEY_F10:
+			case KEY_F11:
+			case KEY_F12:
+			case KEY_F13:
+			case KEY_F14:
+			case KEY_F15:
+			case KEY_F16:
+			case KEY_F17:
+			case KEY_F18:
+			case KEY_F19:
+			case KEY_F20:
+			case KEY_F21:
+			case KEY_F22:
+			case KEY_F23:
+			case KEY_F24:
+				// ignore these keys
+				return false;
+
+			default:
+				InputChar(event.mKeyInput.mChar);
+				return true;
 		}
-		break;
-
-	case KEY_ESCAPE:
-	case KEY_TAB:
-	case KEY_SHIFT:
-	case KEY_F1:
-	case KEY_F2:
-	case KEY_F3:
-	case KEY_F4:
-	case KEY_F5:
-	case KEY_F6:
-	case KEY_F7:
-	case KEY_F8:
-	case KEY_F9:
-	case KEY_F10:
-	case KEY_F11:
-	case KEY_F12:
-	case KEY_F13:
-	case KEY_F14:
-	case KEY_F15:
-	case KEY_F16:
-	case KEY_F17:
-	case KEY_F18:
-	case KEY_F19:
-	case KEY_F20:
-	case KEY_F21:
-	case KEY_F22:
-	case KEY_F23:
-	case KEY_F24:
-		// ignore these keys
-		return false;
-
-	default:
-		inputChar(event.KeyInput.Char);
-		return true;
 	}
 
 	// Set new text markers
-	setTextMarkers( newMarkBegin, newMarkEnd );
+	SetTextMarkers( newMarkBegin, newMarkEnd );
 
 	// break the text if it has changed
 	if (textChanged)
 	{
-		breakText();
-		calculateScrollPos();
-		sendGuiEvent(EGET_EDITBOX_CHANGED);
+		BreakText();
+		CalculateScrollPos();
+		SendUIEvent(UIEVT_EDITBOX_CHANGED);
 	}
-	else
-	{
-		calculateScrollPos();
-	}
+	else CalculateScrollPos();
 
 	return true;
 }
 
 
 //! draws the element and its children
-void CGUIEditBox::draw()
+void UIEditBox::Draw()
 {
-	if (!IsVisible)
+	if (!IsVisible())
 		return;
 
-	const bool focus = Environment->hasFocus(this);
+	const bool focus = mUI->HasFocus(shared_from_this());
 
-	IGUISkin* skin = Environment->getSkin();
+	eastl::shared_ptr<BaseUISkin> skin = mUI->GetSkin();
 	if (!skin)
 		return;
 
-	EGUI_DEFAULT_COLOR bgCol = EGDC_GRAY_EDITABLE;
-	if ( isEnabled() )
-		bgCol = focus ? EGDC_FOCUSED_EDITABLE : EGDC_EDITABLE;
+	UIDefaultColor bgCol = DC_GRAY_EDITABLE;
+	if ( IsEnabled() )
+		bgCol = focus ? DC_FOCUSED_EDITABLE : DC_EDITABLE;
 
-	if (!Border && Background)
-	{
-		skin->draw2DRectangle(this, skin->getColor(bgCol), AbsoluteRect, &AbsoluteClippingRect);
-	}
+	if (!mBorder && mBackground)
+		skin->Draw2DRectangle(shared_from_this(), skin->GetColor(bgCol), mVisual, mAbsoluteRect, &mAbsoluteClippingRect);
 
-	if (Border)
+	if (mBorder)
 	{
 		// draw the border
-		skin->draw3DSunkenPane(this, skin->getColor(bgCol), false, Background, AbsoluteRect, &AbsoluteClippingRect);
+		skin->Draw3DSunkenPane(
+			shared_from_this(), skin->GetColor(bgCol), false, mBackground, mVisual, mAbsoluteRect, &mAbsoluteClippingRect);
 
-		calculateFrameRect();
+		CalculateFrameRect();
 	}
 
-	core::rect<s32> localClipRect = FrameRect;
-	localClipRect.clipAgainst(AbsoluteClippingRect);
+	RectangleBase<2, int> localClipRect(mFrameRect);
+	//localClipRect.ClipAgainst(mAbsoluteClippingRect);
 
 	// draw the text
+	const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 
-	IGUIFont* font = getActiveFont();
-
-	s32 cursorLine = 0;
-	s32 charcursorpos = 0;
+	int cursorLine = 0;
+	int charcursorpos = 0;
 
 	if (font)
 	{
-		if (LastBreakFont != font)
-		{
-			breakText();
-		}
+		if (mLastBreakFont != font)
+			BreakText();
 
 		// calculate cursor pos
+		eastl::wstring *txtLine = &mText;
+		int startPos = 0;
 
-		core::stringw *txtLine = &Text;
-		s32 startPos = 0;
-
-		core::stringw s, s2;
+		eastl::wstring s, s2;
 
 		// get mark position
-		const bool ml = (!PasswordBox && (WordWrap || MultiLine));
-		const s32 realmbgn = MarkBegin < MarkEnd ? MarkBegin : MarkEnd;
-		const s32 realmend = MarkBegin < MarkEnd ? MarkEnd : MarkBegin;
-		const s32 hlineStart = ml ? getLineFromPos(realmbgn) : 0;
-		const s32 hlineCount = ml ? getLineFromPos(realmend) - hlineStart + 1 : 1;
-		const s32 lineCount = ml ? BrokenText.size() : 1;
+		const bool ml = (!mPasswordBox && (mWordWrap || mMultiLine));
+		const int realmbgn = mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd;
+		const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
+		const int hlineStart = ml ? GetLineFromPos(realmbgn) : 0;
+		const int hlineCount = ml ? GetLineFromPos(realmend) - hlineStart + 1 : 1;
+		const int lineCount = ml ? mBrokenText.size() : 1;
 
 		// Save the override color information.
 		// Then, alter it if the edit box is disabled.
-		const bool prevOver = OverrideColorEnabled;
-		const video::SColor prevColor = OverrideColor;
+		const bool prevOver = mOverrideColorEnabled;
+		const eastl::array<float, 4> prevColor = mOverrideColor;
 
-		if (Text.size())
+		if (mText.size())
 		{
-			if (!isEnabled() && !OverrideColorEnabled)
+			if (!IsEnabled() && !mOverrideColorEnabled)
 			{
-				OverrideColorEnabled = true;
-				OverrideColor = skin->getColor(EGDC_GRAY_TEXT);
+				mOverrideColorEnabled = true;
+				mOverrideColor = skin->GetColor(DC_GRAY_TEXT);
 			}
 
-			for (s32 i=0; i < lineCount; ++i)
+			for (int i=0; i < lineCount; ++i)
 			{
-				setTextRect(i);
+				SetTextRect(i);
 
 				// clipping test - don't draw anything outside the visible area
-				core::rect<s32> c = localClipRect;
-				c.clipAgainst(CurrentTextRect);
-				if (!c.isValid())
-					continue;
+				RectangleBase<2, int> c = localClipRect;
+				//c.ClipAgainst(mCurrentTextRect);
+				//if (!c.IsValid())
+				//	continue;
 
 				// get current line
-				if (PasswordBox)
+				if (mPasswordBox)
 				{
-					if (BrokenText.size() != 1)
+					if (mBrokenText.size() != 1)
 					{
-						BrokenText.clear();
-						BrokenText.push_back(core::stringw());
+						mBrokenText.clear();
+						mBrokenText.push_back(eastl::wstring());
 					}
-					if (BrokenText[0].size() != Text.size())
+					if (mBrokenText[0].size() != mText.size())
 					{
-						BrokenText[0] = Text;
-						for (u32 q = 0; q < Text.size(); ++q)
+						mBrokenText[0] = mText;
+						for (unsigned int q = 0; q < mText.size(); ++q)
 						{
-							BrokenText[0] [q] = PasswordChar;
+							mBrokenText[0] [q] = mPasswordChar;
 						}
 					}
-					txtLine = &BrokenText[0];
+					txtLine = &mBrokenText[0];
 					startPos = 0;
 				}
 				else
 				{
-					txtLine = ml ? &BrokenText[i] : &Text;
-					startPos = ml ? BrokenTextPositions[i] : 0;
+					txtLine = ml ? &mBrokenText[i] : &mText;
+					startPos = ml ? mBrokenTextPositions[i] : 0;
 				}
 
 
 				// draw normal text
-				font->draw(txtLine->c_str(), CurrentTextRect,
-					OverrideColorEnabled ? OverrideColor : skin->getColor(EGDC_BUTTON_TEXT),
+				font->Draw(txtLine->c_str(), mCurrentTextRect,
+					mOverrideColorEnabled ? mOverrideColor : skin->GetColor(DC_BUTTON_TEXT),
 					false, true, &localClipRect);
 
 				// draw mark and marked text
-				if (focus && MarkBegin != MarkEnd && i >= hlineStart && i < hlineStart + hlineCount)
+				if (focus && mMarkBegin != mMarkEnd && 
+					i >= hlineStart && i < hlineStart + hlineCount)
 				{
 
-					s32 mbegin = 0, mend = 0;
-					s32 lineStartPos = 0, lineEndPos = txtLine->size();
+					int mbegin = 0, mend = 0;
+					int lineStartPos = 0, lineEndPos = txtLine->size();
 
 					if (i == hlineStart)
 					{
 						// highlight start is on this line
-						s = txtLine->subString(0, realmbgn - startPos);
-						mbegin = font->getDimension(s.c_str()).Width;
+						s = txtLine->substr(0, realmbgn - startPos);
+						/*
+						mbegin = font->GetDimension(s.c_str()).Width;
 
 						// deal with kerning
-						mbegin += font->getKerningWidth(
+						mbegin += font->GetKerningWidth(
 							&((*txtLine)[realmbgn - startPos]),
 							realmbgn - startPos > 0 ? &((*txtLine)[realmbgn - startPos - 1]) : 0);
-
+						*/
 						lineStartPos = realmbgn - startPos;
 					}
 					if (i == hlineStart + hlineCount - 1)
 					{
 						// highlight end is on this line
-						s2 = txtLine->subString(0, realmend - startPos);
-						mend = font->getDimension(s2.c_str()).Width;
-						lineEndPos = (s32)s2.size();
+						s2 = txtLine->substr(0, realmend - startPos);
+						//mend = font->GetDimension(s2.c_str()).Width;
+						lineEndPos = s2.size();
 					}
-					else
-						mend = font->getDimension(txtLine->c_str()).Width;
+					//else mend = font->GetDimension(txtLine->c_str()).Width;
 
-					CurrentTextRect.UpperLeftCorner.X += mbegin;
-					CurrentTextRect.LowerRightCorner.X = CurrentTextRect.UpperLeftCorner.X + mend - mbegin;
+					//mCurrentTextRect.UpperLeftCorner.X += mbegin;
+					//mCurrentTextRect.LowerRightCorner.X = CurrentTextRect.UpperLeftCorner.X + mend - mbegin;
 
 					// draw mark
-					skin->draw2DRectangle(this, skin->getColor(EGDC_HIGH_LIGHT), CurrentTextRect, &localClipRect);
+					skin->Draw2DRectangle(shared_from_this(), skin->GetColor(DC_HIGH_LIGHT), 
+						mVisual, mCurrentTextRect, &localClipRect);
 
 					// draw marked text
-					s = txtLine->subString(lineStartPos, lineEndPos - lineStartPos);
+					s = txtLine->substr(lineStartPos, lineEndPos - lineStartPos);
 
 					if (s.size())
-						font->draw(s.c_str(), CurrentTextRect,
-							OverrideColorEnabled ? OverrideColor : skin->getColor(EGDC_HIGH_LIGHT_TEXT),
+						font->Draw(s.c_str(), mCurrentTextRect,
+							mOverrideColorEnabled ? mOverrideColor : skin->GetColor(DC_HIGH_LIGHT_TEXT),
 							false, true, &localClipRect);
 
 				}
 			}
 
 			// Return the override color information to its previous settings.
-			OverrideColorEnabled = prevOver;
-			OverrideColor = prevColor;
+			mOverrideColorEnabled = prevOver;
+			mOverrideColor = prevColor;
 		}
 
 		// draw cursor
-		if ( IsEnabled )
+		if ( IsEnabled() )
 		{
-			if (WordWrap || MultiLine)
+			if (mWordWrap || mMultiLine)
 			{
-				cursorLine = getLineFromPos(CursorPos);
-				txtLine = &BrokenText[cursorLine];
-				startPos = BrokenTextPositions[cursorLine];
+				cursorLine = GetLineFromPos(mCursorPos);
+				txtLine = &mBrokenText[cursorLine];
+				startPos = mBrokenTextPositions[cursorLine];
 			}
-			s = txtLine->subString(0,CursorPos-startPos);
-			charcursorpos = font->getDimension(s.c_str()).Width +
-				font->getKerningWidth(L"_", CursorPos-startPos > 0 ? &((*txtLine)[CursorPos-startPos-1]) : 0);
-
-			if (focus && (os::Timer::getTime() - BlinkStartTime) % 700 < 350)
+			s = txtLine->substr(0,mCursorPos-startPos);
+			/*
+			charcursorpos = font->GetDimension(s.c_str()).Width +
+				font->GetKerningWidth(L"_", mCursorPos-startPos > 0 ? &((*txtLine)[mCursorPos-startPos-1]) : 0);
+			*/
+			if (focus && (Timer::GetTime() - mBlinkStartTime) % 700 < 350)
 			{
-				setTextRect(cursorLine);
-				CurrentTextRect.UpperLeftCorner.X += charcursorpos;
+				SetTextRect(cursorLine);
+				mCurrentTextRect.center[0] += charcursorpos;
 
-				font->draw(L"_", CurrentTextRect,
-					OverrideColorEnabled ? OverrideColor : skin->getColor(EGDC_BUTTON_TEXT),
+				font->Draw(L"_", mCurrentTextRect,
+					mOverrideColorEnabled ? mOverrideColor : skin->GetColor(DC_BUTTON_TEXT),
 					false, true, &localClipRect);
 			}
 		}
 	}
 
 	// draw children
-	IGUIElement::draw();
+	BaseUIElement::Draw();
 }
 
 
 //! Sets the new caption of this element.
-void CGUIEditBox::setText(const wchar_t* text)
+void UIEditBox::SetText(const wchar_t* text)
 {
-	Text = text;
-	if (u32(CursorPos) > Text.size())
-		CursorPos = Text.size();
-	HScrollPos = 0;
-	breakText();
+	mText = text;
+	if (mCursorPos > (int)mText.size())
+		mCursorPos = (int)mText.size();
+	mHScrollPos = 0;
+	BreakText();
 }
 
 
 //! Enables or disables automatic scrolling with cursor position
 //! \param enable: If set to true, the text will move around with the cursor position
-void CGUIEditBox::setAutoScroll(bool enable)
+void UIEditBox::SetAutoScroll(bool enable)
 {
-	AutoScroll = enable;
+	mAutoScroll = enable;
 }
 
 
 //! Checks to see if automatic scrolling is enabled
 //! \return true if automatic scrolling is enabled, false if not
-bool CGUIEditBox::isAutoScrollEnabled() const
+bool UIEditBox::IsAutoScrollEnabled() const
 {
-	_IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX;
-	return AutoScroll;
+	return mAutoScroll;
 }
 
 
 //! Gets the area of the text in the edit box
 //! \return Returns the size in pixels of the text
-core::dimension2du CGUIEditBox::getTextDimension()
+Vector2<int> UIEditBox::GetTextDimension()
 {
-	core::rect<s32> ret;
+	RectangleBase<2, int> ret;
 
-	setTextRect(0);
-	ret = CurrentTextRect;
+	SetTextRect(0);
+	ret = mCurrentTextRect;
 
-	for (u32 i=1; i < BrokenText.size(); ++i)
+	for (unsigned int i=1; i < mBrokenText.size(); ++i)
 	{
-		setTextRect(i);
-		ret.addInternalPoint(CurrentTextRect.UpperLeftCorner);
-		ret.addInternalPoint(CurrentTextRect.LowerRightCorner);
+		SetTextRect(i);
+		//ret.AddInternalPoint(mCurrentTextRect.center - mCurrentTextRect.extent / 2);
+		//ret.AddInternalPoint(mCurrentTextRect.center + mCurrentTextRect.extent / 2);
 	}
 
-	return core::dimension2du(ret.getSize());
+	return ret.extent;
 }
 
 
 //! Sets the maximum amount of characters which may be entered in the box.
 //! \param max: Maximum amount of characters. If 0, the character amount is
 //! infinity.
-void CGUIEditBox::setMax(u32 max)
+void UIEditBox::SetMax(unsigned int max)
 {
-	Max = max;
+	mMax = max;
 
-	if (Text.size() > Max && Max != 0)
-		Text = Text.subString(0, Max);
+	if (mText.size() > mMax && mMax != 0)
+		mText = mText.substr(0, mMax);
 }
 
 
 //! Returns maximum amount of characters, previously set by setMax();
-u32 CGUIEditBox::getMax() const
+unsigned int UIEditBox::GetMax() const
 {
-	return Max;
+	return mMax;
 }
 
 
-bool CGUIEditBox::processMouse(const SEvent& event)
+bool UIEditBox::ProcessMouse(const Event& event)
 {
-	switch(event.MouseInput.Event)
+	switch(event.mMouseInput.mEvent)
 	{
-	case irr::EMIE_LMOUSE_LEFT_UP:
-		if (Environment->hasFocus(this))
-		{
-			CursorPos = getCursorPos(event.MouseInput.X, event.MouseInput.Y);
-			if (MouseMarking)
+		case MIE_LMOUSE_LEFT_UP:
+			if (mUI->HasFocus(shared_from_this()))
 			{
-				setTextMarkers( MarkBegin, CursorPos );
-			}
-			MouseMarking = false;
-			calculateScrollPos();
-			return true;
-		}
-		break;
-	case irr::EMIE_MOUSE_MOVED:
-		{
-			if (MouseMarking)
-			{
-				CursorPos = getCursorPos(event.MouseInput.X, event.MouseInput.Y);
-				setTextMarkers( MarkBegin, CursorPos );
-				calculateScrollPos();
+				mCursorPos = GetCursorPos(event.mMouseInput.X, event.mMouseInput.Y);
+				if (mMouseMarking)
+					SetTextMarkers( mMarkBegin, mCursorPos );
+
+				mMouseMarking = false;
+				CalculateScrollPos();
 				return true;
 			}
-		}
-		break;
-	case EMIE_LMOUSE_PRESSED_DOWN:
-		if (!Environment->hasFocus(this))
-		{
-			BlinkStartTime = os::Timer::getTime();
-			MouseMarking = true;
-			CursorPos = getCursorPos(event.MouseInput.X, event.MouseInput.Y);
-			setTextMarkers(CursorPos, CursorPos );
-			calculateScrollPos();
-			return true;
-		}
-		else
-		{
-			if (!AbsoluteClippingRect.isPointInside(
-				core::position2d<s32>(event.MouseInput.X, event.MouseInput.Y)))
+			break;
+		case MIE_MOUSE_MOVED:
 			{
-				return false;
+				if (mMouseMarking)
+				{
+					mCursorPos = GetCursorPos(event.mMouseInput.X, event.mMouseInput.Y);
+					SetTextMarkers( mMarkBegin, mCursorPos );
+					CalculateScrollPos();
+					return true;
+				}
+			}
+			break;
+		case MIE_LMOUSE_PRESSED_DOWN:
+			if (!mUI->HasFocus(shared_from_this()))
+			{
+				mBlinkStartTime = Timer::GetTime();
+				mMouseMarking = true;
+				mCursorPos = GetCursorPos(event.mMouseInput.X, event.mMouseInput.Y);
+				SetTextMarkers(mCursorPos, mCursorPos );
+				CalculateScrollPos();
+				return true;
 			}
 			else
 			{
-				// move cursor
-				CursorPos = getCursorPos(event.MouseInput.X, event.MouseInput.Y);
+				/*
+				if (!mAbsoluteClippingRect.IsPointInside(event.mMouseInput.X, event.mMouseInput.Y))
+				{
+					return false;
+				}
+				else
+				{
+					// move cursor
+					mCursorPos = GetCursorPos(event.mMouseInput.X, event.mMouseInput.Y);
 
-				s32 newMarkBegin = MarkBegin;
-				if (!MouseMarking)
-					newMarkBegin = CursorPos;
+					int newMarkBegin = mMarkBegin;
+					if (!mMouseMarking)
+						newMarkBegin = mCursorPos;
 
-				MouseMarking = true;
-				setTextMarkers( newMarkBegin, CursorPos);
-				calculateScrollPos();
-				return true;
+					mMouseMarking = true;
+					SetTextMarkers( newMarkBegin, mCursorPos);
+					CalculateScrollPos();
+					return true;
+				}
+				*/
 			}
-		}
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return false;
 }
 
 
-s32 CGUIEditBox::getCursorPos(s32 x, s32 y)
+int UIEditBox::GetCursorPos(int x, int y)
 {
-	IGUIFont* font = getActiveFont();
+	const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 
-	const u32 lineCount = (WordWrap || MultiLine) ? BrokenText.size() : 1;
+	const unsigned int lineCount = (mWordWrap || mMultiLine) ? mBrokenText.size() : 1;
 
-	core::stringw *txtLine=0;
-	s32 startPos=0;
+	eastl::wstring *txtLine=0;
+	int startPos=0;
 	x+=3;
 
-	for (u32 i=0; i < lineCount; ++i)
+	for (unsigned int i=0; i < lineCount; ++i)
 	{
-		setTextRect(i);
-		if (i == 0 && y < CurrentTextRect.UpperLeftCorner.Y)
-			y = CurrentTextRect.UpperLeftCorner.Y;
-		if (i == lineCount - 1 && y > CurrentTextRect.LowerRightCorner.Y )
-			y = CurrentTextRect.LowerRightCorner.Y;
+		SetTextRect(i);
+		if (i == 0 && y < mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2))
+			y = mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2);
+		if (i == lineCount - 1 && y > mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f))
+			y = mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f);
 
 		// is it inside this region?
-		if (y >= CurrentTextRect.UpperLeftCorner.Y && y <= CurrentTextRect.LowerRightCorner.Y)
+		if (y >= mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2) && 
+			y <= mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f))
 		{
 			// we've found the clicked line
-			txtLine = (WordWrap || MultiLine) ? &BrokenText[i] : &Text;
-			startPos = (WordWrap || MultiLine) ? BrokenTextPositions[i] : 0;
+			txtLine = (mWordWrap || mMultiLine) ? &mBrokenText[i] : &mText;
+			startPos = (mWordWrap || mMultiLine) ? mBrokenTextPositions[i] : 0;
 			break;
 		}
 	}
 
-	if (x < CurrentTextRect.UpperLeftCorner.X)
-		x = CurrentTextRect.UpperLeftCorner.X;
+	if (x <  mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2))
+		x = mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2);
 
 	if ( !txtLine )
 		return 0;
-
-	s32 idx = font->getCharacterFromPos(txtLine->c_str(), x - CurrentTextRect.UpperLeftCorner.X);
+	/*
+	int idx = font->GetCharacterFromPos(txtLine->c_str(), 
+		x - (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2)));
 
 	// click was on or left of the line
 	if (idx != -1)
 		return idx + startPos;
-
+	*/
 	// click was off the right edge of the line, go to end.
 	return txtLine->size() + startPos;
 }
 
 
 //! Breaks the single text line.
-void CGUIEditBox::breakText()
+void UIEditBox::BreakText()
 {
-	if ((!WordWrap && !MultiLine))
+	if ((!mWordWrap && !mMultiLine))
 		return;
 
-	BrokenText.clear(); // need to reallocate :/
-	BrokenTextPositions.set_used(0);
+	mBrokenText.clear(); // need to reallocate :/
+	mBrokenTextPositions.resize(0);
 
-	IGUIFont* font = getActiveFont();
+	const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 	if (!font)
 		return;
 
-	LastBreakFont = font;
+	mLastBreakFont = font;
 
-	core::stringw line;
-	core::stringw word;
-	core::stringw whitespace;
-	s32 lastLineStart = 0;
-	s32 size = Text.size();
-	s32 length = 0;
-	s32 elWidth = RelativeRect.getWidth() - 6;
+	eastl::wstring line;
+	eastl::wstring word;
+	eastl::wstring whitespace;
+	int lastLineStart = 0;
+	int size = mText.size();
+	int length = 0;
+	int elWidth = mRelativeRect.extent[0] - 6;
 	wchar_t c;
 
-	for (s32 i=0; i<size; ++i)
+	for (int i=0; i<size; ++i)
 	{
-		c = Text[i];
+		c = mText[i];
 		bool lineBreak = false;
 
 		if (c == L'\r') // Mac or Windows breaks
 		{
 			lineBreak = true;
 			c = 0;
-			if (Text[i+1] == L'\n') // Windows breaks
+			if (mText[i+1] == L'\n') // Windows breaks
 			{
 				// TODO: I (Michael) think that we shouldn't change the text given by the user for whatever reason.
 				// Instead rework the cursor positioning to be able to handle this (but not in stable release
 				// branch as users might already expect this behavior).
-				Text.erase(i+1);
+				mText.erase(i+1);
 				--size;
-				if ( CursorPos > i )
-					--CursorPos;
+				if ( mCursorPos > i )
+					--mCursorPos;
 			}
 		}
 		else if (c == L'\n') // Unix breaks
@@ -1143,7 +1097,7 @@ void CGUIEditBox::breakText()
 		}
 
 		// don't break if we're not a multi-line edit box
-		if (!MultiLine)
+		if (!mMultiLine)
 			lineBreak = false;
 
 		if (c == L' ' || c == 0 || i == (size-1))
@@ -1151,16 +1105,16 @@ void CGUIEditBox::breakText()
 			// here comes the next whitespace, look if
 			// we can break the last word to the next line
 			// We also break whitespace, otherwise cursor would vanish beside the right border.
-			s32 whitelgth = font->getDimension(whitespace.c_str()).Width;
-			s32 worldlgth = font->getDimension(word.c_str()).Width;
+			int whitelgth = 0;// font->GetDimension(whitespace.c_str()).Width;
+			int worldlgth = 0;// font->GetDimension(word.c_str()).Width;
 
-			if (WordWrap && length + worldlgth + whitelgth > elWidth && line.size() > 0)
+			if (mWordWrap && length + worldlgth + whitelgth > elWidth && line.size() > 0)
 			{
 				// break to next line
 				length = worldlgth;
-				BrokenText.push_back(line);
-				BrokenTextPositions.push_back(lastLineStart);
-				lastLineStart = i - (s32)word.size();
+				mBrokenText.push_back(line);
+				mBrokenTextPositions.push_back(lastLineStart);
+				lastLineStart = i - word.size();
 				line = word;
 			}
 			else
@@ -1183,8 +1137,8 @@ void CGUIEditBox::breakText()
 			{
 				line += whitespace;
 				line += word;
-				BrokenText.push_back(line);
-				BrokenTextPositions.push_back(lastLineStart);
+				mBrokenText.push_back(line);
+				mBrokenTextPositions.push_back(lastLineStart);
 				lastLineStart = i+1;
 				line = L"";
 				word = L"";
@@ -1201,364 +1155,314 @@ void CGUIEditBox::breakText()
 
 	line += whitespace;
 	line += word;
-	BrokenText.push_back(line);
-	BrokenTextPositions.push_back(lastLineStart);
+	mBrokenText.push_back(line);
+	mBrokenTextPositions.push_back(lastLineStart);
 }
 
 // TODO: that function does interpret VAlign according to line-index (indexed line is placed on top-center-bottom)
 // but HAlign according to line-width (pixels) and not by row.
 // Intuitively I suppose HAlign handling is better as VScrollPos should handle the line-scrolling.
 // But please no one change this without also rewriting (and this time fucking testing!!!) autoscrolling (I noticed this when fixing the old autoscrolling).
-void CGUIEditBox::setTextRect(s32 line)
+void UIEditBox::SetTextRect(int line)
 {
 	if ( line < 0 )
 		return;
 
-	IGUIFont* font = getActiveFont();
+	const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 	if (!font)
 		return;
 
-	core::dimension2du d;
+	Vector2<int> d;
 
 	// get text dimension
-	const u32 lineCount = (WordWrap || MultiLine) ? BrokenText.size() : 1;
-	if (WordWrap || MultiLine)
+	const unsigned int lineCount = (mWordWrap || mMultiLine) ? mBrokenText.size() : 1;
+	/*
+	if (mWordWrap || mMultiLine)
 	{
-		d = font->getDimension(BrokenText[line].c_str());
+		d = font->GetDimension(mBrokenText[line].c_str());
 	}
 	else
 	{
-		d = font->getDimension(Text.c_str());
-		d.Height = AbsoluteRect.getHeight();
+		d = font->GetDimension(mText.c_str());
+		d[1] = mAbsoluteRect.extent[1];
 	}
-	d.Height += font->getKerningHeight();
-
+	d[1] += font->GetKerningHeight();
+	*/
 	// justification
-	switch (HAlign)
+	switch (mHAlign)
 	{
-	case EGUIA_CENTER:
-		// align to h centre
-		CurrentTextRect.UpperLeftCorner.X = (FrameRect.getWidth()/2) - (d.Width/2);
-		CurrentTextRect.LowerRightCorner.X = (FrameRect.getWidth()/2) + (d.Width/2);
-		break;
-	case EGUIA_LOWERRIGHT:
-		// align to right edge
-		CurrentTextRect.UpperLeftCorner.X = FrameRect.getWidth() - d.Width;
-		CurrentTextRect.LowerRightCorner.X = FrameRect.getWidth();
-		break;
-	default:
-		// align to left edge
-		CurrentTextRect.UpperLeftCorner.X = 0;
-		CurrentTextRect.LowerRightCorner.X = d.Width;
-
+		case UIA_CENTER:
+			// align to h centre
+			mCurrentTextRect.center[0] = mFrameRect.extent[0] / 2;
+			mCurrentTextRect.extent[0] = d[0];
+			break;
+		case UIA_LOWERRIGHT:
+			// align to right edge
+			mCurrentTextRect.center[0] = mFrameRect.extent[0] / 2;
+			mCurrentTextRect.extent[0] = d[0];
+			break;
+		default:
+			// align to left edge
+			mCurrentTextRect.center[0] = d[0] / 2;
+			mCurrentTextRect.extent[0] = d[0];
 	}
 
-	switch (VAlign)
+	switch (mVAlign)
 	{
-	case EGUIA_CENTER:
-		// align to v centre
-		CurrentTextRect.UpperLeftCorner.Y =
-			(FrameRect.getHeight()/2) - (lineCount*d.Height)/2 + d.Height*line;
-		break;
-	case EGUIA_LOWERRIGHT:
-		// align to bottom edge
-		CurrentTextRect.UpperLeftCorner.Y =
-			FrameRect.getHeight() - lineCount*d.Height + d.Height*line;
-		break;
-	default:
-		// align to top edge
-		CurrentTextRect.UpperLeftCorner.Y = d.Height*line;
-		break;
+		case UIA_CENTER:
+			// align to v centre
+			mCurrentTextRect.center[1] = 
+				(mFrameRect.extent[1] / 2) - (lineCount * d[1]) / 2 + (d[1] * line);
+			break;
+		case UIA_LOWERRIGHT:
+			// align to bottom edge
+			mCurrentTextRect.center[1] = 
+				mFrameRect.extent[1] - (lineCount * d[1]) + (d[1] * line);
+			break;
+		default:
+			// align to top edge
+			mCurrentTextRect.center[1] = (d[1] * line);
+			break;
 	}
 
-	CurrentTextRect.UpperLeftCorner.X  -= HScrollPos;
-	CurrentTextRect.LowerRightCorner.X -= HScrollPos;
-	CurrentTextRect.UpperLeftCorner.Y  -= VScrollPos;
-	CurrentTextRect.LowerRightCorner.Y = CurrentTextRect.UpperLeftCorner.Y + d.Height;
+	mCurrentTextRect.extent[0] -= 2 * mHScrollPos;
+	mCurrentTextRect.center[1] -= mVScrollPos;
+	mCurrentTextRect.extent[1] = d[1];
 
-	CurrentTextRect += FrameRect.UpperLeftCorner;
-
+	mCurrentTextRect.center += (mFrameRect.center - mFrameRect.center/2);
 }
 
 
-s32 CGUIEditBox::getLineFromPos(s32 pos)
+int UIEditBox::GetLineFromPos(int pos)
 {
-	if (!WordWrap && !MultiLine)
+	if (!mWordWrap && !mMultiLine)
 		return 0;
 
-	s32 i=0;
-	while (i < (s32)BrokenTextPositions.size())
+	int i=0;
+	while (i < (int)mBrokenTextPositions.size())
 	{
-		if (BrokenTextPositions[i] > pos)
+		if (mBrokenTextPositions[i] > pos)
 			return i-1;
 		++i;
 	}
-	return (s32)BrokenTextPositions.size() - 1;
+	return mBrokenTextPositions.size() - 1;
 }
 
 
-void CGUIEditBox::inputChar(wchar_t c)
+void UIEditBox::InputChar(wchar_t c)
 {
-	if (!isEnabled())
+	if (!IsEnabled())
 		return;
 
 	if (c != 0)
 	{
-		if (Text.size() < Max || Max == 0)
+		if (mText.size() < mMax || mMax == 0)
 		{
-			core::stringw s;
+			eastl::wstring s;
 
-			if (MarkBegin != MarkEnd)
+			if (mMarkBegin != mMarkEnd)
 			{
 				// replace marked text
-				const s32 realmbgn = MarkBegin < MarkEnd ? MarkBegin : MarkEnd;
-				const s32 realmend = MarkBegin < MarkEnd ? MarkEnd : MarkBegin;
+				const int realmbgn = mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd;
+				const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
 
-				s = Text.subString(0, realmbgn);
-				s.append(c);
-				s.append( Text.subString(realmend, Text.size()-realmend) );
-				Text = s;
-				CursorPos = realmbgn+1;
+				s = mText.substr(0, realmbgn);
+				s.append(1, c);
+				s.append( mText.substr(realmend, mText.size()-realmend) );
+				mText = s;
+				mCursorPos = realmbgn+1;
 			}
 			else
 			{
 				// add new character
-				s = Text.subString(0, CursorPos);
-				s.append(c);
-				s.append( Text.subString(CursorPos, Text.size()-CursorPos) );
-				Text = s;
-				++CursorPos;
+				s = mText.substr(0, mCursorPos);
+				s.append(1, c);
+				s.append( mText.substr(mCursorPos, mText.size()-mCursorPos) );
+				mText = s;
+				++mCursorPos;
 			}
 
-			BlinkStartTime = os::Timer::getTime();
-			setTextMarkers(0, 0);
+			mBlinkStartTime = Timer::GetTime();
+			SetTextMarkers(0, 0);
 		}
 	}
-	breakText();
-	calculateScrollPos();
-	sendGuiEvent(EGET_EDITBOX_CHANGED);
+	BreakText();
+	CalculateScrollPos();
+	SendUIEvent(UIEVT_EDITBOX_CHANGED);
 }
 
 // calculate autoscroll
-void CGUIEditBox::calculateScrollPos()
+void UIEditBox::CalculateScrollPos()
 {
-	if (!AutoScroll)
+	if (!mAutoScroll)
 		return;
 
-	IGUISkin* skin = Environment->getSkin();
+	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 	if (!skin)
 		return;
-	IGUIFont* font = OverrideFont ? OverrideFont : skin->getFont();
+
+	const eastl::shared_ptr<BaseUIFont>& font = mOverrideFont ? mOverrideFont : skin->GetFont();
 	if (!font)
 		return;
 
-	s32 cursLine = getLineFromPos(CursorPos);
+	int cursLine = GetLineFromPos(mCursorPos);
 	if ( cursLine < 0 )
 		return;
-	setTextRect(cursLine);
-	const bool hasBrokenText = MultiLine || WordWrap;
+
+	SetTextRect(cursLine);
+	const bool hasBrokenText = mMultiLine || mWordWrap;
 
 	// Check horizonal scrolling
 	// NOTE: Calculations different to vertical scrolling because setTextRect interprets VAlign relative to line but HAlign not relative to row
 	{
 		// get cursor position
-		IGUIFont* font = getActiveFont();
+		const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 		if (!font)
 			return;
 
 		// get cursor area
-		irr::u32 cursorWidth = font->getDimension(L"_").Width;
-		core::stringw *txtLine = hasBrokenText ? &BrokenText[cursLine] : &Text;
-		s32 cPos = hasBrokenText ? CursorPos - BrokenTextPositions[cursLine] : CursorPos;	// column
-		s32 cStart = font->getDimension(txtLine->subString(0, cPos).c_str()).Width;		// pixels from text-start
-		s32 cEnd = cStart + cursorWidth;
-		s32 txtWidth = font->getDimension(txtLine->c_str()).Width;
+		unsigned int cursorWidth = 0;// font->GetDimension(L"_").Width;
+		eastl::wstring *txtLine = hasBrokenText ? &mBrokenText[cursLine] : &mText;
+		int cPos = hasBrokenText ? mCursorPos - mBrokenTextPositions[cursLine] : mCursorPos;	// column
+		int cStart = 0;// font->GetDimension(txtLine->substr(0, cPos).c_str()).Width;		// pixels from text-start
+		int cEnd = cStart + cursorWidth;
+		int txtWidth = 0;// font->GetDimension(txtLine->c_str()).Width;
 
-		if ( txtWidth < FrameRect.getWidth() )
+		if ( txtWidth < mFrameRect.extent[0] )
 		{
 			// TODO: Needs a clean left and right gap removal depending on HAlign, similar to vertical scrolling tests for top/bottom.
 			// This check just fixes the case where it was most noticable (text smaller than clipping area).
-
-			HScrollPos = 0;
-			setTextRect(cursLine);
+			mHScrollPos = 0;
+			SetTextRect(cursLine);
 		}
 
-		if ( CurrentTextRect.UpperLeftCorner.X+cStart < FrameRect.UpperLeftCorner.X )
+		if ( mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cStart < mFrameRect.center[0] - (mFrameRect.extent[0] / 2))
 		{
 			// cursor to the left of the clipping area
-			HScrollPos -= FrameRect.UpperLeftCorner.X-(CurrentTextRect.UpperLeftCorner.X+cStart);
-			setTextRect(cursLine);
+			mHScrollPos -= mFrameRect.center[0] - (mFrameRect.extent[0] / 2) - 
+				(mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cStart);
+			SetTextRect(cursLine);
 
 			// TODO: should show more characters to the left when we're scrolling left
 			//	and the cursor reaches the border.
 		}
-		else if ( CurrentTextRect.UpperLeftCorner.X+cEnd > FrameRect.LowerRightCorner.X)
+		else if (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cEnd > mFrameRect.center[0] - (mFrameRect.extent[0] / 2))
 		{
 			// cursor to the right of the clipping area
-			HScrollPos += (CurrentTextRect.UpperLeftCorner.X+cEnd)-FrameRect.LowerRightCorner.X;
-			setTextRect(cursLine);
+			mHScrollPos += (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cEnd ) - mFrameRect.center[0] - (mFrameRect.extent[0] / 2);
+			SetTextRect(cursLine);
 		}
 	}
 
 	// calculate vertical scrolling
 	if (hasBrokenText)
 	{
-		irr::u32 lineHeight = font->getDimension(L"A").Height + font->getKerningHeight();
+		int lineHeight = 0;// font->GetDimension(L"A").Height + font->GetKerningHeight();
 		// only up to 1 line fits?
-		if ( lineHeight >= (irr::u32)FrameRect.getHeight() )
+		if ( lineHeight >= mFrameRect.extent[1] )
 		{
-			VScrollPos = 0;
-			setTextRect(cursLine);
-			s32 unscrolledPos = CurrentTextRect.UpperLeftCorner.Y;
-			s32 pivot = FrameRect.UpperLeftCorner.Y;
-			switch (VAlign)
+			mVScrollPos = 0;
+			SetTextRect(cursLine);
+			int unscrolledPos = mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2);
+			int pivot = mFrameRect.center[1] - (mFrameRect.extent[1] / 2);
+			switch (mVAlign)
 			{
-				case EGUIA_CENTER:
-					pivot += FrameRect.getHeight()/2;
-					unscrolledPos += lineHeight/2;
+				case UIA_CENTER:
+					pivot += mFrameRect.extent[1] / 2;
+					unscrolledPos += lineHeight / 2;
 					break;
-				case EGUIA_LOWERRIGHT:
-					pivot += FrameRect.getHeight();
+				case UIA_LOWERRIGHT:
+					pivot += mFrameRect.extent[1];
 					unscrolledPos += lineHeight;
 					break;
 				default:
 					break;
 			}
-			VScrollPos = unscrolledPos-pivot;
-			setTextRect(cursLine);
+			mVScrollPos = unscrolledPos-pivot;
+			SetTextRect(cursLine);
 		}
 		else
 		{
 			// First 2 checks are necessary when people delete lines
-			setTextRect(0);
-			if ( CurrentTextRect.UpperLeftCorner.Y > FrameRect.UpperLeftCorner.Y && VAlign != EGUIA_LOWERRIGHT)
+			SetTextRect(0);
+			if (mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2) > 
+				mFrameRect.center[1] - (mFrameRect.extent[1] / 2) &&
+				mVAlign != UIA_LOWERRIGHT)
 			{
 				// first line is leaving a gap on top
-				VScrollPos = 0;
+				mVScrollPos = 0;
 			}
-			else if (VAlign != EGUIA_UPPERLEFT)
+			else if (mVAlign != UIA_UPPERLEFT)
 			{
-				u32 lastLine = BrokenTextPositions.empty() ? 0 : BrokenTextPositions.size()-1;
-				setTextRect(lastLine);
-				if ( CurrentTextRect.LowerRightCorner.Y < FrameRect.LowerRightCorner.Y)
+				unsigned int lastLine = mBrokenTextPositions.empty() ? 0 : mBrokenTextPositions.size()-1;
+				SetTextRect(lastLine);
+				if ( mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f) < 
+					 mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f) )
 				{
 					// last line is leaving a gap on bottom
-					VScrollPos -= FrameRect.LowerRightCorner.Y-CurrentTextRect.LowerRightCorner.Y;
+					mVScrollPos -= (mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f)) - 
+						(mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f));
 				}
 			}
 
-			setTextRect(cursLine);
-			if ( CurrentTextRect.UpperLeftCorner.Y < FrameRect.UpperLeftCorner.Y )
+			SetTextRect(cursLine);
+			if (mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2) <
+				mFrameRect.center[1] - (mFrameRect.extent[1] / 2))
 			{
 				// text above valid area
-				VScrollPos -= FrameRect.UpperLeftCorner.Y-CurrentTextRect.UpperLeftCorner.Y;
-				setTextRect(cursLine);
+				mVScrollPos -= (mFrameRect.center[1] - (mFrameRect.extent[1] / 2)) - 
+					(mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2));
+				SetTextRect(cursLine);
 			}
-			else if ( CurrentTextRect.LowerRightCorner.Y > FrameRect.LowerRightCorner.Y)
+			if (mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f) >
+				mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f))
 			{
 				// text below valid area
-				VScrollPos += CurrentTextRect.LowerRightCorner.Y-FrameRect.LowerRightCorner.Y;
-				setTextRect(cursLine);
+				mVScrollPos += (mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f)) - 
+					(mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f));
+				SetTextRect(cursLine);
 			}
 		}
 	}
 }
 
-void CGUIEditBox::calculateFrameRect()
+void UIEditBox::CalculateFrameRect()
 {
-	FrameRect = AbsoluteRect;
-	IGUISkin *skin = 0;
-	if (Environment)
-		skin = Environment->getSkin();
-	if (Border && skin)
+	mFrameRect = mAbsoluteRect;
+
+	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
+	if (!skin)
+		return;
+
+	if (mBorder)
 	{
-		FrameRect.UpperLeftCorner.X += skin->getSize(EGDS_TEXT_DISTANCE_X)+1;
-		FrameRect.UpperLeftCorner.Y += skin->getSize(EGDS_TEXT_DISTANCE_Y)+1;
-		FrameRect.LowerRightCorner.X -= skin->getSize(EGDS_TEXT_DISTANCE_X)+1;
-		FrameRect.LowerRightCorner.Y -= skin->getSize(EGDS_TEXT_DISTANCE_Y)+1;
+		mFrameRect.extent[0] += 2 * (skin->GetSize(DS_TEXT_DISTANCE_X)+1);
+		mFrameRect.extent[1] += 2 * (skin->GetSize(DS_TEXT_DISTANCE_Y)+1);
 	}
 }
 
 //! set text markers
-void CGUIEditBox::setTextMarkers(s32 begin, s32 end)
+void UIEditBox::SetTextMarkers(int begin, int end)
 {
-	if ( begin != MarkBegin || end != MarkEnd )
+	if ( begin != mMarkBegin || end != mMarkEnd )
 	{
-		MarkBegin = begin;
-		MarkEnd = end;
-		sendGuiEvent(EGET_EDITBOX_MARKING_CHANGED);
+		mMarkBegin = begin;
+		mMarkEnd = end;
+		SendUIEvent(UIEVT_EDITBOX_MARKING_CHANGED);
 	}
 }
 
 //! send some gui event to parent
-void CGUIEditBox::sendGuiEvent(EGUI_EVENT_TYPE type)
+void UIEditBox::SendUIEvent(UIEventType type)
 {
-	if ( Parent )
+	if ( mParent )
 	{
-		SEvent e;
-		e.EventType = EET_GUI_EVENT;
-		e.GUIEvent.Caller = this;
-		e.GUIEvent.Element = 0;
-		e.GUIEvent.EventType = type;
+		Event e;
+		e.mEventType = ET_UI_EVENT;
+		e.mUIEvent.mCaller = this;
+		e.mUIEvent.mElement = 0;
+		e.mUIEvent.mEventType = type;
 
-		Parent->OnEvent(e);
+		mParent->OnEvent(e);
 	}
 }
-
-//! Writes attributes of the element.
-void CGUIEditBox::serializeAttributes(io::IAttributes* out, io::SAttributeReadWriteOptions* options=0) const
-{
-	// IGUIEditBox::serializeAttributes(out,options);
-
-	out->addBool  ("Border", Border);
-	out->addBool  ("Background", Background);
-	out->addBool  ("OverrideColorEnabled", OverrideColorEnabled );
-	out->addColor ("OverrideColor", OverrideColor);
-	// out->addFont("OverrideFont", OverrideFont);
-	out->addInt   ("MaxChars", Max);
-	out->addBool  ("WordWrap", WordWrap);
-	out->addBool  ("MultiLine", MultiLine);
-	out->addBool  ("AutoScroll", AutoScroll);
-	out->addBool  ("PasswordBox", PasswordBox);
-	core::stringw ch = L" ";
-	ch[0] = PasswordChar;
-	out->addString("PasswordChar", ch.c_str());
-	out->addEnum  ("HTextAlign", HAlign, GUIAlignmentNames);
-	out->addEnum  ("VTextAlign", VAlign, GUIAlignmentNames);
-
-	IGUIEditBox::serializeAttributes(out,options);
-}
-
-
-//! Reads attributes of the element
-void CGUIEditBox::deserializeAttributes(io::IAttributes* in, io::SAttributeReadWriteOptions* options=0)
-{
-	IGUIEditBox::deserializeAttributes(in,options);
-
-	setDrawBorder( in->getAttributeAsBool("Border") );
-	setDrawBackground( in->getAttributeAsBool("Background") );
-	setOverrideColor(in->getAttributeAsColor("OverrideColor"));
-	enableOverrideColor(in->getAttributeAsBool("OverrideColorEnabled"));
-	setMax(in->getAttributeAsInt("MaxChars"));
-	setWordWrap(in->getAttributeAsBool("WordWrap"));
-	setMultiLine(in->getAttributeAsBool("MultiLine"));
-	setAutoScroll(in->getAttributeAsBool("AutoScroll"));
-	core::stringw ch = in->getAttributeAsStringW("PasswordChar");
-
-	if (!ch.size())
-		setPasswordBox(in->getAttributeAsBool("PasswordBox"));
-	else
-		setPasswordBox(in->getAttributeAsBool("PasswordBox"), ch[0]);
-
-	setTextAlignment( (EGUI_ALIGNMENT) in->getAttributeAsEnumeration("HTextAlign", GUIAlignmentNames),
-			(EGUI_ALIGNMENT) in->getAttributeAsEnumeration("VTextAlign", GUIAlignmentNames));
-
-	// setOverrideFont(in->getAttributeAsFont("OverrideFont"));
-}
-
-
-} // end namespace gui
-} // end namespace irr
-
-#endif // _IRR_COMPILE_WITH_GUI_
-
