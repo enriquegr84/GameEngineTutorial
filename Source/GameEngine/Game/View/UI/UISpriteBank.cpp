@@ -69,7 +69,7 @@ unsigned int UISpriteBank::GetTextureCount() const
 }
 
 
-Texture2* UISpriteBank::GetTexture(unsigned int index) const
+eastl::shared_ptr<Texture2> UISpriteBank::GetTexture(unsigned int index) const
 {
 	if (index < mTextures.size())
 		return mTextures[index];
@@ -78,16 +78,16 @@ Texture2* UISpriteBank::GetTexture(unsigned int index) const
 }
 
 
-void UISpriteBank::AddTexture(Texture2* texture)
+void UISpriteBank::AddTexture(eastl::shared_ptr<Texture2> texture)
 {
 	mTextures.push_back(texture);
 }
 
 
-void UISpriteBank::SetTexture(unsigned int index, Texture2* texture)
+void UISpriteBank::SetTexture(unsigned int index, eastl::shared_ptr<Texture2> texture)
 {
 	while (index >= mTextures.size())
-		mTextures.push_back(0);
+		mTextures.push_back(nullptr);
 
 	mTextures[index] = texture;
 }
@@ -107,7 +107,7 @@ void UISpriteBank::Clear()
 }
 
 //! Add the texture and use it for a single non-animated sprite.
-int UISpriteBank::AddTextureAsSprite(Texture2* texture)
+int UISpriteBank::AddTextureAsSprite(eastl::shared_ptr<Texture2> texture)
 {
 	if ( !texture )
 		return -1;
@@ -155,7 +155,7 @@ void UISpriteBank::Draw2DSprite(unsigned int index, const Vector2<int>& pos, con
 			frame = (f >= mSprites[index].mFrames.size()) ? mSprites[index].mFrames.size()-1 : f;
 	}
 
-	Texture2* tex = mTextures[mSprites[index].mFrames[frame].mTextureNumber];
+	eastl::shared_ptr<Texture2> tex = mTextures[mSprites[index].mFrames[frame].mTextureNumber];
 	if (!tex) return;
 
 	const unsigned int rn = mSprites[index].mFrames[frame].mRectNumber;

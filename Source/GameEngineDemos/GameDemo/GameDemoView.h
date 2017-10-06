@@ -55,14 +55,18 @@ protected:
 
 	bool mCreatingGame;
 
-	int mNumAIs;
-	int mNumPlayers;
-
-	eastl::string mHostName;
-	eastl::string mHostListenPort;
-	eastl::string mClientAttachPort;
-
+	eastl::shared_ptr<BaseUIComboBox> mVideoDriver;
+	eastl::shared_ptr<BaseUIComboBox> mVideoMode;
+	eastl::shared_ptr<BaseUIButton> mSetVideoMode;
+	eastl::shared_ptr<BaseUICheckBox> mFullScreen;
+	eastl::shared_ptr<BaseUIScrollBar> mMultiSample;
+	eastl::shared_ptr<BaseUIScrollBar> mTesselation;
 	eastl::shared_ptr<BaseUIStaticText> mStatusLine;
+
+	eastl::shared_ptr<BaseUIListBox> mMaps;
+	eastl::shared_ptr<BaseUITreeView> mScenes;
+	eastl::shared_ptr<BaseUIImage> mLogo;
+	eastl::shared_ptr<BaseUIWindow> mWindow;
 
 	void Set();
 	void SetUIActive(int command);

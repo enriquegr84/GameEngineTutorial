@@ -13,6 +13,32 @@
 
 #include "Graphic/Graphic.h"
 
+//! An enum for all types of renderes the Engine supports.
+enum RendererType
+{
+	//! Null driver, useful for applications to run the engine without visualisation.
+	/** The null device is able to load textures, but does not
+	render and display any graphics. */
+	RT_NULL,
+
+	//! The Irrlicht Engine Software renderer.
+	/** Runs on all platforms, with every hardware. It should only
+	be used for 2d graphics, but it can also perform some primitive
+	3d functions. These 3d drawing functions are quite fast, but
+	very inaccurate, and don't even support clipping in 3D mode. */
+	RT_SOFTWARE,
+
+	//! Direct3D 11 device, only available on Win32 platforms.
+	/** Performs hardware accelerated rendering of 3D and 2D
+	primitives. */
+	RT_DIRECT3D11,
+
+	//! OpenGL device, available on most platforms.
+	/** Performs hardware accelerated rendering of 3D and 2D
+	primitives. */
+	RT_OPENGL
+};
+
 /*
 	3D Graphics Pipeline
 

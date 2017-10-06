@@ -100,6 +100,7 @@
     <ClCompile Include="..\Graphic\Effect\BasicEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\Texture2Effect.cpp" />
     <ClCompile Include="..\Graphic\Effect\VisualEffect.cpp" />
+    <ClCompile Include="..\Graphic\Image\ImageResource.cpp" />
     <ClCompile Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.cpp" />
     <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLBaseBuffer.cpp" />
     <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLByteAddressBuffer.cpp" />
@@ -467,6 +468,7 @@
     <ClInclude Include="..\Graphic\Effect\VisualEffect.h" />
     <ClInclude Include="..\Graphic\Graphic.h" />
     <ClInclude Include="..\Graphic\GraphicStd.h" />
+    <ClInclude Include="..\Graphic\Image\ImageResource.h" />
     <ClInclude Include="..\Graphic\InputLayout\InputLayoutManager.h" />
     <ClInclude Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.h" />
     <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLBaseBuffer.h" />

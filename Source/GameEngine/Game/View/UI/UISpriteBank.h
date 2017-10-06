@@ -46,18 +46,18 @@ public:
 	virtual unsigned int GetTextureCount() const = 0;
 
 	//! Gets the texture with the specified index
-	virtual Texture2* GetTexture(unsigned int index) const = 0;
+	virtual eastl::shared_ptr<Texture2> GetTexture(unsigned int index) const = 0;
 
 	//! Adds a texture to the sprite bank
-	virtual void AddTexture(Texture2* texture) = 0;
+	virtual void AddTexture(eastl::shared_ptr<Texture2> texture) = 0;
 
 	//! Changes one of the textures in the sprite bank
-	virtual void SetTexture(unsigned int index, Texture2* texture) = 0;
+	virtual void SetTexture(unsigned int index, eastl::shared_ptr<Texture2> texture) = 0;
 
 	//! Add the texture and use it for a single non-animated sprite.
 	//! The texture and the corresponding rectangle and sprite will all be added to the end of each array.
 	//! returns the index of the sprite or -1 on failure
-	virtual int AddTextureAsSprite(Texture2* texture) = 0;
+	virtual int AddTextureAsSprite(eastl::shared_ptr<Texture2> texture) = 0;
 
 	//! clears sprites, rectangles and textures
 	virtual void Clear() = 0;
@@ -85,12 +85,12 @@ public:
 	virtual eastl::vector< UISprite >& GetSprites();
 
 	virtual unsigned int GetTextureCount() const;
-	virtual Texture2* GetTexture(unsigned int index) const;
-	virtual void AddTexture(Texture2* texture);
-	virtual void SetTexture(unsigned int index, Texture2* texture);
+	virtual eastl::shared_ptr<Texture2> GetTexture(unsigned int index) const;
+	virtual void AddTexture(eastl::shared_ptr<Texture2> texture);
+	virtual void SetTexture(unsigned int index, eastl::shared_ptr<Texture2> texture);
 
 	//! Add the texture and use it for a single non-animated sprite.
-	virtual int AddTextureAsSprite(Texture2* texture);
+	virtual int AddTextureAsSprite(eastl::shared_ptr<Texture2> texture);
 
 	//! clears sprites, rectangles and textures
 	virtual void Clear();
@@ -118,7 +118,7 @@ protected:
 
 	eastl::vector<UISprite> mSprites;
 	eastl::vector<RectangleBase<2, int>> mRectangles;
-	eastl::vector<Texture2*> mTextures;
+	eastl::vector<eastl::shared_ptr<Texture2>> mTextures;
 
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<Texture2Effect> mEffect;

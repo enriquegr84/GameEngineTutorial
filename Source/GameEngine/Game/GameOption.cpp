@@ -44,16 +44,22 @@ GameOption::GameOption()
 {
 	// set all the options to decent default valu
 	mLevel = "";
-	mRenderer = "Direct3D11";
+
+	mRendererType = RendererType::RT_DIRECT3D11;
+	mScreenSize = Vector2<int>{ 800,600 };
+	mFullScreen = false;
+	mAntiAlias = 0;
+	mTesselation = 0;
+
 	mSoundEffectsVolume = 1.0f;			
-	mMusicVolume = 1.0f;				
+	mMusicVolume = 1.0f;	
+
+	mGameHost = "GameHost";
 	mExpectedPlayers = 1;
 	mListenPort = -1;					
-	mGameHost = "GameHost";
 	mNumAIs = 1;
 	mMaxAIs = 4;
 	mMaxPlayers = 4;
-	mScreenSize = Vector2<int>{ 800,600 };
 
 	mRoot = NULL;
 }
@@ -84,7 +90,7 @@ void GameOption::Init(const wchar_t* xmlFileName)
 			}
 			else
 			{
-				mRenderer = attribute;
+				mRendererType = RendererType::RT_DIRECT3D11;
 			}
 
 			if (pNode->Attribute("width"))

@@ -705,6 +705,7 @@ eastl::shared_ptr<BaseUIScrollBar> BaseUI::AddScrollBar(bool horizontal, const R
 {
 	eastl::shared_ptr<BaseUIScrollBar> bar(new UIScrollBar(this, id, rectangle, horizontal));
 	bar->SetParent(parent ? parent : mRoot);
+	bar->OnInit();
 	return bar;
 }
 
@@ -764,6 +765,7 @@ eastl::shared_ptr<BaseUICheckBox> BaseUI::AddCheckBox(bool checked, const Rectan
 {
 	eastl::shared_ptr<BaseUICheckBox> check(new UICheckBox(this, id, rectangle, checked));
 	check->SetParent(parent ? parent : mRoot);
+	check->OnInit();
 
 	if (text)
 		check->SetText(text);
@@ -778,6 +780,7 @@ eastl::shared_ptr<BaseUIListBox> BaseUI::AddListBox(const RectangleBase<2, int>&
 {
 	eastl::shared_ptr<BaseUIListBox> listBox(new UIListBox(this, id, rectangle, true, drawBackground, false));
 	listBox->SetParent(parent ? parent : mRoot);
+	listBox->OnInit();
 
 	if (mCurrentSkin && mCurrentSkin->GetSpriteBank())
 	{
@@ -795,9 +798,9 @@ eastl::shared_ptr<BaseUIListBox> BaseUI::AddListBox(const RectangleBase<2, int>&
 eastl::shared_ptr<BaseUITreeView> BaseUI::AddTreeView(const RectangleBase<2, int>& rectangle,
 	const eastl::shared_ptr<BaseUIElement>& parent, int id, bool drawBackground, bool scrollBarVertical, bool scrollBarHorizontal)
 {
-	eastl::shared_ptr<BaseUITreeView> treeView(
-		new UITreeView(this, id, rectangle, true, drawBackground, scrollBarVertical, scrollBarHorizontal));
+	eastl::shared_ptr<BaseUITreeView> treeView(new UITreeView(this, id, rectangle, true, drawBackground));
 	treeView->SetParent(parent ? parent : mRoot);
+	treeView->OnInit(scrollBarVertical, scrollBarHorizontal);
 
 	treeView->SetIconFont(GetBuiltInFont());
 	return treeView;
@@ -808,10 +811,10 @@ eastl::shared_ptr<BaseUIEditBox> BaseUI::AddEditBox(const wchar_t* text,
 	const RectangleBase<2, int>& rectangle, bool border, 
 	const eastl::shared_ptr<BaseUIElement>& parent, int id)
 {
-	eastl::shared_ptr<BaseUIEditBox> treeView(new UIEditBox(text, border, this, id, rectangle));
-	treeView->SetParent(parent ? parent : mRoot);
+	eastl::shared_ptr<BaseUIEditBox> editBox(new UIEditBox(text, border, this, id, rectangle));
+	editBox->SetParent(parent ? parent : mRoot);
 
-	return treeView;
+	return editBox;
 }
 
 //! Adds a combo box to the environment.
@@ -820,6 +823,7 @@ eastl::shared_ptr<BaseUIComboBox> BaseUI::AddComboBox(const RectangleBase<2, int
 {
 	eastl::shared_ptr<BaseUIComboBox> comboBox(new UIComboBox(this, id, rectangle));
 	comboBox->SetParent(parent ? parent : mRoot);
+	comboBox->OnInit();
 
 	return comboBox;
 }

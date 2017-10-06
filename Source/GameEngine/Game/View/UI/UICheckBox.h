@@ -18,6 +18,9 @@ public:
 	BaseUICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 		: BaseUIElement(UIET_CHECK_BOX, id, rectangle) {}
 
+	//! Initialize checkbox
+	virtual void OnInit() = 0;
+
 	//! Set if box is checked.
 	virtual void SetChecked(bool checked) = 0;
 
@@ -31,6 +34,9 @@ public:
 
 	//! constructor
 	UICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool checked);
+
+	//! initialize checkbox
+	virtual void OnInit();
 
 	//! set if box is checked
 	virtual void SetChecked(bool checked);

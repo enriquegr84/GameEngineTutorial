@@ -38,12 +38,15 @@ UICheckBox::UICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool
 
 	// Create the geometric object for drawing.
 	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+}
 
+//! initialize checkbox
+void UICheckBox::OnInit()
+{
 	// this element can be tabbed into
 	SetTabStop(true);
 	SetTabOrder(-1);
 }
-
 
 //! called if an event happened.
 bool UICheckBox::OnEvent(const Event& event)

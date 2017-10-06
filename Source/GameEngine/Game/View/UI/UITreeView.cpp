@@ -361,50 +361,14 @@ bool UITreeViewNode::IsVisible() const
 
 
 //! constructor
-UITreeView::UITreeView(BaseUI* ui, int id, RectangleBase<2, int> rectangle, 
-	bool clip, bool drawBack, bool scrollBarVertical, bool scrollBarHorizontal)
+UITreeView::UITreeView(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool clip, bool drawBack)
 	: BaseUITreeView( id, rectangle ), mUI(ui), mRoot(0), mSelected(0), mItemHeight( 0 ), mIndentWidth( 0 ), 
 	mTotalItemHeight( 0 ), mTotalItemWidth ( 0 ), mFont( 0 ), mIconFont( 0 ), mScrollBarH( 0 ), mScrollBarV( 0 ), 
 	mLastEventNode( 0 ), mLinesVisible( true ), mSelecting( false ), mClip( clip ), mDrawBack( drawBack ), mImageLeftOfIcon( true )
 {
-#ifdef _DEBUG
-//setDebugName( "UITreeView" );
-#endif
-
-	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
-	int s = skin->GetSize( DS_SCROLLBAR_SIZE );
-
-	if ( scrollBarVertical )
-	{
-		RectangleBase<2, int> rectangle;
-		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
-		rectangle.center[1] = (mRelativeRect.extent[1] - scrollBarHorizontal ? s : 0) / 2;
-		rectangle.extent[0] = s;
-		rectangle.extent[1] = mRelativeRect.extent[1] - scrollBarHorizontal ? s : 0;
-
-		mScrollBarV.reset(new UIScrollBar(ui, 0, rectangle, false, !clip));
-		mScrollBarV->SetSubElement(true);
-		mScrollBarV->SetPos( 0 );
-	}
-
-	if ( scrollBarHorizontal )
-	{
-		RectangleBase<2, int> rectangle;
-		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
-		rectangle.center[1] = mRelativeRect.extent[1] - ( s / 2 );
-		rectangle.extent[0] = mRelativeRect.extent[0] - s;
-		rectangle.extent[1] = s;
-
-		mScrollBarH.reset(new UIScrollBar(ui, 0, rectangle, false, !clip));
-		mScrollBarH->SetSubElement(true);
-		mScrollBarH->SetPos( 0 );
-	}
-
-	mRoot.reset(new UITreeViewNode( shared_from_this(), 0 ));
-	UITreeViewNode* root = reinterpret_cast<UITreeViewNode*>(mRoot.get());
-	root->mExpanded = true;
-
-	RecalculateItemHeight();
+	#ifdef _DEBUG
+	//setDebugName( "UITreeView" );
+	#endif
 
 	// Create a vertex buffer for a single triangle.
 	struct Vertex
@@ -432,6 +396,49 @@ UITreeView::~UITreeView()
 {
 
 }
+
+
+//! initialize combobox
+void UITreeView::OnInit(bool scrollBarVertical, bool scrollBarHorizontal)
+{
+	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
+	int s = skin->GetSize(DS_SCROLLBAR_SIZE);
+
+	if (scrollBarVertical)
+	{
+		RectangleBase<2, int> rectangle;
+		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
+		rectangle.center[1] = (mRelativeRect.extent[1] - scrollBarHorizontal ? s : 0) / 2;
+		rectangle.extent[0] = s;
+		rectangle.extent[1] = mRelativeRect.extent[1] - scrollBarHorizontal ? s : 0;
+
+		mScrollBarV.reset(new UIScrollBar(mUI, 0, rectangle, false));
+		mScrollBarV->OnInit(!mClip);
+		mScrollBarV->SetSubElement(true);
+		mScrollBarV->SetPos(0);
+	}
+
+	if (scrollBarHorizontal)
+	{
+		RectangleBase<2, int> rectangle;
+		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
+		rectangle.center[1] = mRelativeRect.extent[1] - (s / 2);
+		rectangle.extent[0] = mRelativeRect.extent[0] - s;
+		rectangle.extent[1] = s;
+
+		mScrollBarH.reset(new UIScrollBar(mUI, 0, rectangle, false));
+		mScrollBarH->OnInit(!mClip);
+		mScrollBarH->SetSubElement(true);
+		mScrollBarH->SetPos(0);
+	}
+
+	mRoot.reset(new UITreeViewNode(shared_from_this(), 0));
+	UITreeViewNode* root = reinterpret_cast<UITreeViewNode*>(mRoot.get());
+	root->mExpanded = true;
+
+	RecalculateItemHeight();
+}
+
 
 void UITreeView::RecalculateItemHeight()
 {

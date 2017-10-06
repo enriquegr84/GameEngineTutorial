@@ -42,6 +42,9 @@ public:
 	BaseUIListBox(int id, RectangleBase<2, int> rectangle)
 		: BaseUIElement(UIET_LIST_BOX, id, rectangle) {}
 
+	//! Initialize listbox
+	virtual void OnInit(bool clip = false) = 0;
+
 	//! returns amount of list items
 	virtual unsigned int GetItemCount() const = 0;
 
@@ -139,6 +142,9 @@ public:
 
 	//! destructor
 	virtual ~UIListBox();
+
+	//! initialize listbox
+	virtual void OnInit(bool clip = false);
 
 	//! returns amount of list items
 	virtual unsigned int GetItemCount() const;

@@ -12,7 +12,7 @@
 #include "Core/IO/XmlResource.h"
 
 #include "Graphic/Renderer/Renderer.h"
-//#include "Graphic/Image/ImageLoader.h"
+#include "Graphic/Image/ImageResource.h"
 
 //! constructor
 UIFont::UIFont(BaseUI* ui, eastl::wstring fileName, const eastl::shared_ptr<Font> font)
@@ -34,9 +34,9 @@ UIFont::UIFont(BaseUI* ui, eastl::wstring fileName, const eastl::shared_ptr<Font
 UIFont::UIFont(BaseUI* ui, eastl::wstring fileName)
 	: mUI(ui), mFont(0)
 {
-#ifdef _DEBUG
-	//setDebugName("UIFont");
-#endif
+	#ifdef _DEBUG
+		//setDebugName("UIFont");
+	#endif
 
 	if (mUI)
 	{
@@ -218,11 +218,9 @@ bool UIFont::Load(const eastl::wstring& filename)
 	eastl::shared_ptr<ResHandle> fontResource = ResCache::Get()->GetHandle(&resource);
 	if (fontResource->GetExtra()->ToString() == L"ImageResourceExtraData")
 	{
-		/*
 		eastl::shared_ptr<ImageResourceExtraData> extra = 
 			eastl::static_pointer_cast<ImageResourceExtraData>(fontResource->GetExtra());
-		return LoadTexture(extra->GetImage(), filename);
-		*/
+		return LoadTexture(extra->GetImage().get(), filename);
 	}
 	else if (fontResource->GetExtra()->ToString() == L"XmlResourceExtraData")
 	{

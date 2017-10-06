@@ -13,12 +13,12 @@
 
 //! constructor
 UIWindow::UIWindow(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
-	: BaseUIWindow(id, rectangle), mDragging(false), mIsDraggableWindow(true),
-	mDrawBackground(true), mDrawTitlebar(true), mIsActive(false), mUI(ui)
+	: BaseUIWindow(id, rectangle), mUI(ui), mDragging(false), mIsDraggableWindow(true),
+	mDrawBackground(true), mDrawTitlebar(true), mIsActive(false)
 {
-#ifdef _DEBUG
-	//SetDebugName("UIWindow");
-#endif
+	#ifdef _DEBUG
+		//SetDebugName("UIWindow");
+	#endif
 
 	// Create a vertex buffer for a single triangle.
 	struct Vertex

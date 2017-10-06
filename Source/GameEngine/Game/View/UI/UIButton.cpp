@@ -264,7 +264,7 @@ void UIButton::Draw( )
 				sourceSize = mAbsoluteRect.extent;
 			}
 
-			mEffect->SetTexture(mImage.get());
+			mEffect->SetTexture(mImage);
 
 			struct Vertex
 			{
@@ -317,7 +317,7 @@ void UIButton::Draw( )
 				sourceSize = mAbsoluteRect.extent;
 			}
 
-			mEffect->SetTexture(mPressedImage.get());
+			mEffect->SetTexture(mPressedImage);
 
 			struct Vertex
 			{

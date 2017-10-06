@@ -25,6 +25,9 @@ public:
 	BaseUIScrollBar(int id, RectangleBase<2, int> rectangle)
 		: BaseUIElement(UIET_SCROLL_BAR, id, rectangle) {}
 
+	//! Initialize scrollbar
+	virtual void OnInit(bool noclip = false) = 0;
+
 	//! sets the maximum value of the scrollbar.
 	virtual void SetMax(int max) = 0;
 	//! gets the maximum value of the scrollbar.
@@ -63,11 +66,13 @@ class UIScrollBar : public BaseUIScrollBar
 public:
 
 	//! constructor
-	UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, 
-		bool horizontal, bool noclip=false);
+	UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool horizontal);
 
 	//! destructor
 	virtual ~UIScrollBar();
+
+	//! initialize scrollbar
+	virtual void OnInit(bool noclip = false);
 
 	//! called if an event happened.
 	virtual bool OnEvent(const Event& event);

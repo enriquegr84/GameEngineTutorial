@@ -14,7 +14,7 @@
 
 //! constructor
 UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, RectangleBase<2, int> rectangle)
-	: BaseUIEditBox(ui, id, rectangle), mMouseMarking(false),
+	: BaseUIEditBox(ui, id, rectangle), mUI(ui), mMouseMarking(false),
 	mBorder(border), mBackground(true), mOverrideColorEnabled(false), mMarkBegin(0), mMarkEnd(0),
 	mOverrideColor(eastl::array<float, 4>{101 / 255.f, 255 / 255.f, 255 / 255.f, 255 / 255.f}), 
 	mOverrideFont(0), mLastBreakFont(0), mBlinkStartTime(0), mCursorPos(0), mHScrollPos(0), 

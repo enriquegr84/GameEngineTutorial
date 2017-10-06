@@ -150,7 +150,7 @@ public:
 	virtual ~UIButton();
 
 	//! initialize button
-	void OnInit(bool noclip=false);
+	virtual void OnInit(bool noclip=false);
 
 	//! called if an event happened.
 	virtual bool OnEvent(const Event& event);

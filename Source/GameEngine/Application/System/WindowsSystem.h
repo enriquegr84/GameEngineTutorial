@@ -32,6 +32,10 @@ public:
 	virtual void ClearSystemMessages() override;
 	virtual void HandleSystemMessages() override;
 
+	//! \return Returns a pointer to a list with all video resolutions
+	//! supported by the gfx adapter.
+	virtual eastl::vector<Vector2<unsigned int>> GetVideoResolutions() override;
+
 	virtual void OnResized() override;
 	virtual void ResizeIfNecessary() override;
 

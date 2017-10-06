@@ -22,6 +22,29 @@ UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 	//setDebugName("CGUIComboBox");
 	#endif
 
+	// Create a vertex buffer for a single triangle.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+
+	// Create the geometric object for drawing.
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+}
+
+//! initialize combobox
+void UIComboBox::OnInit()
+{
 	eastl::shared_ptr<BaseUISkin> skin = mUI->GetSkin();
 
 	int width = 15;
@@ -30,9 +53,9 @@ UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 
 	RectangleBase<2, int> r;
 	r.extent[0] = width;
-	r.extent[1] = rectangle.extent[1];
-	r.center[0] = rectangle.extent[0] - (width / 2) - 1;
-	r.center[1] = rectangle.extent[1] - 1;
+	r.extent[1] = mRelativeRect.extent[1];
+	r.center[0] = mRelativeRect.extent[0] - (width / 2) - 1;
+	r.center[1] = mRelativeRect.extent[1] - 1;
 
 	mListButton = mUI->AddButton(r, shared_from_this(), -1, L"");
 	if (skin && skin->GetSpriteBank())
@@ -61,25 +84,6 @@ UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 	// this element can be tabbed to
 	SetTabStop(true);
 	SetTabOrder(-1);
-
-	// Create a vertex buffer for a single triangle.
-	struct Vertex
-	{
-		Vector3<float> position;
-		Vector4<float> color;
-	};
-	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
-
-	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
-	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
-
-	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
-	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
-
-	// Create the geometric object for drawing.
-	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 }
 
 
@@ -464,6 +468,7 @@ void UIComboBox::OpenCloseMenu()
 
 		mListBox.reset(new UIListBox(mUI, -1, r, false, true, true));
 		mListBox->SetParent(shared_from_this());
+		mListBox->OnInit();
 		mListBox->SetSubElement(true);
 		mListBox->SetNotClipped(true);
 

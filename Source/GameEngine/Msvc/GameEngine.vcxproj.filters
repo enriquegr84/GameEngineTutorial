@@ -205,6 +205,9 @@
     <Filter Include="Physic\3rdParty\bullet3">
       <UniqueIdentifier>{ecf7cf4b-7472-4106-b71c-bd5b5faf62cb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphic\Image">
+      <UniqueIdentifier>{2501a2f0-f37b-4234-883a-40b35e448e88}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -786,6 +789,9 @@
     </ClCompile>
     <ClCompile Include="..\Mathematic\Arithmetic\BSPrecision.cpp">
       <Filter>Mathematic\Arithmetic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Image\ImageResource.cpp">
+      <Filter>Graphic\Image</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1974,6 +1980,9 @@
     </ClInclude>
     <ClInclude Include="..\Mathematic\Arithmetic\BSRational.h">
       <Filter>Mathematic\Arithmetic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Image\ImageResource.h">
+      <Filter>Graphic\Image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

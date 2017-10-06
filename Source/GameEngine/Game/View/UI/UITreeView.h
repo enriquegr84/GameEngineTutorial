@@ -205,6 +205,9 @@ public:
 	BaseUITreeView(int id, RectangleBase<2, int> rectangle)
 		: BaseUIElement(UIET_TREE_VIEW, id, rectangle) {}
 
+	//! initialize treeview
+	virtual void OnInit(bool scrollBarVertical = true, bool scrollBarHorizontal = true) = 0;
+
 	//! returns the root node (not visible) from the tree.
 	virtual eastl::shared_ptr<BaseUITreeViewNode> GetRoot() const = 0;
 
@@ -245,7 +248,7 @@ friend class UITreeView;
 
 public:
 	//! constructor
-	UITreeViewNode(eastl::shared_ptr<BaseUIElement> owner, eastl::shared_ptr<BaseUITreeViewNode> parent );
+	UITreeViewNode(eastl::shared_ptr<BaseUIElement> owner, eastl::shared_ptr<BaseUITreeViewNode> parent);
 
 	//! destructor
 	~UITreeViewNode();
@@ -426,11 +429,14 @@ friend class UITreeViewNode;
 
 public:
 	//! constructor
-	UITreeView(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool clip = true,
-		bool drawBack = false, bool scrollBarVertical = true, bool scrollBarHorizontal = true );
+	UITreeView(BaseUI* ui, int id, RectangleBase<2, int> rectangle, 
+		bool clip = true, bool drawBack = false);
 
 	//! destructor
 	virtual ~UITreeView();
+
+	//! initialize treeview
+	virtual void OnInit(bool scrollBarVertical = true, bool scrollBarHorizontal = true);
 
 	//! returns the root node (not visible) from the tree.
 	virtual eastl::shared_ptr<BaseUITreeViewNode> GetRoot() const { return mRoot; }

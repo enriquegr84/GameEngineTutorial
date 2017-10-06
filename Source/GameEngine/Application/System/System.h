@@ -90,6 +90,12 @@ public:
 
 	virtual void HandleSystemMessages() = 0;
 
+	//! Gets a list with all video resolutions available.
+	/*
+	\return Pointer to a list with all video modes supported
+	by the gfx adapter. */
+	virtual eastl::vector<Vector2<unsigned int>> GetVideoResolutions() = 0;
+
 	//! Notifies the device, that it has been resized
 	virtual void OnResized() = 0;
 

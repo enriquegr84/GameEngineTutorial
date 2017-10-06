@@ -97,7 +97,7 @@ void UIImage::Draw()
 			sourcePos[0] = sourceRect.center[0];
 			sourcePos[0] = sourceRect.center[1];
 
-			mEffect->SetTexture(mTexture.get());
+			mEffect->SetTexture(mTexture);
 
 			struct Vertex
 			{
@@ -132,7 +132,7 @@ void UIImage::Draw()
 			sourcePos[0] = sourceRect.center[0] - (sourceSize[0] / 2);
 			sourcePos[0] = sourceRect.center[1] - (sourceSize[1] / 2);
 
-			mEffect->SetTexture(mTexture.get());
+			mEffect->SetTexture(mTexture);
 
 			struct Vertex
 			{

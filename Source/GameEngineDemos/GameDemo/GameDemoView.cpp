@@ -43,6 +43,7 @@
 #include "Audio/Audio.h"
 #include "Audio/SoundProcess.h"
 #include "Graphic/Renderer/Renderer.h"
+#include "Graphic/Image/ImageResource.h"
 
 #include "Graphic/Scene/Scene.h"
 /*
@@ -143,10 +144,10 @@ bool MainMenuUI::OnInit()
 	screenRectangle.extent[0] = (int)screenSize[0];
 	screenRectangle.extent[1] = (int)screenSize[1];
 
-	eastl::shared_ptr<BaseUIWindow> window = AddWindow(
+	mWindow = AddWindow(
 		screenRectangle, false, L"Quake3 Explorer", 0, CID_DEMO_WINDOW);
-	window->SetToolTipText(L"Quake3Explorer. Loads and show various BSP File Format and Shaders.");
-	window->GetCloseButton()->SetToolTipText(L"Quit Quake3 Explorer");
+	mWindow->SetToolTipText(L"Quake3Explorer. Loads and show various BSP File Format and Shaders.");
+	mWindow->GetCloseButton()->SetToolTipText(L"Quit Quake3 Explorer");
 
 	// add a status line help text
 	RectangleBase<2, int> statusRectangle;
@@ -154,163 +155,145 @@ bool MainMenuUI::OnInit()
 	statusRectangle.center[1] = screenSize[1];
 	statusRectangle.extent[0] = screenSize[0] - 10;
 	statusRectangle.extent[1] = 10;
-	mStatusLine = AddStaticText(L"", statusRectangle, false, false, window, -1, true);
-
+	mStatusLine = AddStaticText(L"", statusRectangle, false, false, mWindow, -1, true);
+	/*
 	RectangleBase<2, int> videoRectangle;
 	videoRectangle.center[0] = screenSize[0] - 355;
 	videoRectangle.center[1] = 32;
 	videoRectangle.extent[0] = 90;
 	videoRectangle.extent[1] = 16;
-	AddStaticText(L"", videoRectangle, false, false, window, -1, true);
-	AddComboBox()
+	AddStaticText(L"", videoRectangle, false, false, mWindow, -1, true);
+	mVideoDriver = AddComboBox(videoRectangle, mWindow);
+	mVideoDriver->AddItem(L"Direct3D 11", RT_DIRECT3D11);
+	mVideoDriver->AddItem(L"OpenGL", RT_OPENGL);
+	mVideoDriver->AddItem(L"Software Renderer", RT_SOFTWARE);
 
-	/*
-	env->addStaticText(L"VideoDriver:", rect<s32>(dim.Width - 400, 24, dim.Width - 310, 40), false, false, gui.Window, -1, false);
-	gui.VideoDriver = env->addComboBox(rect<s32>(dim.Width - 300, 24, dim.Width - 10, 40), gui.Window);
-	gui.VideoDriver->addItem(L"Direct3D 9.0c", EDT_DIRECT3D9);
-	gui.VideoDriver->addItem(L"Direct3D 8.1", EDT_DIRECT3D8);
-	gui.VideoDriver->addItem(L"OpenGL 1.5", EDT_OPENGL);
-	gui.VideoDriver->addItem(L"Software Renderer", EDT_SOFTWARE);
-	gui.VideoDriver->addItem(L"Burning's Video (TM) Thomas Alten", EDT_BURNINGSVIDEO);
-	gui.VideoDriver->setSelected(gui.VideoDriver->getIndexForItemData(Game->deviceParam.DriverType));
-	gui.VideoDriver->setToolTipText(L"Use a VideoDriver");
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	mVideoDriver->SetSelected(mVideoDriver->GetIndexForItemData(gameApp->mOption.mRendererType));
+	mVideoDriver->SetToolTipText(L"Use a VideoDriver");
 
-	env->addStaticText(L"VideoMode:", rect<s32>(dim.Width - 400, 44, dim.Width - 310, 60), false, false, gui.Window, -1, false);
-	gui.VideoMode = env->addComboBox(rect<s32>(dim.Width - 300, 44, dim.Width - 10, 60), gui.Window);
-	gui.VideoMode->setToolTipText(L"Supported Screenmodes");
-	IVideoModeList *modeList = Game->Device->getVideoModeList();
-	if (modeList)
+	videoRectangle.center[0] = screenSize[0] - 355;
+	videoRectangle.center[1] = 52;
+	videoRectangle.extent[0] = 90;
+	videoRectangle.extent[1] = 16;
+	AddStaticText(L"VideoMode:", videoRectangle, false, false, mWindow, -1, false);
+	mVideoMode = AddComboBox(videoRectangle, mWindow);
+	mVideoMode->SetToolTipText(L"Supported Screenmodes");
+
+	eastl::vector<Vector2<unsigned int>> videoResolutions = gameApp->mSystem->GetVideoResolutions();
+	for (int i = 0; i != videoResolutions.size(); ++i)
 	{
-		s32 i;
-		for (i = 0; i != modeList->getVideoModeCount(); ++i)
-		{
-			u16 d = modeList->getVideoModeDepth(i);
-			if (d < 16)
-				continue;
+		unsigned int w = videoResolutions[i][0];
+		unsigned int h = videoResolutions[i][1];
+		unsigned int val = w << 16 | h;
 
-			u16 w = modeList->getVideoModeResolution(i).Width;
-			u16 h = modeList->getVideoModeResolution(i).Height;
-			u32 val = w << 16 | h;
+		if (mVideoMode->GetIndexForItemData(val) >= 0)
+			continue;
 
-			if (gui.VideoMode->getIndexForItemData(val) >= 0)
-				continue;
+		float aspect = (float)w / (float)h;
+		const char *a = "";
+		if (Function<float>::Equals(aspect, 1.3333333333f)) a = "4:3";
+		else if (Function<float>::Equals(aspect, 1.6666666f)) a = "15:9 widescreen";
+		else if (Function<float>::Equals(aspect, 1.7777777f)) a = "16:9 widescreen";
+		else if (Function<float>::Equals(aspect, 1.6f)) a = "16:10 widescreen";
+		else if (Function<float>::Equals(aspect, 2.133333f)) a = "20:9 widescreen";
 
-			f32 aspect = (f32)w / (f32)h;
-			const c8 *a = "";
-			if (core::equals(aspect, 1.3333333333f)) a = "4:3";
-			else if (core::equals(aspect, 1.6666666f)) a = "15:9 widescreen";
-			else if (core::equals(aspect, 1.7777777f)) a = "16:9 widescreen";
-			else if (core::equals(aspect, 1.6f)) a = "16:10 widescreen";
-			else if (core::equals(aspect, 2.133333f)) a = "20:9 widescreen";
-
-			snprintf(buf, sizeof(buf), "%d x %d, %s", w, h, a);
-			gui.VideoMode->addItem(stringw(buf).c_str(), val);
-		}
+		char buf[256];
+		snprintf(buf, sizeof(buf), "%d x %d, %s", w, h, a);
+		mVideoMode->AddItem(eastl::wstring(buf).c_str(), val);
 	}
-	gui.VideoMode->setSelected(gui.VideoMode->getIndexForItemData(
-		Game->deviceParam.WindowSize.Width << 16 |
-		Game->deviceParam.WindowSize.Height));
+	mVideoMode->SetSelected(mVideoMode->GetIndexForItemData(
+		gameApp->mOption.mScreenSize[0] << 16 | gameApp->mOption.mScreenSize[1]));
 
-	gui.FullScreen = env->addCheckBox(Game->deviceParam.Fullscreen, rect<s32>(dim.Width - 400, 64, dim.Width - 300, 80), gui.Window, -1, L"Fullscreen");
-	gui.FullScreen->setToolTipText(L"Set Fullscreen or Window Mode");
+	screenRectangle.center[0] = screenSize[0] - 350;
+	screenRectangle.center[1] = 72;
+	screenRectangle.extent[0] = 100;
+	screenRectangle.extent[1] = 16;
+	mFullScreen = AddCheckBox(gameApp->mOption.mFullScreen, screenRectangle, mWindow, -1, L"Fullscreen");
+	mFullScreen->SetToolTipText(L"Set Fullscreen or Window Mode");
 
-	gui.Bit32 = env->addCheckBox(Game->deviceParam.Bits == 32, rect<s32>(dim.Width - 300, 64, dim.Width - 240, 80), gui.Window, -1, L"32Bit");
-	gui.Bit32->setToolTipText(L"Use 16 or 32 Bit");
+	screenRectangle.center[0] = screenSize[0] - 190;
+	screenRectangle.center[1] = 72;
+	screenRectangle.extent[0] = 90;
+	screenRectangle.extent[1] = 16;
+	AddStaticText(L"MultiSample:", screenRectangle, false, false, mWindow, -1, false);
 
-	env->addStaticText(L"MultiSample:", rect<s32>(dim.Width - 235, 64, dim.Width - 150, 80), false, false, gui.Window, -1, false);
-	gui.MultiSample = env->addScrollBar(true, rect<s32>(dim.Width - 150, 64, dim.Width - 70, 80), gui.Window, -1);
-	gui.MultiSample->setMin(0);
-	gui.MultiSample->setMax(8);
-	gui.MultiSample->setSmallStep(1);
-	gui.MultiSample->setLargeStep(1);
-	gui.MultiSample->setPos(Game->deviceParam.AntiAlias);
-	gui.MultiSample->setToolTipText(L"Set the MultiSample (disable, 1x, 2x, 4x, 8x )");
+	screenRectangle.center[0] = screenSize[0] - 105;
+	screenRectangle.center[1] = 72;
+	screenRectangle.extent[0] = 80;
+	screenRectangle.extent[1] = 16;
+	mMultiSample = AddScrollBar(true, screenRectangle, mWindow, -1);
+	mMultiSample->SetMin(0);
+	mMultiSample->SetMax(8);
+	mMultiSample->SetSmallStep(1);
+	mMultiSample->SetLargeStep(1);
+	mMultiSample->SetPos(gameApp->mOption.mAntiAlias);
+	mMultiSample->SetToolTipText(L"Set the MultiSample (disable, 1x, 2x, 4x, 8x )");
 
-	gui.SetVideoMode = env->addButton(rect<s32>(dim.Width - 60, 64, dim.Width - 10, 80), gui.Window, -1, L"set");
-	gui.SetVideoMode->setToolTipText(L"Set Video Mode with current values");
+	screenRectangle.center[0] = screenSize[0] - 35;
+	screenRectangle.center[1] = 72;
+	screenRectangle.extent[0] = 50;
+	screenRectangle.extent[1] = 16;
+	mSetVideoMode = AddButton(screenRectangle, mWindow, -1, L"set");
+	mSetVideoMode->SetToolTipText(L"Set Video Mode with current values");
 
-	env->addStaticText(L"Gamma:", rect<s32>(dim.Width - 400, 104, dim.Width - 310, 120), false, false, gui.Window, -1, false);
-	gui.Gamma = env->addScrollBar(true, rect<s32>(dim.Width - 300, 104, dim.Width - 10, 120), gui.Window, -1);
-	gui.Gamma->setMin(50);
-	gui.Gamma->setMax(350);
-	gui.Gamma->setSmallStep(1);
-	gui.Gamma->setLargeStep(10);
-	gui.Gamma->setPos(core::floor32(Game->GammaValue * 100.f));
-	gui.Gamma->setToolTipText(L"Adjust Gamma Ramp ( 0.5 - 3.5)");
-	Game->Device->setGammaRamp(Game->GammaValue, Game->GammaValue, Game->GammaValue, 0.f, 0.f);
+	screenRectangle.center[0] = screenSize[0] - 350;
+	screenRectangle.center[1] = 132;
+	screenRectangle.extent[0] = 100;
+	screenRectangle.extent[1] = 16;
+	AddStaticText(L"Tesselation:", screenRectangle, false, false, mWindow, -1, false);
 
+	screenRectangle.center[0] = screenSize[0] - 150;
+	screenRectangle.center[1] = 132;
+	screenRectangle.extent[0] = 300;
+	screenRectangle.extent[1] = 16;
+	mTesselation = AddScrollBar(true, screenRectangle, mWindow, -1);
+	mTesselation->SetMin(2);
+	mTesselation->SetMax(12);
+	mTesselation->SetSmallStep(1);
+	mTesselation->SetLargeStep(1);
+	mTesselation->SetPos(gameApp->mOption.mTesselation);
+	mTesselation->SetToolTipText(L"How smooth should curved surfaces be rendered");
 
-	env->addStaticText(L"Tesselation:", rect<s32>(dim.Width - 400, 124, dim.Width - 310, 140), false, false, gui.Window, -1, false);
-	gui.Tesselation = env->addScrollBar(true, rect<s32>(dim.Width - 300, 124, dim.Width - 10, 140), gui.Window, -1);
-	gui.Tesselation->setMin(2);
-	gui.Tesselation->setMax(12);
-	gui.Tesselation->setSmallStep(1);
-	gui.Tesselation->setLargeStep(1);
-	gui.Tesselation->setPos(Game->loadParam.patchTesselation);
-	gui.Tesselation->setToolTipText(L"How smooth should curved surfaces be rendered");
+	screenRectangle.center[0] = screenSize[0] - 225;
+	screenRectangle.center[1] = screenSize[1] - 390;
+	screenRectangle.extent[0] = 450;
+	screenRectangle.extent[1] = 20;
+	AddStaticText(L"Maps:", screenRectangle, false, false, mWindow, -1, false);
 
-	gui.Collision = env->addCheckBox(true, rect<s32>(dim.Width - 400, 150, dim.Width - 300, 166), gui.Window, -1, L"Collision");
-	gui.Collision->setToolTipText(L"Set collision on or off ( flythrough ). \nPress F7 on your Keyboard");
-	gui.Visible_Map = env->addCheckBox(true, rect<s32>(dim.Width - 300, 150, dim.Width - 240, 166), gui.Window, -1, L"Map");
-	gui.Visible_Map->setToolTipText(L"Show or not show the static part the Level. \nPress F3 on your Keyboard");
-	gui.Visible_Shader = env->addCheckBox(true, rect<s32>(dim.Width - 240, 150, dim.Width - 170, 166), gui.Window, -1, L"Shader");
-	gui.Visible_Shader->setToolTipText(L"Show or not show the Shader Nodes. \nPress F4 on your Keyboard");
-	gui.Visible_Fog = env->addCheckBox(true, rect<s32>(dim.Width - 170, 150, dim.Width - 110, 166), gui.Window, -1, L"Fog");
-	gui.Visible_Fog->setToolTipText(L"Show or not show the Fog Nodes. \nPress F5 on your Keyboard");
-	gui.Visible_Unresolved = env->addCheckBox(true, rect<s32>(dim.Width - 110, 150, dim.Width - 10, 166), gui.Window, -1, L"Unresolved");
-	gui.Visible_Unresolved->setToolTipText(L"Show the or not show the Nodes the Engine can't handle. \nPress F6 on your Keyboard");
-	gui.Visible_Skydome = env->addCheckBox(true, rect<s32>(dim.Width - 110, 180, dim.Width - 10, 196), gui.Window, -1, L"Skydome");
-	gui.Visible_Skydome->setToolTipText(L"Show the or not show the Skydome.");
-
-	//Respawn = env->addButton ( rect<s32>( dim.Width - 260, 90, dim.Width - 10, 106 ), 0,-1, L"Respawn" );
-
-	env->addStaticText(L"Archives:", rect<s32>(5, dim.Height - 530, dim.Width - 600, dim.Height - 514), false, false, gui.Window, -1, false);
-
-	gui.ArchiveAdd = env->addButton(rect<s32>(dim.Width - 725, dim.Height - 530, dim.Width - 665, dim.Height - 514), gui.Window, -1, L"add");
-	gui.ArchiveAdd->setToolTipText(L"Add an archive, usually packed zip-archives (*.pk3) to the Filesystem");
-	gui.ArchiveRemove = env->addButton(rect<s32>(dim.Width - 660, dim.Height - 530, dim.Width - 600, dim.Height - 514), gui.Window, -1, L"del");
-	gui.ArchiveRemove->setToolTipText(L"Remove the selected archive from the FileSystem.");
-	gui.ArchiveUp = env->addButton(rect<s32>(dim.Width - 575, dim.Height - 530, dim.Width - 515, dim.Height - 514), gui.Window, -1, L"up");
-	gui.ArchiveUp->setToolTipText(L"Arrange Archive Look-up Hirachy. Move the selected Archive up");
-	gui.ArchiveDown = env->addButton(rect<s32>(dim.Width - 510, dim.Height - 530, dim.Width - 440, dim.Height - 514), gui.Window, -1, L"down");
-	gui.ArchiveDown->setToolTipText(L"Arrange Archive Look-up Hirachy. Move the selected Archive down");
-
-
-	gui.ArchiveList = env->addTable(rect<s32>(5, dim.Height - 510, dim.Width - 450, dim.Height - 410), gui.Window);
-	gui.ArchiveList->addColumn(L"Type", 0);
-	gui.ArchiveList->addColumn(L"Real File Path", 1);
-	gui.ArchiveList->setColumnWidth(0, 60);
-	gui.ArchiveList->setColumnWidth(1, 284);
-	gui.ArchiveList->setToolTipText(L"Show the attached Archives");
-
-
-	env->addStaticText(L"Maps:", rect<s32>(5, dim.Height - 400, dim.Width - 450, dim.Height - 380), false, false, gui.Window, -1, false);
-	gui.MapList = env->addListBox(rect<s32>(5, dim.Height - 380, dim.Width - 450, dim.Height - 40), gui.Window, -1, true);
-	gui.MapList->setToolTipText(L"Show the current Maps in all Archives.\n Double-Click the Map to start the level");
-
+	screenRectangle.center[0] = screenSize[0] - 225;
+	screenRectangle.center[1] = screenSize[1] - 210;
+	screenRectangle.extent[0] = 450;
+	screenRectangle.extent[1] = 340;
+	mMaps = AddListBox(screenRectangle, mWindow, -1, true);
+	mMaps->SetToolTipText(L"Show the current Maps in all Archives.\n Double-Click the Map to start the level");
 
 	// create a visible Scene Tree
-	env->addStaticText(L"Scenegraph:", rect<s32>(dim.Width - 400, dim.Height - 400, dim.Width - 5, dim.Height - 380), false, false, gui.Window, -1, false);
-	gui.SceneTree = env->addTreeView(rect<s32>(dim.Width - 400, dim.Height - 380, dim.Width - 5, dim.Height - 40),
-		gui.Window, -1, true, true, false);
-	gui.SceneTree->setToolTipText(L"Show the current Scenegraph");
-	gui.SceneTree->getRoot()->clearChildren();
-	addSceneTreeItem(Game->Device->getSceneManager()->getRootSceneNode(), gui.SceneTree->getRoot());
+	screenRectangle.center[0] = screenSize[0] - 200;
+	screenRectangle.center[1] = screenSize[1] - 390;
+	screenRectangle.extent[0] = 400;
+	screenRectangle.extent[1] = 20;
+	AddStaticText(L"Scenegraph:", screenRectangle, false, false, mWindow, -1, false);
 
-
-	IGUIImageList* imageList = env->createImageList(driver->getTexture("iconlist.png"),
-		dimension2di(32, 32), true);
-
-	if (imageList)
-	{
-		gui.SceneTree->setImageList(imageList);
-		imageList->drop();
-	}
-
+	screenRectangle.center[0] = screenSize[0] - 200;
+	screenRectangle.center[1] = screenSize[1] - 210;
+	screenRectangle.extent[0] = 400;
+	screenRectangle.extent[1] = 340;
+	mScenes = AddTreeView(screenRectangle, mWindow, -1, true, true, false);
+	mScenes->SetToolTipText(L"Show the current Scenegraph");
+	mScenes->GetRoot()->ClearChildren();
 
 	// load the engine logo
-	gui.Logo = env->addImage(driver->getTexture("irrlichtlogo3.png"), position2d<s32>(5, 16), true, 0);
-	gui.Logo->setToolTipText(L"The great Irrlicht Engine");
+	BaseResource resource(L"Art/irrlichtlogo3.png");
+	const eastl::shared_ptr<ResHandle>& resHandle = gameApp->mResCache->GetHandle(&resource);
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true, 0);
+		mLogo->SetToolTipText(L"The great Irrlicht Engine");
+	}
 
 	int iY = 10;
 	int iX = 35;
@@ -625,7 +608,7 @@ bool MainMenuUI::OnEvent(const Event& evt)
 
 MainMenuView::MainMenuView() : HumanView()
 {
-	mMainMenuUI.reset(new MainMenuUI); 
+	mMainMenuUI.reset(new MainMenuUI()); 
 	mMainMenuUI->OnInit();
 	PushElement(mMainMenuUI);
 }

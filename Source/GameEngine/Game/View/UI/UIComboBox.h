@@ -26,6 +26,9 @@ public:
 	BaseUIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 		: BaseUIElement(UIET_COMBO_BOX, id, rectangle) {}
 
+	//! Initialize combobox
+	virtual void OnInit() = 0;
+
 	//! Returns amount of items in box
 	virtual unsigned int GetItemCount() const = 0;
 
@@ -75,6 +78,9 @@ public:
 
 	//! constructor
 	UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle);
+
+	//! initialize combobox
+	virtual void OnInit();
 
 	//! Returns amount of items in box
 	virtual unsigned int GetItemCount() const;

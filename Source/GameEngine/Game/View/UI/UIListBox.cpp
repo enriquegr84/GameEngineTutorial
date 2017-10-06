@@ -14,7 +14,7 @@
 
 //! constructor
 UIListBox::UIListBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool clip, bool drawBack, bool moveOverSelect)
-: BaseUIListBox(id, rectangle), mSelected(-1), mItemHeight(0), mItemHeightOverride(0),
+: BaseUIListBox(id, rectangle), mUI(ui), mSelected(-1), mItemHeight(0), mItemHeightOverride(0),
 	mTotalItemHeight(0), mItemsIconWidth(0), mFont(0), mIconBank(0), mScrollBar(0), mSelectTime(0), 
 	mLastKeyTime(0), mSelecting(false), mDrawBack(drawBack), mMoveOverSelect(moveOverSelect), mAutoScroll(true), 
 	mHighlightWhenNotFocused(true)
@@ -23,6 +23,41 @@ UIListBox::UIListBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool c
 	//setDebugName("UIListBox");
 	#endif
 
+	// Create a vertex buffer for a two-triangles square. The PNG is stored
+	// in left-handed coordinates. The texture coordinates are chosen to
+	// reflect the texture in the y-direction.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector2<float> tcoord;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	// Create an effect for the vertex and pixel shaders.  The texture is
+	// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
+	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+	mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, eastl::shared_ptr<Texture2>(),
+		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+
+	// Create the geometric object for drawing.
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+}
+
+
+//! destructor
+UIListBox::~UIListBox()
+{
+
+}
+
+//! initialize listbox
+void UIListBox::OnInit(bool clip)
+{
 	if (mUI && mUI->GetSkin())
 	{
 		const int s = mUI->GetSkin()->GetSize(DS_SCROLLBAR_SIZE);
@@ -33,7 +68,8 @@ UIListBox::UIListBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool c
 		rectangle.extent[0] = mRelativeRect.extent[0];
 		rectangle.extent[1] = mRelativeRect.extent[1];
 
-		mScrollBar.reset(new UIScrollBar(mUI, -1, rectangle, false, !clip));
+		mScrollBar.reset(new UIScrollBar(mUI, -1, rectangle, false));
+		mScrollBar->OnInit(!clip);
 		mScrollBar->SetSubElement(true);
 		mScrollBar->SetTabStop(false);
 		mScrollBar->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
@@ -47,38 +83,7 @@ UIListBox::UIListBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool c
 		SetTabOrder(-1);
 
 		UpdateAbsolutePosition();
-
-		// Create a vertex buffer for a two-triangles square. The PNG is stored
-		// in left-handed coordinates. The texture coordinates are chosen to
-		// reflect the texture in the y-direction.
-		struct Vertex
-		{
-			Vector3<float> position;
-			Vector2<float> tcoord;
-		};
-		VertexFormat vformat;
-		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
-
-		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
-		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
-
-		// Create an effect for the vertex and pixel shaders.  The texture is
-		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
-		eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
-		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, eastl::shared_ptr<Texture2>(),
-			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
-
-		// Create the geometric object for drawing.
-		mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 	}
-}
-
-
-//! destructor
-UIListBox::~UIListBox()
-{
-
 }
 
 
@@ -150,7 +155,7 @@ int UIListBox::GetItemAt(int xPos, int yPos) const
 		return -1;
 
 	int item = ((yPos - mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2) - 1) + mScrollBar->GetPos()) / mItemHeight;
-	if ( item < 0 || item >= (unsigned int)mItems.size())
+	if ( item < 0 || item >= (int)mItems.size())
 		return -1;
 
 	return item;

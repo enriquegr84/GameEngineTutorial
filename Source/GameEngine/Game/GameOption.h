@@ -42,6 +42,8 @@
 
 #include "GameEngineStd.h"
 
+#include "Graphic/Renderer/Renderer.h"
+
 #include "Mathematic/Algebra/Vector2.h"
 
 struct GameOption
@@ -50,17 +52,31 @@ struct GameOption
 	eastl::string mLevel;
 
 	// Rendering options
-	eastl::string mRenderer;
+
+	//! Type of video driver used to render graphics.
+	RendererType mRendererType;
+	//! Size of the window or the video mode in fullscreen mode. Default: 800x600
 	Vector2<int> mScreenSize;
+	//! Should be set to true if the device should run in fullscreen.
+	/* Otherwise the device runs in windowed mode. Default: false. */
+	bool mFullScreen;
+	//! Specifies if the device should use fullscreen anti aliasing
+	/* Default value: 0 - disabled */
+	unsigned int mAntiAlias;
+	//! Specifies how smooth should curved surfaces be rendered
+	int mTesselation;
 
 	// Sound options
 	float mSoundEffectsVolume;			
 	float mMusicVolume;				
 
-	// Multiplayer options
-	int mExpectedPlayers;				
-	int mListenPort;					
-	eastl::string mGameHost;				
+	// Multiplayer options				
+	eastl::string mGameHost;
+	eastl::string mGameHostListenPort;
+	eastl::string mClientAttachPort;
+
+	int mListenPort;
+	int mExpectedPlayers;
 	int mNumAIs;
 	int mMaxAIs;
 	int mMaxPlayers;

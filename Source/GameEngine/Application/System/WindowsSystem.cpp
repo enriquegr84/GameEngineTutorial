@@ -702,6 +702,33 @@ void WindowsSystem::ProcessMessage(int* HWndPtrAddress, int msg, int wParam, int
 }
 
 
+//! \return Returns a pointer to a list with all video modes supported
+//! by the gfx adapter.
+eastl::vector<Vector2<unsigned int>> WindowsSystem::GetVideoResolutions()
+{
+	// enumerate video modes.
+	DWORD i = 0;
+	DEVMODE mode;
+	memset(&mode, 0, sizeof(mode));
+	mode.dmSize = sizeof(mode);
+
+	eastl::vector<Vector2<unsigned int>> resolutions;
+	while (EnumDisplaySettings(NULL, i, &mode))
+	{
+		resolutions.push_back(Vector2<unsigned int>{ mode.dmPelsWidth, mode.dmPelsHeight });
+		++i;
+	}
+
+	return resolutions;
+}
+
+
+//! Notifies the device, that it has been resized
+void WindowsSystem::OnResized()
+{
+	mResized = true;
+}
+
 void WindowsSystem::ResizeIfNecessary()
 {
 	if (!mResized)
@@ -886,12 +913,6 @@ bool WindowsSystem::SwitchToFullScreen(bool reset)
 			break;
 	}
 	return ret;
-}
-
-//! Notifies the device, that it has been resized
-void WindowsSystem::OnResized()
-{
-	mResized = true;
 }
 
 //! Sets if the window should be resizable in windowed mode.

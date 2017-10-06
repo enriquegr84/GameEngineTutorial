@@ -14,7 +14,7 @@
 
 
 //! constructor
-UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool horizontal, bool noclip)
+UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool horizontal)
 	: BaseUIScrollBar(id, rectangle), mUI(ui), mUpButton(0), mDownButton(0), mDragging(false), mHorizontal(horizontal),
 	mDraggedBySlider(false), mTrayClick(false), mPos(0), mDrawPos(0), mDrawHeight(0), mMin(0), mMax(100), 
 	mSmallStep(10), mLargeStep(50), mDesiredPos(0), mLastChange(0)
@@ -22,16 +22,6 @@ UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bo
 	#ifdef _DEBUG
 	//setDebugName("UIScrollBar");
 	#endif
-
-	RefreshControls();
-
-	SetNotClipped(noclip);
-
-	// this element can be tabbed to
-	SetTabStop(true);
-	SetTabOrder(-1);
-
-	SetPos(0);
 
 	// Create a vertex buffer for a two-triangles square. The PNG is stored
 	// in left-handed coordinates. The texture coordinates are chosen to
@@ -62,6 +52,22 @@ UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bo
 //! destructor
 UIScrollBar::~UIScrollBar()
 {
+
+}
+
+
+//! initialize checkbox
+void UIScrollBar::OnInit(bool noclip)
+{
+	RefreshControls();
+
+	SetNotClipped(noclip);
+
+	// this element can be tabbed to
+	SetTabStop(true);
+	SetTabOrder(-1);
+
+	SetPos(0);
 
 }
 
@@ -492,6 +498,7 @@ void UIScrollBar::RefreshControls()
 		if (!mUpButton)
 		{
 			mUpButton.reset(new UIButton(mUI, -1, rectangle));
+			mUpButton->OnInit();
 			mUpButton->SetSubElement(true);
 			mUpButton->SetTabStop(false);
 		}
@@ -511,6 +518,7 @@ void UIScrollBar::RefreshControls()
 		if (!mDownButton)
 		{
 			mDownButton.reset(new UIButton(mUI, -1, rectangle));
+			mDownButton->OnInit();
 			mDownButton->SetSubElement(true);
 			mDownButton->SetTabStop(false);
 		}
@@ -535,6 +543,7 @@ void UIScrollBar::RefreshControls()
 		if (!mUpButton)
 		{
 			mUpButton.reset(new UIButton(mUI, -1, rectangle));
+			mUpButton->OnInit();
 			mUpButton->SetSubElement(true);
 			mUpButton->SetTabStop(false);
 		}
@@ -554,6 +563,7 @@ void UIScrollBar::RefreshControls()
 		if (!mDownButton)
 		{
 			mDownButton.reset(new UIButton(mUI, -1, rectangle));
+			mDownButton->OnInit();
 			mDownButton->SetSubElement(true);
 			mDownButton->SetTabStop(false);
 		}

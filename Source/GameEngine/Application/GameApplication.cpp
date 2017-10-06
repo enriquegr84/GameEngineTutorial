@@ -270,6 +270,7 @@ bool GameApplication::OnInitialize()
 	extern eastl::shared_ptr<BaseResourceLoader> CreateXMeshResourceLoader();
 	*/
 	extern eastl::shared_ptr<BaseResourceLoader> CreateXmlResourceLoader();
+	extern eastl::shared_ptr<BaseResourceLoader> CreateImageResourceLoader();
 	//extern eastl::shared_ptr<BaseResourceLoader> CreateScriptResourceLoader();
 
 	//	Note - register these in order from least specific to most specific! 
@@ -303,6 +304,7 @@ bool GameApplication::OnInitialize()
 	mResCache->RegisterLoader(CreateXMeshResourceLoader());
 	*/
 	mResCache->RegisterLoader(CreateXmlResourceLoader());
+	mResCache->RegisterLoader(CreateImageResourceLoader());
 	//mResCache->RegisterLoader(CreateScriptResourceLoader());
 
 	mOption.Init(L"Config/PlayerOptions.xml");

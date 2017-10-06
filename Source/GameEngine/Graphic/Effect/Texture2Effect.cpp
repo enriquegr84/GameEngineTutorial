@@ -43,9 +43,9 @@ void Texture2Effect::SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> cons
     mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);
 }
 
-void Texture2Effect::SetTexture(Texture2* texture)
+void Texture2Effect::SetTexture(eastl::shared_ptr<Texture2> const& texture)
 {
-	mTexture.reset(texture);
+	mTexture = texture;
 #if defined(_OPENGL_)
 	mProgram->GetPShader()->Set("baseSampler", mTexture);
 #else

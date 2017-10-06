@@ -32,7 +32,7 @@ public:
     inline eastl::shared_ptr<SamplerState> const& GetSampler() const;
 
     void SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix);
-	void SetTexture(Texture2* texture);
+	void SetTexture(eastl::shared_ptr<Texture2> const& texture);
 
 private:
     // Vertex shader parameters.
