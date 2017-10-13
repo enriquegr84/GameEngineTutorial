@@ -61,8 +61,8 @@ void UIComboBox::OnInit()
 	if (skin && skin->GetSpriteBank())
 	{
 		mListButton->SetSpriteBank(skin->GetSpriteBank());
-		mListButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_CURSOR_DOWN), skin->GetColor(DC_WINDOW_SYMBOL));
-		mListButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_CURSOR_DOWN), skin->GetColor(DC_WINDOW_SYMBOL));
+		mListButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_DOWN, skin->GetColor(DC_WINDOW_SYMBOL));
+		mListButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_DOWN, skin->GetColor(DC_WINDOW_SYMBOL));
 	}
 	mListButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
 	mListButton->SetSubElement(true);
@@ -416,8 +416,8 @@ void UIComboBox::Draw()
 		mSelectedText->SetDrawBackground(false);
 		mSelectedText->SetOverrideColor(skin->GetColor(DC_GRAY_TEXT));
 	}
-	mListButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_CURSOR_DOWN), skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
-	mListButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_CURSOR_DOWN), skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
+	mListButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_DOWN, skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
+	mListButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_DOWN, skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
 
 
 	RectangleBase<2, int> frameRect(mAbsoluteRect);

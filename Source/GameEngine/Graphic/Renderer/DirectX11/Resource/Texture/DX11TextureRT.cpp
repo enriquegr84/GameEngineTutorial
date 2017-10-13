@@ -37,7 +37,7 @@ DX11TextureRT::DX11TextureRT(ID3D11Device* device, TextureRT const* texture)
         desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
     }
 
-    if (texture->WantAutogenerateMipmaps() && !texture->IsShared())
+    if (texture->IsAutogenerateMipmaps() && !texture->IsShared())
     {
         desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
     }
@@ -83,7 +83,7 @@ DX11TextureRT::DX11TextureRT(ID3D11Device* device, TextureRT const* texture)
     }
 
     // Generate mipmaps if requested.
-    if (texture->WantAutogenerateMipmaps() && mSRView)
+    if (texture->IsAutogenerateMipmaps() && mSRView)
     {
         ID3D11DeviceContext* context;
         device->GetImmediateContext(&context);

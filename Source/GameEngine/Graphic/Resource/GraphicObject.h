@@ -132,8 +132,8 @@ public:
     // If you want the name to show up in the DX11 destruction messages when
     // the associated DX11GraphicsObject is destroyed, set the name to
     // something other than "".
-    inline void SetName(eastl::string const& name);
-    inline eastl::string const& GetName() const;
+    inline void SetName(eastl::wstring const& name);
+    inline eastl::wstring const& GetName() const;
 
     // Listeners subscribe to receive notification when a GraphicsObject is
     // about to be destroyed.  The intended use is for the DX11Engine objects
@@ -154,7 +154,7 @@ protected:
     GraphicObject();
 
     GraphicObjectType mType;
-	eastl::string mName;
+	eastl::wstring mName;
 
 private:
     // Support for listeners for destruction (LFD).
@@ -192,12 +192,12 @@ inline bool GraphicObject::IsDrawingState() const
 	return GE_DRAWING_STATE <= mType && mType <= GE_RASTERIZER_STATE;
 }
 
-inline void GraphicObject::SetName(eastl::string const& name)
+inline void GraphicObject::SetName(eastl::wstring const& name)
 {
     mName = name;
 }
 
-inline eastl::string const& GraphicObject::GetName() const
+inline eastl::wstring const& GraphicObject::GetName() const
 {
     return mName;
 }

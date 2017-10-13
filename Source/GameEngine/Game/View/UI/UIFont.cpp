@@ -220,6 +220,8 @@ bool UIFont::Load(const eastl::wstring& filename)
 	{
 		eastl::shared_ptr<ImageResourceExtraData> extra = 
 			eastl::static_pointer_cast<ImageResourceExtraData>(fontResource->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+
 		return LoadTexture(extra->GetImage().get(), filename);
 	}
 	else if (fontResource->GetExtra()->ToString() == L"XmlResourceExtraData")

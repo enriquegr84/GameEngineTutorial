@@ -287,14 +287,14 @@ public:
 
 	//! Returns a default icon
 	/** Returns the sprite index within the sprite bank */
-	virtual unsigned int GetIcon(UIDefaultIcon icon) const = 0;
+	virtual const wchar_t* GetIcon(UIDefaultIcon icon) const = 0;
 
 	//! Sets a default icon
 	/** Sets the sprite index used for drawing icons like arrows,
 	close buttons and ticks in checkboxes
 	\param icon: Enum specifying which icon to change
 	\param index: The sprite index used to draw this icon */
-	virtual void SetIcon(UIDefaultIcon icon, unsigned int index) = 0;
+	virtual void SetIcon(UIDefaultIcon icon, wchar_t* path) = 0;
 
 	//! draws a standard 3d button pane
 	/** Used for drawing for example buttons in normal state.
@@ -467,14 +467,14 @@ public:
 
 	//! Returns a default icon
 	/** Returns the sprite index within the sprite bank */
-	virtual unsigned int GetIcon(UIDefaultIcon icon) const;
+	virtual const wchar_t* GetIcon(UIDefaultIcon icon) const;
 
 	//! Sets a default icon
 	/** Sets the sprite index used for drawing icons like arrows,
 	close buttons and ticks in checkboxes
 	\param icon: Enum specifying which icon to change
 	\param index: The sprite index used to draw this icon */
-	virtual void SetIcon(UIDefaultIcon icon, unsigned int index);
+	virtual void SetIcon(UIDefaultIcon icon, wchar_t* path);
 
 	//! Returns a default text.
 	/** For example for Message box button captions:
@@ -624,11 +624,11 @@ private:
 	BaseUI* mUI;
 
 	eastl::array<float, 4> mColors[DC_COUNT];
-	int mSizes[DS_COUNT];
-	unsigned int mIcons[DI_COUNT];
 	eastl::shared_ptr<BaseUIFont> mFonts[DF_COUNT];
 	eastl::shared_ptr<BaseUISpriteBank> mSpriteBank;
 	eastl::wstring mTexts[DT_COUNT];
+	eastl::wstring mIcons[DI_COUNT];
+	int mSizes[DS_COUNT];
 	bool mUseGradient;
 
 	UISkinThemeType mType;

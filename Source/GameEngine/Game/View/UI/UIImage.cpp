@@ -9,6 +9,9 @@
 
 #include "UserInterface.h"
 
+#include "Core/OS/OS.h"
+
+#include "Graphic/Image/ImageResource.h"
 #include "Graphic/Renderer/Renderer.h"
 
 //! constructor
@@ -20,29 +23,38 @@ UIImage::UIImage(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 	//setDebugName("CGUIImage");
 	#endif
 
-	// Create a vertex buffer for a two-triangles square. The PNG is stored
-	// in left-handed coordinates. The texture coordinates are chosen to
-	// reflect the texture in the y-direction.
-	struct Vertex
+	eastl::shared_ptr<ResHandle>& resHandle =
+		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
+	if (resHandle)
 	{
-		Vector3<float> position;
-		Vector2<float> tcoord;
-	};
-	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
 
-	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
-	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+		// Create a vertex buffer for a two-triangles square. The PNG is stored
+		// in left-handed coordinates. The texture coordinates are chosen to
+		// reflect the texture in the y-direction.
+		struct Vertex
+		{
+			Vector3<float> position;
+			Vector2<float> tcoord;
+		};
+		VertexFormat vformat;
+		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	// Create an effect for the vertex and pixel shaders.  The texture is
-	// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
-	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
-	mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, eastl::shared_ptr<Texture2>(),
-		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
 
-	// Create the geometric object for drawing.
-	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+		// Create an effect for the vertex and pixel shaders. The texture is
+		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
+		eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
+			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+
+		// Create the geometric object for drawing.
+		mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+	}
 }
 
 
@@ -87,76 +99,52 @@ void UIImage::Draw()
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 	if (mTexture)
 	{
-		if (mScaleImage)
+		const eastl::array<float, 4> colors[]{ mColor,mColor,mColor,mColor };
+
+		Vector2<int> targetPos{ mAbsoluteRect.center[0] , mAbsoluteRect.center[1] };
+		Vector2<int> dimension(mParent != nullptr ? mParent->GetAbsolutePosition().extent / 2 : mAbsoluteRect.extent / 2);
+
+		if (!mScaleImage)
 		{
-			const eastl::array<float, 4> colors[]{ mColor,mColor,mColor,mColor };
-
-			const RectangleBase<2, int>& sourceRect = mAbsoluteRect;
-			Vector2<int> sourceSize(sourceRect.extent);
-			Vector2<int> sourcePos;
-			sourcePos[0] = sourceRect.center[0];
-			sourcePos[0] = sourceRect.center[1];
-
-			mEffect->SetTexture(mTexture);
-
-			struct Vertex
-			{
-				Vector3<float> position;
-				Vector2<float> tcoord;
-			};
-			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
-			vertex[0].position = {
-				(float)sourcePos[0] / mTexture->GetDimension(0),
-				(float)sourcePos[1] / mTexture->GetDimension(1), 0.0f };
-			vertex[0].tcoord = { 0.0f, 1.0f };
-			vertex[1].position = {
-				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mTexture->GetDimension(0),
-				(float)sourcePos[1] / mTexture->GetDimension(1), 0.0f };
-			vertex[1].tcoord = { 1.0f, 1.0f };
-			vertex[2].position = {
-				(float)sourcePos[0] / mTexture->GetDimension(0),
-				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mTexture->GetDimension(1), 0.0f };
-			vertex[2].tcoord = { 0.0f, 0.0f };
-			vertex[3].position = {
-				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mTexture->GetDimension(0),
-				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mTexture->GetDimension(1), 0.0f };
-			vertex[3].tcoord = { 1.0f, 0.0f };
+			targetPos[0] = mAbsoluteRect.center[0] - (dimension[0] / 2);
+			targetPos[1] = mAbsoluteRect.center[1] - (dimension[1] / 2);
 		}
-		else
+
+		Vector2<unsigned int> sourceCenter{ mTexture->GetDimension(0) / 2, mTexture->GetDimension(1) / 2 };
+		Vector2<unsigned int> sourceSize{ mTexture->GetDimension(0), mTexture->GetDimension(1) };
+
+		mEffect->SetTexture(mTexture);
+
+		struct Vertex
 		{
-			const eastl::array<float, 4> colors[]{ mColor,mColor,mColor,mColor };
-
-			const RectangleBase<2, int>& sourceRect = mAbsoluteRect;
-			Vector2<int> sourceSize(sourceRect.extent);
-			Vector2<int> sourcePos;
-			sourcePos[0] = sourceRect.center[0] - (sourceSize[0] / 2);
-			sourcePos[0] = sourceRect.center[1] - (sourceSize[1] / 2);
-
-			mEffect->SetTexture(mTexture);
-
-			struct Vertex
-			{
-				Vector3<float> position;
-				Vector2<float> tcoord;
-			};
-			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
-			vertex[0].position = {
-				(float)sourcePos[0] / mTexture->GetDimension(0),
-				(float)sourcePos[1] / mTexture->GetDimension(1), 0.0f };
-			vertex[0].tcoord = { 0.0f, 1.0f };
-			vertex[1].position = {
-				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mTexture->GetDimension(0),
-				(float)sourcePos[1] / mTexture->GetDimension(1), 0.0f };
-			vertex[1].tcoord = { 1.0f, 1.0f };
-			vertex[2].position = {
-				(float)sourcePos[0] / mTexture->GetDimension(0),
-				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mTexture->GetDimension(1), 0.0f };
-			vertex[2].tcoord = { 0.0f, 0.0f };
-			vertex[3].position = {
-				(float)(sourcePos[0] + (sourceSize[0] / 2)) / mTexture->GetDimension(0),
-				(float)(sourcePos[1] + (sourceSize[1] / 2)) / mTexture->GetDimension(1), 0.0f };
-			vertex[3].tcoord = { 1.0f, 0.0f };
-		}
+			Vector3<float> position;
+			Vector2<float> tcoord;
+		};
+		Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
+		vertex[0].position = {
+			(float)(targetPos[0] - dimension[0] - (mAbsoluteClippingRect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - targetPos[1] - (mAbsoluteClippingRect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].tcoord = {
+			(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+			(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+		vertex[1].position = {
+			(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteClippingRect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - targetPos[1] - (mAbsoluteClippingRect.extent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].tcoord = {
+			(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+			(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+		vertex[2].position = {
+			(float)(targetPos[0] - dimension[0] - (mAbsoluteClippingRect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteClippingRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].tcoord = {
+			(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+			(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+		vertex[3].position = {
+			(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteClippingRect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteClippingRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].tcoord = {
+			(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+			(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 
 		// Create the geometric object for drawing.
 		Renderer::Get()->Draw(mVisual);

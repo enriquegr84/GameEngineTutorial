@@ -70,16 +70,16 @@ void UIWindow::RefreshSprites()
 	if (sprites)
 	{
 		mCloseButton->SetSpriteBank(sprites);
-		mCloseButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_WINDOW_CLOSE), mCurrentIconColor);
-		mCloseButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_WINDOW_CLOSE), mCurrentIconColor);
+		mCloseButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_CLOSE, mCurrentIconColor);
+		mCloseButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_CLOSE, mCurrentIconColor);
 
 		mRestoreButton->SetSpriteBank(sprites);
-		mRestoreButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_WINDOW_RESTORE), mCurrentIconColor);
-		mRestoreButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_WINDOW_RESTORE), mCurrentIconColor);
+		mRestoreButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_RESTORE, mCurrentIconColor);
+		mRestoreButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_RESTORE, mCurrentIconColor);
 
 		mMinButton->SetSpriteBank(sprites);
-		mMinButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_WINDOW_MINIMIZE), mCurrentIconColor);
-		mMinButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_WINDOW_MINIMIZE), mCurrentIconColor);
+		mMinButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_MINIMIZE, mCurrentIconColor);
+		mMinButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_MINIMIZE, mCurrentIconColor);
 	}
 }
 
@@ -144,94 +144,94 @@ bool UIWindow::OnEvent(const Event& ev)
 
 		switch (ev.mEventType)
 		{
-		case ET_UI_EVENT:
-			if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUS_LOST)
-			{
-				mDragging = false;
-				mIsActive = false;
-			}
-			else
-				if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUSED)
+			case ET_UI_EVENT:
+				if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUS_LOST)
 				{
-					if (mParent && ((ev.mUIEvent.mCaller == this) || IsMyChild(ev.mUIEvent.mCaller)))
-					{
-						mParent->BringToFront(shared_from_this());
-						mIsActive = true;
-					}
-					else
-					{
-						mIsActive = false;
-					}
+					mDragging = false;
+					mIsActive = false;
 				}
 				else
-					if (ev.mUIEvent.mEventType == UIEVT_BUTTON_CLICKED)
+					if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUSED)
 					{
-						if (ev.mUIEvent.mCaller == mCloseButton.get())
+						if (mParent && ((ev.mUIEvent.mCaller == this) || IsMyChild(ev.mUIEvent.mCaller)))
 						{
-							if (mParent)
-							{
-								// send close event to parent
-								Event e;
-								e.mEventType = ET_UI_EVENT;
-								e.mUIEvent.mCaller = this;
-								e.mUIEvent.mElement = 0;
-								e.mUIEvent.mEventType = UIEVT_ELEMENT_CLOSED;
-
-								// if the event was not absorbed
-								if (!mParent->OnEvent(e))
-									Remove();
-
-								return true;
-
-							}
-							else
-							{
-								Remove();
-								return true;
-							}
+							mParent->BringToFront(shared_from_this());
+							mIsActive = true;
+						}
+						else
+						{
+							mIsActive = false;
 						}
 					}
-			break;
-		case ET_MOUSE_INPUT_EVENT:
-			switch (ev.mMouseInput.mEvent)
-			{
-				case MIE_LMOUSE_PRESSED_DOWN:
-					mDragStart[0] = ev.mMouseInput.X;
-					mDragStart[1] = ev.mMouseInput.Y;
-					mDragging = mIsDraggableWindow;
-					if (mParent)
-						mParent->BringToFront(shared_from_this());
-					return true;
-				case MIE_LMOUSE_LEFT_UP:
-					mDragging = false;
-					return true;
-				case MIE_MOUSE_MOVED:
-					if (!ev.mMouseInput.IsLeftPressed())
-						mDragging = false;
-
-					if (mDragging)
-					{
-						// gui window should not be dragged outside its parent
-						if (mParent)
+					else
+						if (ev.mUIEvent.mEventType == UIEVT_BUTTON_CLICKED)
 						{
-							if (ev.mMouseInput.X < mParent->GetAbsolutePosition().center[0] - (mParent->GetAbsolutePosition().extent[0] / 2) + 1 ||
-								ev.mMouseInput.Y < mParent->GetAbsolutePosition().center[1] - (mParent->GetAbsolutePosition().extent[1] / 2) + 1 ||
-								ev.mMouseInput.X > mParent->GetAbsolutePosition().center[0] + (int)round(mParent->GetAbsolutePosition().extent[0] / 2.f) - 1 ||
-								ev.mMouseInput.Y > mParent->GetAbsolutePosition().center[1] + (int)round(mParent->GetAbsolutePosition().extent[1] / 2.f) - 1)
-								return true;
-						}
+							if (ev.mUIEvent.mCaller == mCloseButton.get())
+							{
+								if (mParent)
+								{
+									// send close event to parent
+									Event e;
+									e.mEventType = ET_UI_EVENT;
+									e.mUIEvent.mCaller = this;
+									e.mUIEvent.mElement = 0;
+									e.mUIEvent.mEventType = UIEVT_ELEMENT_CLOSED;
 
-						Move(Vector2<int>{ev.mMouseInput.X - mDragStart[0], ev.mMouseInput.Y - mDragStart[1]});
+									// if the event was not absorbed
+									if (!mParent->OnEvent(e))
+										Remove();
+
+									return true;
+
+								}
+								else
+								{
+									Remove();
+									return true;
+								}
+							}
+						}
+				break;
+			case ET_MOUSE_INPUT_EVENT:
+				switch (ev.mMouseInput.mEvent)
+				{
+					case MIE_LMOUSE_PRESSED_DOWN:
 						mDragStart[0] = ev.mMouseInput.X;
 						mDragStart[1] = ev.mMouseInput.Y;
+						mDragging = mIsDraggableWindow;
+						if (mParent)
+							mParent->BringToFront(shared_from_this());
 						return true;
+					case MIE_LMOUSE_LEFT_UP:
+						mDragging = false;
+						return true;
+					case MIE_MOUSE_MOVED:
+						if (!ev.mMouseInput.IsLeftPressed())
+							mDragging = false;
+
+						if (mDragging)
+						{
+							// gui window should not be dragged outside its parent
+							if (mParent)
+							{
+								if (ev.mMouseInput.X < mParent->GetAbsolutePosition().center[0] - (mParent->GetAbsolutePosition().extent[0] / 2) + 1 ||
+									ev.mMouseInput.Y < mParent->GetAbsolutePosition().center[1] - (mParent->GetAbsolutePosition().extent[1] / 2) + 1 ||
+									ev.mMouseInput.X > mParent->GetAbsolutePosition().center[0] + (int)round(mParent->GetAbsolutePosition().extent[0] / 2.f) - 1 ||
+									ev.mMouseInput.Y > mParent->GetAbsolutePosition().center[1] + (int)round(mParent->GetAbsolutePosition().extent[1] / 2.f) - 1)
+									return true;
+							}
+
+							Move(Vector2<int>{ev.mMouseInput.X - mDragStart[0], ev.mMouseInput.Y - mDragStart[1]});
+							mDragStart[0] = ev.mMouseInput.X;
+							mDragStart[1] = ev.mMouseInput.Y;
+							return true;
+						}
+						break;
+					default:
+						break;
 					}
-					break;
 				default:
 					break;
-				}
-			default:
-				break;
 		}
 	}
 

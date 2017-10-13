@@ -106,7 +106,7 @@ eastl::shared_ptr<BaseResourceLoader> CreateImageResourceLoader()
     return eastl::shared_ptr<BaseResourceLoader>(new ImageResourceLoader());
 }
 
-eastl::shared_ptr<Texture2> ImageResourceLoader::Load(eastl::wstring const& filename, bool wantMipmaps)
+eastl::shared_ptr<Texture2> ImageResourceLoader::Load(eastl::wstring const& fileName, bool wantMipMaps)
 {
 	// Start COM and create WIC.
 	ComInitializer comInitializer;
@@ -129,11 +129,11 @@ eastl::shared_ptr<Texture2> ImageResourceLoader::Load(eastl::wstring const& file
 
 	// Create a decoder based on the file name.
 	ComObject<IWICBitmapDecoder> wicDecoder;
-	hr = wicFactory->CreateDecoderFromFilename(filename.c_str(),
+	hr = wicFactory->CreateDecoderFromFilename(fileName.c_str(),
 		nullptr, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &wicDecoder);
 	if (FAILED(hr))
 	{
-		LogError(L"WicFactory->CreateDecoderFromFilename failed (" + filename + L").");
+		LogError(L"WicFactory->CreateDecoderFromFilename failed (" + fileName + L").");
 		return nullptr;
 	}
 
@@ -219,7 +219,7 @@ eastl::shared_ptr<Texture2> ImageResourceLoader::Load(eastl::wstring const& file
 
 	// Create the 2D texture and compute the stride and image size.
 	eastl::shared_ptr<Texture2> texture = 
-		eastl::make_shared<Texture2>(gtformat, width, height, wantMipmaps);
+		eastl::make_shared<Texture2>(gtformat, width, height, wantMipMaps);
 	UINT const stride = width * texture->GetElementSize();
 	UINT const imageSize = stride * height;
 

@@ -146,7 +146,7 @@ bool DX11Texture::CopyCpuToGpu(ID3D11DeviceContext* context)
     }
 
     // Generate mipmaps (when they exist).
-    if (texture->WantAutogenerateMipmaps() && mSRView)
+    if (texture->IsAutogenerateMipmaps() && mSRView)
     {
         context->GenerateMips(mSRView);
     }

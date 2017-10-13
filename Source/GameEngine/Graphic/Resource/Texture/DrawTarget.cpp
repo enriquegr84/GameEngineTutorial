@@ -139,11 +139,11 @@ void DrawTarget::AutogenerateRTMipmaps()
     }
 }
 
-bool DrawTarget::WantAutogenerateRTMipmaps() const
+bool DrawTarget::IsAutogenerateRTMipmaps() const
 {
     if (mRTTextures.size() > 0)
     {
-        return mRTTextures[0]->WantAutogenerateMipmaps();
+        return mRTTextures[0]->IsAutogenerateMipmaps();
     }
 
     LogError("Unexpected condition.");

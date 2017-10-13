@@ -45,7 +45,7 @@
 //
 BaseResource::BaseResource(const eastl::wstring &resourceName) 
 {
-	mName = eastl::wstring(resourceName.c_str());
+	mName = resourceName;
 }
 
 //

@@ -41,6 +41,8 @@
 #include "Core/IO/XmlResource.h"
 #include "Core/OS/Os.h"
 
+#include "Graphic/Image/ImageResource.h"
+
 //! constructor
 BaseUI::BaseUI()
 	: mHovered(0), mHoveredNoSubelement(0), mFocus(0), 
@@ -78,6 +80,217 @@ bool BaseUI::OnInit()
 
 	const eastl::shared_ptr<BaseUISkin>& skin = CreateSkin( STT_WINDOWS_CLASSIC );
 	SetSkin(skin);
+
+	eastl::shared_ptr<ResHandle>& resHandle = 
+		ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_MAXIMIZE)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_MAXIMIZE));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_RESTORE)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_RESTORE));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_CLOSE)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_CLOSE));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_MINIMIZE)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_MINIMIZE));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_CURSOR_UP)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_CURSOR_UP));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_CURSOR_DOWN)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_CURSOR_DOWN));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_CURSOR_LEFT)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_CURSOR_LEFT));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+	
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_CURSOR_RIGHT)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_CURSOR_RIGHT));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_MENU_MORE)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_MENU_MORE));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_CHECK_BOX_CHECKED)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_CHECK_BOX_CHECKED));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_DROP_DOWN)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_DROP_DOWN));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_SMALL_CURSOR_UP)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_SMALL_CURSOR_UP));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_SMALL_CURSOR_DOWN)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_SMALL_CURSOR_DOWN));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_RADIO_BUTTON_CHECKED)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_RADIO_BUTTON_CHECKED));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_MORE_LEFT)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_MORE_LEFT));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_MORE_RIGHT)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_MORE_RIGHT));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_MORE_UP)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_MORE_UP));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_MORE_DOWN)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_MORE_DOWN));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_RESIZE)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_RESIZE));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_EXPAND)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_EXPAND));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_COLLAPSE)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_COLLAPSE));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
 
 	return true;
 }

@@ -42,7 +42,7 @@ DX11Texture2Array::DX11Texture2Array(ID3D11Device* device, Texture2Array const* 
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_NONE;
     }
 
-    if (textureArray->WantAutogenerateMipmaps())
+    if (textureArray->IsAutogenerateMipmaps())
     {
         desc.Usage = D3D11_USAGE_DEFAULT;
         desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
@@ -90,7 +90,7 @@ DX11Texture2Array::DX11Texture2Array(ID3D11Device* device, Texture2Array const* 
     }
 
     // Generate mipmaps if requested.
-    if (textureArray->WantAutogenerateMipmaps() && mSRView)
+    if (textureArray->IsAutogenerateMipmaps() && mSRView)
     {
         ID3D11DeviceContext* context;
         device->GetImmediateContext(&context);

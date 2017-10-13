@@ -62,7 +62,7 @@ public:
     // binding the texture to the engine.  If the texture does not have mipmaps,
     // the AutogenerateMipmaps call will not set mAutogenerateMipmaps to true.
     void AutogenerateMipmaps();
-    inline bool WantAutogenerateMipmaps() const;
+    inline bool IsAutogenerateMipmaps() const;
 
 protected:
     // Support for computing the numElements parameter for the Resource
@@ -164,7 +164,7 @@ inline unsigned int Texture::GetNumSubresources() const
     return mNumItems * mNumLevels;
 }
 
-inline bool Texture::WantAutogenerateMipmaps() const
+inline bool Texture::IsAutogenerateMipmaps() const
 {
     return mAutogenerateMipmaps;
 }

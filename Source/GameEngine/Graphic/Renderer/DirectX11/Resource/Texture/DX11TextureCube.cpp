@@ -43,7 +43,7 @@ DX11TextureCube::DX11TextureCube(ID3D11Device* device, TextureCube const* textur
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_NONE;
     }
 
-    if (textureCube->WantAutogenerateMipmaps())
+    if (textureCube->IsAutogenerateMipmaps())
     {
         desc.Usage = D3D11_USAGE_DEFAULT;
         desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
@@ -92,7 +92,7 @@ DX11TextureCube::DX11TextureCube(ID3D11Device* device, TextureCube const* textur
     }
 
     // Generate mipmaps if requested.
-    if (textureCube->WantAutogenerateMipmaps() && mSRView)
+    if (textureCube->IsAutogenerateMipmaps() && mSRView)
     {
         ID3D11DeviceContext* context;
         device->GetImmediateContext(&context);

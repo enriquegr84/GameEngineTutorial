@@ -1416,7 +1416,7 @@ void Dx11Renderer::Disable(eastl::shared_ptr<DrawTarget> const& target)
 		// The assumption is that Disable is called after you have written
 		// the draw target outputs.  If the render targets want automatic
 		// mipmap generation, we do so here.
-		if (target->WantAutogenerateRTMipmaps())
+		if (target->IsAutogenerateRTMipmaps())
 		{
 			unsigned int const numTargets = target->GetNumTargets();
 			for (unsigned int i = 0; i < numTargets; ++i)

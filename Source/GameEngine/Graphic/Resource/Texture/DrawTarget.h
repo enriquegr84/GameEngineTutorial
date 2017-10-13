@@ -49,7 +49,7 @@ public:
     // binding the texture to the engine.  If the texture does not have mipmaps,
     // the AutogenerateMipmaps call will not set mAutogenerateMipmaps to true.
     void AutogenerateRTMipmaps();
-    bool WantAutogenerateRTMipmaps() const;
+    bool IsAutogenerateRTMipmaps() const;
 
     // Listeners subscribe to receive notification when a DrawTarget is about
     // to be destroyed.  The intended use is for the DX11Engine objects to

@@ -156,6 +156,15 @@ bool MainMenuUI::OnInit()
 	statusRectangle.extent[0] = screenSize[0] - 10;
 	statusRectangle.extent[1] = 10;
 	mStatusLine = AddStaticText(L"", statusRectangle, false, false, mWindow, -1, true);
+
+	/*
+	screenRectangle.center[0] = screenSize[0] - 35;
+	screenRectangle.center[1] = 72;
+	screenRectangle.extent[0] = 50;
+	screenRectangle.extent[1] = 16;
+	mSetVideoMode = AddButton(screenRectangle, mWindow, -1, L"Set");
+	mSetVideoMode->SetToolTipText(L"Set Video Mode with current values");
+
 	/*
 	RectangleBase<2, int> videoRectangle;
 	videoRectangle.center[0] = screenSize[0] - 355;
@@ -290,6 +299,7 @@ bool MainMenuUI::OnInit()
 	{
 		const eastl::shared_ptr<ImageResourceExtraData>& extra =
 			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
 
 		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true, 0);
 		mLogo->SetToolTipText(L"The great Irrlicht Engine");

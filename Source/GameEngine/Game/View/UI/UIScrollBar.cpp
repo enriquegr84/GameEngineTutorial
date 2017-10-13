@@ -9,8 +9,10 @@
 
 #include "UserInterface.h"
 
-#include "Graphic/Renderer/Renderer.h"
 #include "Core/OS/OS.h"
+
+#include "Graphic/Image/ImageResource.h"
+#include "Graphic/Renderer/Renderer.h"
 
 
 //! constructor
@@ -23,29 +25,38 @@ UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bo
 	//setDebugName("UIScrollBar");
 	#endif
 
-	// Create a vertex buffer for a two-triangles square. The PNG is stored
-	// in left-handed coordinates. The texture coordinates are chosen to
-	// reflect the texture in the y-direction.
-	struct Vertex
+	eastl::shared_ptr<ResHandle>& resHandle =
+		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
+	if (resHandle)
 	{
-		Vector3<float> position;
-		Vector2<float> tcoord;
-	};
-	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
 
-	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
-	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+		// Create a vertex buffer for a two-triangles square. The PNG is stored
+		// in left-handed coordinates. The texture coordinates are chosen to
+		// reflect the texture in the y-direction.
+		struct Vertex
+		{
+			Vector3<float> position;
+			Vector2<float> tcoord;
+		};
+		VertexFormat vformat;
+		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	// Create an effect for the vertex and pixel shaders.  The texture is
-	// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
-	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
-	mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, eastl::shared_ptr<Texture2>(),
-		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
 
-	// Create the geometric object for drawing.
-	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+		// Create an effect for the vertex and pixel shaders. The texture is
+		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
+		eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
+			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+
+		// Create the geometric object for drawing.
+		mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+	}
 }
 
 
@@ -505,8 +516,8 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mUpButton->SetSpriteBank(sprites);
-			mUpButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_CURSOR_LEFT), mCurrentIconColor);
-			mUpButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_CURSOR_LEFT), mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_LEFT, mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_LEFT, mCurrentIconColor);
 		}
 		mUpButton->SetRelativePosition(rectangle);
 		mUpButton->SetAlignment(UIA_UPPERLEFT, UIA_UPPERLEFT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
@@ -525,8 +536,8 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mDownButton->SetSpriteBank(sprites);
-			mDownButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_CURSOR_RIGHT), mCurrentIconColor);
-			mDownButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_CURSOR_RIGHT), mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_RIGHT, mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_RIGHT, mCurrentIconColor);
 		}
 		mDownButton->SetRelativePosition(rectangle);
 		mDownButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
@@ -550,8 +561,8 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mUpButton->SetSpriteBank(sprites);
-			mUpButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_CURSOR_LEFT), mCurrentIconColor);
-			mUpButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_CURSOR_LEFT), mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_LEFT, mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_LEFT, mCurrentIconColor);
 		}
 		mUpButton->SetRelativePosition(rectangle);
 		mUpButton->SetAlignment(UIA_UPPERLEFT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
@@ -570,8 +581,8 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mDownButton->SetSpriteBank(sprites);
-			mDownButton->SetSprite(BS_BUTTON_UP, skin->GetIcon(DI_CURSOR_RIGHT), mCurrentIconColor);
-			mDownButton->SetSprite(BS_BUTTON_DOWN, skin->GetIcon(DI_CURSOR_RIGHT), mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_RIGHT, mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_RIGHT, mCurrentIconColor);
 		}
 		mDownButton->SetRelativePosition(rectangle);
 		mDownButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
