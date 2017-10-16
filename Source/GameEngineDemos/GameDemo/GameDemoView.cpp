@@ -157,26 +157,23 @@ bool MainMenuUI::OnInit()
 	statusRectangle.extent[1] = 10;
 	mStatusLine = AddStaticText(L"", statusRectangle, false, false, mWindow, -1, true);
 
-	/*
-	screenRectangle.center[0] = screenSize[0] - 35;
-	screenRectangle.center[1] = 72;
-	screenRectangle.extent[0] = 50;
-	screenRectangle.extent[1] = 16;
-	mSetVideoMode = AddButton(screenRectangle, mWindow, -1, L"Set");
-	mSetVideoMode->SetToolTipText(L"Set Video Mode with current values");
-
-	/*
 	RectangleBase<2, int> videoRectangle;
 	videoRectangle.center[0] = screenSize[0] - 355;
 	videoRectangle.center[1] = 32;
 	videoRectangle.extent[0] = 90;
 	videoRectangle.extent[1] = 16;
 	AddStaticText(L"", videoRectangle, false, false, mWindow, -1, true);
+	
+	videoRectangle.center[0] = screenSize[0] - 155;
+	videoRectangle.center[1] = 32;
+	videoRectangle.extent[0] = 290;
+	videoRectangle.extent[1] = 16;
 	mVideoDriver = AddComboBox(videoRectangle, mWindow);
 	mVideoDriver->AddItem(L"Direct3D 11", RT_DIRECT3D11);
 	mVideoDriver->AddItem(L"OpenGL", RT_OPENGL);
 	mVideoDriver->AddItem(L"Software Renderer", RT_SOFTWARE);
 
+	/*
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	mVideoDriver->SetSelected(mVideoDriver->GetIndexForItemData(gameApp->mOption.mRendererType));
 	mVideoDriver->SetToolTipText(L"Use a VideoDriver");

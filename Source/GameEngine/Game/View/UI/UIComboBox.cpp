@@ -53,9 +53,9 @@ void UIComboBox::OnInit()
 
 	RectangleBase<2, int> r;
 	r.extent[0] = width;
-	r.extent[1] = mRelativeRect.extent[1];
-	r.center[0] = mRelativeRect.extent[0] - (width / 2) - 1;
-	r.center[1] = mRelativeRect.extent[1] - 1;
+	r.extent[1] = mRelativeRect.extent[1] - 4;
+	r.center[0] = mRelativeRect.extent[0] - (width / 2);
+	r.center[1] = mRelativeRect.extent[1] / 2;
 
 	mListButton = mUI->AddButton(r, shared_from_this(), -1, L"");
 	if (skin && skin->GetSpriteBank())
@@ -68,10 +68,10 @@ void UIComboBox::OnInit()
 	mListButton->SetSubElement(true);
 	mListButton->SetTabStop(false);
 
-	r.extent[0] = mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0] - 4;
+	r.extent[0] = mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0];
 	r.extent[1] = mRelativeRect.extent[1] - 4;
-	r.center[0] = (mRelativeRect.extent[0] / 2) + 1;
-	r.center[1] = (mRelativeRect.extent[1] / 2) + 1;
+	r.center[0] = mRelativeRect.extent[0] - (mListButton->GetAbsolutePosition().extent[0] / 2) + 1;
+	r.center[1] = mRelativeRect.extent[1] / 2;
 
 	mSelectedText = mUI->AddStaticText(L"", r, false, false, shared_from_this(), -1, false);
 	mSelectedText->SetSubElement(true);
