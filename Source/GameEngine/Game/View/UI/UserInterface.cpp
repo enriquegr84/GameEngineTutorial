@@ -81,6 +81,14 @@ bool BaseUI::OnInit()
 	const eastl::shared_ptr<BaseUISkin>& skin = CreateSkin( STT_WINDOWS_CLASSIC );
 	SetSkin(skin);
 
+	//set tooltip default
+	mToolTip.mLastTime = 0;
+	mToolTip.mEnterTime = 0;
+	mToolTip.mLaunchTime = 1000;
+	mToolTip.mRelaunchTime = 500;
+	mToolTip.mElement = 
+		AddStaticText(L"", RectangleBase<2, int>(), true, true, mRoot, -1, true);
+
 	eastl::shared_ptr<ResHandle>& resHandle = 
 		ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_MAXIMIZE)));
 	if (resHandle)
@@ -119,6 +127,16 @@ bool BaseUI::OnInit()
 			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 		extra->GetImage()->AutogenerateMipmaps();
 		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_MINIMIZE));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_RESIZE)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_RESIZE));
 		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
 	}
 
@@ -262,16 +280,6 @@ bool BaseUI::OnInit()
 		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
 	}
 
-	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_RESIZE)));
-	if (resHandle)
-	{
-		const eastl::shared_ptr<ImageResourceExtraData>& extra =
-			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-		extra->GetImage()->AutogenerateMipmaps();
-		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_RESIZE));
-		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
-	}
-
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_EXPAND)));
 	if (resHandle)
 	{
@@ -313,6 +321,10 @@ bool BaseUI::OnRender(double time, float elapsedTime)
 		mRoot->mAbsoluteRect = mRoot->mDesiredRect;
 		mRoot->UpdateAbsolutePosition();
 	}
+
+	// make sure tooltip is always on top
+	if (mToolTip.mElement)
+		mRoot->BringToFront(mToolTip.mElement);
 
 	mRoot->Draw();
 
@@ -358,6 +370,55 @@ void BaseUI::Clear()
 //
 bool BaseUI::OnPostRender( unsigned int time )
 {
+	// launch tooltip
+	if (!mToolTip.mElement->IsEnabled() &&
+		mHoveredNoSubelement && mHoveredNoSubelement != mRoot &&
+		(time - mToolTip.mEnterTime >= mToolTip.mLaunchTime || 
+		(time - mToolTip.mLastTime >= mToolTip.mRelaunchTime && 
+		time - mToolTip.mLastTime < mToolTip.mLaunchTime)) &&
+		mHoveredNoSubelement->GetToolTipText().size() &&
+		GetSkin() && GetSkin()->GetFont(DF_TOOLTIP))
+	{
+		RectangleBase<2, int> pos;
+
+		Vector2<int> dim = GetSkin()->GetFont(DF_TOOLTIP)->GetDimension(mHoveredNoSubelement->GetToolTipText().c_str());
+		dim[0] += GetSkin()->GetSize(DS_TEXT_DISTANCE_X) * 2;
+		dim[1] += GetSkin()->GetSize(DS_TEXT_DISTANCE_Y) * 2;
+
+		pos.center[0] = mLastHoveredMousePos[0] + (dim[0] / 2);
+		pos.extent[0] = dim[0];
+		pos.center[1] = mLastHoveredMousePos[1] - (dim[1] / 2);
+		pos.extent[1] = dim[1] - 2;
+
+		mToolTip.mElement->SetEnabled(true);
+		mToolTip.mElement->SetRelativePosition(pos);
+		mToolTip.mElement->SetText(mHoveredNoSubelement->GetToolTipText().c_str());
+		mToolTip.mElement->SetOverrideColor(GetSkin()->GetColor(DC_TOOLTIP));
+		mToolTip.mElement->SetBackgroundColor(GetSkin()->GetColor(DC_TOOLTIP_BACKGROUND));
+		mToolTip.mElement->SetOverrideFont(GetSkin()->GetFont(DF_TOOLTIP));
+		mToolTip.mElement->SetSubElement(true);
+
+		int textHeight = mToolTip.mElement->GetTextHeight();
+		pos = mToolTip.mElement->GetRelativePosition();
+		pos.extent[1] = textHeight;
+
+		mToolTip.mElement->SetRelativePosition(pos);
+	}
+
+	// (IsVisible() check only because we might use visibility for ToolTip one day)
+	if (mToolTip.mElement && mToolTip.mElement->IsVisible())
+	{
+		mToolTip.mLastTime = time;
+
+		// got invisible or removed in the meantime?
+		if (!mHoveredNoSubelement ||
+			!mHoveredNoSubelement->IsVisible() ||
+			!mHoveredNoSubelement->GetParent())	// got invisible or removed in the meantime?
+		{
+			mToolTip.mElement->SetEnabled(false);
+		}
+	}
+
 	mRoot->OnPostRender ( time );
 	return true;
 }
@@ -371,6 +432,16 @@ void BaseUI::UpdateHoveredElement(Vector2<int> mousePos)
 	mLastHoveredMousePos = mousePos;
 
 	mHovered = mRoot->GetElementFromPoint(mousePos);
+
+	if (mToolTip.mElement && mHovered == mToolTip.mElement)
+	{
+		// When the mouse is over the ToolTip we remove that so it will be re-created at a new position.
+		// Note that ToolTip.EnterTime does not get changed here, so it will be re-created at once.
+		mToolTip.mElement->SetEnabled(false);
+
+		// Get the real Hovered
+		mHovered = mRoot->GetElementFromPoint(mousePos);
+	}
 
 	// for tooltips we want the element itself and not some of it's subelements
 	mHoveredNoSubelement = mHovered;
@@ -400,6 +471,23 @@ void BaseUI::UpdateHoveredElement(Vector2<int> mousePos)
 			mHovered->OnEvent(ev);
 		}
 	}
+
+	if (lastHoveredNoSubelement != mHoveredNoSubelement)
+	{
+		if (mToolTip.mElement)
+			mToolTip.mElement->SetEnabled(false);
+
+		if (mHoveredNoSubelement)
+		{
+			unsigned int now = Timer::GetTime();
+			mToolTip.mEnterTime = now;
+		}
+	}
+
+	if (lastHovered && lastHovered != mRoot)
+		lastHovered.reset();
+	if (lastHoveredNoSubelement && lastHoveredNoSubelement != mRoot)
+		lastHoveredNoSubelement.reset();
 }
 
 //! posts an input event to the environment
@@ -651,8 +739,8 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::wstring& fileName)
 		FileSystem::Get()->ChangeWorkingDirectoryTo(FileSystem::Get()->GetFileDir(fileName));
 
 		// load the font
-		if (!((UIFont*)font.get())->Load(pRoot))
-			font  = 0;
+		if (!((UIFont*)font.get())->Load(fileName.c_str()))
+			font = 0;
 
 		// change working dir back again
 		FileSystem::Get()->ChangeWorkingDirectoryTo( workingDir );

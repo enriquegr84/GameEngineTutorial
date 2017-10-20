@@ -190,10 +190,10 @@ bool UIScrollBar::OnEvent(const Event& event)
 							{
 								mDragging = true;
 								mDraggedBySlider = 
-									(mSliderRect.center[0] - (mSliderRect.extent[0] / 2) >= p[0] &&
-									mSliderRect.center[1] - (mSliderRect.extent[1] / 2) >= p[1] &&
-									mSliderRect.center[0] + (int)round(mSliderRect.extent[0] / 2.f) <= p[0] &&
-									mSliderRect.center[1] + (int)round(mSliderRect.extent[1] / 2.f) <= p[1] );
+									(mSliderRect.center[0] - (mSliderRect.extent[0] / 2) <= p[0] &&
+									mSliderRect.center[1] - (mSliderRect.extent[1] / 2) <= p[1] &&
+									mSliderRect.center[0] + (int)round(mSliderRect.extent[0] / 2.f) >= p[0] &&
+									mSliderRect.center[1] + (int)round(mSliderRect.extent[1] / 2.f) >= p[1] );
 								mTrayClick = !mDraggedBySlider;
 								mDesiredPos = GetPosFromMousePos(p);
 								mUI->SetFocus ( shared_from_this() );
@@ -225,10 +225,10 @@ bool UIScrollBar::OnEvent(const Event& event)
 								if ( isInside )
 								{
 									mDraggedBySlider =
-										(mSliderRect.center[0] - (mSliderRect.extent[0] / 2) >= p[0] &&
-										mSliderRect.center[1] - (mSliderRect.extent[1] / 2) >= p[1] &&
-										mSliderRect.center[0] + (int)round(mSliderRect.extent[0] / 2.f) <= p[0] &&
-										mSliderRect.center[1] + (int)round(mSliderRect.extent[1] / 2.f) <= p[1]);
+										(mSliderRect.center[0] - (mSliderRect.extent[0] / 2) <= p[0] &&
+										mSliderRect.center[1] - (mSliderRect.extent[1] / 2) <= p[1] &&
+										mSliderRect.center[0] + (int)round(mSliderRect.extent[0] / 2.f) >= p[0] &&
+										mSliderRect.center[1] + (int)round(mSliderRect.extent[1] / 2.f) >= p[1]);
 									mTrayClick = !mDraggedBySlider;
 								}
 

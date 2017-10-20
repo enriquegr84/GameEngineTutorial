@@ -84,7 +84,7 @@ WindowsSystem::WindowsSystem(int width, int height)
 	}
 
 	// create cursor control
-	mCursorControl = CursorControl(
+	mCursorControl = new CursorControl(
 		Vector2<unsigned int>{ mWidth, mHeight }, (HWND)IntToPtr(mWindowID), mFullscreen);
 
 	// initialize doubleclicks with system values
@@ -511,6 +511,16 @@ LRESULT CALLBACK WindowsSystem::WndProc (HWND hWnd, UINT iMsg, WPARAM wParam, LP
 			else
 				return 0;
 		}
+
+		case WM_SETCURSOR:
+
+			dev = mHandleSystems[hWnd];
+			if (dev)
+			{
+				dev->GetCursorControl()->SetActiveIcon(dev->GetCursorControl()->GetActiveIcon());
+				dev->GetCursorControl()->SetVisible(dev->GetCursorControl()->IsVisible());
+			}
+			break;
 	}												
 
 	//	The DefWindowProc function calls the default window procedure to provide default 
@@ -1211,7 +1221,8 @@ void WindowsSystem::GetSystemVersion(eastl::string& out)
 //----------------------------------------------------------------------------
 WindowsSystem::CursorControl::CursorControl(
 	const Vector2<unsigned int>& wsize, HWND hwnd, bool fullscreen)
-	: mWindowSize(wsize), mHWnd(hwnd), mBorderX(0), mBorderY(0), mVisible(true)
+	: mWindowSize(wsize), mHWnd(hwnd), mBorderX(0), mBorderY(0), mVisible(true), 
+		mUseReferenceRect(false), mActiveIcon(CI_NORMAL), mActiveIconStartTime(0)
 {
 	mInvWindowSize[0] = 0.f;
 	if (mWindowSize[0] != 0)
@@ -1222,17 +1233,31 @@ WindowsSystem::CursorControl::CursorControl(
 		mInvWindowSize[1] = 1.0f / mWindowSize[1];
 
 	UpdateBorderSize(fullscreen, false);
-	SetVisible(false);
-}
-
-WindowsSystem::CursorControl::CursorControl()
-{
-
+	InitCursors();
 }
 
 WindowsSystem::CursorControl::~CursorControl()
 {
+	for (int i = 0; i < (int)mCursors.size(); ++i)
+		for (int f = 0; f < (int)mCursors[i].mFrames.size(); ++f)
+			DestroyCursor(mCursors[i].mFrames[f].mIconHW);
+}
 
+void WindowsSystem::CursorControl::CursorControl::InitCursors()
+{
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_ARROW)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_CROSS)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_HAND)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_HELP)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_IBEAM)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_NO)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_WAIT)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_SIZEALL)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_SIZENESW)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_SIZENWSE)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_SIZENS)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_SIZEWE)));
+	mCursors.push_back(Cursor(LoadCursor(NULL, IDC_UPARROW)));
 }
 
 //! Changes the visible state of the mouse cursor.
@@ -1286,23 +1311,35 @@ void WindowsSystem::CursorControl::SetPosition(const Vector2<float> &pos)
 }
 
 //! Sets the new position of the cursor.
-void WindowsSystem::CursorControl::SetPosition(const Vector2<unsigned int> &pos)
+void WindowsSystem::CursorControl::SetPosition(const Vector2<int> &pos)
 {
-	SetPosition((float)pos[0], (float)pos[1]);
+	SetPosition(pos[0], pos[1]);
 }
 
 //! Sets the new position of the cursor.
 void WindowsSystem::CursorControl::SetPosition(float x, float y)
 {
-	SetPosition(signed int(x*mWindowSize[0]), signed int(y*mWindowSize[1]));
+	if (!mUseReferenceRect)
+		SetPosition(round(x*mWindowSize[0]), round(y*mWindowSize[1]));
+	else
+		SetPosition(round(x*mReferenceRect.extent[0]), round(y*mReferenceRect.extent[1]));
 }
 
 //! Sets the new position of the cursor.
-void WindowsSystem::CursorControl::SetPosition(signed int x, signed int y)
+void WindowsSystem::CursorControl::SetPosition(int x, int y)
 {
-	RECT rect;
-	if (GetWindowRect(mHWnd, &rect))
-		SetCursorPos(x + rect.left + mBorderX, y + rect.top + mBorderY);
+	if (mUseReferenceRect)
+	{
+		SetCursorPos(
+			mReferenceRect.center[0] - (mReferenceRect.extent[0] / 2) + x, 
+			mReferenceRect.center[1] - (mReferenceRect.extent[1] / 2) + y);
+	}
+	else
+	{
+		RECT rect;
+		if (GetWindowRect(mHWnd, &rect))
+			SetCursorPos(x + rect.left + mBorderX, y + rect.top + mBorderY);
+	}
 
 	mCursorPos[0] = x;
 	mCursorPos[1] = y;
@@ -1320,10 +1357,37 @@ Vector2<float> WindowsSystem::CursorControl::GetRelativePosition()
 {
 	UpdateInternalCursorPosition();
 
-	return Vector2<float>{
-		mCursorPos[0] * mInvWindowSize[0],
-		mCursorPos[1] * mInvWindowSize[1]};
+	if (!mUseReferenceRect)
+	{
+		return Vector2<float>{
+			mCursorPos[0] * mInvWindowSize[0],
+			mCursorPos[1] * mInvWindowSize[1]};
+	}
+	else
+	{
+		return Vector2<float>{
+			mCursorPos[0] * mInvWindowSize[0],
+			mCursorPos[1] * mInvWindowSize[1]};
+	}
 
+}
+
+//! Sets an absolute reference rect for calculating the cursor position.
+void WindowsSystem::CursorControl::SetReferenceRect(const RectangleBase<2, int>* rect)
+{
+	if (rect)
+	{
+		mReferenceRect = *rect;
+		mUseReferenceRect = true;
+
+		// prevent division through zero and uneven sizes
+		if (!mReferenceRect.extent[1] || mReferenceRect.extent[1] % 2)
+			mReferenceRect.center[1] += 1;
+
+		if (!mReferenceRect.extent[0] || mReferenceRect.extent[0] % 2)
+			mReferenceRect.center[0] += 1;
+	}
+	else mUseReferenceRect = false;
 }
 
 //! Used to notify the cursor that the window was resized.
@@ -1374,17 +1438,184 @@ void WindowsSystem::CursorControl::UpdateInternalCursorPosition()
 		p.y = GET_Y_LPARAM(xy);
 	}
 
-	RECT rect;
-	if (GetWindowRect(mHWnd, &rect))
+	if (mUseReferenceRect)
 	{
-		mCursorPos[0] = p.x - rect.left - mBorderX;
-		mCursorPos[1] = p.y - rect.top - mBorderY;
+		mCursorPos[0] = p.x - mReferenceRect.center[0] - (mReferenceRect.extent[0] / 2);
+		mCursorPos[0] = p.y - mReferenceRect.center[1] - (mReferenceRect.extent[1] / 2);
 	}
 	else
 	{
-		// window seems not to be existent, so set cursor to
-		// a negative value
-		mCursorPos[0] = -1;
-		mCursorPos[1] = -1;
+		RECT rect;
+		if (GetWindowRect(mHWnd, &rect))
+		{
+			mCursorPos[0] = p.x - rect.left - mBorderX;
+			mCursorPos[1] = p.y - rect.top - mBorderY;
+		}
+		else
+		{
+			// window seems not to be existent, so set cursor to
+			// a negative value
+			mCursorPos[0] = -1;
+			mCursorPos[1] = -1;
+		}
 	}
+}
+
+// Convert an texture to a Windows cursor
+// Based on http://www.codeguru.com/cpp/w-p/win32/cursors/article.php/c4529/
+HCURSOR WindowsSystem::CursorControl::TextureToCursor(HWND hwnd, Texture2 * tex, 
+	const RectangleBase<2, int>& sourceRect, const Vector2<unsigned int> &hotspot)
+{
+	//
+	// create the bitmaps needed for cursors from the texture
+	HDC dc = GetDC(hwnd);
+	HDC andDc = CreateCompatibleDC(dc);
+	HDC xorDc = CreateCompatibleDC(dc);
+	HBITMAP andBitmap = CreateCompatibleBitmap(dc, sourceRect.extent[0], sourceRect.extent[1]);
+	HBITMAP xorBitmap = CreateCompatibleBitmap(dc, sourceRect.extent[0], sourceRect.extent[1]);
+
+	HBITMAP oldAndBitmap = (HBITMAP)SelectObject(andDc, andBitmap);
+	HBITMAP oldXorBitmap = (HBITMAP)SelectObject(xorDc, xorBitmap);
+
+	DFType format = tex->GetFormat();
+	unsigned int bytesPerPixel = DataFormat::GetNumBytesPerStruct(format);
+	const char* data = (const char*)tex->GetData();
+	for (int y = 0; y < sourceRect.extent[1]; ++y)
+	{
+		for (int x = 0; x < sourceRect.extent[0]; ++x)
+		{
+			unsigned int color = *(unsigned int*)data;
+			data += bytesPerPixel;
+
+			if (color >> 24 == 0)	// transparent
+			{
+				SetPixel(andDc, x, y, RGB(255, 255, 255));
+				SetPixel(xorDc, x, y, RGB(0, 0, 0));
+			}
+			else	// color
+			{
+				SetPixel(andDc, x, y, RGB(0, 0, 0));
+				SetPixel(xorDc, x, y, RGB((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff));
+			}
+		}
+	}
+
+	SelectObject(andDc, oldAndBitmap);
+	SelectObject(xorDc, oldXorBitmap);
+
+	DeleteDC(xorDc);
+	DeleteDC(andDc);
+
+	ReleaseDC(hwnd, dc);
+
+	// create the cursor
+
+	ICONINFO iconinfo;
+	iconinfo.fIcon = false;	// type is cursor not icon
+	iconinfo.xHotspot = hotspot[0];
+	iconinfo.yHotspot = hotspot[1];
+	iconinfo.hbmMask = andBitmap;
+	iconinfo.hbmColor = xorBitmap;
+
+	HCURSOR cursor = CreateIconIndirect(&iconinfo);
+
+	DeleteObject(andBitmap);
+	DeleteObject(xorBitmap);
+
+	return cursor;
+}
+
+void WindowsSystem::CursorControl::Update()
+{
+	if (!mCursors[mActiveIcon].mFrames.empty() && mCursors[mActiveIcon].mFrameTime)
+	{
+		// update animated cursors. This could also be done by X11 in case someone wants to figure that out (this way was just easier to implement)
+		unsigned int now = Timer::GetRealTime();
+		unsigned int frame = ((now - mActiveIconStartTime) / mCursors[mActiveIcon].mFrameTime) % mCursors[mActiveIcon].mFrames.size();
+		SetCursor(mCursors[mActiveIcon].mFrames[frame].mIconHW);
+	}
+}
+
+//! Sets the active cursor icon
+void WindowsSystem::CursorControl::SetActiveIcon(CursorIcon iconId)
+{
+	if (iconId >= (int)mCursors.size())
+		return;
+
+	mActiveIcon = iconId;
+	mActiveIconStartTime = Timer::GetRealTime();
+	if (mCursors[mActiveIcon].mFrames.size())
+		SetCursor(mCursors[mActiveIcon].mFrames[0].mIconHW);
+}
+
+//! Gets the currently active icon
+CursorIcon WindowsSystem::CursorControl::GetActiveIcon() const
+{
+	return mActiveIcon;
+}
+
+//! Add a custom sprite as cursor icon.
+CursorIcon WindowsSystem::CursorControl::AddIcon(const CursorSprite& icon)
+{
+	/*
+	if (icon.mSpriteId >= 0)
+	{
+		Cursor cursor;
+		cursor.mFrameTime = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrameTime;
+
+		for (unsigned int i = 0; i < (unsigned int)icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames.size(); ++i)
+		{
+			unsigned int texId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mTextureNumber;
+			unsigned int rectId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mRectNumber;
+			RectangleBase<2, int> rectIcon = icon.mSpriteBank->GetPositions()[rectId];
+
+			HCURSOR hc = TextureToCursor(mHWnd, icon.mSpriteBank->GetTexture(texId), rectIcon, icon.mHotSpot);
+			cursor.mFrames.push_back(CursorFrame(hc));
+		}
+
+		mCursors.push_back(cursor);
+		return (CursorIcon)(mCursors.size() - 1);
+	}
+	*/
+	return CI_NORMAL;
+}
+
+//! replace the given cursor icon.
+void WindowsSystem::CursorControl::ChangeIcon(CursorIcon iconId, const CursorSprite& icon)
+{
+	/*
+	if (iconId >= (int)mCursors.size())
+		return;
+
+	for (unsigned int i = 0; i < mCursors[iconId].mFrames.size(); ++i)
+		DestroyCursor(mCursors[iconId].mFrames[i].mIconHW);
+
+	if (icon.mSpriteId >= 0)
+	{
+		Cursor cursor;
+		cursor.mFrameTime = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrameTime;
+		for (unsigned int i = 0; i < icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames.size(); ++i)
+		{
+			unsigned int texId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mTextureNumber;
+			unsigned int rectId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mRectNumber;
+			RectangleBase<2, int> rectIcon = icon.mSpriteBank->GetPositions()[rectId];
+
+			HCURSOR hc = TextureToCursor(mHWnd, icon.mSpriteBank->GetTexture(texId), rectIcon, icon.mHotSpot);
+			cursor.mFrames.push_back(CursorFrame(hc));
+		}
+
+		mCursors[iconId] = cursor;
+	}
+	*/
+}
+
+//! Return a system-specific size which is supported for cursors. Larger icons will fail, smaller icons might work.
+Vector2<int> WindowsSystem::CursorControl::GetSupportedIconSize() const
+{
+	Vector2<int> result;
+
+	result[0] = GetSystemMetrics(SM_CXCURSOR);
+	result[1] = GetSystemMetrics(SM_CYCURSOR);
+
+	return result;
 }

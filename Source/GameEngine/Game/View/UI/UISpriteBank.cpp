@@ -17,38 +17,6 @@ UISpriteBank::UISpriteBank(BaseUI* ui) : mUI(ui)
 	//setDebugName("UISpriteBank");
 	#endif
 
-	eastl::shared_ptr<ResHandle>& resHandle =
-		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
-	if (resHandle)
-	{
-		const eastl::shared_ptr<ImageResourceExtraData>& extra =
-			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-		extra->GetImage()->AutogenerateMipmaps();
-
-		// Create a vertex buffer for a two-triangles square. The PNG is stored
-		// in left-handed coordinates. The texture coordinates are chosen to
-		// reflect the texture in the y-direction.
-		struct Vertex
-		{
-			Vector3<float> position;
-			Vector2<float> tcoord;
-		};
-		VertexFormat vformat;
-		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
-
-		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
-		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
-
-		// Create an effect for the vertex and pixel shaders. The texture is
-		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
-		eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
-		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
-			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
-
-		// Create the geometric object for drawing.
-		mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
-	}
 }
 
 
@@ -149,8 +117,9 @@ int UISpriteBank::AddTextureAsSprite(eastl::shared_ptr<Texture2> texture)
 }
 
 //! draws a sprite in 2d with scale and color
-void UISpriteBank::Draw2DSprite(unsigned int index, const RectangleBase<2, int>& pos, const RectangleBase<2, int>* clip,
-	const eastl::array<float, 4> color, unsigned int starttime, unsigned int currenttime, bool loop, bool center)
+void UISpriteBank::Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, 
+	const RectangleBase<2, int>& pos, const RectangleBase<2, int>* clip, const eastl::array<float, 4> color, 
+	unsigned int starttime, unsigned int currenttime, bool loop, bool center)
 {
 	if (index >= mSprites.size() || mSprites[index].mFrames.empty() )
 		return;
@@ -176,50 +145,52 @@ void UISpriteBank::Draw2DSprite(unsigned int index, const RectangleBase<2, int>&
 	Vector2<int> sourceSize(sourceRect.extent);
 
 	Vector2<int> targetPos = pos.center;
-	Vector2<int> dimension(pos.extent / 2);
-	if (!center) targetPos -= dimension;
+	Vector2<int> dimension(clip->extent / 2);
+	if (!center) targetPos -= (pos.extent / 2);
 
-	mEffect->SetTexture(tex);
+	eastl::shared_ptr<Texture2Effect> effect =
+		eastl::static_pointer_cast<Texture2Effect>(visual->GetEffect());
+	effect->SetTexture(tex);
 
 	struct Vertex
 	{
 		Vector3<float> position;
 		Vector2<float> tcoord;
 	};
-	Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
 	vertex[0].position = {
-		(float)(targetPos[0] - dimension[0] - (clip->extent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] - (clip->extent[1] / 2)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] - (pos.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (pos.extent[1] / 2)) / dimension[1], 0.0f };
 	vertex[0].tcoord = { 
 		(float)(sourceRect.center[0] - (sourceSize[0] / 2)) / sourceSize[0],
 		(float)(sourceRect.center[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 	vertex[1].position = {
-		(float)(targetPos[0] - dimension[0] + (int)round(clip->extent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] - (clip->extent[1] / 2)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] + (int)round(pos.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (pos.extent[1] / 2)) / dimension[1], 0.0f };
 	vertex[1].tcoord = { 
 		(float)(sourceRect.center[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 		(float)(sourceRect.center[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 	vertex[2].position = {
-		(float)(targetPos[0] - dimension[0] - (clip->extent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] + (int)round(clip->extent[1] / 2.f)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] - (pos.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(pos.extent[1] / 2.f)) / dimension[1], 0.0f };
 	vertex[2].tcoord = { 
 		(float)(sourceRect.center[0] - (sourceSize[0] / 2)) / sourceSize[0],
 		(float)(sourceRect.center[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 	vertex[3].position = {
-		(float)(targetPos[0] - dimension[0] + (int)round(clip->extent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] + (int)round(clip->extent[1] / 2.f)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] + (int)round(pos.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(pos.extent[1] / 2.f)) / dimension[1], 0.0f };
 	vertex[3].tcoord = { 
 		(float)(sourceRect.center[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 		(float)(sourceRect.center[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 
 	// Create the geometric object for drawing.
-	Renderer::Get()->Draw(mVisual);
+	Renderer::Get()->Draw(visual);
 }
 
 
-void UISpriteBank::Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, const eastl::array<RectangleBase<2, int>>& pos, 
-	const eastl::array<float, 4> color, const RectangleBase<2, int>* clip, unsigned int starttime, unsigned int currenttime, 
-	bool loop, bool center)
+void UISpriteBank::Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, const eastl::shared_ptr<Visual>& visual, 
+	const eastl::array<RectangleBase<2, int>>& pos, const eastl::array<float, 4> color, const RectangleBase<2, int>* clip, 
+	unsigned int starttime, unsigned int currenttime, bool loop, bool center)
 {
 	const unsigned int drawCount = eastl::min<unsigned int>(indices.size(), pos.size());
 

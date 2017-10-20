@@ -11,6 +11,7 @@
 
 #include "Core/CoreStd.h"
 
+#include "CursorControl.h"
 #include "EventSystem.h"
 
 /*
@@ -163,6 +164,9 @@ public:
 	int GetWidth() const { return mWidth; }
 	int GetHeight() const { return mHeight; }
 
+	//! returns the cursor control
+	BaseCursorControl* GetCursorControl() const { return mCursorControl; }
+
 	//	Set the maximal elapsed time between 2 clicks to generate doubleclicks for the mouse. 
 	//	It also affects tripleclick behavior. When set to 0 no double- and tripleclicks will 
 	//	be generated.
@@ -178,8 +182,7 @@ public:
 
 	//! Compares to the last call of this function to return double and triple clicks.
 	/** Needed for Windows device event handling
-	\return Returns only 1,2 or 3. A 4th click will start with 1 again.
-	*/
+	\return Returns only 1,2 or 3. A 4th click will start with 1 again.*/
 	unsigned int CheckSuccessiveClicks(signed int mouseX, signed int mouseY, MouseInputEvent inputEvent);
 
 	// Getter for the main global system. This is the system that is used by the majority of the 
@@ -206,7 +209,7 @@ protected:
 	MouseMultiClicks mMouseMultiClicks;
 
 	EventListener* mEventListener;
-	//CursorControl mCursorControl;
+	BaseCursorControl* mCursorControl;
 	//VideoModeList mVideoModeList;
 
 	//! Size of the window or the video mode in fullscreen mode. Default: 800x600

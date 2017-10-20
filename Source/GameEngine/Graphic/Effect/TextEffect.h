@@ -30,8 +30,8 @@ public:
     void SetColor(Vector4<float> const& color);
 
 private:
-	eastl::shared_ptr<ConstantBuffer> mTranslate;
 	eastl::shared_ptr<ConstantBuffer> mColor;
+	eastl::shared_ptr<ConstantBuffer> mTranslate;
 	eastl::shared_ptr<SamplerState> mSamplerState;
 };
 

@@ -152,35 +152,40 @@ bool MainMenuUI::OnInit()
 	// add a status line help text
 	RectangleBase<2, int> statusRectangle;
 	statusRectangle.center[0] = screenSize[0] / 2 + 5;
-	statusRectangle.center[1] = screenSize[1];
 	statusRectangle.extent[0] = screenSize[0] - 10;
-	statusRectangle.extent[1] = 10;
+	statusRectangle.center[1] = screenSize[1] - 20;
+	statusRectangle.extent[1] = 20;
 	mStatusLine = AddStaticText(L"", statusRectangle, false, false, mWindow, -1, true);
+	mStatusLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	RectangleBase<2, int> videoRectangle;
 	videoRectangle.center[0] = screenSize[0] - 355;
-	videoRectangle.center[1] = 32;
 	videoRectangle.extent[0] = 90;
+	videoRectangle.center[1] = 32;
 	videoRectangle.extent[1] = 16;
-	AddStaticText(L"", videoRectangle, false, false, mWindow, -1, true);
+	eastl::shared_ptr<BaseUIStaticText> videoDriverLine = 
+		AddStaticText(L"VideoDriver:", videoRectangle, false, false, mWindow, -1, true);
+	videoDriverLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 	
 	videoRectangle.center[0] = screenSize[0] - 155;
-	videoRectangle.center[1] = 32;
 	videoRectangle.extent[0] = 290;
+	videoRectangle.center[1] = 32;
 	videoRectangle.extent[1] = 16;
 	mVideoDriver = AddComboBox(videoRectangle, mWindow);
 	mVideoDriver->AddItem(L"Direct3D 11", RT_DIRECT3D11);
 	mVideoDriver->AddItem(L"OpenGL", RT_OPENGL);
 	mVideoDriver->AddItem(L"Software Renderer", RT_SOFTWARE);
 
+	System* system = System::Get();
+	system->GetCursorControl()->SetVisible(true);
 	/*
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	mVideoDriver->SetSelected(mVideoDriver->GetIndexForItemData(gameApp->mOption.mRendererType));
 	mVideoDriver->SetToolTipText(L"Use a VideoDriver");
 
 	videoRectangle.center[0] = screenSize[0] - 355;
-	videoRectangle.center[1] = 52;
 	videoRectangle.extent[0] = 90;
+	videoRectangle.center[1] = 52;
 	videoRectangle.extent[1] = 16;
 	AddStaticText(L"VideoMode:", videoRectangle, false, false, mWindow, -1, false);
 	mVideoMode = AddComboBox(videoRectangle, mWindow);
@@ -212,21 +217,21 @@ bool MainMenuUI::OnInit()
 		gameApp->mOption.mScreenSize[0] << 16 | gameApp->mOption.mScreenSize[1]));
 
 	screenRectangle.center[0] = screenSize[0] - 350;
-	screenRectangle.center[1] = 72;
 	screenRectangle.extent[0] = 100;
+	screenRectangle.center[1] = 72;
 	screenRectangle.extent[1] = 16;
 	mFullScreen = AddCheckBox(gameApp->mOption.mFullScreen, screenRectangle, mWindow, -1, L"Fullscreen");
 	mFullScreen->SetToolTipText(L"Set Fullscreen or Window Mode");
 
 	screenRectangle.center[0] = screenSize[0] - 190;
-	screenRectangle.center[1] = 72;
 	screenRectangle.extent[0] = 90;
+	screenRectangle.center[1] = 72;
 	screenRectangle.extent[1] = 16;
 	AddStaticText(L"MultiSample:", screenRectangle, false, false, mWindow, -1, false);
 
 	screenRectangle.center[0] = screenSize[0] - 105;
-	screenRectangle.center[1] = 72;
 	screenRectangle.extent[0] = 80;
+	screenRectangle.center[1] = 72;
 	screenRectangle.extent[1] = 16;
 	mMultiSample = AddScrollBar(true, screenRectangle, mWindow, -1);
 	mMultiSample->SetMin(0);
@@ -237,21 +242,21 @@ bool MainMenuUI::OnInit()
 	mMultiSample->SetToolTipText(L"Set the MultiSample (disable, 1x, 2x, 4x, 8x )");
 
 	screenRectangle.center[0] = screenSize[0] - 35;
-	screenRectangle.center[1] = 72;
 	screenRectangle.extent[0] = 50;
+	screenRectangle.center[1] = 72;
 	screenRectangle.extent[1] = 16;
 	mSetVideoMode = AddButton(screenRectangle, mWindow, -1, L"set");
 	mSetVideoMode->SetToolTipText(L"Set Video Mode with current values");
 
 	screenRectangle.center[0] = screenSize[0] - 350;
-	screenRectangle.center[1] = 132;
 	screenRectangle.extent[0] = 100;
+	screenRectangle.center[1] = 132;
 	screenRectangle.extent[1] = 16;
 	AddStaticText(L"Tesselation:", screenRectangle, false, false, mWindow, -1, false);
 
 	screenRectangle.center[0] = screenSize[0] - 150;
-	screenRectangle.center[1] = 132;
 	screenRectangle.extent[0] = 300;
+	screenRectangle.center[1] = 132;
 	screenRectangle.extent[1] = 16;
 	mTesselation = AddScrollBar(true, screenRectangle, mWindow, -1);
 	mTesselation->SetMin(2);
@@ -262,28 +267,28 @@ bool MainMenuUI::OnInit()
 	mTesselation->SetToolTipText(L"How smooth should curved surfaces be rendered");
 
 	screenRectangle.center[0] = screenSize[0] - 225;
-	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[0] = 450;
+	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[1] = 20;
 	AddStaticText(L"Maps:", screenRectangle, false, false, mWindow, -1, false);
 
 	screenRectangle.center[0] = screenSize[0] - 225;
-	screenRectangle.center[1] = screenSize[1] - 210;
 	screenRectangle.extent[0] = 450;
+	screenRectangle.center[1] = screenSize[1] - 210;
 	screenRectangle.extent[1] = 340;
 	mMaps = AddListBox(screenRectangle, mWindow, -1, true);
 	mMaps->SetToolTipText(L"Show the current Maps in all Archives.\n Double-Click the Map to start the level");
 
 	// create a visible Scene Tree
 	screenRectangle.center[0] = screenSize[0] - 200;
-	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[0] = 400;
+	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[1] = 20;
 	AddStaticText(L"Scenegraph:", screenRectangle, false, false, mWindow, -1, false);
 
 	screenRectangle.center[0] = screenSize[0] - 200;
-	screenRectangle.center[1] = screenSize[1] - 210;
 	screenRectangle.extent[0] = 400;
+	screenRectangle.center[1] = screenSize[1] - 210;
 	screenRectangle.extent[1] = 340;
 	mScenes = AddTreeView(screenRectangle, mWindow, -1, true, true, false);
 	mScenes->SetToolTipText(L"Show the current Scenegraph");

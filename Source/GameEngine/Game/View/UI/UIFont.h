@@ -49,6 +49,9 @@ public:
 		eastl::array<float, 4> const& color, bool hcenter=false, bool vcenter=false, 
 		const RectangleBase<2, int>* clip=0) = 0;
 
+	// Font widht and height info
+	virtual Vector2<int> GetDimension(eastl::wstring const& message) const = 0;
+
 	//! Returns the type of this font
 	virtual UIFontType GetType() const { return FT_CUSTOM; }
 };
@@ -80,9 +83,6 @@ public:
 	//! loads a font from a texture file
 	bool Load(const eastl::wstring& filename);
 
-	//! loads a font from an XML file
-	bool Load(XMLElement* pRoot);
-
 	//! draws an text and clips it to the specified rectangle if wanted
 	virtual void Draw(const eastl::wstring& text, const RectangleBase<2, int>& position,
 		eastl::array<float, 4> const& color, bool hcenter = false, bool vcenter = false, 
@@ -91,22 +91,13 @@ public:
 	//! returns the parsed Symbol Information
 	virtual eastl::shared_ptr<BaseUISpriteBank> GetSpriteBank() const { return mSpriteBank; }
 
+	// Font widht and height info
+	virtual Vector2<int> GetDimension(eastl::wstring const& message) const;
+
 	//! Returns the type of this font
 	virtual UIFontType GetType() const { return FT_BITMAP; }
 
 private:
-
-	struct FontArea
-	{
-		FontArea() : underhang(0), overhang(0), width(0), spriteno(0) {}
-		int				underhang;
-		int				overhang;
-		int				width;
-		unsigned int	spriteno;
-	};
-
-	//! load & prepare font from ITexture
-	bool LoadTexture(Texture* image, const eastl::wstring& name);
 
 	BaseUI* mUI;
 

@@ -450,17 +450,16 @@ void UITreeView::RecalculateItemHeight()
 	{
 		mFont = skin->GetFont();
 		mItemHeight = 0;
-		/*
-		if( Font )
-			ItemHeight = Font->GetDimension( L"A" ).Height + 4;
 
-		if( IconFont )
+		if( mFont )
+			mItemHeight = mFont->GetDimension( L"A" )[1] + 4;
+
+		if( mIconFont )
 		{
-			int height = IconFont->GetDimension( L" " ).Height;
-			if( height > ItemHeight )
-				ItemHeight = height;
+			int height = mIconFont->GetDimension( L" " )[1];
+			if( height > mItemHeight )
+				mItemHeight = height;
 		}
-		*/
 	}
 
 	mIndentWidth = mItemHeight;
@@ -743,11 +742,14 @@ void UITreeView::Draw()
 	{
 		frameRect.extent[0] = mAbsoluteRect.extent[0] + 1 + node->GetLevel() * mIndentWidth;
 
-		if (frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= mAbsoluteRect.center[1] - (mAbsoluteRect.center[1] / 2) && 
-			frameRect.center[1] - (frameRect.center[1] / 2) <= mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f))
+		if (frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= 
+			mAbsoluteRect.center[1] - (mAbsoluteRect.center[1] / 2) && 
+			frameRect.center[1] - (frameRect.center[1] / 2) <= 
+			mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f))
 		{
 			if( node == mSelected )
-				skin->Draw2DRectangle( shared_from_this(), skin->GetColor( DC_HIGH_LIGHT ), mVisual, frameRect, &clientClip );
+				skin->Draw2DRectangle( 
+					shared_from_this(), skin->GetColor( DC_HIGH_LIGHT ), mVisual, frameRect, &clientClip );
 
 			RectangleBase<2, int> textRect = frameRect;
 
@@ -767,11 +769,10 @@ void UITreeView::Draw()
 					{
 						index = node->GetSelectedImageIndex();
 						if( node != mSelected || index < 0 )
-						{
 							index = node->GetImageIndex();
-						}
+
 						/*
-						ImageList->draw(
+						ImageList->Draw(
 							index,
 							core::position2d<s32>(
 							textRect.UpperLeftCorner.X,
@@ -786,14 +787,16 @@ void UITreeView::Draw()
 						|| ( !mImageLeftOfIcon && n == 0 ) ) )
 					{
 						mIconFont->Draw( node->GetIcon(), textRect, skin->GetColor(textCol), false, true, &clientClip );
-						//iconWidth += IconFont->GetDimension( node->GetIcon() ).Width + 3;
-						//textRect.UpperLeftCorner.X += IconFont->GetDimension( node->GetIcon() ).Width + 3;
+						iconWidth += mIconFont->GetDimension(node->GetIcon())[0] + 3;
+						textRect.center[0] += (mIconFont->GetDimension(node->GetIcon())[0] + 3) / 2;
+						textRect.extent[0] -= mIconFont->GetDimension(node->GetIcon())[0] + 3;
 					}
 				}
 
 				mFont->Draw( node->GetText(), textRect, skin->GetColor(textCol), false, true, &clientClip );
-
-				//textRect.UpperLeftCorner.X -= iconWidth;
+				
+				textRect.center[0] -= iconWidth / 2;
+				textRect.extent[0] += iconWidth;
 			}
 		}
 		frameRect.center[1] += mItemHeight;
@@ -811,15 +814,13 @@ void UITreeView::Draw()
 void UITreeView::SetIconFont(eastl::shared_ptr<BaseUIFont> font)
 {
 	mIconFont = font;
-	/*
 
 	int	height;
 
-	if( IconFont )
+	if( mIconFont )
 	{
-		height = IconFont->GetDimension( L" " ).Height;
-		if( height > ItemHeight )
-			ItemHeight = height;
+		height = mIconFont->GetDimension( L" " )[1];
+		if( height > mItemHeight )
+			mItemHeight = height;
 	}
-	*/
 }

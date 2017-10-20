@@ -460,7 +460,7 @@ int UIStaticText::GetTextHeight() const
 	if (!font)
 		return 0;
 
-	return 0;
+	return font->GetDimension(mText)[1];
 }
 
 
@@ -470,5 +470,5 @@ int UIStaticText::GetTextWidth() const
 	if(!font)
 		return 0;
 
-	return 0;
+	return font->GetDimension(mText)[0];
 }

@@ -250,6 +250,17 @@ private:
 	eastl::shared_ptr<BaseUIElement> GetNextElement(bool reverse = false, bool group = false);
 	void UpdateHoveredElement(Vector2<int> mousePos);
 
+	struct ToolTip
+	{
+		eastl::shared_ptr<BaseUIStaticText> mElement;
+		unsigned int mLastTime;
+		unsigned int mEnterTime;
+		unsigned int mLaunchTime;
+		unsigned int mRelaunchTime;
+	};
+
+	ToolTip mToolTip;
+
 	eastl::vector<eastl::shared_ptr<UIElementFactory>> UIElementFactoryList;
 
 	eastl::map<eastl::wstring, eastl::shared_ptr<BaseUISpriteBank>> mBanks;

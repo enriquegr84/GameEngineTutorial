@@ -111,7 +111,7 @@ bool UICheckBox::OnEvent(const Event& event)
 				if (wasPressed && mParent)
 				{
 					/*
-					if ( !mAbsoluteClippingRect.IsPointInside( event.mMouseInput.X, event.mMouseInput.Y) ) )
+					if ( !mAbsoluteRect.IsPointInside( event.mMouseInput.X, event.mMouseInput.Y) ) )
 					{
 						Pressed = false;
 						return true;

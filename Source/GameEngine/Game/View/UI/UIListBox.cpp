@@ -193,13 +193,12 @@ void UIListBox::RecalculateItemHeight()
 		mFont = mUI->GetSkin()->GetFont();
 		if ( 0 == mItemHeightOverride )
 			mItemHeight = 0;
-		/*
+
 		if (mFont)
 		{
 			if ( 0 == mItemHeightOverride )
-				mItemHeight = mFont->GetDimension(L"A").Height + 4;
+				mItemHeight = mFont->GetDimension(L"A")[1] + 4;
 		}
-		*/
 	}
 
 	mTotalItemHeight = mItemHeight * mItems.size();
@@ -314,7 +313,8 @@ bool UIListBox::OnEvent(const Event& event)
 					return true;
 				}
 				else
-				if (!event.mKeyInput.mPressedDown && ( event.mKeyInput.mKey == KEY_RETURN || event.mKeyInput.mKey == KEY_SPACE ) )
+				if (!event.mKeyInput.mPressedDown && 
+					( event.mKeyInput.mKey == KEY_RETURN || event.mKeyInput.mKey == KEY_SPACE ) )
 				{
 					if (mParent)
 					{
@@ -429,7 +429,8 @@ bool UIListBox::OnEvent(const Event& event)
 					switch(event.mMouseInput.mEvent)
 					{
 					case MIE_MOUSE_WHEEL:
-						mScrollBar->SetPos(mScrollBar->GetPos() + (event.mMouseInput.mWheel < 0 ? -1 : 1)* - mItemHeight/2);
+						mScrollBar->SetPos(
+							mScrollBar->GetPos() + (event.mMouseInput.mWheel < 0 ? -1 : 1)* - mItemHeight/2);
 						return true;
 
 					case MIE_LMOUSE_PRESSED_DOWN:
@@ -535,8 +536,8 @@ void UIListBox::Draw()
 	clientClip.extent[1] -= 1;
 	//clientClip.clipAgainst(mAbsoluteClippingRect);
 
-	skin->Draw3DSunkenPane(shared_from_this(), skin->GetColor(DC_3D_HIGH_LIGHT), true,
-		mDrawBack, mVisual, frameRect, &mAbsoluteClippingRect);
+	skin->Draw2DRectangle(
+		shared_from_this(), skin->GetColor(DC_3D_HIGH_LIGHT), mVisual, frameRect, &mAbsoluteClippingRect);
 	/*
 	if (clipRect)
 		clientClip.clipAgainst(*clipRect);
@@ -553,11 +554,14 @@ void UIListBox::Draw()
 
 	for (int i=0; i<(int)mItems.size(); ++i)
 	{
-		if (frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2) &&
-			frameRect.center[1] - (frameRect.extent[1] / 2.f) <= mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2))
+		if (frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= 
+			mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2) &&
+			frameRect.center[1] - (frameRect.extent[1] / 2.f) <=
+			mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2))
 		{
 			if (i == mSelected && hl)
-				skin->Draw2DRectangle(shared_from_this(), skin->GetColor(DC_HIGH_LIGHT), mVisual, frameRect, &clientClip);
+				skin->Draw2DRectangle(
+					shared_from_this(), skin->GetColor(DC_HIGH_LIGHT), mVisual, frameRect, &clientClip);
 
 			RectangleBase<2, int> textRect = frameRect;
 			textRect.extent[0] -= 3;
@@ -573,7 +577,8 @@ void UIListBox::Draw()
 
 					if ( i==mSelected && hl )
 					{
-						mIconBank->Draw2DSprite( (unsigned int)mItems[i].mIcon, iconPos, &clientClip,
+						mIconBank->Draw2DSprite( (unsigned int)mItems[i].mIcon, 
+							mVisual, iconPos, &clientClip,
 							HasItemOverrideColor(i, UI_LBC_ICON_HIGHLIGHT) ?
 							GetItemOverrideColor(i, UI_LBC_ICON_HIGHLIGHT) : 
 							GetItemDefaultColor(UI_LBC_ICON_HIGHLIGHT),
@@ -581,7 +586,8 @@ void UIListBox::Draw()
 					}
 					else
 					{
-						mIconBank->Draw2DSprite( (unsigned int)mItems[i].mIcon, iconPos, &clientClip,
+						mIconBank->Draw2DSprite( (unsigned int)mItems[i].mIcon, 
+							mVisual, iconPos, &clientClip,
 							HasItemOverrideColor(i, UI_LBC_ICON) ? 
 							GetItemOverrideColor(i, UI_LBC_ICON) : 
 							GetItemDefaultColor(UI_LBC_ICON),

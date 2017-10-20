@@ -133,21 +133,21 @@ UISkin::UISkin(BaseUI* ui, UISkinThemeType type)
 	mIcons[DI_WINDOW_RESTORE] = L"Art/UserControl/appbar.window.restore.png";
 	mIcons[DI_WINDOW_CLOSE] = L"Art/UserControl/appbar.close.png";
 	mIcons[DI_WINDOW_MINIMIZE] = L"Art/UserControl/appbar.window.minimize.png";
-	mIcons[DI_CURSOR_UP] = L"Art/UserControl/appbar.cusor.pointer.png";
-	mIcons[DI_CURSOR_DOWN] = L"Art/UserControl/appbar.cusor.pointer.png";
-	mIcons[DI_CURSOR_LEFT] = L"Art/UserControl/appbar.cusor.pointer.png";
-	mIcons[DI_CURSOR_RIGHT] = L"Art/UserControl/appbar.cusor.pointer.png";
+	mIcons[DI_WINDOW_RESIZE] = L"Art/UserControl/appbar.window.restore.png";
+	mIcons[DI_CURSOR_UP] = L"Art/UserControl/appbar.chevron.up.png";
+	mIcons[DI_CURSOR_DOWN] = L"Art/UserControl/appbar.chevron.down.png";
+	mIcons[DI_CURSOR_LEFT] = L"Art/UserControl/appbar.chevron.left.png";
+	mIcons[DI_CURSOR_RIGHT] = L"Art/UserControl/appbar.chevron.right.png";
 	mIcons[DI_MENU_MORE] = L"Art/UserControl/appbar.add.png";
 	mIcons[DI_CHECK_BOX_CHECKED] = L"Art/UserControl/appbar.check.png";
 	mIcons[DI_DROP_DOWN] = L"Art/UserControl/appbar.chevron.down.png";
-	mIcons[DI_SMALL_CURSOR_UP] = L"Art/UserControl/appbar.chevron.up.png";
-	mIcons[DI_SMALL_CURSOR_DOWN] = L"Art/UserControl/appbar.chevron.down.png";
+	mIcons[DI_SMALL_CURSOR_UP] = L"Art/UserControl/appbar.cursor.pointer.png";
+	mIcons[DI_SMALL_CURSOR_DOWN] = L"Art/UserControl/appbar.cursor.pointer.png";
 	mIcons[DI_RADIO_BUTTON_CHECKED] = L"Art/UserControl/appbar.checkmark.cross.png";
 	mIcons[DI_MORE_LEFT] = L"Art/UserControl/appbar.chevron.left.png";
 	mIcons[DI_MORE_RIGHT] = L"Art/UserControl/appbar.chevron.right.png";
 	mIcons[DI_MORE_UP] = L"Art/UserControl/appbar.chevron.up.png";
 	mIcons[DI_MORE_DOWN] = L"Art/UserControl/appbar.chevron.down.png";
-	mIcons[DI_WINDOW_RESIZE] = L"Art/UserControl/appbar.window.restore.png";
 	mIcons[DI_EXPAND] = L"Art/UserControl/appbar.arrow.expand.png";
 	mIcons[DI_COLLAPSE] = L"Art/UserControl/appbar.arrow.collapsed.png";
 
@@ -293,9 +293,7 @@ void UISkin::Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>& el
 		return;
 
 	RectangleBase<2, int> rect = r;
-	Vector2<int> dimension(rect.extent / 2);
-	if (element->GetParent())
-		dimension = element->GetParent()->GetAbsolutePosition().center;
+	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
 	{
@@ -369,9 +367,7 @@ void UISkin::Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>& ele
 		return;
 
 	RectangleBase<2, int> rect = r;
-	Vector2<int> dimension(rect.extent / 2);
-	if (element->GetParent())
-		dimension = element->GetParent()->GetAbsolutePosition().center;
+	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
 	{
@@ -448,9 +444,7 @@ void UISkin::Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element,
 		return;
 
 	RectangleBase<2, int> rect = r;
-	Vector2<int> dimension(rect.extent / 2);
-	if (element->GetParent())
-		dimension = element->GetParent()->GetAbsolutePosition().center;
+	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
 	{
@@ -525,9 +519,7 @@ RectangleBase<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Bas
 	}
 	
 	RectangleBase<2, int> rect = r;
-	Vector2<int> dimension(rect.extent / 2);
-	if (element->GetParent())
-		dimension = element->GetParent()->GetAbsolutePosition().center;
+	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
 	{
@@ -620,9 +612,7 @@ void UISkin::Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
 		return;
 
 	RectangleBase<2, int> rect = r;
-	Vector2<int> dimension(rect.extent / 2);
-	if (element->GetParent())
-		dimension = element->GetParent()->GetAbsolutePosition().center;
+	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
 	{
@@ -694,9 +684,7 @@ void UISkin::Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
 		return;
 
 	RectangleBase<2, int> rect = r;
-	Vector2<int> dimension(rect.extent / 2);
-	if (element->GetParent())
-		dimension = element->GetParent()->GetAbsolutePosition().center;
+	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
 	{
@@ -770,9 +758,7 @@ void UISkin::Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bo
 		return;
 
 	RectangleBase<2, int> rect = r;
-	Vector2<int> dimension(rect.extent / 2);
-	if (element->GetParent())
-		dimension = element->GetParent()->GetAbsolutePosition().center;
+	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
 	{
@@ -846,9 +832,7 @@ void UISkin::Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool
 		return;
 
 	RectangleBase<2, int> rect = r;
-	Vector2<int> dimension(rect.extent / 2);
-	if (element->GetParent())
-		dimension = element->GetParent()->GetAbsolutePosition().center;
+	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
 	{
@@ -925,7 +909,7 @@ void UISkin::DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefault
 
 	bool gray = element && !element->IsEnabled();
 	/*
-	mSpriteBank->Draw2DSprite(mIcons[icon], position, clip,
+	mSpriteBank->Draw2DSprite(mIcons[icon], mVisual,position, clip,
 		mColors[gray? DC_GRAY_WINDOW_SYMBOL : DC_WINDOW_SYMBOL], starttime, currenttime, loop, true);
 	*/
 }
@@ -946,9 +930,7 @@ void UISkin::Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element,
 		return;
 
 	RectangleBase<2, int> rect = r;
-	Vector2<int> dimension(rect.extent / 2);
-	if (element->GetParent())
-		dimension = element->GetParent()->GetAbsolutePosition().center;
+	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
 	{

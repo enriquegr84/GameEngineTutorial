@@ -86,6 +86,43 @@ Font::Font(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path,
     mTextEffect = eastl::make_shared<TextEffect>(factory, path, mTexture);
 }
 
+Vector2<int> Font::GetDimension(eastl::wstring const& message) const
+{
+	float width = 0, height = 0;
+
+	// Get texture information.
+	float tw = static_cast<float>(mTexture->GetWidth());
+	float th = static_cast<float>(mTexture->GetHeight());
+
+	unsigned int const length = eastl::min(
+		static_cast<unsigned int>(message.length()), mMaxMessageLength);
+	for (unsigned int i = 0; i < length; ++i)
+	{
+		// Get character data.
+		int c = static_cast<int>(message[i]);
+		float const tx0 = mCharacterData[c];
+		float const tx1 = mCharacterData[c + 1];
+
+		bool lineBreak = false;
+		if (c == L'\r' || // Mac or Windows breaks
+			c == L'\n') // Unix breaks
+		{
+			lineBreak = true;
+		}
+		if (lineBreak)
+		{
+			height += (tx1 - tx0)*th - 1.0f;  // height in pixels
+			continue;
+		}
+		if (i+1 == length)
+			height += (tx1 - tx0)*th - 1.0f;  // height in pixels
+
+		width += (tx1 - tx0)*tw - 1.0f;  // width in pixels
+	}
+
+	return Vector2<int>{(int)width, (int)height};
+}
+
 void Font::Typeset(int viewportWidth, int viewportHeight, int x, int y,
 	Vector4<float> const& color, eastl::wstring const& message) const
 {

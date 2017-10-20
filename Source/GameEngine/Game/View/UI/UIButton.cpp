@@ -193,7 +193,7 @@ bool UIButton::OnEvent(const Event& ev)
 		if (ev.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
 		{	/*
 			if (mUI->HasFocus(shared_from_this()) &&
-				!mAbsoluteClippingRect.IsPointInside(
+				!mAbsoluteRect.IsPointInside(
 					Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y}))
 			{
 				mUI->RemoveFocus(shared_from_this());
@@ -211,7 +211,7 @@ bool UIButton::OnEvent(const Event& ev)
 		{
 			bool wasPressed = mPressed;
 			/*
-			if (!mAbsoluteClippingRect.IsPointInside(
+			if (!mAbsoluteRect.IsPointInside(
 				Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y }))
 			{
 				if (!mPushButton)
@@ -256,15 +256,13 @@ void UIButton::Draw( )
 
 	// todo: move sprite up and text down if the pressed state has a sprite
 	RectangleBase<2, int> spritePos = mAbsoluteRect;
-	if (mParent)
-		spritePos.extent = mParent->GetAbsolutePosition().extent;
 
 	if (!mPressed)
 	{
 		if (mDrawBorder)
 		{
 			Vector2<int> targetPos = spritePos.center;
-			Vector2<int> dimension(spritePos.extent / 2);
+			Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
 
 			eastl::shared_ptr<Texture2> tex = mEffect->GetTexture();
 			Vector2<unsigned int> sourceCenter{ tex->GetDimension(0) / 2, tex->GetDimension(1) / 2 };
@@ -277,26 +275,26 @@ void UIButton::Draw( )
 			};
 			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
 			vertex[0].position = {
-				(float)(targetPos[0] - dimension[0] - (mAbsoluteClippingRect.extent[0] / 2)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] - (mAbsoluteClippingRect.extent[1] / 2)) / dimension[1], 0.0f };
+				(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+				(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
 			vertex[0].tcoord = { 
 				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
 				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 			vertex[1].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteClippingRect.extent[0] / 2.f)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] - (mAbsoluteClippingRect.extent[1] / 2)) / dimension[1], 0.0f };
+				(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+				(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
 			vertex[1].tcoord = { 
 				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 			vertex[2].position = {
-				(float)(targetPos[0] - dimension[0] - (mAbsoluteClippingRect.extent[1] / 2)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteClippingRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+				(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+				(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
 			vertex[2].tcoord = { 
 				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
 				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 			vertex[3].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteClippingRect.extent[1] / 2.f)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteClippingRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+				(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+				(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
 			vertex[3].tcoord = { 
 				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
@@ -307,8 +305,8 @@ void UIButton::Draw( )
 
 		if (mImage)
 		{
-			Vector2<int> targetPos{ mAbsoluteRect.center[0] , mAbsoluteRect.center[1] };
-			Vector2<int> dimension(mParent != nullptr ? mParent->GetAbsolutePosition().extent / 2 : mAbsoluteRect.extent / 2);
+			Vector2<int> targetPos = mAbsoluteRect.center;
+			Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
 
 			if (mScaleImage)
 			{
@@ -340,13 +338,13 @@ void UIButton::Draw( )
 				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 			vertex[2].position = {
-				(float)(targetPos[0] - dimension[0] - (mImageRect.extent[1] / 2)) / dimension[0],
+				(float)(targetPos[0] - dimension[0] - (mImageRect.extent[0] / 2)) / dimension[0],
 				(float)(dimension[1] - targetPos[1] + (int)round(mImageRect.extent[1] / 2.f)) / dimension[1], 0.0f };
 			vertex[2].tcoord = {
 				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
 				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 			vertex[3].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mImageRect.extent[1] / 2.f)) / dimension[0],
+				(float)(targetPos[0] - dimension[0] + (int)round(mImageRect.extent[0] / 2.f)) / dimension[0],
 				(float)(dimension[1] - targetPos[1] + (int)round(mImageRect.extent[1] / 2.f)) / dimension[1], 0.0f };
 			vertex[3].tcoord = {
 				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
@@ -364,8 +362,8 @@ void UIButton::Draw( )
 
 		if (mPressedImage)
 		{
-			Vector2<int> targetPos{ mAbsoluteRect.center[0] , mAbsoluteRect.center[1] };
-			Vector2<int> dimension(mParent != nullptr ? mParent->GetAbsolutePosition().extent / 2 : mAbsoluteRect.extent / 2);
+			Vector2<int> targetPos = mAbsoluteRect.center;
+			Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
 
 			if (mScaleImage)
 			{
@@ -406,13 +404,13 @@ void UIButton::Draw( )
 				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 			vertex[2].position = {
-				(float)(targetPos[0] - dimension[0] - (mPressedImageRect.extent[1] / 2)) / dimension[0],
+				(float)(targetPos[0] - dimension[0] - (mPressedImageRect.extent[0] / 2)) / dimension[0],
 				(float)(dimension[1] - targetPos[1] + (int)round(mPressedImageRect.extent[1] / 2.f)) / dimension[1], 0.0f };
 			vertex[2].tcoord = {
 				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
 				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 			vertex[3].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mPressedImageRect.extent[1] / 2.f)) / dimension[0],
+				(float)(targetPos[0] - dimension[0] + (int)round(mPressedImageRect.extent[0] / 2.f)) / dimension[0],
 				(float)(dimension[1] - targetPos[1] + (int)round(mPressedImageRect.extent[1] / 2.f)) / dimension[1], 0.0f };
 			vertex[3].tcoord = {
 				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
@@ -429,7 +427,7 @@ void UIButton::Draw( )
 		unsigned int state = mPressed ? (unsigned int)BS_BUTTON_DOWN : (unsigned int)BS_BUTTON_UP;
 		if (mButtonSprites[state].Index != -1)
 		{
-			mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, spritePos,
+			mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, mVisual, spritePos,
 			 	&mAbsoluteClippingRect, mButtonSprites[state].Color, mClickTime, Timer::GetTime(),
 				mButtonSprites[state].Loop, true);
 		}
@@ -439,7 +437,7 @@ void UIButton::Draw( )
 			(unsigned int)BS_BUTTON_Focused : (unsigned int)BS_BUTTON_NOT_Focused;
 		if (mButtonSprites[state].Index != -1)
 		{
-			mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, spritePos,
+			mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, mVisual, spritePos,
 			 	&mAbsoluteClippingRect, mButtonSprites[state].Color, mFocusTime, Timer::GetTime(),
 				mButtonSprites[state].Loop, true);
 		}
@@ -451,7 +449,7 @@ void UIButton::Draw( )
 				(unsigned int)BS_BUTTON_MOUSE_OVER : (unsigned int)BS_BUTTON_MOUSE_OFF;
 			if (mButtonSprites[state].Index != -1)
 			{
-				mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, spritePos,
+				mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, mVisual, spritePos,
 				 	&mAbsoluteClippingRect, mButtonSprites[state].Color, mHoverTime, Timer::GetTime(),
 					mButtonSprites[state].Loop, true);
 			}

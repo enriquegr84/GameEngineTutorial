@@ -1984,6 +1984,9 @@
     <ClInclude Include="..\Graphic\Image\ImageResource.h">
       <Filter>Graphic\Image</Filter>
     </ClInclude>
+    <ClInclude Include="..\Application\System\CursorControl.h">
+      <Filter>Application\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl">

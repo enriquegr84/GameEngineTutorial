@@ -11,6 +11,7 @@
 
 #include "Core/CoreStd.h"
 #include "Mathematic/Algebra/Vector2.h"
+#include "Graphic/Resource/Texture/Texture2.h"
 
 #include "System.h"
 
@@ -69,70 +70,68 @@ protected:
 	HWND InitInstance(HINSTANCE hInstance, int width, int height, bool fullscreen);
 
 	//! Implementation of the Windows cursor control
-	class CursorControl
+	class CursorControl : public BaseCursorControl
 	{
 	public:
 
-		//! Default icons for cursors
-		enum CursorIcon
-		{
-			// Following cursors might be system specific, or might use an GameEngine icon-set. No guarantees so far.
-			CI_NORMAL,	// arrow
-			CI_CROSS,	// Crosshair
-			CI_HAND,	// Hand
-			CI_HELP,	// Arrow and question mark
-			CI_IBEAM,	// typical text-selection cursor
-			CI_NO,		// should not click icon
-			CI_WAIT,	// hourclass
-			CI_SIZEALL,	// arrow in all directions
-			CI_SIZENESW,	// resizes in direction north-east or south-west
-			CI_SIZENWSE,	// resizes in direction north-west or south-east
-			CI_SIZENS,	// resizes in direction north or south
-			CI_SIZEWE,	// resizes in direction west or east
-			CI_UP,		// up-arrow
-
-						// Implementer note: Should we add system specific cursors, which use guaranteed the system icons,
-						// then I would recommend using a naming scheme like CI_W32_CROSS, CI_X11_CROSSHAIR and adding those
-						// additionally.
-
-						CI_COUNT		// maximal of defined cursors. Note that higher values can be created at runtime
-		};
-
 		CursorControl(const Vector2<unsigned int>& wsize, HWND hWnd, bool fullscreen);
-		CursorControl();
 		~CursorControl();
 
 		//! Changes the visible state of the mouse cursor.
-		void SetVisible(bool visible);
+		virtual void SetVisible(bool visible);
 
 		//! Returns if the cursor is currently visible.
-		bool IsVisible() const;
+		virtual bool IsVisible() const;
 
 		//! Sets the new position of the cursor.
-		void SetPosition(const Vector2<float> &pos);
+		virtual void SetPosition(const Vector2<float> &pos);
 
 		//! Sets the new position of the cursor.
-		void SetPosition(const Vector2<unsigned int> &pos);
+		virtual void SetPosition(const Vector2<int> &pos);
 
 		//! Sets the new position of the cursor.
-		void SetPosition(float x, float y);
+		virtual void SetPosition(float x, float y);
 
 		//! Sets the new position of the cursor.
-		void SetPosition(signed int x, signed int y);
+		virtual void SetPosition(int x, int y);
 
 		//! Returns the current position of the mouse cursor.
-		const Vector2<unsigned int>& GetPosition();
+		virtual const Vector2<unsigned int>& GetPosition();
 
 		//! Returns the current position of the mouse cursor.
-		Vector2<float> GetRelativePosition();
+		virtual Vector2<float> GetRelativePosition();
+
+		//! Sets an absolute reference rect for calculating the cursor position.
+		virtual void SetReferenceRect(const RectangleBase<2, int>* rect = 0);
 
 		//! Used to notify the cursor that the window was resized.
-		void OnResize(const Vector2<unsigned int>& size);
+		virtual void OnResize(const Vector2<unsigned int>& size);
 
 		//! Used to notify the cursor that the window resizable settings changed.
-		void UpdateBorderSize(bool fullscreen, bool resizable);
+		virtual void UpdateBorderSize(bool fullscreen, bool resizable);
+
+		//! Sets the active cursor icon
+		virtual void SetActiveIcon(CursorIcon iconId);
+
+		//! Gets the currently active icon
+		virtual CursorIcon GetActiveIcon() const;
+
+		//! Add a custom sprite as cursor icon.
+		virtual CursorIcon AddIcon(const CursorSprite& icon);
+
+		//! replace the given cursor icon.
+		virtual void ChangeIcon(CursorIcon iconId, const CursorSprite& sprite);
+
+		//! Return a system-specific size which is supported for cursors. Larger icons will fail, smaller icons might work.
+		virtual Vector2<int> GetSupportedIconSize() const;
+
+		void Update();
 
 	private:
+
+		// convert an Irrlicht texture to a windows cursor
+		HCURSOR TextureToCursor(HWND hwnd, Texture2 * tex, const RectangleBase<2, int>& sourceRect, const Vector2<unsigned int> &hotspot);
+
 		//! Updates the internal cursor position
 		void UpdateInternalCursorPosition();
 
@@ -142,10 +141,35 @@ protected:
 		HWND mHWnd;
 
 		signed int mBorderX, mBorderY;
+		RectangleBase<2, int> mReferenceRect;
+		bool mUseReferenceRect;
 		bool mVisible;
-	};
-	CursorControl mCursorControl;
 
+		struct CursorFrame
+		{
+			CursorFrame() : mIconHW(0) {}
+			CursorFrame(HCURSOR icon) : mIconHW(icon) {}
+
+			HCURSOR mIconHW;	// hardware cursor
+		};
+
+		struct Cursor
+		{
+			Cursor() {}
+			explicit Cursor(HCURSOR iconHw, unsigned int frameTime = 0) : mFrameTime(frameTime)
+			{
+				mFrames.push_back(CursorFrame(iconHw));
+			}
+			eastl::vector<CursorFrame> mFrames;
+			unsigned int mFrameTime;
+		};
+
+		eastl::vector<Cursor> mCursors;
+		CursorIcon mActiveIcon;
+		unsigned int mActiveIconStartTime;
+
+		void InitCursors();
+	};
 };
 
 #endif

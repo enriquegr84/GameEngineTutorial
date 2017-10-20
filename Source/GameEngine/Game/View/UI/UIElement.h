@@ -400,19 +400,19 @@ public:
 	virtual bool IsPointInside(const Vector2<int>& point) const
 	{
 		return (
-			mAbsoluteClippingRect.center[0] - (mAbsoluteClippingRect.extent[0] / 2) >= point[0] && 
-			mAbsoluteClippingRect.center[1] - (mAbsoluteClippingRect.extent[1] / 2) >= point[1] &&
-			mAbsoluteClippingRect.center[0] + (int)round(mAbsoluteClippingRect.extent[0] / 2.f) <= point[0] &&
-			mAbsoluteClippingRect.center[1] + (int)round(mAbsoluteClippingRect.extent[1] / 2.f) <= point[1] );
+			mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2) <= point[0] &&
+			mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2) <= point[1] &&
+			mAbsoluteRect.center[0] + (int)round(mAbsoluteRect.extent[0] / 2.f) >= point[0] &&
+			mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f) >= point[1] );
 	}
 
 	virtual bool IsPointInside(const RectangleBase<2, int>& rectangle, const Vector2<int>& point) const
 	{
 		return (
-			rectangle.center[0] - (rectangle.extent[0] / 2) >= point[0] &&
-			rectangle.center[1] - (rectangle.extent[1] / 2) >= point[1] &&
-			rectangle.center[0] + (int)round(rectangle.extent[0] / 2.f) <= point[0] &&
-			rectangle.center[1] + (int)round(rectangle.extent[1] / 2.f) <= point[1]);
+			rectangle.center[0] - (rectangle.extent[0] / 2) <= point[0] &&
+			rectangle.center[1] - (rectangle.extent[1] / 2) <= point[1] &&
+			rectangle.center[0] + (int)round(rectangle.extent[0] / 2.f) >= point[0] &&
+			rectangle.center[1] + (int)round(rectangle.extent[1] / 2.f) >= point[1]);
 	}
 
 
@@ -995,7 +995,6 @@ protected:
 				int scale = (int)round((mScaleRect.center[1] - (mScaleRect.extent[1] / 2)) * fh);
 				mDesiredRect.center[1] = scale - (mDesiredRect.extent[1] / 2);
 				mDesiredRect.extent[1] = 2 * (scale - center[1]);
-
 				break;
 		}
 
@@ -1048,12 +1047,12 @@ protected:
 
 		mAbsoluteRect = mRelativeRect;
 		mAbsoluteRect.center += parentAbsolute.center - (parentAbsolute.extent / 2);
-		mAbsoluteRect.extent -= parentAbsolute.center - (parentAbsolute.extent / 2);
 
 		if (!mParent)
 			parentAbsoluteClip = mAbsoluteRect;
 
 		mAbsoluteClippingRect = mAbsoluteRect;
+		mAbsoluteClippingRect.extent = parentAbsoluteClip.extent;
 
 		mLastParentRect = parentAbsolute;
 

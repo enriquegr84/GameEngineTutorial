@@ -8,6 +8,8 @@
 #ifndef FONT_H
 #define FONT_H
 
+#include "Mathematic/Algebra/Vector2.h"
+
 #include "Graphic/Resource/Buffer/IndexBuffer.h"
 #include "Graphic/Resource/Buffer/VertexBuffer.h"
 
@@ -29,6 +31,9 @@ public:
     // Populate the vertex buffer for the specified string.
     void Typeset(int viewportWidth, int viewportHeight, int x, int y,
 		Vector4<float> const& color, eastl::wstring const& message) const;
+
+	// Font widht and height info
+	Vector2<int> GetDimension(eastl::wstring const& message) const;
 
 protected:
     unsigned int mMaxMessageLength;

@@ -9,8 +9,10 @@
 
 #include "UserInterface.h"
 
-#include "Graphic/Renderer/Renderer.h"
 #include "Core/OS/OS.h"
+
+#include "Graphic/Image/ImageResource.h"
+#include "Graphic/Renderer/Renderer.h"
 
 //! constructor
 UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
@@ -22,24 +24,38 @@ UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 	//setDebugName("CGUIComboBox");
 	#endif
 
-	// Create a vertex buffer for a single triangle.
-	struct Vertex
+	eastl::shared_ptr<ResHandle>& resHandle =
+		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
+	if (resHandle)
 	{
-		Vector3<float> position;
-		Vector4<float> color;
-	};
-	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
 
-	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
-	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+		// Create a vertex buffer for a two-triangles square. The PNG is stored
+		// in left-handed coordinates. The texture coordinates are chosen to
+		// reflect the texture in the y-direction.
+		struct Vertex
+		{
+			Vector3<float> position;
+			Vector2<float> tcoord;
+		};
+		VertexFormat vformat;
+		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
-	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
 
-	// Create the geometric object for drawing.
-	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+		// Create an effect for the vertex and pixel shaders. The texture is
+		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
+		eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
+			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+
+		// Create the geometric object for drawing.
+		mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+	}
 }
 
 //! initialize combobox
@@ -54,7 +70,7 @@ void UIComboBox::OnInit()
 	RectangleBase<2, int> r;
 	r.extent[0] = width;
 	r.extent[1] = mRelativeRect.extent[1] - 4;
-	r.center[0] = mRelativeRect.extent[0] - (width / 2);
+	r.center[0] = mRelativeRect.extent[0] - (width / 2) - 1;
 	r.center[1] = mRelativeRect.extent[1] / 2;
 
 	mListButton = mUI->AddButton(r, shared_from_this(), -1, L"");
@@ -68,10 +84,10 @@ void UIComboBox::OnInit()
 	mListButton->SetSubElement(true);
 	mListButton->SetTabStop(false);
 
+	r.center[0] = (mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0]) / 2;
 	r.extent[0] = mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0];
+	r.center[1] = (mRelativeRect.extent[1] / 2) + 4;
 	r.extent[1] = mRelativeRect.extent[1] - 4;
-	r.center[0] = mRelativeRect.extent[0] - (mListButton->GetAbsolutePosition().extent[0] / 2) + 1;
-	r.center[1] = mRelativeRect.extent[1] / 2;
 
 	mSelectedText = mUI->AddStaticText(L"", r, false, false, shared_from_this(), -1, false);
 	mSelectedText->SetSubElement(true);
@@ -419,13 +435,47 @@ void UIComboBox::Draw()
 	mListButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_DOWN, skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
 	mListButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_DOWN, skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
 
-
-	RectangleBase<2, int> frameRect(mAbsoluteRect);
-
 	// draw the border
+	Vector2<int> targetPos = mAbsoluteRect.center;
+	Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
 
-	skin->Draw3DSunkenPane(shared_from_this(), skin->GetColor(DC_3D_HIGH_LIGHT),
-		true, true, mVisual, frameRect, &mAbsoluteClippingRect);
+	eastl::shared_ptr<Texture2> tex = mEffect->GetTexture();
+	Vector2<unsigned int> sourceCenter{ tex->GetDimension(0) / 2, tex->GetDimension(1) / 2 };
+	Vector2<unsigned int> sourceSize{ tex->GetDimension(0), tex->GetDimension(1) };
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector2<float> tcoord;
+	};
+	Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
+	vertex[0].position = {
+		(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
+	vertex[0].tcoord = {
+		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+	vertex[1].position = {
+		(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
+	vertex[1].tcoord = {
+		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+	vertex[2].position = {
+		(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+	vertex[2].tcoord = {
+		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+	vertex[3].position = {
+		(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+	vertex[3].tcoord = {
+		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+
+	// Create the geometric object for drawing.
+	Renderer::Get()->Draw(mVisual);
 
 	// draw children
 	BaseUIElement::Draw();
@@ -455,10 +505,9 @@ void UIComboBox::OpenCloseMenu()
 			height = 1;
 
 		eastl::shared_ptr<BaseUIFont> font = skin->GetFont();
-		/*
 		if (font)
-			height *= (font->GetDimension(L"A").Height + 4);
-		*/
+			height *= (font->GetDimension(L"A")[1] + 4);
+
 		// open list box
 		RectangleBase<2, int> r;
 		r.extent[0] = mAbsoluteRect.extent[0];

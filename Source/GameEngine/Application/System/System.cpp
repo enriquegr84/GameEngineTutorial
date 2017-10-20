@@ -20,7 +20,7 @@ System* System::Get(void)
 
 //----------------------------------------------------------------------------
 System::System (int width, int height)
-	: mClose(false), mFullscreen(false), mEventListener(0), mWidth(width), mHeight(height)
+	: mClose(false), mFullscreen(false), mEventListener(0), mCursorControl(0), mWidth(width), mHeight(height)
 {
     LogAssert(width > 0, "Width must be positive\n");
 
@@ -46,6 +46,9 @@ System::System (int width, int height)
 
 System::~System()
 {
+	delete mEventListener;
+	delete mCursorControl;
+
 	if (System::mSystem == this)
 		System::mSystem = nullptr;
 }

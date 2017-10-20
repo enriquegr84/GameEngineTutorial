@@ -57,157 +57,10 @@ UIFont::~UIFont()
 }
 
 
-//! loads a font file from xml
-bool UIFont::Load(XMLElement* pRoot)
+// Font widht and height info
+Vector2<int> UIFont::GetDimension(eastl::wstring const& message) const
 {
-	if (!Renderer::Get())
-		return false;
-
-	//mSpriteBank->Clear();
-
-	LogAssert(pRoot, "Root element is null");
-	/*
-	// load all materials
-	XMLElement* pParentNode = pRoot->FirstChildElement("Texture");
-	if (pParentNode)
-	{
-		XMLElement* pNode = pParentNode->FirstChildElement(); 
-		
-		int index = 0;
-
-		eastl::string fn(pNode->Attribute("filename"));
-		pNode = pNode->NextSiblingElement();
-		pNode->Attribute("index", &index);
-		pNode = pNode->NextSiblingElement();
-		eastl::wstring alpha(pNode->Attribute("hasAlpha"));
-
-		// add a texture
-		while (index+1 > (int)mSpriteBank->GetTextureCount())
-			mSpriteBank->AddTexture(0);
-
-		// disable mipmaps+filtering
-		bool mipmap = Renderer::Get()->GetTextureCreationFlag(TCF_CREATE_MIP_MAPS);
-		Renderer::Get()->SetTextureCreationFlag(TCF_CREATE_MIP_MAPS, false);
-		
-		mSpriteBank->SetTexture(index, Renderer::Get()->GetTexture(fn) );
-
-		// set previous mip-map+filter state
-		Renderer::Get()->SetTextureCreationFlag(TCF_CREATE_MIP_MAPS, mipmap);
-
-		// couldn't load texture, abort.
-		if (!mSpriteBank->GetTexture(index))
-		{
-			LogError("Unable to load all textures in the font, aborting");
-			return false;
-		}
-		else
-		{
-			// colorkey texture rather than alpha channel?
-			if (alpha == eastl::wstring("false"))
-				Renderer::Get()->MakeColorKeyTexture(
-					mSpriteBank->GetTexture(index), Vector2<int>{0, 0});
-		}
-	}
-	else
-	{
-		pParentNode = pRoot->FirstChildElement("c");
-		if (pParentNode)
-		{
-			XMLElement* pNode = pParentNode->FirstChildElement(); 
-
-			// adding a character to this font
-			FontArea a;
-			UISpriteFrame f;
-			UISprite s;
-			RectangleBase<2, int> rectangle;
-			int texno;
-
-			pNode->Attribute("u", &a.underhang);
-			pNode = pNode->NextSiblingElement();
-			pNode->Attribute("o", &a.overhang);
-			pNode = pNode->NextSiblingElement();
-			pNode->Attribute("i", &texno);
-			pNode = pNode->NextSiblingElement();
-
-			a.spriteno = mSpriteBank->GetSprites().size();
-
-			// parse rectangle
-			eastl::vector<wchar_t> chArray;
-
-			eastl::string rectstr(pNode->Attribute("r"));
-			pNode = pNode->NextSiblingElement();
-			pNode->Attribute("c", (int *)&chArray[0]);
-			wchar_t ch = chArray[0];
-
-			const char *c = rectstr.c_str();
-			int val;
-			val = 0;
-			while (*c >= '0' && *c <= '9')
-			{
-				val *= 10;
-				val += *c - '0';
-				c++;
-			}
-			rectangle.UpperLeftCorner.X = val;
-			while (*c == L' ' || *c == L',') c++;
-
-			val = 0;
-			while (*c >= '0' && *c <= '9')
-			{
-				val *= 10;
-				val += *c - '0';
-				c++;
-			}
-			rectangle.UpperLeftCorner.Y = val;
-			while (*c == L' ' || *c == L',') c++;
-
-			val = 0;
-			while (*c >= '0' && *c <= '9')
-			{
-				val *= 10;
-				val += *c - '0';
-				c++;
-			}
-			rectangle.LowerRightCorner.X = val;
-			while (*c == L' ' || *c == L',') c++;
-
-			val = 0;
-			while (*c >= '0' && *c <= '9')
-			{
-				val *= 10;
-				val += *c - '0';
-				c++;
-			}
-			rectangle.LowerRightCorner.Y = val;
-
-			mCharacterMap.insert(eastl::make_pair(ch,mAreas.size()));
-
-			// make frame
-			f.rectNumber = mSpriteBank->GetPositions().size();
-			f.textureNumber = texno;
-
-			// add frame to sprite
-			s.Frames.push_back(f);
-			s.frameTime = 0;
-
-			// add rectangle to sprite bank
-			mSpriteBank->GetPositions().push_back(rectangle);
-			a.width = rectangle.GetWidth();
-
-			// add sprite to sprite bank
-			mSpriteBank->GetSprites().push_back(s);
-
-			// add character to font
-			mAreas.push_back(a);
-		}
-	}
-
-	// set bad character
-	mWrongCharacter = GetAreaFromCharacter(L' ');
-
-	SetMaxHeight();
-	*/
-	return true;
+	return mFont->GetDimension(message);
 }
 
 
@@ -221,85 +74,15 @@ bool UIFont::Load(const eastl::wstring& filename)
 		eastl::shared_ptr<ImageResourceExtraData> extra = 
 			eastl::static_pointer_cast<ImageResourceExtraData>(fontResource->GetExtra());
 		extra->GetImage()->AutogenerateMipmaps();
-
-		return LoadTexture(extra->GetImage().get(), filename);
+		return true;
 	}
 	else if (fontResource->GetExtra()->ToString() == L"XmlResourceExtraData")
 	{
 		eastl::shared_ptr<XmlResourceExtraData> extra = 
 			eastl::static_pointer_cast<XmlResourceExtraData>(fontResource->GetExtra());
-		return Load(extra->GetRoot());
+		return true;
 	}
 	return false;
-}
-
-
-//! load & prepare font from ITexture
-bool UIFont::LoadTexture(Texture* image, const eastl::wstring& name)
-{
-	if (!image || !Renderer::Get())
-		return false;
-
-	bool ret = false;
-	/*
-	int lowerRightPositions = 0;
-
-	Texture* tmpImage(image);
-	bool deleteTmpImage=false;
-	switch(image->GetColorFormat())
-	{
-		case CF_R5G6B5:
-			tmpImage = Renderer::Get()->CreateImage(CF_A1R5G5B5,image->GetDimension());
-			image->CopyTo(tmpImage);
-			deleteTmpImage=true;
-			break;
-		case CF_A1R5G5B5:
-		case CF_A8R8G8B8:
-			break;
-		case CF_R8G8B8:
-			tmpImage = Renderer::Get()->CreateImage(CF_A8R8G8B8,image->GetDimension());
-			image->CopyTo(tmpImage);
-			deleteTmpImage=true;
-			break;
-		default:
-			LogError("Unknown texture format provided for GUIFont::loadTexture");
-			return false;
-	}
-	ReadPositions(tmpImage, lowerRightPositions);
-
-	mWrongCharacter = GetAreaFromCharacter(L' ');
-
-	// output warnings
-	if (!lowerRightPositions || !mSpriteBank->GetSprites().size())
-		LogError("	Either no upper or lower corner pixels in the font file. \
-					If this font was made using the new font tool, please load \
-					the XML file instead. If not, the font may be corrupted.");
-	else if (lowerRightPositions != (int)mSpriteBank->GetPositions().size())
-		LogError("	The amount of upper corner pixels and the lower corner pixels \
-					is not equal, font file may be corrupted.");
-
-	bool ret = ( !mSpriteBank->GetSprites().empty() && lowerRightPositions );
-
-	if ( ret )
-	{
-		bool flag[2];
-		flag[0] = Renderer::Get()->GetTextureCreationFlag ( TCF_ALLOW_NON_POWER_2 );
-		flag[1] = Renderer::Get()->GetTextureCreationFlag ( TCF_CREATE_MIP_MAPS );
-
-		Renderer::Get()->SetTextureCreationFlag(TCF_ALLOW_NON_POWER_2, true);
-		Renderer::Get()->SetTextureCreationFlag(TCF_CREATE_MIP_MAPS, false );
-
-		mSpriteBank->AddTexture(renderer->AddTexture(name, tmpImage));
-
-		Renderer::Get()->SetTextureCreationFlag(TCF_ALLOW_NON_POWER_2, flag[0] );
-		Renderer::Get()->SetTextureCreationFlag(TCF_CREATE_MIP_MAPS, flag[1] );
-	}
-	if (deleteTmpImage)
-		delete tmpImage;
-
-	SetMaxHeight();
-	*/
-	return ret;
 }
 
 
@@ -310,12 +93,10 @@ void UIFont::Draw(const eastl::wstring& text, const RectangleBase<2, int>& posit
 	if (!Renderer::Get())
 		return;
 
-	Vector2<int> offset;
-	offset[0] = position.center[0] - (position.extent[0] / 2);
-	offset[1] = position.center[1];
+	Vector2<int> offset = position.center - (position.extent / 2);
 
 	if (hcenter)
-		offset[0] = position.center[0];
+		offset[0] = position.center[0] + (int)round(position.extent[0] / 2.f);
 
 	if (vcenter)
 		offset[1] = position.center[1] + (int)round(position.extent[1] / 2.f);

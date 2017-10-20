@@ -101,8 +101,8 @@ void UIImage::Draw()
 	{
 		const eastl::array<float, 4> colors[]{ mColor,mColor,mColor,mColor };
 
-		Vector2<int> targetPos{ mAbsoluteRect.center[0] , mAbsoluteRect.center[1] };
-		Vector2<int> dimension(mParent != nullptr ? mParent->GetAbsolutePosition().extent / 2 : mAbsoluteRect.extent / 2);
+		Vector2<int> targetPos = mAbsoluteRect.center;
+		Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
 
 		if (!mScaleImage)
 		{
@@ -122,26 +122,26 @@ void UIImage::Draw()
 		};
 		Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
 		vertex[0].position = {
-			(float)(targetPos[0] - dimension[0] - (mAbsoluteClippingRect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - targetPos[1] - (mAbsoluteClippingRect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].tcoord = {
 			(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
 			(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 		vertex[1].position = {
-			(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteClippingRect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - targetPos[1] - (mAbsoluteClippingRect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].tcoord = {
 			(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 			(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 		vertex[2].position = {
-			(float)(targetPos[0] - dimension[0] - (mAbsoluteClippingRect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteClippingRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].tcoord = {
 			(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
 			(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 		vertex[3].position = {
-			(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteClippingRect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteClippingRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].tcoord = {
 			(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 			(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
