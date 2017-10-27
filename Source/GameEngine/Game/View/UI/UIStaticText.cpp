@@ -43,8 +43,9 @@ UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text,
 	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
 	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
 
-	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 	// Create the geometric object for drawing.
 	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
@@ -77,9 +78,8 @@ void UIStaticText::Draw( )
 
 		skin->Draw2DRectangle(shared_from_this(), mBGColor, mVisual, frameRect, &mAbsoluteClippingRect);
 	}
-
+	/*
 	// draw the border
-
 	if (mBorder)
 	{
 		skin->Draw3DSunkenPane(
@@ -87,7 +87,7 @@ void UIStaticText::Draw( )
 		frameRect.center[0] += (int)round(skin->GetSize(DS_TEXT_DISTANCE_X) / 2);
 		frameRect.extent[0] -= skin->GetSize(DS_TEXT_DISTANCE_X);
 	}
-
+	*/
 	// draw the text
 	if (mText.size())
 	{

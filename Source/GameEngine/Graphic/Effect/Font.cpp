@@ -111,11 +111,11 @@ Vector2<int> Font::GetDimension(eastl::wstring const& message) const
 		}
 		if (lineBreak)
 		{
-			height += (tx1 - tx0)*th - 1.0f;  // height in pixels
+			height += th;  // height in pixels
 			continue;
 		}
 		if (i+1 == length)
-			height += (tx1 - tx0)*th - 1.0f;  // height in pixels
+			height += th;  // height in pixels
 
 		width += (tx1 - tx0)*tw - 1.0f;  // width in pixels
 	}

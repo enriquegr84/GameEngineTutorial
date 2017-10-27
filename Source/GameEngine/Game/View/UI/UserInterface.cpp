@@ -323,7 +323,7 @@ bool BaseUI::OnRender(double time, float elapsedTime)
 	}
 
 	// make sure tooltip is always on top
-	if (mToolTip.mElement)
+	if (mToolTip.mElement->IsVisible())
 		mRoot->BringToFront(mToolTip.mElement);
 
 	mRoot->Draw();
@@ -371,7 +371,7 @@ void BaseUI::Clear()
 bool BaseUI::OnPostRender( unsigned int time )
 {
 	// launch tooltip
-	if (!mToolTip.mElement->IsEnabled() &&
+	if (!mToolTip.mElement->IsVisible() &&
 		mHoveredNoSubelement && mHoveredNoSubelement != mRoot &&
 		(time - mToolTip.mEnterTime >= mToolTip.mLaunchTime || 
 		(time - mToolTip.mLastTime >= mToolTip.mRelaunchTime && 
@@ -381,7 +381,8 @@ bool BaseUI::OnPostRender( unsigned int time )
 	{
 		RectangleBase<2, int> pos;
 
-		Vector2<int> dim = GetSkin()->GetFont(DF_TOOLTIP)->GetDimension(mHoveredNoSubelement->GetToolTipText().c_str());
+		Vector2<int> dim = GetSkin()->GetFont(DF_TOOLTIP)->GetDimension(
+			mHoveredNoSubelement->GetToolTipText().c_str());
 		dim[0] += GetSkin()->GetSize(DS_TEXT_DISTANCE_X) * 2;
 		dim[1] += GetSkin()->GetSize(DS_TEXT_DISTANCE_Y) * 2;
 
@@ -390,19 +391,13 @@ bool BaseUI::OnPostRender( unsigned int time )
 		pos.center[1] = mLastHoveredMousePos[1] - (dim[1] / 2);
 		pos.extent[1] = dim[1] - 2;
 
-		mToolTip.mElement->SetEnabled(true);
+		mToolTip.mElement->SetVisible(true);
 		mToolTip.mElement->SetRelativePosition(pos);
 		mToolTip.mElement->SetText(mHoveredNoSubelement->GetToolTipText().c_str());
 		mToolTip.mElement->SetOverrideColor(GetSkin()->GetColor(DC_TOOLTIP));
 		mToolTip.mElement->SetBackgroundColor(GetSkin()->GetColor(DC_TOOLTIP_BACKGROUND));
 		mToolTip.mElement->SetOverrideFont(GetSkin()->GetFont(DF_TOOLTIP));
 		mToolTip.mElement->SetSubElement(true);
-
-		int textHeight = mToolTip.mElement->GetTextHeight();
-		pos = mToolTip.mElement->GetRelativePosition();
-		pos.extent[1] = textHeight;
-
-		mToolTip.mElement->SetRelativePosition(pos);
 	}
 
 	// (IsVisible() check only because we might use visibility for ToolTip one day)
@@ -415,7 +410,7 @@ bool BaseUI::OnPostRender( unsigned int time )
 			!mHoveredNoSubelement->IsVisible() ||
 			!mHoveredNoSubelement->GetParent())	// got invisible or removed in the meantime?
 		{
-			mToolTip.mElement->SetEnabled(false);
+			mToolTip.mElement->SetVisible(false);
 		}
 	}
 
@@ -437,7 +432,7 @@ void BaseUI::UpdateHoveredElement(Vector2<int> mousePos)
 	{
 		// When the mouse is over the ToolTip we remove that so it will be re-created at a new position.
 		// Note that ToolTip.EnterTime does not get changed here, so it will be re-created at once.
-		mToolTip.mElement->SetEnabled(false);
+		mToolTip.mElement->SetVisible(false);
 
 		// Get the real Hovered
 		mHovered = mRoot->GetElementFromPoint(mousePos);
@@ -475,7 +470,7 @@ void BaseUI::UpdateHoveredElement(Vector2<int> mousePos)
 	if (lastHoveredNoSubelement != mHoveredNoSubelement)
 	{
 		if (mToolTip.mElement)
-			mToolTip.mElement->SetEnabled(false);
+			mToolTip.mElement->SetVisible(false);
 
 		if (mHoveredNoSubelement)
 		{

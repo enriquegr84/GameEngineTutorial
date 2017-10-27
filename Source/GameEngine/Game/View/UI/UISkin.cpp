@@ -984,5 +984,6 @@ void UISkin::Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element,
 	}
 
 	// Create the geometric object for drawing.
+	Renderer::Get()->Update(visual->GetVertexBuffer());
 	Renderer::Get()->Draw(visual);
 }
