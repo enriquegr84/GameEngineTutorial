@@ -190,13 +190,23 @@ bool BaseUI::OnInit()
 		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
 	}
 
-	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_CHECK_BOX_CHECKED)));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_CHECKBOX_CHECKED)));
 	if (resHandle)
 	{
 		const eastl::shared_ptr<ImageResourceExtraData>& extra =
 			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 		extra->GetImage()->AutogenerateMipmaps();
-		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_CHECK_BOX_CHECKED));
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_CHECKBOX_CHECKED));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_CHECKBOX_UNCHECKED)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_CHECKBOX_UNCHECKED));
 		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
 	}
 

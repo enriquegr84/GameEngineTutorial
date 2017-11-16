@@ -76,16 +76,7 @@ void UIStaticText::Draw( )
 
 		skin->Draw2DRectangle(shared_from_this(), mBGColor, mVisual, frameRect, &mAbsoluteClippingRect);
 	}
-	/*
-	// draw the border
-	if (mBorder)
-	{
-		skin->Draw3DSunkenPane(
-			shared_from_this(), eastl::array<float, 4>(), true, false, mVisual, frameRect, &mAbsoluteClippingRect);
-		frameRect.center[0] += (int)round(skin->GetSize(DS_TEXT_DISTANCE_X) / 2);
-		frameRect.extent[0] -= skin->GetSize(DS_TEXT_DISTANCE_X);
-	}
-	*/
+
 	// draw the text
 	if (mText.size())
 	{

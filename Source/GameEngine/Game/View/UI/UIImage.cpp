@@ -104,13 +104,13 @@ void UIImage::Draw()
 
 		Vector2<int> targetPos = mAbsoluteRect.center;
 		Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
-
+		/*
 		if (!mScaleImage)
 		{
-			targetPos[0] = mAbsoluteRect.center[0] - (dimension[0] / 2);
-			targetPos[1] = mAbsoluteRect.center[1] - (dimension[1] / 2);
+			targetPos[0] = mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2);
+			targetPos[1] = mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2);
 		}
-
+		*/
 		Vector2<unsigned int> sourceCenter{ mTexture->GetDimension(0) / 2, mTexture->GetDimension(1) / 2 };
 		Vector2<unsigned int> sourceSize{ mTexture->GetDimension(0), mTexture->GetDimension(1) };
 

@@ -7,7 +7,7 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Effect/BasicEffect.h"
+#include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Scene/Element/Visual.h"
 
 class BaseUICheckBox : public BaseUIElement
@@ -55,7 +55,7 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<BasicEffect> mEffect;
+	eastl::shared_ptr<Texture2Effect> mEffect;
 
 	unsigned int mCheckTime;
 	bool mPressed;

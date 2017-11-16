@@ -194,8 +194,10 @@ enum UIDefaultIcon
 	DI_CURSOR_RIGHT,
 	//! icon for menu children
 	DI_MENU_MORE,
-	//! tick for checkbox
-	DI_CHECK_BOX_CHECKED,
+	//! tick for checkbox checked
+	DI_CHECKBOX_CHECKED,
+	//! tick for checkbox unchecked
+	DI_CHECKBOX_UNCHECKED,
 	//! down arrow for dropdown menus
 	DI_DROP_DOWN,
 	//! smaller up arrow
@@ -410,8 +412,9 @@ public:
 	\param loop: Whether the animation should loop or not
 	\param clip: Clip area.	*/
 	virtual void DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon,
-		const Vector2<int> position, const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>* clip = 0,
-		unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = false) = 0;
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int> position, 
+		const RectangleBase<2, int>* clip = 0, unsigned int starttime = 0, 
+		unsigned int currenttime = 0, bool loop = false) = 0;
 
 	//! draws a 2d rectangle.
 	/** \param element: Pointer to the element which wishes to draw this icon.
@@ -600,8 +603,9 @@ public:
 	\param loop: Whether the animation should loop or not
 	\param clip: Clip area.	*/
 	virtual void DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon, 
-		const Vector2<int> position, const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>* clip = 0, 
-		unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = false);
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int> position, 
+		const RectangleBase<2, int>* clip = 0, unsigned int starttime = 0, 
+		unsigned int currenttime = 0, bool loop = false);
 
 	//! draws a 2d rectangle.
 	/** \param element: Pointer to the element which wishes to draw this icon.

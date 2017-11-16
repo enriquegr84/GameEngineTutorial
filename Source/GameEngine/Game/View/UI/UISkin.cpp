@@ -5,7 +5,7 @@
 #include "UISkin.h"
 
 #include "UIFont.h"
-//#include "UISpriteBank.h"
+#include "UISpriteBank.h"
 #include "UIElement.h"
 
 #include "Graphic/Renderer/Renderer.h"
@@ -135,7 +135,8 @@ UISkin::UISkin(BaseUI* ui, UISkinThemeType type)
 	mIcons[DI_CURSOR_LEFT] = L"Art/UserControl/appbar.chevron.left.png";
 	mIcons[DI_CURSOR_RIGHT] = L"Art/UserControl/appbar.chevron.right.png";
 	mIcons[DI_MENU_MORE] = L"Art/UserControl/appbar.add.png";
-	mIcons[DI_CHECK_BOX_CHECKED] = L"Art/UserControl/appbar.check.png";
+	mIcons[DI_CHECKBOX_CHECKED] = L"Art/UserControl/appbar.checkbox.check.png";
+	mIcons[DI_CHECKBOX_UNCHECKED] = L"Art/UserControl/appbar.checkbox.uncheck.png";
 	mIcons[DI_DROP_DOWN] = L"Art/UserControl/appbar.chevron.down.png";
 	mIcons[DI_SMALL_CURSOR_UP] = L"Art/UserControl/appbar.cursor.pointer.png";
 	mIcons[DI_SMALL_CURSOR_DOWN] = L"Art/UserControl/appbar.cursor.pointer.png";
@@ -964,17 +965,16 @@ by more complex implementations to find out how to draw the part exactly.
 \param loop: Whether the animation should loop or not
 \param clip: Clip area.	*/
 void UISkin::DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon,
-	const Vector2<int> position, const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>* clip, 
-	unsigned int starttime, unsigned int currenttime, bool loop)
+	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int> position, 
+	const RectangleBase<2, int>* clip, unsigned int starttime, unsigned int currenttime, bool loop)
 {
 	if (!mSpriteBank)
 		return;
 
 	bool gray = element && !element->IsEnabled();
-	/*
-	mSpriteBank->Draw2DSprite(mIcons[icon], mVisual,position, clip,
+
+	mSpriteBank->Draw2DSprite(icon, visual, position, clip,
 		mColors[gray? DC_GRAY_WINDOW_SYMBOL : DC_WINDOW_SYMBOL], starttime, currenttime, loop, true);
-	*/
 }
 
 

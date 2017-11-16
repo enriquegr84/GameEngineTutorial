@@ -9,8 +9,10 @@
 
 #include "UserInterface.h"
 
-#include "Graphic/Renderer/Renderer.h"
 #include "Core/OS/OS.h"
+
+#include "Graphic/Renderer/Renderer.h"
+#include "Graphic/Image/ImageResource.h"
 
 //! constructor
 UICheckBox::UICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool checked)
@@ -20,25 +22,39 @@ UICheckBox::UICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool
 	//setDebugName("CGUICheckBox");
 	#endif
 
-	// Create a vertex buffer for a single triangle.
-	struct Vertex
+	eastl::shared_ptr<ResHandle>& resHandle =
+		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
+	if (resHandle)
 	{
-		Vector3<float> position;
-		Vector4<float> color;
-	};
-	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
 
-	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
-	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
-	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
+		// Create a vertex buffer for a two-triangles square. The PNG is stored
+		// in left-handed coordinates. The texture coordinates are chosen to
+		// reflect the texture in the y-direction.
+		struct Vertex
+		{
+			Vector3<float> position;
+			Vector2<float> tcoord;
+		};
+		VertexFormat vformat;
+		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
-	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+		vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
-	// Create the geometric object for drawing.
-	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+		// Create an effect for the vertex and pixel shaders. The texture is
+		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
+		eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
+			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+
+		// Create the geometric object for drawing.
+		mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+	}
 }
 
 //! initialize checkbox
@@ -111,13 +127,12 @@ bool UICheckBox::OnEvent(const Event& event)
 
 				if (wasPressed && mParent)
 				{
-					/*
-					if ( !mAbsoluteRect.IsPointInside( event.mMouseInput.X, event.mMouseInput.Y) ) )
+					if (!IsPointInside(mAbsoluteRect, Vector2<int>{event.mMouseInput.X, event.mMouseInput.Y}))
 					{
-						Pressed = false;
+						mPressed = false;
 						return true;
 					}
-					*/
+
 					Event newEvent;
 					newEvent.mEventType = ET_UI_EVENT;
 					newEvent.mUIEvent.mCaller = this;
@@ -150,21 +165,24 @@ void UICheckBox::Draw()
 	{
 		const int height = skin->GetSize(DS_CHECK_BOX_WIDTH);
 
-		RectangleBase<2, int> checkRect;
+		RectangleBase<2, int> checkRect(mAbsoluteRect);
+		checkRect.center[0] -= (checkRect.extent[0] / 2);
+		checkRect.center[0] += (height / 2);
 		checkRect.extent[0] = height;
 		checkRect.extent[1] = height;
-		checkRect.center[0] = mAbsoluteRect.center[0];
-		checkRect.center[1] = mAbsoluteRect.center[1];
 
 		UIDefaultColor col = DC_GRAY_EDITABLE;
 		if (IsEnabled())
 			col = mPressed ? DC_FOCUSED_EDITABLE : DC_EDITABLE;
-		skin->Draw3DSunkenPane(shared_from_this(), skin->GetColor(col),
-			false, true, mVisual, checkRect, &mAbsoluteClippingRect);
 
 		if (mChecked)
 		{
-			skin->DrawIcon(shared_from_this(), DI_CHECK_BOX_CHECKED, checkRect.center, mVisual,
+			skin->DrawIcon(shared_from_this(), DI_CHECKBOX_CHECKED, mVisual, checkRect,
+				&mAbsoluteClippingRect, mCheckTime, Timer::GetTime(), false);
+		}
+		else
+		{
+			skin->DrawIcon(shared_from_this(), DI_CHECKBOX_UNCHECKED, mVisual, checkRect,
 				&mAbsoluteClippingRect, mCheckTime, Timer::GetTime(), false);
 		}
 		if (mText.size())

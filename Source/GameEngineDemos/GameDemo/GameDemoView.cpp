@@ -221,8 +221,6 @@ bool MainMenuUI::OnInit()
 		gameApp->mOption.mScreenSize[0] << 16 | gameApp->mOption.mScreenSize[1]));
 	mVideoMode->SetToolTipText(L"Supported Screenmodes");
 
-
-	/*
 	screenRectangle.center[0] = screenSize[0] - 350;
 	screenRectangle.extent[0] = 100;
 	screenRectangle.center[1] = 72;
@@ -230,11 +228,28 @@ bool MainMenuUI::OnInit()
 	mFullScreen = AddCheckBox(gameApp->mOption.mFullScreen, screenRectangle, mWindow, -1, L"Fullscreen");
 	mFullScreen->SetToolTipText(L"Set Fullscreen or Window Mode");
 
+	/*
+
+	// load the engine logo
+	BaseResource resource(L"Art/irrlichtlogo3.png");
+	const eastl::shared_ptr<ResHandle>& resHandle = gameApp->mResCache->GetHandle(&resource);
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+
+		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true, mWindow);
+		mLogo->SetToolTipText(L"The great Irrlicht Engine");
+	}
+
 	screenRectangle.center[0] = screenSize[0] - 190;
 	screenRectangle.extent[0] = 90;
 	screenRectangle.center[1] = 72;
 	screenRectangle.extent[1] = 16;
-	AddStaticText(L"MultiSample:", screenRectangle, false, false, mWindow, -1, false);
+	eastl::shared_ptr<BaseUIStaticText> videoMultiSampleLine =
+		AddStaticText(L"MultiSample:", screenRectangle, false, false, mWindow, -1, false);
+	videoMultiSampleLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.center[0] = screenSize[0] - 105;
 	screenRectangle.extent[0] = 80;
@@ -259,7 +274,9 @@ bool MainMenuUI::OnInit()
 	screenRectangle.extent[0] = 100;
 	screenRectangle.center[1] = 132;
 	screenRectangle.extent[1] = 16;
-	AddStaticText(L"Tesselation:", screenRectangle, false, false, mWindow, -1, false);
+	eastl::shared_ptr<BaseUIStaticText> videoTesselationLine =
+		AddStaticText(L"Tesselation:", screenRectangle, false, false, mWindow, -1, false);
+	videoTesselationLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.center[0] = screenSize[0] - 150;
 	screenRectangle.extent[0] = 300;
@@ -277,7 +294,9 @@ bool MainMenuUI::OnInit()
 	screenRectangle.extent[0] = 450;
 	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[1] = 20;
-	AddStaticText(L"Maps:", screenRectangle, false, false, mWindow, -1, false);
+	eastl::shared_ptr<BaseUIStaticText> mapsLine =
+		AddStaticText(L"Maps:", screenRectangle, false, false, mWindow, -1, false);
+	mapsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.center[0] = screenSize[0] - 225;
 	screenRectangle.extent[0] = 450;
@@ -291,7 +310,9 @@ bool MainMenuUI::OnInit()
 	screenRectangle.extent[0] = 400;
 	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[1] = 20;
-	AddStaticText(L"Scenegraph:", screenRectangle, false, false, mWindow, -1, false);
+	eastl::shared_ptr<BaseUIStaticText> sceneGraphLine =
+		AddStaticText(L"Scenegraph:", screenRectangle, false, false, mWindow, -1, false);
+	sceneGraphLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.center[0] = screenSize[0] - 200;
 	screenRectangle.extent[0] = 400;
@@ -301,19 +322,6 @@ bool MainMenuUI::OnInit()
 	mScenes->SetToolTipText(L"Show the current Scenegraph");
 
 	mScenes->GetRoot()->ClearChildren();
-
-	// load the engine logo
-	BaseResource resource(L"Art/irrlichtlogo3.png");
-	const eastl::shared_ptr<ResHandle>& resHandle = gameApp->mResCache->GetHandle(&resource);
-	if (resHandle)
-	{
-		const eastl::shared_ptr<ImageResourceExtraData>& extra =
-			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-		extra->GetImage()->AutogenerateMipmaps();
-
-		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true, 0);
-		mLogo->SetToolTipText(L"The great Irrlicht Engine");
-	}
 
 	int iY = 10;
 	int iX = 35;
