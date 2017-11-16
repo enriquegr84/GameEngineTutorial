@@ -393,6 +393,7 @@ bool BaseUI::OnPostRender( unsigned int time )
 
 		mToolTip.mElement->SetVisible(true);
 		mToolTip.mElement->SetRelativePosition(pos);
+		mToolTip.mElement->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 		mToolTip.mElement->SetText(mHoveredNoSubelement->GetToolTipText().c_str());
 		mToolTip.mElement->SetOverrideColor(GetSkin()->GetColor(DC_TOOLTIP));
 		mToolTip.mElement->SetBackgroundColor(GetSkin()->GetColor(DC_TOOLTIP_BACKGROUND));
@@ -430,12 +431,15 @@ void BaseUI::UpdateHoveredElement(Vector2<int> mousePos)
 
 	if (mToolTip.mElement && mHovered == mToolTip.mElement)
 	{
+		/*
 		// When the mouse is over the ToolTip we remove that so it will be re-created at a new position.
 		// Note that ToolTip.EnterTime does not get changed here, so it will be re-created at once.
 		mToolTip.mElement->SetVisible(false);
 
 		// Get the real Hovered
 		mHovered = mRoot->GetElementFromPoint(mousePos);
+		*/
+		mHovered = lastHovered;
 	}
 
 	// for tooltips we want the element itself and not some of it's subelements
@@ -478,11 +482,6 @@ void BaseUI::UpdateHoveredElement(Vector2<int> mousePos)
 			mToolTip.mEnterTime = now;
 		}
 	}
-
-	if (lastHovered && lastHovered != mRoot)
-		lastHovered.reset();
-	if (lastHoveredNoSubelement && lastHoveredNoSubelement != mRoot)
-		lastHoveredNoSubelement.reset();
 }
 
 //! posts an input event to the environment

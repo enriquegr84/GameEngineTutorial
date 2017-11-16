@@ -32,6 +32,7 @@ UICheckBox::UICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool
 
 	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
 	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);

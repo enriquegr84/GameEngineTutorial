@@ -16,8 +16,8 @@ UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text,
 :	BaseUIStaticText(id, rectangle), mHAlign(UIA_UPPERLEFT), mVAlign(UIA_UPPERLEFT), 
 	mUI(ui), mBorder(border), mOverrideColorEnabled(false), mOverrideBGColorEnabled(false), 
 	mWordWrap(false), mBackground(background), mRestrainTextInside(true), mRightToLeft(false), 
-	mOverrideColor(eastl::array<float, 4>{101 / 255.f, 255 / 255.f, 255 / 255.f, 255 / 255.f}), 
-	mBGColor(eastl::array<float, 4>{101 / 255.f, 210 / 255.f, 210 / 255.f, 210 / 255.f}),
+	mOverrideColor(eastl::array<float, 4>{255 / 255.f, 255 / 255.f, 255 / 255.f, 101 / 255.f}),
+	mBGColor(eastl::array<float, 4>{210 / 255.f, 210 / 255.f, 210 / 255.f, 101 / 255.f}),
 	mOverrideFont(0), mLastBreakFont(0)
 {
 	#ifdef _DEBUG
@@ -26,9 +26,7 @@ UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text,
 
 	mText = text;
 	if (mUI && mUI->GetSkin())
-	{
 		mBGColor = mUI->GetSkin()->GetColor(DC_3D_FACE);
-	}
 
 	// Create a vertex buffer for a single triangle.
 	struct Vertex
@@ -97,18 +95,6 @@ void UIStaticText::Draw( )
 		{
 			if (!mWordWrap)
 			{
-				if (mVAlign == UIA_LOWERRIGHT)
-				{
-					frameRect.center[1] += (int)round(frameRect.extent[1] / 2.f);
-					frameRect.extent[1] = 0;
-				}
-
-				if (mHAlign == UIA_LOWERRIGHT)
-				{
-					frameRect.center[0] += (int)round(frameRect.extent[0] / 2.f);
-					frameRect.extent[0] = 0;
-				}
-
 				font->Draw(mText.c_str(), frameRect,
 					mOverrideColorEnabled ? mOverrideColor : skin->GetColor(IsEnabled() ? DC_BUTTON_TEXT : DC_GRAY_TEXT),
 					mHAlign == UIA_CENTER, mVAlign == UIA_CENTER, (mRestrainTextInside ? &mAbsoluteClippingRect : NULL));
@@ -118,29 +104,11 @@ void UIStaticText::Draw( )
 				if (font != mLastBreakFont)
 					BreakText();
 
-				RectangleBase<2, int> r = frameRect;
-				if (mVAlign == UIA_CENTER)
-				{
-					r.extent[1] -= r.center[1];
-					r.center[1] += r.center[1];
-				}
-				else if (mVAlign == UIA_LOWERRIGHT)
-				{
-					r.center[1] += (int)round(r.extent[1] / 2.f);
-					r.extent[1] = 0;
-				}
-
 				for (unsigned int i=0; i<mBrokenText.size(); ++i)
 				{
-					if (mHAlign == UIA_LOWERRIGHT)
-					{
-						r.center[0] += (int)round(frameRect.extent[0] / 2.f);
-						r.extent[0] = 0;
-					}
-
-					font->Draw(mBrokenText[i].c_str(), r,
+					font->Draw(mBrokenText[i].c_str(), frameRect,
 						mOverrideColorEnabled ? mOverrideColor : skin->GetColor(IsEnabled() ? DC_BUTTON_TEXT : DC_GRAY_TEXT),
-						mHAlign == UIA_CENTER, false, (mRestrainTextInside ? &mAbsoluteClippingRect : NULL));
+						mHAlign == UIA_CENTER, mVAlign == UIA_CENTER, (mRestrainTextInside ? &mAbsoluteClippingRect : NULL));
 				}
 			}
 		}
@@ -360,6 +328,58 @@ void UIStaticText::BreakText()
 
 			if ( isWhitespace || i == (size-1))
 			{
+				if (word.size())
+				{
+					// here comes the next whitespace, look if
+					// we must break the last word to the next line.
+					const int whitelgth = font->GetDimension(whitespace.c_str())[0];
+					const int wordlgth = font->GetDimension(word.c_str())[0];
+
+					if (wordlgth > elWidth)
+					{
+						// This word is too long to fit in the available space, look for
+						// the Unicode Soft HYphen (SHY / 00AD) character for a place to
+						// break the word at
+						int where = word.find_first_of(wchar_t(0x00AD));
+						if (where != -1)
+						{
+							eastl::wstring first = word.substr(0, where);
+							eastl::wstring second = word.substr(where, word.size() - where);
+							mBrokenText.push_back(line + first + L"-");
+							const int secondLength = font->GetDimension(second.c_str())[0];
+
+							length = secondLength;
+							line = second;
+						}
+						else
+						{
+							// No soft hyphen found, so there's nothing more we can do
+							// break to next line
+							if (length)
+								mBrokenText.push_back(line);
+							length = wordlgth;
+							line = word;
+						}
+					}
+					else if (length && (length + wordlgth + whitelgth > elWidth))
+					{
+						// break to next line
+						mBrokenText.push_back(line);
+						length = wordlgth;
+						line = word;
+					}
+					else
+					{
+						// add word to line
+						line += whitespace;
+						line += word;
+						length += whitelgth + wordlgth;
+					}
+
+					word = L"";
+					whitespace = L"";
+				}
+
 				if ( isWhitespace )
 				{
 					whitespace += c;

@@ -406,6 +406,7 @@ public:
 			mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f) >= point[1] );
 	}
 
+
 	virtual bool IsPointInside(const RectangleBase<2, int>& rectangle, const Vector2<int>& point) const
 	{
 		return (
@@ -423,6 +424,7 @@ public:
 		if (child)
 			child->UpdateAbsolutePosition();
 	}
+
 
 	//! Removes a child.
 	virtual void RemoveChild(const eastl::shared_ptr<BaseUIElement>& child)
@@ -566,7 +568,7 @@ public:
 					mTabOrder = first->GetTabOrder() + 1;
 			}
 		}
-		else  mTabOrder = index;
+		else mTabOrder = index;
 	}
 
 

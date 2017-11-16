@@ -184,6 +184,7 @@ void UISpriteBank::Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visu
 		(float)(sourceRect.center[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 
 	// Create the geometric object for drawing.
+	Renderer::Get()->Update(visual->GetVertexBuffer());
 	Renderer::Get()->Draw(visual);
 }
 

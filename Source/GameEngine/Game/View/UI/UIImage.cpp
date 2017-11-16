@@ -45,6 +45,7 @@ UIImage::UIImage(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 
 		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+		vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 		// Create an effect for the vertex and pixel shaders. The texture is
 		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
@@ -147,6 +148,7 @@ void UIImage::Draw()
 			(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 
 		// Create the geometric object for drawing.
+		Renderer::Get()->Update(mVisual->GetVertexBuffer());
 		Renderer::Get()->Draw(mVisual);
 	}
 	else

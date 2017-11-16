@@ -13,6 +13,7 @@
 class BaseUIFont;
 class BaseUIScrollBar;
 class BaseUISpriteBank;
+class BaseUIStaticText;
 
 //! Enumeration for listbox colors
 enum UIListboxColor
@@ -264,6 +265,7 @@ private:
 
 	void RecalculateItemHeight();
 	void SelectNew(int ypos, bool onlyHover=false);
+	void RecalculateScrollRectangle();
 	void RecalculateScrollPos();
 
 	// extracted that function to avoid copy&paste code
@@ -279,6 +281,7 @@ private:
 	eastl::shared_ptr<BaseUIFont> mFont;
 	eastl::shared_ptr<BaseUISpriteBank> mIconBank;
 	eastl::shared_ptr<BaseUIScrollBar> mScrollBar;
+	eastl::shared_ptr<BaseUIStaticText> mSelectedText;
 
 	BaseUI* mUI;
 

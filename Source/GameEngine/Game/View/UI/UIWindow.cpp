@@ -32,6 +32,7 @@ UIWindow::UIWindow(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 
 	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
 	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
@@ -41,6 +42,7 @@ UIWindow::UIWindow(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 
 	vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 	ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 	// Create the geometric object for drawing.
 	mVisualTitle = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
@@ -141,7 +143,6 @@ bool UIWindow::OnEvent(const Event& ev)
 {
 	if (IsEnabled())
 	{
-
 		switch (ev.mEventType)
 		{
 			case ET_UI_EVENT:
@@ -150,48 +151,46 @@ bool UIWindow::OnEvent(const Event& ev)
 					mDragging = false;
 					mIsActive = false;
 				}
-				else
-					if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUSED)
+				else if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUSED)
+				{
+					if (mParent && ((ev.mUIEvent.mCaller == this) || IsMyChild(ev.mUIEvent.mCaller)))
 					{
-						if (mParent && ((ev.mUIEvent.mCaller == this) || IsMyChild(ev.mUIEvent.mCaller)))
+						mParent->BringToFront(shared_from_this());
+						mIsActive = true;
+					}
+					else
+					{
+						mIsActive = false;
+					}
+				}
+				else if (ev.mUIEvent.mEventType == UIEVT_BUTTON_CLICKED)
+				{
+					if (ev.mUIEvent.mCaller == mCloseButton.get())
+					{
+						if (mParent)
 						{
-							mParent->BringToFront(shared_from_this());
-							mIsActive = true;
+							// send close event to parent
+							Event e;
+							e.mEventType = ET_UI_EVENT;
+							e.mUIEvent.mCaller = this;
+							e.mUIEvent.mElement = 0;
+							e.mUIEvent.mEventType = UIEVT_ELEMENT_CLOSED;
+
+							// if the event was not absorbed
+							if (!mParent->OnEvent(e))
+								Remove();
+
+							return true;
+
 						}
 						else
 						{
-							mIsActive = false;
+							Remove();
+							return true;
 						}
 					}
-					else
-						if (ev.mUIEvent.mEventType == UIEVT_BUTTON_CLICKED)
-						{
-							if (ev.mUIEvent.mCaller == mCloseButton.get())
-							{
-								if (mParent)
-								{
-									// send close event to parent
-									Event e;
-									e.mEventType = ET_UI_EVENT;
-									e.mUIEvent.mCaller = this;
-									e.mUIEvent.mElement = 0;
-									e.mUIEvent.mEventType = UIEVT_ELEMENT_CLOSED;
-
-									// if the event was not absorbed
-									if (!mParent->OnEvent(e))
-										Remove();
-
-									return true;
-
-								}
-								else
-								{
-									Remove();
-									return true;
-								}
-							}
-						}
-				break;
+				}
+			break;
 			case ET_MOUSE_INPUT_EVENT:
 				switch (ev.mMouseInput.mEvent)
 				{
@@ -255,10 +254,10 @@ void UIWindow::Draw()
 
 		// update each time because the skin is allowed to change this always.
 		UpdateClientRect();
-		/*
+
 		if (mCurrentIconColor != skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL))
 			RefreshSprites();
-		*/
+
 		RectangleBase<2, int> rect = mAbsoluteRect;
 
 		// draw body fast
@@ -369,11 +368,6 @@ void UIWindow::UpdateClientRect()
 		return;
 	}
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
-	/*
-	skin->Draw3DWindowBackground(shared_from_this(), mDrawTitlebar,
-		skin->GetColor(mIsActive ? DC_ACTIVE_BORDER : DC_INACTIVE_BORDER),
-		mAbsoluteRect, &mAbsoluteClippingRect, &mClientRect);
-	*/
 	mClientRect.center -= mAbsoluteRect.center - (mAbsoluteRect.extent / 2);
 }
 

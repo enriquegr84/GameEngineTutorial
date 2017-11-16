@@ -184,7 +184,7 @@ void BulletDebugDrawer::drawLine(
 	vTo[1] = to.y();
 	vTo[2] = to.z();
 
-	eastl::array<float, 4> color{ 0, 255 * lineColor.x(), 255 * lineColor.y(), 255 * lineColor.z() };
+	eastl::array<float, 4> color{ 255 * lineColor.x(), 255 * lineColor.y(), 255 * lineColor.z(), 0 };
 	Renderer* renderer = Renderer::Get();
 	//renderer->Draw3DLine(vFrom, vTo, color);
 }

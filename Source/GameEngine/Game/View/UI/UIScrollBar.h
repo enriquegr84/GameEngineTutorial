@@ -7,7 +7,7 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Effect/Texture2Effect.h"
+#include "Graphic/Effect/BasicEffect.h"
 #include "Graphic/Scene/Element/Visual.h"
 
 class BaseUIButton;
@@ -129,7 +129,9 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<Texture2Effect> mEffect;
+	eastl::shared_ptr<BasicEffect> mEffect;
+	eastl::shared_ptr<Visual> mVisualSliderRect;
+	eastl::shared_ptr<BasicEffect> mEffectSliderRect;
 
 	bool mDragging;
 	bool mHorizontal;

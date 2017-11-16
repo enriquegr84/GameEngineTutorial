@@ -385,6 +385,7 @@ UITreeView::UITreeView(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool
 
 	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 	// Create the geometric object for drawing.
 	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);

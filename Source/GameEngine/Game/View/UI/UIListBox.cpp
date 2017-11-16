@@ -17,7 +17,7 @@
 //! constructor
 UIListBox::UIListBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool clip, bool drawBack, bool moveOverSelect)
 : BaseUIListBox(id, rectangle), mUI(ui), mSelected(-1), mItemHeight(0), mItemHeightOverride(0),
-	mTotalItemHeight(0), mItemsIconWidth(0), mFont(0), mIconBank(0), mScrollBar(0), mSelectTime(0), 
+	mTotalItemHeight(0), mItemsIconWidth(0), mFont(0), mIconBank(0), mScrollBar(0), mSelectedText(0), mSelectTime(0),
 	mLastKeyTime(0), mSelecting(false), mDrawBack(drawBack), mMoveOverSelect(moveOverSelect), mAutoScroll(true), 
 	mHighlightWhenNotFocused(true)
 {
@@ -47,6 +47,7 @@ UIListBox::UIListBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool c
 
 		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+		vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 		// Create an effect for the vertex and pixel shaders. The texture is
 		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
@@ -71,15 +72,15 @@ void UIListBox::OnInit(bool clip)
 {
 	if (mUI && mUI->GetSkin())
 	{
-		const int s = mUI->GetSkin()->GetSize(DS_SCROLLBAR_SIZE);
+		mSelectedText.reset(new UIStaticText(mUI, -1, L"", false, mRelativeRect, false));
+		mSelectedText->SetParent(shared_from_this());
+		mSelectedText->SetSubElement(true);
+		mSelectedText->SetAlignment(UIA_UPPERLEFT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
+		mSelectedText->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+		mSelectedText->EnableOverrideColor(true);
 
-		RectangleBase<2, int> rectangle;
-		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
-		rectangle.center[1] = mRelativeRect.extent[1] / 2;
-		rectangle.extent[0] = mRelativeRect.extent[0];
-		rectangle.extent[1] = mRelativeRect.extent[1];
-
-		mScrollBar.reset(new UIScrollBar(mUI, -1, rectangle, false));
+		mScrollBar.reset(new UIScrollBar(mUI, -1, mRelativeRect, false));
+		mScrollBar->SetParent(shared_from_this());
 		mScrollBar->OnInit(!clip);
 		mScrollBar->SetSubElement(true);
 		mScrollBar->SetTabStop(false);
@@ -157,15 +158,15 @@ void UIListBox::RemoveItem(unsigned int idx)
 int UIListBox::GetItemAt(int xPos, int yPos) const
 {
 	if (xPos < mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2)  ||
-		xPos >= mAbsoluteRect.center[0] + (int)round(mAbsoluteRect.extent[0] / 2.f) ||
 		yPos < mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2) ||
-		yPos >= mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f))
+		xPos > mAbsoluteRect.center[0] + (int)round(mAbsoluteRect.extent[0] / 2.f) ||
+		yPos > mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f))
 		return -1;
 
 	if ( mItemHeight == 0 )
 		return -1;
 
-	int item = ((yPos - mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2) - 1) + mScrollBar->GetPos()) / mItemHeight;
+	int item = ((yPos - (mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2)) - 1) + mScrollBar->GetPos()) / mItemHeight;
 	if ( item < 0 || item >= (int)mItems.size())
 		return -1;
 
@@ -480,14 +481,15 @@ void UIListBox::SelectNew(int ypos, bool onlyHover)
 	unsigned int now = Timer::GetTime();
 	int oldSelected = mSelected;
 
-	mSelected = GetItemAt(mAbsoluteRect.center[0] - mAbsoluteRect.center[0]/2, ypos);
+	mSelected = GetItemAt(mAbsoluteRect.center[0] - mAbsoluteRect.extent[0]/2, ypos);
 	if (mSelected<0 && !mItems.empty())
 		mSelected = 0;
 
 	RecalculateScrollPos();
 
 	UIEventType eventType = 
-		(mSelected == oldSelected && now < mSelectTime + 500) ? UIEVT_LISTBOX_SELECTED_AGAIN : UIEVT_LISTBOX_CHANGED;
+		(mSelected == oldSelected && now < mSelectTime + 500) ? 
+		UIEVT_LISTBOX_SELECTED_AGAIN : UIEVT_LISTBOX_CHANGED;
 	mSelectTime = now;
 	// post the news
 	if (mParent && !onlyHover)
@@ -507,6 +509,7 @@ void UIListBox::UpdateAbsolutePosition()
 {
 	BaseUIElement::UpdateAbsolutePosition();
 
+	RecalculateScrollRectangle();
 	RecalculateItemHeight();
 }
 
@@ -522,47 +525,81 @@ void UIListBox::Draw()
 	RecalculateItemHeight(); // if the font changed
 
 	RectangleBase<2, int>* clipRect = 0;
-
-	// draw background
 	RectangleBase<2, int> frameRect(mAbsoluteRect);
-
-	// draw items
-	RectangleBase<2, int> clientClip(mAbsoluteRect);
+	RectangleBase<2, int> clientClip(mAbsoluteClippingRect);
+	/*
 	clientClip.extent[0] -= 1;
 	clientClip.extent[1] -= 1;
 
 	if (mScrollBar->IsVisible())
 		clientClip.extent[0] = mAbsoluteRect.extent[0] - skin->GetSize(DS_SCROLLBAR_SIZE);
 	clientClip.extent[1] -= 1;
+
 	//clientClip.clipAgainst(mAbsoluteClippingRect);
 
 	skin->Draw2DRectangle(
 		shared_from_this(), skin->GetColor(DC_3D_HIGH_LIGHT), mVisual, frameRect, &mAbsoluteClippingRect);
-	/*
-	if (clipRect)
-		clientClip.clipAgainst(*clipRect);
 	*/
-	frameRect = mAbsoluteRect;
-	frameRect.extent[0] += 1;
+	Vector2<int> targetPos = mAbsoluteRect.center;
+	Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
+
+	eastl::shared_ptr<Texture2> tex = mEffect->GetTexture();
+	Vector2<unsigned int> sourceCenter{ tex->GetDimension(0) / 2, tex->GetDimension(1) / 2 };
+	Vector2<unsigned int> sourceSize{ tex->GetDimension(0), tex->GetDimension(1) };
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector2<float> tcoord;
+	};
+	Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
+	vertex[0].position = {
+		(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
+	vertex[0].tcoord = {
+		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+	vertex[1].position = {
+		(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
+	vertex[1].tcoord = {
+		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+	vertex[2].position = {
+		(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+	vertex[2].tcoord = {
+		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+	vertex[3].position = {
+		(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+	vertex[3].tcoord = {
+		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+
+	// Create the geometric object for drawing.
+	Renderer::Get()->Update(mVisual->GetVertexBuffer());
+	Renderer::Get()->Draw(mVisual);
+
+	frameRect.center[0] += 1;
 	if (mScrollBar->IsVisible())
 		frameRect.extent[0] = mAbsoluteRect.extent[0] - skin->GetSize(DS_SCROLLBAR_SIZE);
 
+	frameRect.center[1] -= (mAbsoluteRect.extent[1] / 2);
+	frameRect.center[1] += (mItemHeight / 2);
+	frameRect.center[1] -= mScrollBar->GetPos();
 	frameRect.extent[1] = mItemHeight;
-	frameRect.extent[1] -= 2 * mScrollBar->GetPos();
 
 	bool hl = (mHighlightWhenNotFocused || mUI->HasFocus(shared_from_this()) || mUI->HasFocus(mScrollBar));
-
+	
 	for (int i=0; i<(int)mItems.size(); ++i)
 	{
-		if (frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= 
-			mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2) &&
-			frameRect.center[1] - (frameRect.extent[1] / 2.f) <=
-			mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2))
+		if (frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) <= 
+			mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2) &&
+			frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= 
+			mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2))
 		{
-			if (i == mSelected && hl)
-				skin->Draw2DRectangle(
-					shared_from_this(), skin->GetColor(DC_HIGH_LIGHT), mVisual, frameRect, &clientClip);
-
 			RectangleBase<2, int> textRect = frameRect;
 			textRect.extent[0] -= 3;
 
@@ -571,7 +608,7 @@ void UIListBox::Draw()
 				if (mIconBank && (mItems[i].mIcon > -1))
 				{
 					RectangleBase<2, int> iconPos = textRect;
-					iconPos.center = textRect.center - textRect.center / 2;
+					iconPos.center = textRect.center - (textRect.center / 2);
 					iconPos.center[1] += textRect.extent[1] / 2;
 					iconPos.center[0] += mItemsIconWidth / 2;
 
@@ -595,15 +632,32 @@ void UIListBox::Draw()
 					}
 				}
 
-				textRect.extent[1] -= mItemsIconWidth+3;
+				textRect.center[0] += mItemsIconWidth+3;
 
-				if ( i==mSelected && hl )
+				if ( i==mSelected )
 				{
-					mFont->Draw(mItems[i].mText.c_str(), textRect,
-						HasItemOverrideColor(i, UI_LBC_TEXT_HIGHLIGHT) ?
-						GetItemOverrideColor(i, UI_LBC_TEXT_HIGHLIGHT) : 
-						GetItemDefaultColor(UI_LBC_TEXT_HIGHLIGHT),
-						false, true, &clientClip);
+					mSelectedText->SetBackgroundColor(skin->GetColor(DC_HIGH_LIGHT));
+					if (hl)
+					{
+						mSelectedText->SetDrawBackground(true);
+						mSelectedText->SetOverrideColor(
+							HasItemOverrideColor(i, UI_LBC_TEXT_HIGHLIGHT) ?
+							GetItemOverrideColor(i, UI_LBC_TEXT_HIGHLIGHT) :
+							GetItemDefaultColor(UI_LBC_TEXT_HIGHLIGHT));
+					}
+					else
+					{
+						mSelectedText->SetDrawBackground(false);
+						mSelectedText->SetOverrideColor(
+							HasItemOverrideColor(i, UI_LBC_TEXT) ?
+							GetItemOverrideColor(i, UI_LBC_TEXT) :
+							GetItemDefaultColor(UI_LBC_TEXT));
+					}
+					mSelectedText->SetText(mItems[i].mText.c_str());
+
+					RectangleBase<2, int> selectedRect(frameRect);
+					selectedRect.center -= mAbsoluteRect.center - (mAbsoluteRect.extent / 2);
+					mSelectedText->SetRelativePosition(selectedRect);
 				}
 				else
 				{
@@ -614,7 +668,7 @@ void UIListBox::Draw()
 						false, true, &clientClip);
 				}
 
-				textRect.extent[1] -= mItemsIconWidth+3;
+				textRect.center[0] -= mItemsIconWidth+3;
 			}
 		}
 
@@ -660,11 +714,24 @@ void UIListBox::RecalculateScrollPos()
 	{
 		mScrollBar->SetPos(mScrollBar->GetPos() + selPos);
 	}
-	else
-	if (selPos > mAbsoluteRect.extent[1] - mItemHeight)
+	else if (selPos > mAbsoluteRect.extent[1] - mItemHeight)
 	{
 		mScrollBar->SetPos(mScrollBar->GetPos() + selPos - mAbsoluteRect.extent[1] + mItemHeight);
 	}
+}
+
+
+void UIListBox::RecalculateScrollRectangle()
+{
+	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
+	const int s = skin->GetSize(DS_SCROLLBAR_SIZE);
+
+	RectangleBase<2, int> rectangle;
+	rectangle.center[0] = mRelativeRect.extent[0] - ( s / 2 );
+	rectangle.center[1] = mRelativeRect.extent[1] / 2;
+	rectangle.extent[0] = s;
+	rectangle.extent[1] = mRelativeRect.extent[1];
+	mScrollBar->SetRelativePosition(rectangle);
 }
 
 

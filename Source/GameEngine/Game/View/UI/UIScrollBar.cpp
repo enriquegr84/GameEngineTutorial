@@ -25,38 +25,32 @@ UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bo
 	//setDebugName("UIScrollBar");
 	#endif
 
-	eastl::shared_ptr<ResHandle>& resHandle =
-		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
-	if (resHandle)
+	// Create a vertex buffer for a single triangle.
+	struct Vertex
 	{
-		const eastl::shared_ptr<ImageResourceExtraData>& extra =
-			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-		extra->GetImage()->AutogenerateMipmaps();
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 
-		// Create a vertex buffer for a two-triangles square. The PNG is stored
-		// in left-handed coordinates. The texture coordinates are chosen to
-		// reflect the texture in the y-direction.
-		struct Vertex
-		{
-			Vector3<float> position;
-			Vector2<float> tcoord;
-		};
-		VertexFormat vformat;
-		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
-		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
-		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
 
-		// Create an effect for the vertex and pixel shaders. The texture is
-		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
-		eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
-		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
-			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+	// Create the geometric object for drawing.
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 
-		// Create the geometric object for drawing.
-		mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
-	}
+	vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
+
+	mEffectSliderRect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+	mVisualSliderRect = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffectSliderRect);
 }
 
 
@@ -79,7 +73,6 @@ void UIScrollBar::OnInit(bool noclip)
 	SetTabOrder(-1);
 
 	SetPos(0);
-
 }
 
 
@@ -189,11 +182,7 @@ bool UIScrollBar::OnEvent(const Event& event)
 							if (isInside)
 							{
 								mDragging = true;
-								mDraggedBySlider = 
-									(mSliderRect.center[0] - (mSliderRect.extent[0] / 2) <= p[0] &&
-									mSliderRect.center[1] - (mSliderRect.extent[1] / 2) <= p[1] &&
-									mSliderRect.center[0] + (int)round(mSliderRect.extent[0] / 2.f) >= p[0] &&
-									mSliderRect.center[1] + (int)round(mSliderRect.extent[1] / 2.f) >= p[1] );
+								mDraggedBySlider = IsPointInside(mSliderRect, p);
 								mTrayClick = !mDraggedBySlider;
 								mDesiredPos = GetPosFromMousePos(p);
 								mUI->SetFocus ( shared_from_this() );
@@ -224,11 +213,7 @@ bool UIScrollBar::OnEvent(const Event& event)
 							{
 								if ( isInside )
 								{
-									mDraggedBySlider =
-										(mSliderRect.center[0] - (mSliderRect.extent[0] / 2) <= p[0] &&
-										mSliderRect.center[1] - (mSliderRect.extent[1] / 2) <= p[1] &&
-										mSliderRect.center[0] + (int)round(mSliderRect.extent[0] / 2.f) >= p[0] &&
-										mSliderRect.center[1] + (int)round(mSliderRect.extent[1] / 2.f) >= p[1]);
+									mDraggedBySlider = IsPointInside(mSliderRect, p);
 									mTrayClick = !mDraggedBySlider;
 								}
 
@@ -325,7 +310,6 @@ void UIScrollBar::Draw()
 		RefreshControls();
 	}
 
-
 	mSliderRect = mAbsoluteRect;
 
 	// draws the background
@@ -336,16 +320,16 @@ void UIScrollBar::Draw()
 		// recalculate slider rectangle
 		if (mHorizontal)
 		{
-			mSliderRect.center[0] = mAbsoluteRect.extent[0] + mDrawPos + mRelativeRect.extent[1] - mDrawHeight/2;
+			mSliderRect.center[0] = (mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2)) + mDrawPos + mRelativeRect.extent[1];
 			mSliderRect.extent[0] = mDrawHeight;
 		}
 		else
 		{
-			mSliderRect.center[1] = mAbsoluteRect.extent[1] + mDrawPos + mRelativeRect.extent[0] - mDrawHeight / 2;
+			mSliderRect.center[1] = (mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2)) + mDrawPos + mRelativeRect.extent[0];
 			mSliderRect.extent[1] = mDrawHeight;
 		}
 
-		skin->Draw3DButtonPaneStandard(shared_from_this(), mVisual, mSliderRect, &mAbsoluteClippingRect);
+		skin->Draw3DButtonPaneStandard(shared_from_this(), mVisualSliderRect, mSliderRect, &mAbsoluteClippingRect);
 	}
 
 	// draw buttons
@@ -368,13 +352,13 @@ int UIScrollBar::GetPosFromMousePos(const Vector2<int> &pos) const
 	float w, p;
 	if (mHorizontal)
 	{
-		w = mRelativeRect.extent[0] - mRelativeRect.extent[1]*3.0f;
-		p = pos[0] - mAbsoluteRect.center[0] - mAbsoluteRect.extent[0] / 2 - mRelativeRect.extent[1]*1.5f;
+		w = mRelativeRect.extent[0] - (mRelativeRect.extent[1] * 3.0f);
+		p = pos[0] - (mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2)) - (mRelativeRect.extent[1] * 1.5f);
 	}
 	else
 	{
-		w = mRelativeRect.extent[1] - mRelativeRect.extent[0]*3.0f;
-		p = pos[1] - mAbsoluteRect.center[1] - mAbsoluteRect.extent[1] / 2 - mRelativeRect.extent[0]*1.5f;
+		w = mRelativeRect.extent[1] - (mRelativeRect.extent[0] * 3.0f);
+		p = pos[1] - (mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2)) - (mRelativeRect.extent[0] * 1.5f);
 	}
 	return (int) ( p/w * range() ) + mMin;
 }
@@ -387,14 +371,13 @@ void UIScrollBar::SetPos(int pos)
 
 	if (mHorizontal)
 	{
-		float f = (mRelativeRect.extent[0] - (mRelativeRect.extent[1]*3.0f)) / range();
+		float f = (mRelativeRect.extent[0] - (mRelativeRect.extent[1] * 3.0f)) / range();
 		mDrawPos = (int)(( ( mPos - mMin ) * f) + (mRelativeRect.extent[1] * 0.5f));
 		mDrawHeight = mRelativeRect.extent[1];
 	}
 	else
 	{
-		float f = (mRelativeRect.extent[1] - (mRelativeRect.extent[0]*3.0f)) / range();
-
+		float f = (mRelativeRect.extent[1] - (mRelativeRect.extent[0] * 3.0f)) / range();
 		mDrawPos = (int)(( ( mPos - mMin ) * f) + (mRelativeRect.extent[0] * 0.5f));
 		mDrawHeight = mRelativeRect.extent[0];
 	}
@@ -509,6 +492,7 @@ void UIScrollBar::RefreshControls()
 		if (!mUpButton)
 		{
 			mUpButton.reset(new UIButton(mUI, -1, rectangle));
+			mUpButton->SetParent(shared_from_this());
 			mUpButton->OnInit();
 			mUpButton->SetSubElement(true);
 			mUpButton->SetTabStop(false);
@@ -516,19 +500,20 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mUpButton->SetSpriteBank(sprites);
-			mUpButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_LEFT, mCurrentIconColor);
-			mUpButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_LEFT, mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_UP, mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_UP, mCurrentIconColor);
 		}
 		mUpButton->SetRelativePosition(rectangle);
 		mUpButton->SetAlignment(UIA_UPPERLEFT, UIA_UPPERLEFT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
 
-		rectangle.center[0] = mRelativeRect.extent[0] - h / 2;
+		rectangle.center[0] = mRelativeRect.extent[0] - ( h / 2 );
 		rectangle.center[1] = h / 2;
 		rectangle.extent[0] = h;
 		rectangle.extent[1] = h;
 		if (!mDownButton)
 		{
 			mDownButton.reset(new UIButton(mUI, -1, rectangle));
+			mDownButton->SetParent(shared_from_this());
 			mDownButton->OnInit();
 			mDownButton->SetSubElement(true);
 			mDownButton->SetTabStop(false);
@@ -536,8 +521,8 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mDownButton->SetSpriteBank(sprites);
-			mDownButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_RIGHT, mCurrentIconColor);
-			mDownButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_RIGHT, mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_DOWN, mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_DOWN, mCurrentIconColor);
 		}
 		mDownButton->SetRelativePosition(rectangle);
 		mDownButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
@@ -554,6 +539,7 @@ void UIScrollBar::RefreshControls()
 		if (!mUpButton)
 		{
 			mUpButton.reset(new UIButton(mUI, -1, rectangle));
+			mUpButton->SetParent(shared_from_this());
 			mUpButton->OnInit();
 			mUpButton->SetSubElement(true);
 			mUpButton->SetTabStop(false);
@@ -561,19 +547,20 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mUpButton->SetSpriteBank(sprites);
-			mUpButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_LEFT, mCurrentIconColor);
-			mUpButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_LEFT, mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_UP, mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_UP, mCurrentIconColor);
 		}
 		mUpButton->SetRelativePosition(rectangle);
 		mUpButton->SetAlignment(UIA_UPPERLEFT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
 
 		rectangle.center[0] = w / 2;
-		rectangle.center[1] = mRelativeRect.extent[1] - w / 2;
+		rectangle.center[1] = mRelativeRect.extent[1] - ( w / 2 );
 		rectangle.extent[0] = w;
 		rectangle.extent[1] = w;
 		if (!mDownButton)
 		{
 			mDownButton.reset(new UIButton(mUI, -1, rectangle));
+			mDownButton->SetParent(shared_from_this());
 			mDownButton->OnInit();
 			mDownButton->SetSubElement(true);
 			mDownButton->SetTabStop(false);
@@ -581,8 +568,8 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mDownButton->SetSpriteBank(sprites);
-			mDownButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_RIGHT, mCurrentIconColor);
-			mDownButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_RIGHT, mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_DOWN, mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_DOWN, mCurrentIconColor);
 		}
 		mDownButton->SetRelativePosition(rectangle);
 		mDownButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);

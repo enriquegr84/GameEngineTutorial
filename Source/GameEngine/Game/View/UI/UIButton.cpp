@@ -46,6 +46,7 @@ UIButton::UIButton(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 
 		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+		vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 		// Create an effect for the vertex and pixel shaders. The texture is
 		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
@@ -191,15 +192,14 @@ bool UIButton::OnEvent(const Event& ev)
 		break;
 	case ET_MOUSE_INPUT_EVENT:
 		if (ev.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
-		{	/*
+		{
 			if (mUI->HasFocus(shared_from_this()) &&
-				!mAbsoluteRect.IsPointInside(
-					Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y}))
+				!IsPointInside(mAbsoluteRect, Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y}))
 			{
 				mUI->RemoveFocus(shared_from_this());
 				return false;
 			}
-			*/
+
 			if (!mPushButton)
 				SetPressed(true);
 
@@ -210,15 +210,14 @@ bool UIButton::OnEvent(const Event& ev)
 		if (ev.mMouseInput.mEvent == MIE_LMOUSE_LEFT_UP)
 		{
 			bool wasPressed = mPressed;
-			/*
-			if (!mAbsoluteRect.IsPointInside(
-				Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y }))
+
+			if (!IsPointInside(mAbsoluteRect, Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y }))
 			{
 				if (!mPushButton)
 					SetPressed(false);
 				return true;
 			}
-			*/
+
 			if (!mPushButton)
 				SetPressed(false);
 			else
@@ -300,6 +299,7 @@ void UIButton::Draw( )
 				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 
 			// Create the geometric object for drawing.
+			Renderer::Get()->Update(mVisual->GetVertexBuffer());
 			Renderer::Get()->Draw(mVisual);
 		}
 
@@ -351,15 +351,12 @@ void UIButton::Draw( )
 				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 
 			// Create the geometric object for drawing.
+			Renderer::Get()->Update(mVisual->GetVertexBuffer());
 			Renderer::Get()->Draw(mVisual);
 		}
 	}
 	else
 	{
-		if (mDrawBorder)
-			skin->Draw3DButtonPanePressed(
-				shared_from_this(), mVisual, mAbsoluteRect, &mAbsoluteClippingRect);
-
 		if (mPressedImage)
 		{
 			Vector2<int> targetPos = mAbsoluteRect.center;
@@ -417,6 +414,7 @@ void UIButton::Draw( )
 				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 
 			// Create the geometric object for drawing.
+			Renderer::Get()->Update(mVisual->GetVertexBuffer());
 			Renderer::Get()->Draw(mVisual);
 		}
 	}

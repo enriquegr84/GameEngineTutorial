@@ -46,6 +46,7 @@ UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 
 		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
 		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+		vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 		// Create an effect for the vertex and pixel shaders. The texture is
 		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
@@ -67,6 +68,14 @@ void UIComboBox::OnInit()
 	if (skin)
 		width = skin->GetSize(DS_WINDOW_BUTTON_WIDTH);
 
+	mListBox.reset(new UIListBox(mUI, -1, mAbsoluteRect, false, true, true));
+	mListBox->SetParent(shared_from_this());
+	mListBox->OnInit();
+	mListBox->SetSubElement(true);
+	mListBox->SetNotClipped(true);
+	mListBox->SetEnabled(false);
+	mListBox->SetVisible(false);
+
 	RectangleBase<2, int> r;
 	r.extent[0] = width;
 	r.extent[1] = mRelativeRect.extent[1] - 4;
@@ -85,8 +94,8 @@ void UIComboBox::OnInit()
 	mListButton->SetTabStop(false);
 
 	r.center[0] = (mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0]) / 2;
-	r.extent[0] = mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0];
-	r.center[1] = (mRelativeRect.extent[1] / 2) + 4;
+	r.extent[0] = mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0] - 4;
+	r.center[1] = (mRelativeRect.extent[1] / 2);
 	r.extent[1] = mRelativeRect.extent[1] - 4;
 
 	mSelectedText = mUI->AddStaticText(L"", r, false, false, shared_from_this(), -1, false);
@@ -117,7 +126,7 @@ void UIComboBox::SetMaxSelectionRows(unsigned int max)
 	mMaxSelectionRows = max;
 
 	// force recalculation of open listbox
-	if (mListBox)
+	if (mListBox && mListBox->IsEnabled())
 	{
 		OpenCloseMenu();
 		OpenCloseMenu();
@@ -237,26 +246,25 @@ bool UIComboBox::OnEvent(const Event& event)
 		switch(event.mEventType)
 		{
 			case ET_KEY_INPUT_EVENT:
-				if (mListBox && event.mKeyInput.mPressedDown && event.mKeyInput.mKey == KEY_ESCAPE)
+				if (mListBox && mListBox->IsEnabled() && 
+					event.mKeyInput.mPressedDown && event.mKeyInput.mKey == KEY_ESCAPE)
 				{
 					// hide list box
 					OpenCloseMenu();
 					return true;
 				}
-				else
-				if (event.mKeyInput.mKey == KEY_RETURN || event.mKeyInput.mKey == KEY_SPACE)
+				else if (event.mKeyInput.mKey == KEY_RETURN || event.mKeyInput.mKey == KEY_SPACE)
 				{
 					if (!event.mKeyInput.mPressedDown)
 					{
 						OpenCloseMenu();
 					}
 
-					mListButton->SetPressed(mListBox == 0);
+					mListButton->SetPressed(mListBox->IsEnabled() == false);
 
 					return true;
 				}
-				else
-				if (event.mKeyInput.mPressedDown)
+				else if (event.mKeyInput.mPressedDown)
 				{
 					int oldSelected = mSelected;
 					bool absorb = true;
@@ -302,7 +310,7 @@ bool UIComboBox::OnEvent(const Event& event)
 				switch(event.mUIEvent.mEventType)
 				{
 					case UIEVT_ELEMENT_FOCUS_LOST:
-						if (mListBox &&
+						if (mListBox  && mListBox->IsEnabled() &&
 							(mUI->HasFocus(mListBox) || mListBox->IsMyChild(event.mUIEvent.mCaller) ) &&
 							event.mUIEvent.mElement != this &&
 							!IsMyChild(event.mUIEvent.mElement) &&
@@ -343,7 +351,8 @@ bool UIComboBox::OnEvent(const Event& event)
 							Vector2<int> p{ event.mMouseInput.X, event.mMouseInput.Y };
 
 							// send to list box
-							if (mListBox && mListBox->IsPointInside(p) && mListBox->OnEvent(event))
+							if (mListBox && mListBox->IsEnabled() && 
+								mListBox->IsPointInside(p) && mListBox->OnEvent(event))
 								return true;
 
 							return true;
@@ -353,7 +362,7 @@ bool UIComboBox::OnEvent(const Event& event)
 							Vector2<int> p{ event.mMouseInput.X, event.mMouseInput.Y };
 
 							// send to list box
-							if (!(mListBox &&
+							if (!(mListBox && mListBox->IsEnabled() &&
 								IsPointInside(mListBox->GetAbsolutePosition(), p) &&
 								mListBox->OnEvent(event)))
 							{
@@ -475,6 +484,7 @@ void UIComboBox::Draw()
 		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 
 	// Create the geometric object for drawing.
+	Renderer::Get()->Update(mVisual->GetVertexBuffer());
 	Renderer::Get()->Draw(mVisual);
 
 	// draw children
@@ -484,12 +494,12 @@ void UIComboBox::Draw()
 
 void UIComboBox::OpenCloseMenu()
 {
-	if (mListBox)
+	if (mListBox && mListBox->IsEnabled())
 	{
 		// close list box
 		mUI->SetFocus(shared_from_this());
-		mListBox->Remove();
-		mListBox = 0;
+		mListBox->SetEnabled(false);
+		mListBox->SetVisible(false);
 	}
 	else
 	{
@@ -514,12 +524,10 @@ void UIComboBox::OpenCloseMenu()
 		r.extent[1] = height;
 		r.center[0] = mAbsoluteRect.extent[0] / 2;
 		r.center[1] = mAbsoluteRect.extent[1] + (int)round(height / 2.f);
-
-		mListBox.reset(new UIListBox(mUI, -1, r, false, true, true));
-		mListBox->SetParent(shared_from_this());
-		mListBox->OnInit();
-		mListBox->SetSubElement(true);
-		mListBox->SetNotClipped(true);
+		mListBox->SetRelativePosition(r);
+		mListBox->SetEnabled(true);
+		mListBox->SetVisible(true);
+		mListBox->Clear();
 
 		// ensure that list box is always completely visible
 		if (mListBox->GetAbsolutePosition().center[1] + 
@@ -535,9 +543,8 @@ void UIComboBox::OpenCloseMenu()
 			mListBox->SetRelativePosition(rect);
 		}
 
-		for (int idx=0; idx < (int)mItems.size(); ++idx)
+		for (int idx = 0; idx < (int)mItems.size(); ++idx)
 			mListBox->AddItem(mItems[idx].mName.c_str());
-
 		mListBox->SetSelected(mSelected);
 
 		// set focus

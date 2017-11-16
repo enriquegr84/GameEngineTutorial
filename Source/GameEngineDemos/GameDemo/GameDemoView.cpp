@@ -118,22 +118,26 @@ bool MainMenuUI::OnInit()
 {
 	BaseUI::OnInit();
 
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	System* system = System::Get();
+	system->GetCursorControl()->SetVisible(true);
+
 	// set a nicer font
 	const eastl::shared_ptr<BaseUIFont>& font = GetFont(L"DefaultFont");
 	if (font) GetSkin()->SetFont(font);
 
 	GetSkin()->SetColor(DC_BUTTON_TEXT, 
-		eastl::array<float, 4U>{240/ 255.f, 170 / 255.f, 170 / 255.f, 170 / 255.f});
+		eastl::array<float, 4U>{170 / 255.f, 170 / 255.f, 170 / 255.f, 240 / 255.f});
 	GetSkin()->SetColor(DC_3D_HIGH_LIGHT, 
-		eastl::array<float, 4U>{240 / 255.f, 34 / 255.f, 34 / 255.f, 34 / 255.f});
+		eastl::array<float, 4U>{34 / 255.f, 34 / 255.f, 34 / 255.f, 240 / 255.f});
 	GetSkin()->SetColor(DC_3D_FACE, 
-		eastl::array<float, 4U>{240 / 255.f, 68 / 255.f, 68 / 255.f, 68 / 255.f});
+		eastl::array<float, 4U>{68 / 255.f, 68 / 255.f, 68 / 255.f, 240 / 255.f});
 	GetSkin()->SetColor(DC_EDITABLE, 
-		eastl::array<float, 4U>{240 / 255.f, 68 / 255.f, 68 / 255.f, 68 / 255.f});
+		eastl::array<float, 4U>{68 / 255.f, 68 / 255.f, 68 / 255.f, 240 / 255.f});
 	GetSkin()->SetColor(DC_FOCUSED_EDITABLE, 
-		eastl::array<float, 4U>{240 / 255.f, 84 / 255.f, 84 / 255.f, 84 / 255.f});
+		eastl::array<float, 4U>{84 / 255.f, 84 / 255.f, 84 / 255.f, 240 / 255.f});
 	GetSkin()->SetColor(DC_WINDOW, 
-		eastl::array<float, 4U>{240 / 255.f, 102 / 255.f, 102 / 255.f, 102 / 255.f});
+		eastl::array<float, 4U>{102 / 255.f, 102 / 255.f, 102 / 255.f, 240 / 255.f});
 
 	//gui size
 	Renderer* renderer = Renderer::Get();
@@ -175,11 +179,6 @@ bool MainMenuUI::OnInit()
 	mVideoDriver->AddItem(L"Direct3D 11", RT_DIRECT3D11);
 	mVideoDriver->AddItem(L"OpenGL", RT_OPENGL);
 	mVideoDriver->AddItem(L"Software Renderer", RT_SOFTWARE);
-
-	System* system = System::Get();
-	system->GetCursorControl()->SetVisible(true);
-	/*
-	GameApplication* gameApp = (GameApplication*)Application::App;
 	mVideoDriver->SetSelected(mVideoDriver->GetIndexForItemData(gameApp->mOption.mRendererType));
 	mVideoDriver->SetToolTipText(L"Use a VideoDriver");
 
@@ -187,10 +186,15 @@ bool MainMenuUI::OnInit()
 	videoRectangle.extent[0] = 90;
 	videoRectangle.center[1] = 52;
 	videoRectangle.extent[1] = 16;
-	AddStaticText(L"VideoMode:", videoRectangle, false, false, mWindow, -1, false);
-	mVideoMode = AddComboBox(videoRectangle, mWindow);
-	mVideoMode->SetToolTipText(L"Supported Screenmodes");
+	eastl::shared_ptr<BaseUIStaticText> videoModeLine =
+		AddStaticText(L"VideoMode:", videoRectangle, false, false, mWindow, -1, false);
+	videoModeLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
+	videoRectangle.center[0] = screenSize[0] - 155;
+	videoRectangle.extent[0] = 290;
+	videoRectangle.center[1] = 52;
+	videoRectangle.extent[1] = 16;
+	mVideoMode = AddComboBox(videoRectangle, mWindow);
 	eastl::vector<Vector2<unsigned int>> videoResolutions = gameApp->mSystem->GetVideoResolutions();
 	for (int i = 0; i != videoResolutions.size(); ++i)
 	{
@@ -202,20 +206,23 @@ bool MainMenuUI::OnInit()
 			continue;
 
 		float aspect = (float)w / (float)h;
-		const char *a = "";
-		if (Function<float>::Equals(aspect, 1.3333333333f)) a = "4:3";
-		else if (Function<float>::Equals(aspect, 1.6666666f)) a = "15:9 widescreen";
-		else if (Function<float>::Equals(aspect, 1.7777777f)) a = "16:9 widescreen";
-		else if (Function<float>::Equals(aspect, 1.6f)) a = "16:10 widescreen";
-		else if (Function<float>::Equals(aspect, 2.133333f)) a = "20:9 widescreen";
+		const wchar_t *a = L"";
+		if (Function<float>::Equals(aspect, 1.3333333333f)) a = L"4:3";
+		else if (Function<float>::Equals(aspect, 1.6666666f)) a = L"15:9 widescreen";
+		else if (Function<float>::Equals(aspect, 1.7777777f)) a = L"16:9 widescreen";
+		else if (Function<float>::Equals(aspect, 1.6f)) a = L"16:10 widescreen";
+		else if (Function<float>::Equals(aspect, 2.133333f)) a = L"20:9 widescreen";
 
-		char buf[256];
-		snprintf(buf, sizeof(buf), "%d x %d, %s", w, h, a);
-		mVideoMode->AddItem(eastl::wstring(buf).c_str(), val);
+		wchar_t buf[256];
+		swprintf(buf, sizeof(buf), L"%d x %d, %s", w, h, a);
+		mVideoMode->AddItem(buf, val);
 	}
 	mVideoMode->SetSelected(mVideoMode->GetIndexForItemData(
 		gameApp->mOption.mScreenSize[0] << 16 | gameApp->mOption.mScreenSize[1]));
+	mVideoMode->SetToolTipText(L"Supported Screenmodes");
 
+
+	/*
 	screenRectangle.center[0] = screenSize[0] - 350;
 	screenRectangle.extent[0] = 100;
 	screenRectangle.center[1] = 72;
@@ -292,6 +299,7 @@ bool MainMenuUI::OnInit()
 	screenRectangle.extent[1] = 340;
 	mScenes = AddTreeView(screenRectangle, mWindow, -1, true, true, false);
 	mScenes->SetToolTipText(L"Show the current Scenegraph");
+
 	mScenes->GetRoot()->ClearChildren();
 
 	// load the engine logo
