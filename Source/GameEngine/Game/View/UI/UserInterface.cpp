@@ -1118,6 +1118,7 @@ eastl::shared_ptr<BaseUIEditBox> BaseUI::AddEditBox(const wchar_t* text,
 {
 	eastl::shared_ptr<BaseUIEditBox> editBox(new UIEditBox(text, border, this, id, rectangle));
 	editBox->SetParent(parent ? parent : mRoot);
+	editBox->OnInit();
 
 	return editBox;
 }

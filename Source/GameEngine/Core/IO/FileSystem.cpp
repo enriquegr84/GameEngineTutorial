@@ -425,7 +425,7 @@ void FileSystem::ListFiles(eastl::set<eastl::wstring>& result,
 	const eastl::wstring& dir, bool makeFullPath)
 {
     result.clear();
-    eastl::wstring previous_cwd = GetWorkingDirectory();
+    eastl::wstring previousCWD = GetWorkingDirectory();
 
     if(!ChangeWorkingDirectoryTo( dir.c_str() ))
     {
@@ -440,6 +440,6 @@ void FileSystem::ListFiles(eastl::set<eastl::wstring>& result,
 			files->GetFileName(n).c_str() : files->GetFileName(n).c_str());
     }
 
-	ChangeWorkingDirectoryTo( previous_cwd );
+	ChangeWorkingDirectoryTo( previousCWD );
 	delete files;
 }   // listFiles

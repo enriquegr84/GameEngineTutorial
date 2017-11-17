@@ -8,14 +8,14 @@
 #include "UIElement.h"
 #include "UIFont.h"
 
-#include "Graphic/Effect/BasicEffect.h"
+#include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Scene/Element/Visual.h"
 
 //! Single line edit box for editing simple text.
 /** \par This element can create the following events of type EGUI_EVENT_TYPE:
-\li EGET_EDITBOX_ENTER
-\li EGET_EDITBOX_CHANGED
-\li EGET_EDITBOX_MARKING_CHANGED
+\li UIEDITBOX_ENTER
+\li UIEDITBOX_CHANGED
+\li UIEDITBOX_MARKING_CHANGED
 */
 class BaseUIEditBox : public BaseUIElement
 {
@@ -24,6 +24,9 @@ public:
 	//! constructor
 	BaseUIEditBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 		: BaseUIElement(UIET_EDIT_BOX, id, rectangle) {}
+
+	//! Initialize editbox
+	virtual void OnInit() = 0;
 
 	//! Sets another skin independent font.
 	/** If this is set to zero, the button uses the font of the skin.
@@ -133,6 +136,9 @@ public:
 
 	//! destructor
 	virtual ~UIEditBox();
+
+	//! initialize editbox
+	virtual void OnInit();
 
 	//! Sets another skin independent font.
 	virtual void SetOverrideFont(const eastl::shared_ptr<BaseUIFont>& font = 0);
@@ -260,7 +266,7 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<BasicEffect> mEffect;
+	eastl::shared_ptr<Texture2Effect> mEffect;
 };
 
 #endif

@@ -459,6 +459,7 @@ void UIButton::Draw( )
 		const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 
 		RectangleBase<2, int> rect = mAbsoluteRect;
+		rect.extent[0] = font->GetDimension(mText.c_str())[0];
 		if (mPressed)
 		{
 			rect.center[0] += skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_X);
@@ -469,8 +470,8 @@ void UIButton::Draw( )
 
 		if (font)
 			font->Draw(mText.c_str(), rect,
-				skin->GetColor(IsEnabled() ? DC_BUTTON_TEXT : DC_GRAY_TEXT),
-				true, true, &mAbsoluteClippingRect);
+				skin->GetColor(IsEnabled() ? DC_GRAY_TEXT : DC_BUTTON_TEXT),
+				false, true, &mAbsoluteClippingRect);
 	}
 
 	BaseUIElement::Draw();

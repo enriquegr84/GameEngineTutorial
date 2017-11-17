@@ -9,8 +9,10 @@
 
 #include "UserInterface.h"
 
-#include "Graphic/Renderer/Renderer.h"
 #include "Core/OS/OS.h"
+
+#include "Graphic/Renderer/Renderer.h"
+#include "Graphic/Image/ImageResource.h"
 
 //! constructor
 UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, RectangleBase<2, int> rectangle)
@@ -28,6 +30,51 @@ UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, Recta
 
 	mText = text;
 
+	eastl::shared_ptr<ResHandle>& resHandle =
+		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+
+		// Create a vertex buffer for a two-triangles square. The PNG is stored
+		// in left-handed coordinates. The texture coordinates are chosen to
+		// reflect the texture in the y-direction.
+		struct Vertex
+		{
+			Vector3<float> position;
+			Vector2<float> tcoord;
+		};
+		VertexFormat vformat;
+		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+
+		eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+		eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+		vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
+
+		// Create an effect for the vertex and pixel shaders. The texture is
+		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
+		eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
+			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+
+		// Create the geometric object for drawing.
+		mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+	}
+}
+
+
+//! destructor
+UIEditBox::~UIEditBox()
+{
+
+}
+
+//! initialize editbox
+void UIEditBox::OnInit()
+{
 	// this element can be tabbed to
 	SetTabStop(true);
 	SetTabOrder(-1);
@@ -36,12 +83,6 @@ UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, Recta
 	BreakText();
 
 	CalculateScrollPos();
-}
-
-
-//! destructor
-UIEditBox::~UIEditBox()
-{
 }
 
 
@@ -68,7 +109,7 @@ const eastl::shared_ptr<BaseUIFont>& UIEditBox::GetActiveFont() const
 		return mOverrideFont;
 
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
-	if (!skin)
+	if (skin)
 		return skin->GetFont();
 
 	return nullptr;
@@ -690,17 +731,51 @@ void UIEditBox::Draw()
 	if ( IsEnabled() )
 		bgCol = focus ? DC_FOCUSED_EDITABLE : DC_EDITABLE;
 
-	if (!mBorder && mBackground)
-		skin->Draw2DRectangle(shared_from_this(), skin->GetColor(bgCol), mVisual, mAbsoluteRect, &mAbsoluteClippingRect);
+	// draw the border
+	Vector2<int> targetPos = mAbsoluteRect.center;
+	Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
+
+	eastl::shared_ptr<Texture2> tex = mEffect->GetTexture();
+	Vector2<unsigned int> sourceCenter{ tex->GetDimension(0) / 2, tex->GetDimension(1) / 2 };
+	Vector2<unsigned int> sourceSize{ tex->GetDimension(0), tex->GetDimension(1) };
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector2<float> tcoord;
+	};
+	Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
+	vertex[0].position = {
+		(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
+	vertex[0].tcoord = {
+		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+	vertex[1].position = {
+		(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
+	vertex[1].tcoord = {
+		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+	vertex[2].position = {
+		(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+	vertex[2].tcoord = {
+		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+	vertex[3].position = {
+		(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
+	vertex[3].tcoord = {
+		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+
+	// Create the geometric object for drawing.
+	Renderer::Get()->Update(mVisual->GetVertexBuffer());
+	Renderer::Get()->Draw(mVisual);
 
 	if (mBorder)
-	{
-		// draw the border
-		skin->Draw3DSunkenPane(
-			shared_from_this(), skin->GetColor(bgCol), false, mBackground, mVisual, mAbsoluteRect, &mAbsoluteClippingRect);
-
 		CalculateFrameRect();
-	}
 
 	RectangleBase<2, int> localClipRect(mFrameRect);
 	//localClipRect.ClipAgainst(mAbsoluteClippingRect);
@@ -709,7 +784,6 @@ void UIEditBox::Draw()
 	const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 
 	int cursorLine = 0;
-	int charcursorpos = 0;
 
 	if (font)
 	{
@@ -798,10 +872,6 @@ void UIEditBox::Draw()
 						s = txtLine->substr(0, realmbgn - startPos);
 						mbegin = font->GetDimension(s.c_str())[0];
 
-						// deal with kerning
-						mbegin += font->GetDimension(&((*txtLine)[realmbgn - startPos]))[0];
-						mbegin += font->GetDimension(realmbgn - startPos > 0 ? &((*txtLine)[realmbgn - startPos - 1]) : 0)[0];
-
 						lineStartPos = realmbgn - startPos;
 					}
 					if (i == hlineStart + hlineCount - 1)
@@ -815,11 +885,11 @@ void UIEditBox::Draw()
 
 					mCurrentTextRect.center[0] += mbegin + (mend - mbegin) / 2;
 					mCurrentTextRect.extent[0] = mend - mbegin;
-
+					/*
 					// draw mark
 					skin->Draw2DRectangle(shared_from_this(), skin->GetColor(DC_HIGH_LIGHT), 
 						mVisual, mCurrentTextRect, &localClipRect);
-
+					*/
 					// draw marked text
 					s = txtLine->substr(lineStartPos, lineEndPos - lineStartPos);
 
@@ -846,13 +916,11 @@ void UIEditBox::Draw()
 				startPos = mBrokenTextPositions[cursorLine];
 			}
 			s = txtLine->substr(0,mCursorPos-startPos);
-			charcursorpos = font->GetDimension(s.c_str())[0] + font->GetDimension(L"_")[0] + 
-				font->GetDimension(mCursorPos-startPos > 0 ? &((*txtLine)[mCursorPos-startPos-1]) : 0)[0];
 
 			if (focus && (Timer::GetTime() - mBlinkStartTime) % 700 < 350)
 			{
 				SetTextRect(cursorLine);
-				mCurrentTextRect.center[0] += charcursorpos;
+				mCurrentTextRect.center[0] += font->GetDimension(s.c_str())[0];
 
 				font->Draw(L"_", mCurrentTextRect,
 					mOverrideColorEnabled ? mOverrideColor : skin->GetColor(DC_BUTTON_TEXT),
@@ -1041,13 +1109,13 @@ int UIEditBox::GetCursorPos(int x, int y)
 	if ( !txtLine )
 		return 0;
 
-	
-	int idx = font->GetDimension(
-		txtLine->substr(x - (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2))))[0];
+	const wchar_t* txt = txtLine->c_str();
+	int pixel = x - (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2));
+	int pixelLength = font->GetDimension(L" ")[0];
 
 	// click was on or left of the line
-	if (idx != -1)
-		return idx + startPos;
+	if (pixel <= font->GetDimension(txt)[0])
+		return (pixel / pixelLength) + startPos;
 
 	// click was off the right edge of the line, go to end.
 	return txtLine->size() + startPos;
@@ -1206,7 +1274,7 @@ void UIEditBox::SetTextRect(int line)
 			break;
 		case UIA_LOWERRIGHT:
 			// align to right edge
-			mCurrentTextRect.center[0] = mFrameRect.extent[0] / 2;
+			mCurrentTextRect.center[0] = (mFrameRect.extent[0] / 2) + (d[0] / 2);
 			mCurrentTextRect.extent[0] = d[0];
 			break;
 		default:
@@ -1220,16 +1288,19 @@ void UIEditBox::SetTextRect(int line)
 		case UIA_CENTER:
 			// align to v centre
 			mCurrentTextRect.center[1] = 
-				(mFrameRect.extent[1] / 2) - (lineCount * d[1]) / 2 + (d[1] * line);
+				(mFrameRect.extent[1] / 2) - ((lineCount * d[1]) / 2) + (d[1] * line);
+			mCurrentTextRect.center[1] += (mCurrentTextRect.extent[1] / 2);
 			break;
 		case UIA_LOWERRIGHT:
 			// align to bottom edge
 			mCurrentTextRect.center[1] = 
 				mFrameRect.extent[1] - (lineCount * d[1]) + (d[1] * line);
+			mCurrentTextRect.center[1] += (mCurrentTextRect.extent[1] / 2);
 			break;
 		default:
 			// align to top edge
 			mCurrentTextRect.center[1] = (d[1] * line);
+			mCurrentTextRect.center[1] += (mCurrentTextRect.extent[1] / 2);
 			break;
 	}
 
@@ -1237,7 +1308,7 @@ void UIEditBox::SetTextRect(int line)
 	mCurrentTextRect.center[1] -= mVScrollPos;
 	mCurrentTextRect.extent[1] = d[1];
 
-	mCurrentTextRect.center += (mFrameRect.center - mFrameRect.center/2);
+	mCurrentTextRect.center += mFrameRect.center;
 }
 
 
@@ -1352,7 +1423,7 @@ void UIEditBox::CalculateScrollPos()
 			// cursor to the left of the clipping area
 			mHScrollPos -= 
 				mFrameRect.center[0] - (mFrameRect.extent[0] / 2) - 
-				(mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cStart);
+				(mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2));
 			SetTextRect(cursLine);
 
 			// TODO: should show more characters to the left when we're scrolling left
@@ -1363,7 +1434,7 @@ void UIEditBox::CalculateScrollPos()
 		{
 			// cursor to the right of the clipping area
 			mHScrollPos += 
-				(mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cEnd ) - 
+				(mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2)) - 
 				mFrameRect.center[0] - (mFrameRect.extent[0] / 2);
 			SetTextRect(cursLine);
 		}

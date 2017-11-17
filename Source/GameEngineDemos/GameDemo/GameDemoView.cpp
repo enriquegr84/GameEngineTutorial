@@ -149,9 +149,73 @@ bool MainMenuUI::OnInit()
 	screenRectangle.extent[1] = (int)screenSize[1];
 
 	mWindow = AddWindow(
-		screenRectangle, false, L"Quake3 Explorer", 0, CID_DEMO_WINDOW);
-	mWindow->SetToolTipText(L"Quake3Explorer. Loads and show various BSP File Format and Shaders.");
-	mWindow->GetCloseButton()->SetToolTipText(L"Quit Quake3 Explorer");
+		screenRectangle, false, L"Teapot Wars", 0, CID_DEMO_WINDOW);
+	mWindow->SetToolTipText(L"Teapot Wars Main Menu");
+	mWindow->GetCloseButton()->SetToolTipText(L"Quit Teapot Wars");
+
+	// add a options line
+	RectangleBase<2, int> playerOptionsRectangle;
+	playerOptionsRectangle.center[0] = 50;
+	playerOptionsRectangle.extent[0] = 90;
+	playerOptionsRectangle.center[1] = 32;
+	playerOptionsRectangle.extent[1] = 16;
+	eastl::shared_ptr<BaseUIStaticText> playerOptionsLine =
+		AddStaticText(L"AI Player:", playerOptionsRectangle, false, false, mWindow, CID_NUM_AI_LABEL, true);
+	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+
+	playerOptionsRectangle.center[0] = 250;
+	playerOptionsRectangle.extent[0] = 250;
+	playerOptionsRectangle.center[1] = 32;
+	playerOptionsRectangle.extent[1] = 16;
+	mGameAI = AddScrollBar(true, playerOptionsRectangle, mWindow, CID_NUM_AI_SLIDER);
+	mGameAI->SetMin(0);
+	mGameAI->SetMax(gameApp->mOption.mMaxAIs);
+	mGameAI->SetSmallStep(1);
+	mGameAI->SetLargeStep(1);
+	mGameAI->SetPos(gameApp->mOption.mNumAIs);
+	mGameAI->SetToolTipText(L"Set the AI players");
+
+	playerOptionsRectangle.center[0] = 50;
+	playerOptionsRectangle.extent[0] = 90;
+	playerOptionsRectangle.center[1] = 62;
+	playerOptionsRectangle.extent[1] = 16;
+	playerOptionsLine =
+		AddStaticText(L"Human Player:", playerOptionsRectangle, false, false, mWindow, CID_NUM_PLAYER_LABEL, false);
+	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+
+	playerOptionsRectangle.center[0] = 250;
+	playerOptionsRectangle.extent[0] = 250;
+	playerOptionsRectangle.center[1] = 62;
+	playerOptionsRectangle.extent[1] = 16;
+	mGamePlayer = AddScrollBar(true, playerOptionsRectangle, mWindow, CID_NUM_PLAYER_SLIDER);
+	mGamePlayer->SetMin(0);
+	mGamePlayer->SetMax(gameApp->mOption.mMaxPlayers);
+	mGamePlayer->SetSmallStep(1);
+	mGamePlayer->SetLargeStep(1);
+	mGamePlayer->SetPos(gameApp->mOption.mExpectedPlayers);
+	mGamePlayer->SetToolTipText(L"Set the Human players");
+
+	playerOptionsRectangle.center[0] = 50;
+	playerOptionsRectangle.extent[0] = 90;
+	playerOptionsRectangle.center[1] = 92;
+	playerOptionsRectangle.extent[1] = 16;
+	playerOptionsLine =
+		AddStaticText(L"Game Host:", playerOptionsRectangle, false, false, mWindow, CID_HOST_NAME_LABEL, false);
+	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+
+	playerOptionsRectangle.center[0] = 220;
+	playerOptionsRectangle.extent[0] = 190;
+	playerOptionsRectangle.center[1] = 92;
+	playerOptionsRectangle.extent[1] = 16;
+	mGameHost = AddEditBox(eastl::wstring(gameApp->mOption.mGameHost.c_str()).c_str(), 
+		playerOptionsRectangle, true, mWindow, CID_HOST_NAME_LABEL);
+
+	playerOptionsRectangle.center[0] = 350;
+	playerOptionsRectangle.extent[0] = 50;
+	playerOptionsRectangle.center[1] = 92;
+	playerOptionsRectangle.extent[1] = 16;
+	mGameStart = AddButton(playerOptionsRectangle, mWindow, CID_START_BUTTON, L"Start");
+	mGameStart->SetToolTipText(L"Start Game");
 
 	// add a status line help text
 	RectangleBase<2, int> statusRectangle;
@@ -184,7 +248,7 @@ bool MainMenuUI::OnInit()
 
 	videoRectangle.center[0] = screenSize[0] - 355;
 	videoRectangle.extent[0] = 90;
-	videoRectangle.center[1] = 52;
+	videoRectangle.center[1] = 62;
 	videoRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoModeLine =
 		AddStaticText(L"VideoMode:", videoRectangle, false, false, mWindow, -1, false);
@@ -192,7 +256,7 @@ bool MainMenuUI::OnInit()
 
 	videoRectangle.center[0] = screenSize[0] - 155;
 	videoRectangle.extent[0] = 290;
-	videoRectangle.center[1] = 52;
+	videoRectangle.center[1] = 62;
 	videoRectangle.extent[1] = 16;
 	mVideoMode = AddComboBox(videoRectangle, mWindow);
 	eastl::vector<Vector2<unsigned int>> videoResolutions = gameApp->mSystem->GetVideoResolutions();
@@ -223,37 +287,22 @@ bool MainMenuUI::OnInit()
 
 	screenRectangle.center[0] = screenSize[0] - 350;
 	screenRectangle.extent[0] = 100;
-	screenRectangle.center[1] = 72;
+	screenRectangle.center[1] = 92;
 	screenRectangle.extent[1] = 16;
 	mFullScreen = AddCheckBox(gameApp->mOption.mFullScreen, screenRectangle, mWindow, -1, L"Fullscreen");
 	mFullScreen->SetToolTipText(L"Set Fullscreen or Window Mode");
 
-	/*
-
-	// load the engine logo
-	BaseResource resource(L"Art/irrlichtlogo3.png");
-	const eastl::shared_ptr<ResHandle>& resHandle = gameApp->mResCache->GetHandle(&resource);
-	if (resHandle)
-	{
-		const eastl::shared_ptr<ImageResourceExtraData>& extra =
-			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-		extra->GetImage()->AutogenerateMipmaps();
-
-		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true, mWindow);
-		mLogo->SetToolTipText(L"The great Irrlicht Engine");
-	}
-
-	screenRectangle.center[0] = screenSize[0] - 190;
+	screenRectangle.center[0] = screenSize[0] - 250;
 	screenRectangle.extent[0] = 90;
-	screenRectangle.center[1] = 72;
+	screenRectangle.center[1] = 92;
 	screenRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoMultiSampleLine =
 		AddStaticText(L"MultiSample:", screenRectangle, false, false, mWindow, -1, false);
 	videoMultiSampleLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	screenRectangle.center[0] = screenSize[0] - 105;
-	screenRectangle.extent[0] = 80;
-	screenRectangle.center[1] = 72;
+	screenRectangle.center[0] = screenSize[0] - 130;
+	screenRectangle.extent[0] = 120;
+	screenRectangle.center[1] = 92;
 	screenRectangle.extent[1] = 16;
 	mMultiSample = AddScrollBar(true, screenRectangle, mWindow, -1);
 	mMultiSample->SetMin(0);
@@ -261,34 +310,14 @@ bool MainMenuUI::OnInit()
 	mMultiSample->SetSmallStep(1);
 	mMultiSample->SetLargeStep(1);
 	mMultiSample->SetPos(gameApp->mOption.mAntiAlias);
-	mMultiSample->SetToolTipText(L"Set the MultiSample (disable, 1x, 2x, 4x, 8x )");
+	mMultiSample->SetToolTipText(L"Set the multisample (disable, 1x, 2x, 4x, 8x )");
 
 	screenRectangle.center[0] = screenSize[0] - 35;
 	screenRectangle.extent[0] = 50;
-	screenRectangle.center[1] = 72;
+	screenRectangle.center[1] = 92;
 	screenRectangle.extent[1] = 16;
-	mSetVideoMode = AddButton(screenRectangle, mWindow, -1, L"set");
-	mSetVideoMode->SetToolTipText(L"Set Video Mode with current values");
-
-	screenRectangle.center[0] = screenSize[0] - 350;
-	screenRectangle.extent[0] = 100;
-	screenRectangle.center[1] = 132;
-	screenRectangle.extent[1] = 16;
-	eastl::shared_ptr<BaseUIStaticText> videoTesselationLine =
-		AddStaticText(L"Tesselation:", screenRectangle, false, false, mWindow, -1, false);
-	videoTesselationLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
-
-	screenRectangle.center[0] = screenSize[0] - 150;
-	screenRectangle.extent[0] = 300;
-	screenRectangle.center[1] = 132;
-	screenRectangle.extent[1] = 16;
-	mTesselation = AddScrollBar(true, screenRectangle, mWindow, -1);
-	mTesselation->SetMin(2);
-	mTesselation->SetMax(12);
-	mTesselation->SetSmallStep(1);
-	mTesselation->SetLargeStep(1);
-	mTesselation->SetPos(gameApp->mOption.mTesselation);
-	mTesselation->SetToolTipText(L"How smooth should curved surfaces be rendered");
+	mSetVideoMode = AddButton(screenRectangle, mWindow, -1, L"Set");
+	mSetVideoMode->SetToolTipText(L"Set video mode with current values");
 
 	screenRectangle.center[0] = screenSize[0] - 225;
 	screenRectangle.extent[0] = 450;
@@ -303,7 +332,7 @@ bool MainMenuUI::OnInit()
 	screenRectangle.center[1] = screenSize[1] - 210;
 	screenRectangle.extent[1] = 340;
 	mMaps = AddListBox(screenRectangle, mWindow, -1, true);
-	mMaps->SetToolTipText(L"Show the current Maps in all Archives.\n Double-Click the Map to start the level");
+	mMaps->SetToolTipText(L"Show the current maps in all archives.\n Double-Click the map to start the level");
 
 	// create a visible Scene Tree
 	screenRectangle.center[0] = screenSize[0] - 200;
@@ -319,9 +348,24 @@ bool MainMenuUI::OnInit()
 	screenRectangle.center[1] = screenSize[1] - 210;
 	screenRectangle.extent[1] = 340;
 	mScenes = AddTreeView(screenRectangle, mWindow, -1, true, true, false);
-	mScenes->SetToolTipText(L"Show the current Scenegraph");
+	mScenes->SetToolTipText(L"Show the current scenegraph");
 
 	mScenes->GetRoot()->ClearChildren();
+
+	/*
+
+	// load the engine logo
+	BaseResource resource(L"Art/irrlichtlogo3.png");
+	const eastl::shared_ptr<ResHandle>& resHandle = gameApp->mResCache->GetHandle(&resource);
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+		eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+
+		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true);
+		mLogo->SetToolTipText(L"The great Irrlicht Engine");
+	}
 
 	int iY = 10;
 	int iX = 35;
@@ -331,34 +375,26 @@ bool MainMenuUI::OnInit()
 	int lineHeight = height + 2;
 
 	// grab defaults from the game options.
-	m_NumAIs = g_pApp->m_Options.m_numAIs;
-	m_NumPlayers = g_pApp->m_Options.m_expectedPlayers;
-	m_HostName = g_pApp->m_Options.m_gameHost;
-	m_HostListenPort = g_pApp->m_Options.m_listenPort;
-	m_ClientAttachPort = g_pApp->m_Options.m_listenPort;
+	mNumAIs = gameApp->mOption.mNumAIs;
+	mNumPlayers = gameApp->mOption.mExpectedPlayers;
+	mHostName = gameApp->mOption.mGameHost;
+	mHostListenPort = gameApp->mOption.mListenPort;
+	mClientAttachPort = gameApp->mOption.mListenPort;
 
-	m_bCreatingGame = true;
-
-	D3DCOLOR color = 0x50505050;
-	m_SampleUI.SetBackgroundColors(color);
-
-	m_SampleUI.SetFont(0, L"Ariel", height, 0);
-
-	m_SampleUI.AddStatic(0, L"Teapot Wars Main Menu", iX - 20, iY, g_SampleUIWidth, height * 2);
-	iY += (lineHeight * 3);
+	mCreatingGame = true;
 
 	m_SampleUI.AddRadioButton(CID_CREATE_GAME_RADIO, 1, L"Create Game", iX, iY, g_SampleUIWidth, height);
 	iY += lineHeight;
 
 	m_SampleUI.AddStatic(CID_LEVEL_LABEL, L"Level", iX, iY, width, height);
 	m_SampleUI.AddListBox(CID_LEVEL_LISTBOX, iX2, iY, width, lineHeight * 5);
-	std::vector<Level> levels = g_pApp->GetGameLogic()->GetLevelManager()->GetLevels();
+	eastl::vector<Level> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
 	m_Levels.reserve(levels.size());
 	int count = 0;
 	for (std::vector<Level>::iterator i = levels.begin(); i != levels.end(); ++i, ++count)
 	{
-		m_Levels.push_back(s2ws(*i));
-		m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->AddItem(m_Levels[count].c_str(), NULL);
+	m_Levels.push_back(s2ws(*i));
+	m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->AddItem(m_Levels[count].c_str(), NULL);
 	}
 	iY += (lineHeight * 5);
 	//m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->GetElement(0)->SetFont(0, 0x0);
@@ -541,10 +577,11 @@ bool MainMenuUI::OnRender(double time, float elapsedTime)
 	DXUT_EndPerfEvent();
 	return S_OK;
 	*/
+	GameApplication* gameApp = (GameApplication*)Application::App;
 	wchar_t msg[128];
 	swprintf(msg, 128,
-		L"%03i fps, F1 GUI on/off, F2 respawn, F3-F6 toggle Nodes, F7 Collision on/off"
-		L", F8 Gravity on/off, Right Mouse Toggle GUI", (int)elapsedTime);
+		L"%03d fps, F1 GUI on/off, F2 respawn, F3-F6 toggle Nodes, F7 Collision on/off"
+		L", F8 Gravity on/off, Right Mouse Toggle GUI", gameApp->GetFPS());
 	if (mStatusLine)
 		mStatusLine->SetText(msg);
 

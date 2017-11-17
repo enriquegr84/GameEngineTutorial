@@ -55,6 +55,12 @@ protected:
 
 	bool mCreatingGame;
 
+	eastl::shared_ptr<BaseUIScrollBar> mGameAI;
+	eastl::shared_ptr<BaseUIScrollBar> mGamePlayer;
+	eastl::shared_ptr<BaseUIEditBox> mGameHost;
+	eastl::shared_ptr<BaseUIEditBox> mGameHostPort;
+	eastl::shared_ptr<BaseUIButton> mGameStart;
+
 	eastl::shared_ptr<BaseUIComboBox> mVideoDriver;
 	eastl::shared_ptr<BaseUIComboBox> mVideoMode;
 	eastl::shared_ptr<BaseUIButton> mSetVideoMode;

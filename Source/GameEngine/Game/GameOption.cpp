@@ -83,7 +83,7 @@ void GameOption::Init(const wchar_t* xmlFileName)
 		if (pNode)
 		{
 			eastl::string attribute;
-			attribute = pNode->Attribute("renderer");
+			attribute = pNode->Attribute("Renderer");
 			if (attribute != "Direct3D 11")
 			{
 				LogError("Bad Renderer setting in Graphics options.");
@@ -93,33 +93,33 @@ void GameOption::Init(const wchar_t* xmlFileName)
 				mRendererType = RendererType::RT_DIRECT3D11;
 			}
 
-			if (pNode->Attribute("width"))
+			if (pNode->Attribute("Width"))
 			{
-				mScreenSize[0] = pNode->IntAttribute("width", mScreenSize[0]);
+				mScreenSize[0] = pNode->IntAttribute("Width", mScreenSize[0]);
 				if (mScreenSize[0] < 800) mScreenSize[0] = 800;
 			}
 
-			if (pNode->Attribute("height"))
-				mScreenSize[1] = pNode->IntAttribute("height", mScreenSize[1]);
+			if (pNode->Attribute("Height"))
+				mScreenSize[1] = pNode->IntAttribute("Height", mScreenSize[1]);
 		}
 
 		pNode = mRoot->FirstChildElement("Sound"); 
 		if (pNode)
 		{
-			mMusicVolume = atoi(pNode->Attribute("musicVolume")) / 100.0f;
-			mSoundEffectsVolume = atoi(pNode->Attribute("sfxVolume")) / 100.0f;
+			mMusicVolume = atoi(pNode->Attribute("MusicVolume")) / 100.0f;
+			mSoundEffectsVolume = atoi(pNode->Attribute("SFXVolume")) / 100.0f;
 		}
 
 		pNode = mRoot->FirstChildElement("Multiplayer"); 
 		if (pNode)
 		{
-			mExpectedPlayers = atoi(pNode->Attribute("expectedPlayers"));
-			mNumAIs = atoi(pNode->Attribute("numAIs"));
-			mMaxAIs = atoi(pNode->Attribute("maxAIs"));
-			mMaxPlayers = atoi(pNode->Attribute("maxPlayers"));
+			mExpectedPlayers = atoi(pNode->Attribute("ExpectedPlayers"));
+			mNumAIs = atoi(pNode->Attribute("NumAIs"));
+			mMaxAIs = atoi(pNode->Attribute("MaxAIs"));
+			mMaxPlayers = atoi(pNode->Attribute("MaxPlayers"));
 			
-			mListenPort = atoi(pNode->Attribute("listenPort"));
-			mGameHost = pNode->Attribute("gameHost");
+			mListenPort = atoi(pNode->Attribute("ListenPort"));
+			mGameHost = pNode->Attribute("GameHost");
 		}
 	}
 }

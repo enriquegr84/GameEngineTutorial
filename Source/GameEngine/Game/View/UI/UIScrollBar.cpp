@@ -500,8 +500,8 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mUpButton->SetSpriteBank(sprites);
-			mUpButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_UP, mCurrentIconColor);
-			mUpButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_UP, mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_LEFT, mCurrentIconColor);
+			mUpButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_LEFT, mCurrentIconColor);
 		}
 		mUpButton->SetRelativePosition(rectangle);
 		mUpButton->SetAlignment(UIA_UPPERLEFT, UIA_UPPERLEFT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
@@ -521,8 +521,8 @@ void UIScrollBar::RefreshControls()
 		if (sprites)
 		{
 			mDownButton->SetSpriteBank(sprites);
-			mDownButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_DOWN, mCurrentIconColor);
-			mDownButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_DOWN, mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_RIGHT, mCurrentIconColor);
+			mDownButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_RIGHT, mCurrentIconColor);
 		}
 		mDownButton->SetRelativePosition(rectangle);
 		mDownButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_LOWERRIGHT);

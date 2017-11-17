@@ -67,6 +67,7 @@ public:
 	virtual eastl::wstring GetGameTitle() = 0;
 	virtual eastl::wstring GetGameAppDirectory() = 0;
 
+	int GetFPS() { return mFramesPerSecond; }
 	void AbortGame() { mQuitting = true; }
 	bool IsRunning() { return mIsRunning; }
 	void SetQuitting(bool quitting) { mQuitting = quitting; }

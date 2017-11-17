@@ -126,20 +126,20 @@ float GameApplication::GetLimitedDt()
 
 		// don't allow the game to run slower than a certain amount.
 		// when the computer can't keep it up, slow down the shown time instead
-		static const float max_elapsed_time = 3.0f*1.0f / 60.0f*1000.0f; /* time 3 internal substeps take */
-		if (dt > max_elapsed_time) dt = max_elapsed_time;
+		static const float maxElapsedTime = 3.0f*1.0f / 60.0f*1000.0f; /* time 3 internal substeps take */
+		if (dt > maxElapsedTime) dt = maxElapsedTime;
 
 		// Throttle fps if more than maximum, which can reduce
 		// the noise the fan on a graphics card makes.
 		// When in menus, reduce FPS much, it's not necessary to push to the maximum for plain menus
-		const int max_fps = 60;//(StateManager::get()->throttleFPS() ? 35 : UserConfigParams::m_max_fps);
-		const int current_fps = (int)(1000.0f / dt);
-		if (current_fps > max_fps)// && !ProfileWorld::isProfileMode())
+		const int maxFPS = 60;//(StateManager::get()->throttleFPS() ? 35 : UserConfigParams::mMaxFPS);
+		const int currentFPS = (int)(1000.0f / dt);
+		if (currentFPS > maxFPS)// && !ProfileWorld::isProfileMode())
 		{
-			int wait_time = 1000 / max_fps - 1000 / current_fps;
-			if (wait_time < 1) wait_time = 1;
+			int waitTime = 1000 / maxFPS - 1000 / currentFPS;
+			if (waitTime < 1) waitTime = 1;
 
-			mSystem->OnPause(wait_time);
+			mSystem->OnPause(waitTime);
 		}
 		else break;
 	}
@@ -418,7 +418,7 @@ void GameApplication::OnRun()
 {
 	if (OnInitialize())
 	{
-		// The default OnPreidle() clears the buffers.  Allow the application
+		// The default OnPreidle() clears the buffers. Allow the application
 		// to fill them before the window is shown and before the event loop
 		// starts.
 		OnPreidle();
@@ -502,9 +502,6 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 	GameLogic::mGame->RenderDiagnostics();
 
 	mRenderer->DisplayColorBuffer(0);
-
-	// Temporarily pause execution and let other processes run.
-	//mSystem->OnPause(100);
 }
 
 
@@ -588,6 +585,8 @@ void GameApplication::OnPreidle()
 void GameApplication::OnIdle()
 {
 	// stub for derived classes
+	// Temporarily pause execution and let other processes run.
+	//mSystem->OnPause(100);
 }
 
 bool GameApplication::LoadGame(void)

@@ -66,6 +66,10 @@ public:
     /** Returns the number of levels. */
     size_t GetNumberOfLevels() const { return mLevels.size(); }
     // ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+	/** Returns the number of levels. */
+	eastl::vector<Level*> GetLevels() const { return mLevels; }
+	// ------------------------------------------------------------------------
     /** Returns the level view with a given index number.
      *  \param index The index number of the level. */
     Level* GetLevel(unsigned int index) const { return mLevels[index];}
