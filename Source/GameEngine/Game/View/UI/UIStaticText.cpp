@@ -29,11 +29,6 @@ UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text,
 		mBGColor = mUI->GetSkin()->GetColor(DC_3D_FACE);
 
 	// Create a vertex buffer for a single triangle.
-	struct Vertex
-	{
-		Vector3<float> position;
-		Vector4<float> color;
-	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);

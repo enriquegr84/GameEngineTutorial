@@ -182,27 +182,31 @@ public:
 
 			if (mAlignLeft == UIA_SCALE)
 			{
-				Vector2<float> center(mScaleRect.center);
-				mScaleRect.center[0] = (r.center[0] - (r.extent[0] / 2)) / (float)dimension[0] - round(mScaleRect.center[0] / 2);
-				mScaleRect.extent[0] = 2 * ((r.center[0] - (r.extent[0] / 2)) / (float)dimension[0] - center[0]);
+				float corner = mScaleRect.center[0] - (mScaleRect.extent[0] / 2);
+				int scale = (mDesiredRect.center[0] - (mDesiredRect.extent[0] / 2)) / dimension[0];
+				mScaleRect.extent[0] = corner - scale;
+				mScaleRect.center[0] = corner + (mDesiredRect.extent[0] / 2);
 			}
 			if (mAlignRight == UIA_SCALE)
 			{
-				Vector2<float> center(mScaleRect.center);
-				mScaleRect.center[0] = (r.center[0] + (int)round(r.extent[0] / 2.f)) / (float)dimension[0] + round(mScaleRect.center[0] / 2);
-				mScaleRect.extent[0] = 2 * ((r.center[0] + (int)round(r.extent[0] / 2.f)) / (float)dimension[0] + center[0]);
+				float corner = mScaleRect.center[0] + (int)round(mScaleRect.extent[0] / 2.f);
+				int scale = (mDesiredRect.center[0] + (int)round(mDesiredRect.extent[0] / 2.f)) / dimension[0];
+				mScaleRect.extent[0] = scale - corner;
+				mScaleRect.center[0] = corner - (int)round(mDesiredRect.extent[0] / 2.f);
 			}
 			if (mAlignTop == UIA_SCALE)
 			{
-				Vector2<float> center(mScaleRect.center);
-				mScaleRect.center[1] = (r.center[1] - (r.extent[1] / 2)) / (float)dimension[1] - round(mScaleRect.center[1] / 2);
-				mScaleRect.extent[1] = 2 * ((r.center[1] - (r.extent[1] / 2)) / (float)dimension[1] - center[1]);
+				float corner = mScaleRect.center[1] - (mScaleRect.extent[1] / 2);
+				int scale = (mDesiredRect.center[1] - (mDesiredRect.extent[1] / 2)) / dimension[1];
+				mScaleRect.extent[1] = corner - scale;
+				mScaleRect.center[1] = corner + (mDesiredRect.extent[1] / 2);
 			}
 			if (mAlignBottom == UIA_SCALE)
 			{
-				Vector2<float> center(mScaleRect.center);
-				mScaleRect.center[1] = (r.center[1] + (int)round(r.extent[1] / 2.f)) / (float)dimension[1] + round(mScaleRect.center[1] / 2);
-				mScaleRect.extent[1] = 2 * ((r.center[1] + (int)round(r.extent[1] / 2.f)) / (float)dimension[1] + center[1]);
+				float corner = mScaleRect.center[1] + (int)round(mScaleRect.extent[1] / 2.f);
+				int scale = (mDesiredRect.center[1] + (int)round(mDesiredRect.extent[1] / 2.f)) / dimension[1];
+				mScaleRect.extent[1] = scale - corner;
+				mScaleRect.center[1] = corner - (int)round(mDesiredRect.extent[1] / 2.f);
 			}
 		}
 
@@ -215,8 +219,8 @@ public:
 	void SetRelativePosition(const Vector2<int>& position)
 	{
 		Vector2<int> center;
-		center[0] = position[0] + (int)round(mRelativeRect.extent[0] / 2.f);
-		center[1] = position[1] + (int)round(mRelativeRect.extent[1] / 2.f);
+		center[0] = position[0] + (mRelativeRect.extent[0] / 2);
+		center[1] = position[1] + (mRelativeRect.extent[1] / 2);
 		const RectangleBase<2, int> rectangle(
 			center, mRelativeRect.axis, mRelativeRect.extent);
 		SetRelativePosition(rectangle);
@@ -234,13 +238,19 @@ public:
 			return;
 
 		const RectangleBase<2, int>& rectangle = mParent->GetAbsolutePosition();
-		Vector2<int> center{ 
-			(int)floor(r.center[0] * rectangle.extent[0]), 
-			(int)floor(r.center[1] * rectangle.extent[1]) };
+		Vector2<int> dimension(rectangle.extent);
+
+		Vector2<int> upperLeftCorner{ 
+			(int)floor(dimension[0] * (r.center[0] - (r.extent[0] / 2))),
+			(int)floor(dimension[1] * (r.center[1] - (r.extent[1] / 2))) };
+		Vector2<int> lowerRightCorner{
+			(int)floor(dimension[0] * (r.center[0] + (int)round(r.extent[0] / 2.f))),
+			(int)floor(dimension[1] * (r.center[1] + (int)round(r.extent[1] / 2.f))) };
 		eastl::array<Vector2<int>, 2U> axis;
 		for (int i = 0; i < r.axis.count; i++)
 			axis[i] = Vector2<int>{ (int)r.axis[i][0], (int)r.axis[i][1] };
-		Vector2<int> extent{ (int)r.extent[0], (int)r.extent[1] };
+		Vector2<int> extent = lowerRightCorner - upperLeftCorner;
+		Vector2<int> center = lowerRightCorner + (extent / 2);
 
 		mDesiredRect = RectangleBase<2, int>(center, axis, extent);
 		mScaleRect = r;
@@ -316,27 +326,31 @@ public:
 
 			if (mAlignLeft == UIA_SCALE)
 			{
-				Vector2<float> center(mScaleRect.center);
-				mScaleRect.center[0] = (mDesiredRect.center[0] - (mDesiredRect.extent[0] / 2)) / (float)dimension[0] - round(mScaleRect.center[0] / 2);
-				mScaleRect.extent[0] = 2 * ((mDesiredRect.center[0] - (mDesiredRect.extent[0] / 2)) / (float)dimension[0] - center[0]);
+				float corner = mScaleRect.center[0] - (mScaleRect.extent[0] / 2);
+				int scale = (mDesiredRect.center[0] - (mDesiredRect.extent[0] / 2)) / dimension[0];
+				mScaleRect.extent[0] = corner - scale;
+				mScaleRect.center[0] = corner + (mDesiredRect.extent[0] / 2);
 			}
 			if (mAlignRight == UIA_SCALE)
 			{
-				Vector2<float> center(mScaleRect.center);
-				mScaleRect.center[0] = (mDesiredRect.center[0] + (int)round(mDesiredRect.extent[0] / 2.f)) / (float)dimension[0] + round(mScaleRect.center[0] / 2);
-				mScaleRect.extent[0] = 2 * ((mDesiredRect.center[0] + (int)round(mDesiredRect.extent[0] / 2.f)) / (float)dimension[0] + center[0]);
+				float corner = mScaleRect.center[0] + (int)round(mScaleRect.extent[0] / 2.f);
+				int scale = (mDesiredRect.center[0] + (int)round(mDesiredRect.extent[0] / 2.f)) / dimension[0];
+				mScaleRect.extent[0] = scale - corner;
+				mScaleRect.center[0] = corner - (int)round(mDesiredRect.extent[0] / 2.f);
 			}
 			if (mAlignTop == UIA_SCALE)
 			{
-				Vector2<float> center(mScaleRect.center);
-				mScaleRect.center[1] = (mDesiredRect.center[1] - (mDesiredRect.extent[1] / 2)) / (float)dimension[1] - round(mScaleRect.center[1] / 2);
-				mScaleRect.extent[1] = 2 * ((mDesiredRect.center[1] - (mDesiredRect.extent[1] / 2)) / (float)dimension[1] - center[1]);
+				float corner = mScaleRect.center[1] - (mScaleRect.extent[1] / 2);
+				int scale = (mDesiredRect.center[1] - (mDesiredRect.extent[1] / 2)) / dimension[1];
+				mScaleRect.extent[1] = corner - scale;
+				mScaleRect.center[1] = corner + (mDesiredRect.extent[1] / 2);
 			}
 			if (mAlignBottom == UIA_SCALE)
 			{
-				Vector2<float> center(mScaleRect.center);
-				mScaleRect.center[1] = (mDesiredRect.center[1] + (int)round(mDesiredRect.extent[1] / 2.f)) / (float)dimension[1] + round(mScaleRect.center[1] / 2);
-				mScaleRect.extent[1] = 2 * ((mDesiredRect.center[1] + (int)round(mDesiredRect.extent[1] / 2.f)) / (float)dimension[1] + center[1]);
+				float corner = mScaleRect.center[1] + (int)round(mScaleRect.extent[1] / 2.f);
+				int scale = (mDesiredRect.center[1] + (int)round(mDesiredRect.extent[1] / 2.f)) / dimension[1];
+				mScaleRect.extent[1] = scale - corner;
+				mScaleRect.center[1] = corner - (int)round(mDesiredRect.extent[1] / 2.f);
 			}
 		}
 	}
@@ -945,18 +959,18 @@ protected:
 			case UIA_UPPERLEFT:
 				break;
 			case UIA_LOWERRIGHT:
-				mDesiredRect.center[0] += diffx;
+				mDesiredRect.center[0] -= diffx / 2;
 				mDesiredRect.extent[0] -= diffx;
 				break;
 			case UIA_CENTER:
-				mDesiredRect.center[0] += diffx / 2;
+				mDesiredRect.center[0] -= diffx / 4;
 				mDesiredRect.extent[0] -= diffx / 2;
 				break;
 			case UIA_SCALE:
-				Vector2<int> center(mDesiredRect.center);
+				int corner = mDesiredRect.center[0] - (mDesiredRect.extent[0] / 2);
 				int scale = (int)round((mScaleRect.center[0] - (mScaleRect.extent[0] / 2)) * fw);
-				mDesiredRect.center[0] = scale - (mDesiredRect.extent[0] / 2);
-				mDesiredRect.extent[0] = 2 * (scale - center[0]);
+				mDesiredRect.extent[0] = corner - scale;
+				mDesiredRect.center[0] = corner - (int)round(mDesiredRect.extent[0] / 2.f);
 				break;
 		}
 
@@ -965,18 +979,18 @@ protected:
 			case UIA_UPPERLEFT:
 				break;
 			case UIA_LOWERRIGHT:
-				mDesiredRect.center[0] -= diffx;
-				mDesiredRect.extent[0] -= diffx;
+				mDesiredRect.center[0] += diffx / 2;
+				mDesiredRect.extent[0] += diffx;
 				break;
 			case UIA_CENTER:
-				mDesiredRect.center[0] -= diffx / 2;
-				mDesiredRect.extent[0] -= diffx / 2;
+				mDesiredRect.center[0] += diffx / 4;
+				mDesiredRect.extent[0] += diffx / 2;
 				break;
 			case UIA_SCALE:
-				Vector2<int> center(mDesiredRect.center);
-				int scale = (int)round((mScaleRect.center[0] + (mScaleRect.extent[0] / 2)) * fw);
-				mDesiredRect.center[0] = scale + (int)round(mDesiredRect.extent[0] / 2.f);
-				mDesiredRect.extent[0] = 2 * (center[0] - scale);
+				int corner = mDesiredRect.center[0] - (int)round(mDesiredRect.extent[0] / 2.f);
+				int scale = (int)round((mScaleRect.center[0] + (int)round(mScaleRect.extent[0] / 2.f)) * fw);
+				mDesiredRect.extent[0] = scale - corner;
+				mDesiredRect.center[0] = corner + (mDesiredRect.extent[0] / 2);
 				break;
 		}
 
@@ -985,18 +999,18 @@ protected:
 			case UIA_UPPERLEFT:
 				break;
 			case UIA_LOWERRIGHT:
-				mDesiredRect.center[1] += diffy;
+				mDesiredRect.center[1] -= diffy / 2;
 				mDesiredRect.extent[1] -= diffy;
 				break;
 			case UIA_CENTER:
-				mDesiredRect.center[1] += diffy / 2;
+				mDesiredRect.center[1] -= diffy / 4;
 				mDesiredRect.extent[1] -= diffy / 2;
 				break;
 			case UIA_SCALE:
-				Vector2<int> center(mDesiredRect.center);
+				int corner = mDesiredRect.center[1] - (mDesiredRect.extent[1] / 2);
 				int scale = (int)round((mScaleRect.center[1] - (mScaleRect.extent[1] / 2)) * fh);
-				mDesiredRect.center[1] = scale - (mDesiredRect.extent[1] / 2);
-				mDesiredRect.extent[1] = 2 * (scale - center[1]);
+				mDesiredRect.extent[1] = corner - scale;
+				mDesiredRect.center[1] = corner - (int)round(mDesiredRect.extent[1] / 2.f);
 				break;
 		}
 
@@ -1005,18 +1019,18 @@ protected:
 			case UIA_UPPERLEFT:
 				break;
 			case UIA_LOWERRIGHT:
-				mDesiredRect.center[1] -= diffy;
-				mDesiredRect.extent[1] -= diffy;
+				mDesiredRect.center[1] += diffy / 2;
+				mDesiredRect.extent[1] += diffy;
 				break;
 			case UIA_CENTER:
-				mDesiredRect.center[1] -= diffy / 2;
-				mDesiredRect.extent[1] -= diffy / 2;
+				mDesiredRect.center[1] += diffy / 4;
+				mDesiredRect.extent[1] += diffy / 2;
 				break;
 			case UIA_SCALE:
-				Vector2<int> center(mDesiredRect.center);
-				int scale = (int)round((mScaleRect.center[1] + (mScaleRect.extent[1] / 2)) * fh);
-				mDesiredRect.center[1] = scale + (int)round(mDesiredRect.extent[1] / 2.f);
-				mDesiredRect.extent[1] = 2 * (center[1] - scale);
+				int corner = mDesiredRect.center[1] - (int)round(mDesiredRect.extent[1] / 2.f);
+				int scale = (int)round((mScaleRect.center[1] + (int)round(mScaleRect.extent[1] / 2.f)) * fw);
+				mDesiredRect.extent[1] = scale - corner;
+				mDesiredRect.center[1] = corner + (mDesiredRect.extent[1] / 2);
 				break;
 		}
 
@@ -1029,21 +1043,25 @@ protected:
 		if (w < (int)mMinSize[0])
 		{
 			mRelativeRect.center[0] -= mRelativeRect.extent[0] / 2;
+			mRelativeRect.center[0] += mMinSize[0] / 2;
 			mRelativeRect.extent[0] = mMinSize[0];
 		}
 		if (h < (int)mMinSize[1])
 		{
 			mRelativeRect.center[1] -= mRelativeRect.extent[1] / 2;
+			mRelativeRect.center[1] += mMinSize[1] / 2;
 			mRelativeRect.extent[1] = mMinSize[1];
 		}
 		if (mMaxSize[0] && w > (int)mMaxSize[0])
 		{
 			mRelativeRect.center[0] -= mRelativeRect.extent[0] / 2;
+			mRelativeRect.center[0] += mMaxSize[0] / 2;
 			mRelativeRect.extent[0] = mMaxSize[0];
 		}
 		if (mMaxSize[1] && h > (int)mMaxSize[1])
 		{
 			mRelativeRect.center[1] -= mRelativeRect.extent[1] / 2;
+			mRelativeRect.center[1] += mMaxSize[1] / 2;
 			mRelativeRect.extent[1] = mMaxSize[1];
 		}
 

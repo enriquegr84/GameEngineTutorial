@@ -34,11 +34,6 @@ UIImage::UIImage(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 		// Create a vertex buffer for a two-triangles square. The PNG is stored
 		// in left-handed coordinates. The texture coordinates are chosen to
 		// reflect the texture in the y-direction.
-		struct Vertex
-		{
-			Vector3<float> position;
-			Vector2<float> tcoord;
-		};
 		VertexFormat vformat;
 		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);

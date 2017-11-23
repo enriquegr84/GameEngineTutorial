@@ -21,11 +21,6 @@ UIWindow::UIWindow(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
 	#endif
 
 	// Create a vertex buffer for a single triangle.
-	struct Vertex
-	{
-		Vector3<float> position;
-		Vector4<float> color;
-	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);

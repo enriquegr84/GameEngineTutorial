@@ -150,7 +150,6 @@ bool MainMenuUI::OnInit()
 
 	mWindow = AddWindow(
 		screenRectangle, false, L"Teapot Wars", 0, CID_DEMO_WINDOW);
-	mWindow->SetToolTipText(L"Teapot Wars Main Menu");
 	mWindow->GetCloseButton()->SetToolTipText(L"Quit Teapot Wars");
 
 	// add a options line

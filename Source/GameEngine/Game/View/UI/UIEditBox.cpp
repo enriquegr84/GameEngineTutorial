@@ -41,11 +41,6 @@ UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, Recta
 		// Create a vertex buffer for a two-triangles square. The PNG is stored
 		// in left-handed coordinates. The texture coordinates are chosen to
 		// reflect the texture in the y-direction.
-		struct Vertex
-		{
-			Vector3<float> position;
-			Vector2<float> tcoord;
-		};
 		VertexFormat vformat;
 		vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 		vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
@@ -63,6 +58,19 @@ UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, Recta
 		// Create the geometric object for drawing.
 		mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 	}
+
+	// Create a vertex buffer for a single triangle.
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
+	mEffectHighlight = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+	mVisualHighlight = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffectHighlight);
 }
 
 
@@ -311,7 +319,7 @@ bool UIEditBox::ProcessKey(const Event& event)
 						// delete
 						eastl::wstring s;
 						s = mText.substr(0, realmbgn);
-						s.append( mText.substr(realmend, mText.size()-realmend) );
+						s.append( mText.substr(realmend, mText.size() - realmend) );
 						mText = s;
 
 						mCursorPos = realmbgn;
@@ -479,7 +487,7 @@ bool UIEditBox::ProcessKey(const Event& event)
 				}
 				return true;
 			case KEY_LEFT:
-
+			{
 				if (event.mKeyInput.mShift)
 				{
 					if (mCursorPos > 0)
@@ -499,8 +507,10 @@ bool UIEditBox::ProcessKey(const Event& event)
 				if (mCursorPos > 0) mCursorPos--;
 				mBlinkStartTime = Timer::GetTime();
 				break;
+			}
 
 			case KEY_RIGHT:
+			{
 				if (event.mKeyInput.mShift)
 				{
 					if ((int)mText.size() > mCursorPos)
@@ -520,6 +530,7 @@ bool UIEditBox::ProcessKey(const Event& event)
 				if ((int)mText.size() > mCursorPos) mCursorPos++;
 				mBlinkStartTime = Timer::GetTime();
 				break;
+			}
 			case KEY_UP:
 				if (mMultiLine || (mWordWrap && mBrokenText.size() > 1))
 				{
@@ -529,11 +540,12 @@ bool UIEditBox::ProcessKey(const Event& event)
 					{
 						int cp = mCursorPos - mBrokenTextPositions[lineNo];
 						if ((int)mBrokenText[lineNo - 1].size() < cp)
+						{
 							mCursorPos =
-								mBrokenTextPositions[lineNo - 1] + 
+								mBrokenTextPositions[lineNo - 1] +
 								eastl::max((unsigned int)1, (unsigned int)mBrokenText[lineNo - 1].size()) - 1;
-						else
-							mCursorPos = mBrokenTextPositions[lineNo - 1] + cp;
+						}
+						else mCursorPos = mBrokenTextPositions[lineNo - 1] + cp;
 					}
 
 					if (event.mKeyInput.mShift)
@@ -561,11 +573,11 @@ bool UIEditBox::ProcessKey(const Event& event)
 					{
 						int cp = mCursorPos - mBrokenTextPositions[lineNo];
 						if ((int)mBrokenText[lineNo + 1].size() < cp)
-							mCursorPos = 
-							mBrokenTextPositions[lineNo + 1] + 
+						{
+							mCursorPos = mBrokenTextPositions[lineNo + 1] +
 								eastl::max((unsigned int)1, (unsigned int)mBrokenText[lineNo + 1].size()) - 1;
-						else
-							mCursorPos = mBrokenTextPositions[lineNo + 1] + cp;
+						}
+						else mCursorPos = mBrokenTextPositions[lineNo + 1] + cp;
 					}
 
 					if (event.mKeyInput.mShift)
@@ -614,6 +626,7 @@ bool UIEditBox::ProcessKey(const Event& event)
 							s = L"";
 						s.append(mText.substr(mCursorPos, mText.size() - mCursorPos));
 						mText = s;
+
 						--mCursorPos;
 					}
 
@@ -715,6 +728,49 @@ bool UIEditBox::ProcessKey(const Event& event)
 }
 
 
+void UIEditBox::InputChar(wchar_t c)
+{
+	if (!IsEnabled())
+		return;
+
+	if (c != 0)
+	{
+		if (mText.size() < mMax || mMax == 0)
+		{
+			eastl::wstring s;
+
+			if (mMarkBegin != mMarkEnd)
+			{
+				// replace marked text
+				const int realmbgn = mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd;
+				const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
+
+				s = mText.substr(0, realmbgn);
+				s.append(1, c);
+				s.append(mText.substr(realmend, mText.size() - realmend));
+				mText = s;
+				mCursorPos = realmbgn + 1;
+			}
+			else
+			{
+				// add new character
+				s = mText.substr(0, mCursorPos);
+				s.append(1, c);
+				s.append(mText.substr(mCursorPos, mText.size() - mCursorPos));
+				mText = s;
+				++mCursorPos;
+			}
+
+			mBlinkStartTime = Timer::GetTime();
+			SetTextMarkers(0, 0);
+		}
+	}
+	BreakText();
+	CalculateScrollPos();
+	SendUIEvent(UIEVT_EDITBOX_CHANGED);
+}
+
+
 //! draws the element and its children
 void UIEditBox::Draw()
 {
@@ -777,8 +833,7 @@ void UIEditBox::Draw()
 	if (mBorder)
 		CalculateFrameRect();
 
-	RectangleBase<2, int> localClipRect(mFrameRect);
-	//localClipRect.ClipAgainst(mAbsoluteClippingRect);
+	RectangleBase<2, int> clipRect = mAbsoluteClippingRect;
 
 	// draw the text
 	const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
@@ -822,7 +877,7 @@ void UIEditBox::Draw()
 				SetTextRect(i);
 
 				// clipping test - don't draw anything outside the visible area
-				RectangleBase<2, int> c = localClipRect;
+				//RectangleBase<2, int> c = clipRect;
 				//c.ClipAgainst(mCurrentTextRect);
 				//if (!c.IsValid())
 				//	continue;
@@ -852,17 +907,30 @@ void UIEditBox::Draw()
 					startPos = ml ? mBrokenTextPositions[i] : 0;
 				}
 
+				int cursorWidth = font->GetDimension(L"_")[0];
+				int txtWidth = font->GetDimension(txtLine->c_str())[0];
+				const bool hasBrokenText = mMultiLine || mWordWrap;
+				if (mCurrentTextRect.extent[0] <= txtWidth + cursorWidth)
+				{
+					for (unsigned int txtPosition = 1; txtPosition <= (unsigned int)txtLine->size(); txtPosition++)
+					{
+						if (mCurrentTextRect.extent[0] <= font->GetDimension(txtLine->substr(mHScrollPos, txtPosition).c_str())[0] + cursorWidth)
+						{
+							txtWidth = hasBrokenText ? txtPosition - mBrokenTextPositions[cursorLine] : txtPosition;
+							break;
+						}
+					}
+				}
 
 				// draw normal text
-				font->Draw(txtLine->c_str(), mCurrentTextRect,
+				font->Draw(txtLine->substr(mHScrollPos, txtWidth).c_str(), mCurrentTextRect,
 					mOverrideColorEnabled ? mOverrideColor : skin->GetColor(DC_BUTTON_TEXT),
-					false, true, &localClipRect);
+					mHAlign == UIA_CENTER, mVAlign == UIA_CENTER, &clipRect);
 
 				// draw mark and marked text
 				if (focus && mMarkBegin != mMarkEnd && 
 					i >= hlineStart && i < hlineStart + hlineCount)
 				{
-
 					int mbegin = 0, mend = 0;
 					int lineStartPos = 0, lineEndPos = txtLine->size();
 
@@ -879,25 +947,28 @@ void UIEditBox::Draw()
 						// highlight end is on this line
 						s2 = txtLine->substr(0, realmend - startPos);
 						mend = font->GetDimension(s2.c_str())[0];
+
 						lineEndPos = s2.size();
 					}
 					else mend = font->GetDimension(txtLine->c_str())[0];
 
-					mCurrentTextRect.center[0] += mbegin + (mend - mbegin) / 2;
-					mCurrentTextRect.extent[0] = mend - mbegin;
-					/*
+					RectangleBase<2, int> highlightTextRect = mFrameRect;
+					highlightTextRect.center[0] -= highlightTextRect.extent[0] / 2;
+					highlightTextRect.center[0] -= font->GetDimension(txtLine->substr(0, mHScrollPos).c_str())[0];
+					highlightTextRect.center[0] += mbegin + (mend - mbegin) / 2;
+					highlightTextRect.extent[0] = mend - mbegin;
+
 					// draw mark
 					skin->Draw2DRectangle(shared_from_this(), skin->GetColor(DC_HIGH_LIGHT), 
-						mVisual, mCurrentTextRect, &localClipRect);
-					*/
+						mVisualHighlight, highlightTextRect, &clipRect);
+
 					// draw marked text
 					s = txtLine->substr(lineStartPos, lineEndPos - lineStartPos);
 
 					if (s.size())
-						font->Draw(s.c_str(), mCurrentTextRect,
+						font->Draw(s.c_str(), highlightTextRect,
 							mOverrideColorEnabled ? mOverrideColor : skin->GetColor(DC_HIGH_LIGHT_TEXT),
-							false, true, &localClipRect);
-
+							mHAlign == UIA_CENTER, mVAlign == UIA_CENTER, &clipRect);
 				}
 			}
 
@@ -909,13 +980,14 @@ void UIEditBox::Draw()
 		// draw cursor
 		if ( IsEnabled() )
 		{
-			if (mWordWrap || mMultiLine)
+			const bool hasBrokenText = mMultiLine || mWordWrap;
+			if (hasBrokenText)
 			{
 				cursorLine = GetLineFromPos(mCursorPos);
 				txtLine = &mBrokenText[cursorLine];
 				startPos = mBrokenTextPositions[cursorLine];
 			}
-			s = txtLine->substr(0,mCursorPos-startPos);
+			s = txtLine->substr(mHScrollPos, mCursorPos - mHScrollPos - startPos);
 
 			if (focus && (Timer::GetTime() - mBlinkStartTime) % 700 < 350)
 			{
@@ -924,7 +996,7 @@ void UIEditBox::Draw()
 
 				font->Draw(L"_", mCurrentTextRect,
 					mOverrideColorEnabled ? mOverrideColor : skin->GetColor(DC_BUTTON_TEXT),
-					false, true, &localClipRect);
+					mHAlign == UIA_CENTER, mVAlign == UIA_CENTER, &clipRect);
 			}
 		}
 	}
@@ -1111,14 +1183,15 @@ int UIEditBox::GetCursorPos(int x, int y)
 
 	const wchar_t* txt = txtLine->c_str();
 	int pixel = x - (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2));
-	int pixelLength = font->GetDimension(L" ")[0];
 
 	// click was on or left of the line
 	if (pixel <= font->GetDimension(txt)[0])
-		return (pixel / pixelLength) + startPos;
+		for (unsigned int txtPosition = 1; txtPosition <= (unsigned int)txtLine->size(); txtPosition++)
+			if (pixel <= font->GetDimension(txtLine->substr(mHScrollPos, txtPosition).c_str())[0])
+				return txtPosition + startPos + mHScrollPos;
 
 	// click was off the right edge of the line, go to end.
-	return txtLine->size() + startPos;
+	return txtLine->size() + startPos + mHScrollPos;
 }
 
 
@@ -1204,7 +1277,6 @@ void UIEditBox::BreakText()
 			word = L"";
 			whitespace = L"";
 
-
 			if ( c )
 				whitespace += c;
 
@@ -1265,50 +1337,10 @@ void UIEditBox::SetTextRect(int line)
 	}
 
 	// justification
-	switch (mHAlign)
-	{
-		case UIA_CENTER:
-			// align to h centre
-			mCurrentTextRect.center[0] = mFrameRect.extent[0] / 2;
-			mCurrentTextRect.extent[0] = d[0];
-			break;
-		case UIA_LOWERRIGHT:
-			// align to right edge
-			mCurrentTextRect.center[0] = (mFrameRect.extent[0] / 2) + (d[0] / 2);
-			mCurrentTextRect.extent[0] = d[0];
-			break;
-		default:
-			// align to left edge
-			mCurrentTextRect.center[0] = d[0] / 2;
-			mCurrentTextRect.extent[0] = d[0];
-	}
+	mCurrentTextRect = mFrameRect;
 
-	switch (mVAlign)
-	{
-		case UIA_CENTER:
-			// align to v centre
-			mCurrentTextRect.center[1] = 
-				(mFrameRect.extent[1] / 2) - ((lineCount * d[1]) / 2) + (d[1] * line);
-			mCurrentTextRect.center[1] += (mCurrentTextRect.extent[1] / 2);
-			break;
-		case UIA_LOWERRIGHT:
-			// align to bottom edge
-			mCurrentTextRect.center[1] = 
-				mFrameRect.extent[1] - (lineCount * d[1]) + (d[1] * line);
-			mCurrentTextRect.center[1] += (mCurrentTextRect.extent[1] / 2);
-			break;
-		default:
-			// align to top edge
-			mCurrentTextRect.center[1] = (d[1] * line);
-			mCurrentTextRect.center[1] += (mCurrentTextRect.extent[1] / 2);
-			break;
-	}
-
-	mCurrentTextRect.extent[0] -= 2 * mHScrollPos;
-	mCurrentTextRect.center[1] -= mVScrollPos;
+	mCurrentTextRect.center[0] += 4;
 	mCurrentTextRect.extent[1] = d[1];
-
-	mCurrentTextRect.center += mFrameRect.center;
 }
 
 
@@ -1325,49 +1357,6 @@ int UIEditBox::GetLineFromPos(int pos)
 		++i;
 	}
 	return mBrokenTextPositions.size() - 1;
-}
-
-
-void UIEditBox::InputChar(wchar_t c)
-{
-	if (!IsEnabled())
-		return;
-
-	if (c != 0)
-	{
-		if (mText.size() < mMax || mMax == 0)
-		{
-			eastl::wstring s;
-
-			if (mMarkBegin != mMarkEnd)
-			{
-				// replace marked text
-				const int realmbgn = mMarkBegin < mMarkEnd ? mMarkBegin : mMarkEnd;
-				const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
-
-				s = mText.substr(0, realmbgn);
-				s.append(1, c);
-				s.append( mText.substr(realmend, mText.size()-realmend) );
-				mText = s;
-				mCursorPos = realmbgn+1;
-			}
-			else
-			{
-				// add new character
-				s = mText.substr(0, mCursorPos);
-				s.append(1, c);
-				s.append( mText.substr(mCursorPos, mText.size()-mCursorPos) );
-				mText = s;
-				++mCursorPos;
-			}
-
-			mBlinkStartTime = Timer::GetTime();
-			SetTextMarkers(0, 0);
-		}
-	}
-	BreakText();
-	CalculateScrollPos();
-	SendUIEvent(UIEVT_EDITBOX_CHANGED);
 }
 
 // calculate autoscroll
@@ -1401,41 +1390,52 @@ void UIEditBox::CalculateScrollPos()
 			return;
 
 		// get cursor area
-		unsigned int cursorWidth = font->GetDimension(L"_")[0];
+		int cursorWidth = font->GetDimension(L"_")[0];
 		eastl::wstring *txtLine = hasBrokenText ? &mBrokenText[cursLine] : &mText;
 		int cPos = hasBrokenText ? mCursorPos - mBrokenTextPositions[cursLine] : mCursorPos;	// column
-		int cStart = font->GetDimension(txtLine->substr(0, cPos).c_str())[0]; // pixels from text-start
+		mHScrollPos = mHScrollPos > cPos ? cPos : mHScrollPos;
+		int cStart = font->GetDimension(txtLine->substr(mHScrollPos, cPos - mHScrollPos).c_str())[0]; // pixels from text-start
 		int cEnd = cStart + cursorWidth;
-		int txtWidth = font->GetDimension(txtLine->c_str())[0];
-
-		if ( txtWidth < mFrameRect.extent[0] )
-		{
-			// TODO: Needs a clean left and right gap removal depending on HAlign, similar to vertical 
-			// scrolling tests for top/bottom. This check just fixes the case where it was most noticable 
-			// (text smaller than clipping area).
-			mHScrollPos = 0;
-			SetTextRect(cursLine);
-		}
 
 		if (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cStart < 
 			mFrameRect.center[0] - (mFrameRect.extent[0] / 2))
 		{
 			// cursor to the left of the clipping area
-			mHScrollPos -= 
-				mFrameRect.center[0] - (mFrameRect.extent[0] / 2) - 
-				(mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2));
+			int scrollPos = 0;
+			if (mCurrentTextRect.extent[0] <= font->GetDimension(txtLine->c_str())[0] + cursorWidth)
+				scrollPos = cPos;
+
+			mHScrollPos = scrollPos;
 			SetTextRect(cursLine);
 
 			// TODO: should show more characters to the left when we're scrolling left
 			//	and the cursor reaches the border.
 		}
 		else if (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cEnd > 
-			mFrameRect.center[0] - (mFrameRect.extent[0] / 2))
+			mFrameRect.center[0] + (int)round(mFrameRect.extent[0] / 2.f))
 		{
 			// cursor to the right of the clipping area
-			mHScrollPos += 
-				(mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2)) - 
-				mFrameRect.center[0] - (mFrameRect.extent[0] / 2);
+			int scrollPos = 0;
+			if (mCurrentTextRect.extent[0] <= font->GetDimension(txtLine->c_str())[0] + cursorWidth)
+				for (scrollPos = mHScrollPos; scrollPos < (int)txtLine->size(); scrollPos++)
+					if (mCurrentTextRect.extent[0] > font->GetDimension(txtLine->substr(scrollPos, cPos - scrollPos).c_str())[0] + cursorWidth)
+						break;
+
+			mHScrollPos = scrollPos;
+			SetTextRect(cursLine);
+		}
+		else
+		{
+			// TODO: Needs a clean left and right gap removal depending on HAlign, similar to vertical 
+			// scrolling tests for top/bottom. This check just fixes the case where it was most noticable 
+			// (text smaller than clipping area).
+			int scrollPos = mHScrollPos;
+			if (mCurrentTextRect.extent[0] <= cEnd)
+				for (scrollPos = mHScrollPos+1; scrollPos < (int)txtLine->size(); scrollPos++)
+					if (mCurrentTextRect.extent[0] > font->GetDimension(txtLine->substr(scrollPos, cPos - scrollPos).c_str())[0] + cursorWidth)
+						break;
+
+			mHScrollPos = scrollPos;
 			SetTextRect(cursLine);
 		}
 	}
@@ -1486,9 +1486,7 @@ void UIEditBox::CalculateScrollPos()
 					 mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f) )
 				{
 					// last line is leaving a gap on bottom
-					mVScrollPos -= 
-						(mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f)) - 
-						(mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f));
+					mVScrollPos -= mCurrentTextRect.extent[1];
 				}
 			}
 
@@ -1497,18 +1495,14 @@ void UIEditBox::CalculateScrollPos()
 				mFrameRect.center[1] - (mFrameRect.extent[1] / 2))
 			{
 				// text above valid area
-				mVScrollPos -= 
-					(mFrameRect.center[1] - (mFrameRect.extent[1] / 2)) - 
-					(mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2));
+				mVScrollPos -= mCurrentTextRect.extent[1];
 				SetTextRect(cursLine);
 			}
 			if (mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f) >
 				mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f))
 			{
 				// text below valid area
-				mVScrollPos += 
-					(mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f)) - 
-					(mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f));
+				mVScrollPos += mCurrentTextRect.extent[1];
 				SetTextRect(cursLine);
 			}
 		}
