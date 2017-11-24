@@ -62,7 +62,7 @@ Level* LevelManager::GetLevel(const eastl::wstring& ident) const
 {
     for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
     {
-        if ((*i)->getIdent() == ident)
+        if ((*i)->GetID() == ident)
             return *i;
     }
 
@@ -78,7 +78,7 @@ void LevelManager::RemoveAllCachedData()
 {
 /*
     for(LevelList::const_iterator i = m_levels.begin(); i != m_levels.end(); ++i)
-        (*i)->removeCachedData();
+        (*i)->RemoveCachedData();
 */
 }   // removeAllCachedData
 //-----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::wstring> &lev
     for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
     {
         if(!mLevelAvailables[i-mLevels.begin()]) continue;
-        const eastl::wstring id=(*i)->getIdent();
+        const eastl::wstring id=(*i)->GetID();
         if (eastl::find(levels.begin(), levels.end(), id)==levels.end())
         {
             mLevelAvailables[i-mLevels.begin()] = false;
@@ -111,7 +111,7 @@ eastl::vector<eastl::wstring> LevelManager::GetAllLevelIdentifiers()
     eastl::vector<eastl::wstring> all;
     for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
     {
-        all.push_back((*i)->getIdent());
+        all.push_back((*i)->GetID());
     }
     return all;
 }   // getAllDemoNames
@@ -137,9 +137,8 @@ void LevelManager::LoadLevelList(const eastl::wstring& levelname)
 
         // Then see if a subdir of this dir contains levels
         // ------------------------------------------------
-		eastl::vector<eastl::wstring> files = 
-			ResCache::Get()->Match(eastl::wstring(L"world/*/") + levelname);
 
+		eastl::vector<eastl::wstring> files = ResCache::Get()->Match(dir + levelname);
         for(eastl::vector<eastl::wstring>::iterator itFile = files.begin(); 
 			itFile != files.end(); itFile++)
         {
@@ -155,8 +154,7 @@ void LevelManager::LoadLevelList(const eastl::wstring& levelname)
  */
 bool LevelManager::LoadLevel(const eastl::wstring& levelname)
 {
-	FileSystem* fileSystem = FileSystem::Get();
-	if (!fileSystem->ExistFile(levelname))
+	if (!FileSystem::Get()->ExistFile(levelname))
 		return false;
 
     Level *level;

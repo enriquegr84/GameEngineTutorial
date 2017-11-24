@@ -396,12 +396,38 @@ eastl::string FileSystem::GetPath(const eastl::string& fileName)
 //! determines if a directory exists and would be able to be opened.
 bool FileSystem::ExistDirectory(const eastl::wstring& dirname) const
 {
+	if (msDirectories)
+	{
+		std::wstring dir(dirname.c_str());
+		std::string dirName(dir.begin(), dir.end());
+
+		eastl::vector<eastl::string>::iterator iter = msDirectories->begin();
+		eastl::vector<eastl::string>::iterator end = msDirectories->end();
+		for (/**/; iter != end; ++iter)
+			if (dirName.c_str() == *iter)
+				return true;
+	}
 	return false;
 }
 
 //! determines if a file exists and would be able to be opened.
 bool FileSystem::ExistFile(const eastl::wstring& filename) const
 {
+	if (msDirectories)
+	{
+		std::wstring file(filename.c_str());
+		std::string fileName(file.begin(), file.end());
+
+		eastl::vector<eastl::string>::iterator iter = msDirectories->begin();
+		eastl::vector<eastl::string>::iterator end = msDirectories->end();
+		for (/**/; iter != end; ++iter)
+		{
+			eastl::string decorated = *iter + fileName.c_str();
+			if (access(decorated.c_str(), 0) != -1)
+				return true;
+		}
+	}
+
 	return false;
 }
 

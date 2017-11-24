@@ -84,12 +84,13 @@ GameLogic::GameLogic()
 	mAIPlayersAttached = 0;
 	mHumanGamesLoaded = 0;
 	mActorFactory = NULL;
-	//m_pPathingGraph = NULL;
+	//mPathingGraph = NULL;
 
-	mProcessManager = new ProcessManager;
-	mLevelManager = new LevelManager;
+	mProcessManager = new ProcessManager();
+	mLevelManager = new LevelManager();
 	LogAssert(mProcessManager && mLevelManager, "Uninitialized process and level mngr");
-	mLevelManager->AddLevelSearchDir(L"");
+	mLevelManager->AddLevelSearchDir(L"world/");
+	mLevelManager->LoadLevelList(L"*.xml");
 
     //	register script events from the engine
 	//  [mrmike] this was moved to the constructor post-press, since this function 
@@ -181,8 +182,7 @@ bool GameLogic::LoadGame(const char* levelResource)
     {
         BaseResource resource(preLoadScript);
 		// this actually loads the XML file from the zip file
-        eastl::shared_ptr<ResHandle> pResourceHandle = 
-			ResCache::Get()->GetHandle(&resource);
+        eastl::shared_ptr<ResHandle> pResourceHandle = ResCache::Get()->GetHandle(&resource);
     }
 	*/
 
@@ -225,8 +225,7 @@ bool GameLogic::LoadGame(const char* levelResource)
     {
         BaseResource resource(postLoadScript);
 		// this actually loads the XML file from the zip file
-        const eastl::shared_ptr<ResHandle>& pResourceHandle = 
-			ResCache::Get()->GetHandle(&resource);
+        const eastl::shared_ptr<ResHandle>& pResourceHandle = ResCache::Get()->GetHandle(&resource);
     }
 	*/
 

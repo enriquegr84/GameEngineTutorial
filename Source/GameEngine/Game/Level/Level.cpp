@@ -23,7 +23,7 @@
 #include "Core/IO/XmlResource.h"
 
 // ----------------------------------------------------------------------------
-Level::Level(const eastl::wstring& filename)
+Level::Level(const eastl::wstring& filename) : mFileName(filename)
 {
 	if (filename.rfind('.') != eastl::string::npos)
 	{
@@ -58,13 +58,14 @@ void Level::LoadLevelInfo()
 	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(
 		eastl::wstring(mFileName.c_str()).c_str());
 
-	if(!pRoot || !pRoot->FirstChildElement("level"))
-    {
-        std::ostringstream o;
-		o << "Can't load level '" << mFileName.c_str() << "', no level element.";
-        throw std::runtime_error(o.str());
-    }
-	mName = pRoot->Attribute("name");
+	if (!pRoot)
+	{
+		LogError(eastl::wstring("Can't load level '") + mFileName.c_str() + eastl::wstring("', no level element."));
+		return;
+	}
+
+	std::string levelname = pRoot->Attribute("name");
+	mName = eastl::wstring(std::wstring(levelname.begin(), levelname.end()).c_str());
 }   // loadLevelInfo
 
 // ----------------------------------------------------------------------------

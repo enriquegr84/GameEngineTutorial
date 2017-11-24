@@ -90,11 +90,15 @@ void UIStaticText::Draw( )
 				if (font != mLastBreakFont)
 					BreakText();
 
+				int height = font->GetDimension(L"A")[1];
+				frameRect.center[1] -= (mBrokenText.size() - 1) * height;
 				for (unsigned int i=0; i<mBrokenText.size(); ++i)
 				{
 					font->Draw(mBrokenText[i].c_str(), frameRect,
 						mOverrideColorEnabled ? mOverrideColor : skin->GetColor(IsEnabled() ? DC_BUTTON_TEXT : DC_GRAY_TEXT),
 						mHAlign == UIA_CENTER, mVAlign == UIA_CENTER, (mRestrainTextInside ? &mAbsoluteClippingRect : NULL));
+
+					frameRect.center[1] += height;
 				}
 			}
 		}

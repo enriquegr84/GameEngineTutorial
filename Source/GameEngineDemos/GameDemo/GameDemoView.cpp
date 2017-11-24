@@ -156,7 +156,7 @@ bool MainMenuUI::OnInit()
 	RectangleBase<2, int> playerOptionsRectangle;
 	playerOptionsRectangle.center[0] = 50;
 	playerOptionsRectangle.extent[0] = 90;
-	playerOptionsRectangle.center[1] = 32;
+	playerOptionsRectangle.center[1] = 42;
 	playerOptionsRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> playerOptionsLine =
 		AddStaticText(L"AI Player:", playerOptionsRectangle, false, false, mWindow, CID_NUM_AI_LABEL, true);
@@ -164,8 +164,8 @@ bool MainMenuUI::OnInit()
 
 	playerOptionsRectangle.center[0] = 250;
 	playerOptionsRectangle.extent[0] = 250;
-	playerOptionsRectangle.center[1] = 32;
-	playerOptionsRectangle.extent[1] = 16;
+	playerOptionsRectangle.center[1] = 40;
+	playerOptionsRectangle.extent[1] = 20;
 	mGameAI = AddScrollBar(true, playerOptionsRectangle, mWindow, CID_NUM_AI_SLIDER);
 	mGameAI->SetMin(0);
 	mGameAI->SetMax(gameApp->mOption.mMaxAIs);
@@ -176,7 +176,7 @@ bool MainMenuUI::OnInit()
 
 	playerOptionsRectangle.center[0] = 50;
 	playerOptionsRectangle.extent[0] = 90;
-	playerOptionsRectangle.center[1] = 62;
+	playerOptionsRectangle.center[1] = 82;
 	playerOptionsRectangle.extent[1] = 16;
 	playerOptionsLine =
 		AddStaticText(L"Human Player:", playerOptionsRectangle, false, false, mWindow, CID_NUM_PLAYER_LABEL, false);
@@ -184,8 +184,8 @@ bool MainMenuUI::OnInit()
 
 	playerOptionsRectangle.center[0] = 250;
 	playerOptionsRectangle.extent[0] = 250;
-	playerOptionsRectangle.center[1] = 62;
-	playerOptionsRectangle.extent[1] = 16;
+	playerOptionsRectangle.center[1] = 80;
+	playerOptionsRectangle.extent[1] = 20;
 	mGamePlayer = AddScrollBar(true, playerOptionsRectangle, mWindow, CID_NUM_PLAYER_SLIDER);
 	mGamePlayer->SetMin(0);
 	mGamePlayer->SetMax(gameApp->mOption.mMaxPlayers);
@@ -196,7 +196,7 @@ bool MainMenuUI::OnInit()
 
 	playerOptionsRectangle.center[0] = 50;
 	playerOptionsRectangle.extent[0] = 90;
-	playerOptionsRectangle.center[1] = 92;
+	playerOptionsRectangle.center[1] = 122;
 	playerOptionsRectangle.extent[1] = 16;
 	playerOptionsLine =
 		AddStaticText(L"Game Host:", playerOptionsRectangle, false, false, mWindow, CID_HOST_NAME_LABEL, false);
@@ -204,15 +204,15 @@ bool MainMenuUI::OnInit()
 
 	playerOptionsRectangle.center[0] = 220;
 	playerOptionsRectangle.extent[0] = 190;
-	playerOptionsRectangle.center[1] = 92;
-	playerOptionsRectangle.extent[1] = 16;
+	playerOptionsRectangle.center[1] = 120;
+	playerOptionsRectangle.extent[1] = 20;
 	mGameHost = AddEditBox(eastl::wstring(gameApp->mOption.mGameHost.c_str()).c_str(), 
 		playerOptionsRectangle, true, mWindow, CID_HOST_NAME_LABEL);
 
 	playerOptionsRectangle.center[0] = 350;
 	playerOptionsRectangle.extent[0] = 50;
-	playerOptionsRectangle.center[1] = 92;
-	playerOptionsRectangle.extent[1] = 16;
+	playerOptionsRectangle.center[1] = 120;
+	playerOptionsRectangle.extent[1] = 20;
 	mGameStart = AddButton(playerOptionsRectangle, mWindow, CID_START_BUTTON, L"Start");
 	mGameStart->SetToolTipText(L"Start Game");
 
@@ -228,7 +228,7 @@ bool MainMenuUI::OnInit()
 	RectangleBase<2, int> videoRectangle;
 	videoRectangle.center[0] = screenSize[0] - 355;
 	videoRectangle.extent[0] = 90;
-	videoRectangle.center[1] = 32;
+	videoRectangle.center[1] = 42;
 	videoRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoDriverLine = 
 		AddStaticText(L"VideoDriver:", videoRectangle, false, false, mWindow, -1, true);
@@ -236,8 +236,8 @@ bool MainMenuUI::OnInit()
 	
 	videoRectangle.center[0] = screenSize[0] - 155;
 	videoRectangle.extent[0] = 290;
-	videoRectangle.center[1] = 32;
-	videoRectangle.extent[1] = 16;
+	videoRectangle.center[1] = 40;
+	videoRectangle.extent[1] = 20;
 	mVideoDriver = AddComboBox(videoRectangle, mWindow);
 	mVideoDriver->AddItem(L"Direct3D 11", RT_DIRECT3D11);
 	mVideoDriver->AddItem(L"OpenGL", RT_OPENGL);
@@ -247,7 +247,7 @@ bool MainMenuUI::OnInit()
 
 	videoRectangle.center[0] = screenSize[0] - 355;
 	videoRectangle.extent[0] = 90;
-	videoRectangle.center[1] = 62;
+	videoRectangle.center[1] = 82;
 	videoRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoModeLine =
 		AddStaticText(L"VideoMode:", videoRectangle, false, false, mWindow, -1, false);
@@ -255,8 +255,8 @@ bool MainMenuUI::OnInit()
 
 	videoRectangle.center[0] = screenSize[0] - 155;
 	videoRectangle.extent[0] = 290;
-	videoRectangle.center[1] = 62;
-	videoRectangle.extent[1] = 16;
+	videoRectangle.center[1] = 80;
+	videoRectangle.extent[1] = 20;
 	mVideoMode = AddComboBox(videoRectangle, mWindow);
 	eastl::vector<Vector2<unsigned int>> videoResolutions = gameApp->mSystem->GetVideoResolutions();
 	for (int i = 0; i != videoResolutions.size(); ++i)
@@ -286,14 +286,14 @@ bool MainMenuUI::OnInit()
 
 	screenRectangle.center[0] = screenSize[0] - 350;
 	screenRectangle.extent[0] = 100;
-	screenRectangle.center[1] = 92;
-	screenRectangle.extent[1] = 16;
+	screenRectangle.center[1] = 120;
+	screenRectangle.extent[1] = 20;
 	mFullScreen = AddCheckBox(gameApp->mOption.mFullScreen, screenRectangle, mWindow, -1, L"Fullscreen");
 	mFullScreen->SetToolTipText(L"Set Fullscreen or Window Mode");
 
 	screenRectangle.center[0] = screenSize[0] - 250;
 	screenRectangle.extent[0] = 90;
-	screenRectangle.center[1] = 92;
+	screenRectangle.center[1] = 122;
 	screenRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoMultiSampleLine =
 		AddStaticText(L"MultiSample:", screenRectangle, false, false, mWindow, -1, false);
@@ -301,8 +301,8 @@ bool MainMenuUI::OnInit()
 
 	screenRectangle.center[0] = screenSize[0] - 130;
 	screenRectangle.extent[0] = 120;
-	screenRectangle.center[1] = 92;
-	screenRectangle.extent[1] = 16;
+	screenRectangle.center[1] = 120;
+	screenRectangle.extent[1] = 20;
 	mMultiSample = AddScrollBar(true, screenRectangle, mWindow, -1);
 	mMultiSample->SetMin(0);
 	mMultiSample->SetMax(8);
@@ -313,29 +313,33 @@ bool MainMenuUI::OnInit()
 
 	screenRectangle.center[0] = screenSize[0] - 35;
 	screenRectangle.extent[0] = 50;
-	screenRectangle.center[1] = 92;
-	screenRectangle.extent[1] = 16;
+	screenRectangle.center[1] = 120;
+	screenRectangle.extent[1] = 20;
 	mSetVideoMode = AddButton(screenRectangle, mWindow, -1, L"Set");
 	mSetVideoMode->SetToolTipText(L"Set video mode with current values");
 
-	screenRectangle.center[0] = screenSize[0] - 225;
-	screenRectangle.extent[0] = 450;
+	screenRectangle.center[0] = 50;
+	screenRectangle.extent[0] = 90;
 	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[1] = 20;
 	eastl::shared_ptr<BaseUIStaticText> mapsLine =
 		AddStaticText(L"Maps:", screenRectangle, false, false, mWindow, -1, false);
 	mapsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	screenRectangle.center[0] = screenSize[0] - 225;
-	screenRectangle.extent[0] = 450;
+	screenRectangle.center[0] = 190;
+	screenRectangle.extent[0] = 380;
 	screenRectangle.center[1] = screenSize[1] - 210;
 	screenRectangle.extent[1] = 340;
 	mMaps = AddListBox(screenRectangle, mWindow, -1, true);
-	mMaps->SetToolTipText(L"Show the current maps in all archives.\n Double-Click the map to start the level");
+	mMaps->SetToolTipText(L"Show the current maps.\n Double-Click the map to start the level");
+
+	eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
+	for (eastl::vector<Level*>::iterator it = levels.begin(); it != levels.end(); ++it)
+		mMaps->AddItem((*it)->GetName().c_str());
 
 	// create a visible Scene Tree
-	screenRectangle.center[0] = screenSize[0] - 200;
-	screenRectangle.extent[0] = 400;
+	screenRectangle.center[0] = screenSize[0] - 350;
+	screenRectangle.extent[0] = 90;
 	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[1] = 20;
 	eastl::shared_ptr<BaseUIStaticText> sceneGraphLine =
@@ -365,73 +369,6 @@ bool MainMenuUI::OnInit()
 		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true);
 		mLogo->SetToolTipText(L"The great Irrlicht Engine");
 	}
-
-	int iY = 10;
-	int iX = 35;
-	int iX2 = g_SampleUIWidth / 2;
-	int width = (g_SampleUIWidth / 2) - 10;
-	int height = 25;
-	int lineHeight = height + 2;
-
-	// grab defaults from the game options.
-	mNumAIs = gameApp->mOption.mNumAIs;
-	mNumPlayers = gameApp->mOption.mExpectedPlayers;
-	mHostName = gameApp->mOption.mGameHost;
-	mHostListenPort = gameApp->mOption.mListenPort;
-	mClientAttachPort = gameApp->mOption.mListenPort;
-
-	mCreatingGame = true;
-
-	m_SampleUI.AddRadioButton(CID_CREATE_GAME_RADIO, 1, L"Create Game", iX, iY, g_SampleUIWidth, height);
-	iY += lineHeight;
-
-	m_SampleUI.AddStatic(CID_LEVEL_LABEL, L"Level", iX, iY, width, height);
-	m_SampleUI.AddListBox(CID_LEVEL_LISTBOX, iX2, iY, width, lineHeight * 5);
-	eastl::vector<Level> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
-	m_Levels.reserve(levels.size());
-	int count = 0;
-	for (std::vector<Level>::iterator i = levels.begin(); i != levels.end(); ++i, ++count)
-	{
-	m_Levels.push_back(s2ws(*i));
-	m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->AddItem(m_Levels[count].c_str(), NULL);
-	}
-	iY += (lineHeight * 5);
-	//m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->GetElement(0)->SetFont(0, 0x0);
-
-	m_SampleUI.AddStatic(CID_NUM_AI_LABEL, L"", iX, iY, width, height);
-	m_SampleUI.AddSlider(CID_NUM_AI_SLIDER, iX2, iY, width, height);
-	m_SampleUI.GetSlider(CID_NUM_AI_SLIDER)->SetRange(0, g_pApp->m_Options.m_maxAIs);
-	m_SampleUI.GetSlider(CID_NUM_AI_SLIDER)->SetValue(m_NumAIs); // should be ai options default
-	iY += lineHeight;
-
-	m_SampleUI.AddStatic(CID_NUM_PLAYER_LABEL, L"", iX, iY, width, height);
-	m_SampleUI.AddSlider(CID_NUM_PLAYER_SLIDER, iX2, iY, width, height);
-	m_SampleUI.GetSlider(CID_NUM_PLAYER_SLIDER)->SetRange(1, g_pApp->m_Options.m_maxPlayers);
-	m_SampleUI.GetSlider(CID_NUM_PLAYER_SLIDER)->SetValue(m_NumPlayers);  // should be player options default
-	iY += lineHeight;
-
-	m_SampleUI.AddStatic(CID_HOST_LISTEN_PORT_LABEL, L"Host Listen Port", iX, iY, width, height);
-	m_SampleUI.AddEditBox(CID_HOST_LISTEN_PORT, L"57", iX2, iY, width, height * 2);
-	CDXUTEditBox *eb = m_SampleUI.GetEditBox(CID_HOST_LISTEN_PORT);
-	eb->SetVisible(false);
-	iY += lineHeight * 3;
-
-	m_SampleUI.AddRadioButton(CID_JOIN_GAME_RADIO, 1, L"Join Game", iX, iY, width, height);
-	m_SampleUI.GetRadioButton(CID_JOIN_GAME_RADIO)->SetChecked(true);
-	iY += lineHeight;
-
-	m_SampleUI.AddStatic(CID_CLIENT_ATTACH_PORT_LABEL, L"Host Attach Port", iX, iY, width, height);
-	m_SampleUI.AddEditBox(CID_CLIENT_ATTACH_PORT, L"57", iX2, iY, width, height * 2);
-	iY += lineHeight * 3;
-
-
-	m_SampleUI.AddStatic(CID_HOST_NAME_LABEL, L"Host Name", iX, iY, width, height);
-	m_SampleUI.AddEditBox(CID_HOST_NAME, L"sunshine", iX2, iY, width, height * 2);
-	iY += lineHeight;
-
-	m_SampleUI.AddButton(CID_START_BUTTON, L"Start Game", (g_SampleUIWidth - (width / 2)) / 2, iY += lineHeight, width / 2, height);
-
-	m_SampleUI.GetRadioButton(CID_CREATE_GAME_RADIO)->SetChecked(true);
 
 	Set();
 	*/

@@ -7,7 +7,7 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Effect/Texture2Effect.h"
+#include "Graphic/Effect/BasicEffect.h"
 #include "Graphic/Scene/Element/Visual.h"
 
 class BaseUIFont;
@@ -286,7 +286,7 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<Texture2Effect> mEffect;
+	eastl::shared_ptr<BasicEffect> mEffect;
 
 	unsigned int mSelectTime;
 	unsigned int mLastKeyTime;
