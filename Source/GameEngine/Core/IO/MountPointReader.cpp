@@ -87,7 +87,7 @@ bool ResourceMountPointFile::Open()
 
 	return false;
 /*
-	mMountPointFile = new PakFile;
+	mMountPointFile = new PakFile();
     if (mMountPointFile)
     {
 		return mMountPointFile->Init(mResFileName.c_str());

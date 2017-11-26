@@ -106,7 +106,7 @@ public:
 	virtual bool ChangeWorkingDirectoryTo(const eastl::wstring& newDirectory) =0;
 
 	/** Returns a list of files in a given directory.
-	 *  \param result A reference to a std::vector<std::string> which will
+	 *  \param result A reference to a eastl::vector<eastl::string> which will
 	 *         hold all files in a directory. The vector will be cleared.
 	 *  \param dir The director for which to get the directory listing.
 	 *  \param make_full_path If set to true, all listed files will be full paths.

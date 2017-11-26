@@ -156,7 +156,7 @@ System* WindowsSystem::GetSystemFromHandle(HWND hWnd)
 //	int iCmdShow - This holds information on the window's state; maximized, minimized, hide...	
 ATOM WindowsSystem::MyRegisterClass(HINSTANCE hInstance)
 {
-	const std::wstring className(L"WindowsSystem");
+	const eastl::wstring className(L"WindowsSystem");
 
 	// WNDCLASSEX - This variable will hold all the information about the window 
 	// (The name, icon, cursor, color, menu bar...)
@@ -554,7 +554,7 @@ HWND WindowsSystem::InitInstance(HINSTANCE hInstance, int width, int height, boo
 	// CreateWindow() returns a handle to the window, which we store in our HWnd "HWnd".
 	// ClassName. Window class name, tells CreateWindow() to use our class up above.
 
-	const std::wstring className(L"WindowsSystem");
+	const eastl::wstring className(L"WindowsSystem");
 
 	// WindowsTitle. window's Title, it will be the name on the title bar of the window.
 	// Window style flag to create a typical window, (options like resize, minimize, close, etc).
@@ -1046,8 +1046,7 @@ void WindowsSystem::GetSystemVersion(eastl::string& out)
 			return;
 	}
 
-	std::wstring osviszCSDVersion(osvi.szCSDVersion);
-	std::string osviszCSDVersionConvertion(osviszCSDVersion.begin(), osviszCSDVersion.end());
+	eastl::string osviszCSDVersion = ToString(osvi.szCSDVersion);
 
 	switch (osvi.dwPlatformId)
 	{
@@ -1177,12 +1176,12 @@ void WindowsSystem::GetSystemVersion(eastl::string& out)
 			sprintf(tmp, "version %ld.%ld %s (Build %ld)",
 				osvi.dwMajorVersion,
 				osvi.dwMinorVersion,
-				osviszCSDVersionConvertion.c_str(),
+				osviszCSDVersion.c_str(),
 				osvi.dwBuildNumber & 0xFFFF);
 		}
 		else
 		{
-			sprintf(tmp, "%s (Build %ld)", osviszCSDVersionConvertion.c_str(),
+			sprintf(tmp, "%s (Build %ld)", osviszCSDVersion.c_str(),
 				osvi.dwBuildNumber & 0xFFFF);
 		}
 

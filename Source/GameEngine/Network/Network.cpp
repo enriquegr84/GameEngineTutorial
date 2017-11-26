@@ -849,7 +849,7 @@ bool ClientSocketManager::Connect()
 	if (!BaseSocketManager::Init())
 		return false;
 
-	RemoteEventSocket *pSocket = new RemoteEventSocket;
+	RemoteEventSocket *pSocket = new RemoteEventSocket();
 	
 	if (!pSocket->Connect(GetHostByName(mHostName), mPort) )
 	{

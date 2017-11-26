@@ -38,6 +38,22 @@
 
 #include "StringUtil.h"
 
+eastl::string ToString(const wchar_t *str)
+{
+	std::wstring strSource(str);
+	std::string strTarget(strSource.begin(), strSource.end());
+
+	return eastl::string(strTarget.c_str());
+}
+
+eastl::wstring ToWideString(const char *str)
+{
+	std::string strSource(str);
+	std::wstring strTarget(strSource.begin(), strSource.end());
+
+	return eastl::wstring(strTarget.c_str());
+}
+
 //	The following function was found on http://xoomer.virgilio.it/acantato/dev/wildcard/wildmatch.html, 
 //	where it was attributed to the C/C++ Users Journal, written by Mike Cornelison. It is a little ugly, 
 //	but it is FAST.

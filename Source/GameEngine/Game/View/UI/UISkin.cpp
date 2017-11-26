@@ -890,6 +890,56 @@ void UISkin::Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool
 	Renderer::Get()->Draw(visual);
 }
 
+//! draws a 2d texture.
+void UISkin::Draw2DTexture(const eastl::shared_ptr<BaseUIElement>& element,
+	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& pos, const Vector2<int>& dimension)
+{
+	if (!Renderer::Get())
+		return;
+
+	Vector2<int> targetPos = pos.center;
+
+	eastl::shared_ptr<Texture2Effect> effect =
+		eastl::static_pointer_cast<Texture2Effect>(visual->GetEffect());
+	eastl::shared_ptr<Texture2> tex = effect->GetTexture();
+	Vector2<unsigned int> sourceCenter{ tex->GetDimension(0) / 2, tex->GetDimension(1) / 2 };
+	Vector2<unsigned int> sourceSize{ tex->GetDimension(0), tex->GetDimension(1) };
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector2<float> tcoord;
+	};
+	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
+	vertex[0].position = {
+		(float)(targetPos[0] - dimension[0] - (pos.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (pos.extent[1] / 2)) / dimension[1], 0.0f };
+	vertex[0].tcoord = {
+		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+	vertex[1].position = {
+		(float)(targetPos[0] - dimension[0] + (int)round(pos.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (pos.extent[1] / 2)) / dimension[1], 0.0f };
+	vertex[1].tcoord = {
+		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+	vertex[2].position = {
+		(float)(targetPos[0] - dimension[0] - (pos.extent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(pos.extent[1] / 2.f)) / dimension[1], 0.0f };
+	vertex[2].tcoord = {
+		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+	vertex[3].position = {
+		(float)(targetPos[0] - dimension[0] + (int)round(pos.extent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(pos.extent[1] / 2.f)) / dimension[1], 0.0f };
+	vertex[3].tcoord = {
+		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+
+	// Create the geometric object for drawing.
+	Renderer::Get()->Update(visual->GetVertexBuffer());
+	Renderer::Get()->Draw(visual);
+}
 
 //! draws a 2d rectangle.
 void UISkin::Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element,

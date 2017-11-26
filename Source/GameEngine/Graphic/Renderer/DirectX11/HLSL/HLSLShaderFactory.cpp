@@ -6,6 +6,7 @@
 // File Version: 3.0.1 (2016/09/12)
 
 #include "Core/Logger/Logger.h"
+#include "Core/Utility/StringUtil.h"
 
 #include "HLSLShaderFactory.h"
 
@@ -140,8 +141,7 @@ ID3DBlob* HLSLShaderFactory::CompileShader(eastl::string const& filepath,
 #endif
 	}
 
-	std::string file(filepath.c_str());
-	HRESULT hr = D3DCompileFromFile(std::wstring(file.begin(), file.end()).c_str(), 
+	HRESULT hr = D3DCompileFromFile(ToWideString(filepath.c_str()).c_str(), 
 		localDefinitions.data(), include, entry.c_str(), target.c_str(), compileFlags, 
 		0, &compiledCode, &errors);
 	if (SUCCEEDED(hr))

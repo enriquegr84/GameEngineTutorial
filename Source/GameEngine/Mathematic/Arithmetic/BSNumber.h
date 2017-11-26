@@ -797,7 +797,7 @@ void BSNumber<UIntegerType>::ConvertFrom(typename IEEE::FloatType number)
         if (t == 0)  // infinities
         {
             // x = (-1)^s * infinity
-            LogWarning("Input is " + std::string(s > 0 ? "-" : "+") +
+            LogWarning("Input is " + eastl::string(s > 0 ? "-" : "+") +
                 "infinity.");
 
             // Return (-1)^s * 2^{1+EXPONENT_BIAS} for a graceful exit.
@@ -808,9 +808,9 @@ void BSNumber<UIntegerType>::ConvertFrom(typename IEEE::FloatType number)
         else  // not-a-number (NaN)
         {
             LogError("Input is a " +
-                std::string(t & IEEE::NAN_QUIET_MASK ?
+                eastl::string(t & IEEE::NAN_QUIET_MASK ?
                 "quiet" : "signaling") + " NaN with payload " +
-                std::to_string(t & IEEE::NAN_PAYLOAD_MASK) + ".");
+                eastl::to_string(t & IEEE::NAN_PAYLOAD_MASK) + ".");
 
             // Return 0 for a graceful exit.
             mSign = 0;

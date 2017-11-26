@@ -39,10 +39,13 @@
 #ifndef STRINGUTIL_H
 #define STRINGUTIL_H
 
-#include "EASTL/string.h"
+#include "Core/CoreStd.h"
 
 // Does a classic * & ? pattern match on a file name - this is case sensitive!
 bool WildcardMatch(const wchar_t *pat, const wchar_t *str);
+
+eastl::string ToString(const wchar_t *str);
+eastl::wstring ToWideString(const char *str);
 
 //	A hashed string.  It retains the initial (ANSI) string in 
 //	addition to the hash value for easy reference.

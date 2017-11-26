@@ -74,7 +74,7 @@ HumanView::HumanView()
 {
 	InitAudio(); 
 
-	mProcessManager = new ProcessManager;
+	mProcessManager = new ProcessManager();
 
 	mRunFullSpeed = true;
 	mViewId = INVALID_GAME_VIEW_ID;

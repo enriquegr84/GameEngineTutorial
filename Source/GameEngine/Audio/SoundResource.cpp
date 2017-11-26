@@ -389,7 +389,7 @@ unsigned int OggResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned 
 
 	ov_callbacks oggCallbacks;
 
-	OggMemoryFile *vorbisMemoryFile = new OggMemoryFile; 
+	OggMemoryFile *vorbisMemoryFile = new OggMemoryFile(); 
 	vorbisMemoryFile->dataRead = 0;
 	vorbisMemoryFile->dataSize = rawSize; 
 	vorbisMemoryFile->dataPtr = (unsigned char *)rawBuffer;
@@ -451,7 +451,7 @@ bool OggResourceLoader::ParseOgg(char *oggStream, size_t length, eastl::shared_p
 
 	ov_callbacks oggCallbacks;
 
-	OggMemoryFile *vorbisMemoryFile = new OggMemoryFile; 
+	OggMemoryFile *vorbisMemoryFile = new OggMemoryFile(); 
 	vorbisMemoryFile->dataRead = 0;
 	vorbisMemoryFile->dataSize = length; 
 	vorbisMemoryFile->dataPtr = (unsigned char *)oggStream;

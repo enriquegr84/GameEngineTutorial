@@ -22,6 +22,8 @@
 #include "Core/IO/FileSystem.h"
 #include "Core/IO/XmlResource.h"
 
+#include "Core/Utility/StringUtil.h"
+
 // ----------------------------------------------------------------------------
 Level::Level(const eastl::wstring& filename) : mFileName(filename)
 {
@@ -64,8 +66,7 @@ void Level::LoadLevelInfo()
 		return;
 	}
 
-	std::string levelname = pRoot->Attribute("name");
-	mName = eastl::wstring(std::wstring(levelname.begin(), levelname.end()).c_str());
+	mName = ToWideString(pRoot->Attribute("name"));
 }   // loadLevelInfo
 
 // ----------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 // File Version: 3.0.0 (2016/06/19)
 
 #include "Logger.h"
+#include "Core/Utility/StringUtil.h"
 
 eastl::string Logger::mMessage;
 std::mutex Logger::msMutex;
@@ -22,9 +23,7 @@ Logger::Logger(char const* file, char const* function, int line, eastl::string c
 
 Logger::Logger(char const* file, char const* function, int line, eastl::wstring const& message)
 {
-	std::wstring messageOriginal(message.c_str());
-	std::string messageConvertion(messageOriginal.begin(), messageOriginal.end());
-	Logger(file, function, line, eastl::string(messageConvertion.c_str()));
+	Logger(file, function, line, ToString(message.c_str()));
 }
 
 void Logger::Assertion()

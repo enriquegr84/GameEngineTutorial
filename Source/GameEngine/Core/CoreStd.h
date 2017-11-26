@@ -217,11 +217,11 @@ inline eastl::string GetErrorMessage(HRESULT hr)
 		0, NULL);
 	if (bufLen)
 	{
-		std::wstring result(lpMsgBuf);
-		std::string resultConvertion(result.begin(), result.end());
+		std::wstring error(lpMsgBuf);
+		std::string errorMessage(error.begin(), error.end());
 
 		LocalFree(lpMsgBuf);
-		return eastl::string(resultConvertion.c_str());
+		return eastl::string(errorMessage.c_str());
 	}
 	return eastl::string();
 }

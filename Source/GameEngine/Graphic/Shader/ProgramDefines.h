@@ -21,7 +21,7 @@ public:
     // Construction.
     ProgramDefines();
 
-    // Set a definition.  Each is stored as a eastl::pair of std::string.  The
+    // Set a definition.  Each is stored as a eastl::pair of eastl::string.  The
     // firstelement of the pair is the 'name' and the second element of the
     // pair is the string representation of 'value'.
     inline void Set(eastl::string const& name, int value);

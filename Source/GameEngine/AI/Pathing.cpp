@@ -386,7 +386,7 @@ PathPlan* AStar::RebuildPath(PathPlanNode* pGoalNode)
 {
 	LogAssert(pGoalNode, "Invalid node");
 
-	PathPlan* pPlan = new PathPlan;
+	PathPlan* pPlan = new PathPlan();
 
 	PathPlanNode* pNode = pGoalNode;
 	while (pNode)
@@ -552,7 +552,7 @@ void PathingGraph::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
 	LogAssert(pNodeA, "Invalid node");
 	LogAssert(pNodeB, "Invalid node");
 	
-	PathingArc* pArc = new PathingArc;
+	PathingArc* pArc = new PathingArc();
 	pArc->LinkNodes(pNodeA,pNodeB);
 	pNodeA->AddArc(pArc);
 	pNodeB->AddArc(pArc);
@@ -565,7 +565,7 @@ void PathingGraph::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
 //--------------------------------------------------------------------------------------------------------
 PathingGraph* CreatePathingGraph(void)
 {
-	PathingGraph* pPathingGraph = new PathingGraph;
+	PathingGraph* pPathingGraph = new PathingGraph();
 	pPathingGraph->BuildTestGraph();
 	return pPathingGraph;
 }

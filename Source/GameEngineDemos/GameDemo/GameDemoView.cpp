@@ -78,7 +78,7 @@
 
 #define CID_DEMO_WINDOW					(1)
 #define CID_CREATE_GAME_RADIO			(2)
-#define CID_JOIN_GAME_RADIO				(3)
+#define CID_SET_GAME_RADIO				(3)
 #define CID_NUM_AI_SLIDER				(4)
 #define CID_NUM_PLAYER_SLIDER			(5)
 #define CID_HOST_LISTEN_PORT			(6)
@@ -91,7 +91,8 @@
 #define CID_CLIENT_ATTACH_PORT_LABEL	(13)
 #define CID_HOST_NAME_LABEL				(14)
 #define CID_LEVEL_LABEL					(15)
-#define CID_LEVEL_GUIListBox			(16)
+#define CID_LEVEL_LISTBOX				(16)
+#define CID_STATUS_LABEL				(17)
 
 
 const int SampleUIWidth = 600;
@@ -148,9 +149,9 @@ bool MainMenuUI::OnInit()
 	screenRectangle.extent[0] = (int)screenSize[0];
 	screenRectangle.extent[1] = (int)screenSize[1];
 
-	mWindow = AddWindow(
+	eastl::shared_ptr<BaseUIWindow> window = AddWindow(
 		screenRectangle, false, L"Teapot Wars", 0, CID_DEMO_WINDOW);
-	mWindow->GetCloseButton()->SetToolTipText(L"Quit Teapot Wars");
+	window->GetCloseButton()->SetToolTipText(L"Quit Teapot Wars");
 
 	// add a options line
 	RectangleBase<2, int> playerOptionsRectangle;
@@ -159,62 +160,65 @@ bool MainMenuUI::OnInit()
 	playerOptionsRectangle.center[1] = 42;
 	playerOptionsRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> playerOptionsLine =
-		AddStaticText(L"AI Player:", playerOptionsRectangle, false, false, mWindow, CID_NUM_AI_LABEL, true);
+		AddStaticText(L"AI Player:", playerOptionsRectangle, false, false, window, CID_NUM_AI_LABEL, true);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.center[0] = 250;
 	playerOptionsRectangle.extent[0] = 250;
 	playerOptionsRectangle.center[1] = 40;
 	playerOptionsRectangle.extent[1] = 20;
-	mGameAI = AddScrollBar(true, playerOptionsRectangle, mWindow, CID_NUM_AI_SLIDER);
-	mGameAI->SetMin(0);
-	mGameAI->SetMax(gameApp->mOption.mMaxAIs);
-	mGameAI->SetSmallStep(1);
-	mGameAI->SetLargeStep(1);
-	mGameAI->SetPos(gameApp->mOption.mNumAIs);
-	mGameAI->SetToolTipText(L"Set the AI players");
+	eastl::shared_ptr<BaseUIScrollBar> gameAI = 
+		AddScrollBar(true, playerOptionsRectangle, window, CID_NUM_AI_SLIDER);
+	gameAI->SetMin(0);
+	gameAI->SetMax(gameApp->mOption.mMaxAIs);
+	gameAI->SetSmallStep(1);
+	gameAI->SetLargeStep(1);
+	gameAI->SetPos(gameApp->mOption.mNumAIs);
+	gameAI->SetToolTipText(L"Set the AI players");
 
 	playerOptionsRectangle.center[0] = 50;
 	playerOptionsRectangle.extent[0] = 90;
 	playerOptionsRectangle.center[1] = 82;
 	playerOptionsRectangle.extent[1] = 16;
 	playerOptionsLine =
-		AddStaticText(L"Human Player:", playerOptionsRectangle, false, false, mWindow, CID_NUM_PLAYER_LABEL, false);
+		AddStaticText(L"Human Player:", playerOptionsRectangle, false, false, window, CID_NUM_PLAYER_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.center[0] = 250;
 	playerOptionsRectangle.extent[0] = 250;
 	playerOptionsRectangle.center[1] = 80;
 	playerOptionsRectangle.extent[1] = 20;
-	mGamePlayer = AddScrollBar(true, playerOptionsRectangle, mWindow, CID_NUM_PLAYER_SLIDER);
-	mGamePlayer->SetMin(0);
-	mGamePlayer->SetMax(gameApp->mOption.mMaxPlayers);
-	mGamePlayer->SetSmallStep(1);
-	mGamePlayer->SetLargeStep(1);
-	mGamePlayer->SetPos(gameApp->mOption.mExpectedPlayers);
-	mGamePlayer->SetToolTipText(L"Set the Human players");
+	eastl::shared_ptr<BaseUIScrollBar> gamePlayer = 
+		AddScrollBar(true, playerOptionsRectangle, window, CID_NUM_PLAYER_SLIDER);
+	gamePlayer->SetMin(0);
+	gamePlayer->SetMax(gameApp->mOption.mMaxPlayers);
+	gamePlayer->SetSmallStep(1);
+	gamePlayer->SetLargeStep(1);
+	gamePlayer->SetPos(gameApp->mOption.mExpectedPlayers);
+	gamePlayer->SetToolTipText(L"Set the Human players");
 
 	playerOptionsRectangle.center[0] = 50;
 	playerOptionsRectangle.extent[0] = 90;
 	playerOptionsRectangle.center[1] = 122;
 	playerOptionsRectangle.extent[1] = 16;
 	playerOptionsLine =
-		AddStaticText(L"Game Host:", playerOptionsRectangle, false, false, mWindow, CID_HOST_NAME_LABEL, false);
+		AddStaticText(L"Game Host:", playerOptionsRectangle, false, false, window, CID_HOST_NAME_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.center[0] = 220;
 	playerOptionsRectangle.extent[0] = 190;
 	playerOptionsRectangle.center[1] = 120;
 	playerOptionsRectangle.extent[1] = 20;
-	mGameHost = AddEditBox(eastl::wstring(gameApp->mOption.mGameHost.c_str()).c_str(), 
-		playerOptionsRectangle, true, mWindow, CID_HOST_NAME_LABEL);
+	eastl::shared_ptr<BaseUIEditBox> gameHost = AddEditBox(
+		eastl::wstring(gameApp->mOption.mGameHost.c_str()).c_str(), playerOptionsRectangle, true, window, CID_HOST_NAME);
 
 	playerOptionsRectangle.center[0] = 350;
 	playerOptionsRectangle.extent[0] = 50;
 	playerOptionsRectangle.center[1] = 120;
 	playerOptionsRectangle.extent[1] = 20;
-	mGameStart = AddButton(playerOptionsRectangle, mWindow, CID_START_BUTTON, L"Start");
-	mGameStart->SetToolTipText(L"Start Game");
+	eastl::shared_ptr<BaseUIButton> gameStart = 
+		AddButton(playerOptionsRectangle, window, CID_START_BUTTON, L"Start");
+	gameStart->SetToolTipText(L"Start Game");
 
 	// add a status line help text
 	RectangleBase<2, int> statusRectangle;
@@ -222,8 +226,8 @@ bool MainMenuUI::OnInit()
 	statusRectangle.extent[0] = screenSize[0] - 10;
 	statusRectangle.center[1] = screenSize[1] - 20;
 	statusRectangle.extent[1] = 20;
-	mStatusLine = AddStaticText(L"", statusRectangle, false, false, mWindow, -1, true);
-	mStatusLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+	eastl::shared_ptr<BaseUIStaticText> statusLine = AddStaticText(L"", statusRectangle, false, false, window, CID_STATUS_LABEL, true);
+	statusLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	RectangleBase<2, int> videoRectangle;
 	videoRectangle.center[0] = screenSize[0] - 355;
@@ -231,33 +235,33 @@ bool MainMenuUI::OnInit()
 	videoRectangle.center[1] = 42;
 	videoRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoDriverLine = 
-		AddStaticText(L"VideoDriver:", videoRectangle, false, false, mWindow, -1, true);
+		AddStaticText(L"VideoDriver:", videoRectangle, false, false, window, -1, true);
 	videoDriverLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 	
 	videoRectangle.center[0] = screenSize[0] - 155;
 	videoRectangle.extent[0] = 290;
 	videoRectangle.center[1] = 40;
 	videoRectangle.extent[1] = 20;
-	mVideoDriver = AddComboBox(videoRectangle, mWindow);
-	mVideoDriver->AddItem(L"Direct3D 11", RT_DIRECT3D11);
-	mVideoDriver->AddItem(L"OpenGL", RT_OPENGL);
-	mVideoDriver->AddItem(L"Software Renderer", RT_SOFTWARE);
-	mVideoDriver->SetSelected(mVideoDriver->GetIndexForItemData(gameApp->mOption.mRendererType));
-	mVideoDriver->SetToolTipText(L"Use a VideoDriver");
+	eastl::shared_ptr<BaseUIComboBox> videoDriver = AddComboBox(videoRectangle, window);
+	videoDriver->AddItem(L"Direct3D 11", RT_DIRECT3D11);
+	videoDriver->AddItem(L"OpenGL", RT_OPENGL);
+	videoDriver->AddItem(L"Software Renderer", RT_SOFTWARE);
+	videoDriver->SetSelected(videoDriver->GetIndexForItemData(gameApp->mOption.mRendererType));
+	videoDriver->SetToolTipText(L"Use a VideoDriver");
 
 	videoRectangle.center[0] = screenSize[0] - 355;
 	videoRectangle.extent[0] = 90;
 	videoRectangle.center[1] = 82;
 	videoRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoModeLine =
-		AddStaticText(L"VideoMode:", videoRectangle, false, false, mWindow, -1, false);
+		AddStaticText(L"VideoMode:", videoRectangle, false, false, window, -1, false);
 	videoModeLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	videoRectangle.center[0] = screenSize[0] - 155;
 	videoRectangle.extent[0] = 290;
 	videoRectangle.center[1] = 80;
 	videoRectangle.extent[1] = 20;
-	mVideoMode = AddComboBox(videoRectangle, mWindow);
+	eastl::shared_ptr<BaseUIComboBox> videoMode = AddComboBox(videoRectangle, window);
 	eastl::vector<Vector2<unsigned int>> videoResolutions = gameApp->mSystem->GetVideoResolutions();
 	for (int i = 0; i != videoResolutions.size(); ++i)
 	{
@@ -265,7 +269,7 @@ bool MainMenuUI::OnInit()
 		unsigned int h = videoResolutions[i][1];
 		unsigned int val = w << 16 | h;
 
-		if (mVideoMode->GetIndexForItemData(val) >= 0)
+		if (videoMode->GetIndexForItemData(val) >= 0)
 			continue;
 
 		float aspect = (float)w / (float)h;
@@ -278,64 +282,65 @@ bool MainMenuUI::OnInit()
 
 		wchar_t buf[256];
 		swprintf(buf, sizeof(buf), L"%d x %d, %s", w, h, a);
-		mVideoMode->AddItem(buf, val);
+		videoMode->AddItem(buf, val);
 	}
-	mVideoMode->SetSelected(mVideoMode->GetIndexForItemData(
+	videoMode->SetSelected(videoMode->GetIndexForItemData(
 		gameApp->mOption.mScreenSize[0] << 16 | gameApp->mOption.mScreenSize[1]));
-	mVideoMode->SetToolTipText(L"Supported Screenmodes");
+	videoMode->SetToolTipText(L"Supported Screenmodes");
 
 	screenRectangle.center[0] = screenSize[0] - 350;
 	screenRectangle.extent[0] = 100;
 	screenRectangle.center[1] = 120;
 	screenRectangle.extent[1] = 20;
-	mFullScreen = AddCheckBox(gameApp->mOption.mFullScreen, screenRectangle, mWindow, -1, L"Fullscreen");
-	mFullScreen->SetToolTipText(L"Set Fullscreen or Window Mode");
+	eastl::shared_ptr<BaseUICheckBox> fullScreen = AddCheckBox(
+		gameApp->mOption.mFullScreen, screenRectangle, window, -1, L"Fullscreen");
+	fullScreen->SetToolTipText(L"Set Fullscreen or Window Mode");
 
 	screenRectangle.center[0] = screenSize[0] - 250;
 	screenRectangle.extent[0] = 90;
 	screenRectangle.center[1] = 122;
 	screenRectangle.extent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoMultiSampleLine =
-		AddStaticText(L"MultiSample:", screenRectangle, false, false, mWindow, -1, false);
+		AddStaticText(L"MultiSample:", screenRectangle, false, false, window, -1, false);
 	videoMultiSampleLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.center[0] = screenSize[0] - 130;
 	screenRectangle.extent[0] = 120;
 	screenRectangle.center[1] = 120;
 	screenRectangle.extent[1] = 20;
-	mMultiSample = AddScrollBar(true, screenRectangle, mWindow, -1);
-	mMultiSample->SetMin(0);
-	mMultiSample->SetMax(8);
-	mMultiSample->SetSmallStep(1);
-	mMultiSample->SetLargeStep(1);
-	mMultiSample->SetPos(gameApp->mOption.mAntiAlias);
-	mMultiSample->SetToolTipText(L"Set the multisample (disable, 1x, 2x, 4x, 8x )");
+	eastl::shared_ptr<BaseUIScrollBar> multiSample = AddScrollBar(true, screenRectangle, window, -1);
+	multiSample->SetMin(0);
+	multiSample->SetMax(8);
+	multiSample->SetSmallStep(1);
+	multiSample->SetLargeStep(1);
+	multiSample->SetPos(gameApp->mOption.mAntiAlias);
+	multiSample->SetToolTipText(L"Set the multisample (disable, 1x, 2x, 4x, 8x )");
 
 	screenRectangle.center[0] = screenSize[0] - 35;
 	screenRectangle.extent[0] = 50;
 	screenRectangle.center[1] = 120;
 	screenRectangle.extent[1] = 20;
-	mSetVideoMode = AddButton(screenRectangle, mWindow, -1, L"Set");
-	mSetVideoMode->SetToolTipText(L"Set video mode with current values");
+	eastl::shared_ptr<BaseUIButton> setVideoMode = AddButton(screenRectangle, window, CID_SET_GAME_RADIO, L"Set");
+	setVideoMode->SetToolTipText(L"Set video mode with current values");
 
 	screenRectangle.center[0] = 50;
 	screenRectangle.extent[0] = 90;
 	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[1] = 20;
 	eastl::shared_ptr<BaseUIStaticText> mapsLine =
-		AddStaticText(L"Maps:", screenRectangle, false, false, mWindow, -1, false);
+		AddStaticText(L"Maps:", screenRectangle, false, false, window, CID_LEVEL_LABEL, false);
 	mapsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.center[0] = 190;
 	screenRectangle.extent[0] = 380;
 	screenRectangle.center[1] = screenSize[1] - 210;
 	screenRectangle.extent[1] = 340;
-	mMaps = AddListBox(screenRectangle, mWindow, -1, true);
-	mMaps->SetToolTipText(L"Show the current maps.\n Double-Click the map to start the level");
+	eastl::shared_ptr<BaseUIListBox> maps = AddListBox(screenRectangle, window, CID_LEVEL_LISTBOX, true);
+	maps->SetToolTipText(L"Show the current maps.\n Double-Click the map to start the level");
 
 	eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
 	for (eastl::vector<Level*>::iterator it = levels.begin(); it != levels.end(); ++it)
-		mMaps->AddItem((*it)->GetName().c_str());
+		maps->AddItem((*it)->GetName().c_str());
 
 	// create a visible Scene Tree
 	screenRectangle.center[0] = screenSize[0] - 350;
@@ -343,19 +348,25 @@ bool MainMenuUI::OnInit()
 	screenRectangle.center[1] = screenSize[1] - 390;
 	screenRectangle.extent[1] = 20;
 	eastl::shared_ptr<BaseUIStaticText> sceneGraphLine =
-		AddStaticText(L"Scenegraph:", screenRectangle, false, false, mWindow, -1, false);
+		AddStaticText(L"Scenegraph:", screenRectangle, false, false, window, -1, false);
 	sceneGraphLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.center[0] = screenSize[0] - 200;
 	screenRectangle.extent[0] = 400;
 	screenRectangle.center[1] = screenSize[1] - 210;
 	screenRectangle.extent[1] = 340;
-	mScenes = AddTreeView(screenRectangle, mWindow, -1, true, true, false);
-	mScenes->SetToolTipText(L"Show the current scenegraph");
+	eastl::shared_ptr<BaseUITreeView> scenes = AddTreeView(screenRectangle, window, -1, true, true, false);
+	scenes->SetToolTipText(L"Show the current scenegraph");
 
-	mScenes->GetRoot()->ClearChildren();
+	scenes->GetRoot()->ClearChildren();
 
 	/*
+
+	eastl::shared_ptr<BaseUIEditBox> mGameHostPort;
+
+	eastl::shared_ptr<BaseUIScrollBar> mTesselation;
+
+	eastl::shared_ptr<BaseUIImage> mLogo;
 
 	// load the engine logo
 	BaseResource resource(L"Art/irrlichtlogo3.png");
@@ -369,13 +380,44 @@ bool MainMenuUI::OnInit()
 		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true);
 		mLogo->SetToolTipText(L"The great Irrlicht Engine");
 	}
-
-	Set();
 	*/
+
+	//Set();
+
 	SetUIActive(1);
 	return true;
 }
 
+
+void MainMenuUI::Set()
+{
+	const eastl::shared_ptr<BaseUIElement>& root = GetRootUIElement();
+	const eastl::shared_ptr<BaseUIElement>& window = root->GetElementFromId(CID_DEMO_WINDOW);
+	const eastl::shared_ptr<BaseUIButton>& createGame = 
+		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_CREATE_GAME_RADIO));
+	const eastl::shared_ptr<BaseUIButton>& setGame = 
+		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_SET_GAME_RADIO));
+	const eastl::shared_ptr<BaseUIScrollBar>& numAI = 
+		eastl::static_pointer_cast<BaseUIScrollBar>(root->GetElementFromId(CID_NUM_AI_SLIDER));
+	const eastl::shared_ptr<BaseUIScrollBar>& numPlayer = 
+		eastl::static_pointer_cast<BaseUIScrollBar>(root->GetElementFromId(CID_NUM_PLAYER_SLIDER));
+	const eastl::shared_ptr<BaseUIEditBox>& hostPort = 
+		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_HOST_LISTEN_PORT));
+	const eastl::shared_ptr<BaseUIEditBox>& clientPort = 
+		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_CLIENT_ATTACH_PORT));
+	const eastl::shared_ptr<BaseUIButton>& startGame = 
+		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_START_BUTTON));
+	const eastl::shared_ptr<BaseUIEditBox>& hostName = 
+		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_HOST_NAME));
+	const eastl::shared_ptr<BaseUIListBox>& level = 
+		eastl::static_pointer_cast<BaseUIListBox>(root->GetElementFromId(CID_LEVEL_LISTBOX));
+
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	gameApp->mOption.mNumAIs = numAI->GetPos();
+	gameApp->mOption.mExpectedPlayers = numPlayer->GetPos();
+	gameApp->mOption.mGameHost = ToString(hostName->GetText());
+	gameApp->mOption.mLevel = level->GetSelected();
+}
 
 // enable GUI elements
 void MainMenuUI::SetUIActive(int command)
@@ -415,52 +457,6 @@ void MainMenuUI::SetUIActive(int command)
 	}
 	*/
 	SetFocus(guiActive ? window : 0);
-}
-
-void MainMenuUI::Set()
-{
-	/*
-	WCHAR buffer[256];
-	CHAR ansiBuffer[256];
-
-	m_LevelIndex = m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->GetSelectedIndex();
-	m_SampleUI.GetListBox(CID_LEVEL_LISTBOX)->SetVisible(m_bCreatingGame);
-
-	m_NumAIs = m_SampleUI.GetSlider(CID_NUM_AI_SLIDER)->GetValue();
-	m_SampleUI.GetSlider(CID_NUM_AI_SLIDER)->SetVisible(m_bCreatingGame);
-
-	wsprintf(buffer, _T("%s: %d\n"), L"Number of AIs", m_NumAIs);
-	m_SampleUI.GetStatic(CID_NUM_AI_LABEL)->SetText(buffer);
-	m_SampleUI.GetStatic(CID_NUM_AI_LABEL)->SetVisible(m_bCreatingGame);
-
-	m_NumPlayers = m_SampleUI.GetSlider(CID_NUM_PLAYER_SLIDER)->GetValue();
-	m_SampleUI.GetSlider(CID_NUM_PLAYER_SLIDER)->SetVisible(m_bCreatingGame);
-	wsprintf(buffer, _T("%s: %d\n"), L"Number of Players", m_NumPlayers);
-	m_SampleUI.GetStatic(CID_NUM_PLAYER_LABEL)->SetText(buffer);
-	m_SampleUI.GetStatic(CID_NUM_PLAYER_LABEL)->SetVisible(m_bCreatingGame);
-
-	m_SampleUI.GetStatic(CID_HOST_LISTEN_PORT_LABEL)->SetVisible(m_NumPlayers>1 && m_bCreatingGame);
-	m_SampleUI.GetEditBox(CID_HOST_LISTEN_PORT)->SetVisible(m_NumPlayers>1 && m_bCreatingGame);
-	if (m_bCreatingGame)
-	{
-		WideToAnsiCch(ansiBuffer, m_SampleUI.GetEditBox(CID_HOST_LISTEN_PORT)->GetText(), 256);
-		m_HostListenPort = ansiBuffer;
-	}
-
-	m_SampleUI.GetStatic(CID_HOST_NAME_LABEL)->SetVisible(!m_bCreatingGame);
-	m_SampleUI.GetEditBox(CID_HOST_NAME)->SetVisible(!m_bCreatingGame);
-
-	WideToAnsiCch(ansiBuffer, m_SampleUI.GetEditBox(CID_HOST_NAME)->GetText(), 256);
-	m_HostName = ansiBuffer;
-
-	m_SampleUI.GetStatic(CID_CLIENT_ATTACH_PORT_LABEL)->SetVisible(!m_bCreatingGame);
-	m_SampleUI.GetEditBox(CID_CLIENT_ATTACH_PORT)->SetVisible(!m_bCreatingGame);
-	if (!m_bCreatingGame)
-	{
-		WideToAnsiCch(ansiBuffer, m_SampleUI.GetEditBox(CID_CLIENT_ATTACH_PORT)->GetText(), 256);
-		m_ClientAttachPort = ansiBuffer;
-	}
-	*/
 }
 
 bool MainMenuUI::OnRestore()
@@ -518,8 +514,12 @@ bool MainMenuUI::OnRender(double time, float elapsedTime)
 	swprintf(msg, 128,
 		L"%03d fps, F1 GUI on/off, F2 respawn, F3-F6 toggle Nodes, F7 Collision on/off"
 		L", F8 Gravity on/off, Right Mouse Toggle GUI", gameApp->GetFPS());
-	if (mStatusLine)
-		mStatusLine->SetText(msg);
+
+	const eastl::shared_ptr<BaseUIElement>& root = GetRootUIElement();
+	const eastl::shared_ptr<BaseUIStaticText>& statusLabel =
+		eastl::static_pointer_cast<BaseUIStaticText>(root->GetElementFromId(CID_STATUS_LABEL));
+	if (statusLabel)
+		statusLabel->SetText(msg);
 
 	return BaseUI::OnRender(time, elapsedTime);
 };
@@ -538,71 +538,52 @@ bool MainMenuUI::OnMsgProc( const Event& evt )
 //
 bool MainMenuUI::OnEvent(const Event& evt)
 {
-	/*
-    if (evt.mEventType == ET_UI_EVENT)
-    {
-		return UIEventHandler::Get()->OnEvent(evt);
-    }
-
-	switch (nControlID)
+	if (evt.mEventType == ET_UI_EVENT)
 	{
-		case CID_CREATE_GAME_RADIO:
+		switch (evt.mUIEvent.mCaller->GetID())
 		{
-			m_bCreatingGame = true;
-			break;
-		}
-
-		case CID_JOIN_GAME_RADIO:
-		{
-			m_bCreatingGame = false;
-			break;
-		}
-
-		case CID_LEVEL_LISTBOX:
-		case CID_NUM_AI_SLIDER:
-		case CID_NUM_PLAYER_SLIDER:
-		case CID_HOST_LISTEN_PORT:
-		case CID_CLIENT_ATTACH_PORT:
-		case CID_HOST_NAME:
-		{
-			break;
-		}
-
-		case CID_START_BUTTON:
-		{
-			g_pApp->m_Options.m_numAIs = m_NumAIs;
-			g_pApp->m_Options.m_expectedPlayers = m_NumPlayers;
-			if (m_bCreatingGame)
+			case CID_CREATE_GAME_RADIO:
 			{
-				if (m_LevelIndex == -1)
+				if (evt.mUIEvent.mEventType == UIEVT_BUTTON_CLICKED)
+					mCreatingGame = true;
+				break;
+			}
+
+			case CID_SET_GAME_RADIO:
+			{
+				break;
+			}
+
+			case CID_LEVEL_LISTBOX:
+			case CID_NUM_AI_SLIDER:
+			case CID_NUM_PLAYER_SLIDER:
+			case CID_HOST_LISTEN_PORT:
+			case CID_CLIENT_ATTACH_PORT:
+			case CID_HOST_NAME:
+			{
+				break;
+			}
+
+			case CID_START_BUTTON:
+			{
+				if (evt.mUIEvent.mEventType == UIEVT_BUTTON_CLICKED)
 				{
-					// FUTURE WORK - AN ERROR DIALOG WOULD BE GOOD HERE, OR JUST DEFALT THE SELECTION TO SOMETHING VALID
-					return;
+					SetVisible(false);
+
+					eastl::shared_ptr<EventDataRequestStartGame> pRequestStartGameEvent(new EventDataRequestStartGame());
+					EventManager::Get()->QueueEvent(pRequestStartGameEvent);
 				}
-				g_pApp->m_Options.m_Level = ws2s(m_Levels[m_LevelIndex]);
-				g_pApp->m_Options.m_gameHost = "";
-				g_pApp->m_Options.m_listenPort = atoi(m_HostListenPort.c_str());
+
+				break;
 			}
-			else
+
+			default:
 			{
-				g_pApp->m_Options.m_gameHost = m_HostName;
-				g_pApp->m_Options.m_listenPort = atoi(m_ClientAttachPort.c_str());
+				LogError("Unknown control.");
 			}
-
-			VSetVisible(false);
-
-			shared_ptr<EvtData_Request_Start_Game> pRequestStartGameEvent(GCC_NEW EvtData_Request_Start_Game());
-			IEventManager::Get()->VQueueEvent(pRequestStartGameEvent);
-
-			break;
-		}
-
-		default:
-		{
-			GCC_ERROR("Unknown control.");
 		}
 	}
-	*/
+
 	return BaseUI::OnEvent(evt);
 }
 
@@ -658,66 +639,29 @@ bool MainMenuView::OnMsgProc( const Event& evt )
 
 StandardHUD::StandardHUD()
 {
-	/*
-	// Initialize dialogs
-	m_HUD.Init(&D3DRenderer::g_DialogResourceManager);
-	m_HUD.SetCallback(OnGUIEvent); int iY = 10;
-	m_HUD.AddButton(IDC_TOGGLEFULLSCREEN, L"Toggle full screen", 35, iY, 125, 22);
-	m_HUD.AddButton(IDC_TOGGLEREF, L"Toggle REF (F3)", 35, iY += 24, 125, 22);
-	//m_HUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 35, iY += 24, 125, 22 );
-	*/
+
 }
 
 
 StandardHUD::~StandardHUD() 
 { 
-//  [mrmike] - this causes a "memory written after freed error" so I commented it out.
-//	D3DRenderer::g_DialogResourceManager.UnregisterDialog(&m_HUD); 
+
 }
 
 bool StandardHUD::OnInit()
 {
 	BaseUI::OnInit();
 
-	/*
-	To make the font a little bit nicer, we load an external font
-	and set it as the new default font in the skin.
-	To keep the standard font for tool tip text, we set it to
-	the built-in font.
-	
-	eastl::shared_ptr<BaseUIFont> font(GetFont("fontcourier.bmp"));
-	if (font)
-		GetSkin()->SetFont(font);
-
-    // Initialize dialogs
-	//mHUD.Init( &D3DRenderer::DialogResourceManager );
-    //mHUD.SetCallback( OnUIEvent ); 
-	int iY = 10; 
-	AddButton(RectangleBase<int>(35, iY, 160, iY + 22), 0, IDC_TOGGLEFULLSCREEN, L"Toggle full screen");
-	iY += 24;
-	AddButton(RectangleBase<int>(35, iY, 160, iY + 22), 0, IDC_TOGGLEREF, L"Toggle REF (F3)");
-    //mHUD.AddButton( IDC_CHANGEDEVICE, L"Change device (F2)", 35, iY += 24, 125, 22 );
-	*/
 	return true;
 }
 
 bool StandardHUD::OnRestore()
 {
-	/*
-    mHUD.SetLocation( System::Get()->GetScreenSize().x - 170, 0 );
-    mHUD.SetSize( 170, 170 );
-	*/
 	return BaseUI::OnRestore();
 }
 
 bool StandardHUD::OnRender(double time, float elapsedTime)
 {
-	/*
-	HRESULT hr;
-	DXUT_BeginPerfEvent( DXUT_PERFEVENTCOLOR, L"StandardUI" ); // These events are to help PIX identify what the code is doing
-	V( mHUD.OnRender( elapsedTime ) );
-	DXUT_EndPerfEvent();
-	*/
 	return BaseUI::OnRender(time, elapsedTime);
 };
 
@@ -725,7 +669,6 @@ bool StandardHUD::OnRender(double time, float elapsedTime)
 bool StandardHUD::OnMsgProc( const Event& evt )
 {
 	return BaseUI::OnMsgProc( evt );
-    //return mHUD.MsgProc( msg.m_hWnd, msg.m_uMsg, msg.m_wParam, msg.m_lParam );
 }
 
 //--------------------------------------------------------------------------------------
@@ -834,10 +777,12 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 
 					case KEY_KEY_4:
 					{
+						/*
 						BaseResource resource(L"scripts\\test.lua");
 						// this actually loads the Lua file from the zip file
 						eastl::shared_ptr<ResHandle> pResourceHandle = 
 							ResCache::Get()->GetHandle(&resource);
+						*/
 					}
 					break;
 
@@ -898,93 +843,6 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 void GameDemoHumanView::RenderText()
 {
 	HumanView::RenderText();
-	/*
-	D3DRenderer::TextHelper->Begin();
-
-    // Gameplay UI (with shadow)....
-    if (!mGameplayText.empty())
-    {
-	    D3DRenderer::TextHelper->SetInsertionPos( Renderer::Get()->GetScreenSize().x/2, 5 );
-	    D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 0.0f, 0.0f, 0.0f, 1.0f ) );
-	    D3DRenderer::TextHelper->DrawTextLine(mGameplayText.c_str());
-	    D3DRenderer::TextHelper->SetInsertionPos( Renderer::Get()->GetScreenSize().x/2-1, 5-1 );
-	    D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 0.25f, 1.0f, 0.25f, 1.0f ) );
-	    D3DRenderer::TextHelper->DrawTextLine(mGameplayText.c_str());
-    }
-	// ...Gameplay UI
-
-	if( mIsShowUI )
-	{
-		// Output statistics...
-		D3DRenderer::TextHelper->SetInsertionPos( 5, 5 );
-		D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 1.0f, 0.0f, 1.0f ) );
-		D3DRenderer::TextHelper->DrawTextLine( DXUTGetFrameStats() );
-		D3DRenderer::TextHelper->DrawTextLine( DXUTGetDeviceStats() );
-		//...output statistics
-		
-		D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 0.0f, 0.0f, 0.0f, 0.5f ) );
-
-		//Game State...
-		switch (mBaseGameState)
-		{
-			case BGS_INITIALIZING:
-				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_INITIALIZING")).c_str());
-				break;
-
-			case BGS_MAINMENU:
-				D3DRenderer::TextHelper->DrawTextLine(L"Main Menu");
-				break;
-
-//			case BGS_SPAWNAI:
-//				D3DRenderer::TextHelper->DrawTextLine(L"Spawn AI");
-//				break;
-
-			case BGS_WAITINGFORPLAYERS:
-				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_WAITING")).c_str());
-				break;
-
-			case BGS_LOADINGGAMEENVIRONMENT:
-				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_LOADING")).c_str());
-				break;
-
-			case BGS_RUNNING:
-#ifndef DISABLE_PHYSICS
-				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_RUNNING")).c_str());
-#else
-				D3DRenderer::TextHelper->DrawTextLine(gameApp->GetString(_T("IDS_NOPHYSICS")).c_str());
-#endif //!DISABLE_PHYSICS
-				break;
-		}
-		//...Game State
-
-		//Camera...
-		fschar_t buffer[256];
-		const fschar_t *s = NULL;
-		matrix4 toWorld, fromWorld;
-		if (mCamera)
-		{	
-			mCamera->Get()->Transform(&toWorld, &fromWorld);
-		}
-		swprintf(buffer, gameApp->GetString(_T("IDS_CAMERA_LOCATION")).c_str(), toWorld.m[3][0], toWorld.m[3][1], toWorld.m[3][2]);
-		D3DRenderer::TextHelper->DrawTextLine( buffer );
-		//...Camera
-
-		//Help text.  Right justified, lower right of screen.
-		RECT helpRect;
-		helpRect.left = 0;
-		helpRect.right = gameApp->GetScreenSize().x - 10;
-		helpRect.top = gameApp->GetScreenSize().y - 15*8;
-		helpRect.bottom = gameApp->GetScreenSize().y;
-		D3DRenderer::TextHelper->SetInsertionPos( helpRect.right, helpRect.top );
-		D3DRenderer::TextHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 0.75f, 0.0f, 1.0f ) );
-		D3DRenderer::TextHelper->DrawTextLine( helpRect, DT_RIGHT, g_pApp->GetString(_T("IDS_CONTROLS_HEADER")).c_str() );
-		helpRect.top = gameApp->GetScreenSize().y-15*7;
-		D3DRenderer::TextHelper->DrawTextLine( helpRect, DT_RIGHT, g_pApp->GetString(_T("IDS_CONTROLS")).c_str() );
-		//...Help
-	}//end if (m_bShowUI)
-
-	D3DRenderer::TextHelper->End();
-	*/
 }
 
 
@@ -994,12 +852,12 @@ void GameDemoHumanView::RenderText()
 void GameDemoHumanView::OnUpdate(unsigned long deltaTime)
 {
 	HumanView::OnUpdate( deltaTime );
-
+	/*
 	if (mFreeCameraController)
 	{
-		//mFreeCameraController->OnUpdate(deltaMs);
+		mFreeCameraController->OnUpdate(deltaMs);
 	}
-
+	*/
 	if (mGameDemoController)
 	{
 		mGameDemoController->OnUpdate(deltaTime);
@@ -1023,7 +881,7 @@ bool GameDemoHumanView::LoadGameDelegate(XMLElement* pLevelData)
 	if (!HumanView::LoadGameDelegate(pLevelData))
 		return false;
 
-    mStandardHUD.reset(new StandardHUD);
+    mStandardHUD.reset(new StandardHUD());
 	mStandardHUD->OnInit();
     PushElement(mStandardHUD);
 

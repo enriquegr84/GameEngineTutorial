@@ -254,163 +254,40 @@ void UIButton::Draw( )
 	if (!mPressed)
 	{
 		if (mDrawBorder)
-		{
-			Vector2<int> targetPos = spritePos.center;
-			Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
-
-			eastl::shared_ptr<Texture2> tex = mEffect->GetTexture();
-			Vector2<unsigned int> sourceCenter{ tex->GetDimension(0) / 2, tex->GetDimension(1) / 2 };
-			Vector2<unsigned int> sourceSize{ tex->GetDimension(0), tex->GetDimension(1) };
-
-			struct Vertex
-			{
-				Vector3<float> position;
-				Vector2<float> tcoord;
-			};
-			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
-			vertex[0].position = {
-				(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
-			vertex[0].tcoord = { 
-				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
-				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
-			vertex[1].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
-			vertex[1].tcoord = { 
-				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
-			vertex[2].position = {
-				(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
-			vertex[2].tcoord = { 
-				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
-				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
-			vertex[3].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
-			vertex[3].tcoord = { 
-				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
-
-			// Create the geometric object for drawing.
-			Renderer::Get()->Update(mVisual->GetVertexBuffer());
-			Renderer::Get()->Draw(mVisual);
-		}
+			skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mAbsoluteClippingRect.extent / 2);
 
 		if (mImage)
 		{
-			Vector2<int> targetPos = mAbsoluteRect.center;
-			Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
-
-			if (mScaleImage)
-			{
-				targetPos = spritePos.center;
-				dimension = mImageRect.extent;
-			}
-
-			Vector2<unsigned int> sourceCenter{ mImage->GetDimension(0) / 2, mImage->GetDimension(1) / 2 };
-			Vector2<unsigned int> sourceSize{ mImage->GetDimension(0), mImage->GetDimension(1) };
-
 			mEffect->SetTexture(mImage);
 
-			struct Vertex
-			{
-				Vector3<float> position;
-				Vector2<float> tcoord;
-			};
-			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
-			vertex[0].position = {
-				(float)(targetPos[0] - dimension[0] - (mImageRect.extent[0] / 2)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] - (mImageRect.extent[1] / 2)) / dimension[1], 0.0f };
-			vertex[0].tcoord = {
-				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
-				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
-			vertex[1].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mImageRect.extent[0] / 2.f)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] - (mImageRect.extent[1] / 2)) / dimension[1], 0.0f };
-			vertex[1].tcoord = {
-				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
-			vertex[2].position = {
-				(float)(targetPos[0] - dimension[0] - (mImageRect.extent[0] / 2)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] + (int)round(mImageRect.extent[1] / 2.f)) / dimension[1], 0.0f };
-			vertex[2].tcoord = {
-				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
-				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
-			vertex[3].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mImageRect.extent[0] / 2.f)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] + (int)round(mImageRect.extent[1] / 2.f)) / dimension[1], 0.0f };
-			vertex[3].tcoord = {
-				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
-
-			// Create the geometric object for drawing.
-			Renderer::Get()->Update(mVisual->GetVertexBuffer());
-			Renderer::Get()->Draw(mVisual);
+			if (mScaleImage)
+				skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mImageRect.extent);
+			else 
+				skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.extent / 2);
 		}
 	}
 	else
 	{
 		if (mPressedImage)
 		{
-			Vector2<int> targetPos = mAbsoluteRect.center;
-			Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
+			mEffect->SetTexture(mPressedImage);
 
 			if (mScaleImage)
 			{
-				dimension = mImageRect.extent;
-
-				targetPos = spritePos.center;
-				targetPos[0] -= mPressedImageRect.extent[0] / 2;
-				targetPos[1] -= mPressedImageRect.extent[1] / 2;
+				spritePos.center[0] -= mPressedImageRect.extent[0] / 2;
+				spritePos.center[1] -= mPressedImageRect.extent[1] / 2;
 
 				if (mImage == mPressedImage && mPressedImageRect == mImageRect)
 				{
-					targetPos[0] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_X);
-					targetPos[1] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_Y);
+					spritePos.center[0] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_X);
+					spritePos.center[1] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_Y);
 				}
+
+				skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mImageRect.extent);
 			}
+			else
+				skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.extent / 2);
 
-			Vector2<unsigned int> sourceCenter{ mPressedImage->GetDimension(0) / 2, mPressedImage->GetDimension(1) / 2 };
-			Vector2<unsigned int> sourceSize{ mPressedImage->GetDimension(0), mPressedImage->GetDimension(1) };
-
-			mEffect->SetTexture(mPressedImage);
-
-			struct Vertex
-			{
-				Vector3<float> position;
-				Vector2<float> tcoord;
-			};
-			Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
-			vertex[0].position = {
-				(float)(targetPos[0] - dimension[0] - (mPressedImageRect.extent[0] / 2)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] - (mPressedImageRect.extent[1] / 2)) / dimension[1], 0.0f };
-			vertex[0].tcoord = {
-				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
-				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
-			vertex[1].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mPressedImageRect.extent[0] / 2.f)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] - (mPressedImageRect.extent[1] / 2)) / dimension[1], 0.0f };
-			vertex[1].tcoord = {
-				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-				(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
-			vertex[2].position = {
-				(float)(targetPos[0] - dimension[0] - (mPressedImageRect.extent[0] / 2)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] + (int)round(mPressedImageRect.extent[1] / 2.f)) / dimension[1], 0.0f };
-			vertex[2].tcoord = {
-				(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
-				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
-			vertex[3].position = {
-				(float)(targetPos[0] - dimension[0] + (int)round(mPressedImageRect.extent[0] / 2.f)) / dimension[0],
-				(float)(dimension[1] - targetPos[1] + (int)round(mPressedImageRect.extent[1] / 2.f)) / dimension[1], 0.0f };
-			vertex[3].tcoord = {
-				(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-				(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
-
-			// Create the geometric object for drawing.
-			Renderer::Get()->Update(mVisual->GetVertexBuffer());
-			Renderer::Get()->Draw(mVisual);
 		}
 	}
 

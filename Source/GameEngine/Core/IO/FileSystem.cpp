@@ -10,6 +10,8 @@
 #include "MountPointReader.h"
 
 #include "Core/Logger/Logger.h"
+#include "Core/Utility/StringUtil.h"
+
 
 #if !defined (_WINDOWS_API_)
 	#if (defined(_POSIX_API_) || defined(_OSX_PLATFORM_))
@@ -398,13 +400,12 @@ bool FileSystem::ExistDirectory(const eastl::wstring& dirname) const
 {
 	if (msDirectories)
 	{
-		std::wstring dir(dirname.c_str());
-		std::string dirName(dir.begin(), dir.end());
+		eastl::string dirName = ToString(dirname.c_str());
 
 		eastl::vector<eastl::string>::iterator iter = msDirectories->begin();
 		eastl::vector<eastl::string>::iterator end = msDirectories->end();
 		for (/**/; iter != end; ++iter)
-			if (dirName.c_str() == *iter)
+			if (dirName == *iter)
 				return true;
 	}
 	return false;
@@ -415,14 +416,13 @@ bool FileSystem::ExistFile(const eastl::wstring& filename) const
 {
 	if (msDirectories)
 	{
-		std::wstring file(filename.c_str());
-		std::string fileName(file.begin(), file.end());
+		eastl::string fileName = ToString(filename.c_str());
 
 		eastl::vector<eastl::string>::iterator iter = msDirectories->begin();
 		eastl::vector<eastl::string>::iterator end = msDirectories->end();
 		for (/**/; iter != end; ++iter)
 		{
-			eastl::string decorated = *iter + fileName.c_str();
+			eastl::string decorated = *iter + fileName;
 			if (access(decorated.c_str(), 0) != -1)
 				return true;
 		}

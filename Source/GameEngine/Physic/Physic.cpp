@@ -408,13 +408,13 @@ bool BulletPhysics::Initialize()
 
 	// Manages constraints which apply forces to the physics simulation.  Used
 	//  for e.g. springs, motors.  We don't use any constraints right now.
-	mSolver = new btSequentialImpulseConstraintSolver;
+	mSolver = new btSequentialImpulseConstraintSolver();
 
 	// This is the main Bullet interface point.  Pass in all these components to customize its behavior.
 	mDynamicsWorld = new btDiscreteDynamicsWorld( 
 		mDispatcher, mBroadphase, mSolver, mCollisionConfiguration );
 
-	mDebugDrawer = new BulletDebugDrawer;
+	mDebugDrawer = new BulletDebugDrawer();
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	mDebugDrawer->ReadOptions(gameApp->mOption.mRoot);
 

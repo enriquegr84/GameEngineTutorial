@@ -429,6 +429,17 @@ public:
 		const eastl::array<float, 4> &color, const eastl::shared_ptr<Visual>& visual,
 		const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip = 0) = 0;
 
+	//! draws a 2d texture.
+	/** \param element: Pointer to the element which wishes to draw this icon.
+	This parameter is usually not used by IGUISkin, but can be used for example
+	by more complex implementations to find out how to draw the part exactly.
+	\param pos: Position of the rectangle.
+	\param clip: Pointer to rectangle against which the rectangle will be clipped.
+	If the pointer is null, no clipping will be performed. */
+	virtual void Draw2DTexture(const eastl::shared_ptr<BaseUIElement>& element,
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& pos,
+		const Vector2<int>& dimension) = 0;
+
 	//! get the type of this skin
 	virtual UISkinThemeType GetType() const { return STT_UNKNOWN; }
 };
@@ -619,6 +630,17 @@ public:
 	virtual void Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element, 
 		const eastl::array<float, 4> &color, const eastl::shared_ptr<Visual>& visual, 
 		const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip = 0 );
+
+	//! draws a 2d texture.
+	/** \param element: Pointer to the element which wishes to draw this icon.
+	This parameter is usually not used by IGUISkin, but can be used for example
+	by more complex implementations to find out how to draw the part exactly.
+	\param pos: Position of the rectangle.
+	\param clip: Pointer to rectangle against which the rectangle will be clipped.
+	If the pointer is null, no clipping will be performed. */
+	virtual void Draw2DTexture(const eastl::shared_ptr<BaseUIElement>& element,
+		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& pos,
+		const Vector2<int>& dimension);
 
 	//! get the type of this skin
 	virtual UISkinThemeType GetType() const;

@@ -96,9 +96,6 @@ void UIImage::Draw()
 	if (mTexture)
 	{
 		const eastl::array<float, 4> colors[]{ mColor,mColor,mColor,mColor };
-
-		Vector2<int> targetPos = mAbsoluteRect.center;
-		Vector2<int> dimension(mAbsoluteClippingRect.extent / 2);
 		/*
 		if (!mScaleImage)
 		{
@@ -106,45 +103,8 @@ void UIImage::Draw()
 			targetPos[1] = mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2);
 		}
 		*/
-		Vector2<unsigned int> sourceCenter{ mTexture->GetDimension(0) / 2, mTexture->GetDimension(1) / 2 };
-		Vector2<unsigned int> sourceSize{ mTexture->GetDimension(0), mTexture->GetDimension(1) };
-
 		mEffect->SetTexture(mTexture);
-
-		struct Vertex
-		{
-			Vector3<float> position;
-			Vector2<float> tcoord;
-		};
-		Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
-		vertex[0].position = {
-			(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
-		vertex[0].tcoord = {
-			(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
-			(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
-		vertex[1].position = {
-			(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - targetPos[1] - (mAbsoluteRect.extent[1] / 2)) / dimension[1], 0.0f };
-		vertex[1].tcoord = {
-			(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-			(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
-		vertex[2].position = {
-			(float)(targetPos[0] - dimension[0] - (mAbsoluteRect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
-		vertex[2].tcoord = {
-			(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
-			(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
-		vertex[3].position = {
-			(float)(targetPos[0] - dimension[0] + (int)round(mAbsoluteRect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - targetPos[1] + (int)round(mAbsoluteRect.extent[1] / 2.f)) / dimension[1], 0.0f };
-		vertex[3].tcoord = {
-			(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-			(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
-
-		// Create the geometric object for drawing.
-		Renderer::Get()->Update(mVisual->GetVertexBuffer());
-		Renderer::Get()->Draw(mVisual);
+		skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.extent / 2);
 	}
 	else
 	{
