@@ -111,6 +111,9 @@ HumanView::~HumanView()
 
 	delete mProcessManager;
 	delete Audio::AudioSystem;
+
+	mProcessManager = nullptr;
+	Audio::AudioSystem = nullptr;
 }
 
 

@@ -117,6 +117,10 @@ GameLogic::~GameLogic()
 	delete mProcessManager;
 	delete mActorFactory;
 
+	mLevelManager = nullptr;
+	mProcessManager = nullptr;
+	mActorFactory = nullptr;
+
     // destroy all actors
     for (auto it = mActors.begin(); it != mActors.end(); ++it)
         it->second->Destroy();

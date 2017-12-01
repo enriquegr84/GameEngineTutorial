@@ -223,7 +223,12 @@ inline eastl::string GetErrorMessage(HRESULT hr)
 		LocalFree(lpMsgBuf);
 		return eastl::string(errorMessage.c_str());
 	}
-	return eastl::string();
+	else
+	{
+		char buf[256];
+		sprintf(buf, "error message failed with %d", GetLastError());
+		return eastl::string(buf);
+	}
 }
 
 #endif

@@ -215,24 +215,24 @@ void GameDemoApp::DestroyNetworkEventForwarder(void)
 	GameApplication::DestroyNetworkEventForwarder();
     if (mNetworkEventForwarder)
     {
-        BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
+        BaseEventManager* eventManager = BaseEventManager::Get();
 
-        pGlobalEventManager->RemoveListener(
+        eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataFireWeapon::skEventType);
-        pGlobalEventManager->RemoveListener(
+        eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataStartThrust::skEventType);
-        pGlobalEventManager->RemoveListener(
+        eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataEndThrust::skEventType);
-        pGlobalEventManager->RemoveListener(
+        eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataStartSteer::skEventType);
-        pGlobalEventManager->RemoveListener(
+        eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataEndSteer::skEventType);
-		pGlobalEventManager->RemoveListener(
+		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataEnvironmentLoaded::skEventType);
         delete mNetworkEventForwarder.get();

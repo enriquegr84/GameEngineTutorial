@@ -367,6 +367,8 @@ void GameApplication::OnTerminate()
 	// release all the game systems in reverse order from which they were created
 	delete GameLogic::mGame;
 
+	GameLogic::mGame = nullptr;
+
 	//delete user_config;
 	//delete unlock_manager;
 	//delete level_manager;

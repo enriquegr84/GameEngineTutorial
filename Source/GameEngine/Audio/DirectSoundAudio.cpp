@@ -66,21 +66,31 @@ bool DirectSoundAudio::Initialize(void* id)
 	mAllSamples.clear();
 
 	delete mDS;
+	mDS = nullptr;
 
 	HRESULT hr;
 
 	HWND hWnd = static_cast<HWND>(id);
 
 	// Create IDirectSound using the primary sound device
-	if( FAILED( hr = DirectSoundCreate8( NULL, &mDS, NULL ) ) )
+	if (FAILED(hr = DirectSoundCreate8(NULL, &mDS, NULL)))
+	{
+		LogError(GetErrorMessage(hr));
 		return false;
+	}
 
 	// Set DirectSound coop level 
 	if( FAILED( hr = mDS->SetCooperativeLevel( hWnd, DSSCL_PRIORITY) ) )
+	{
+		LogError(GetErrorMessage(hr));
 		return false;
+	}
 
-	if( FAILED( hr = SetPrimaryBufferFormat( 8, 44100, 16 ) ) )
+	if( FAILED( hr = SetPrimaryBufferFormat( 2, 44100, 16 ) ) )
+	{
+		LogError(GetErrorMessage(hr));
 		return false;
+	}
 
 	mInitialized = true;
 
@@ -125,8 +135,7 @@ HRESULT DirectSoundAudio::SetPrimaryBufferFormat(
 		are mixed into a single sound stream that is rendered by the sound card
 	*/
 	if( FAILED( hr = mDS->CreateSoundBuffer( &dsbd, &dsbPrimary, NULL ) ) )
-		return S_OK;
-		//return DXUT_ERR( L"CreateSoundBuffer", hr );
+		return hr;
 
 	WAVEFORMATEX wfx;
 	ZeroMemory( &wfx, sizeof(WAVEFORMATEX) ); 
@@ -142,9 +151,9 @@ HRESULT DirectSoundAudio::SetPrimaryBufferFormat(
 		that you specify.
 	*/
 	if( FAILED( hr = dsbPrimary->SetFormat(&wfx) ) )
-		return S_OK;
+		return hr;
 
-	delete dsbPrimary;
+	dsbPrimary->Release();
 
 	return S_OK;
 }
@@ -224,9 +233,7 @@ BaseAudioBuffer *DirectSoundAudio::InitAudioBuffer(eastl::shared_ptr<ResHandle> 
 
 	HRESULT hr;
     if( FAILED( hr = mDS->CreateSoundBuffer( &dsbd, &sampleHandle, NULL ) ) )
-    {
         return NULL;
-    }
 
 	// Add handle to the list
 	BaseAudioBuffer *audioBuffer = new DirectSoundAudioBuffer(sampleHandle, resHandle);
@@ -463,8 +470,7 @@ HRESULT DirectSoundAudioBuffer::RestoreBuffer( BOOL* pbWasRestored )
 
     unsigned long dwStatus;
     if( FAILED( hr = mSample->GetStatus( &dwStatus ) ) )
-		return S_OK;
-        //return DXUT_ERR( L"GetStatus", hr );
+		return hr;
 
     if( dwStatus & DSBSTATUS_BUFFERLOST )
     {
@@ -513,14 +519,13 @@ HRESULT DirectSoundAudioBuffer::FillBufferWithSound( void )
     // Make sure we have focus, and we didn't just switch in from
     // an app which had a DirectSound device
     if( FAILED( hr = RestoreBuffer( NULL ) ) ) 
-		return S_OK;
-        //return DXUT_ERR( L"RestoreBuffer", hr );
+		return hr;
 
 	
     // Lock the buffer down
     if(FAILED( hr = mSample->Lock(0, pcmBufferSize, 
 		&dsLockedBuffer, &dwDSLockedBufferSize, NULL, NULL, 0L)))
-		return S_OK;
+		return hr;
 
     if( pcmBufferSize == 0 )
     {

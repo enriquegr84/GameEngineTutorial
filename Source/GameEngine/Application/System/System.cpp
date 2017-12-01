@@ -49,6 +49,9 @@ System::~System()
 	delete mEventListener;
 	delete mCursorControl;
 
+	mEventListener = nullptr;
+	mCursorControl = nullptr;
+
 	if (System::mSystem == this)
 		System::mSystem = nullptr;
 }

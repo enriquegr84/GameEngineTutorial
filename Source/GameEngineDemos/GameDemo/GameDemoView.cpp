@@ -579,7 +579,7 @@ bool MainMenuUI::OnEvent(const Event& evt)
 
 			default:
 			{
-				LogError("Unknown control.");
+				LogWarning("Unknown control.");
 			}
 		}
 	}

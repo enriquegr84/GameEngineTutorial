@@ -99,8 +99,7 @@ EventManager::~EventManager()
 */
 bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type)
 {
-	//GE_LOG("Events", eastl::string("Attempting to add delegate function for event type: ") + eastl::string(type, 16));
-	LogInformation("Events " + eastl::string("Attempting to add delegate function for event type: ") + eastl::to_string(type));
+	//LogInformation("Events " + eastl::string("Attempting to add delegate function for event type: ") + eastl::to_string(type));
 
 	EventListenerList& eventListenerList = mEventListeners[type];  // this will find or create the entry
 	for (auto it = eventListenerList.begin(); it != eventListenerList.end(); ++it)
@@ -113,7 +112,7 @@ bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const
 	}
 
 	eventListenerList.push_back(eventDelegate);
-	LogInformation("Events " + eastl::string("Successfully added delegate for event type: ") + eastl::to_string(type));
+	//LogInformation("Events " + eastl::string("Successfully added delegate for event type: ") + eastl::to_string(type));
 
 	return true;
 }
@@ -126,8 +125,7 @@ bool EventManager::AddListener(const EventListenerDelegate& eventDelegate, const
 */
 bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, const BaseEventType& type)
 {
-	//GE_LOG("Events", eastl::string("Attempting to remove delegate function from event type: ") + eastl::string(type, 16));
-	LogInformation("Events " + eastl::string("Attempting to remove delegate function from event type: ") + eastl::to_string(type));
+	//LogInformation("Events " + eastl::string("Attempting to remove delegate function from event type: ") + eastl::to_string(type));
 	bool success = false;
 
 	auto findIt = mEventListeners.find(type);
@@ -139,7 +137,7 @@ bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, co
 			if (eventDelegate == (*it))
 			{
 				listeners.erase(it);
-				LogInformation("Events " + eastl::string("Successfully removed delegate function from event type: ") + eastl::to_string(type));
+				//LogInformation("Events " + eastl::string("Successfully removed delegate function from event type: ") + eastl::to_string(type));
 				success = true;
 				break;  // we don't need to continue because it should be impossible for the same delegate function to be registered for the same event more than once
 			}
@@ -158,7 +156,7 @@ bool EventManager::RemoveListener(const EventListenerDelegate& eventDelegate, co
 */
 bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 {
-	LogInformation("Events " + eastl::string("Attempting to trigger event ") + eastl::string(pEvent->GetName()));
+	//LogInformation("Events " + eastl::string("Attempting to trigger event ") + eastl::string(pEvent->GetName()));
 	bool processed = false;
 
 	auto findIt = mEventListeners.find(pEvent->GetEventType());
@@ -168,7 +166,7 @@ bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 		for (EventListenerList::const_iterator it = eventListenerList.begin(); it != eventListenerList.end(); ++it)
 		{
 			EventListenerDelegate listener = (*it);
-			LogInformation("Events " + eastl::string("Sending Event ") + eastl::string(pEvent->GetName()) + eastl::string(" to delegate."));
+			//LogInformation("Events " + eastl::string("Sending Event ") + eastl::string(pEvent->GetName()) + eastl::string(" to delegate."));
 			listener(pEvent);  // call the delegate
 			processed = true;
 		}
@@ -194,18 +192,18 @@ bool EventManager::QueueEvent(const BaseEventDataPtr& pEvent)
 		return false;
 	}
 
-	LogInformation("Events " + eastl::string("Attempting to queue event: ") + eastl::string(pEvent->GetName()));
+	//LogInformation("Events " + eastl::string("Attempting to queue event: ") + eastl::string(pEvent->GetName()));
 
 	auto findIt = mEventListeners.find(pEvent->GetEventType());
 	if (findIt != mEventListeners.end())
 	{
 		mQueues[mActiveQueue].push_back(pEvent);
-		LogInformation("Events " + eastl::string("Successfully queued event: ") + eastl::string(pEvent->GetName()));
+		//LogInformation("Events " + eastl::string("Successfully queued event: ") + eastl::string(pEvent->GetName()));
 		return true;
 	}
 	else
 	{
-		LogInformation("Events " + eastl::string("Skipping event since there are no delegates registered to receive it: ") + eastl::string(pEvent->GetName()));
+		//LogInformation("Events " + eastl::string("Skipping event since there are no delegates registered to receive it: ") + eastl::string(pEvent->GetName()));
 		return false;
 	}
 }
@@ -301,7 +299,7 @@ bool EventManager::Update(unsigned long maxTime)
 		// pop the front of the queue
 		BaseEventDataPtr pEvent = mQueues[queueToProcess].front();
 		mQueues[queueToProcess].pop_front();
-		LogInformation("EventLoop " + eastl::string("\t\tProcessing Event ") + eastl::string(pEvent->GetName()));
+		//LogInformation("EventLoop " + eastl::string("\t\tProcessing Event ") + eastl::string(pEvent->GetName()));
 
 		const BaseEventType& eventType = pEvent->GetEventType();
 
@@ -310,15 +308,18 @@ bool EventManager::Update(unsigned long maxTime)
 		if (findIt != mEventListeners.end())
 		{
 			const EventListenerList& eventListeners = findIt->second;
+			/*
 			LogInformation("EventLoop " + eastl::string("\t\tFound ") + eastl::to_string((unsigned long)eventListeners.size())
 				+ eastl::string(" delegates"));
-
+			*/
 			// call each listener
 			for (auto it = eventListeners.begin(); it != eventListeners.end(); ++it)
 			{
 				EventListenerDelegate listener = (*it);
+				/*
 				LogInformation("EventLoop " + eastl::string("\t\tSending event ") + eastl::string(pEvent->GetName())
 					+ eastl::string(" to delegate"));
+				*/
 				listener(pEvent);
 			}
 		}
@@ -327,7 +328,7 @@ bool EventManager::Update(unsigned long maxTime)
 		currMs = GetTickCount();
 		if (maxTime != BaseEventManager::CONS_INFINITE && currMs >= maxMs)
 		{
-			LogInformation("EventLoop Aborting event processing; time ran out");
+			//LogInformation("EventLoop Aborting event processing; time ran out");
 			break;
 		}
 	}

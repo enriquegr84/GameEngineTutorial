@@ -75,9 +75,8 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 	{
 		case BGS_WAITINGFORPLAYERS:
 		{
-
 			// spawn all local players (should only be one, though we might support more in the future)
-			LogAssert(mExpectedPlayers == 1, "needs two players at least");
+			LogAssert(mExpectedPlayers == 1, "needs only one player");
 			for (int i = 0; i < mExpectedPlayers; ++i)
 			{
 				eastl::shared_ptr<BaseGameView> playersView(new GameDemoHumanView());
@@ -92,7 +91,7 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 			// spawn all remote player's views on the game
 			for (int i = 0; i < mExpectedRemotePlayers; ++i)
 			{
-				eastl::shared_ptr<BaseGameView> remoteGameView(new NetworkGameView);
+				eastl::shared_ptr<BaseGameView> remoteGameView(new NetworkGameView());
 				gameApp->AddView(remoteGameView);
 			}
 
@@ -453,35 +452,35 @@ void GameDemoLogic::DestroyAllNetworkEventForwarders(void)
 {
 	for (auto it = mNetworkEventForwarders.begin(); it != mNetworkEventForwarders.end(); ++it)
 	{
-		NetworkEventForwarder* pNetworkEventForwarder = (*it);
+		NetworkEventForwarder* networkEventForwarder = (*it);
 
-		BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
-		pGlobalEventManager->RemoveListener(
-			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		BaseEventManager* eventManager = BaseEventManager::Get();
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataPhysCollision::skEventType);
-		pGlobalEventManager->RemoveListener(
-			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataDestroyActor::skEventType);
-		pGlobalEventManager->RemoveListener(
-			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataFireWeapon::skEventType);
-		pGlobalEventManager->RemoveListener(
-			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataEnvironmentLoaded::skEventType);
-		pGlobalEventManager->RemoveListener(
-			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataNewActor::skEventType);
-		pGlobalEventManager->RemoveListener(
-			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataMoveActor::skEventType);
-		pGlobalEventManager->RemoveListener(
-			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataRequestNewActor::skEventType);
-		pGlobalEventManager->RemoveListener(
-			MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataNetworkPlayerActorAssignment::skEventType);
 
-		delete pNetworkEventForwarder;
+		delete networkEventForwarder;
 	}
 
 	mNetworkEventForwarders.clear();
