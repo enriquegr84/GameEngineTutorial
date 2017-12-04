@@ -137,7 +137,8 @@ public:
 	virtual bool LoadGame(const char* levelResource) override;
 	virtual void SetProxy();
 
-	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView) { }
+	virtual void ResetViewType() { }
+	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView, bool add) { }
 
 	// Logic Update
 	virtual void OnUpdate(float time, float elapsedTime);

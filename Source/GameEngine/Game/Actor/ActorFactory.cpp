@@ -132,7 +132,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
 	//	This is a bit of a hack to get the initial transform of the transform component 
 	//	set before the other components (like PhysicsComponent) read it.
     eastl::shared_ptr<TransformComponent> pTransformComponent(
-		pActor->GetComponent<TransformComponent>(TransformComponent::Name));
+		pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 	if (pInitialTransform && pTransformComponent)
 	{
 		pTransformComponent->SetPosition(pInitialTransform->GetTranslation());
@@ -179,7 +179,7 @@ void ActorFactory::ModifyActor(eastl::shared_ptr<Actor> pActor, XMLElement* over
 	{
 		ComponentId componentId = ActorComponent::GetIdFromName(pNode->Value());
 		eastl::shared_ptr<ActorComponent> pComponent(
-			pActor->GetComponent<ActorComponent>(componentId));
+			pActor->GetComponent<ActorComponent>(componentId).lock());
 		if (pComponent)
 		{
 			pComponent->Init(pNode);

@@ -147,7 +147,7 @@ bool GameLogic::Init(void)
 
 eastl::string GameLogic::GetActorXml(const ActorId id)
 {
-    eastl::shared_ptr<Actor> pActor(GetActor(id));
+    eastl::shared_ptr<Actor> pActor(GetActor(id).lock());
     if (pActor) 
 		return pActor->ToXML();
     else
@@ -158,7 +158,7 @@ eastl::string GameLogic::GetActorXml(const ActorId id)
 
 bool GameLogic::LoadGame(const char* levelResource)
 {
-	eastl::wstring levelName(levelResource);
+	eastl::wstring levelName(ToWideString(levelResource));
 
     // Grab the root XML node
     XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(levelName.c_str());
@@ -273,7 +273,7 @@ eastl::shared_ptr<Actor> GameLogic::CreateActor(const eastl::string &actorResour
 		return eastl::shared_ptr<Actor>();
 
     eastl::shared_ptr<Actor> pActor = mActorFactory->CreateActor(
-		eastl::wstring(actorResource.c_str()).c_str(), overrides, initialTransform, serversActorId);
+		ToWideString(actorResource.c_str()).c_str(), overrides, initialTransform, serversActorId);
     if (pActor)
     {
         mActors.insert(eastl::make_pair(pActor->GetId(), pActor));
@@ -420,6 +420,9 @@ void GameLogic::ChangeState(BaseGameState newState)
 		mExpectedRemotePlayers = gameApp->mOption.mExpectedPlayers - 1;
 		mExpectedAI = gameApp->mOption.mNumAIs;
 
+		mGameState = newState;
+		return;
+
 		if (!gameApp->mOption.mGameHost.empty())
 		{
 			SetProxy();					
@@ -429,7 +432,7 @@ void GameLogic::ChangeState(BaseGameState newState)
 			if (!gameApp->AttachAsClient())
 			{
 				// Throw up a main menu
-				ChangeState(BGS_MAINMENU);
+				//ChangeState(BGS_MAINMENU);
 				return;
 			}
 		}
@@ -439,7 +442,7 @@ void GameLogic::ChangeState(BaseGameState newState)
 			if (!pServer->Init())
 			{
 				// Throw up a main menu
-				ChangeState(BGS_MAINMENU);	
+				//ChangeState(BGS_MAINMENU);	
 				return;
 			}
 

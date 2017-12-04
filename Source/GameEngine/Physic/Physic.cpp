@@ -467,11 +467,11 @@ void BulletPhysics::SyncVisibleScene()
 			static_cast<ActorMotionState*>(it->second->getMotionState());
 		LogAssert( actorMotionState, "actor motion state null" );
 		
-		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(id));
+		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(id).lock());
 		if (pGameActor && actorMotionState)
 		{
             eastl::shared_ptr<TransformComponent> pTransformComponent(
-				pGameActor->GetComponent<TransformComponent>(TransformComponent::Name));
+				pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
             if (pTransformComponent)
             {
 			    if (pTransformComponent->GetTransform().GetMatrix() != 
@@ -510,8 +510,8 @@ void BulletPhysics::AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionSha
 		shape->calculateLocalInertia( mass, localInertia );
 
 	Transform transform;
-    eastl::shared_ptr<TransformComponent> pTransformComponent = eastl::shared_ptr<TransformComponent>(
-		pGameActor->GetComponent<TransformComponent>(TransformComponent::Name));
+    eastl::shared_ptr<TransformComponent> pTransformComponent = 
+		pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 	LogAssert(pTransformComponent, "no transform");
     if (pTransformComponent)
     {
@@ -619,7 +619,7 @@ ActorId BulletPhysics::FindActorID( btRigidBody const * const body ) const
 void BulletPhysics::AddSphere(float const radius, eastl::weak_ptr<Actor> pGameActor, 
 	const eastl::string& densityStr, const eastl::string& physicMaterial)
 {
-	eastl::shared_ptr<Actor> pStrongActor(pGameActor);
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor.lock());
     if (!pStrongActor)
         return;  // FUTURE WORK - Add a call to the error log here
 	
@@ -640,7 +640,7 @@ void BulletPhysics::AddSphere(float const radius, eastl::weak_ptr<Actor> pGameAc
 void BulletPhysics::AddBox(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> pGameActor,
 	const eastl::string& densityStr, const eastl::string& physicMaterial)
 {
-	eastl::shared_ptr<Actor> pStrongActor(pGameActor);
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor.lock());
     if (!pStrongActor)
         return;  // FUTURE WORK: Add a call to the error log here
 
@@ -661,7 +661,7 @@ void BulletPhysics::AddBox(const Vector3<float>& dimensions, eastl::weak_ptr<Act
 void BulletPhysics::AddPointCloud(Vector3<float> *verts, int numPoints, eastl::weak_ptr<Actor> pGameActor,
 	const eastl::string& densityStr, const eastl::string& physicMaterial)
 {
-	eastl::shared_ptr<Actor> pStrongActor(pGameActor);
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor.lock());
     if (!pStrongActor)
         return;  // FUTURE WORK: Add a call to the error log here
 	
@@ -715,7 +715,7 @@ void BulletPhysics::RenderDiagnostics()
 //
 void BulletPhysics::CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim)
 {
-	eastl::shared_ptr<Actor> pStrongActor(pGameActor);
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor.lock());
     if (!pStrongActor)
         return;  // FUTURE WORK: Add a call to the error log here
 

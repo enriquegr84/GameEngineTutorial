@@ -151,9 +151,6 @@ void GameDemoApp::CreateGameAndView()
 {
 	GameDemoLogic* game = new GameDemoLogic();
 	game->Init();
-
-	eastl::shared_ptr<BaseGameView> menuView(new MainMenuView());
-	AddView(menuView);
 }
 
 //
@@ -162,7 +159,31 @@ void GameDemoApp::CreateGameAndView()
 void GameDemoApp::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actor)
 {
 	GameApplication::AddView(pView, actor);
-	GameLogic::Get()->UpdateViewType(pView);
+	GameLogic::Get()->UpdateViewType(pView, true);
+}
+
+//
+// GameDemoLogic::RemoveView
+//
+void GameDemoApp::RemoveView(const eastl::shared_ptr<BaseGameView>& pView)
+{
+	GameApplication::RemoveView(pView);
+	GameLogic::Get()->UpdateViewType(pView, false);
+}
+
+//remove game view
+void GameDemoApp::RemoveView()
+{
+	GameLogic::Get()->UpdateViewType(mGameViews.front(), false);
+	GameApplication::RemoveView();
+}
+
+// Added this to explicitly remove views from the game logic list.
+void GameDemoApp::RemoveViews()
+{
+	GameLogic::Get()->ResetViewType();
+	while (!mGameViews.empty())
+		mGameViews.pop_front();
 }
 
 /*

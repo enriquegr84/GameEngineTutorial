@@ -593,8 +593,7 @@ void HumanView::Console::OnUpdate( const int deltaTime )
 			//Attempt to execute the current input string...
             if (!mCurrentInputString.empty())
 			{
-				LuaStateManager::Get()->ExecuteString(
-					eastl::string(mCurrentInputString.c_str()).c_str());
+				LuaStateManager::Get()->ExecuteString(mCurrentInputString.c_str());
 			}
 
 			//Clear the input string

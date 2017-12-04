@@ -210,7 +210,7 @@ bool MainMenuUI::OnInit()
 	playerOptionsRectangle.center[1] = 120;
 	playerOptionsRectangle.extent[1] = 20;
 	eastl::shared_ptr<BaseUIEditBox> gameHost = AddEditBox(
-		eastl::wstring(gameApp->mOption.mGameHost.c_str()).c_str(), playerOptionsRectangle, true, window, CID_HOST_NAME);
+		ToWideString(gameApp->mOption.mGameHost.c_str()).c_str(), playerOptionsRectangle, true, window, CID_HOST_NAME);
 
 	playerOptionsRectangle.center[0] = 350;
 	playerOptionsRectangle.extent[0] = 50;
@@ -394,29 +394,34 @@ void MainMenuUI::Set()
 	const eastl::shared_ptr<BaseUIElement>& root = GetRootUIElement();
 	const eastl::shared_ptr<BaseUIElement>& window = root->GetElementFromId(CID_DEMO_WINDOW);
 	const eastl::shared_ptr<BaseUIButton>& createGame = 
-		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_CREATE_GAME_RADIO));
+		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_CREATE_GAME_RADIO, true));
 	const eastl::shared_ptr<BaseUIButton>& setGame = 
-		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_SET_GAME_RADIO));
+		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_SET_GAME_RADIO, true));
 	const eastl::shared_ptr<BaseUIScrollBar>& numAI = 
-		eastl::static_pointer_cast<BaseUIScrollBar>(root->GetElementFromId(CID_NUM_AI_SLIDER));
+		eastl::static_pointer_cast<BaseUIScrollBar>(root->GetElementFromId(CID_NUM_AI_SLIDER, true));
 	const eastl::shared_ptr<BaseUIScrollBar>& numPlayer = 
-		eastl::static_pointer_cast<BaseUIScrollBar>(root->GetElementFromId(CID_NUM_PLAYER_SLIDER));
+		eastl::static_pointer_cast<BaseUIScrollBar>(root->GetElementFromId(CID_NUM_PLAYER_SLIDER, true));
 	const eastl::shared_ptr<BaseUIEditBox>& hostPort = 
-		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_HOST_LISTEN_PORT));
+		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_HOST_LISTEN_PORT, true));
 	const eastl::shared_ptr<BaseUIEditBox>& clientPort = 
-		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_CLIENT_ATTACH_PORT));
+		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_CLIENT_ATTACH_PORT, true));
 	const eastl::shared_ptr<BaseUIButton>& startGame = 
-		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_START_BUTTON));
+		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_START_BUTTON, true));
 	const eastl::shared_ptr<BaseUIEditBox>& hostName = 
-		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_HOST_NAME));
+		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_HOST_NAME, true));
 	const eastl::shared_ptr<BaseUIListBox>& level = 
-		eastl::static_pointer_cast<BaseUIListBox>(root->GetElementFromId(CID_LEVEL_LISTBOX));
+		eastl::static_pointer_cast<BaseUIListBox>(root->GetElementFromId(CID_LEVEL_LISTBOX, true));
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	gameApp->mOption.mNumAIs = numAI->GetPos();
 	gameApp->mOption.mExpectedPlayers = numPlayer->GetPos();
 	gameApp->mOption.mGameHost = ToString(hostName->GetText());
-	gameApp->mOption.mLevel = level->GetSelected();
+
+	if (level->GetSelected() >= 0)
+	{
+		eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
+		gameApp->mOption.mLevel = ToString(levels[level->GetSelected()]->GetFileName().c_str());
+	}
 }
 
 // enable GUI elements
@@ -568,6 +573,7 @@ bool MainMenuUI::OnEvent(const Event& evt)
 			{
 				if (evt.mUIEvent.mEventType == UIEVT_BUTTON_CLICKED)
 				{
+					Set();
 					SetVisible(false);
 
 					eastl::shared_ptr<EventDataRequestStartGame> pRequestStartGameEvent(new EventDataRequestStartGame());

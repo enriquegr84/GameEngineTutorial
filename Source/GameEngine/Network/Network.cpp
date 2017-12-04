@@ -1038,7 +1038,7 @@ void NetworkGameView::NewActorDelegate(BaseEventDataPtr pEventData)
 		eastl::static_pointer_cast<EventDataNewActor>(pEventData);
 	ActorId actorId = pCastEventData->GetActorId();
 
-	eastl::shared_ptr<Actor> pActor(GameLogic::Get()->GetActor(actorId));
+	eastl::shared_ptr<Actor> pActor(GameLogic::Get()->GetActor(actorId).lock());
 
 	// FUTURE WORK: This could be in a script.
     if (pActor && pActor->GetType() == "Teapot")

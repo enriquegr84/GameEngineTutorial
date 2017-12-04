@@ -75,7 +75,7 @@ eastl::shared_ptr<SceneNode> MeshRenderComponent::CreateSceneNode(void)
 {
     // get the transform component
     const eastl::shared_ptr<TransformComponent>& pTransformComponent(
-		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (!pTransformComponent)
     {
         // can't render without a transform
@@ -145,7 +145,7 @@ eastl::shared_ptr<SceneNode> SphereRenderComponent::CreateSceneNode(void)
 {
     // get the transform component
     const eastl::shared_ptr<TransformComponent>& pTransformComponent(
-		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (!pTransformComponent)
     {
         // can't render without a transform
@@ -192,7 +192,7 @@ eastl::shared_ptr<SceneNode> TeapotRenderComponent::CreateSceneNode(void)
 {
     // get the transform component
     const eastl::shared_ptr<TransformComponent>& pTransformComponent(
-		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (pTransformComponent)
     {
 		GameApplication* gameApp = (GameApplication*)Application::App;
@@ -267,7 +267,7 @@ bool GridRenderComponent::DelegateInit(XMLElement* pData)
 eastl::shared_ptr<SceneNode> GridRenderComponent::CreateSceneNode(void)
 {
     const eastl::shared_ptr<TransformComponent>& pTransformComponent(
-		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (pTransformComponent)
     {
 		GameApplication* gameApp = (GameApplication*)Application::App;
@@ -418,7 +418,7 @@ bool LightRenderComponent::DelegateInit(XMLElement* pData)
 eastl::shared_ptr<SceneNode> LightRenderComponent::CreateSceneNode(void)
 {
     const eastl::shared_ptr<TransformComponent>& pTransformComponent(
-		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (pTransformComponent)
     {
 		GameApplication* gameApp = (GameApplication*)Application::App;
@@ -496,7 +496,7 @@ bool ParticleSystemRenderComponent::DelegateInit(XMLElement* pData)
 eastl::shared_ptr<SceneNode> ParticleSystemRenderComponent::CreateSceneNode(void)
 {
     const eastl::shared_ptr<TransformComponent>& pTransformComponent(
-		m_pOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
+		m_pOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (pTransformComponent)
     {
 		GameApplication* gameApp = (GameApplication*)Application::App;

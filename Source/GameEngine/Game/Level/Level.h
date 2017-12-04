@@ -68,7 +68,7 @@ public:
 	const eastl::vector<eastl::wstring>& GetGroups() const { return mGroups; }
 	// ------------------------------------------------------------------------
     /** Returns the filename of this level. */
-    const eastl::wstring& GetFilename() const { return mFileName; }
+    const eastl::wstring& GetFileName() const { return mFileName; }
 
 private:
 

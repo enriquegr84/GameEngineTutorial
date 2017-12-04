@@ -35,30 +35,37 @@ GameDemoLogic::~GameDemoLogic()
 }
 
 
-void GameDemoLogic::UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView)
+void GameDemoLogic::UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView, bool add)
 {
-	GameLogic::UpdateViewType(pView);
+	GameLogic::UpdateViewType(pView, add);
 
 	//  This is commented out because while the view is created and waiting, the player has NOT attached yet. 
 	/*
 	if (pView->GetType() == GV_REMOTE)
 	{
-	mHumanPlayersAttached++;
+	mHumanPlayersAttached += add ? 1 : -1;
 	}
 	*/
 	if (pView->GetType() == GV_HUMAN)
 	{
-		mHumanPlayersAttached++;
+		mHumanPlayersAttached += add ? 1 : -1;
 	}
 	else if (pView->GetType() == GV_AI)
 	{
-		mAIPlayersAttached++;
+		mAIPlayersAttached += add ? 1 : -1;
 	}
+}
+
+void GameDemoLogic::ResetViewType()
+{
+	GameLogic::ResetViewType();
+
+	mHumanPlayersAttached = 0;
+	mAIPlayersAttached = 0;
 }
 
 void GameDemoLogic::SetProxy()
 {
-	// FUTURE WORK: This can go in the base game logic!!!!
 	GameLogic::SetProxy();
 }
 
@@ -73,6 +80,14 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	switch (newState)
 	{
+		case BGS_MAINMENU:
+		{
+			eastl::shared_ptr<BaseGameView> menuView(new MainMenuView());
+			gameApp->AddView(menuView);
+
+			break;
+		}
+
 		case BGS_WAITINGFORPLAYERS:
 		{
 			// spawn all local players (should only be one, though we might support more in the future)
@@ -172,12 +187,11 @@ void GameDemoLogic::MoveActor(const ActorId id, Transform const &transform)
 	// FUTURE WORK - This would make a great basis for a Trigger actor that ran a LUA script when other
 	//               actors entered or left it!
 
-	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(GetActor(id));
+	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(GetActor(id).lock());
 	if (pActor)
 	{
 		eastl::shared_ptr<TransformComponent> pTransformComponent = 
-			eastl::shared_ptr<TransformComponent>(
-				pActor->GetComponent<TransformComponent>(TransformComponent::Name));
+			pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 		if (pTransformComponent && pTransformComponent->GetPosition()[1] < -25)
 		{
 			eastl::shared_ptr<EventDataDestroyActor> pDestroyActorEvent(new EventDataDestroyActor(id));
@@ -256,9 +270,8 @@ void GameDemoLogic::NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEvent
 			eastl::shared_ptr<GameDemoHumanView> pHumanView =
 				eastl::static_pointer_cast<GameDemoHumanView, BaseGameView>(pView);
 			if (mRemotePlayerId == pCastEventData->GetSocketId())
-			{
 				pHumanView->SetControlledActor(pCastEventData->GetActorId());
-			}
+
 			return;
 		}
 	}
@@ -270,13 +283,11 @@ void GameDemoLogic::StartThrustDelegate(BaseEventDataPtr pEventData)
 {
 	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
 		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
-	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(
-		GetActor(pCastEventData->GetActorId()));
+	eastl::shared_ptr<Actor> pActor = GetActor(pCastEventData->GetActorId()).lock();
 	if (pActor)
 	{
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent = 
-			eastl::shared_ptr<PhysicComponent>(
-				pActor->GetComponent<PhysicComponent>(PhysicComponent::Name));
+			pActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
 			pPhysicalComponent->ApplyAcceleration(pCastEventData->GetAcceleration());
 	}
@@ -286,13 +297,11 @@ void GameDemoLogic::EndThrustDelegate(BaseEventDataPtr pEventData)
 {
 	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
 		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
-	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(
-		GetActor(pCastEventData->GetActorId()));
+	eastl::shared_ptr<Actor> pActor = GetActor(pCastEventData->GetActorId()).lock();
 	if (pActor)
 	{
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
-			eastl::shared_ptr<PhysicComponent>(
-				pActor->GetComponent<PhysicComponent>(PhysicComponent::Name));
+			pActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
 			pPhysicalComponent->RemoveAcceleration();
 	}
@@ -302,13 +311,11 @@ void GameDemoLogic::StartSteerDelegate(BaseEventDataPtr pEventData)
 {
 	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
 		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
-	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(
-		GetActor(pCastEventData->GetActorId()));
+	eastl::shared_ptr<Actor> pActor = GetActor(pCastEventData->GetActorId()).lock();
 	if (pActor)
 	{
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent = 
-			eastl::shared_ptr<PhysicComponent>(
-				pActor->GetComponent<PhysicComponent>(PhysicComponent::Name));
+			pActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
 			pPhysicalComponent->ApplyAngularAcceleration(pCastEventData->GetAcceleration());
 	}
@@ -318,13 +325,11 @@ void GameDemoLogic::EndSteerDelegate(BaseEventDataPtr pEventData)
 {
 	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
 		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
-	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(
-		GetActor(pCastEventData->GetActorId()));
+	eastl::shared_ptr<Actor> pActor = GetActor(pCastEventData->GetActorId()).lock();
 	if (pActor)
 	{
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
-			eastl::shared_ptr<PhysicComponent>(
-				pActor->GetComponent<PhysicComponent>(PhysicComponent::Name));
+			pActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
 			pPhysicalComponent->RemoveAngularAcceleration();
 	}

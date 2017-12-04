@@ -63,7 +63,8 @@ public:
 
 	virtual void MoveActor(const ActorId id, Transform const &transform);
 
-	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView);
+	virtual void ResetViewType();
+	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView, bool add);
 
 	// Overloads
 	virtual void ChangeState(BaseGameState newState);

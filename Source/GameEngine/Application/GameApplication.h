@@ -79,8 +79,8 @@ public:
 	
 	virtual void AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId = INVALID_ACTOR_ID);
 	virtual void RemoveView(const eastl::shared_ptr<BaseGameView>& pView);
-	void RemoveViews();
-	void RemoveView();
+	virtual void RemoveViews();
+	virtual void RemoveView();
 
 	// You must define these functions to initialize your game.
 	virtual void CreateGameAndView() = 0;

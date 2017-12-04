@@ -101,10 +101,7 @@ public:
             eastl::weak_ptr<ComponentType> pWeakSub(pSub);
             return pWeakSub;  // return the weak pointer
         }
-        else
-        {
-            return eastl::weak_ptr<ComponentType>();
-        }
+        else return eastl::weak_ptr<ComponentType>();
     }
 
     template <class ComponentType>

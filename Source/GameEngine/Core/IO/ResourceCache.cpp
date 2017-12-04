@@ -280,7 +280,7 @@ int ResCache::GetResource(BaseResource * r, void** buffer)
 //
 eastl::shared_ptr<ResHandle> ResCache::Find(BaseResource * r)
 {
-	ResHandleMap::iterator i = mResources.find(eastl::wstring(r->mName.c_str()));
+	ResHandleMap::iterator i = mResources.find(r->mName);
 	if (i==mResources.end())
 		return 0;
 
@@ -328,7 +328,7 @@ void ResCache::FreeOneResource()
 	eastl::shared_ptr<ResHandle> handle = *gonner;
 
 	mLRU.pop_back();							
-	mResources.erase(eastl::wstring(handle->mResource.mName.c_str()));
+	mResources.erase(handle->mResource.mName);
 	// Note - you can't change the resource cache size yet - the resource bits could still actually be
 	// used by some sybsystem holding onto the ResHandle. Only when it goes out of scope can the memory
 	// be actually free again.
@@ -382,7 +382,7 @@ bool ResCache::MakeRoom(unsigned int size)
 void ResCache::Free(const eastl::shared_ptr<ResHandle>& gonner)
 {
 	mLRU.remove(gonner);
-	mResources.erase(eastl::wstring(gonner->mResource.mName.c_str()));
+	mResources.erase(gonner->mResource.mName);
 	// Note - the resource might still be in use by something,
 	// so the cache can't actually count the memory freed until the
 	// ResHandle pointing to it is destroyed.
@@ -437,9 +437,7 @@ eastl::vector<eastl::wstring> ResCache::Match(const eastl::wstring pattern)
 			continue;
 		*/
 		if (WildcardMatch(pattern.c_str(), name.c_str()))
-		{
-			matchingNames.push_back(eastl::wstring(name.c_str()));
-		}
+			matchingNames.push_back(name);
 	}
 	return matchingNames;
 }

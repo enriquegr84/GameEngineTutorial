@@ -57,8 +57,7 @@ void Level::Reset()
 //-----------------------------------------------------------------------------
 void Level::LoadLevelInfo()
 {
-	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(
-		eastl::wstring(mFileName.c_str()).c_str());
+	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(mFileName.c_str());
 
 	if (!pRoot)
 	{

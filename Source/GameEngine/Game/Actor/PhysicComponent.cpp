@@ -181,7 +181,7 @@ void PhysicComponent::Update(int deltaMs)
 {
     // get the transform component
     eastl::shared_ptr<TransformComponent> pTransformComponent(
-		mOwner->GetComponent<TransformComponent>(TransformComponent::Name));
+		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (!pTransformComponent)
     {
         LogError("No transform component!");
@@ -329,7 +329,7 @@ void PhysicComponent::SetVelocity(const Vector3<float>& velocity)
 void PhysicComponent::RotateY(float angleRadians)
 {
     eastl::shared_ptr<TransformComponent> pTransformComponent(
-		mOwner->GetComponent<TransformComponent>(TransformComponent::Name));
+		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (pTransformComponent)
     {
 		Transform transform = pTransformComponent->GetTransform();
@@ -349,7 +349,7 @@ void PhysicComponent::RotateY(float angleRadians)
 void PhysicComponent::SetPosition(float x, float y, float z)
 {
     eastl::shared_ptr<TransformComponent> pTransformComponent(
-		mOwner->GetComponent<TransformComponent>(TransformComponent::Name));
+		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (pTransformComponent)
     {
 		Transform transform = pTransformComponent->GetTransform();
