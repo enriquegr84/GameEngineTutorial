@@ -43,16 +43,16 @@
 
 #include "Application/System/EventSystem.h"
 
-class SceneNode;
+class Node;
 
 class GameDemoController : public BaseMouseHandler, public BaseKeyboardHandler
 {
 protected:
 	BYTE mKey[256];			// Which keys are up and down
-	eastl::shared_ptr<SceneNode> mObject;
+	eastl::shared_ptr<Node> mObject;
 
 public:
-	GameDemoController(const eastl::shared_ptr<SceneNode>& object);
+	GameDemoController(const eastl::shared_ptr<Node>& object);
 	//void SetObject(const eastl::shared_ptr<SceneNode>& newObject);
 
 	void OnUpdate(unsigned long const elapsedTime);

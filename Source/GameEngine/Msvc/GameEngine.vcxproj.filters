@@ -142,9 +142,6 @@
     <Filter Include="Graphic\Scene\Controller">
       <UniqueIdentifier>{1b804654-66a7-4faf-9482-fcfe6b2e9786}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphic\Scene\Element">
-      <UniqueIdentifier>{5cc6d868-9c00-41cc-96d4-5235c78a0051}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Mathematic\Surface">
       <UniqueIdentifier>{cc1dbbbd-6a5c-465c-bd31-e1c5b9ffb5bd}</UniqueIdentifier>
     </Filter>
@@ -207,6 +204,12 @@
     </Filter>
     <Filter Include="Graphic\Image">
       <UniqueIdentifier>{2501a2f0-f37b-4234-883a-40b35e448e88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Scene\Hierarchy">
+      <UniqueIdentifier>{5cc6d868-9c00-41cc-96d4-5235c78a0051}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Scene\Node">
+      <UniqueIdentifier>{39bb7dfa-6811-4d9f-84d0-9af8590bc118}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -589,24 +592,6 @@
     <ClCompile Include="..\Graphic\Scene\Controller\Controller.cpp">
       <Filter>Graphic\Scene\Controller</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Camera.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Node.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Spatial.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\ViewVolume.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Visual.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\BoundingSphere.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp">
       <Filter>Graphic\Scene</Filter>
     </ClCompile>
@@ -792,6 +777,66 @@
     </ClCompile>
     <ClCompile Include="..\Graphic\Image\ImageResource.cpp">
       <Filter>Graphic\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\AmbientLightEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\ConstantColorEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\DirectionalLightEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\DirectionalLightTextureEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\LightCameraGeometry.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\Lighting.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\LightingEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\PointLightEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\PointLightTextureEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\SpotLightEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\Material.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\LightManager.cpp">
+      <Filter>Graphic\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Hierarchy\BoundingSphere.cpp">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Hierarchy\Camera.cpp">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Hierarchy\Light.cpp">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Hierarchy\Spatial.cpp">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Hierarchy\ViewVolume.cpp">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Hierarchy\Visual.cpp">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Node\BillboardNode.cpp">
+      <Filter>Graphic\Scene\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Hierarchy\Node.cpp">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1603,24 +1648,6 @@
     <ClInclude Include="..\Graphic\Scene\Controller\Controller.h">
       <Filter>Graphic\Scene\Controller</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Camera.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Node.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Spatial.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\ViewVolume.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Visual.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\BoundingSphere.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
     <ClInclude Include="..\Mathematic\Surface\IndexAttribute.h">
       <Filter>Mathematic\Surface</Filter>
     </ClInclude>
@@ -1986,6 +2013,66 @@
     </ClInclude>
     <ClInclude Include="..\Application\System\CursorControl.h">
       <Filter>Application\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\AmbientLightEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\ConstantColorEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\DirectionalLightEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\DirectionalLightTextureEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\LightCameraGeometry.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\Lighting.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\LightingEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\PointLightEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\PointLightTextureEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\SpotLightEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\Material.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\LightManager.h">
+      <Filter>Graphic\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Hierarchy\BoundingSphere.h">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Hierarchy\Camera.h">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Hierarchy\Light.h">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Hierarchy\Spatial.h">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Hierarchy\ViewVolume.h">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Hierarchy\Visual.h">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Node\BillboardNode.h">
+      <Filter>Graphic\Scene\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Hierarchy\Node.h">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

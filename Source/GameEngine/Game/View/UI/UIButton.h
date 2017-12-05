@@ -10,7 +10,7 @@
 #include "UISpriteBank.h"
 
 #include "Graphic/Effect/Texture2Effect.h"
-#include "Graphic/Scene/Element/Visual.h"
+#include "Graphic/Scene/Hierarchy/Visual.h"
 
 enum UIButtonState
 {

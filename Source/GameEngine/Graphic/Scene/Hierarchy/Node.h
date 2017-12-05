@@ -10,8 +10,6 @@
 
 #include "Spatial.h"
 
-#include <memory>
-
 
 // This class represents grouping nodes in a spatial hiearchy.
 class GRAPHIC_ITEM Node : public Spatial

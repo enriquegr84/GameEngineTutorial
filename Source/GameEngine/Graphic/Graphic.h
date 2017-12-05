@@ -15,11 +15,26 @@
 #include "InputLayout/InputLayoutManager.h"
 
 // Effects
+#include "Effect/AmbientLightEffect.h"
+#include "Effect/ConstantColorEffect.h"
+#include "Effect/DirectionalLightEffect.h"
+#include "Effect/DirectionalLightTextureEffect.h"
 #include "Effect/Font.h"
 #include "Effect/FontArialW400H18.h"
+#include "Effect/Lighting.h"
+#include "Effect/LightingEffect.h"
+#include "Effect/LightCameraGeometry.h"
+#include "Effect/Material.h"
+#include "Effect/PointLightEffect.h"
+#include "Effect/PointLightTextureEffect.h"
+#include "Effect/SpotLightEffect.h"
+#include "Effect/Texture2Effect.h"
 #include "Effect/TextEffect.h"
 #include "Effect/BasicEffect.h"
 #include "Effect/VisualEffect.h"
+
+// Image
+#include "Image/ImageResource.h"
 
 // Resources
 #include "Resource/DataFormat.h"
@@ -59,12 +74,13 @@
 #include "Scene/Controller/Controller.h"
 #include "Scene/Controller/ControlledObject.h"
 
-#include "Scene/Element/Node.h"
-#include "Scene/Element/Visual.h"
-#include "Scene/Element/Camera.h"
-#include "Scene/Element/Spatial.h"
-#include "Scene/Element/ViewVolume.h"
-#include "Scene/Element/BoundingSphere.h"
+#include "Scene/Hierarchy/Node.h"
+#include "Scene/Hierarchy/Light.h"
+#include "Scene/Hierarchy/Visual.h"
+#include "Scene/Hierarchy/Camera.h"
+#include "Scene/Hierarchy/Spatial.h"
+#include "Scene/Hierarchy/ViewVolume.h"
+#include "Scene/Hierarchy/BoundingSphere.h"
 
 #include "Scene/Visibility/Culler.h"
 #include "Scene/Visibility/CullingPlane.h"

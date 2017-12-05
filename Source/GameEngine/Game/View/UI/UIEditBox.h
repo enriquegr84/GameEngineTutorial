@@ -11,7 +11,7 @@
 #include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Effect/BasicEffect.h"
 
-#include "Graphic/Scene/Element/Visual.h"
+#include "Graphic/Scene/Hierarchy/Visual.h"
 
 //! Single line edit box for editing simple text.
 /** \par This element can create the following events of type EGUI_EVENT_TYPE:

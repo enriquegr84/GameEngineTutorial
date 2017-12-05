@@ -9,7 +9,7 @@
 #include "UIFont.h"
 
 #include "Graphic/Effect/BasicEffect.h"
-#include "Graphic/Scene/Element/Visual.h"
+#include "Graphic/Scene/Hierarchy/Visual.h"
 
 //! Multi or single line text label.
 class BaseUIStaticText : public BaseUIElement

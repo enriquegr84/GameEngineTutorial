@@ -120,8 +120,8 @@ class GridRenderComponent : public BaseRenderComponent
     int mSquares;
 
 public:
-	static const char *g_Name;
-	virtual const char *GetName() const { return g_Name; }
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
 
     GridRenderComponent(void);
 	const char* GetTextureResource() { return mTextureResource.c_str(); }

@@ -44,12 +44,11 @@
 #include "Graphic/ScreenElement.h"
 #include "Graphic/Renderer/Renderer.h"
 
-//#include "Lights.h"
+#include "Core/Event/EventManager.h"
 
-//#include "Events/EventManager.h"
-
-class SceneNode;
-class CameraSceneNode;
+class Node;
+class Camera;
+class LightManager;
 
 // Forward declarations
 ////////////////////////////////////////////////////
@@ -60,8 +59,8 @@ class CameraSceneNode;
 //
 ////////////////////////////////////////////////////
 
-typedef eastl::map<ActorId, eastl::shared_ptr<SceneNode> > SceneNodeActorMap;
-typedef eastl::vector<SceneNode*> SceneNodeRenderList;
+typedef eastl::map<ActorId, eastl::shared_ptr<Node> > SceneNodeActorMap;
+typedef eastl::vector<Node*> SceneNodeRenderList;
 
 
 ////////////////////////////////////////////////////
@@ -125,18 +124,20 @@ enum E_RENDER_PASS
 class Scene
 {
 protected:
-	eastl::shared_ptr<SceneNode>  					m_pRoot;
-	eastl::shared_ptr<CameraSceneNode> 				m_pCamera;
+	eastl::shared_ptr<Node> mRoot;
+	eastl::shared_ptr<Camera> mCamera;
 
-	SceneNodeActorMap 						m_SceneNodeActors;		
-	E_RENDER_PASS							m_CurrentRenderPass;
+	LightManager* mLightManager;
+
+	SceneNodeActorMap mSceneNodeActors;		
+	E_RENDER_PASS mCurrentRenderPass;
 	
-	eastl::array<float, 4>					m_ShadowColor;
-	eastl::array<float, 4>					m_AmbientLight;
+	eastl::array<float, 4> mShadowColor;
+	eastl::array<float, 4> mAmbientLight;
 
 	//! scene node lists
-	SceneNodeRenderList m_DeletionList;
-	SceneNodeRenderList m_RenderList[ERP_LAST];
+	SceneNodeRenderList mDeletionList;
+	SceneNodeRenderList mRenderList[ERP_LAST];
 
 	void RenderAlphaPass();
 
@@ -155,6 +156,12 @@ public:
 	bool OnRestore();
 	bool OnLostDevice();
 
+	// event delegates
+	void NewRenderComponentDelegate(BaseEventDataPtr pEventData);
+	void ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData);			// added post-press!
+	void DestroyActorDelegate(BaseEventDataPtr pEventData);
+	void MoveActorDelegate(BaseEventDataPtr pEventData);
+
 	//! Gets the root scene node.
 	/** This is the scene node which is parent
 	of all scene nodes. The root scene node is a special scene node which
@@ -162,11 +169,11 @@ public:
 	be removed from the scene.
 	\return Pointer to the root scene node.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	virtual const eastl::shared_ptr<SceneNode>& GetRootSceneNode() { return m_pRoot; }
+	virtual const eastl::shared_ptr<Node>& GetRootSceneNode() { return mRoot; }
 
 	bool RemoveSceneNode(ActorId id);
 
-	bool AddSceneNode(ActorId id, const eastl::shared_ptr<SceneNode>& node);
+	bool AddSceneNode(ActorId id, const eastl::shared_ptr<Node>& node);
 
 	//! Get the first scene node with the specified id.
 	/** \param id: The id to search for
@@ -176,48 +183,48 @@ public:
 	\return Pointer to the first scene node with this id,
 	and null if no scene node could be found.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	virtual eastl::shared_ptr<SceneNode> GetSceneNode(ActorId id);
+	virtual eastl::shared_ptr<Node> GetSceneNode(ActorId id);
 
 	//! Get the current active camera.
 	/** \return The active camera is returned. Note that this can
 	be NULL, if there was no camera created yet.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	virtual const eastl::shared_ptr<CameraSceneNode>& GetActiveCamera() const { return m_pCamera; }
+	virtual const eastl::shared_ptr<Camera>& GetActiveCamera() const { return mCamera; }
 
 	//! Sets the currently active camera.
 	/** The previous active camera will be deactivated.
 	\param camera: The new camera which should be active. */
-	virtual void SetActiveCamera(const eastl::shared_ptr<CameraSceneNode>& camera) { m_pCamera = camera; }
+	virtual void SetActiveCamera(const eastl::shared_ptr<Camera>& camera) { mCamera = camera; }
 
 	//! Get current render time.
-	E_RENDER_PASS GetCurrentRenderPass() const { return m_CurrentRenderPass; }
+	E_RENDER_PASS GetCurrentRenderPass() const { return mCurrentRenderPass; }
 
 	//! Set current render time.
-	void SetCurrentRenderPass(E_RENDER_PASS currentRenderPass) { m_CurrentRenderPass = currentRenderPass; }
+	void SetCurrentRenderPass(E_RENDER_PASS currentRenderPass) { mCurrentRenderPass = currentRenderPass; }
 
 	//! Sets ambient color of the scene
-	void SetAmbientLight(const eastl::array<float, 4>& ambientColor) { m_AmbientLight = ambientColor; }
+	void SetAmbientLight(const eastl::array<float, 4>& ambientColor) { mAmbientLight = ambientColor; }
 
 	//! Returns ambient color of the scene
-	const eastl::array<float, 4>& GetAmbientLight() const { return m_AmbientLight; }
+	const eastl::array<float, 4>& GetAmbientLight() const { return mAmbientLight; }
 
 	//! Sets the color of stencil buffers shadows drawn by the scene manager.
-	void SetShadowColor(eastl::array<float, 4> color) { m_ShadowColor = color; }
+	void SetShadowColor(eastl::array<float, 4> color) { mShadowColor = color; }
 
 	//! Returns the current color of shadows.
-	eastl::array<float, 4> GetShadowColor() const { return m_ShadowColor; }
+	eastl::array<float, 4> GetShadowColor() const { return mShadowColor; }
 
-	SceneNodeRenderList& GetDeletionList() { return m_DeletionList; }
-	SceneNodeRenderList& GetRenderList(unsigned int pass) { return m_RenderList[pass]; }
+	SceneNodeRenderList& GetDeletionList() { return mDeletionList; }
+	SceneNodeRenderList& GetRenderList(unsigned int pass) { return mRenderList[pass]; }
 
 	//! Adds a scene node to the render queue.
-	void AddToRenderQueue(E_RENDER_PASS renderPass, const eastl::shared_ptr<SceneNode>& node);
+	void AddToRenderQueue(E_RENDER_PASS renderPass, const eastl::shared_ptr<Node>& node);
 
 	//! clears the render list
 	void ClearRenderList();
 
 	//! Adds a scene node to the deletion queue.
-	void AddToDeletionQueue(SceneNode* node);
+	void AddToDeletionQueue(Node* node);
 
 	//! clears the deletion list
 	void ClearDeletionList();
@@ -226,7 +233,7 @@ public:
 	culling method this check can be rather coarse, or slow. A positive result is correct, though, 
 	i.e. if this method returns true the node is positively not visible. The node might still be 
 	invisible even if this method returns false.*/
-	virtual bool IsCulled(SceneNode* node);
+	virtual bool IsCulled(Node* node);
 };
 
 
@@ -260,7 +267,7 @@ public:
 
 	virtual bool IsVisible() { return true; }
 	virtual void SetVisible(bool visible) { }
-	virtual bool AddChild(ActorId id, const eastl::shared_ptr<SceneNode>& kid) { return AddSceneNode(id, kid); }
+	virtual bool AddChild(ActorId id, const eastl::shared_ptr<Node>& kid) { return AddSceneNode(id, kid); }
 };
 
 #endif

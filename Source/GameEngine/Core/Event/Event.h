@@ -42,7 +42,7 @@
 #include "EventManager.h"
 
 #include "Core/Logger/Logger.h"
-
+#include "Graphic/Scene/Hierarchy/Node.h"
 #include "Mathematic/Algebra/Transform.h"
 
 
@@ -223,11 +223,10 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 // EventDataNewRenderComponent - This event is sent out when an actor is *actually* created.
 //---------------------------------------------------------------------------------------------------------------------
-/*
 class EventDataNewRenderComponent : public EventData
 {
     ActorId mActorId;
-    eastl::shared_ptr<SceneNode> mSceneNode;
+    eastl::shared_ptr<Node> mSceneNode;
 
 public:
 	static const BaseEventType skEventType;
@@ -237,7 +236,7 @@ public:
         mActorId = INVALID_ACTOR_ID;
     }
 
-    explicit EventDataNewRenderComponent(ActorId actorId, const eastl::shared_ptr<SceneNode>& sceneNode) 
+    explicit EventDataNewRenderComponent(ActorId actorId, const eastl::shared_ptr<Node>& sceneNode)
         : mActorId(actorId),
           mSceneNode(sceneNode)
     {
@@ -273,12 +272,11 @@ public:
         return mActorId;
     }
 
-    const eastl::shared_ptr<SceneNode>& GetSceneNode(void) const
+    const eastl::shared_ptr<Node>& GetSceneNode(void) const
     {
         return mSceneNode;
     }
 };
-*/
 
 //---------------------------------------------------------------------------------------------------------------------
 // EventDataModifiedRenderComponent - This event is sent out when a render component is changed
@@ -569,7 +567,7 @@ class EventDataDecompressRequest : public EventData
     eastl::string mFileName;
 
 public:
-	static const BaseEventType sk_EventType;
+	static const BaseEventType skEventType;
 
     explicit EventDataDecompressRequest( eastl::wstring zipFileName, eastl::string filename  )
         : mZipFileName( zipFileName ), mFileName( filename )
@@ -578,7 +576,7 @@ public:
 
 	virtual const BaseEventType& GetEventType( void ) const
 	{
-		return sk_EventType;
+		return skEventType;
 	}
 
 	virtual BaseEventDataPtr Copy() const

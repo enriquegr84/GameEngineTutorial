@@ -8,8 +8,8 @@
 #ifndef CULLER_H
 #define CULLER_H
 
-#include "Graphic/Scene/Element/BoundingSphere.h"
-#include "Graphic/Scene/Element/Camera.h"
+#include "Graphic/Scene/Hierarchy/BoundingSphere.h"
+#include "Graphic/Scene/Hierarchy/Camera.h"
 
 #include <EASTL/vector.h>
 #include <memory>

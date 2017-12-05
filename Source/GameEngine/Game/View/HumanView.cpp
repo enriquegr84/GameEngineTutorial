@@ -449,7 +449,7 @@ void HumanView::RegisterAllDelegates(void)
 
     BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
 //	pGlobalEventManager->AddListener(
-//		MakeDelegate(this, &HumanView::GameStateDelegate), EventDataGame_State::sk_EventType);
+//		MakeDelegate(this, &HumanView::GameStateDelegate), EventDataGame_State::skEventType);
     pGlobalEventManager->AddListener(
 		MakeDelegate(this, &HumanView::PlaySoundDelegate), EventDataPlaySound::skEventType);
 }
@@ -458,7 +458,7 @@ void HumanView::RemoveAllDelegates(void)
 {
     BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
 //	pGlobalEventManager->RemoveListener(
-//		MakeDelegate(this, &HumanView::GameStateDelegate), EventDataGame_State::sk_EventType);
+//		MakeDelegate(this, &HumanView::GameStateDelegate), EventDataGame_State::skEventType);
     pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &HumanView::PlaySoundDelegate), EventDataPlaySound::skEventType);
 }

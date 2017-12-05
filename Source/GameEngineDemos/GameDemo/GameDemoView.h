@@ -111,7 +111,7 @@ class BaseEventManager;
 class SoundProcess;
 class GameDemoController;
 class MovementController;
-class SceneNode;
+class Node;
 
 class MainMenuView : public HumanView
 {
@@ -135,7 +135,7 @@ protected:
 
 	eastl::shared_ptr<GameDemoController> mGameDemoController;
 	eastl::shared_ptr<MovementController> mFreeCameraController;
-	eastl::shared_ptr<SceneNode> mTeapot;
+	eastl::shared_ptr<Node> mTeapot;
 	eastl::shared_ptr<StandardHUD> mStandardHUD;
 
 public:

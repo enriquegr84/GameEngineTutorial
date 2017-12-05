@@ -47,8 +47,8 @@
 
 #include "Graphic/Scene/Scene.h"
 /*
-#include "Graphic/Scene/SceneNodes.h"
-#include "Graphic/Scene/Element/CameraSceneNode.h"
+#include "Graphic/Scene/Hierarchy/Node.h"
+#include "Graphic/Scene/Hierarchy/Camera.h"
 #include "Graphic/Scene/Controller/MovementController.h"
 */
 #include "Core/Event/Event.h"

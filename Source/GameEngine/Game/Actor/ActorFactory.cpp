@@ -67,7 +67,7 @@ ActorFactory::ActorFactory(void)
     m_componentFactory.Register<TeapotRenderComponent>(
 		ActorComponent::GetIdFromName(TeapotRenderComponent::Name));
     m_componentFactory.Register<GridRenderComponent>(
-		ActorComponent::GetIdFromName(GridRenderComponent::g_Name));
+		ActorComponent::GetIdFromName(GridRenderComponent::Name));
     m_componentFactory.Register<ParticleSystemRenderComponent>(
 		ActorComponent::GetIdFromName(ParticleSystemRenderComponent::Name));
     m_componentFactory.Register<LightRenderComponent>(

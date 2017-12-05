@@ -58,7 +58,7 @@ const float ACTOR_ANGULAR_ACCELERATION = 22.0f;
 //
 // GameDemoController::GameDemoController
 //
-GameDemoController::GameDemoController(const eastl::shared_ptr<SceneNode>& object)
+GameDemoController::GameDemoController(const eastl::shared_ptr<Node>& object)
 : mObject(object)
 {
 	memset(mKey, 0x00, sizeof(mKey));

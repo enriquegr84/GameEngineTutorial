@@ -40,12 +40,13 @@
 
 #include "RenderComponent.h"
 
+#include "Graphic/Graphic.h"
 #include "Core/Logger/Logger.h"
 
 const char* MeshRenderComponent::Name = "MeshRenderComponent";
 const char* SphereRenderComponent::Name = "SphereRenderComponent";
 const char* TeapotRenderComponent::Name = "TeapotRenderComponent";
-const char* GridRenderComponent::g_Name = "GridRenderComponent";
+const char* GridRenderComponent::Name = "GridRenderComponent";
 const char* LightRenderComponent::Name = "LightRenderComponent";
 const char* SkyRenderComponent::Name = "SkyRenderComponent";
 const char* ParticleSystemRenderComponent::Name = "ParticleSystemRenderComponent";
@@ -564,9 +565,8 @@ bool SkyRenderComponent::DelegateInit(XMLElement* pData)
 	return true;
 }
 /*
-eastl::shared_ptr<SceneNode> SkyRenderComponent::CreateSceneNode(void)
+eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 {
-	eastl::shared_ptr<SceneNode> sky;
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->m_pScene;
@@ -588,7 +588,142 @@ eastl::shared_ptr<SceneNode> SkyRenderComponent::CreateSceneNode(void)
 	}
 	else LogError("Unknown Renderer Implementation in GridRenderComponent");
 
-    return eastl::shared_ptr<SceneNode>();
+    return eastl::shared_ptr<Node>();
+
+	// Create the root of the scene.
+	eastl::shared_ptr<Node> sky;
+
+	// Create the walls of the cube room.  Each of the six texture images is
+	// RGBA 64-by-64.
+	eastl::shared_ptr<Node> room = eastl::make_shared<Node>();
+	sky->AttachChild(room);
+
+	// The vertex format shared by the room walls.
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector2<float> tcoord;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+
+	// The index buffer shared by the room walls.
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRIMESH,
+		2, sizeof(unsigned int));
+	unsigned int* indices = ibuffer->Get<unsigned int>();
+	indices[0] = 0;  indices[1] = 1;  indices[2] = 3;
+	indices[3] = 0;  indices[4] = 3;  indices[5] = 2;
+
+	std::shared_ptr<VertexBuffer> vbuffer;
+	Vertex* vertex;
+	eastl::shared_ptr<Texture2> texture;
+	eastl::shared_ptr<Texture2Effect> effect;
+	eastl::shared_ptr<Visual> wall;
+	SamplerState::Filter filter = SamplerState::MIN_L_MAG_L_MIP_L;
+	SamplerState::Mode mode = SamplerState::WRAP;
+
+	// +x wall
+	vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
+	vertex = vbuffer->Get<Vertex>();
+	vertex[0] = { { +1.0f, -1.0f, -1.0f },{ 1.0f, 1.0f } };
+	vertex[1] = { { +1.0f, -1.0f, +1.0f },{ 0.0f, 1.0f } };
+	vertex[2] = { { +1.0f, +1.0f, -1.0f },{ 1.0f, 0.0f } };
+	vertex[3] = { { +1.0f, +1.0f, +1.0f },{ 0.0f, 0.0f } };
+
+	BaseResource resource(L"Art/irrlichtlogo3.png");
+	const eastl::shared_ptr<ResHandle>& resHandle = gameApp->mResCache->GetHandle(&resource);
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+
+		extra->GetImage();
+	}
+
+	texture = WICFileIO::Load(mEnvironment.GetPath("XpFace.png"), true);
+	effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
+	wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
+	wall->UpdateModelBound();
+	room->AttachChild(wall);
+	mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
+	wall->name = "+x wall";
+
+	// -x wall
+	vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
+	vertex = vbuffer->Get<Vertex>();
+	vertex[0] = { { -1.0f, -1.0f, +1.0f },{ 1.0f, 1.0f } };
+	vertex[1] = { { -1.0f, -1.0f, -1.0f },{ 0.0f, 1.0f } };
+	vertex[2] = { { -1.0f, +1.0f, +1.0f },{ 1.0f, 0.0f } };
+	vertex[3] = { { -1.0f, +1.0f, -1.0f },{ 0.0f, 0.0f } };
+	texture = WICFileIO::Load(mEnvironment.GetPath("XmFace.png"), true);
+	effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
+	wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
+	wall->UpdateModelBound();
+	room->AttachChild(wall);
+	mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
+	wall->name = "-x wall";
+
+	// +y wall
+	vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
+	vertex = vbuffer->Get<Vertex>();
+	vertex[0] = { { +1.0f, +1.0f, +1.0f },{ 1.0f, 1.0f } };
+	vertex[1] = { { -1.0f, +1.0f, +1.0f },{ 0.0f, 1.0f } };
+	vertex[2] = { { +1.0f, +1.0f, -1.0f },{ 1.0f, 0.0f } };
+	vertex[3] = { { -1.0f, +1.0f, -1.0f },{ 0.0f, 0.0f } };
+	texture = WICFileIO::Load(mEnvironment.GetPath("YpFace.png"), true);
+	effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
+	wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
+	wall->UpdateModelBound();
+	room->AttachChild(wall);
+	mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
+	wall->name = "+y wall";
+
+	// -y wall
+	vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
+	vertex = vbuffer->Get<Vertex>();
+	vertex[0] = { { +1.0f, -1.0f, -1.0f },{ 1.0f, 1.0f } };
+	vertex[1] = { { -1.0f, -1.0f, -1.0f },{ 0.0f, 1.0f } };
+	vertex[2] = { { +1.0f, -1.0f, +1.0f },{ 1.0f, 0.0f } };
+	vertex[3] = { { -1.0f, -1.0f, +1.0f },{ 0.0f, 0.0f } };
+	texture = WICFileIO::Load(mEnvironment.GetPath("YmFace.png"), true);
+	effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
+	wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
+	wall->UpdateModelBound();
+	room->AttachChild(wall);
+	mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
+	wall->name = "-y wall";
+
+	// +z wall
+	vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
+	vertex = vbuffer->Get<Vertex>();
+	vertex[0] = { { +1.0f, -1.0f, +1.0f },{ 1.0f, 1.0f } };
+	vertex[1] = { { -1.0f, -1.0f, +1.0f },{ 0.0f, 1.0f } };
+	vertex[2] = { { +1.0f, +1.0f, +1.0f },{ 1.0f, 0.0f } };
+	vertex[3] = { { -1.0f, +1.0f, +1.0f },{ 0.0f, 0.0f } };
+	texture = WICFileIO::Load(mEnvironment.GetPath("ZpFace.png"), true);
+	effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
+	wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
+	wall->UpdateModelBound();
+	room->AttachChild(wall);
+	mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
+	wall->name = "+z wall";
+
+	// -z wall
+	vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
+	vertex = vbuffer->Get<Vertex>();
+	vertex[0] = { { -1.0f, -1.0f, -1.0f },{ 1.0f, 1.0f } };
+	vertex[1] = { { +1.0f, -1.0f, -1.0f },{ 0.0f, 1.0f } };
+	vertex[2] = { { -1.0f, +1.0f, -1.0f },{ 1.0f, 0.0f } };
+	vertex[3] = { { +1.0f, +1.0f, -1.0f },{ 0.0f, 0.0f } };
+	texture = WICFileIO::Load(mEnvironment.GetPath("ZmFace.png"), true);
+	effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
+	wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
+	wall->UpdateModelBound();
+	room->AttachChild(wall);
+	mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
+	wall->name = "-z wall";
 }
 */
 void SkyRenderComponent::CreateInheritedXMLElements(XMLDocument doc, XMLElement *pBaseElement)

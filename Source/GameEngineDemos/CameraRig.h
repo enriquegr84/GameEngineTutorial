@@ -8,7 +8,7 @@
 #ifndef CAMERARIG_H
 #define CAMERARIG_H
 
-#include "Graphic/Scene/Element/Camera.h"
+#include "Graphic/Scene/Hierarchy/Camera.h"
 #include "Graphic/Resource/Buffer/ConstantBuffer.h"
 
 class CameraRig

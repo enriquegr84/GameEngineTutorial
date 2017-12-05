@@ -8,7 +8,7 @@
 #include "UIElement.h"
 
 #include "Graphic/Effect/BasicEffect.h"
-#include "Graphic/Scene/Element/Visual.h"
+#include "Graphic/Scene/Hierarchy/Visual.h"
 
 class BaseUIFont;
 class BaseUIScrollBar;

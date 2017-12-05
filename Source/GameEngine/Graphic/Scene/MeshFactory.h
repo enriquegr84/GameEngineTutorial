@@ -13,7 +13,7 @@
 #include "Graphic/Resource/Buffer/IndexBuffer.h"
 #include "Graphic/Resource/Buffer/VertexBuffer.h"
 
-#include "Graphic/Scene/Element/Visual.h"
+#include "Graphic/Scene/Hierarchy/Visual.h"
 
 // This class is a factory for Visual objects corresponding to common
 // geometric primitives.  Triangle mesh primitives are generated.  Each mesh

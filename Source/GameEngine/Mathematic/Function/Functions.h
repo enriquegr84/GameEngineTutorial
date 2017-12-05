@@ -8,7 +8,9 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include "Mathematic/Arithmetic/Arithmetic.h"
 #include "Constants.h"
+
 #include <limits>
 
 template <typename Real>

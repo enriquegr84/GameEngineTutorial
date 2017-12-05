@@ -41,10 +41,10 @@
 
 #include "Core/OS/Os.h"
 
-//#include "EventManager/EventManager.h"
-//#include "EventManager/Events.h"
+#include "Core/Event/EventManager.h"
+#include "Core/Event/Event.h"
 
-//#include "Lights.h"
+#include "LightManager.h"
 
 
 ////////////////////////////////////////////////////
@@ -56,22 +56,21 @@
 // Scene::Scene						- Chapter 16, page 539
 //
 //    Note: The shared_ptr<IRenderer> was added to allow for both D3D9 and D3D11 renderer implementations.
-//          The book only describes D3D11, so to find all the differences, just search for m_Renderer!
+//          The book only describes D3D11, so to find all the differences, just search for mRenderer!
 //
 Scene::Scene()
-	: m_ShadowColor{ 150,0,0,0 }, m_AmbientLight{ 0, 0, 0, 0 }
+	: mShadowColor{ 150,0,0,0 }, mAmbientLight{ 0, 0, 0, 0 }
 {
-	//m_pRoot.reset(new RootNode());
-	m_CurrentRenderPass = ERP_NONE;
+	mRoot.reset(new Node());
+	mCurrentRenderPass = ERP_NONE;
+	mLightManager = new LightManager();
 
 	// [mrmike] - event delegates were added post-press
-	/*
     BaseEventManager* pEventMgr = BaseEventManager::Get();
-    pEventMgr->AddListener(MakeDelegate(this, &NewRenderComponentDelegate), EventDataNew_Render_Component::sk_EventType);
-    pEventMgr->AddListener(MakeDelegate(this, &DestroyActorDelegate), EventDataDestroyActor::sk_EventType);
-    pEventMgr->AddListener(MakeDelegate(this, &MoveActorDelegate), EventDataMove_Actor::sk_EventType);
-    pEventMgr->AddListener(MakeDelegate(this, &ModifiedRenderComponentDelegate), EventDataModified_Render_Component::sk_EventType);
-	*/
+    pEventMgr->AddListener(MakeDelegate(this, &Scene::NewRenderComponentDelegate), EventDataNewRenderComponent::skEventType);
+    pEventMgr->AddListener(MakeDelegate(this, &Scene::DestroyActorDelegate), EventDataDestroyActor::skEventType);
+    pEventMgr->AddListener(MakeDelegate(this, &Scene::MoveActorDelegate), EventDataMoveActor::skEventType);
+    pEventMgr->AddListener(MakeDelegate(this, &Scene::ModifiedRenderComponentDelegate), EventDataModifiedRenderComponent::skEventType);
 }
 
 //
@@ -86,8 +85,8 @@ Scene::~Scene()
 	//! because Scenes may hold internally data bounded to sceneNodes
 	//! which may be destroyed twice
 	/*
-	if (m_pRenderer)
-		m_pRenderer->RemoveAllHardwareBuffers();
+	if (mRenderer)
+		mRenderer->RemoveAllHardwareBuffers();
 	*/
 
 	// remove all nodes and animators before dropping the driver
@@ -97,17 +96,13 @@ Scene::~Scene()
 	//RemoveAnimators();
 
 	// [mrmike] - event delegates were added post-press!
-	/*
-    IEventManager* pEventMgr = IEventManager::Get();
-    pEventMgr->RemoveListener(MakeDelegate(this, &NewRenderComponentDelegate), EventDataNew_Render_Component::sk_EventType);
-    pEventMgr->RemoveListener(MakeDelegate(this, &DestroyActorDelegate), EventDataDestroyActor::sk_EventType);
-    pEventMgr->RemoveListener(MakeDelegate(this, &MoveActorDelegate), EventDataMove_Actor::sk_EventType);
+    BaseEventManager* pEventMgr = BaseEventManager::Get();
+    pEventMgr->RemoveListener(MakeDelegate(this, &Scene::NewRenderComponentDelegate), EventDataNewRenderComponent::skEventType);
+    pEventMgr->RemoveListener(MakeDelegate(this, &Scene::DestroyActorDelegate), EventDataDestroyActor::skEventType);
+    pEventMgr->RemoveListener(MakeDelegate(this, &Scene::MoveActorDelegate), EventDataMoveActor::skEventType);
+    pEventMgr->RemoveListener(MakeDelegate(this, &Scene::ModifiedRenderComponentDelegate), EventDataModifiedRenderComponent::skEventType);
 
-    pEventMgr->RemoveListener(MakeDelegate(this, &ModifiedRenderComponentDelegate), EventDataModified_Render_Component::sk_EventType);
-
-	//SAFE_RELEASE(m_MatrixStack);
-	//SAFE_DELETE(m_LightManager);
-	*/
+	delete mLightManager;
 }
 
 //
@@ -115,11 +110,11 @@ Scene::~Scene()
 //
 bool Scene::OnAnimate(unsigned int uTime)
 {
-	if (!m_pRoot)
+	if (!mRoot)
 		return true;
 
 	return true;
-	//m_pRoot->OnAnimate(this, uTime);
+	//mRoot->OnAnimate(this, uTime);
 }
 
 //
@@ -127,11 +122,11 @@ bool Scene::OnAnimate(unsigned int uTime)
 //
 bool Scene::OnUpdate(unsigned long elapsedTime)
 {
-	if (!m_pRoot)
+	if (!mRoot)
 		return true;
 
 	return true;
-	//m_pRoot->OnUpdate(this, elapsedTime);
+	//mRoot->OnUpdate(this, elapsedTime);
 }
 
 
@@ -146,26 +141,26 @@ bool Scene::OnRender()
 	// 3. The Sky
 	// 4. Anything with Alpha
 	
-	if (m_pRoot && m_pCamera)
+	if (mRoot && mCamera)
 	{
 		// The scene root could be anything, but it
 		// is usually a SceneNode with the identity
 		// matrix
 		/*
-		m_pCamera->SetViewTransform(this);
+		mCamera->SetViewTransform(this);
 
-		//m_LightManager->CalcLighting(this);
+		//mLightManager->CalcLighting(this);
 
-		if (m_pRoot->PreRender(this)==true)
+		if (mRoot->PreRender(this)==true)
 		{
-			if (m_pLightManager)
-				m_pLightManager->OnPreRender(m_RenderList[ERP_LIGHT]);
+			if (mLightManager)
+				mLightManager->OnPreRender(mRenderList[ERP_LIGHT]);
 
-			m_pRoot->Render(this);
-			m_pRoot->PostRender(this);
+			mRoot->Render(this);
+			mRoot->PostRender(this);
 			
-			if (m_pLightManager)
-				m_pLightManager->OnPostRender();
+			if (mLightManager)
+				mLightManager->OnPostRender();
 		}
 		*/
 		RenderAlphaPass();
@@ -181,10 +176,10 @@ bool Scene::OnRender()
 //
 bool Scene::OnLostDevice()
 {
-	if (m_pRoot)
+	if (mRoot)
 	{
 		return true;
-		//m_pRoot->OnLostDevice(this);
+		//mRoot->OnLostDevice(this);
 	}
 	return true;
 }
@@ -194,24 +189,24 @@ bool Scene::OnLostDevice()
 //
 bool Scene::OnRestore()
 {
-	if (!m_pRoot)
+	if (!mRoot)
 		return true;
 
 	//HRESULT hr;
-	//V_RETURN(m_Renderer->OnRestore());
+	//V_RETURN(mRenderer->OnRestore());
 
 	return true;
-	//m_pRoot->OnRestore(this);
+	//mRoot->OnRestore(this);
 }
 
 
 //! Adds a scene node to the render queue.
-void Scene::AddToRenderQueue(E_RENDER_PASS pass, const eastl::shared_ptr<SceneNode>& node)
+void Scene::AddToRenderQueue(E_RENDER_PASS pass, const eastl::shared_ptr<Node>& node)
 {
 	if (!node)
 		return;
 
-	m_RenderList[pass].push_back(node.get());
+	mRenderList[pass].push_back(node.get());
 }
 
 
@@ -219,38 +214,38 @@ void Scene::AddToRenderQueue(E_RENDER_PASS pass, const eastl::shared_ptr<SceneNo
 void Scene::ClearRenderList()
 {
 	for (int pass=0; pass < ERP_LAST; pass++)
-		m_RenderList[pass].clear();
+		mRenderList[pass].clear();
 }
 
 //! Adds a scene node to the deletion queue.
-void Scene::AddToDeletionQueue(SceneNode* node)
+void Scene::AddToDeletionQueue(Node* node)
 {
 	if (!node)
 		return;
 
-	m_DeletionList.push_back(node);
+	mDeletionList.push_back(node);
 }
 
 
 //! clears the deletion list
 void Scene::ClearDeletionList()
 {
-	if (m_DeletionList.empty())
+	if (mDeletionList.empty())
 		return;
 
-	m_DeletionList.clear();
+	mDeletionList.clear();
 }
 
 
 //! Removes all children of this scene node
 void Scene::RemoveAll()
 {
-	m_SceneNodeActors.clear();
+	mSceneNodeActors.clear();
 	SetActiveCamera(0);
 	// Make sure the driver is reset, might need a more complex method at some point
 	/*
-	if (m_pRenderer)
-		m_pRenderer->SetMaterial(Material());
+	if (mRenderer)
+		mRenderer->SetMaterial(Material());
 	*/
 }
 
@@ -265,22 +260,22 @@ void Scene::Clear()
 /** If the scene node already has a parent it is first removed
 from the other parent.
 \param child A pointer to the new child. */
-bool Scene::AddSceneNode(ActorId id, const eastl::shared_ptr<SceneNode>& node)
+bool Scene::AddSceneNode(ActorId id, const eastl::shared_ptr<Node>& node)
 { 
 	if (id != INVALID_ACTOR_ID)
 	{
 		// This allows us to search for this later based on actor id
-		m_SceneNodeActors[id] = node;	
+		mSceneNodeActors[id] = node;	
 	}
 	/*
-	shared_ptr<LightNode> pLight = dynamic_pointer_cast<LightNode>(kid);
-	if (pLight != NULL && m_LightManager->m_Lights.size()+1 < MAXIMUM_LIGHTS_SUPPORTED)
+	eastl::shared_ptr<Light> pLight = eastl::dynamic_pointer_cast<Light>(kid);
+	if (pLight != NULL && mLightManager->mLights.size()+1 < MAXIMUM_LIGHTS_SUPPORTED)
 	{
-		m_LightManager->m_Lights.push_back(pLight);
+		mLightManager->mLights.push_back(pLight);
 	}
 	*/
 	return true;
-	//m_pRoot->AddChild(node);
+	//mRoot->AddChild(node);
 }
 
 //! Removes a child from this scene node.
@@ -294,97 +289,92 @@ bool Scene::RemoveSceneNode(ActorId id)
 	if (id == INVALID_ACTOR_ID)
 		return false;
 	/*
-	shared_ptr<SceneNode> node = GetSceneNode(id);
+	eastl::shared_ptr<Node> node = GetSceneNode(id);
 
-	shared_ptr<LightNode> pLight = dynamic_pointer_cast<LightNode>(kid);
+	eastl::shared_ptr<Node> pLight = eastl::dynamic_pointer_cast<Node>(kid);
 	if (pLight != NULL)
 	{
-		m_LightManager->m_Lights.remove(pLight);
+		mLightManager->mLights.remove(pLight);
 	}
 	*/
-	m_SceneNodeActors.erase(id);
+	mSceneNodeActors.erase(id);
 	return true;
-	//m_pRoot->RemoveChild(id);
+	//mRoot->RemoveChild(id);
 }
 
 //! Returns the first scene node with the specified id.
-eastl::shared_ptr<SceneNode> Scene::GetSceneNode(ActorId id)
+eastl::shared_ptr<Node> Scene::GetSceneNode(ActorId id)
 {
-	SceneNodeActorMap::iterator i = m_SceneNodeActors.find(id);
-	if (i==m_SceneNodeActors.end())
-	{
+	SceneNodeActorMap::iterator i = mSceneNodeActors.find(id);
+	if (i==mSceneNodeActors.end())
 		return 0;
-	}
 
 	return i->second;
 }
 
-/*
 void Scene::NewRenderComponentDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EventDataNew_Render_Component> pCastEventData = 
-		static_pointer_cast<EventDataNew_Render_Component>(pEventData);
+    eastl::shared_ptr<EventDataNewRenderComponent> pCastEventData = 
+		eastl::static_pointer_cast<EventDataNewRenderComponent>(pEventData);
 
     ActorId actorId = pCastEventData->GetActorId();
-    shared_ptr<SceneNode> pSceneNode(pCastEventData->GetSceneNode());
+    eastl::shared_ptr<Node> pSceneNode(pCastEventData->GetSceneNode());
 
-    // FUTURE WORK: Add better error handling here.		
+    // FUTURE WORK: Add better error handling here.	
+	/*
     if (FAILED(pSceneNode->OnRestore(this)))
     {
-        GE_ERROR(eastl::string("Failed to restore scene node to the scene for actorid ")
-				+ eastl::string(actorId));
+        LogError(eastl::string("Failed to restore scene node to the scene for actorid ") + eastl::to_string(actorId));
         return;
     }
-
-    AddChild(actorId, pSceneNode);
+	*/
+    AddSceneNode(actorId, pSceneNode);
 }
 
 void Scene::ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EventDataModified_Render_Component> pCastEventData = 
-		static_pointer_cast<EventDataModified_Render_Component>(pEventData);
+    eastl::shared_ptr<EventDataModifiedRenderComponent> pCastEventData = 
+		eastl::static_pointer_cast<EventDataModifiedRenderComponent>(pEventData);
 
     ActorId actorId = pCastEventData->GetActorId();
 	if (actorId == INVALID_ACTOR_ID)
 	{
-		GE_ERROR("ModifiedRenderComponentDelegate - unknown actor id!");
+		LogError("ModifiedRenderComponentDelegate - unknown actor id!");
 		return;
 	}
-
-	if (GameLogic::Get()->GetState()==BGS_LoadingGameEnvironment)
+	/*
+	if (GameLogic::Get()->GetState()==BGS_LOADINGGAMEENVIRONMENT)
 		return;
-
-	shared_ptr<SceneNode> pSceneNode = FindActor(actorId);
+	*/
+	eastl::shared_ptr<Node> pSceneNode = GetSceneNode(actorId);
     // FUTURE WORK: Add better error handling here.		
+	/*
     if (!pSceneNode  || FAILED(pSceneNode->OnRestore(this)))
     {
-        GE_ERROR(eastl::string("Failed to restore scene node to the scene for actorid ") 
-				+ eastl::string(actorId));
+		LogError(eastl::string("Failed to restore scene node to the scene for actorid ") + eastl::to_string(actorId));
     }
+	*/
 }
 
 void Scene::DestroyActorDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EventDataDestroyActor> pCastEventData = 
-		static_pointer_cast<EventDataDestroyActor>(pEventData);
-    RemoveChild(pCastEventData->GetId());
+    eastl::shared_ptr<EventDataDestroyActor> pCastEventData = 
+		eastl::static_pointer_cast<EventDataDestroyActor>(pEventData);
+    RemoveSceneNode(pCastEventData->GetId());
 }
 
 void Scene::MoveActorDelegate(BaseEventDataPtr pEventData)
 {
-    shared_ptr<EventDataMove_Actor> pCastEventData = 
-		static_pointer_cast<EventDataMove_Actor>(pEventData);
+    eastl::shared_ptr<EventDataMoveActor> pCastEventData = 
+		eastl::static_pointer_cast<EventDataMoveActor>(pEventData);
 
     ActorId id = pCastEventData->GetId();
-    matrix4 transform = pCastEventData->GetMatrix();
+    const Transform& transform = pCastEventData->GetTransform();
 
-    shared_ptr<SceneNode> pNode = FindActor(id);
-    if (pNode)
-    {
-        pNode->SetTransform(&transform);
-    }
+    eastl::shared_ptr<Node> pNode = GetSceneNode(id);
+    //if (pNode)
+    //    pNode->SetTransform(&transform);
 }
-*/
 
 //
 // Scene::RenderAlphaPass			- Chapter 16, page 543
@@ -392,17 +382,17 @@ void Scene::MoveActorDelegate(BaseEventDataPtr pEventData)
 void Scene::RenderAlphaPass()
 {
 /*
-	shared_ptr<IRenderState> alphaPass = m_Renderer->VPrepareAlphaPass();
+	eastl::shared_ptr<BaseRenderState> alphaPass = mRenderer->PrepareAlphaPass();
 
-	m_AlphaSceneNodes.sort();
-	while (!m_AlphaSceneNodes.empty())
+	mAlphaSceneNodes.sort();
+	while (!mAlphaSceneNodes.empty())
 	{
-		AlphaSceneNodes::reverse_iterator i = m_AlphaSceneNodes.rbegin();
-		PushAndSetMatrix((*i)->m_Concat);
-		(*i)->m_pNode->VRender(this);
+		AlphaSceneNodes::reverse_iterator i = mAlphaSceneNodes.rbegin();
+		PushAndSetMatrix((*i)->mConcat);
+		(*i)->mNode->VRender(this);
 		delete (*i);
 		PopMatrix();
-		m_AlphaSceneNodes.pop_back();
+		mAlphaSceneNodes.pop_back();
 	}
 */
 }
@@ -411,7 +401,7 @@ void Scene::RenderAlphaPass()
 //
 // Scene::IsCulled				- Chapter 16, page 533
 //	
-bool Scene::IsCulled(SceneNode* node)
+bool Scene::IsCulled(Node* node)
 {
 	return true;
 	/*
@@ -431,7 +421,7 @@ bool Scene::IsCulled(SceneNode* node)
 	if (node->Get()->GetAutomaticCulling() & EAC_OCC_QUERY)
 	{
 		isVisible = 
-			(m_pRenderer->GetOcclusionQueryResult(GetSceneNode(node->Get()->ActorId()))==0);
+			(mRenderer->GetOcclusionQueryResult(GetSceneNode(node->Get()->ActorId()))==0);
 	}
 
 	// can be seen by a bounding box ?
