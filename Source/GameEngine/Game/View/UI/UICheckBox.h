@@ -15,7 +15,7 @@ class BaseUICheckBox : public BaseUIElement
 public:
 
 	//! constructor
-	BaseUICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+	BaseUICheckBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 		: BaseUIElement(UIET_CHECK_BOX, id, rectangle) {}
 
 	//! Initialize checkbox
@@ -33,7 +33,7 @@ class UICheckBox : public BaseUICheckBox
 public:
 
 	//! constructor
-	UICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool checked);
+	UICheckBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle, bool checked);
 
 	//! initialize checkbox
 	virtual void OnInit();

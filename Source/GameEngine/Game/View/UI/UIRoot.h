@@ -15,7 +15,7 @@ class UIRoot : public BaseUIElement
 public:
 
 	//! constructor
-	UIRoot(BaseUI* ui, UIElementType type, int id, RectangleBase<2, int> rectangle);
+	UIRoot(BaseUI* ui, UIElementType type, int id, RectangleShape<2, int> rectangle);
 
 	//! called if an event happened.
 	virtual bool OnEvent(const Event& event);

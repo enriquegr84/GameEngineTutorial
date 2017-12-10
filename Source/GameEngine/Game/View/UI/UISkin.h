@@ -308,7 +308,7 @@ public:
 	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly. */
 	virtual void Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>&,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0) = 0;
 
 	//! draws a pressed 3d button pane
 	/** Used for drawing for example buttons in pressed state.
@@ -320,7 +320,7 @@ public:
 	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly. */
 	virtual void Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>&,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0) = 0;
 
 	//! draws a sunken 3d pane
 	/** Used for drawing the background of edit, combo or check boxes.
@@ -334,7 +334,7 @@ public:
 	\param clip: Clip area.	*/
 	virtual void Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element,
 		eastl::array<float, 4> const bgcolor, bool flat, bool fillBackGround,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0) = 0;
 
 	//! draws a window background
 	/** Used for drawing the background of dialogs and windows.
@@ -350,10 +350,10 @@ public:
 	That is the area without borders and without titlebar.
 	\return Returns rect where it would be good to draw title bar text. This will
 	work even when checkClientArea is set to a non-null value.*/
-	virtual RectangleBase<2, int> Draw3DWindowBackground(const eastl::shared_ptr<BaseUIElement>& element,
+	virtual RectangleShape<2, int> Draw3DWindowBackground(const eastl::shared_ptr<BaseUIElement>& element,
 		const eastl::shared_ptr<Visual>& visualBackground, const eastl::shared_ptr<Visual>& visualTitle,
-		bool drawTitleBar, eastl::array<float, 4> const titleBarColor, const RectangleBase<2, int>& rect,
-		const RectangleBase<2, int>* clip = 0, RectangleBase<2, int>* checkClientArea = 0) = 0;
+		bool drawTitleBar, eastl::array<float, 4> const titleBarColor, const RectangleShape<2, int>& rect,
+		const RectangleShape<2, int>* clip = 0, RectangleShape<2, int>* checkClientArea = 0) = 0;
 
 	//! draws a standard 3d menu pane
 	/** Used for drawing for menus and context menus.
@@ -365,7 +365,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0) = 0;
 
 	//! draws a standard 3d tool bar
 	/** Used for drawing for toolbars and menus.
@@ -375,7 +375,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0) = 0;
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0) = 0;
 
 	//! draws a tab button
 	/** Used for drawing for tab buttons on top of tabs.
@@ -386,7 +386,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bool active,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0,
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0,
 		UIAlignment alignment = UIA_UPPERLEFT) = 0;
 
 	//! draws a tab control body
@@ -398,7 +398,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool border, bool background,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0,
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0,
 		int tabHeight = -1, UIAlignment alignment = UIA_UPPERLEFT) = 0;
 
 	//! draws an icon, usually from the skin's sprite bank
@@ -412,8 +412,8 @@ public:
 	\param loop: Whether the animation should loop or not
 	\param clip: Clip area.	*/
 	virtual void DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int> position, 
-		const RectangleBase<2, int>* clip = 0, unsigned int starttime = 0, 
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int> position, 
+		const RectangleShape<2, int>* clip = 0, unsigned int starttime = 0, 
 		unsigned int currenttime = 0, bool loop = false) = 0;
 
 	//! draws a 2d rectangle.
@@ -427,7 +427,7 @@ public:
 	If the pointer is null, no clipping will be performed. */
 	virtual void Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element,
 		const eastl::array<float, 4> &color, const eastl::shared_ptr<Visual>& visual,
-		const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip = 0) = 0;
+		const RectangleShape<2, int>& r, const RectangleShape<2, int>* clip = 0) = 0;
 
 	//! draws a 2d texture.
 	/** \param element: Pointer to the element which wishes to draw this icon.
@@ -437,7 +437,7 @@ public:
 	\param clip: Pointer to rectangle against which the rectangle will be clipped.
 	If the pointer is null, no clipping will be performed. */
 	virtual void Draw2DTexture(const eastl::shared_ptr<BaseUIElement>& element,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& pos,
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& pos,
 		const Vector2<int>& dimension) = 0;
 
 	//! get the type of this skin
@@ -510,7 +510,7 @@ public:
 	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly. */
 	virtual void Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>&,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0);
 
 	//! draws a pressed 3d button pane
 	/** Used for drawing for example buttons in pressed state.
@@ -522,7 +522,7 @@ public:
 	is usually not used by ISkin, but can be used for example by more complex
 	implementations to find out how to draw the part exactly. */
 	virtual void Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>&,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0);
 
 	//! draws a sunken 3d pane
 	/** Used for drawing the background of edit, combo or check boxes.
@@ -536,7 +536,7 @@ public:
 	\param clip: Clip area.	*/
 	virtual void Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element,
 		eastl::array<float, 4> const bgcolor, bool flat, bool fillBackGround,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0);
 
 	//! draws a window background
 	/** Used for drawing the background of dialogs and windows.
@@ -552,10 +552,10 @@ public:
 	That is the area without borders and without titlebar.
 	\return Returns rect where it would be good to draw title bar text. This will
 	work even when checkClientArea is set to a non-null value.*/
-	virtual RectangleBase<2, int> Draw3DWindowBackground(const eastl::shared_ptr<BaseUIElement>& element,
+	virtual RectangleShape<2, int> Draw3DWindowBackground(const eastl::shared_ptr<BaseUIElement>& element,
 		const eastl::shared_ptr<Visual>& visualBackground, const eastl::shared_ptr<Visual>& visualTitle, 
-		bool drawTitleBar, eastl::array<float, 4> const titleBarColor, const RectangleBase<2, int>& rect, 
-		const RectangleBase<2, int>* clip = 0, RectangleBase<2, int>* checkClientArea = 0);
+		bool drawTitleBar, eastl::array<float, 4> const titleBarColor, const RectangleShape<2, int>& rect, 
+		const RectangleShape<2, int>* clip = 0, RectangleShape<2, int>* checkClientArea = 0);
 
 	//! draws a standard 3d menu pane
 	/** Used for drawing for menus and context menus.
@@ -567,7 +567,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0);
 
 	//! draws a standard 3d tool bar
 	/** Used for drawing for toolbars and menus.
@@ -577,7 +577,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0);
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0);
 
 	//! draws a tab button
 	/** Used for drawing for tab buttons on top of tabs.
@@ -588,7 +588,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bool active,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0, 
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0, 
 		UIAlignment alignment = UIA_UPPERLEFT);
 
 	//! draws a tab control body
@@ -600,7 +600,7 @@ public:
 	\param rect: Defining area where to draw.
 	\param clip: Clip area.	*/
 	virtual void Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool border, bool background,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& rect, const RectangleBase<2, int>* clip = 0, 
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& rect, const RectangleShape<2, int>* clip = 0, 
 		int tabHeight = -1, UIAlignment alignment = UIA_UPPERLEFT);
 
 	//! draws an icon, usually from the skin's sprite bank
@@ -614,8 +614,8 @@ public:
 	\param loop: Whether the animation should loop or not
 	\param clip: Clip area.	*/
 	virtual void DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon, 
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int> position, 
-		const RectangleBase<2, int>* clip = 0, unsigned int starttime = 0, 
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int> position, 
+		const RectangleShape<2, int>* clip = 0, unsigned int starttime = 0, 
 		unsigned int currenttime = 0, bool loop = false);
 
 	//! draws a 2d rectangle.
@@ -629,7 +629,7 @@ public:
 	If the pointer is null, no clipping will be performed. */
 	virtual void Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element, 
 		const eastl::array<float, 4> &color, const eastl::shared_ptr<Visual>& visual, 
-		const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip = 0 );
+		const RectangleShape<2, int>& r, const RectangleShape<2, int>* clip = 0 );
 
 	//! draws a 2d texture.
 	/** \param element: Pointer to the element which wishes to draw this icon.
@@ -639,7 +639,7 @@ public:
 	\param clip: Pointer to rectangle against which the rectangle will be clipped.
 	If the pointer is null, no clipping will be performed. */
 	virtual void Draw2DTexture(const eastl::shared_ptr<BaseUIElement>& element,
-		const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& pos,
+		const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& pos,
 		const Vector2<int>& dimension);
 
 	//! get the type of this skin

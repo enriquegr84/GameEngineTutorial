@@ -50,7 +50,7 @@ BaseUI::BaseUI()
 {
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
-	RectangleBase<2, int> screenRectangle;
+	RectangleShape<2, int> screenRectangle;
 	screenRectangle.center[0] = screenSize[0] / 2;
 	screenRectangle.center[1] = screenSize[1] / 2;
 	screenRectangle.extent[0] = (int)screenSize[0];
@@ -87,7 +87,7 @@ bool BaseUI::OnInit()
 	mToolTip.mLaunchTime = 1000;
 	mToolTip.mRelaunchTime = 500;
 	mToolTip.mElement = 
-		AddStaticText(L"", RectangleBase<2, int>(), true, true, mRoot, -1, true);
+		AddStaticText(L"", RectangleShape<2, int>(), true, true, mRoot, -1, true);
 
 	eastl::shared_ptr<ResHandle>& resHandle = 
 		ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_MAXIMIZE)));
@@ -389,7 +389,7 @@ bool BaseUI::OnPostRender( unsigned int time )
 		mHoveredNoSubelement->GetToolTipText().size() &&
 		GetSkin() && GetSkin()->GetFont(DF_TOOLTIP))
 	{
-		RectangleBase<2, int> pos;
+		RectangleShape<2, int> pos;
 
 		Vector2<int> dim = GetSkin()->GetFont(DF_TOOLTIP)->GetDimension(
 			mHoveredNoSubelement->GetToolTipText().c_str());
@@ -951,7 +951,7 @@ eastl::shared_ptr<BaseUIElement> BaseUI::AddUIElement(UIElementType elementType,
 }
 
 //! adds a button. The returned pointer must not be dropped.
-eastl::shared_ptr<BaseUIButton> BaseUI::AddButton(const RectangleBase<2, int>& rectangle,
+eastl::shared_ptr<BaseUIButton> BaseUI::AddButton(const RectangleShape<2, int>& rectangle,
 	const eastl::shared_ptr<BaseUIElement>& parent, int id, const wchar_t* text, const wchar_t *tooltiptext)
 {
 	eastl::shared_ptr<BaseUIButton> button(new UIButton(this, id, rectangle));
@@ -968,7 +968,7 @@ eastl::shared_ptr<BaseUIButton> BaseUI::AddButton(const RectangleBase<2, int>& r
 
 
 //! adds a static text. The returned pointer must not be dropped.
-eastl::shared_ptr<BaseUIStaticText> BaseUI::AddStaticText(const wchar_t* text, const RectangleBase<2, int>& rectangle,
+eastl::shared_ptr<BaseUIStaticText> BaseUI::AddStaticText(const wchar_t* text, const RectangleShape<2, int>& rectangle,
 	bool border, bool wordWrap, const eastl::shared_ptr<BaseUIElement>& parent, int id, bool background)
 {
 	eastl::shared_ptr<BaseUIStaticText> staticText(new UIStaticText(this, id, text, border, rectangle, background));
@@ -979,7 +979,7 @@ eastl::shared_ptr<BaseUIStaticText> BaseUI::AddStaticText(const wchar_t* text, c
 
 
 //! adds a window. The returned pointer must not be dropped.
-eastl::shared_ptr<BaseUIWindow> BaseUI::AddWindow(const RectangleBase<2, int>& rectangle, bool modal,
+eastl::shared_ptr<BaseUIWindow> BaseUI::AddWindow(const RectangleShape<2, int>& rectangle, bool modal,
 	const wchar_t* text, const eastl::shared_ptr<BaseUIElement>& parent, int id)
 {
 	eastl::shared_ptr<BaseUIWindow> win(new UIWindow(this, id, rectangle));
@@ -1005,7 +1005,7 @@ eastl::shared_ptr<BaseUIWindow> BaseUI::AddWindow(const RectangleBase<2, int>& r
 
 
 //! adds a scrollbar. The returned pointer must not be dropped.
-eastl::shared_ptr<BaseUIScrollBar> BaseUI::AddScrollBar(bool horizontal, const RectangleBase<2, int>& rectangle, 
+eastl::shared_ptr<BaseUIScrollBar> BaseUI::AddScrollBar(bool horizontal, const RectangleShape<2, int>& rectangle, 
 	const eastl::shared_ptr<BaseUIElement>& parent, int id)
 {
 	eastl::shared_ptr<BaseUIScrollBar> bar(new UIScrollBar(this, id, rectangle, horizontal));
@@ -1026,7 +1026,7 @@ eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(eastl::shared_ptr<Texture2> imag
 		size[1] = image->GetDimension(1);
 	}
 
-	RectangleBase<2, int> rectangle;
+	RectangleShape<2, int> rectangle;
 	rectangle.center[0] = pos[0] + (size[0] / 2);
 	rectangle.center[1] = pos[1] + (size[1] / 2);
 	rectangle.extent[0] = size[0];
@@ -1048,7 +1048,7 @@ eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(eastl::shared_ptr<Texture2> imag
 
 
 //! adds an image. The returned pointer must not be dropped.
-eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(const RectangleBase<2, int>& rectangle, 
+eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(const RectangleShape<2, int>& rectangle, 
 	const eastl::shared_ptr<BaseUIElement>& parent, int id, const wchar_t* text, bool useAlphaChannel)
 {
 	eastl::shared_ptr<BaseUIImage> img(new UIImage(this, id, rectangle));
@@ -1065,7 +1065,7 @@ eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(const RectangleBase<2, int>& rec
 
 
 //! adds a checkbox
-eastl::shared_ptr<BaseUICheckBox> BaseUI::AddCheckBox(bool checked, const RectangleBase<2, int>& rectangle, 
+eastl::shared_ptr<BaseUICheckBox> BaseUI::AddCheckBox(bool checked, const RectangleShape<2, int>& rectangle, 
 	const eastl::shared_ptr<BaseUIElement>& parent, int id, const wchar_t* text)
 {
 	eastl::shared_ptr<BaseUICheckBox> check(new UICheckBox(this, id, rectangle, checked));
@@ -1080,7 +1080,7 @@ eastl::shared_ptr<BaseUICheckBox> BaseUI::AddCheckBox(bool checked, const Rectan
 
 
 //! adds a list box
-eastl::shared_ptr<BaseUIListBox> BaseUI::AddListBox(const RectangleBase<2, int>& rectangle,
+eastl::shared_ptr<BaseUIListBox> BaseUI::AddListBox(const RectangleShape<2, int>& rectangle,
 	const eastl::shared_ptr<BaseUIElement>& parent, int id, bool drawBackground)
 {
 	eastl::shared_ptr<BaseUIListBox> listBox(new UIListBox(this, id, rectangle, true, drawBackground, false));
@@ -1100,7 +1100,7 @@ eastl::shared_ptr<BaseUIListBox> BaseUI::AddListBox(const RectangleBase<2, int>&
 }
 
 //! adds a tree view
-eastl::shared_ptr<BaseUITreeView> BaseUI::AddTreeView(const RectangleBase<2, int>& rectangle,
+eastl::shared_ptr<BaseUITreeView> BaseUI::AddTreeView(const RectangleShape<2, int>& rectangle,
 	const eastl::shared_ptr<BaseUIElement>& parent, int id, bool drawBackground, bool scrollBarVertical, bool scrollBarHorizontal)
 {
 	eastl::shared_ptr<BaseUITreeView> treeView(new UITreeView(this, id, rectangle, true, drawBackground));
@@ -1113,7 +1113,7 @@ eastl::shared_ptr<BaseUITreeView> BaseUI::AddTreeView(const RectangleBase<2, int
 
 //! Adds an edit box. The returned pointer must not be dropped.
 eastl::shared_ptr<BaseUIEditBox> BaseUI::AddEditBox(const wchar_t* text,
-	const RectangleBase<2, int>& rectangle, bool border, 
+	const RectangleShape<2, int>& rectangle, bool border, 
 	const eastl::shared_ptr<BaseUIElement>& parent, int id)
 {
 	eastl::shared_ptr<BaseUIEditBox> editBox(new UIEditBox(text, border, this, id, rectangle));
@@ -1124,7 +1124,7 @@ eastl::shared_ptr<BaseUIEditBox> BaseUI::AddEditBox(const wchar_t* text,
 }
 
 //! Adds a combo box to the environment.
-eastl::shared_ptr<BaseUIComboBox> BaseUI::AddComboBox(const RectangleBase<2, int>& rectangle,
+eastl::shared_ptr<BaseUIComboBox> BaseUI::AddComboBox(const RectangleShape<2, int>& rectangle,
 	const eastl::shared_ptr<BaseUIElement>& parent, int id)
 {
 	eastl::shared_ptr<BaseUIComboBox> comboBox(new UIComboBox(this, id, rectangle));

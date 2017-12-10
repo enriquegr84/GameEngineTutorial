@@ -208,8 +208,17 @@
     <Filter Include="Graphic\Scene\Hierarchy">
       <UniqueIdentifier>{5cc6d868-9c00-41cc-96d4-5235c78a0051}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphic\Scene\Node">
-      <UniqueIdentifier>{39bb7dfa-6811-4d9f-84d0-9af8590bc118}</UniqueIdentifier>
+    <Filter Include="Graphic\Scene\Element">
+      <UniqueIdentifier>{abf8f82c-4f77-4a4e-b927-a44cf6aa710b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Scene\Element\Particle">
+      <UniqueIdentifier>{ecf150ae-5b3e-4a07-a27e-1e6054dc49f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Scene\Element\Animator">
+      <UniqueIdentifier>{97664ccf-2480-4489-a9d9-c9311b87a2f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Scene\Element\Mesh">
+      <UniqueIdentifier>{9d34edc5-20c9-4df6-8e9e-00dd2a0797bf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -832,11 +841,116 @@
     <ClCompile Include="..\Graphic\Scene\Hierarchy\Visual.cpp">
       <Filter>Graphic\Scene\Hierarchy</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Node\BillboardNode.cpp">
-      <Filter>Graphic\Scene\Node</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Hierarchy\Node.cpp">
       <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\BillboardNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\AnimatedMeshNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\CameraNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\CubeNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\EmptyNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\LightNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\MeshNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\ParticleSystemNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\SkyBoxNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\SkyNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\SphereNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\VolumeLightNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorDelete.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFactory.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyCircle.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyStraight.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFollowSpline.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorRotation.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorTexture.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MD3MeshFileLoader.cpp">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\Mesh.cpp">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshCache.cpp">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshManipulator.cpp">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleAttractionAffector.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleBoxEmitter.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleCylinderEmitter.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleFadeOutAffector.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleGravityAffector.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleMeshEmitter.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticlePointEmitter.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleRingEmitter.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleRotationAffector.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleScaleAffector.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.cpp">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Game Engine Tutorial\Source\GameEngine\Scenes\SceneNode\ShadowVolumeNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2068,11 +2182,146 @@
     <ClInclude Include="..\Graphic\Scene\Hierarchy\Visual.h">
       <Filter>Graphic\Scene\Hierarchy</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Node\BillboardNode.h">
-      <Filter>Graphic\Scene\Node</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Hierarchy\Node.h">
       <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\AnimatedMeshNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\CameraNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\CubeNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\EmptyNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\LightNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\MeshNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\ParticleSystemNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\SkyBoxNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\SkyNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\SphereNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\VolumeLightNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\BillboardNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\Particle.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorDelete.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFactory.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyCircle.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyStraight.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFollowSpline.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorRotation.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorTexture.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\AnimatedMesh.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMesh.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshBuffer.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshCache.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshLoader.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshManipulator.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MD3MeshFileLoader.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\Mesh.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshBuffer.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshCache.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshManipulator.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleAttractionAffector.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleBoxEmitter.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleCylinderEmitter.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleFadeOutAffector.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleGravityAffector.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleMeshEmitter.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticlePointEmitter.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleRingEmitter.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleRotationAffector.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleScaleAffector.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Game Engine Tutorial\Source\GameEngine\Scenes\SceneNode\ShadowVolumeNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleAffector.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleEmitter.h">
+      <Filter>Graphic\Scene\Element\Particle</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

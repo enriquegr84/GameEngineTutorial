@@ -102,7 +102,7 @@ protected:
 		virtual Vector2<float> GetRelativePosition();
 
 		//! Sets an absolute reference rect for calculating the cursor position.
-		virtual void SetReferenceRect(const RectangleBase<2, int>* rect = 0);
+		virtual void SetReferenceRect(const RectangleShape<2, int>* rect = 0);
 
 		//! Used to notify the cursor that the window was resized.
 		virtual void OnResize(const Vector2<unsigned int>& size);
@@ -130,7 +130,7 @@ protected:
 	private:
 
 		// convert an Irrlicht texture to a windows cursor
-		HCURSOR TextureToCursor(HWND hwnd, Texture2 * tex, const RectangleBase<2, int>& sourceRect, const Vector2<unsigned int> &hotspot);
+		HCURSOR TextureToCursor(HWND hwnd, Texture2 * tex, const RectangleShape<2, int>& sourceRect, const Vector2<unsigned int> &hotspot);
 
 		//! Updates the internal cursor position
 		void UpdateInternalCursorPosition();
@@ -141,7 +141,7 @@ protected:
 		HWND mHWnd;
 
 		signed int mBorderX, mBorderY;
-		RectangleBase<2, int> mReferenceRect;
+		RectangleShape<2, int> mReferenceRect;
 		bool mUseReferenceRect;
 		bool mVisible;
 

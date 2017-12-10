@@ -17,7 +17,7 @@ class BaseUIStaticText : public BaseUIElement
 public:
 
 	//! constructor
-	BaseUIStaticText(int id, RectangleBase<2, int> rectangle)
+	BaseUIStaticText(int id, RectangleShape<2, int> rectangle)
 		: BaseUIElement(UIET_STATIC_TEXT, id, rectangle) {}
 
 	//! Sets another skin independent font.
@@ -130,7 +130,7 @@ public:
 
 	//! constructor
 	UIStaticText(BaseUI* ui, int id, const wchar_t* text, 
-		bool border, const RectangleBase<2, int>& rectangle, bool background = false);
+		bool border, const RectangleShape<2, int>& rectangle, bool background = false);
 
 	//! destructor
 	virtual ~UIStaticText();

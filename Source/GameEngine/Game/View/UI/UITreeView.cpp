@@ -361,7 +361,7 @@ bool UITreeViewNode::IsVisible() const
 
 
 //! constructor
-UITreeView::UITreeView(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool clip, bool drawBack)
+UITreeView::UITreeView(BaseUI* ui, int id, RectangleShape<2, int> rectangle, bool clip, bool drawBack)
 	: BaseUITreeView( id, rectangle ), mUI(ui), mRoot(0), mSelected(0), mItemHeight( 0 ), mIndentWidth( 0 ), 
 	mTotalItemHeight( 0 ), mTotalItemWidth ( 0 ), mFont( 0 ), mIconFont( 0 ), mScrollBarH( 0 ), mScrollBarV( 0 ), 
 	mLastEventNode( 0 ), mLinesVisible( true ), mSelecting( false ), mClip( clip ), mDrawBack( drawBack ), mImageLeftOfIcon( true )
@@ -402,7 +402,7 @@ void UITreeView::OnInit(bool scrollBarVertical, bool scrollBarHorizontal)
 
 	if (scrollBarVertical)
 	{
-		RectangleBase<2, int> rectangle;
+		RectangleShape<2, int> rectangle;
 		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
 		rectangle.center[1] = (mRelativeRect.extent[1] - scrollBarHorizontal ? s : 0) / 2;
 		rectangle.extent[0] = s;
@@ -416,7 +416,7 @@ void UITreeView::OnInit(bool scrollBarVertical, bool scrollBarHorizontal)
 
 	if (scrollBarHorizontal)
 	{
-		RectangleBase<2, int> rectangle;
+		RectangleShape<2, int> rectangle;
 		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
 		rectangle.center[1] = mRelativeRect.extent[1] - (s / 2);
 		rectangle.extent[0] = mRelativeRect.extent[0] - s;
@@ -505,7 +505,7 @@ bool UITreeView::OnEvent( const Event &event )
 					case UIEVT_SCROLL_BAR_CHANGED:
 						if( event.mUIEvent.mCaller == mScrollBarV.get() || event.mUIEvent.mCaller == mScrollBarH.get() )
 						{
-							//s32 pos = ( ( gui::IGUIScrollBar* )event.GUIEvent.Caller )->getPos();
+							//int pos = ( ( gui::IGUIScrollBar* )event.GUIEvent.Caller )->getPos();
 							return true;
 						}
 						break;
@@ -691,19 +691,19 @@ void UITreeView::Draw()
 
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 
-	RectangleBase<2, int>* clipRect = 0;
+	RectangleShape<2, int>* clipRect = 0;
 	if( mClip )
 		clipRect = &mAbsoluteClippingRect;
 
 	// draw background
-	RectangleBase<2, int> frameRect(mAbsoluteRect);
+	RectangleShape<2, int> frameRect(mAbsoluteRect);
 
 	if( mDrawBack )
 		skin->Draw2DRectangle( shared_from_this(), skin->GetColor(DC_3D_HIGH_LIGHT), mVisual, frameRect, clipRect );
 
 	// draw items
 
-	RectangleBase<2, int> clientClip( mAbsoluteRect );
+	RectangleShape<2, int> clientClip( mAbsoluteRect );
 
 	if (mScrollBarV)
 	{
@@ -747,7 +747,7 @@ void UITreeView::Draw()
 				skin->Draw2DRectangle( 
 					shared_from_this(), skin->GetColor( DC_HIGH_LIGHT ), mVisual, frameRect, &clientClip );
 
-			RectangleBase<2, int> textRect = frameRect;
+			RectangleShape<2, int> textRect = frameRect;
 
 			if( mFont )
 			{
@@ -770,7 +770,7 @@ void UITreeView::Draw()
 						/*
 						ImageList->Draw(
 							index,
-							core::position2d<s32>(
+							core::position2d<int>(
 							textRect.UpperLeftCorner.X,
 							textRect.UpperLeftCorner.Y + ( ( textRect.getHeight() - ImageList->getImageSize().Height ) >> 1 ) ),
 							&clientClip );

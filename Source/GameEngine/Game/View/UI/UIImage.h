@@ -16,7 +16,7 @@ class BaseUIImage : public BaseUIElement
 public:
 
 	//! constructor
-	BaseUIImage(int id, RectangleBase<2, int> rectangle)
+	BaseUIImage(int id, RectangleShape<2, int> rectangle)
 		: BaseUIElement(UIET_IMAGE, id, rectangle) {}
 
 	//! Sets an image texture
@@ -49,7 +49,7 @@ class UIImage : public BaseUIImage
 public:
 
 	//! constructor
-	UIImage(BaseUI* ui, int id, RectangleBase<2, int> rectangle);
+	UIImage(BaseUI* ui, int id, RectangleShape<2, int> rectangle);
 
 	//! destructor
 	virtual ~UIImage();

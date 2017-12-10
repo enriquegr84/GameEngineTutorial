@@ -30,7 +30,7 @@ UISpriteBank::~UISpriteBank()
 }
 
 
-eastl::vector<RectangleBase<2, int>>& UISpriteBank::GetPositions()
+eastl::vector<RectangleShape<2, int>>& UISpriteBank::GetPositions()
 {
 	return mRectangles;
 }
@@ -96,7 +96,7 @@ int UISpriteBank::AddTextureAsSprite(eastl::shared_ptr<Texture2> texture)
 
 	unsigned int rectangleIndex = mRectangles.size();
 
-	RectangleBase<2, int> rectangle;
+	RectangleShape<2, int> rectangle;
 	rectangle.center[0] = texture->GetDimension(0) / 2;
 	rectangle.center[1] = texture->GetDimension(1) / 2;
 	rectangle.extent[0] = texture->GetDimension(0);
@@ -118,7 +118,7 @@ int UISpriteBank::AddTextureAsSprite(eastl::shared_ptr<Texture2> texture)
 
 //! draws a sprite in 2d with scale and color
 void UISpriteBank::Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, 
-	const RectangleBase<2, int>& pos, const RectangleBase<2, int>* clip, const eastl::array<float, 4> color, 
+	const RectangleShape<2, int>& pos, const RectangleShape<2, int>* clip, const eastl::array<float, 4> color, 
 	unsigned int starttime, unsigned int currenttime, bool loop, bool center)
 {
 	if (index >= mSprites.size() || mSprites[index].mFrames.empty() )
@@ -141,7 +141,7 @@ void UISpriteBank::Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visu
 	const unsigned int rn = mSprites[index].mFrames[frame].mRectNumber;
 	if (rn >= mRectangles.size()) return;
 
-	const RectangleBase<2, int>& sourceRect = mRectangles[rn];
+	const RectangleShape<2, int>& sourceRect = mRectangles[rn];
 	Vector2<int> sourceSize(sourceRect.extent);
 
 	Vector2<int> targetPos = pos.center;
@@ -190,7 +190,7 @@ void UISpriteBank::Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visu
 
 
 void UISpriteBank::Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, const eastl::shared_ptr<Visual>& visual, 
-	const eastl::array<RectangleBase<2, int>>& pos, const eastl::array<float, 4> color, const RectangleBase<2, int>* clip, 
+	const eastl::array<RectangleShape<2, int>>& pos, const eastl::array<float, 4> color, const RectangleShape<2, int>* clip, 
 	unsigned int starttime, unsigned int currenttime, bool loop, bool center)
 {
 	const unsigned int drawCount = eastl::min<unsigned int>(indices.size(), pos.size());
@@ -232,7 +232,7 @@ void UISpriteBank::Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, 
 		if (rn >= mRectangles.size())
 			return;
 
-		const RectangleBase<2, int>& r = mRectangles[rn];
+		const RectangleShape<2, int>& r = mRectangles[rn];
 
 		if (center)
 		{

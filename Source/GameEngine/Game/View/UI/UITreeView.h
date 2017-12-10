@@ -202,7 +202,7 @@ class BaseUITreeView : public BaseUIElement
 {
 public:
 	//! constructor
-	BaseUITreeView(int id, RectangleBase<2, int> rectangle)
+	BaseUITreeView(int id, RectangleShape<2, int> rectangle)
 		: BaseUIElement(UIET_TREE_VIEW, id, rectangle) {}
 
 	//! initialize treeview
@@ -429,7 +429,7 @@ friend class UITreeViewNode;
 
 public:
 	//! constructor
-	UITreeView(BaseUI* ui, int id, RectangleBase<2, int> rectangle, 
+	UITreeView(BaseUI* ui, int id, RectangleShape<2, int> rectangle, 
 		bool clip = true, bool drawBack = false);
 
 	//! destructor

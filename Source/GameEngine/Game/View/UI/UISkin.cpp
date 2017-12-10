@@ -284,12 +284,12 @@ EGDC_3D_FACE for this. See EGUI_DEFAULT_COLOR for details.
 is usually not used by ISkin, but can be used for example by more complex
 implementations to find out how to draw the part exactly. */
 void UISkin::Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>& element,
-	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+	const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& r, const RectangleShape<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
 
-	RectangleBase<2, int> rect = r;
+	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
@@ -359,12 +359,12 @@ EGDC_3D_FACE for this. See EGUI_DEFAULT_COLOR for details.
 is usually not used by ISkin, but can be used for example by more complex
 implementations to find out how to draw the part exactly. */
 void UISkin::Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>& element,
-	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+	const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& r, const RectangleShape<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
 
-	RectangleBase<2, int> rect = r;
+	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
@@ -436,13 +436,13 @@ deep into the ground.
 \param clip: Clip area.	*/
 void UISkin::Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element, 
 	eastl::array<float, 4> bgcolor, bool flat, bool fillBackGround,
-	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, 
-	const RectangleBase<2, int>* clip)
+	const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& r, 
+	const RectangleShape<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
 
-	RectangleBase<2, int> rect = r;
+	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
@@ -499,10 +499,10 @@ void UISkin::Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element,
 
 //! draws a window background
 // return where to draw title bar text.
-RectangleBase<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<BaseUIElement>& element, 
+RectangleShape<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<BaseUIElement>& element, 
 	const eastl::shared_ptr<Visual>& visualBackground, const eastl::shared_ptr<Visual>& visualTitle, 
-	bool drawTitleBar, eastl::array<float, 4> titleBarColor, const RectangleBase<2, int>& r, 
-	const RectangleBase<2, int>* clip, RectangleBase<2, int>* checkClientArea)
+	bool drawTitleBar, eastl::array<float, 4> titleBarColor, const RectangleShape<2, int>& r, 
+	const RectangleShape<2, int>* clip, RectangleShape<2, int>* checkClientArea)
 {
 	if (!Renderer::Get())
 	{
@@ -513,7 +513,7 @@ RectangleBase<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Bas
 		return r;
 	}
 	
-	RectangleBase<2, int> rect = r;
+	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
@@ -603,12 +603,12 @@ implementations to find out how to draw the part exactly.
 \param rect: Defining area where to draw.
 \param clip: Clip area.	*/
 void UISkin::Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
-	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+	const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& r, const RectangleShape<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
 
-	RectangleBase<2, int> rect = r;
+	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
@@ -676,12 +676,12 @@ implementations to find out how to draw the part exactly.
 \param rect: Defining area where to draw.
 \param clip: Clip area.	*/
 void UISkin::Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
-	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+	const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& r, const RectangleShape<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
 
-	RectangleBase<2, int> rect = r;
+	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
@@ -750,13 +750,13 @@ implementations to find out how to draw the part exactly.
 \param rect: Defining area where to draw.
 \param clip: Clip area.	*/
 void UISkin::Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bool active,
-	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip, 
+	const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& r, const RectangleShape<2, int>* clip, 
 	UIAlignment alignment)
 {
 	if (!Renderer::Get())
 		return;
 
-	RectangleBase<2, int> rect = r;
+	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
@@ -825,13 +825,13 @@ implementations to find out how to draw the part exactly.
 \param rect: Defining area where to draw.
 \param clip: Clip area.	*/
 void UISkin::Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool border, bool background,
-	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip, 
+	const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& r, const RectangleShape<2, int>* clip, 
 	int tabHeight, UIAlignment alignment)
 {
 	if (!Renderer::Get())
 		return;
 
-	RectangleBase<2, int> rect = r;
+	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
@@ -892,7 +892,7 @@ void UISkin::Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool
 
 //! draws a 2d texture.
 void UISkin::Draw2DTexture(const eastl::shared_ptr<BaseUIElement>& element,
-	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& pos, const Vector2<int>& dimension)
+	const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& pos, const Vector2<int>& dimension)
 {
 	if (!Renderer::Get())
 		return;
@@ -944,12 +944,12 @@ void UISkin::Draw2DTexture(const eastl::shared_ptr<BaseUIElement>& element,
 //! draws a 2d rectangle.
 void UISkin::Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element,
 	const eastl::array<float, 4> &color, const eastl::shared_ptr<Visual>& visual,
-	const RectangleBase<2, int>& r, const RectangleBase<2, int>* clip)
+	const RectangleShape<2, int>& r, const RectangleShape<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;
 
-	RectangleBase<2, int> rect = r;
+	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->extent / 2);
 
 	struct Vertex
@@ -1015,8 +1015,8 @@ by more complex implementations to find out how to draw the part exactly.
 \param loop: Whether the animation should loop or not
 \param clip: Clip area.	*/
 void UISkin::DrawIcon(const eastl::shared_ptr<BaseUIElement>& element, UIDefaultIcon icon,
-	const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int> position, 
-	const RectangleBase<2, int>* clip, unsigned int starttime, unsigned int currenttime, bool loop)
+	const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int> position, 
+	const RectangleShape<2, int>* clip, unsigned int starttime, unsigned int currenttime, bool loop)
 {
 	if (!mSpriteBank)
 		return;

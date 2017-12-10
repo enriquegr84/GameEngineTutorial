@@ -40,7 +40,7 @@ class BaseUIListBox : public BaseUIElement
 {
 public:
 	//! constructor
-	BaseUIListBox(int id, RectangleBase<2, int> rectangle)
+	BaseUIListBox(int id, RectangleShape<2, int> rectangle)
 		: BaseUIElement(UIET_LIST_BOX, id, rectangle) {}
 
 	//! Initialize listbox
@@ -138,7 +138,7 @@ class UIListBox : public BaseUIListBox
 {
 public:
 	//! constructor
-	UIListBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle,
+	UIListBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle,
 		bool clip=true, bool drawBack=false, bool moveOverSelect=false);
 
 	//! destructor

@@ -15,7 +15,7 @@
 #include "Graphic/Image/ImageResource.h"
 
 //! constructor
-UIButton::UIButton(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+UIButton::UIButton(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 :	BaseUIButton(id, rectangle), mSpriteBank(0), mOverrideFont(0), mUI(ui),
 	mImage(0), mPressedImage(0), mClickTime(0), mHoverTime(0), mFocusTime(0), mPushButton(false), 
 	mPressed(false), mUseAlphaChannel(false), mDrawBorder(true), mScaleImage(false)
@@ -249,7 +249,7 @@ void UIButton::Draw( )
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 
 	// todo: move sprite up and text down if the pressed state has a sprite
-	RectangleBase<2, int> spritePos = mAbsoluteRect;
+	RectangleShape<2, int> spritePos = mAbsoluteRect;
 
 	if (!mPressed)
 	{
@@ -330,7 +330,7 @@ void UIButton::Draw( )
 	{
 		const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 
-		RectangleBase<2, int> rect = mAbsoluteRect;
+		RectangleShape<2, int> rect = mAbsoluteRect;
 		rect.extent[0] = font->GetDimension(mText.c_str())[0];
 		if (mPressed)
 		{
@@ -382,7 +382,7 @@ void UIButton::SetImage(const eastl::shared_ptr<Texture2>& image)
 
 	if (image)
 	{
-		mImageRect = RectangleBase<2, int>();
+		mImageRect = RectangleShape<2, int>();
 		mImageRect.center[0] = image->GetDimension(0) / 2;
 		mImageRect.center[1] = image->GetDimension(1) / 2;
 		mImageRect.extent[0] = image->GetDimension(0);
@@ -395,7 +395,7 @@ void UIButton::SetImage(const eastl::shared_ptr<Texture2>& image)
 
 
 //! Sets the image which should be displayed on the button when it is in its normal state.
-void UIButton::SetImage(const eastl::shared_ptr<Texture2>& image, const RectangleBase<2, int>& pos)
+void UIButton::SetImage(const eastl::shared_ptr<Texture2>& image, const RectangleShape<2, int>& pos)
 {
 	SetImage(image);
 	mImageRect = pos;
@@ -409,7 +409,7 @@ void UIButton::SetPressedImage(const eastl::shared_ptr<Texture2>& image)
 
 	if (image)
 	{
-		mPressedImageRect = RectangleBase<2, int>();
+		mPressedImageRect = RectangleShape<2, int>();
 		mImageRect.center[0] = image->GetDimension(0) / 2;
 		mImageRect.center[1] = image->GetDimension(1) / 2;
 		mImageRect.extent[0] = image->GetDimension(0);
@@ -419,7 +419,7 @@ void UIButton::SetPressedImage(const eastl::shared_ptr<Texture2>& image)
 
 
 //! Sets the image which should be displayed on the button when it is in its pressed state.
-void UIButton::SetPressedImage(const eastl::shared_ptr<Texture2>& image, const RectangleBase<2, int>& pos)
+void UIButton::SetPressedImage(const eastl::shared_ptr<Texture2>& image, const RectangleShape<2, int>& pos)
 {
 	SetPressedImage(image);
 	mPressedImageRect = pos;

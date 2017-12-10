@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\Game Engine Tutorial\Source\GameEngine\Scenes\SceneNode\ShadowVolumeNode.cpp" />
     <ClCompile Include="..\AI\Pathing.cpp" />
     <ClCompile Include="..\Application\Application.cpp" />
     <ClCompile Include="..\Application\ConsoleApplication.cpp" />
@@ -192,6 +193,41 @@
     <ClCompile Include="..\Graphic\Resource\Texture\TextureSingle.cpp" />
     <ClCompile Include="..\Graphic\Scene\Controller\ControlledObject.cpp" />
     <ClCompile Include="..\Graphic\Scene\Controller\Controller.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\AnimatedMeshNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorDelete.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFactory.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyCircle.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyStraight.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFollowSpline.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorRotation.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorTexture.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\BillboardNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\CameraNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\CubeNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\EmptyNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\LightNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\MeshNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MD3MeshFileLoader.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\Mesh.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshCache.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshManipulator.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\ParticleSystemNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleAttractionAffector.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleBoxEmitter.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleCylinderEmitter.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleFadeOutAffector.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleGravityAffector.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleMeshEmitter.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticlePointEmitter.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleRingEmitter.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleRotationAffector.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleScaleAffector.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\SkyBoxNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\SkyNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\SphereNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\VolumeLightNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Hierarchy\BoundingSphere.cpp" />
     <ClCompile Include="..\Graphic\Scene\Hierarchy\Camera.cpp" />
     <ClCompile Include="..\Graphic\Scene\Hierarchy\Light.cpp" />
@@ -201,7 +237,6 @@
     <ClCompile Include="..\Graphic\Scene\Hierarchy\Visual.cpp" />
     <ClCompile Include="..\Graphic\Scene\LightManager.cpp" />
     <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Node\BillboardNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Scene.cpp" />
     <ClCompile Include="..\Graphic\Scene\Visibility\Culler.cpp" />
     <ClCompile Include="..\Graphic\Scene\Visibility\CullingPlane.cpp" />
@@ -230,6 +265,7 @@
     <ClCompile Include="..\Physic\PhysicEventListener.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Game Engine Tutorial\Source\GameEngine\Scenes\SceneNode\ShadowVolumeNode.h" />
     <ClInclude Include="..\AI\Pathing.h" />
     <ClInclude Include="..\Application\Application.h" />
     <ClInclude Include="..\Application\ConsoleApplication.h" />
@@ -485,6 +521,7 @@
     <ClInclude Include="..\Graphic\Effect\Lighting.h" />
     <ClInclude Include="..\Graphic\Effect\LightingEffect.h" />
     <ClInclude Include="..\Graphic\Effect\Material.h" />
+    <ClInclude Include="..\Graphic\Effect\Particle.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightEffect.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightTextureEffect.h" />
     <ClInclude Include="..\Graphic\Effect\SpotLightEffect.h" />
@@ -579,6 +616,50 @@
     <ClInclude Include="..\Graphic\Resource\Texture\TextureSingle.h" />
     <ClInclude Include="..\Graphic\Scene\Controller\ControlledObject.h" />
     <ClInclude Include="..\Graphic\Scene\Controller\Controller.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\AnimatedMeshNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorDelete.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFactory.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyCircle.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyStraight.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFollowSpline.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorRotation.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorTexture.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\BillboardNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\CameraNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\CubeNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\EmptyNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\LightNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\MeshNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\AnimatedMesh.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMesh.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshBuffer.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshCache.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshLoader.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshManipulator.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MD3MeshFileLoader.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\Mesh.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshBuffer.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshCache.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshManipulator.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\ParticleSystemNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleAffector.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleAttractionAffector.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleBoxEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleCylinderEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleFadeOutAffector.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleGravityAffector.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleMeshEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticlePointEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleRingEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleRotationAffector.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleScaleAffector.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\SkyBoxNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\SkyNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\SphereNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\VolumeLightNode.h" />
     <ClInclude Include="..\Graphic\Scene\Hierarchy\BoundingSphere.h" />
     <ClInclude Include="..\Graphic\Scene\Hierarchy\Camera.h" />
     <ClInclude Include="..\Graphic\Scene\Hierarchy\Light.h" />
@@ -588,7 +669,6 @@
     <ClInclude Include="..\Graphic\Scene\Hierarchy\Visual.h" />
     <ClInclude Include="..\Graphic\Scene\LightManager.h" />
     <ClInclude Include="..\Graphic\Scene\MeshFactory.h" />
-    <ClInclude Include="..\Graphic\Scene\Node\BillboardNode.h" />
     <ClInclude Include="..\Graphic\Scene\Scene.h" />
     <ClInclude Include="..\Graphic\Scene\Visibility\Culler.h" />
     <ClInclude Include="..\Graphic\Scene\Visibility\CullingPlane.h" />
@@ -658,7 +738,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GameEngine</RootNamespace>
     <ProjectName>GameEngine</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

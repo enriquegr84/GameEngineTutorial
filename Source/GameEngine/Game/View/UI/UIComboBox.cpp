@@ -15,7 +15,7 @@
 #include "Graphic/Renderer/Renderer.h"
 
 //! constructor
-UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 : BaseUIComboBox(ui, id, rectangle),
 	mUI(ui), mListButton(0), mSelectedText(0), mListBox(0), mLastFocus(0),
 	mSelected(-1), mHAlign(UIA_UPPERLEFT), mVAlign(UIA_CENTER), mMaxSelectionRows(5), mHasFocus(false)
@@ -71,7 +71,7 @@ void UIComboBox::OnInit()
 	mListBox->SetEnabled(false);
 	mListBox->SetVisible(false);
 
-	RectangleBase<2, int> r;
+	RectangleShape<2, int> r;
 	r.extent[0] = width;
 	r.extent[1] = mRelativeRect.extent[1] - 4;
 	r.center[0] = mRelativeRect.extent[0] - (width / 2) - 1;
@@ -473,7 +473,7 @@ void UIComboBox::OpenCloseMenu()
 			height *= (font->GetDimension(L"A")[1] + 4);
 
 		// open list box
-		RectangleBase<2, int> r;
+		RectangleShape<2, int> r;
 		r.extent[0] = mAbsoluteRect.extent[0];
 		r.extent[1] = height;
 		r.center[0] = mAbsoluteRect.extent[0] / 2;
@@ -488,7 +488,7 @@ void UIComboBox::OpenCloseMenu()
 			(int)round(mListBox->GetAbsolutePosition().extent[1] / 2.f) >
 			mUI->GetRootUIElement()->GetAbsolutePosition().extent[1])
 		{
-			RectangleBase<2, int> rect;
+			RectangleShape<2, int> rect;
 			rect.extent[0] = mAbsoluteRect.extent[0];
 			rect.extent[1] = mAbsoluteRect.extent[1];
 			rect.center[0] = mAbsoluteRect.extent[0] / 2;

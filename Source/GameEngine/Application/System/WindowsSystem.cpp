@@ -1372,7 +1372,7 @@ Vector2<float> WindowsSystem::CursorControl::GetRelativePosition()
 }
 
 //! Sets an absolute reference rect for calculating the cursor position.
-void WindowsSystem::CursorControl::SetReferenceRect(const RectangleBase<2, int>* rect)
+void WindowsSystem::CursorControl::SetReferenceRect(const RectangleShape<2, int>* rect)
 {
 	if (rect)
 	{
@@ -1463,7 +1463,7 @@ void WindowsSystem::CursorControl::UpdateInternalCursorPosition()
 // Convert an texture to a Windows cursor
 // Based on http://www.codeguru.com/cpp/w-p/win32/cursors/article.php/c4529/
 HCURSOR WindowsSystem::CursorControl::TextureToCursor(HWND hwnd, Texture2 * tex, 
-	const RectangleBase<2, int>& sourceRect, const Vector2<unsigned int> &hotspot)
+	const RectangleShape<2, int>& sourceRect, const Vector2<unsigned int> &hotspot)
 {
 	//
 	// create the bitmaps needed for cursors from the texture
@@ -1566,7 +1566,7 @@ CursorIcon WindowsSystem::CursorControl::AddIcon(const CursorSprite& icon)
 		{
 			unsigned int texId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mTextureNumber;
 			unsigned int rectId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mRectNumber;
-			RectangleBase<2, int> rectIcon = icon.mSpriteBank->GetPositions()[rectId];
+			RectangleShape<2, int> rectIcon = icon.mSpriteBank->GetPositions()[rectId];
 
 			HCURSOR hc = TextureToCursor(mHWnd, icon.mSpriteBank->GetTexture(texId), rectIcon, icon.mHotSpot);
 			cursor.mFrames.push_back(CursorFrame(hc));
@@ -1597,7 +1597,7 @@ void WindowsSystem::CursorControl::ChangeIcon(CursorIcon iconId, const CursorSpr
 		{
 			unsigned int texId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mTextureNumber;
 			unsigned int rectId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mRectNumber;
-			RectangleBase<2, int> rectIcon = icon.mSpriteBank->GetPositions()[rectId];
+			RectangleShape<2, int> rectIcon = icon.mSpriteBank->GetPositions()[rectId];
 
 			HCURSOR hc = TextureToCursor(mHWnd, icon.mSpriteBank->GetTexture(texId), rectIcon, icon.mHotSpot);
 			cursor.mFrames.push_back(CursorFrame(hc));

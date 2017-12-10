@@ -143,7 +143,7 @@ bool MainMenuUI::OnInit()
 	//gui size
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
-	RectangleBase<2, int> screenRectangle;
+	RectangleShape<2, int> screenRectangle;
 	screenRectangle.center[0] = screenSize[0] / 2;
 	screenRectangle.center[1] = screenSize[1] / 2;
 	screenRectangle.extent[0] = (int)screenSize[0];
@@ -154,7 +154,7 @@ bool MainMenuUI::OnInit()
 	window->GetCloseButton()->SetToolTipText(L"Quit Teapot Wars");
 
 	// add a options line
-	RectangleBase<2, int> playerOptionsRectangle;
+	RectangleShape<2, int> playerOptionsRectangle;
 	playerOptionsRectangle.center[0] = 50;
 	playerOptionsRectangle.extent[0] = 90;
 	playerOptionsRectangle.center[1] = 42;
@@ -221,7 +221,7 @@ bool MainMenuUI::OnInit()
 	gameStart->SetToolTipText(L"Start Game");
 
 	// add a status line help text
-	RectangleBase<2, int> statusRectangle;
+	RectangleShape<2, int> statusRectangle;
 	statusRectangle.center[0] = screenSize[0] / 2 + 5;
 	statusRectangle.extent[0] = screenSize[0] - 10;
 	statusRectangle.center[1] = screenSize[1] - 20;
@@ -229,7 +229,7 @@ bool MainMenuUI::OnInit()
 	eastl::shared_ptr<BaseUIStaticText> statusLine = AddStaticText(L"", statusRectangle, false, false, window, CID_STATUS_LABEL, true);
 	statusLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	RectangleBase<2, int> videoRectangle;
+	RectangleShape<2, int> videoRectangle;
 	videoRectangle.center[0] = screenSize[0] - 355;
 	videoRectangle.extent[0] = 90;
 	videoRectangle.center[1] = 42;

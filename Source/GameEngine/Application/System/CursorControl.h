@@ -127,7 +127,7 @@ public:
 	this feature again. This feature is useful when rendering into parts of foreign windows
 	for example in an editor.
 	\param rect: A pointer to an reference rectangle or 0 to disable the reference rectangle.*/
-	virtual void SetReferenceRect(const RectangleBase<2, int>* rect = 0) = 0;
+	virtual void SetReferenceRect(const RectangleShape<2, int>* rect = 0) = 0;
 
 	//! Sets the active cursor icon
 	/** Setting cursor icons is so far only supported on Win32 and Linux */

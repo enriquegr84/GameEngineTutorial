@@ -194,22 +194,22 @@ public:
 		UIElementType elementType, const eastl::shared_ptr<BaseUIElement>& parent = 0);
 
 	//! adds an button. The returned pointer must not be dropped.
-	virtual eastl::shared_ptr<BaseUIButton> AddButton(const RectangleBase<2, int>& rectangle,
+	virtual eastl::shared_ptr<BaseUIButton> AddButton(const RectangleShape<2, int>& rectangle,
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0, 
 		const wchar_t* tooltiptext = 0);
 
 	//! adds a window. The returned pointer must not be dropped.
-	virtual eastl::shared_ptr<BaseUIWindow> AddWindow(const RectangleBase<2, int>& rectangle, bool modal = false,
+	virtual eastl::shared_ptr<BaseUIWindow> AddWindow(const RectangleShape<2, int>& rectangle, bool modal = false,
 		const wchar_t* text = 0, const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
 
 	//! adds a static text. The returned pointer must not be dropped.
 	virtual eastl::shared_ptr<BaseUIStaticText> AddStaticText(const wchar_t* text, 
-		const RectangleBase<2, int>& rectangle, bool border = false, bool wordWrap = true, 
+		const RectangleShape<2, int>& rectangle, bool border = false, bool wordWrap = true, 
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, bool drawBackground = false);
 
 	//! Adds an edit box. The returned pointer must not be dropped.
 	virtual eastl::shared_ptr<BaseUIEditBox> AddEditBox(const wchar_t* text, 
-		const RectangleBase<2, int>& rectangle, bool border = false, 
+		const RectangleShape<2, int>& rectangle, bool border = false, 
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
 
 	//! Adds an image element.
@@ -217,28 +217,28 @@ public:
 		bool useAlphaChannel = true, const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0);
 
 	//! adds an image. The returned pointer must not be dropped.
-	virtual eastl::shared_ptr<BaseUIImage> AddImage(const RectangleBase<2, int>& rectangle,
+	virtual eastl::shared_ptr<BaseUIImage> AddImage(const RectangleShape<2, int>& rectangle,
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0, bool useAlphaChannel = true);
 
 	//! adds a scrollbar. The returned pointer must not be dropped.
-	virtual eastl::shared_ptr<BaseUIScrollBar> AddScrollBar(bool horizontal, const RectangleBase<2, int>& rectangle,
+	virtual eastl::shared_ptr<BaseUIScrollBar> AddScrollBar(bool horizontal, const RectangleShape<2, int>& rectangle,
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
 
 	//! adds a checkbox
-	virtual eastl::shared_ptr<BaseUICheckBox> AddCheckBox(bool checked, const RectangleBase<2, int>& rectangle,
+	virtual eastl::shared_ptr<BaseUICheckBox> AddCheckBox(bool checked, const RectangleShape<2, int>& rectangle,
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0);
 
 	//! adds a list box
-	virtual eastl::shared_ptr<BaseUIListBox> AddListBox(const RectangleBase<2, int>& rectangle,
+	virtual eastl::shared_ptr<BaseUIListBox> AddListBox(const RectangleShape<2, int>& rectangle,
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, bool drawBackground = false);
 
 	//! adds a tree view
-	virtual eastl::shared_ptr<BaseUITreeView> AddTreeView(const RectangleBase<2, int>& rectangle,
+	virtual eastl::shared_ptr<BaseUITreeView> AddTreeView(const RectangleShape<2, int>& rectangle,
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, bool drawBackground = false,
 		bool scrollBarVertical = true, bool scrollBarHorizontal = false);
 
 	//! Adds a combo box to the environment.
-	virtual eastl::shared_ptr<BaseUIComboBox> AddComboBox(const RectangleBase<2, int>& rectangle,
+	virtual eastl::shared_ptr<BaseUIComboBox> AddComboBox(const RectangleShape<2, int>& rectangle,
 		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1);
 
 protected:

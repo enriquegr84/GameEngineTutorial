@@ -22,7 +22,7 @@ class BaseUIScrollBar : public BaseUIElement
 public:
 
 	//! constructor
-	BaseUIScrollBar(int id, RectangleBase<2, int> rectangle)
+	BaseUIScrollBar(int id, RectangleShape<2, int> rectangle)
 		: BaseUIElement(UIET_SCROLL_BAR, id, rectangle) {}
 
 	//! Initialize scrollbar
@@ -66,7 +66,7 @@ class UIScrollBar : public BaseUIScrollBar
 public:
 
 	//! constructor
-	UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool horizontal);
+	UIScrollBar(BaseUI* ui, int id, RectangleShape<2, int> rectangle, bool horizontal);
 
 	//! destructor
 	virtual ~UIScrollBar();
@@ -124,7 +124,7 @@ private:
 	eastl::shared_ptr<BaseUIButton> mUpButton;
 	eastl::shared_ptr<BaseUIButton> mDownButton;
 
-	RectangleBase<2, int> mSliderRect;
+	RectangleShape<2, int> mSliderRect;
 
 	BaseUI* mUI;
 

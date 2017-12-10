@@ -12,7 +12,7 @@
 
 //! constructor
 UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text, 
-	bool border, const RectangleBase<2, int>& rectangle, bool background)
+	bool border, const RectangleShape<2, int>& rectangle, bool background)
 :	BaseUIStaticText(id, rectangle), mHAlign(UIA_UPPERLEFT), mVAlign(UIA_UPPERLEFT), 
 	mUI(ui), mBorder(border), mOverrideColorEnabled(false), mOverrideBGColorEnabled(false), 
 	mWordWrap(false), mBackground(background), mRestrainTextInside(true), mRightToLeft(false), 
@@ -61,7 +61,7 @@ void UIStaticText::Draw( )
 	if (!skin)
 		return;
 
-	RectangleBase<2, int> frameRect(mAbsoluteRect);
+	RectangleShape<2, int> frameRect(mAbsoluteRect);
 
 	// draw background
 	if (mBackground)

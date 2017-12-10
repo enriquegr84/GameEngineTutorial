@@ -15,7 +15,7 @@
 #include "Graphic/Image/ImageResource.h"
 
 //! constructor
-UICheckBox::UICheckBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool checked)
+UICheckBox::UICheckBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle, bool checked)
 : BaseUICheckBox(ui, id, rectangle), mUI(ui), mCheckTime(0), mPressed(false), mChecked(checked)
 {
 	#ifdef _DEBUG
@@ -160,7 +160,7 @@ void UICheckBox::Draw()
 	{
 		const int height = skin->GetSize(DS_CHECK_BOX_WIDTH);
 
-		RectangleBase<2, int> checkRect(mAbsoluteRect);
+		RectangleShape<2, int> checkRect(mAbsoluteRect);
 		checkRect.center[0] -= (checkRect.extent[0] / 2);
 		checkRect.center[0] += (height / 2);
 		checkRect.extent[0] = height;

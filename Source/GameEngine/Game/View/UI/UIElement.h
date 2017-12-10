@@ -125,7 +125,7 @@ friend class BaseUI;
 public:
 
 	//! Constructor
-	BaseUIElement(UIElementType type, int id, const RectangleBase<2, int>& rectangle)
+	BaseUIElement(UIElementType type, int id, const RectangleShape<2, int>& rectangle)
 	:	mParent(0), mRelativeRect(rectangle), mAbsoluteRect(rectangle), mAbsoluteClippingRect(rectangle), 
 		mDesiredRect(rectangle), mMaxSize{ 0,0 }, mMinSize{ 1, 1 }, mVisible(true), mEnabled(true), mSubElement(false),
 		mNoClip(false), mID(id), mTabStop(false), mTabOrder(-1), mTabGroup(false), mAlignLeft(UIA_UPPERLEFT), 
@@ -165,7 +165,7 @@ public:
 
 
 	//! Returns the relative rectangle of this element.
-	RectangleBase<2, int> GetRelativePosition() const
+	RectangleShape<2, int> GetRelativePosition() const
 	{
 		return mRelativeRect;
 	}
@@ -173,11 +173,11 @@ public:
 
 	//! Sets the relative rectangle of this element.
 	/** \param r The absolute position to set */
-	void SetRelativePosition(const RectangleBase<2, int>& r)
+	void SetRelativePosition(const RectangleShape<2, int>& r)
 	{
 		if (mParent)
 		{
-			const RectangleBase<2, int>& rectangle = mParent->GetAbsolutePosition();
+			const RectangleShape<2, int>& rectangle = mParent->GetAbsolutePosition();
 			Vector2<int> dimension(rectangle.extent);
 
 			if (mAlignLeft == UIA_SCALE)
@@ -221,7 +221,7 @@ public:
 		Vector2<int> center;
 		center[0] = position[0] + (mRelativeRect.extent[0] / 2);
 		center[1] = position[1] + (mRelativeRect.extent[1] / 2);
-		const RectangleBase<2, int> rectangle(
+		const RectangleShape<2, int> rectangle(
 			center, mRelativeRect.axis, mRelativeRect.extent);
 		SetRelativePosition(rectangle);
 	}
@@ -232,12 +232,12 @@ public:
 	\param r  The rectangle to set, interpreted as a proportion of the parent's area.
 	Meaningful values are in the range [0...1], unless you intend this element to spill
 	outside its parent. */
-	void SetRelativePositionProportional(const RectangleBase<2, float>& r)
+	void SetRelativePositionProportional(const RectangleShape<2, float>& r)
 	{
 		if (!mParent)
 			return;
 
-		const RectangleBase<2, int>& rectangle = mParent->GetAbsolutePosition();
+		const RectangleShape<2, int>& rectangle = mParent->GetAbsolutePosition();
 		Vector2<int> dimension(rectangle.extent);
 
 		Vector2<int> upperLeftCorner{ 
@@ -252,7 +252,7 @@ public:
 		Vector2<int> extent = lowerRightCorner - upperLeftCorner;
 		Vector2<int> center = lowerRightCorner + (extent / 2);
 
-		mDesiredRect = RectangleBase<2, int>(center, axis, extent);
+		mDesiredRect = RectangleShape<2, int>(center, axis, extent);
 		mScaleRect = r;
 
 		UpdateAbsolutePosition();
@@ -260,14 +260,14 @@ public:
 
 
 	//! Gets the absolute rectangle of this element
-	RectangleBase<2, int> GetAbsolutePosition() const
+	RectangleShape<2, int> GetAbsolutePosition() const
 	{
 		return mAbsoluteRect;
 	}
 
 
 	//! Returns the visible area of the element.
-	RectangleBase<2, int> GetAbsoluteClippingRect() const
+	RectangleShape<2, int> GetAbsoluteClippingRect() const
 	{
 		return mAbsoluteClippingRect;
 	}
@@ -321,7 +321,7 @@ public:
 
 		if (mParent)
 		{
-			const RectangleBase<2, int>& rectangle = mParent->GetAbsolutePosition();
+			const RectangleShape<2, int>& rectangle = mParent->GetAbsolutePosition();
 			Vector2<int> dimension(rectangle.extent);
 
 			if (mAlignLeft == UIA_SCALE)
@@ -421,7 +421,7 @@ public:
 	}
 
 
-	virtual bool IsPointInside(const RectangleBase<2, int>& rectangle, const Vector2<int>& point) const
+	virtual bool IsPointInside(const RectangleShape<2, int>& rectangle, const Vector2<int>& point) const
 	{
 		return (
 			rectangle.center[0] - (rectangle.extent[0] / 2) <= point[0] &&
@@ -494,7 +494,7 @@ public:
 		Vector2<int> center(mDesiredRect.center);
 		center[0] += absoluteMovement[0];
 		center[1] += absoluteMovement[1];
-		const RectangleBase<2, int> rectangle(
+		const RectangleShape<2, int> rectangle(
 			center, mDesiredRect.axis, mDesiredRect.extent);
 
 		SetRelativePosition(rectangle);
@@ -926,8 +926,8 @@ protected:
 	// not virtual because needed in constructor
 	void RecalculateAbsolutePosition(bool recursive)
 	{
-		RectangleBase<2, int> parentAbsolute;
-		RectangleBase<2, int> parentAbsoluteClip;
+		RectangleShape<2, int> parentAbsolute;
+		RectangleShape<2, int> parentAbsoluteClip;
 		float fw=0.f, fh=0.f;
 
 		if (mParent)
@@ -1096,23 +1096,23 @@ protected:
 	eastl::shared_ptr<BaseUIElement> mParent;
 
 	//! relative rect of element
-	RectangleBase<2, int> mRelativeRect;
+	RectangleShape<2, int> mRelativeRect;
 
 	//! absolute rect of element
-	RectangleBase<2, int> mAbsoluteRect;
+	RectangleShape<2, int> mAbsoluteRect;
 
 	//! absolute clipping rect of element
-	RectangleBase<2, int> mAbsoluteClippingRect;
+	RectangleShape<2, int> mAbsoluteClippingRect;
 
 	//! the rectangle the element would prefer to be,
 	//! if it was not constrained by parent or max/min size
-	RectangleBase<2, int> mDesiredRect;
+	RectangleShape<2, int> mDesiredRect;
 
 	//! for calculating the difference when resizing parent
-	RectangleBase<2, int> mLastParentRect;
+	RectangleShape<2, int> mLastParentRect;
 
 	//! relative scale of the element inside its parent
-	RectangleBase<2, float> mScaleRect;
+	RectangleShape<2, float> mScaleRect;
 
 	//! maximum and minimum size of the element
 	Vector2<unsigned int> mMaxSize, mMinSize;

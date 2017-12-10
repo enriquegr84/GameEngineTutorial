@@ -12,7 +12,7 @@
 #include "UserInterface.h"
 
 //! constructor
-UIWindow::UIWindow(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+UIWindow::UIWindow(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 	: BaseUIWindow(id, rectangle), mUI(ui), mDragging(false), mIsDraggableWindow(true),
 	mDrawBackground(true), mDrawTitlebar(true), mIsActive(false)
 {
@@ -97,7 +97,7 @@ void UIWindow::OnInit()
 	}
 	int posx = mRelativeRect.extent[0] - buttonw - 4;
 	
-	RectangleBase<2, int> rect;
+	RectangleShape<2, int> rect;
 	rect.center[0] = posx + (int)round(buttonw / 2.f);
 	rect.center[1] = 3 + (int)round(buttonw / 2.f);
 	rect.extent[0] = buttonw;
@@ -253,7 +253,7 @@ void UIWindow::Draw()
 		if (mCurrentIconColor != skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL))
 			RefreshSprites();
 
-		RectangleBase<2, int> rect = mAbsoluteRect;
+		RectangleShape<2, int> rect = mAbsoluteRect;
 
 		// draw body fast
 		if (mDrawBackground)
@@ -357,7 +357,7 @@ void UIWindow::UpdateClientRect()
 {
 	if (!mDrawBackground)
 	{
-		mClientRect = RectangleBase<2, int>();
+		mClientRect = RectangleShape<2, int>();
 		mClientRect.center = mAbsoluteRect.extent / 2;
 		mClientRect.extent = mAbsoluteRect.extent;
 		return;
@@ -368,7 +368,7 @@ void UIWindow::UpdateClientRect()
 
 
 //! Returns the rectangle of the drawable area (without border, without titlebar and without scrollbars)
-RectangleBase<2, int> UIWindow::GetClientRect() const
+RectangleShape<2, int> UIWindow::GetClientRect() const
 {
 	return mClientRect;
 }

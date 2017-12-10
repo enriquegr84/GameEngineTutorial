@@ -15,7 +15,7 @@
 #include "Graphic/Renderer/Renderer.h"
 
 //! constructor
-UIImage::UIImage(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+UIImage::UIImage(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 	: BaseUIImage(id, rectangle), mUI(ui), mTexture(0), mColor{ 1.f, 1.f, 1.f, 1.f },
 	mUseAlphaChannel(false), mScaleImage(false)
 {

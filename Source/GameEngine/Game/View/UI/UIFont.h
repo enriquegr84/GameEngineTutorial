@@ -45,9 +45,9 @@ public:
 	\param vcenter: Specifies if the text should be centered vertically into the rectangle.
 	\param clip: Optional pointer to a rectangle against which the text will be clipped.
 	If the pointer is null, no clipping will be done. */
-	virtual void Draw(const eastl::wstring& text, const RectangleBase<2, int>& position,
+	virtual void Draw(const eastl::wstring& text, const RectangleShape<2, int>& position,
 		eastl::array<float, 4> const& color, bool hcenter=false, bool vcenter=false, 
-		const RectangleBase<2, int>* clip=0) = 0;
+		const RectangleShape<2, int>* clip=0) = 0;
 
 	// Font widht and height info
 	virtual Vector2<int> GetDimension(eastl::wstring const& message) const = 0;
@@ -84,9 +84,9 @@ public:
 	bool Load(const eastl::wstring& filename);
 
 	//! draws an text and clips it to the specified rectangle if wanted
-	virtual void Draw(const eastl::wstring& text, const RectangleBase<2, int>& position,
+	virtual void Draw(const eastl::wstring& text, const RectangleShape<2, int>& position,
 		eastl::array<float, 4> const& color, bool hcenter = false, bool vcenter = false, 
-		const RectangleBase<2, int>* clip = 0);
+		const RectangleShape<2, int>* clip = 0);
 
 	//! returns the parsed Symbol Information
 	virtual eastl::shared_ptr<BaseUISpriteBank> GetSpriteBank() const { return mSpriteBank; }

@@ -6,7 +6,7 @@
 #include "UserInterface.h"
 
 //! constructor
-UIRoot::UIRoot(BaseUI* ui, UIElementType type, int id, RectangleBase<2, int> rectangle)
+UIRoot::UIRoot(BaseUI* ui, UIElementType type, int id, RectangleShape<2, int> rectangle)
 :	BaseUIElement(type, id, rectangle), mUI(ui)
 {
 }

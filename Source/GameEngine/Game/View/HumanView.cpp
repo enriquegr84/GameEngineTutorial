@@ -548,7 +548,7 @@ bool HumanView::Console::OnInit( )
 	/*
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
-	RectangleBase<2, int> screenRectangle;
+	RectangleShape<2, int> screenRectangle;
 	screenRectangle.center[0] = 0;
 	screenRectangle.center[1] = (int)screenSize[1];
 	screenRectangle.extent[0] = (int)screenSize[0];

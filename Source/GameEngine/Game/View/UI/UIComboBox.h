@@ -23,7 +23,7 @@ class BaseUIComboBox : public BaseUIElement
 public:
 
 	//! constructor
-	BaseUIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+	BaseUIComboBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 		: BaseUIElement(UIET_COMBO_BOX, id, rectangle) {}
 
 	//! Initialize combobox
@@ -77,7 +77,7 @@ class UIComboBox : public BaseUIComboBox
 public:
 
 	//! constructor
-	UIComboBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle);
+	UIComboBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle);
 
 	//! initialize combobox
 	virtual void OnInit();

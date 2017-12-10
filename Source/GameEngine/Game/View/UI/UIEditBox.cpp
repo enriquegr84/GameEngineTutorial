@@ -15,7 +15,7 @@
 #include "Graphic/Image/ImageResource.h"
 
 //! constructor
-UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 	: BaseUIEditBox(ui, id, rectangle), mUI(ui), mMouseMarking(false),
 	mBorder(border), mBackground(true), mOverrideColorEnabled(false), mMarkBegin(0), mMarkEnd(0),
 	mOverrideColor(eastl::array<float, 4>{255 / 255.f, 255 / 255.f, 255 / 255.f, 101 / 255.f}),
@@ -169,7 +169,7 @@ void UIEditBox::SetWordWrap(bool enable)
 
 void UIEditBox::UpdateAbsolutePosition()
 {
-	RectangleBase<2, int> oldAbsoluteRect(mAbsoluteRect);
+	RectangleShape<2, int> oldAbsoluteRect(mAbsoluteRect);
 	BaseUIElement::UpdateAbsolutePosition();
 
 	if ( oldAbsoluteRect != mAbsoluteRect )
@@ -793,7 +793,7 @@ void UIEditBox::Draw()
 	if (mBorder)
 		CalculateFrameRect();
 
-	RectangleBase<2, int> clipRect = mAbsoluteClippingRect;
+	RectangleShape<2, int> clipRect = mAbsoluteClippingRect;
 
 	// draw the text
 	const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
@@ -837,7 +837,7 @@ void UIEditBox::Draw()
 				SetTextRect(i);
 
 				// clipping test - don't draw anything outside the visible area
-				//RectangleBase<2, int> c = clipRect;
+				//RectangleShape<2, int> c = clipRect;
 				//c.ClipAgainst(mCurrentTextRect);
 				//if (!c.IsValid())
 				//	continue;
@@ -912,7 +912,7 @@ void UIEditBox::Draw()
 					}
 					else mend = font->GetDimension(txtLine->c_str())[0];
 
-					RectangleBase<2, int> highlightTextRect = mFrameRect;
+					RectangleShape<2, int> highlightTextRect = mFrameRect;
 					highlightTextRect.center[0] -= highlightTextRect.extent[0] / 2;
 					highlightTextRect.center[0] -= font->GetDimension(txtLine->substr(0, mHScrollPos).c_str())[0];
 					highlightTextRect.center[0] += mbegin + (mend - mbegin) / 2;
@@ -997,7 +997,7 @@ bool UIEditBox::IsAutoScrollEnabled() const
 //! \return Returns the size in pixels of the text
 Vector2<int> UIEditBox::GetTextDimension()
 {
-	RectangleBase<2, int> ret;
+	RectangleShape<2, int> ret;
 
 	SetTextRect(0);
 	ret = mCurrentTextRect;

@@ -16,7 +16,7 @@
 
 
 //! constructor
-UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool horizontal)
+UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleShape<2, int> rectangle, bool horizontal)
 	: BaseUIScrollBar(id, rectangle), mUI(ui), mUpButton(0), mDownButton(0), mDragging(false), mHorizontal(horizontal),
 	mDraggedBySlider(false), mTrayClick(false), mPos(0), mDrawPos(0), mDrawHeight(0), mMin(0), mMax(100), 
 	mSmallStep(10), mLargeStep(50), mDesiredPos(0), mLastChange(0)
@@ -483,7 +483,7 @@ void UIScrollBar::RefreshControls()
 	if (mHorizontal)
 	{
 		int h = mRelativeRect.extent[1];
-		RectangleBase<2, int> rectangle;
+		RectangleShape<2, int> rectangle;
 		rectangle.center[0] = h / 2;
 		rectangle.center[1] = h / 2;
 		rectangle.extent[0] = h;
@@ -530,7 +530,7 @@ void UIScrollBar::RefreshControls()
 	else
 	{
 		int w = mRelativeRect.extent[0];
-		RectangleBase<2, int> rectangle;
+		RectangleShape<2, int> rectangle;
 		rectangle.center[0] = w / 2;
 		rectangle.center[1] = w / 2;
 		rectangle.extent[0] = w;

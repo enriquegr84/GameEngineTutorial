@@ -280,7 +280,7 @@ eastl::shared_ptr<SceneNode> GridRenderComponent::CreateSceneNode(void)
 		{
 			// add this mesh scene node.
 			eastl::shared_ptr<IMesh> tangentMesh(
-				pScene->AddHillPlaneMesh("plane", Dimension2<f32>(40,40), 
+				pScene->AddHillPlaneMesh("plane", Dimension2<float>(40,40), 
 					Dimension2<unsigned int>(sqrt((float)m_squares), sqrt((float)m_squares))));
 
 			eastl::shared_ptr<SceneNode> plane =
@@ -515,7 +515,7 @@ eastl::shared_ptr<SceneNode> ParticleSystemRenderComponent::CreateSceneNode(void
 			{
 				eastl::shared_ptr<IParticleEmitter> em(
 					ps->CreateBoxEmitter(
-						AABBox3<f32>(-7,0,-7,7,1,7), // emitter size
+						AABBox3<float>(-7,0,-7,7,1,7), // emitter size
 						Vector3(0.0f,0.06f,0.0f),   // initial direction
 						80,100,                     // emit rate
 						Color(0,255,255,255),       // darkest color

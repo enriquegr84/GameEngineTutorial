@@ -15,7 +15,7 @@
 #include "Graphic/Image/ImageResource.h"
 
 //! constructor
-UIListBox::UIListBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle, bool clip, bool drawBack, bool moveOverSelect)
+UIListBox::UIListBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle, bool clip, bool drawBack, bool moveOverSelect)
 : BaseUIListBox(id, rectangle), mUI(ui), mSelected(-1), mItemHeight(0), mItemHeightOverride(0),
 	mTotalItemHeight(0), mItemsIconWidth(0), mFont(0), mIconBank(0), mScrollBar(0), mSelectedText(0), mSelectTime(0),
 	mLastKeyTime(0), mSelecting(false), mDrawBack(drawBack), mMoveOverSelect(moveOverSelect), mAutoScroll(true), 
@@ -505,9 +505,9 @@ void UIListBox::Draw()
 
 	RecalculateItemHeight(); // if the font changed
 
-	RectangleBase<2, int>* clipRect = 0;
-	RectangleBase<2, int> frameRect(mAbsoluteRect);
-	RectangleBase<2, int> clientClip(mAbsoluteClippingRect);
+	RectangleShape<2, int>* clipRect = 0;
+	RectangleShape<2, int> frameRect(mAbsoluteRect);
+	RectangleShape<2, int> clientClip(mAbsoluteClippingRect);
 	/*
 	clientClip.extent[0] -= 1;
 	clientClip.extent[1] -= 1;
@@ -539,14 +539,14 @@ void UIListBox::Draw()
 			frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= 
 			mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2))
 		{
-			RectangleBase<2, int> textRect = frameRect;
+			RectangleShape<2, int> textRect = frameRect;
 			textRect.extent[0] -= 3;
 
 			if (mFont)
 			{
 				if (mIconBank && (mItems[i].mIcon > -1))
 				{
-					RectangleBase<2, int> iconPos = textRect;
+					RectangleShape<2, int> iconPos = textRect;
 					iconPos.center = textRect.center - (textRect.center / 2);
 					iconPos.center[1] += textRect.extent[1] / 2;
 					iconPos.center[0] += mItemsIconWidth / 2;
@@ -594,7 +594,7 @@ void UIListBox::Draw()
 					}
 					mSelectedText->SetText(mItems[i].mText.c_str());
 
-					RectangleBase<2, int> selectedRect(frameRect);
+					RectangleShape<2, int> selectedRect(frameRect);
 					selectedRect.center -= mAbsoluteRect.center - (mAbsoluteRect.extent / 2);
 					mSelectedText->SetRelativePosition(selectedRect);
 				}
@@ -665,7 +665,7 @@ void UIListBox::RecalculateScrollRectangle()
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 	const int s = skin->GetSize(DS_SCROLLBAR_SIZE);
 
-	RectangleBase<2, int> rectangle;
+	RectangleShape<2, int> rectangle;
 	rectangle.center[0] = mRelativeRect.extent[0] - ( s / 2 );
 	rectangle.center[1] = mRelativeRect.extent[1] / 2;
 	rectangle.extent[0] = s;

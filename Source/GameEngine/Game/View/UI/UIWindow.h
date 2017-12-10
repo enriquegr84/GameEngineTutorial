@@ -22,7 +22,7 @@ class BaseUIWindow : public BaseUIElement
 public:
 
 	//! constructor
-	BaseUIWindow(int id, RectangleBase<2, int> rectangle)
+	BaseUIWindow(int id, RectangleShape<2, int> rectangle)
 		: BaseUIElement(UIET_WINDOW, id, rectangle) {}
 
 	//! Initialize Window
@@ -65,7 +65,7 @@ public:
 	To get it relative to the parent element you have to add the resulting rectangle to getRelativePosition().UpperLeftCorner.
 	Beware that adding a menu will not change the clientRect as menus are own gui elements, so in that case you might want to subtract
 	the menu area additionally. */
-	virtual RectangleBase<2, int> GetClientRect() const = 0;
+	virtual RectangleShape<2, int> GetClientRect() const = 0;
 };
 
 class UIWindow : public BaseUIWindow
@@ -73,7 +73,7 @@ class UIWindow : public BaseUIWindow
 public:
 
 	//! constructor
-	UIWindow(BaseUI* ui, int id, RectangleBase<2, int> rectangle);
+	UIWindow(BaseUI* ui, int id, RectangleShape<2, int> rectangle);
 
 	//! destructor
 	virtual ~UIWindow();
@@ -119,7 +119,7 @@ public:
 	virtual bool GetDrawTitlebar() const;
 
 	//! Returns the rectangle of the drawable area (without border and without titlebar)
-	virtual RectangleBase<2, int> GetClientRect() const;
+	virtual RectangleShape<2, int> GetClientRect() const;
 
 protected:
 
@@ -134,7 +134,7 @@ protected:
 	eastl::shared_ptr<BaseUIButton> mCloseButton;
 	eastl::shared_ptr<BaseUIButton> mMinButton;
 	eastl::shared_ptr<BaseUIButton> mRestoreButton;
-	RectangleBase<2, int> mClientRect;
+	RectangleShape<2, int> mClientRect;
 	eastl::array<float, 4> mCurrentIconColor;
 
 	Vector2<int> mDragStart;

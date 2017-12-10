@@ -24,7 +24,7 @@ class BaseUIEditBox : public BaseUIElement
 public:
 
 	//! constructor
-	BaseUIEditBox(BaseUI* ui, int id, RectangleBase<2, int> rectangle)
+	BaseUIEditBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 		: BaseUIElement(UIET_EDIT_BOX, id, rectangle) {}
 
 	//! Initialize editbox
@@ -134,7 +134,7 @@ class UIEditBox : public BaseUIEditBox
 public:
 
 	//! constructor
-	UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, RectangleBase<2, int> rectangle);
+	UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, RectangleShape<2, int> rectangle);
 
 	//! destructor
 	virtual ~UIEditBox();
@@ -261,7 +261,7 @@ protected:
 	eastl::vector<eastl::wstring> mBrokenText;
 	eastl::vector<int> mBrokenTextPositions;
 
-	RectangleBase<2, int> mCurrentTextRect, mFrameRect;
+	RectangleShape<2, int> mCurrentTextRect, mFrameRect;
 
 private:
 

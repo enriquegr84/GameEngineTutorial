@@ -37,7 +37,7 @@ class BaseUISpriteBank
 public:
 
 	//! Returns the list of rectangles held by the sprite bank
-	virtual eastl::vector<RectangleBase<2, int>>& GetPositions() = 0;
+	virtual eastl::vector<RectangleShape<2, int>>& GetPositions() = 0;
 
 	//! Returns the array of animated sprites within the sprite bank
 	virtual eastl::vector<UISprite>& GetSprites() = 0;
@@ -63,14 +63,14 @@ public:
 	virtual void Clear() = 0;
 
 	//! Draws a sprite in 2d with position and color
-	virtual void Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& pos, 
-		const RectangleBase<2, int>* clip = 0, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
+	virtual void Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& pos, 
+		const RectangleShape<2, int>* clip = 0, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
 		unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false) = 0;
 
 	//! Draws a sprite batch in 2d using an array of positions and a color
 	virtual void Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, const eastl::shared_ptr<Visual>& visual, 
-		const eastl::array<RectangleBase<2, int>>& pos, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
-		const RectangleBase<2, int>* clip = 0, unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false) = 0;
+		const eastl::array<RectangleShape<2, int>>& pos, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
+		const RectangleShape<2, int>* clip = 0, unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false) = 0;
 };
 
 //! Sprite bank interface.
@@ -81,7 +81,7 @@ public:
 	UISpriteBank(BaseUI* ui);
 	virtual ~UISpriteBank();
 
-	virtual eastl::vector<RectangleBase<2, int>>& GetPositions();
+	virtual eastl::vector<RectangleShape<2, int>>& GetPositions();
 	virtual eastl::vector<UISprite>& GetSprites();
 
 	virtual unsigned int GetTextureCount() const;
@@ -96,28 +96,28 @@ public:
 	virtual void Clear();
 
 	//! Draws a sprite in 2d with position and color
-	virtual void Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, const RectangleBase<2, int>& pos, 
-		const RectangleBase<2, int>* clip = 0, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
+	virtual void Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& pos, 
+		const RectangleShape<2, int>* clip = 0, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
 		unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false);
 
 	//! Draws a sprite batch in 2d using an array of positions and a color
 	virtual void Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, const eastl::shared_ptr<Visual>& visual, 
-		const eastl::array<RectangleBase<2, int>>& pos, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
-		const RectangleBase<2, int>* clip = 0, unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false);
+		const eastl::array<RectangleShape<2, int>>& pos, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
+		const RectangleShape<2, int>* clip = 0, unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false);
 
 protected:
 
 	struct DrawBatch
 	{
 		eastl::vector<Vector2<int>> mPositions;
-		eastl::vector<RectangleBase<2, int>> mSourceRects;
+		eastl::vector<RectangleShape<2, int>> mSourceRects;
 		unsigned int mTextureNumber;
 	};
 
 	BaseUI* mUI;
 
 	eastl::vector<UISprite> mSprites;
-	eastl::vector<RectangleBase<2, int>> mRectangles;
+	eastl::vector<RectangleShape<2, int>> mRectangles;
 	eastl::vector<eastl::shared_ptr<Texture2>> mTextures;
 };
 
