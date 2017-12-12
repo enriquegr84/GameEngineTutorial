@@ -30,7 +30,7 @@
 #include "Effect/SpotLightEffect.h"
 #include "Effect/Texture2Effect.h"
 #include "Effect/TextEffect.h"
-#include "Effect/BasicEffect.h"
+#include "Effect/ColorEffect.h"
 #include "Effect/VisualEffect.h"
 
 // Image

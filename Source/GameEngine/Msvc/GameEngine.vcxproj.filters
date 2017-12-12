@@ -739,9 +739,6 @@
     <ClCompile Include="..\Game\View\UI\UISkin.cpp">
       <Filter>Game\View\UI</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Effect\BasicEffect.cpp">
-      <Filter>Graphic\Effect</Filter>
-    </ClCompile>
     <ClCompile Include="..\Core\IO\Environment.cpp">
       <Filter>Core\IO</Filter>
     </ClCompile>
@@ -883,37 +880,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\VolumeLightNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorDelete.cpp">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFactory.cpp">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyCircle.cpp">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyStraight.cpp">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFollowSpline.cpp">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorRotation.cpp">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorTexture.cpp">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MD3MeshFileLoader.cpp">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Mesh\Mesh.cpp">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshCache.cpp">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshManipulator.cpp">
       <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleAttractionAffector.cpp">
@@ -949,8 +916,32 @@
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.cpp">
       <Filter>Graphic\Scene\Element\Particle</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Game Engine Tutorial\Source\GameEngine\Scenes\SceneNode\ShadowVolumeNode.cpp">
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.cpp">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\ShadowVolumeNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\ColorEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorDelete.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyCircle.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyStraight.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowSpline.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorRotation.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorTexture.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2056,9 +2047,6 @@
     <ClInclude Include="..\Game\View\UI\UIButton.h">
       <Filter>Game\View\UI</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Effect\BasicEffect.h">
-      <Filter>Graphic\Effect</Filter>
-    </ClInclude>
     <ClInclude Include="..\Core\IO\Environment.h">
       <Filter>Core\IO</Filter>
     </ClInclude>
@@ -2227,46 +2215,7 @@
     <ClInclude Include="..\Graphic\Effect\Particle.h">
       <Filter>Graphic\Effect</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorDelete.h">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFactory.h">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyCircle.h">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFlyStraight.h">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorFollowSpline.h">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorRotation.h">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Animator\SceneNodeAnimatorTexture.h">
-      <Filter>Graphic\Scene\Element\Animator</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\AnimatedMesh.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMesh.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshBuffer.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshCache.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshLoader.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\IMeshManipulator.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MD3MeshFileLoader.h">
       <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\Mesh.h">
@@ -2276,9 +2225,6 @@
       <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshCache.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshManipulator.h">
       <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleAttractionAffector.h">
@@ -2314,14 +2260,41 @@
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.h">
       <Filter>Graphic\Scene\Element\Particle</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Game Engine Tutorial\Source\GameEngine\Scenes\SceneNode\ShadowVolumeNode.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleAffector.h">
       <Filter>Graphic\Scene\Element\Particle</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleEmitter.h">
       <Filter>Graphic\Scene\Element\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshLoader.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\ShadowVolumeNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\ColorEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorDelete.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyCircle.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyStraight.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowSpline.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorRotation.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorTexture.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

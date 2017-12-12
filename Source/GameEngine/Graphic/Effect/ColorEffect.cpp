@@ -5,11 +5,11 @@
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // File Version: 3.0.0 (2016/06/19)
 
-#include "BasicEffect.h"
+#include "ColorEffect.h"
 
 #include "Mathematic/Algebra/Vector2.h"
 
-BasicEffect::BasicEffect(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path)
+ColorEffect::ColorEffect(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path)
 	:
 	mPVWMatrix(nullptr)
 {
@@ -20,11 +20,11 @@ BasicEffect::BasicEffect(eastl::shared_ptr<ProgramFactory> const& factory, eastl
 		mPVWMatrix = mPVWMatrixConstant->Get<Matrix4x4<float>>();
 		*mPVWMatrix = Matrix4x4<float>::Identity();
 
-		mProgram->GetVShader()->Set("CBufferPerObject", mPVWMatrixConstant);
+		mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);
 	}
 }
 
-void BasicEffect::SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix)
+void ColorEffect::SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix)
 {
 	mPVWMatrixConstant = pvwMatrix;
 	mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);

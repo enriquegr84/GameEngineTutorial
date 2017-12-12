@@ -3,13 +3,8 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "MeshCache.h"
-
-#include "IAnimatedMesh.h"
-#include "IMesh.h"
-
-
-static const NamedPath emptyNamedPath;
-
+#include "AnimatedMesh.h"
+#include "Mesh.h"
 
 MeshCache::~MeshCache()
 {
@@ -18,27 +13,27 @@ MeshCache::~MeshCache()
 
 
 //! adds a mesh to the list
-void MeshCache::AddMesh(const path& filename, const shared_ptr<IAnimatedMesh>& mesh)
+void MeshCache::AddMesh(const eastl::string& filename, const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 {
 	MeshEntry e ( filename );
-	e.m_Mesh = mesh;
-	m_Meshes.push_back(e);
+	e.mMesh = mesh;
+	mMeshes.push_back(e);
 }
 
 
 //! Removes a mesh from the cache.
-void MeshCache::RemoveMesh(const shared_ptr<IMesh>& mesh)
+void MeshCache::RemoveMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 {
 	if ( !mesh )
 		return;
 
-	eastl::vector<MeshEntry>::iterator itMesh = m_Meshes.begin();
-	for (; itMesh < m_Meshes.end(); itMesh++)
+	eastl::vector<MeshEntry>::iterator itMesh = mMeshes.begin();
+	for (; itMesh < mMeshes.end(); itMesh++)
 	{
-		if (((*itMesh).m_Mesh == mesh) ||  
-			((*itMesh).m_Mesh && (*itMesh).m_Mesh->GetMesh(0) == mesh))
+		if (((*itMesh).mMesh == mesh) ||  
+			((*itMesh).mMesh && (*itMesh).mMesh->GetMesh(0) == mesh))
 		{
-			m_Meshes.erase(itMesh);
+			mMeshes.erase(itMesh);
 			return;
 		}
 	}
@@ -48,20 +43,22 @@ void MeshCache::RemoveMesh(const shared_ptr<IMesh>& mesh)
 //! Returns amount of loaded meshes
 unsigned int MeshCache::GetMeshCount() const
 {
-	return m_Meshes.size();
+	return mMeshes.size();
 }
 
 
 //! Returns current number of the mesh
-int MeshCache::GetMeshIndex(const shared_ptr<IMesh>& mesh) const
+int MeshCache::GetMeshIndex(const eastl::shared_ptr<BaseMesh>& mesh) const
 {
 
-	for (unsigned int i=0; i<m_Meshes.size(); ++i)
+	for (unsigned int i=0; i<mMeshes.size(); ++i)
 	{
-		if ((m_Meshes[i].m_Mesh && 
-			m_Meshes[i].m_Mesh->GetMesh(0) == mesh || 
-			m_Meshes[i].m_Mesh == mesh))
-				return (int)i;
+		if ((mMeshes[i].mMesh &&
+			mMeshes[i].mMesh->GetMesh(0) == mesh ||
+			mMeshes[i].mMesh == mesh))
+		{
+			return (int)i;
+		}
 	}
 
 	return -1;
@@ -69,23 +66,23 @@ int MeshCache::GetMeshIndex(const shared_ptr<IMesh>& mesh) const
 
 
 //! Returns a mesh based on its index number
-shared_ptr<IAnimatedMesh> MeshCache::GetMeshByIndex(unsigned int number)
+eastl::shared_ptr<BaseAnimatedMesh> MeshCache::GetMeshByIndex(unsigned int number)
 {
-	if (number >= m_Meshes.size())
+	if (number >= mMeshes.size())
 		return 0;
 
-	return m_Meshes[number].m_Mesh;
+	return mMeshes[number].mMesh;
 }
 
 
 //! Returns a mesh based on its name.
-shared_ptr<IAnimatedMesh> MeshCache::GetMeshByName(const path& name)
+shared_ptr<BaseAnimatedMesh> MeshCache::GetMeshByName(const eastl::string& name)
 {
-	eastl::vector<MeshEntry>::iterator itMesh = m_Meshes.begin();
-	for (; itMesh < m_Meshes.end(); itMesh++)
+	eastl::vector<MeshEntry>::iterator itMesh = mMeshes.begin();
+	for (; itMesh < mMeshes.end(); itMesh++)
 	{
-		if (stringc((*itMesh).m_MeshNamedPath) == stringc(name))
-			return (*itMesh).m_Mesh;
+		if ((*itMesh).mMeshNamedPath == name)
+			return (*itMesh).mMesh;
 	}
 
 	return 0;
@@ -93,20 +90,20 @@ shared_ptr<IAnimatedMesh> MeshCache::GetMeshByName(const path& name)
 
 
 //! Get the name of a loaded mesh, based on its index.
-const NamedPath& MeshCache::GetMeshName(unsigned int index) const
+const eastl::string& MeshCache::GetMeshName(unsigned int index) const
 {
-	if (index >= m_Meshes.size())
-		return emptyNamedPath;
+	if (index >= mMeshes.size())
+		return eastl::string();
 
-	return m_Meshes[index].m_MeshNamedPath;
+	return mMeshes[index].mMeshNamedPath;
 }
 
 
 //! Get the name of a loaded mesh, if there is any.
-const NamedPath& MeshCache::GetMeshName(const shared_ptr<IMesh>& mesh) const
+const eastl::string& MeshCache::GetMeshName(const shared_ptr<IMesh>& mesh) const
 {
 	if (!mesh)
-		return emptyNamedPath;
+		return eastl::string();
 
 	eastl::vector<MeshEntry>::const_iterator itMesh = m_Meshes.begin();
 	for (; itMesh < m_Meshes.end(); itMesh++)
@@ -116,31 +113,31 @@ const NamedPath& MeshCache::GetMeshName(const shared_ptr<IMesh>& mesh) const
 			return (*itMesh).m_MeshNamedPath;
 	}
 
-	return emptyNamedPath;
+	return eastl::string();
 }
 
 //! Renames a loaded mesh.
-bool MeshCache::RenameMesh(unsigned int index, const path& name)
+bool MeshCache::RenameMesh(unsigned int index, const eastl::string& name)
 {
-	if (index >= m_Meshes.size())
+	if (index >= mMeshes.size())
 		return false;
 
-	m_Meshes[index].m_MeshNamedPath.SetPath(name);
+	mMeshes[index].mMeshNamedPath.SetPath(name);
 	return true;
 }
 
 
 //! Renames a loaded mesh.
-bool MeshCache::RenameMesh(const shared_ptr<IMesh>& mesh, const path& name)
+bool MeshCache::RenameMesh(const eastl::shared_ptr<BaseMesh>& mesh, const eastl::string& name)
 {
-	eastl::vector<MeshEntry>::iterator itMesh = m_Meshes.begin();
-	for (; itMesh < m_Meshes.end(); itMesh++)
+	eastl::vector<MeshEntry>::iterator itMesh = mMeshes.begin();
+	for (; itMesh < mMeshes.end(); itMesh++)
 	{
-		if (((*itMesh).m_Mesh == mesh) ||  
-			((*itMesh).m_Mesh && 
-			(*itMesh).m_Mesh->GetMesh(0) == mesh))
+		if (((*itMesh).mMesh == mesh) ||  
+			((*itMesh).mMesh && 
+			(*itMesh).mMesh->GetMesh(0) == mesh))
 		{
-			(*itMesh).m_MeshNamedPath.SetPath(name);
+			(*itMesh).mMeshNamedPath.SetPath(name);
 			return true;
 		}
 	}
@@ -150,7 +147,7 @@ bool MeshCache::RenameMesh(const shared_ptr<IMesh>& mesh, const path& name)
 
 
 //! returns if a mesh already was loaded
-bool MeshCache::IsMeshLoaded(const path& name)
+bool MeshCache::IsMeshLoaded(const eastl::string& name)
 {
 	return GetMeshByName(name) != 0;
 }
@@ -159,18 +156,18 @@ bool MeshCache::IsMeshLoaded(const path& name)
 //! Clears the whole mesh cache, removing all meshes.
 void MeshCache::Clear()
 {
-	m_Meshes.clear();
+	mMeshes.clear();
 }
 
 //! Clears all meshes that are held in the mesh cache but not used anywhere else.
 void MeshCache::ClearUnusedMeshes()
 {
-	eastl::vector<MeshEntry>::iterator itMesh = m_Meshes.begin();
-	for (; itMesh < m_Meshes.end(); itMesh++)
+	eastl::vector<MeshEntry>::iterator itMesh = mMeshes.begin();
+	for (; itMesh < mMeshes.end(); itMesh++)
 	{
-		if ((*itMesh).m_Mesh.use_count() == 1)
+		if ((*itMesh).mMesh.use_count() == 1)
 		{
-			m_Meshes.erase(itMesh);
+			mMeshes.erase(itMesh);
 			--itMesh;
 		}
 	}

@@ -8,7 +8,7 @@
 #include "UIElement.h"
 //#include "EMessageBoxFlags.h"
 
-#include "Graphic/Effect/BasicEffect.h"
+#include "Graphic/Effect/ColorEffect.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 class BaseUIButton;
@@ -128,7 +128,7 @@ protected:
 
 	BaseUI* mUI;
 
-	eastl::shared_ptr<BasicEffect> mEffect;
+	eastl::shared_ptr<ColorEffect> mEffect;
 	eastl::shared_ptr<Visual> mVisualTitle;
 	eastl::shared_ptr<Visual> mVisualBackground;
 	eastl::shared_ptr<BaseUIButton> mCloseButton;

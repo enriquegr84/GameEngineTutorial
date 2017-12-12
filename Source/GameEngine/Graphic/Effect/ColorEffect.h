@@ -5,18 +5,18 @@
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // File Version: 3.0.0 (2016/06/19)
 
-#ifndef BASICEFFECT_H
-#define BASICEFFECT_H
+#ifndef COLOREFFECT_H
+#define COLOREFFECT_H
 
 #include "Mathematic/Algebra/Matrix4x4.h"
 
 #include "Graphic/Effect/VisualEffect.h"
 
-class GRAPHIC_ITEM BasicEffect : public VisualEffect
+class GRAPHIC_ITEM ColorEffect : public VisualEffect
 {
 public:
     // Construction.
-	BasicEffect(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path);
+	ColorEffect(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path);
 
 	// Member access.
 	inline void SetPVWMatrix(Matrix4x4<float> const& pvwMatrix);
@@ -36,17 +36,17 @@ private:
 };
 
 
-inline void BasicEffect::SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
+inline void ColorEffect::SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
 {
 	*mPVWMatrix = pvwMatrix;
 }
 
-inline Matrix4x4<float> const& BasicEffect::GetPVWMatrix() const
+inline Matrix4x4<float> const& ColorEffect::GetPVWMatrix() const
 {
 	return *mPVWMatrix;
 }
 
-inline eastl::shared_ptr<ConstantBuffer> const& BasicEffect::GetPVWMatrixConstant() const
+inline eastl::shared_ptr<ConstantBuffer> const& ColorEffect::GetPVWMatrixConstant() const
 {
 	return mPVWMatrixConstant;
 }

@@ -7,7 +7,7 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Effect/BasicEffect.h"
+#include "Graphic/Effect/ColorEffect.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 class BaseUIButton;
@@ -129,9 +129,9 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<BasicEffect> mEffect;
+	eastl::shared_ptr<ColorEffect> mEffect;
 	eastl::shared_ptr<Visual> mVisualSliderRect;
-	eastl::shared_ptr<BasicEffect> mEffectSliderRect;
+	eastl::shared_ptr<ColorEffect> mEffectSliderRect;
 
 	bool mDragging;
 	bool mHorizontal;

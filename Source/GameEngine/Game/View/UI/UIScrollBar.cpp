@@ -39,8 +39,8 @@ UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleShape<2, int> rectangle, b
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
 	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
-	mEffect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+	eastl::string path = FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl");
+	mEffect = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
 
 	// Create the geometric object for drawing.
 	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
@@ -49,7 +49,7 @@ UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleShape<2, int> rectangle, b
 	ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
 	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
-	mEffectSliderRect = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+	mEffectSliderRect = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
 	mVisualSliderRect = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffectSliderRect);
 }
 

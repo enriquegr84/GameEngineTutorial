@@ -9,7 +9,7 @@
 #include "UIFont.h"
 
 #include "Graphic/Effect/Texture2Effect.h"
-#include "Graphic/Effect/BasicEffect.h"
+#include "Graphic/Effect/ColorEffect.h"
 
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
@@ -271,7 +271,7 @@ private:
 	eastl::shared_ptr<Texture2Effect> mEffect;
 
 	eastl::shared_ptr<Visual> mVisualHighlight;
-	eastl::shared_ptr<BasicEffect> mEffectHighlight;
+	eastl::shared_ptr<ColorEffect> mEffectHighlight;
 };
 
 #endif

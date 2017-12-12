@@ -97,12 +97,11 @@ protected:
 };
 
 // Forward declarations
-class SceneNodeAnimator;
-class SceneNode;
+class NodeAnimator;
+class Node;
 class Scene;
-class RayCast;
 class MovementController;
-class IResourceExtraData;
+class BaseResourceExtraData;
 class ActorComponent;
 class BaseRenderComponent;
 
@@ -129,7 +128,7 @@ enum AlphaType
 
 
 //////////////////////////////////////////////////////////////////////
-//  class SceneNodeProperties	- Chapter 16, page 527
+//  class NodeProperties	- Chapter 16, page 527
 //
 //   This class is contained in the SceneNode class, and gains
 //   easy access to common scene node properties such as its ActorId
@@ -137,39 +136,39 @@ enum AlphaType
 //
 //////////////////////////////////////////////////////////////////////
 
-class SceneNodeProperties
+class NodeProperties
 {
-	friend class SceneNode;
+	friend class Node;
 
 protected:
 
-	int						m_Id;
-	ActorId                 m_ActorId;
-	stringc					m_Name;
-	matrix4					m_ToWorld, m_FromWorld;
-	f32						m_Radius;
-	u32						m_RenderPass;
-	Material				m_Material;
-	//AlphaType				m_AlphaType;
-	Vector3<float>				m_Position, m_Rotation, m_Scale;
+	int						mId;
+	ActorId                 mActorId;
+	eastl::string			mName;
+	Matrix4x4				mToWorld, mFromWorld;
+	float					mRadius;
+	unsigned int			mRenderPass;
+	Material				mMaterial;
+	//AlphaType				mAlphaType;
+	Vector3<float>			mPosition, mRotation, mScale;
 
-	bool					m_IsVisible;
-	E_SCENE_NODE_TYPE		m_Type;
-	bool					m_IsDebugObject;
-	u32						m_DebugDataVisible;
-	u32						m_AutomaticCullingState;
+	bool					mIsVisible;
+	E_SCENE_NODE_TYPE		mType;
+	bool					mIsDebugObject;
+	unsigned int			mDebugDataVisible;
+	unsigned int			mAutomaticCullingState;
 
 public:
-	SceneNodeProperties(void);
-	const ActorId &ActorId() const { return m_ActorId; }
-	matrix4 const &ToWorld() const { return m_ToWorld; }
-	matrix4 const &FromWorld() const { return m_FromWorld; }
+	NodeProperties(void);
+	const ActorId &ActorId() const { return mActorId; }
+	Matrix4x4 const &ToWorld() const { return mToWorld; }
+	Matrix4x4 const &FromWorld() const { return m_FromWorld; }
 	void Transform(matrix4 *toWorld, matrix4 *fromWorld) const;
 
-	int GetId() const { return m_Id; }
-	void SetId(int id) { m_Id = id; }
-	const stringc& GetName() const { return m_Name; }
-	void SetName(const stringc& name) { m_Name = name; }
+	int GetId() const { return mId; }
+	void SetId(int id) { mId = id; }
+	const eastl::string& GetName() const { return mName; }
+	void SetName(const eastl::string& name) { mName = name; }
 
 	//bool HasAlpha() const { return m_Material.HasAlpha(); }						
 	//float Alpha() const { return m_Material.GetAlpha(); }
@@ -177,27 +176,27 @@ public:
 	//AlphaType AlphaType() const { return m_AlphaType; }
 
 	//! Returns type of the scene node
-	virtual E_SCENE_NODE_TYPE GetType() const { return m_Type; }
-	bool IsVisible() const { return m_IsVisible; }
-	void SetVisible(bool visible) { m_IsVisible = visible; }
-	void SetRadius(const float radius) { m_Radius = radius; }
-	f32 GetRadius() const { return m_Radius; }
-	u32 GetRenderPass() const { return m_RenderPass; }
+	virtual E_SCENE_NODE_TYPE GetType() const { return mType; }
+	bool IsVisible() const { return mIsVisible; }
+	void SetVisible(bool visible) { mIsVisible = visible; }
+	void SetRadius(const float radius) { mRadius = radius; }
+	float GetRadius() const { return mRadius; }
+	unsigned int GetRenderPass() const { return mRenderPass; }
 
 	//! Enables or disables automatic culling based on the bounding box.
-	void SetAutomaticCulling(u32 state) { m_AutomaticCullingState = state; }
+	void SetAutomaticCulling(unsigned int state) { mAutomaticCullingState = state; }
 	//! Gets the automatic culling state.
-	u32 GetAutomaticCulling() const { return m_AutomaticCullingState; }
+	unsigned int GetAutomaticCulling() const { return mAutomaticCullingState; }
 	//! Sets if debug data like bounding boxes should be drawn.
-	virtual void SetDebugDataVisible(u32 state) { m_DebugDataVisible = state; }
+	virtual void SetDebugDataVisible(unsigned int state) { mDebugDataVisible = state; }
 	//! Returns if debug data like bounding boxes are drawn.
-	u32 DebugDataVisible() const { return m_DebugDataVisible; }
+	unsigned int DebugDataVisible() const { return mDebugDataVisible; }
 	//! Sets if this scene node is a debug object.
-	void SetIsDebugObject(bool debugObject) { m_IsDebugObject = debugObject; }
+	void SetIsDebugObject(bool debugObject) { mIsDebugObject = debugObject; }
 	//! Returns if this scene node is a debug object.
-	bool IsDebugObject() const { return m_IsDebugObject; }
+	bool IsDebugObject() const { return mIsDebugObject; }
 
-	Material& GetMaterial() { return m_Material; }
+	Material& GetMaterial() { return mMaterial; }
 };
 
 //////////////////////////////////////////////////////////////
@@ -211,46 +210,45 @@ public:
 //
 //////////////////////////////////////////////////////////////
 
-typedef eastl::vector<shared_ptr<SceneNode> > SceneNodeList;
-typedef eastl::vector<shared_ptr<SceneNodeAnimator> > SceneNodeAnimatorList;
+typedef eastl::vector<eastl::shared_ptr<Node>> SceneNodeList;
+typedef eastl::vector<eastl::shared_ptr<NodeAnimator>> SceneNodeAnimatorList;
 
-typedef eastl::vector<SceneNode*> SceneNodeRenderList;
-typedef eastl::vector<SceneNodeAnimator*> SceneNodeAnimateList;
+typedef eastl::vector<Node*> SceneNodeRenderList;
+typedef eastl::vector<NodeAnimator*> SceneNodeAnimateList;
 
 
 //////////////////////////////////////////////////////////////
 //
-// SceneNode							- Chapter 16, page 529
+// Node							- Chapter 16, page 529
 //
 //   Implements SceneNode. Forms the base class for any node
 //   that can exist in the 3D scene graph managed by class Scene.
 //
 //////////////////////////////////////////////////////////////
 
-class SceneNode : public std::enable_shared_from_this<SceneNode>
+class Node : public eastl::enable_shared_from_this<Node>
 {
 	friend class Scene;
 
 protected:
 
-	shared_ptr<SceneNode>			m_pParent;
-	shared_ptr<ITriangleSelector>	m_TriangleSelector;
-	SceneNodeAnimatorList			m_Animators;
-	SceneNodeList					m_Children;
-	SceneNodeProperties				m_Props;
-	WeakBaseRenderComponentPtr		m_RenderComponent;
+	eastl::shared_ptr<Node>			mParent;
+	SceneNodeAnimatorList			mAnimators;
+	SceneNodeList					mChildren;
+	NodeProperties					mProps;
+	WeakBaseRenderComponentPtr		mRenderComponent;
 
 
 public:
-	SceneNode(ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
+	Node(ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
 		E_RENDER_PASS renderPass, E_SCENE_NODE_TYPE nodeType,
-		const matrix4 *to, const matrix4 *from = NULL);
+		const Matrix4x4 *to, const Matrix4x4 *from = NULL);
 
-	virtual ~SceneNode();
+	~Node();
 
-	virtual SceneNodeProperties* Get() { return &m_Props; }
+	virtual NodeProperties* Get() { return &m_Props; }
 
-	virtual void SetTransform(const matrix4 *toWorld, const matrix4 *fromWorld = NULL);
+	virtual void SetTransform(const Matrix4x4 *toWorld, const Matrix4x4 *fromWorld = NULL);
 
 	virtual bool OnRestore(Scene *pScene);
 	virtual bool OnLostDevice(Scene *pScene);
@@ -265,19 +263,17 @@ public:
 
 	virtual bool AddChild(const shared_ptr<SceneNode>& kid);
 	virtual bool RemoveChild(ActorId id);
-	virtual shared_ptr<SceneNode> GetChild(ActorId id);
-	virtual const SceneNodeList& GetChildren() const { return m_Children; }
+	virtual eastl::shared_ptr<Node> GetChild(ActorId id);
+	virtual const SceneNodeList& GetChildren() const { return mChildren; }
 
-	virtual bool AddAnimator(const shared_ptr<SceneNodeAnimator>& animator);
-	virtual bool RemoveAnimator(const shared_ptr<SceneNodeAnimator>& animator);
+	virtual bool AddAnimator(const eastl::shared_ptr<NodeAnimator>& animator);
+	virtual bool RemoveAnimator(const eastl::shared_ptr<NodeAnimator>& animator);
 	//! Get a list of all scene node animators.
-	virtual const SceneNodeAnimatorList& GetAnimators() const { return m_Animators; }
+	virtual const SceneNodeAnimatorList& GetAnimators() const { return mAnimators; }
 
-	virtual void SetParent(const shared_ptr<SceneNode>& newParent);
-	virtual const shared_ptr<SceneNode>& GetParent() { return m_pParent; }
+	virtual void SetParent(const eastl::shared_ptr<Node>& newParent);
+	virtual const eastl::shared_ptr<Node>& GetParent() { return mParent; }
 	virtual void Remove();
-
-	virtual bool Pick(Scene *pScene, RayCast *pRayCast);
 
 	virtual const AABBox3<float>& GetBoundingBox() const { return *((AABBox3<float>*)0); }
 
@@ -289,15 +285,15 @@ public:
 	directly modify the material of a scene node.
 	\param num Zero based index. The maximal value is getMaterialCount() - 1.
 	\return The material at that index. */
-	virtual Material& GetMaterial(u32 num)
+	virtual Material& GetMaterial(unsigned int num)
 	{
-		return m_Props.GetMaterial();
+		return mProps.GetMaterial();
 	}
 
 
 	//! Get amount of materials used by this scene node.
 	/** \return Current amount of materials of this scene node. */
-	virtual u32 GetMaterialCount() const
+	virtual unsigned int GetMaterialCount() const
 	{
 		return 1;
 	}
@@ -311,7 +307,7 @@ public:
 	\param newvalue New value of that flag. */
 	void SetMaterialFlag(E_MATERIAL_FLAG flag, bool newvalue)
 	{
-		for (u32 i = 0; i<GetMaterialCount(); ++i)
+		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 			GetMaterial(i).SetFlag(flag, newvalue);
 	}
 
@@ -320,12 +316,12 @@ public:
 	/** \param textureLayer Layer of texture to be set. Must be a
 	value smaller than MATERIAL_MAX_TEXTURES.
 	\param texture New texture to be used. */
-	void SetMaterialTexture(u32 textureLayer, ITexture* texture)
+	void SetMaterialTexture(unsigned int textureLayer, ITexture* texture)
 	{
 		if (textureLayer >= MATERIAL_MAX_TEXTURES)
 			return;
 
-		for (u32 i = 0; i<GetMaterialCount(); ++i)
+		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 			GetMaterial(i).SetTexture(textureLayer, texture);
 	}
 
@@ -334,38 +330,8 @@ public:
 	/** \param newType New type of material to be set. */
 	void SetMaterialType(E_MATERIAL_TYPE newType)
 	{
-		for (u32 i = 0; i<GetMaterialCount(); ++i)
+		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 			GetMaterial(i).MaterialType = newType;
-	}
-
-	//! Returns the triangle selector attached to this scene node.
-	/** The Selector can be used by the engine for doing collision
-	detection. You can create a TriangleSelector with
-	ISceneManager::createTriangleSelector() or
-	ISceneManager::createOctreeTriangleSelector and set it with
-	ISceneNode::setTriangleSelector(). If a scene node got no triangle
-	selector, but collision tests should be done with it, a triangle
-	selector is created using the bounding box of the scene node.
-	\return A pointer to the TriangleSelector or 0, if there
-	is none. */
-	virtual const shared_ptr<ITriangleSelector>& GetTriangleSelector() const
-	{
-		return m_TriangleSelector;
-	}
-
-
-	//! Sets the triangle selector of the scene node.
-	/** The Selector can be used by the engine for doing collision
-	detection. You can create a TriangleSelector with
-	ISceneManager::createTriangleSelector() or
-	ISceneManager::createOctreeTriangleSelector(). Some nodes may
-	create their own selector by default, so it would be good to
-	check if there is already a selector in this node by calling
-	ISceneNode::getTriangleSelector().
-	\param selector New triangle selector for this scene node. */
-	virtual void SetTriangleSelector(const shared_ptr<ITriangleSelector>& selector)
-	{
-		m_TriangleSelector = selector;
 	}
 
 
@@ -373,33 +339,33 @@ public:
 	//float GetAlpha() const { return m_Props.Alpha(); }
 
 	//! Gets the scale of the scene node relative to its parent.
-	virtual const Vector3<float>& GetScale() const { return m_Props.m_Scale; }
+	virtual const Vector3<float>& GetScale() const { return mProps.mScale; }
 	//! Sets the relative scale of the scene node.
-	virtual void SetScale(const Vector3<float>& scale) { m_Props.m_Scale = scale; }
+	virtual void SetScale(const Vector3<float>& scale) { mProps.mScale = scale; }
 	//! Gets the rotation of the node relative to its parent.
-	virtual const Vector3<float>& GetRotation() const { return m_Props.m_Rotation; }
+	virtual const Vector3<float>& GetRotation() const { return mProps.mRotation; }
 	//! Sets the rotation of the node relative to its parent.
-	virtual void SetRotation(const Vector3<float>& rotation) { m_Props.m_Rotation = rotation; }
+	virtual void SetRotation(const Vector3<float>& rotation) { mProps.mRotation = rotation; }
 	//! Gets the position of the node relative to its parent.
-	virtual const Vector3<float>& GetPosition() const { return m_Props.m_Position; }
+	virtual const Vector3<float>& GetPosition() const { return mProps.mPosition; }
 	//! Sets the position of the node relative to its parent.
-	virtual void SetPosition(const Vector3<float>& position) { m_Props.m_Position = position; }
+	virtual void SetPosition(const Vector3<float>& position) { mProps.mPosition = position; }
 
 	//! Returns the relative transformation of the scene node.
 	/** The relative transformation is stored internally as 3
 	vectors: translation, rotation and scale. To get the relative
 	transformation matrix, it is calculated from these values.
 	\return The relative transformation matrix. */
-	virtual matrix4 GetRelativeTransformation() const
+	virtual Matrix4x4 GetRelativeTransformation() const
 	{
-		matrix4 mat;
-		mat.SetRotationDegrees(m_Props.m_Rotation);
-		mat.SetTranslation(m_Props.m_Position);
+		Matrix4x4 mat;
+		mat.SetRotationDegrees(mProps.mRotation);
+		mat.SetTranslation(mProps.mPosition);
 
-		if (m_Props.m_Scale != Vector3<float>(1.f, 1.f, 1.f))
+		if (mProps.m_Scale != Vector3<float>(1.f, 1.f, 1.f))
 		{
-			matrix4 smat;
-			smat.SetScale(m_Props.m_Scale);
+			Matrix4x4 smat;
+			smat.SetScale(mProps.mScale);
 			mat *= smat;
 		}
 
@@ -417,71 +383,71 @@ protected:
 
 	struct DefaultNodeEntry
 	{
-		DefaultNodeEntry(SceneNode* n) :
-			Node(n), TextureValue(0)
+		DefaultNodeEntry(Node* n) :
+			mNode(n), mTextureValue(0)
 		{
 			if (n->GetMaterialCount())
-				TextureValue = (n->GetMaterial(0).GetTexture(0));
+				mTextureValue = (n->GetMaterial(0).GetTexture(0));
 		}
 
 		bool operator < (const DefaultNodeEntry& other) const
 		{
-			return (TextureValue < other.TextureValue);
+			return (mTextureValue < other.mTextureValue);
 		}
 
-		SceneNode* Node;
+		Node* mNode;
 
 	private:
-		void* TextureValue;
+		void* mTextureValue;
 	};
 
 	//! sort on distance (center) to camera
 	struct TransparentNodeEntry
 	{
-		TransparentNodeEntry(SceneNode* n, const Vector3<float>& cameraPos)
+		TransparentNodeEntry(Node* n, const Vector3<float>& cameraPos)
 			: Node(n)
 		{
-			Distance = Node->Get()->ToWorld().GetTranslation().GetDistanceFromSQ(cameraPos);
+			mDistance = Node->Get()->ToWorld().GetTranslation().GetDistanceFromSQ(cameraPos);
 		}
 
 		bool operator < (const TransparentNodeEntry& other) const
 		{
-			return Distance > other.Distance;
+			return mDistance > other.mDistance;
 		}
 
-		SceneNode* Node;
+		Node* mNode;
 
 	private:
 
-		f64 Distance;
+		float mDistance;
 	};
 
 	//! sort on distance (sphere) to camera
 	struct DistanceNodeEntry
 	{
-		DistanceNodeEntry(SceneNode* n, const Vector3<float>& cameraPos)
-			: Node(n)
+		DistanceNodeEntry(Node* n, const Vector3<float>& cameraPos)
+			: mNode(n)
 		{
 			SetNodeAndDistanceFromPosition(n, cameraPos);
 		}
 
 		bool operator < (const DistanceNodeEntry& other) const
 		{
-			return Distance < other.Distance;
+			return mDistance < other.mDistance;
 		}
 
-		void SetNodeAndDistanceFromPosition(SceneNode* n, const Vector3<float>& fromPosition)
+		void SetNodeAndDistanceFromPosition(Node* n, const Vector3<float>& fromPosition)
 		{
-			Node = n;
-			Distance = Node->Get()->ToWorld().GetTranslation().GetDistanceFromSQ(fromPosition);
-			Distance -= Node->GetBoundingBox().GetExtent().GetLengthSQ() * 0.5;
+			mNode = n;
+			mDistance = mNode->Get()->ToWorld().GetTranslation().GetDistanceFromSQ(fromPosition);
+			mDistance -= mNode->GetBoundingBox().GetExtent().GetLengthSQ() * 0.5;
 		}
 
-		SceneNode* Node;
+		Node* mNode;
 
 	private:
 
-		f64 Distance;
+		float mDistance;
 	};
 
 
@@ -491,13 +457,13 @@ protected:
 /** A scene node animator is able to animate a scene node in a very simple way. It may
 change its position, rotation, scale and/or material. There are lots of animators
 to choose from. You can create scene node animators with the ISceneManager interface. */
-class SceneNodeAnimator
+class NodeAnimator
 {
 public:
 	//! Animates a scene node.
 	/** \param node Node to animate.
 	\param timeMs Current time in milli seconds. */
-	virtual void AnimateNode(SceneNode* node, u32 timeMs) = 0;
+	virtual void AnimateNode(Node* node, unsigned int timeMs) = 0;
 
 	//! Returns true if this animator receives events.
 	/** When attached to an active camera, this animator will be
@@ -540,12 +506,12 @@ public:
 
 struct AlphaSceneNode
 {
-	shared_ptr<SceneNode> m_pNode;
-	matrix4 m_Concat;
-	float m_ScreenZ;
+	eastl::shared_ptr<Node> mNode;
+	Matrix4x3 mConcat;
+	float mScreenZ;
 
 	// For the STL sort...
-	bool const operator <(AlphaSceneNode const &other) { return m_ScreenZ < other.m_ScreenZ; }
+	bool const operator <(AlphaSceneNode const &other) { return mScreenZ < other.mScreenZ; }
 };
 
 typedef eastl::list<AlphaSceneNode *> AlphaSceneNodes;
@@ -563,26 +529,5 @@ typedef eastl::list<AlphaSceneNode *> AlphaSceneNodes;
 //class CameraSceneNode;
 //class SkyNode;
 
-
-////////////////////////////////////////////////////
-//
-// class RootNode					- Chapter 16, page 545
-//
-//    This is the root node of the scene graph.
-//
-////////////////////////////////////////////////////
-
-class RootNode : public SceneNode
-{
-public:
-	RootNode();
-	virtual const AABBox3<float>& GetBoundingBox() const;
-
-	virtual bool PreRender(Scene *pScene);
-	virtual bool Render(Scene *pScene);
-	virtual bool RenderChildren(Scene *pScene);
-	virtual bool PostRender(Scene *pScene);
-
-};
 
 #endif

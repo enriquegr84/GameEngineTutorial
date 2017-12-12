@@ -68,8 +68,8 @@ UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, Recta
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
 	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
-	mEffectHighlight = eastl::make_shared<BasicEffect>(ProgramFactory::Get(), path);
+	eastl::string path = FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl");
+	mEffectHighlight = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
 	mVisualHighlight = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffectHighlight);
 }
 

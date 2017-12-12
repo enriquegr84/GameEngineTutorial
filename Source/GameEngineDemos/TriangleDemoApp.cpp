@@ -124,9 +124,9 @@ bool TriangleDemoApplication::CreateScene()
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/BasicEffect.fx");
-	eastl::shared_ptr<BasicEffect> effect =
-		eastl::make_shared<BasicEffect>(mProgramFactory, path);
+	eastl::string path = FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl");
+	eastl::shared_ptr<ColorEffect> effect =
+		eastl::make_shared<ColorEffect>(mProgramFactory, path);
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);

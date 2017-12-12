@@ -1,65 +1,81 @@
-//========================================================================
-// File: Mesh.h - classes to render meshes in D3D9 and D3D11
-//
-// Part of the GameEngine Application
-//
-// GameEngine is the sample application that encapsulates much of the source code
-// discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
-// "Rez" Graham, published by Charles River Media. 
-// ISBN-10: 1133776574 | ISBN-13: 978-1133776574
-//
-// If this source code has found it's way to you, and you think it has helped you
-// in any way, do the authors a favor and buy a new copy of the book - there are 
-// detailed explanations in it that compliment this code well. Buy a copy at Amazon.com
-// by clicking here: 
-//    http://www.amazon.com/gp/product/1133776574/ref=olp_product_details?ie=UTF8&me=&seller=
-//
-// There's a companion web site at http://www.mcshaffry.com/GameCode/
-// 
-// The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/GameEngine/
-//
-// (c) Copyright 2012 Michael L. McShaffry and David Graham
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser GPL v3
-// as published by the Free Software Foundation.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See 
-// http://www.gnu.org/licenses/lgpl-3.0.txt for more details.
-//
-// You should have received a copy of the GNU Lesser GPL v3
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-//
-//========================================================================
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
+// This file is part of the "Irrlicht Engine".
+// For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#ifndef _MESH_H_INCLUDED_
-#define _MESH_H_INCLUDED_
+#ifndef MESH_H
+#define MESH_H
 
 #include "GameEngineStd.h"
 
-//#include <SDKMesh.h>
+#include "MeshBuffer.h"
 
-#include "IMesh.h"
-#include "IMeshBuffer.h"
+//#include "Graphics/EHardwareBufferFlags.h"
+#include "Graphic/Effect/Material.h"
 
-#include "Utilities/Geometry.h"
-#include "ResourceCache/ResCache.h"
+class BaseMeshBuffer;
 
+//! Class which holds the geometry of an object.
+/** An IMesh is nothing more than a collection of some mesh buffers
+(IMeshBuffer). SMesh is a simple implementation of an IMesh.
+A mesh is usually added to an IMeshSceneNode in order to be rendered. */
+class BaseMesh : public std::enable_shared_from_this<BaseMesh>
+{
+public:
 
-//! Simple implementation of the IMesh interface.
-class Mesh : public IMesh
+	//! Get the amount of mesh buffers.
+	/** \return Amount of mesh buffers (IMeshBuffer) in this mesh. */
+	virtual unsigned int GetMeshBufferCount() const = 0;
+
+	//! Get pointer to a mesh buffer.
+	/** \param nr: Zero based index of the mesh buffer. The maximum value is
+	getMeshBufferCount() - 1;
+	\return Pointer to the mesh buffer or 0 if there is no such
+	mesh buffer. */
+	virtual eastl::shared_ptr<BaseMeshBuffer> GetMeshBuffer(u32 nr) const = 0;
+
+	//! Get pointer to a mesh buffer which fits a material
+	/** \param material: material to search for
+	\return Pointer to the mesh buffer or 0 if there is no such
+	mesh buffer. */
+	virtual eastl::shared_ptr<BaseMeshBuffer> GetMeshBuffer(const Material &material) const = 0;
+
+	//! Get an axis aligned bounding box of the mesh.
+	/** \return Bounding box of this mesh. */
+	virtual const AABBox3<float>& GetBoundingBox() const = 0;
+
+	//! Set user-defined axis aligned bounding box
+	/** \param box New bounding box to use for the mesh. */
+	virtual void SetBoundingBox(const AABBox3f& box) = 0;
+
+	//! Sets a flag of all contained materials to a new value.
+	/** \param flag: Flag to set in all materials.
+	\param newvalue: New value to set in all materials. */
+	virtual void SetMaterialFlag(E_MATERIAL_FLAG flag, bool newvalue) = 0;
+
+	//! Set the hardware mapping hint
+	/** This methods allows to define optimization hints for the
+	hardware. This enables, e.g., the use of hardware buffers on
+	pltforms that support this feature. This can lead to noticeable
+	performance gains. */
+	virtual void SetHardwareMappingHint(E_HARDWARE_MAPPING newMappingHint, E_BUFFER_TYPE buffer = EBT_VERTEX_AND_INDEX) = 0;
+
+	//! Flag the meshbuffer as changed, reloads hardware buffers
+	/** This method has to be called every time the vertices or
+	indices have changed. Otherwise, changes won't be updated
+	on the GPU in the next render cycle. */
+	virtual void SetDirty(E_BUFFER_TYPE buffer = EBT_VERTEX_AND_INDEX) = 0;
+};
+
+//! Simple implementation of the BaseMesh interface.
+class Mesh : public BaseMesh
 {
 public:
 	//! constructor
 	Mesh()
 	{
-		#ifdef _DEBUG
+#ifdef _DEBUG
 		//setDebugName("SMesh");
-		#endif
+#endif
 	}
 
 	//! destructor
@@ -70,30 +86,30 @@ public:
 	//! clean mesh
 	virtual void Clear()
 	{
-		m_MeshBuffers.clear();
-		m_BoundingBox.Reset ( 0.f, 0.f, 0.f );
+		mMeshBuffers.clear();
+		mBoundingBox.Reset(0.f, 0.f, 0.f);
 	}
 
 
 	//! returns amount of mesh buffers.
-	virtual u32 GetMeshBufferCount() const
+	virtual unsigned int GetMeshBufferCount() const
 	{
-		return m_MeshBuffers.size();
+		return mMeshBuffers.size();
 	}
 
 	//! Get pointer to a mesh buffer.
-	virtual shared_ptr<IMeshBuffer> GetMeshBuffer(u32 nr) const
+	virtual eastl::shared_ptr<BaseMeshBuffer> GetMeshBuffer(unsigned int nr) const
 	{
 		return m_MeshBuffers[nr];
 	}
 
 	//! Get pointer to a mesh buffer which fits a material
-	virtual shared_ptr<IMeshBuffer> GetMeshBuffer( const Material &material) const
+	virtual eastl::shared_ptr<BaseMeshBuffer> GetMeshBuffer(const Material &material) const
 	{
-		for (int i = (int)m_MeshBuffers.size()-1; i >= 0; --i)
+		for (int i = (int)mMeshBuffers.size() - 1; i >= 0; --i)
 		{
-			if ( material == m_MeshBuffers[i]->GetMaterial())
-				return m_MeshBuffers[i];
+			if (material == mMeshBuffers[i]->GetMaterial())
+				return mMeshBuffers[i];
 		}
 
 		return NULL;
@@ -102,62 +118,62 @@ public:
 	//! returns an axis aligned bounding box
 	virtual const AABBox3<float>& GetBoundingBox() const
 	{
-		return m_BoundingBox;
+		return mBoundingBox;
 	}
 
 	//! set user axis aligned bounding box
-	virtual void SetBoundingBox( const AABBox3f& box)
+	virtual void SetBoundingBox(const AABBox3f& box)
 	{
-		m_BoundingBox = box;
+		mBoundingBox = box;
 	}
 
 	//! recalculates the bounding box
 	void RecalculateBoundingBox()
 	{
-		if (m_MeshBuffers.size())
+		if (mMeshBuffers.size())
 		{
-			m_BoundingBox = m_MeshBuffers[0]->GetBoundingBox();
-			for (u32 i=1; i< m_MeshBuffers.size(); ++i)
-				m_BoundingBox.AddInternalBox(m_MeshBuffers[i]->GetBoundingBox());
+			mBoundingBox = mMeshBuffers[0]->GetBoundingBox();
+			for (unsigned int i = 1; i< mMeshBuffers.size(); ++i)
+				mBoundingBox.AddInternalBox(mMeshBuffers[i]->GetBoundingBox());
 		}
-		else
-			m_BoundingBox.Reset(0.0f, 0.0f, 0.0f);
+		else mBoundingBox.Reset(0.0f, 0.0f, 0.0f);
 	}
 
 	//! adds a MeshBuffer
 	/** The bounding box is not updated automatically. */
-	void AddMeshBuffer(const shared_ptr<IMeshBuffer>& buf)
+	void AddMeshBuffer(const eastl::shared_ptr<BaseMeshBuffer>& buf)
 	{
 		if (buf)
-			m_MeshBuffers.push_back(buf);
+			mMeshBuffers.push_back(buf);
 	}
 
 	//! sets a flag of all contained materials to a new value
 	virtual void SetMaterialFlag(E_MATERIAL_FLAG flag, bool newvalue)
 	{
-		for (u32 i=0; i< m_MeshBuffers.size(); ++i)
-			m_MeshBuffers[i]->GetMaterial().SetFlag(flag, newvalue);
+		for (u32 i = 0; i< mMeshBuffers.size(); ++i)
+			mMeshBuffers[i]->GetMaterial().SetFlag(flag, newvalue);
 	}
 
 	//! set the hardware mapping hint, for driver
-	virtual void SetHardwareMappingHint( E_HARDWARE_MAPPING newMappingHint, E_BUFFER_TYPE buffer=EBT_VERTEX_AND_INDEX )
+	virtual void SetHardwareMappingHint(E_HARDWARE_MAPPING newMappingHint, E_BUFFER_TYPE buffer = EBT_VERTEX_AND_INDEX)
 	{
-		for (u32 i=0; i< m_MeshBuffers.size(); ++i)
-			m_MeshBuffers[i]->SetHardwareMappingHint(newMappingHint, buffer);
+		for (u32 i = 0; i< mMeshBuffers.size(); ++i)
+			mMeshBuffers[i]->SetHardwareMappingHint(newMappingHint, buffer);
 	}
 
 	//! flags the meshbuffer as changed, reloads hardware buffers
-	virtual void SetDirty(E_BUFFER_TYPE buffer=EBT_VERTEX_AND_INDEX)
+	virtual void SetDirty(E_BUFFER_TYPE buffer = EBT_VERTEX_AND_INDEX)
 	{
-		for (u32 i=0; i< m_MeshBuffers.size(); ++i)
-			m_MeshBuffers[i]->SetDirty(buffer);
+		for (u32 i = 0; i< mMeshBuffers.size(); ++i)
+			mMeshBuffers[i]->SetDirty(buffer);
 	}
 
 	//! The meshbuffers of this mesh
-	eastl::vector<shared_ptr<IMeshBuffer>> m_MeshBuffers;
+	eastl::vector<shared_ptr<BaseMeshBuffer>> mMeshBuffers;
 
 	//! The bounding box of this mesh
-	AABBox3<float> m_BoundingBox;
+	AABBox3<float> mBoundingBox;
 };
 
 #endif
+
