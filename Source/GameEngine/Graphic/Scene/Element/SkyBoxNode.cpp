@@ -126,7 +126,7 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, WeakBaseRenderComponentPtr renderC
 bool SkyBoxNode::PreRender(Scene* pScene)
 {
 	if (Get()->IsVisible())
-		pScene->AddToRenderQueue(ERP_SKY_BOX, eastl::shared_from_this());
+		pScene->AddToRenderQueue(ERP_SKY_BOX, shared_from_this());
 
 	return Node::PreRender(pScene);
 }
@@ -140,19 +140,19 @@ bool SkyBoxNode::Render(Scene* pScene)
 	if (!camera || !renderer)
 		return false;
 
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	mParent->Get()->Transform(&toWorld, &fromWorld);
 
 	if ( !camera->IsOrthogonal() )
 	{
 		// draw perspective skybox
 
-		Matrix4x4 translate(toWorld);
+		Matrix4x4<float> translate(toWorld);
 		translate.SetTranslation(camera->Get()->ToWorld().GetTranslation());
 
 		// Draw the sky box between the near and far clip plane
 		const float viewDistance = (camera->GetNearValue() + camera->GetFarValue()) * 0.5f;
-		Matrix4x4 scale;
+		Matrix4x4<float> scale;
 		scale.SetScale(Vector3<float>(viewDistance, viewDistance, viewDistance));
 
 		renderer->SetTransform(ETS_WORLD, translate * scale);
@@ -215,7 +215,7 @@ bool SkyBoxNode::Render(Scene* pScene)
 }
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& SkyBoxNode::GetBoundingBox() const
+const AlignedBox3<float>& SkyBoxNode::GetBoundingBox() const
 {
 	return mBBox;
 }

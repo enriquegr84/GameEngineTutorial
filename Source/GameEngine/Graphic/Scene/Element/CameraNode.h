@@ -39,22 +39,22 @@ public:
 	\param projection The new projection matrix of the camera.
 	\param isOrthogonal Set this to true if the matrix is an orthogonal one (e.g.
 	from matrix4::buildProjectionMatrixOrthoLH(). */
-	void SetProjectionMatrix(const Matrix4x4& projection, bool isOrthogonal = false);
+	void SetProjectionMatrix(const Matrix4x4<float>& projection, bool isOrthogonal = false);
 
 	//! Gets the current projection matrix of the camera
 	//! \return Returns the current projection matrix of the camera.
-	const Matrix4x4& GetProjectionMatrix() const;
+	const Matrix4x4<float>& GetProjectionMatrix() const;
 
 	//! Gets the current view matrix of the camera
 	//! \return Returns the current view matrix of the camera.
-	const Matrix4x4& GetViewMatrix() const;
+	const Matrix4x4<float>& GetViewMatrix() const;
 
 	//! Sets a custom view matrix affector.
 	/** \param affector: The affector matrix. */
-	void SetViewMatrixAffector(const Matrix4x4& affector);
+	void SetViewMatrixAffector(const Matrix4x4<float>& affector);
 
 	//! Gets the custom view matrix affector.
-	const Matrix4x4& GetViewMatrixAffector() const;
+	const Matrix4x4<float>& GetViewMatrixAffector() const;
 
 	//! It is possible to send mouse and key events to the camera. Most cameras
 	//! may ignore this input, but camera scene nodes which are created for
@@ -118,7 +118,7 @@ public:
 	bool PreRender(Scene *pScene);
 	bool Render(Scene *pScene);
 
-	Matrix4x4 GetWorldViewProjection(Scene *pScene);
+	Matrix4x4<float> GetWorldViewProjection(Scene *pScene);
 	bool SetViewTransform(Scene *pScene);
 
 	//! Update
@@ -127,7 +127,7 @@ public:
 	//! Returns the view area. Sometimes needed by bsp or lod render nodes.
 	const ViewFrustum& GetViewFrustum() const;
 
-	const AABBox3<float>& GetBoundingBox() const;
+	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! Returns if the input receiver of the camera is currently enabled.
 	//bool IsInputReceiverEnabled() const;
@@ -146,14 +146,14 @@ protected:
 	float ZFar;	// Z-value of the far view-plane.
 
 	ViewFrustum ViewArea;
-	Matrix4x4 Affector;
+	Matrix4x4<float> Affector;
 
 	//bool InputReceiverEnabled;
 	//bool TargetAndRotationAreBound;
 
 	ViewFrustum		mFrustum;
-	Matrix4x4		mProjection;
-	Matrix4x4		mView;
+	Matrix4x4<float>		mProjection;
+	Matrix4x4<float>		mView;
 	bool			mbActive;
 	bool			mDebugCamera;
 	//Vector4<float>mCamOffsetVector;	//Direction of camera relative to target.

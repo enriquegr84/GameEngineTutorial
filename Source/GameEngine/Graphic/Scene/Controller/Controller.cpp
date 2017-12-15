@@ -7,20 +7,9 @@
 
 #include "Controller.h"
 
-#include <cmath>
-#include <limits>
-
-Controller::Controller()
-    :
-    repeat(RT_CLAMP),
-    minTime(0.0),
-    maxTime(0.0),
-    phase(0.0),
-    frequency(1.0),
-    active(true),
-    name(""),
-    mObject(nullptr),
-    mApplicationTime(-std::numeric_limits<double>::max())
+Controller::Controller() : 
+	mRepeat(RT_CLAMP), mMinTime(0.0), mMaxTime(0.0), mPhase(0.0), mFrequency(1.0), 
+	mActive(true), mObject(nullptr), mApplicationTime(-eastl::numeric_limits<double>::max())
 {
 }
 
@@ -30,7 +19,7 @@ Controller::~Controller()
 
 bool Controller::Update(double applicationTime)
 {
-    if (active)
+    if (mActive)
     {
         mApplicationTime = applicationTime;
         return true;
@@ -45,46 +34,46 @@ void Controller::SetObject(ControlledObject* object)
 
 double Controller::GetControlTime(double applicationTime)
 {
-    double controlTime = frequency * applicationTime + phase;
+    double controlTime = mFrequency * applicationTime + mPhase;
 
-    if (repeat == RT_CLAMP)
+    if (mRepeat == RT_CLAMP)
     {
         // Clamp the time to the [min,max] interval.
-        if (controlTime < minTime)
+        if (controlTime < mMinTime)
         {
-            return minTime;
+            return mMinTime;
         }
-        if (controlTime > maxTime)
+        if (controlTime > mMaxTime)
         {
-            return maxTime;
+            return mMaxTime;
         }
         return controlTime;
     }
 
-    double timeRange = maxTime - minTime;
+    double timeRange = mMaxTime - mMinTime;
     if (timeRange > 0.0)
     {
-        double multiples = (controlTime - minTime) / timeRange;
+        double multiples = (controlTime - mMinTime) / timeRange;
         double integerTime = floor(multiples);
         double fractionTime = multiples - integerTime;
-        if (repeat == RT_WRAP)
+        if (mRepeat == RT_WRAP)
         {
-            return minTime + fractionTime*timeRange;
+            return mMinTime + fractionTime*timeRange;
         }
 
         // repeat == RT_CYCLE
         if (static_cast<int>(integerTime) & 1)
         {
             // Go backward in time.
-            return maxTime - fractionTime * timeRange;
+            return mMaxTime - fractionTime * timeRange;
         }
         else
         {
             // Go forward in time.
-            return minTime + fractionTime * timeRange;
+            return mMinTime + fractionTime * timeRange;
         }
     }
 
     // The minimum and maximum times are the same, so return the minimum.
-    return minTime;
+    return mMinTime;
 }

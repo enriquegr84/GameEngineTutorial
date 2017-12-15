@@ -15,18 +15,18 @@ public:
 	EmptyNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent);
 
 	//! returns the axis aligned bounding box of this node
-	const AABBox3<float>& GetBoundingBox() const;
+	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! Renders event
 	bool PreRender(Scene *pScene);
 	bool Render(Scene *pScene);
 
 	//! Returns type of the scene node
-	E_SCENE_NODE_TYPE GetType() const { return ESNT_EMPTY; }
+	NodeType GetType() const { return NT_EMPTY; }
 
 private:
 
-	AABBox3<float> mBBox;
+	AlignedBox3<float> mBBox;
 };
 
 

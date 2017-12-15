@@ -94,38 +94,36 @@ BillboardNode::BillboardNode(const ActorId actorId, WeakBaseRenderComponentPtr r
 //! prerender
 bool BillboardNode::PreRender(Scene *pScene)
 {
-	if (mProps.IsVisible())
+	if (IsVisible())
 	{
 		// because this node supports rendering of mixed mode meshes consisting of
 		// transparent and solid material at the same time, we need to go through all
 		// materials, check of what type they are and register this node for the right
 		// render pass according to that.
 
-		const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-
 		int transparentCount = 0;
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		for (unsigned int i = 0; i< GetMaterialCount(); ++i)
+		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 		{
-			const eastl::shared_ptr<MaterialRenderer>& rnd =
-				renderer->GetMaterialRenderer(GetMaterial(i).MaterialType);
-
-			if (rnd && rnd->IsTransparent())
+			if (GetMaterial(i).IsTransparent())
 				++transparentCount;
 			else
 				++solidCount;
+
+			if (solidCount && transparentCount)
+				break;
 		}
 
 		// register according to material types counted
 		if (!pScene->IsCulled(this))
 		{
 			if (solidCount)
-				pScene->AddToRenderQueue(ERP_SOLID, eastl::shared_from_this());
+				pScene->AddToRenderQueue(RP_SOLID, shared_from_this());
 
 			if (transparentCount)
-				pScene->AddToRenderQueue(ERP_TRANSPARENT, eastl::shared_from_this());
+				pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
 		}
 	}
 
@@ -137,7 +135,7 @@ bool BillboardNode::PreRender(Scene *pScene)
 //
 bool BillboardNode::Render(Scene *pScene)
 {
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
@@ -199,7 +197,7 @@ bool BillboardNode::Render(Scene *pScene)
 		renderer->Draw3DBox(mBBox, eastl::array<float, 4>{0.f, 208.f, 195.f, 152.f});
 	}
 
-	renderer->SetTransform(ETS_WORLD, Matrix4x4::Identity);
+	renderer->SetTransform(ETS_WORLD, Matrix4x4<float>::Identity);
 	renderer->SetMaterial(mMaterial);
 	renderer->DrawIndexedTriangleList(mVertices, 4, mIndices, 2);
 
@@ -208,7 +206,7 @@ bool BillboardNode::Render(Scene *pScene)
 
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& BillboardNode::GetBoundingBox() const
+const AlignedBox3<float>& BillboardNode::GetBoundingBox() const
 {
 	return mBBox;
 }
@@ -253,7 +251,7 @@ void BillboardNode::SetSize(float height, float bottomEdgeWidth, float topEdgeWi
 }
 
 
-Material& BillboardNode::GetMaterial(unsigned int i)
+Material& BillboardNode::GetMaterial()
 {
 	return mMaterial;
 }

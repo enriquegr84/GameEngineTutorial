@@ -37,10 +37,10 @@ public:
 	void SetVisible(bool isVisible);
 
 	//! returns the axis aligned bounding box of this node
-	const AABBox3<float>& GetBoundingBox() const;
+	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! Returns type of the scene node
-	E_SCENE_NODE_TYPE GetType() const { return ESNT_LIGHT; }
+	NodeType GetType() const { return ESNT_LIGHT; }
 
 	//! Sets the light's radius of influence.
 	/** Outside this radius the light won't lighten geometry and cast no
@@ -78,7 +78,7 @@ private:
 	void DoLightRecalc();
 
 	Light mLightData;
-	AABBox3<float> mBBox;
+	AlignedBox3<float> mBBox;
 	int mDriverLightIndex;
 	bool mLightIsOn;
 };

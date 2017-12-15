@@ -15,7 +15,7 @@
 class BaseUISpriteBank;
 
 //! Default icons for cursors
-enum CursorIcon
+enum CORE_ITEM CursorIcon
 {
 	// Following cursors might be system specific, or might use an GameEngine icon-set. No guarantees so far.
 	CI_NORMAL,	// arrow
@@ -39,7 +39,7 @@ enum CursorIcon
 };
 
 //! platform specific behavior flags for the cursor
-enum CursorPlatformBehavior
+enum CORE_ITEM CursorPlatformBehavior
 {
 	//! default - no platform specific behavior
 	CPB_NONE = 0,

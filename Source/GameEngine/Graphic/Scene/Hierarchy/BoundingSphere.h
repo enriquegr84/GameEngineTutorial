@@ -64,7 +64,7 @@ public:
     //   line:     tmin = -INFINITY, tmax = INFINITY
     //   ray:      tmin = 0.0f, tmax = INFINITY
     //   segment:  tmin >= 0.0f, tmax > tmin
-    // where INFINITY is std::numeric_limits<float>::max().
+    // where INFINITY is eastl::numeric_limits<float>::max().
     bool TestIntersection(Vector4<float> const& origin,
         Vector4<float> const& direction, float tmin, float tmax) const;
 

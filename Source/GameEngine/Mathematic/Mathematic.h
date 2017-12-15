@@ -43,7 +43,9 @@
 #include "Function/Functions.h"
 
 //Geometric
+#include "Geometric/Frustum.h"
 #include "Geometric/Rectangle.h"
+#include "Geometric/AlignedBox.h"
 
 //Surface
 #include "Surface/VertexAttribute.h"

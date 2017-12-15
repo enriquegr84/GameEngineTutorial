@@ -9,7 +9,7 @@
 #include "BaseFileList.h"
 
 //! Contains the different types of archives
-enum FileArchiveType
+enum CORE_ITEM FileArchiveType
 {
 	//! A PKZIP archive
 	FAT_ZIP,

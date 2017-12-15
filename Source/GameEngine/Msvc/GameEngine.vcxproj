@@ -169,6 +169,7 @@
     <ClCompile Include="..\Graphic\Resource\Buffer\Buffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\ConstantBuffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\IndexBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\MeshBuffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\RawBuffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\StructuredBuffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\TextureBuffer.cpp" />
@@ -190,8 +191,12 @@
     <ClCompile Include="..\Graphic\Resource\Texture\TextureDS.cpp" />
     <ClCompile Include="..\Graphic\Resource\Texture\TextureRT.cpp" />
     <ClCompile Include="..\Graphic\Resource\Texture\TextureSingle.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Controller\BlendTransformController.cpp" />
     <ClCompile Include="..\Graphic\Scene\Controller\ControlledObject.cpp" />
     <ClCompile Include="..\Graphic\Scene\Controller\Controller.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Controller\KeyframeController.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Controller\SkinController.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Controller\TransformController.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\AnimatedMeshNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorDelete.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyCircle.cpp" />
@@ -220,6 +225,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleRotationAffector.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleScaleAffector.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\RootNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ShadowVolumeNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\SkyBoxNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\SkyNode.cpp" />
@@ -438,6 +444,9 @@
     <ClInclude Include="..\Core\Process\ProcessManager.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeMap.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeQueue.h" />
+    <ClInclude Include="..\Core\Utility\Array2.h" />
+    <ClInclude Include="..\Core\Utility\Array3.h" />
+    <ClInclude Include="..\Core\Utility\Array4.h" />
     <ClInclude Include="..\Core\Utility\StringUtil.h" />
     <ClInclude Include="..\GameEngineStd.h" />
     <ClInclude Include="..\Game\Actor\Actor.h" />
@@ -517,6 +526,7 @@
     <ClInclude Include="..\Graphic\Effect\Lighting.h" />
     <ClInclude Include="..\Graphic\Effect\LightingEffect.h" />
     <ClInclude Include="..\Graphic\Effect\Material.h" />
+    <ClInclude Include="..\Graphic\Effect\Mesh.h" />
     <ClInclude Include="..\Graphic\Effect\Particle.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightEffect.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightTextureEffect.h" />
@@ -588,6 +598,7 @@
     <ClInclude Include="..\Graphic\Resource\Buffer\ConstantBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\IndexBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\IndexFormat.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\MeshBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\RawBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\StructuredBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\TextureBuffer.h" />
@@ -610,8 +621,12 @@
     <ClInclude Include="..\Graphic\Resource\Texture\TextureDS.h" />
     <ClInclude Include="..\Graphic\Resource\Texture\TextureRT.h" />
     <ClInclude Include="..\Graphic\Resource\Texture\TextureSingle.h" />
+    <ClInclude Include="..\Graphic\Scene\Controller\BlendTransformController.h" />
     <ClInclude Include="..\Graphic\Scene\Controller\ControlledObject.h" />
     <ClInclude Include="..\Graphic\Scene\Controller\Controller.h" />
+    <ClInclude Include="..\Graphic\Scene\Controller\KeyframeController.h" />
+    <ClInclude Include="..\Graphic\Scene\Controller\SkinController.h" />
+    <ClInclude Include="..\Graphic\Scene\Controller\TransformController.h" />
     <ClInclude Include="..\Graphic\Scene\Element\AnimatedMeshNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorDelete.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyCircle.h" />
@@ -628,9 +643,8 @@
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\AnimatedMesh.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshLoader.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\Mesh.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshBuffer.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshCache.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\StandardMesh.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ParticleSystemNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleAffector.h" />
@@ -646,6 +660,7 @@
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleRotationAffector.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleScaleAffector.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\RootNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ShadowVolumeNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\SkyBoxNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\SkyNode.h" />
@@ -703,6 +718,8 @@
     <ClInclude Include="..\Mathematic\Arithmetic\UIntegerFP32.h" />
     <ClInclude Include="..\Mathematic\Function\Constants.h" />
     <ClInclude Include="..\Mathematic\Function\Functions.h" />
+    <ClInclude Include="..\Mathematic\Geometric\AlignedBox.h" />
+    <ClInclude Include="..\Mathematic\Geometric\Frustum.h" />
     <ClInclude Include="..\Mathematic\Geometric\Rectangle.h" />
     <ClInclude Include="..\Mathematic\Mathematic.h" />
     <ClInclude Include="..\Mathematic\MathematicStd.h" />
@@ -729,7 +746,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GameEngine</RootNamespace>
     <ProjectName>GameEngine</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

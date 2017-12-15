@@ -13,7 +13,7 @@ class MeshResourceExtraData : public BaseResourceExtraData
 {
 
 public:
-    virtual eastl::string ToString() { return "MeshResourceExtraData"; }
+    virtual eastl::wstring ToString() { return L"MeshResourceExtraData"; }
 	virtual BaseAnimatedMesh* GetMesh() { return mAnimatedMesh; }
 	virtual void SetMesh(BaseAnimatedMesh* aMesh) { mAnimatedMesh = aMesh; }
 	virtual ~MeshResourceExtraData() { delete mAnimatedMesh; }

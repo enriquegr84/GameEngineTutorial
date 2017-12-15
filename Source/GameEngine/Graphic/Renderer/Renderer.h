@@ -14,7 +14,7 @@
 #include "Graphic/Graphic.h"
 
 //! An enum for all types of renderes the Engine supports.
-enum RendererType
+enum GRAPHIC_ITEM RendererType
 {
 	//! Null driver, useful for applications to run the engine without visualisation.
 	/** The null device is able to load textures, but does not

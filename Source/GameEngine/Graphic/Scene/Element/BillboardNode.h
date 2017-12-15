@@ -35,7 +35,7 @@ public:
 	bool Render(Scene *pScene);
 
 	//! returns the axis aligned bounding box of this node
-	const AABBox3<float>& GetBoundingBox() const;
+	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! sets the size of the billboard
 	void SetSize(const Vector2<float>& size);
@@ -82,7 +82,7 @@ private:
 	//! Size.Width is the bottom edge width
 	Vector2<float> mSize;
 	float mTopEdgeWidth;
-	AABBox3<float> mBBox;
+	AlignedBox3<float> mBBox;
 	Material mMaterial;
 
 	VertexBuffer mVertices[4];

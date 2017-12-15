@@ -150,7 +150,7 @@ bool BoundingSphere::TestIntersection(Vector4<float> const& origin,
     }
 
     Vector4<float> center = GetCenter();
-    float const infinity = std::numeric_limits<float>::max();
+    float const infinity = eastl::numeric_limits<float>::max();
     Vector4<float> diff;
     float a0, a1, discr;
 

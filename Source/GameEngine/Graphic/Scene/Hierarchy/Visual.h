@@ -85,7 +85,7 @@ inline eastl::shared_ptr<VisualEffect> const& Visual::GetEffect() const
 
 inline void Visual::UpdateWorldBound()
 {
-    modelBound.TransformBy(worldTransform, worldBound);
+    modelBound.TransformBy(mWorldTransform, mWorldBound);
 }
 
 inline void Visual::GetVisibleSet(Culler& culler, eastl::shared_ptr<Camera> const&, bool)

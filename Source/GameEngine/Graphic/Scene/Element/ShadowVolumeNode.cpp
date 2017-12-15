@@ -25,7 +25,7 @@ ShadowVolumeNode::ShadowVolumeNode(const ActorId actorId, WeakBaseRenderComponen
 void ShadowVolumeNode::CreateShadowVolume(const Vector3<float>& light, bool isDirectional)
 {
 	ShadowVolume* svp = 0;
-	AABBox3<float>* bb = 0;
+	AlignedBox3<float>* bb = 0;
 
 	// builds the shadow volume and adds it to the shadow volume list.
 	if (mShadowVolumes.size() > mShadowVolumesUsed)
@@ -40,7 +40,7 @@ void ShadowVolumeNode::CreateShadowVolume(const Vector3<float>& light, bool isDi
 		mShadowVolumes.push_back(ShadowVolume());
 		svp = &mShadowVolumes.back();
 
-		mShadowBBox.push_back(AABBox3<f32>());
+		mShadowBBox.push_back(AlignedBox3<f32>());
 		bb = &mShadowBBox.back();
 	}
 	++mShadowVolumesUsed;
@@ -73,7 +73,7 @@ void ShadowVolumeNode::CreateShadowVolume(const Vector3<float>& light, bool isDi
 #define _USE_ADJACENCY
 #define _USE_REVERSE_EXTRUDED
 
-unsigned int ShadowVolumeNode::CreateEdgesAndCaps(const Vector3<float>& light, ShadowVolume* svp, AABBox3<float>* bb)
+unsigned int ShadowVolumeNode::CreateEdgesAndCaps(const Vector3<float>& light, ShadowVolume* svp, AlignedBox3<float>* bb)
 {
 	unsigned int numEdges=0;
 	const unsigned int faceCount = mIndexCount / 3;
@@ -207,7 +207,7 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 
 	for (i=0; i<bufcnt; ++i)
 	{
-		const BaseMeshBuffer* buf = mesh->GetMeshBuffer(i).get();
+		const MeshBuffer* buf = mesh->GetMeshBuffer(i).get();
 		totalIndices += buf->GetIndexCount();
 		totalVertices += buf->GetVertexCount();
 	}
@@ -215,7 +215,7 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 	// copy mesh
 	for (i=0; i<bufcnt; ++i)
 	{
-		const BaseMeshBuffer* buf = mesh->GetMeshBuffer(i).get();
+		const MeshBuffer* buf = mesh->GetMeshBuffer(i).get();
 
 		const unsigned int* idxp = buf->GetIndices();
 		const unsigned int* idxpend = idxp + buf->GetIndexCount();
@@ -231,7 +231,7 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 	if (oldVertexCount != mVertexCount || oldIndexCount != mIndexCount)
 		CalculateAdjacency();
 
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	mParent->Get()->Transform(&toWorld, &fromWorld);
 	toWorld.MakeInverse();
 
@@ -258,7 +258,7 @@ bool ShadowVolumeNode::PreRender(Scene* pScene)
 	{
 		// register according to material types counted
 		if (!pScene->IsCulled(this))
-			pScene->AddToRenderQueue(ERP_SHADOW, eastl::shared_from_this());
+			pScene->AddToRenderQueue(ERP_SHADOW, shared_from_this());
 	}
 
 	return Node::PreRender(pScene);
@@ -272,7 +272,7 @@ bool ShadowVolumeNode::Render(Scene* pScene)
 	if (!mShadowVolumesUsed || !renderer)
 		return false;
 
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	mParent->Get()->Transform(&toWorld, &fromWorld);
 
 	renderer->SetTransform(ETS_WORLD, toWorld);
@@ -287,7 +287,7 @@ bool ShadowVolumeNode::Render(Scene* pScene)
 
 			ViewFrustum frust(pScene->GetActiveCamera()->GetViewFrustum());
 
-			Matrix4x4 invTrans(toWorld, Matrix4::EM4CONST_INVERSE);
+			Matrix4x4<float> invTrans(toWorld, Matrix4::EM4CONST_INVERSE);
 			frust.Transform(invTrans);
 
 			Vector3<float> edges[8];
@@ -326,7 +326,7 @@ bool ShadowVolumeNode::Render(Scene* pScene)
 
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& ShadowVolumeNode::GetBoundingBox() const
+const AlignedBox3<float>& ShadowVolumeNode::GetBoundingBox() const
 {
 	return mBBox;
 }

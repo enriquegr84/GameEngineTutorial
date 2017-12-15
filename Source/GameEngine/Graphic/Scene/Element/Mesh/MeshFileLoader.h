@@ -7,7 +7,7 @@
 
 #include "MeshLoader.h"
 
-//! Meshloader capable of loading md3 files.
+//! Meshloader capable of loading mesh files.
 class MeshFileLoader : public BaseResourceLoader
 {
 public:
@@ -27,7 +27,7 @@ public:
 protected:
 
 	//! returns true if the file maybe is able to be loaded by this class
-	//! based on the file extension (e.g. ".bsp")
+	//! based on the file extension
 	virtual bool IsALoadableFileExtension(const eastl::string& filename) const;
 
 	//! creates/loads an animated mesh from the file.

@@ -7,7 +7,7 @@
 #include "OS/os.h"
 
 //! constructor
-ParticleBoxEmitter::ParticleBoxEmitter( const AABBox3f& box, const Vector3<float>& direction,
+ParticleBoxEmitter::ParticleBoxEmitter( const AlignedBox3f& box, const Vector3<float>& direction,
 	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, Color minStartColor, Color maxStartColor,
 	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize)
 :	m_Box(box), m_Direction(direction), m_MaxStartSize(maxStartSize), m_MinStartSize(minStartSize),

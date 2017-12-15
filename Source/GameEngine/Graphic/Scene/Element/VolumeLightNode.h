@@ -32,7 +32,7 @@ public:
 	bool Render(Scene *pScene);
 
 	//! returns the axis aligned bounding box of this node
-	const AABBox3<float>& GetBoundingBox() const;
+	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! returns the material based on the zero based index i.
 	Material& GetMaterial(unsigned int i);
@@ -41,7 +41,7 @@ public:
 	unsigned int GetMaterialCount() const;
 
 	//! Returns type of the scene node
-	E_SCENE_NODE_TYPE GetType() const { return ESNT_VOLUME_LIGHT; }
+	NodeType GetType() const { return ESNT_VOLUME_LIGHT; }
 
 	//! Sets the number of segments across the U axis
 	void SetSubDivideU(const unsigned int inU);

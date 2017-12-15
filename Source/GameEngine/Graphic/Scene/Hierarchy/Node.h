@@ -10,14 +10,217 @@
 
 #include "Spatial.h"
 
+#include "Graphic/Scene/Scene.h"
+
+//! An enumeration for all types of built-in scene node animators
+enum GRAPHIC_ITEM NodeAnimatorType
+{
+	//! Fly circle scene node animator
+	NAT_FLY_CIRCLE = 0,
+
+	//! Fly straight scene node animator
+	NAT_FLY_STRAIGHT,
+
+	//! Follow spline scene node animator
+	NAT_FOLLOW_SPLINE,
+
+	//! Rotation scene node animator
+	NAT_ROTATION,
+
+	//! Texture scene node animator
+	NAT_TEXTURE,
+
+	//! Deletion scene node animator
+	NAT_DELETION,
+
+	//! Amount of built-in scene node animators
+	NAT_COUNT,
+
+	//! Unknown scene node animator
+	NAT_UNKNOWN,
+
+	//! This enum is never used, it only forces the compiler to compile this enumeration to 32 bit.
+	NAT_FORCE_32_BIT = 0x7fffffff
+};
+
+//! An enumeration for all types of built-in scene nodes
+/** A scene node type is represented by a four character code
+such as 'cube' or 'mesh' instead of simple numbers, to avoid
+name clashes with external scene nodes.*/
+enum GRAPHIC_ITEM NodeType
+{
+	//! Root scene Node
+	NT_ROOT,
+
+	//! simple object scene node
+	NT_SHAPE,
+
+	//! simple cube scene node
+	NT_CUBE,
+
+	//! Sphere scene node
+	NT_SPHERE,
+
+	//! Text Scene Node
+	NT_TEXT,
+
+	//! Water Surface Scene Node
+	NT_WATER_SURFACE,
+
+	//! Terrain Scene Node
+	NT_TERRAIN,
+
+	//! Sky Box Scene Node
+	NT_SKY_BOX,
+
+	//! Sky Dome Scene Node
+	NT_SKY_DOME,
+
+	//! Shadow Volume Scene Node
+	NT_SHADOW_VOLUME,
+
+	//! Octree Scene Node
+	NT_OCTREE,
+
+	//! Mesh Scene Node
+	NT_MESH,
+
+	//! Light Scene Node
+	NT_LIGHT,
+
+	//! Empty Scene Node
+	NT_EMPTY,
+
+	//! Dummy Transformation Scene Node
+	NT_DUMMY_TRANSFORMATION,
+
+	//! Camera Scene Node
+	NT_CAMERA,
+
+	//! Billboard Scene Node
+	NT_BILLBOARD,
+
+	//! Animated Mesh Scene Node
+	NT_ANIMATED_MESH,
+
+	//! Particle System Scene Node
+	NT_PARTICLE_SYSTEM,
+
+	//! Quake3 Shader Scene Node
+	NT_Q3SHADER,
+
+	//! Quake3 Model Scene Node ( has tag to link to )
+	NT_MD3,
+
+	//! Volume Light Scene Node
+	NT_VOLUME_LIGHT,
+
+	//! First Person Shooter Camera
+	/** Legacy, for loading version <= 1.4.x .irr files */
+	NT_CAMERA_FPS,
+
+	//! Unknown scene node
+	NT_UNKNOWN,
+
+	//! Will match with any scene node when checking types
+	NT_ANY
+};
+
+// Forward declarations
+/*
+class Scene;
+class MovementController;
+class BaseResourceExtraData;
+class ActorComponent;
+*/
+class BaseRenderComponent;
+
+// FUTURE WORK - Smart pointers don't work right....going to use a naked pointer for now!
+typedef BaseRenderComponent* WeakBaseRenderComponentPtr;
+
+////////////////////////////////////////////////////
+//
+// AlphaType					- Chapter X, page Y
+//
+//   This enum defines the different types of alpha blending
+//   types that can be set on a scene node.
+//
+//	
+////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// enum RenderPass							- Chapter 16, page 529
+//
+//   3D scenes are drawn in passes - this enum defines the render passes
+//   supported by the 3D scene graph created by class Scene.
+/////////////////////////////////////////////////////////////////////////////
+
+//! Enumeration for render passes.
+/** A parameter passed to the registerNodeForRendering() method of the ISceneManager,
+specifying when the node wants to be drawn in relation to the other nodes. */
+enum GRAPHIC_ITEM RenderPass
+{
+	//! No pass currently active
+	RP_NONE = 0,
+
+	//! Camera pass. The active view is set up here. The very first pass.
+	RP_CAMERA,
+
+	//! Static nodes
+	RP_STATIC,
+
+	//! In this pass, lights are transformed into camera space and added to the driver
+	RP_LIGHT,
+
+	//! This is used for sky boxes.
+	RP_SKY_BOX,
+
+	//! Solid scene nodes or special scene nodes without materials.
+	RP_SOLID,
+
+	//! Transparent scene nodes, drawn after solid nodes. They are sorted from back to front and drawn in that order.
+	RP_TRANSPARENT,
+
+	//! Transparent effect scene nodes, drawn after Transparent nodes. They are sorted from back to front and drawn in that order.
+	RP_TRANSPARENT_EFFECT,
+
+	//! Drawn after the solid nodes, before the transparent nodes, the time for drawing shadow volumes
+	RP_SHADOW,
+
+	//! Last render pass, it doesnt do anything
+	RP_LAST
+};
+
 
 // This class represents grouping nodes in a spatial hiearchy.
-class GRAPHIC_ITEM Node : public Spatial
+class GRAPHIC_ITEM Node : public Spatial, public eastl::enable_shared_from_this<Node>
 {
 public:
-    // Construction and destruction.
-    virtual ~Node();
-    Node();
+
+	Node(int id, WeakBaseRenderComponentPtr renderComponent, RenderPass renderPass, NodeType nodeType);
+
+	~Node();
+
+	//! Returns type of the scene node
+	int GetId() const { return mId; }
+	void SetId(int id) { mId = id; }
+	const eastl::string& GetName() const { return mName; }
+	void SetName(const eastl::string& name) { mName = name; }
+
+	NodeType GetType() const { return mType; }
+
+	unsigned int GetRenderPass() const { return mRenderPass; }
+
+	bool OnRestore(Scene *pScene);
+	bool OnLostDevice(Scene *pScene);
+
+	bool OnUpdate(Scene *, unsigned long const elapsedMs);
+	bool OnAnimate(Scene* pScene, unsigned int timeMs);
+
+	bool PreRender(Scene *pScene);
+	bool Render(Scene *pScene) { return true; }
+	bool RenderChildren(Scene *pScene);
+	bool PostRender(Scene *pScene);
 
     // This is the current number of elements in the child array.  These
     // elements are not all guaranteed to be non-null.  Thus, when you
@@ -55,17 +258,17 @@ public:
     //     Spatial::SP saveChild = SPCreate(node0->GetChild(0));
     //     node0->DetachChild(saveChild);
     //     node1->AttachChild(saveChild);
-    int AttachChild(eastl::shared_ptr<Spatial> const& child);
+    int AttachChild(eastl::shared_ptr<Node> const& child);
 
     // Detach a child from this node.  If the 'child' is non-null and in the
     // array, the return value is the index in the array that had stored the
     // child.  Otherwise, the function returns -1.
-    int DetachChild(eastl::shared_ptr<Spatial> const& child);
+    int DetachChild(eastl::shared_ptr<Node> const& child);
 
-    // Detach a child from this node.  If 0 <= i < GetNumChildren(), the
-    // return value is the child at index i; otherwise, the function returns
-    // null.
-	eastl::shared_ptr<Spatial> DetachChildAt(int i);
+	// Detach a child from this node.  If 0 <= i < GetNumChildren(), the
+	// return value is the child at index i; otherwise, the function returns
+	// null.
+	eastl::shared_ptr<Node> DetachChildAt(int i);
 
     // Detach all children from this node.
     void DetachAllChildren();
@@ -75,207 +278,30 @@ public:
     // succeeds and returns i.  If i is out of range, the function *still*
     // succeeds, appending the child to the end of the array.  The return
     // value is the previous child stored at index i.
-	eastl::shared_ptr<Spatial> SetChild(int i, eastl::shared_ptr<Spatial> const& child);
+	eastl::shared_ptr<Node> SetChild(int i, eastl::shared_ptr<Node> const& child);
 
     // Get the child at the specified index.  If 0 <= i < GetNumChildren(),
     // the function succeeds and returns the child at that index.  Keep in
     // mind that child[i] could very well be null.  If i is out of range, the
     // function returns null.
-	eastl::shared_ptr<Spatial> GetChild(int i);
+	eastl::shared_ptr<Node> GetChild(int i);
 
-protected:
-    // Support for geometric updates.
-    virtual void UpdateWorldData(double applicationTime);
-    virtual void UpdateWorldBound();
+	const SceneNodeList& GetChildren() const { return mChildren; }
 
-    // Support for hierarchical culling.
-    virtual void GetVisibleSet(Culler& culler,
-		eastl::shared_ptr<Camera> const& camera, bool noCull);
+	int AttachAnimator(eastl::shared_ptr<NodeAnimator> const& animator);
 
-    // Child pointers.
-	eastl::vector<eastl::shared_ptr<Spatial>> mChild;
-};
+	int DetachAnimator(eastl::shared_ptr<NodeAnimator> const& animator);
 
-// Forward declarations
-class NodeAnimator;
-class Node;
-class Scene;
-class MovementController;
-class BaseResourceExtraData;
-class ActorComponent;
-class BaseRenderComponent;
+	eastl::shared_ptr<NodeAnimator> DetachAnimatorAt(int i);
 
-// FUTURE WORK - Smart pointers don't work right....going to use a naked pointer for now!
-typedef BaseRenderComponent* WeakBaseRenderComponentPtr;
+	// Detach all animators from this node.
+	void DetachAllAnimators();
 
-////////////////////////////////////////////////////
-//
-// AlphaType					- Chapter X, page Y
-//
-//   This enum defines the different types of alpha blending
-//   types that can be set on a scene node.
-//
-//	
-////////////////////////////////////////////////////
+	eastl::shared_ptr<NodeAnimator> SetAnimator(int i, eastl::shared_ptr<NodeAnimator> const& animator);
 
-enum AlphaType
-{
-	AlphaOpaque,
-	AlphaTexture,
-	AlphaMaterial,
-	AlphaVertex
-};
+	eastl::shared_ptr<NodeAnimator> GetAnimator(int i);
 
-
-//////////////////////////////////////////////////////////////////////
-//  class NodeProperties	- Chapter 16, page 527
-//
-//   This class is contained in the SceneNode class, and gains
-//   easy access to common scene node properties such as its ActorId
-//   or render pass, with a single SceneNode::VGet() method.
-//
-//////////////////////////////////////////////////////////////////////
-
-class NodeProperties
-{
-	friend class Node;
-
-protected:
-
-	int						mId;
-	ActorId                 mActorId;
-	eastl::string			mName;
-	Matrix4x4				mToWorld, mFromWorld;
-	float					mRadius;
-	unsigned int			mRenderPass;
-	Material				mMaterial;
-	//AlphaType				mAlphaType;
-	Vector3<float>			mPosition, mRotation, mScale;
-
-	bool					mIsVisible;
-	E_SCENE_NODE_TYPE		mType;
-	bool					mIsDebugObject;
-	unsigned int			mDebugDataVisible;
-	unsigned int			mAutomaticCullingState;
-
-public:
-	NodeProperties(void);
-	const ActorId &ActorId() const { return mActorId; }
-	Matrix4x4 const &ToWorld() const { return mToWorld; }
-	Matrix4x4 const &FromWorld() const { return m_FromWorld; }
-	void Transform(matrix4 *toWorld, matrix4 *fromWorld) const;
-
-	int GetId() const { return mId; }
-	void SetId(int id) { mId = id; }
-	const eastl::string& GetName() const { return mName; }
-	void SetName(const eastl::string& name) { mName = name; }
-
-	//bool HasAlpha() const { return m_Material.HasAlpha(); }						
-	//float Alpha() const { return m_Material.GetAlpha(); }
-	//void SetAlpha(const float alpha) { m_AlphaType=AlphaMaterial; m_Material.SetAlpha(alpha); } 
-	//AlphaType AlphaType() const { return m_AlphaType; }
-
-	//! Returns type of the scene node
-	virtual E_SCENE_NODE_TYPE GetType() const { return mType; }
-	bool IsVisible() const { return mIsVisible; }
-	void SetVisible(bool visible) { mIsVisible = visible; }
-	void SetRadius(const float radius) { mRadius = radius; }
-	float GetRadius() const { return mRadius; }
-	unsigned int GetRenderPass() const { return mRenderPass; }
-
-	//! Enables or disables automatic culling based on the bounding box.
-	void SetAutomaticCulling(unsigned int state) { mAutomaticCullingState = state; }
-	//! Gets the automatic culling state.
-	unsigned int GetAutomaticCulling() const { return mAutomaticCullingState; }
-	//! Sets if debug data like bounding boxes should be drawn.
-	virtual void SetDebugDataVisible(unsigned int state) { mDebugDataVisible = state; }
-	//! Returns if debug data like bounding boxes are drawn.
-	unsigned int DebugDataVisible() const { return mDebugDataVisible; }
-	//! Sets if this scene node is a debug object.
-	void SetIsDebugObject(bool debugObject) { mIsDebugObject = debugObject; }
-	//! Returns if this scene node is a debug object.
-	bool IsDebugObject() const { return mIsDebugObject; }
-
-	Material& GetMaterial() { return mMaterial; }
-};
-
-//////////////////////////////////////////////////////////////
-//
-// SceneNodeList						- Chapter 16, page 529
-//
-//   Every scene node has a list of its children - this 
-//   is implemented as a vector since it is expected that
-//   we won't add/delete nodes very often, and we'll want 
-//   fast random access to each child.
-//
-//////////////////////////////////////////////////////////////
-
-typedef eastl::vector<eastl::shared_ptr<Node>> SceneNodeList;
-typedef eastl::vector<eastl::shared_ptr<NodeAnimator>> SceneNodeAnimatorList;
-
-typedef eastl::vector<Node*> SceneNodeRenderList;
-typedef eastl::vector<NodeAnimator*> SceneNodeAnimateList;
-
-
-//////////////////////////////////////////////////////////////
-//
-// Node							- Chapter 16, page 529
-//
-//   Implements SceneNode. Forms the base class for any node
-//   that can exist in the 3D scene graph managed by class Scene.
-//
-//////////////////////////////////////////////////////////////
-
-class Node : public eastl::enable_shared_from_this<Node>
-{
-	friend class Scene;
-
-protected:
-
-	eastl::shared_ptr<Node>			mParent;
-	SceneNodeAnimatorList			mAnimators;
-	SceneNodeList					mChildren;
-	NodeProperties					mProps;
-	WeakBaseRenderComponentPtr		mRenderComponent;
-
-
-public:
-	Node(ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-		E_RENDER_PASS renderPass, E_SCENE_NODE_TYPE nodeType,
-		const Matrix4x4 *to, const Matrix4x4 *from = NULL);
-
-	~Node();
-
-	virtual NodeProperties* Get() { return &m_Props; }
-
-	virtual void SetTransform(const Matrix4x4 *toWorld, const Matrix4x4 *fromWorld = NULL);
-
-	virtual bool OnRestore(Scene *pScene);
-	virtual bool OnLostDevice(Scene *pScene);
-
-	virtual bool OnUpdate(Scene *, unsigned long const elapsedMs);
-	virtual bool OnAnimate(Scene* pScene, u32 timeMs);
-
-	virtual bool PreRender(Scene *pScene);
-	virtual bool Render(Scene *pScene) { return true; }
-	virtual bool RenderChildren(Scene *pScene);
-	virtual bool PostRender(Scene *pScene);
-
-	virtual bool AddChild(const shared_ptr<SceneNode>& kid);
-	virtual bool RemoveChild(ActorId id);
-	virtual eastl::shared_ptr<Node> GetChild(ActorId id);
-	virtual const SceneNodeList& GetChildren() const { return mChildren; }
-
-	virtual bool AddAnimator(const eastl::shared_ptr<NodeAnimator>& animator);
-	virtual bool RemoveAnimator(const eastl::shared_ptr<NodeAnimator>& animator);
-	//! Get a list of all scene node animators.
-	virtual const SceneNodeAnimatorList& GetAnimators() const { return mAnimators; }
-
-	virtual void SetParent(const eastl::shared_ptr<Node>& newParent);
-	virtual const eastl::shared_ptr<Node>& GetParent() { return mParent; }
-	virtual void Remove();
-
-	virtual const AABBox3<float>& GetBoundingBox() const { return *((AABBox3<float>*)0); }
+	const SceneNodeAnimatorList& GetAnimators() const { return mAnimators; }
 
 	//! Returns the material based on the zero based index i.
 	/** To get the amount of materials used by this scene node, use
@@ -285,99 +311,53 @@ public:
 	directly modify the material of a scene node.
 	\param num Zero based index. The maximal value is getMaterialCount() - 1.
 	\return The material at that index. */
-	virtual Material& GetMaterial(unsigned int num)
-	{
-		return mProps.GetMaterial();
-	}
-
+	Material& GetMaterial() { return mMaterial; }
 
 	//! Get amount of materials used by this scene node.
 	/** \return Current amount of materials of this scene node. */
-	virtual unsigned int GetMaterialCount() const
-	{
-		return 1;
-	}
+	unsigned int GetMaterialCount() const { return 1; }
 
-	//void SetMaterial(const Material &mat) { m_Props.m_Material = mat; }
+	void SetMaterial(const Material &mat) { mMaterial = mat; }
 
 	//! Sets all material flags at once to a new value.
 	/** Useful, for example, if you want the whole mesh to be
 	affected by light.
 	\param flag Which flag of all materials to be set.
 	\param newvalue New value of that flag. */
-	void SetMaterialFlag(E_MATERIAL_FLAG flag, bool newvalue)
+	void SetMaterialFlag(MaterialFlag flag, bool newvalue)
 	{
+		/*
 		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 			GetMaterial(i).SetFlag(flag, newvalue);
+		*/
 	}
-
 
 	//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 	/** \param textureLayer Layer of texture to be set. Must be a
 	value smaller than MATERIAL_MAX_TEXTURES.
 	\param texture New texture to be used. */
-	void SetMaterialTexture(unsigned int textureLayer, ITexture* texture)
+	void SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
 	{
+		/*
 		if (textureLayer >= MATERIAL_MAX_TEXTURES)
 			return;
 
 		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 			GetMaterial(i).SetTexture(textureLayer, texture);
+		*/
 	}
-
 
 	//! Sets the material type of all materials in this scene node to a new material type.
 	/** \param newType New type of material to be set. */
-	void SetMaterialType(E_MATERIAL_TYPE newType)
+	void SetMaterialType(MaterialType newType)
 	{
+		/*
 		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-			GetMaterial(i).MaterialType = newType;
+			GetMaterial(i).mMaterialType = newType;
+		*/
 	}
-
-
-	//void SetAlpha(float alpha);
-	//float GetAlpha() const { return m_Props.Alpha(); }
-
-	//! Gets the scale of the scene node relative to its parent.
-	virtual const Vector3<float>& GetScale() const { return mProps.mScale; }
-	//! Sets the relative scale of the scene node.
-	virtual void SetScale(const Vector3<float>& scale) { mProps.mScale = scale; }
-	//! Gets the rotation of the node relative to its parent.
-	virtual const Vector3<float>& GetRotation() const { return mProps.mRotation; }
-	//! Sets the rotation of the node relative to its parent.
-	virtual void SetRotation(const Vector3<float>& rotation) { mProps.mRotation = rotation; }
-	//! Gets the position of the node relative to its parent.
-	virtual const Vector3<float>& GetPosition() const { return mProps.mPosition; }
-	//! Sets the position of the node relative to its parent.
-	virtual void SetPosition(const Vector3<float>& position) { mProps.mPosition = position; }
-
-	//! Returns the relative transformation of the scene node.
-	/** The relative transformation is stored internally as 3
-	vectors: translation, rotation and scale. To get the relative
-	transformation matrix, it is calculated from these values.
-	\return The relative transformation matrix. */
-	virtual Matrix4x4 GetRelativeTransformation() const
-	{
-		Matrix4x4 mat;
-		mat.SetRotationDegrees(mProps.mRotation);
-		mat.SetTranslation(mProps.mPosition);
-
-		if (mProps.m_Scale != Vector3<float>(1.f, 1.f, 1.f))
-		{
-			Matrix4x4 smat;
-			smat.SetScale(mProps.mScale);
-			mat *= smat;
-		}
-
-		return mat;
-	}
-
-	//! Updates transformation matrix of the node based on the relative and the parents transformation
-	virtual void UpdateAbsoluteTransformation();
 
 protected:
-
-	void RemoveAll();
 
 	void SortRenderList(Scene* pScene);
 
@@ -386,8 +366,10 @@ protected:
 		DefaultNodeEntry(Node* n) :
 			mNode(n), mTextureValue(0)
 		{
+			/*
 			if (n->GetMaterialCount())
 				mTextureValue = (n->GetMaterial(0).GetTexture(0));
+			*/
 		}
 
 		bool operator < (const DefaultNodeEntry& other) const
@@ -405,9 +387,9 @@ protected:
 	struct TransparentNodeEntry
 	{
 		TransparentNodeEntry(Node* n, const Vector3<float>& cameraPos)
-			: Node(n)
+			: mNode(n)
 		{
-			mDistance = Node->Get()->ToWorld().GetTranslation().GetDistanceFromSQ(cameraPos);
+			//mDistance = mNode->Get()->ToWorld().GetTranslation().GetDistanceFromSQ(cameraPos);
 		}
 
 		bool operator < (const TransparentNodeEntry& other) const
@@ -439,8 +421,10 @@ protected:
 		void SetNodeAndDistanceFromPosition(Node* n, const Vector3<float>& fromPosition)
 		{
 			mNode = n;
+			/*
 			mDistance = mNode->Get()->ToWorld().GetTranslation().GetDistanceFromSQ(fromPosition);
 			mDistance -= mNode->GetBoundingBox().GetExtent().GetLengthSQ() * 0.5;
+			*/
 		}
 
 		Node* mNode;
@@ -450,14 +434,35 @@ protected:
 		float mDistance;
 	};
 
+protected:
 
+    // Support for geometric updates.
+    virtual void UpdateWorldData(double applicationTime);
+    virtual void UpdateWorldBound();
+
+    // Support for hierarchical culling.
+    virtual void GetVisibleSet(Culler& culler,
+		eastl::shared_ptr<Camera> const& camera, bool noCull);
+
+	int						mId;
+	eastl::string			mName;
+
+	NodeType mType;
+	Material mMaterial;
+	RenderPass mRenderPass;
+
+	SceneNodeList mChildren;
+	SceneNodeAnimatorList mAnimators;
+
+	WeakBaseRenderComponentPtr mRenderComponent;
 };
+
 
 //! Animates a scene node. Can animate position, rotation, material, and so on.
 /** A scene node animator is able to animate a scene node in a very simple way. It may
 change its position, rotation, scale and/or material. There are lots of animators
 to choose from. You can create scene node animators with the ISceneManager interface. */
-class NodeAnimator
+class GRAPHIC_ITEM NodeAnimator
 {
 public:
 	//! Animates a scene node.
@@ -480,9 +485,9 @@ public:
 	}
 
 	//! Returns type of the scene node animator
-	virtual E_SCENE_NODE_ANIMATOR_TYPE GetType() const
+	virtual NodeAnimatorType GetType() const
 	{
-		return ESNAT_UNKNOWN;
+		return NAT_UNKNOWN;
 	}
 
 	//! Returns if the animator has finished.
@@ -495,39 +500,22 @@ public:
 };
 
 
-////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 //
-// AlphaSceneNode Description						- Chapter 16, page 535
-// AlphaSceneNodes Description						- Chapter 16, page 535
+// SceneNodeList						- Chapter 16, page 529
 //
-// A list of scene nodes that need to be drawn in the alpha pass;
-// the list is defined as an STL list
-////////////////////////////////////////////////////
-
-struct AlphaSceneNode
-{
-	eastl::shared_ptr<Node> mNode;
-	Matrix4x3 mConcat;
-	float mScreenZ;
-
-	// For the STL sort...
-	bool const operator <(AlphaSceneNode const &other) { return mScreenZ < other.mScreenZ; }
-};
-
-typedef eastl::list<AlphaSceneNode *> AlphaSceneNodes;
-
-
-////////////////////////////////////////////////////
+//   Every scene node has a list of its children - this 
+//   is implemented as a vector since it is expected that
+//   we won't add/delete nodes very often, and we'll want 
+//   fast random access to each child.
 //
-// Scene Description
-//
-// A heirarchical container of scene nodes, which
-// are classes that implemente the SceneNode interface
-//
-////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
-//class CameraSceneNode;
-//class SkyNode;
+typedef eastl::vector<eastl::shared_ptr<Node>> SceneNodeList;
+typedef eastl::vector<eastl::shared_ptr<NodeAnimator>> SceneNodeAnimatorList;
+
+typedef eastl::vector<Node*> SceneNodeRenderList;
+typedef eastl::vector<NodeAnimator*> SceneNodeAnimateList;
 
 
 #endif

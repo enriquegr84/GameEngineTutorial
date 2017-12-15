@@ -8,10 +8,38 @@
 #include "Material.h"
 
 Material::Material()
-    :
-    emissive({ 0.0f, 0.0f, 0.0f, 1.0f }),
-    ambient({ 0.0f, 0.0f, 0.0f, 1.0f }),
-    diffuse({ 0.0f, 0.0f, 0.0f, 1.0f }),
-    specular({ 0.0f, 0.0f, 0.0f, 1.0f })
+    : mType(MT_SOLID), mFlag(MF_COLOR_MATERIAL),
+    mEmissive({ 0.0f, 0.0f, 0.0f, 1.0f }),
+    mAmbient({ 0.0f, 0.0f, 0.0f, 1.0f }),
+    mDiffuse({ 0.0f, 0.0f, 0.0f, 1.0f }),
+    mSpecular({ 0.0f, 0.0f, 0.0f, 1.0f })
 {
+
+}
+
+//! Inequality operator
+/** \param b Material to compare to.
+\return True if the materials differ, else false. */
+bool Material::operator!=(const Material& m) const
+{
+	bool different =
+		mType != m.mType ||
+		mFlag != m.mFlag;
+	return different;
+}
+
+//! Equality operator
+/** \param b Material to compare to.
+\return True if the materials are equal, else false. */
+bool Material::operator==(const Material& m) const
+{
+	return !(m != *this);
+}
+
+bool Material::IsTransparent() const
+{
+	return mType == MT_TRANSPARENT_ADD_COLOR ||
+		mType == MT_TRANSPARENT_ALPHA_CHANNEL ||
+		mType == MT_TRANSPARENT_VERTEX_ALPHA ||
+		mType == MT_TRANSPARENT_REFLECTION_2_LAYER;
 }

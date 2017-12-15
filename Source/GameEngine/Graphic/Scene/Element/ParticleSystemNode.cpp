@@ -42,33 +42,25 @@ bool ParticleSystemNode::PreRender(Scene *pScene)
 {
 	DoParticleSystem(Timer::GetTime());
 
-	if (mProps.IsVisible() && (mParticles.size() != 0))
+	if (IsVisible() && (mParticles.size() != 0))
 	{
-		const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-
 		int transparentCount = 0;
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		for (unsigned int i=0; i< GetMaterialCount(); ++i)
-		{
-			const eastl::shared_ptr<MaterialRenderer>& rnd =
-				renderer->GetMaterialRenderer(GetMaterial(i).MaterialType);
-
-			if (rnd && rnd->IsTransparent())
-				++transparentCount;
-			else
-				++solidCount;
-		}
+		if (GetMaterial().IsTransparent())
+			++transparentCount;
+		else
+			++solidCount;
 
 		// register according to material types counted
 		if (!pScene->IsCulled(this))
 		{
 			if (solidCount)
-				pScene->AddToRenderQueue(ERP_SOLID, eastl::shared_from_this());
+				pScene->AddToRenderQueue(RP_SOLID, shared_from_this());
 
 			if (transparentCount)
-				pScene->AddToRenderQueue(ERP_TRANSPARENT, eastl::shared_from_this());
+				pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
 		}
 	}
 
@@ -80,7 +72,7 @@ bool ParticleSystemNode::PreRender(Scene *pScene)
 //
 bool ParticleSystemNode::Render(Scene *pScene)
 {
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
@@ -89,7 +81,7 @@ bool ParticleSystemNode::Render(Scene *pScene)
 	if (!camera || !renderer)
 		return false;
 
-	const Matrix4x4 &m = camera->GetViewFrustum().GetTransform( ETS_VIEW );
+	const Matrix4x4<float> &m = camera->GetViewFrustum().GetTransform( ETS_VIEW );
 	const Vector3<float> view{ -m[2], -m[6] , -m[10] };
 
 	// reallocate arrays, if they are too small
@@ -127,7 +119,7 @@ bool ParticleSystemNode::Render(Scene *pScene)
 	}
 
 	// render all
-	Matrix4x4 mat;
+	Matrix4x4<float> mat;
 	if (!mParticlesAreGlobal)
 		mat.SetTranslation(toWorld.GetTranslation());
 	renderer->SetTransform(ETS_WORLD, mat);
@@ -152,7 +144,7 @@ bool ParticleSystemNode::Render(Scene *pScene)
 
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& ParticleSystemNode::GetBoundingBox() const
+const AlignedBox3<float>& ParticleSystemNode::GetBoundingBox() const
 {
 	return mBuffer->GetBoundingBox();
 }
@@ -160,7 +152,7 @@ const AABBox3<float>& ParticleSystemNode::GetBoundingBox() const
 
 void ParticleSystemNode::DoParticleSystem(u32 time)
 {
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	if (mLastEmitTime==0)
@@ -241,7 +233,7 @@ void ParticleSystemNode::DoParticleSystem(u32 time)
 
 	if (mParticlesAreGlobal)
 	{
-		//Matrix4x4 absinv( toWorld, Matrix4x4::EM4CONST_INVERSE );
+		//Matrix4x4<float> absinv( toWorld, Matrix4x4<float>::EM4CONST_INVERSE );
 		fromWorld.TransformBoxEx(mBuffer->mBoundingBox);
 	}
 }
@@ -363,7 +355,7 @@ ParticleAnimatedMeshNodeEmitter* ParticleSystemNode::CreateAnimatedMeshNodeEmitt
 
 
 //! Creates a box particle emitter.
-ParticleBoxEmitter* ParticleSystemNode::CreateBoxEmitter(const AABBox3<float>& box,
+ParticleBoxEmitter* ParticleSystemNode::CreateBoxEmitter(const AlignedBox3<float>& box,
 	const Vector3<float>& direction, unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, 
 	const eastl::array<float, 4>& minStartColor, const eastl::array<float, 4>& maxStartColor, unsigned int lifeTimeMin, 
 	unsigned int lifeTimeMax, int maxAngleDegrees, const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )

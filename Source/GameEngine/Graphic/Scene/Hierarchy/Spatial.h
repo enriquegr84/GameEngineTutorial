@@ -13,6 +13,38 @@
 
 #include <EASTL/string.h>
 
+class Camera;
+
+//! An enumeration for all types of debug data for built-in scene nodes (flags)
+enum GRAPHIC_ITEM DebugSceneType
+{
+	//! No Debug Data ( Default )
+	DS_OFF = 0,
+
+	//! Show Bounding Boxes of SceneNode
+	DS_BBOX = 1,
+
+	//! Show Vertex Normals
+	DS_NORMALS = 2,
+
+	//! Shows Skeleton/Tags
+	DS_SKELETON = 4,
+
+	//! Overlays Mesh Wireframe
+	DS_MESH_WIRE_OVERLAY = 8,
+
+	//! Temporary use transparency Material Type
+	DS_HALF_TRANSPARENCY = 16,
+
+	//! Show Bounding Boxes of all MeshBuffers
+	DS_BBOX_BUFFERS = 32,
+
+	//! DS_BBOX | DS_BBOX_BUFFERS
+	DS_BBOX_ALL = DS_BBOX | DS_BBOX_BUFFERS,
+
+	//! Show all debug infos
+	DS_FULL = 0xffffffff
+};
 
 // Support for a spatial hierarchy of objects.  Class Spatial has a parent
 // pointer.  Class Node derives from Spatial has an array of child pointers.
@@ -20,7 +52,6 @@
 // Visual derives from Spatial and represents graphical data.  Class Audial
 // derives from Spatial and represents sound data.
 
-class Camera;
 
 class GRAPHIC_ITEM Spatial : public ControlledObject
 {
@@ -37,25 +68,63 @@ public:
 
     // Access to the parent object, which is null for the root of the
     // hierarchy.
-    inline Spatial* GetParent();
+	Spatial* GetParent();
 
-    // Allow user-readable names for nodes in a scene graph.
-    eastl::string name;
+	bool IsVisible() const { return mIsVisible; }
+	void SetVisible(bool visible) { mIsVisible = visible; }
 
-    // Local and world transforms.  In some situations you might need to set
-    // the world transform directly and bypass the Spatial::Update()
-    // mechanism, in which case worldTransformIsCurrent should be set to
-    // 'true'.
-    Transform localTransform;
-    Transform worldTransform;
-    bool worldTransformIsCurrent;
+	//! Enables or disables automatic culling based on the bounding box.
+	void SetAutomaticCulling(unsigned int state) { mAutomaticCullingState = state; }
+	//! Gets the automatic culling state.
+	unsigned int GetAutomaticCulling() const { return mAutomaticCullingState; }
+	//! Sets if debug data like bounding boxes should be drawn.
+	void SetDebugDataVisible(unsigned int state) { mDebugDataVisible = state; }
+	//! Returns if debug data like bounding boxes are drawn.
+	unsigned int DebugDataVisible() const { return mDebugDataVisible; }
+	//! Sets if this scene node is a debug object.
+	void SetIsDebugObject(bool debugObject) { mIsDebugObject = debugObject; }
+	//! Returns if this scene node is a debug object.
+	bool IsDebugObject() const { return mIsDebugObject; }
 
-    // World bound access.  In some situations you might want to set the
-    // world bound directly and bypass the Spatial::Update() mechanism, in
-    // which case worldBoundIsCurrent flag should be set to 'true'.
-    BoundingSphere worldBound;
-    CullingMode culling;
-    bool worldBoundIsCurrent;
+	//! Gets the scale of the scene node relative to its parent.
+	const Vector3<float>& GetScale() const { return mScale; }
+	//! Sets the relative scale of the scene node.
+	void SetScale(const Vector3<float>& scale) { mScale = scale; }
+	//! Gets the rotation of the node relative to its parent.
+	const Vector3<float>& GetRotation() const { return mRotation; }
+	//! Sets the rotation of the node relative to its parent.
+	void SetRotation(const Vector3<float>& rotation) { mRotation = rotation; }
+	//! Gets the position of the node relative to its parent.
+	const Vector3<float>& GetPosition() const { return mPosition; }
+	//! Sets the position of the node relative to its parent.
+	void SetPosition(const Vector3<float>& position) { mPosition = position; }
+
+	//! Returns the relative transformation of the scene node.
+	/** The relative transformation is stored internally as 3
+	vectors: translation, rotation and scale. To get the relative
+	transformation matrix, it is calculated from these values.
+	\return The relative transformation matrix. */
+	virtual Matrix4x4<float> GetRelativeTransformation() const
+	{
+		Matrix4x4<float> mat;
+		/*
+		mat.SetRotationDegrees(mProps.mRotation);
+		mat.SetTranslation(mProps.mPosition);
+
+		if (mProps.m_Scale != Vector3<float>(1.f, 1.f, 1.f))
+		{
+		Matrix4x4<float> smat;
+		smat.SetScale(mProps.mScale);
+		mat *= smat;
+		}
+		*/
+		return mat;
+	}
+
+	//! Updates transformation matrix of the node based on the relative and the parents transformation
+	virtual void UpdateAbsoluteTransformation();
+
+	const AlignedBox3<float>& GetBoundingBox() const { return *((AlignedBox3<float>*)0); }
 
 public:
     // Support for hierarchical culling.
@@ -77,6 +146,27 @@ protected:
     virtual void UpdateWorldBound() = 0;
     void PropagateBoundToRoot();
 
+	// Local and world transforms.  In some situations you might need to set
+	// the world transform directly and bypass the Spatial::Update()
+	// mechanism, in which case worldTransformIsCurrent should be set to
+	// 'true'.
+	Transform mLocalTransform;
+	Transform mWorldTransform;
+	bool mWorldTransformIsCurrent;
+
+	// World bound access.  In some situations you might want to set the
+	// world bound directly and bypass the Spatial::Update() mechanism, in
+	// which case worldBoundIsCurrent flag should be set to 'true'.
+	BoundingSphere mWorldBound;
+	bool mWorldBoundIsCurrent;
+	Vector3<float> mPosition, mRotation, mScale;
+
+	CullingMode mCulling;
+	bool					mIsVisible;
+	bool					mIsDebugObject;
+	unsigned int			mDebugDataVisible;
+	unsigned int			mAutomaticCullingState;
+
 private:
     // Support for a hierarchical scene graph.  Spatial provides the parent
     // pointer.  Node provides the child pointers.  The parent pointer is not
@@ -86,16 +176,5 @@ private:
     // because we do not know the shared_ptr object that owns mParent.
     Spatial* mParent;
 };
-
-
-inline Spatial* Spatial::GetParent()
-{
-    return mParent;
-}
-
-inline void Spatial::SetParent(Spatial* parent)
-{
-    mParent = parent;
-}
 
 #endif

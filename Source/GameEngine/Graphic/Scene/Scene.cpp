@@ -44,6 +44,8 @@
 #include "Core/Event/EventManager.h"
 #include "Core/Event/Event.h"
 
+#include "Application/GameApplication.h"
+
 #include "LightManager.h"
 
 
@@ -59,10 +61,10 @@
 //          The book only describes D3D11, so to find all the differences, just search for mRenderer!
 //
 Scene::Scene()
-	: mShadowColor{ 150,0,0,0 }, mAmbientLight{ 0, 0, 0, 0 }
+: mShadowColor{ 150,0,0,0 }, mAmbientLight{ 0, 0, 0, 0 }
 {
-	mRoot.reset(new Node());
-	mCurrentRenderPass = ERP_NONE;
+	mRoot.reset(new RootNode());
+	mCurrentRenderPass = RP_NONE;
 	mLightManager = new LightManager();
 
 	// [mrmike] - event delegates were added post-press
@@ -84,14 +86,13 @@ Scene::~Scene()
 	//! force to remove hardwareTextures from the driver
 	//! because Scenes may hold internally data bounded to sceneNodes
 	//! which may be destroyed twice
-	if (mRenderer)
-		mRenderer->RemoveAllHardwareBuffers();
+	//if (Renderer::Get())
+	//	Renderer::Get()->RemoveAllHardwareBuffers();
 
 	// remove all nodes and animators before dropping the driver
 	// as render targets may be destroyed twice
-
 	RemoveAll();
-	RemoveAnimators();
+	//RemoveAnimators();
 
 	// [mrmike] - event delegates were added post-press!
     BaseEventManager* pEventMgr = BaseEventManager::Get();
@@ -142,14 +143,14 @@ bool Scene::OnRender()
 		// The scene root could be anything, but it
 		// is usually a SceneNode with the identity
 		// matrix
-		mCamera->SetViewTransform(this);
+		//mCamera->SetViewTransform(this);
 
-		mLightManager->CalcLighting(this);
+		mLightManager->CalculateLighting(this);
 
 		if (mRoot->PreRender(this)==true)
 		{
 			if (mLightManager)
-				mLightManager->OnPreRender(mRenderList[ERP_LIGHT]);
+				mLightManager->OnPreRender(mRenderList[RP_LIGHT]);
 
 			mRoot->Render(this);
 			mRoot->PostRender(this);
@@ -157,8 +158,6 @@ bool Scene::OnRender()
 			if (mLightManager)
 				mLightManager->OnPostRender();
 		}
-
-		RenderAlphaPass();
 	}
 	
 	return true;
@@ -190,7 +189,7 @@ bool Scene::OnRestore()
 
 
 //! Adds a scene node to the render queue.
-void Scene::AddToRenderQueue(E_RENDER_PASS pass, const eastl::shared_ptr<Node>& node)
+void Scene::AddToRenderQueue(RenderPass pass, const eastl::shared_ptr<Node>& node)
 {
 	if (!node)
 		return;
@@ -202,7 +201,7 @@ void Scene::AddToRenderQueue(E_RENDER_PASS pass, const eastl::shared_ptr<Node>& 
 //! clears the render list
 void Scene::ClearRenderList()
 {
-	for (int pass=0; pass < ERP_LAST; pass++)
+	for (int pass=0; pass < RP_LAST; pass++)
 		mRenderList[pass].clear();
 }
 
@@ -232,9 +231,10 @@ void Scene::RemoveAll()
 	mSceneNodeActors.clear();
 	SetActiveCamera(0);
 	// Make sure the driver is reset, might need a more complex method at some point
-
+	/*
 	if (mRenderer)
 		mRenderer->SetMaterial(Material());
+	*/
 }
 
 
@@ -248,66 +248,62 @@ void Scene::Clear()
 //! Adds an empty scene node to the scene graph.
 /** Can be used for doing advanced transformations
 or structuring the scene graph. */
-eastl::shared_ptr<Node> Scene::AddEmptyNode(const ActorId actorId,
+eastl::shared_ptr<Node> Scene::AddEmptyNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id)
 {
-	eastl::shared_ptr<Node> node(new EmptyNode(actorId, renderComponent));
-	node->Get()->SetId(id);
+	eastl::shared_ptr<Node> node(new EmptyNode(id, renderComponent));
 	if (!parent) 
-		AddSceneNode(actorId, node);
+		AddSceneNode(id, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
 
 //! adds a test scene node for test purposes to the scene. It is a simple cube of (1,1,1) size.
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddCubeNode(const ActorId actorId,
+eastl::shared_ptr<Node> Scene::AddCubeNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
 	float size, int id)
 {
-	eastl::shared_ptr<Node> node(new CubeNode(actorId, renderComponent, size));
-	node->Get()->SetId(id);
+	eastl::shared_ptr<Node> node(new CubeNode(id, renderComponent, size));
 	if (!parent) 
-		AddSceneNode(actorId, node);
+		AddSceneNode(id, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
 
 
 //! Adds a sphere scene node for test purposes to the scene.
-eastl::shared_ptr<Node> Scene::AddSphereNode(const ActorId actorId,
+eastl::shared_ptr<Node> Scene::AddSphereNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
 	float radius, int polyCount, int id)
 {
 	eastl::shared_ptr<Node> node(
-		new SphereNode(actorId, renderComponent, radius, polyCount, polyCount));
-	node->Get()->SetId(id);
+		new SphereNode(id, renderComponent, radius, polyCount, polyCount));
 	if (!parent) 
-		AddSceneNode(actorId, node);
+		AddSceneNode(id, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
 
 //! adds Volume Lighting Scene Node.
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddVolumeLightNode(const ActorId actorId,
+eastl::shared_ptr<Node> Scene::AddVolumeLightNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id, 
 	const unsigned int subdivU, const unsigned int subdivV, eastl::array<float, 4> const foot, 
 	eastl::array<float, 4> const tail)
 {
 	eastl::shared_ptr<Node> node(
-		new VolumeLightNode(actorId, renderComponent, subdivU, subdivV, foot, tail));
-	node->Get()->SetId(id);
+		new VolumeLightNode(id, renderComponent, subdivU, subdivV, foot, tail));
 	if (!parent) 
-		AddSceneNode(actorId, node);
+		AddSceneNode(id, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
@@ -318,52 +314,50 @@ eastl::shared_ptr<Node> Scene::AddVolumeLightNode(const ActorId actorId,
 //! \param parent: Parent scene node of the camera. Can be null. If the parent moves,
 //! the camera will move too.
 //! \return Returns pointer to interface to camera
-eastl::shared_ptr<Node> Scene::AddCameraSceneNode(const ActorId actorId,
+eastl::shared_ptr<Node> Scene::AddCameraNode(
 	WeakBaseRenderComponentPtr renderComponent, int id, bool makeActive)
 {
-	eastl::shared_ptr<Node> node(new CameraNode(actorId, this));
-	node->Get()->SetId(id);
-	AddNode(actorId, node);
-
+	eastl::shared_ptr<Node> node(new CameraNode(id, this));
+	AddSceneNode(id, node);
+	/*
 	if (makeActive)
 		SetActiveCamera(node);
-
+	*/
 	return node;
 }
 
 //! Adds a billboard scene node to the scene. A billboard is like a 3d sprite: A 2d element,
 //! which always looks to the camera. It is usually used for things like explosions, fire,
 //! lensflares and things like that.
-eastl::shared_ptr<Node> Scene::AddBillboardNode(const ActorId actorId,
+eastl::shared_ptr<Node> Scene::AddBillboardNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id,
-	const Vector2<float>& size, const Vector3<float>& position,
-	eastl::array<float, 4> const colorTop, eastl::array<float, 4> const colorBottom)
+	const Vector2<float>& size, const Vector3<float>& position, eastl::array<float, 4> const colorTop, 
+	eastl::array<float, 4> const colorBottom)
 {
 
 	eastl::shared_ptr<Node> node(
-		new BillboardNode(actorId, renderComponent, size, colorTop, colorBottom));
-	node->Get()->SetId(id);
+		new BillboardNode(id, renderComponent, size, colorTop, colorBottom));
 	node->SetPosition(position);
 
 	if (!parent) 
-		AddSceneNode(actorId, node);
+		AddSceneNode(id, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
 
-eastl::shared_ptr<Node> Scene::AddParticleSystemNode(const ActorId actorId,
+eastl::shared_ptr<Node> Scene::AddParticleSystemNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
 	int id, bool withDefaultEmitter)
 {
 	eastl::shared_ptr<Node> node(
-		new ParticleSystemNode(actorId, renderComponent, withDefaultEmitter));
-	node->Get()->SetId(id);
+		new ParticleSystemNode(id, renderComponent, withDefaultEmitter));
+
 	if (!parent) 
-		AddNode(actorId, node);
+		AddSceneNode(id, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
@@ -371,59 +365,57 @@ eastl::shared_ptr<Node> Scene::AddParticleSystemNode(const ActorId actorId,
 //! Adds a skybox scene node. A skybox is a big cube with 6 textures on it and
 //! is drawn around the camera position.
 eastl::shared_ptr<Node> Scene::AddSkyBoxNode(
-	const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, 
-	const eastl::shared_ptr<Node>& parent,
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
 	const eastl::shared_ptr<Texture2>& top, const eastl::shared_ptr<Texture2>& bottom,
 	const eastl::shared_ptr<Texture2>& left, const eastl::shared_ptr<Texture2>& right,
 	const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back, int id)
 {
 
 	eastl::shared_ptr<Node> node(
-		new SkyBoxNode(actorId, renderComponent, top, bottom, left, right, front, back));
+		new SkyBoxNode(id, renderComponent, top, bottom, left, right, front, back));
 
-	node->Get()->SetId(id);
 	if (!parent) 
-		AddNode(actorId, node);
+		AddSceneNode(id, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
 
 //! adds a scene node for rendering a static mesh
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddMeshNode(const ActorId actorId,
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id,
-	bool alsoAddIfMeshPointerZero)
+eastl::shared_ptr<Node> Scene::AddMeshNode(
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
+	eastl::shared_ptr<BaseMesh> mesh, int id, bool alsoAddIfMeshPointerZero)
 {
 	if (!alsoAddIfMeshPointerZero && !mesh)
 		return 0;
 
-	eastl::shared_ptr<Node> node(new MeshNode(actorId, renderComponent, mesh));
-	node->Get()->SetId(id);
+	eastl::shared_ptr<Node> node(new MeshNode(id, renderComponent, mesh));
+
 	if (!parent) 
-		AddNode(actorId, node);
+		AddSceneNode(id, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
 
 
 //! adds a scene node for rendering an animated mesh model
-eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(const ActorId actorId,
+eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-	int id, bool alsoAddIfMeshPointerZero)
+	eastl::shared_ptr<BaseAnimatedMesh> mesh, int id, bool alsoAddIfMeshPointerZero)
 {
 	if (!alsoAddIfMeshPointerZero && !mesh)
 		return 0;
 
-	eastl::shared_ptr<Node> node(new AnimatedMeshNode(actorId, renderComponent, mesh));
-	node->Get()->SetId(id);
+	eastl::shared_ptr<Node> node(new AnimatedMeshNode(id, renderComponent, mesh));
+
 	if (!parent) 
-		AddSceneNode(actorId, node);
+		AddSceneNode(id, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
@@ -431,16 +423,16 @@ eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(const ActorId actorId,
 //! Adds a dynamic light scene node. The light will cast dynamic light on all
 //! other scene nodes in the scene, which have the material flag MTF_LIGHTING
 //! turned on. (This is the default setting in most scene nodes).
-eastl::shared_ptr<Node> Scene::AddLightNode(const ActorId actorId,
+eastl::shared_ptr<Node> Scene::AddLightNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
 	eastl::array<float, 4> const color, float radius)
 {
-	eastl::shared_ptr<Node> node(new LightNode(actorId, renderComponent, color, radius));
+	eastl::shared_ptr<Node> node(new LightNode(INVALID_ACTOR_ID, renderComponent, color, radius));
 
 	if (!parent) 
-		AddSceneNode(actorId, node);
+		AddSceneNode(INVALID_ACTOR_ID, node);
 	else 
-		parent->AddChild(node);
+		parent->AttachChild(node);
 
 	return node;
 }
@@ -457,13 +449,13 @@ bool Scene::AddSceneNode(ActorId id, const eastl::shared_ptr<Node>& node)
 		mSceneNodeActors[id] = node;	
 	}
 
-	eastl::shared_ptr<Light> pLight = eastl::dynamic_pointer_cast<Light>(kid);
+	eastl::shared_ptr<Light> pLight = eastl::dynamic_pointer_cast<Light>(node);
 	if (pLight != NULL && mLightManager->mLights.size()+1 < MAXIMUM_LIGHTS_SUPPORTED)
 	{
 		mLightManager->mLights.push_back(pLight);
 	}
 
-	return mRoot->AddChild(node);
+	return mRoot->AttachChild(node);
 }
 
 //! Removes a child from this scene node.
@@ -479,14 +471,14 @@ bool Scene::RemoveSceneNode(ActorId id)
 
 	eastl::shared_ptr<Node> node = GetSceneNode(id);
 
-	eastl::shared_ptr<Node> pLight = eastl::dynamic_pointer_cast<Node>(kid);
+	eastl::shared_ptr<Node> pLight = eastl::dynamic_pointer_cast<Node>(node);
 	if (pLight != NULL)
 	{
 		mLightManager->mLights.remove(pLight);
 	}
 
 	mSceneNodeActors.erase(id);
-	return mRoot->RemoveChild(id);
+	return mRoot->DetachChild(node);
 }
 
 //! Returns the first scene node with the specified id.
@@ -499,6 +491,77 @@ eastl::shared_ptr<Node> Scene::GetSceneNode(ActorId id)
 	return i->second;
 }
 
+//
+// Scene::IsCulled				- Chapter 16, page 533
+//	
+bool Scene::IsCulled(Node* node)
+{
+	if (!node->IsVisible())
+		return true;
+
+	// transform the location of this node into the camera space 
+	// of the camera attached to the scene
+
+	Matrix4x4<float> toWorld, fromWorld;
+	//GetActiveCamera()->Transform(&toWorld, &fromWorld);
+	//ViewFrustum frustum(GetActiveCamera()->GetViewFrustum());
+
+	bool isVisible = false;
+	/*
+	// has occlusion query information
+	if (node->GetAutomaticCulling() & AC_OCC_QUERY)
+	{
+		isVisible =
+			(mRenderer->GetOcclusionQueryResult(GetSceneNode(node->GetId())) == 0);
+	}
+
+	// can be seen by a bounding box ?
+	if (!isVisible && (node->GetAutomaticCulling() & AC_BOX))
+	{
+		AlignedBox3<float> tbox = node->GetBoundingBox();
+		toWorld.TransformBoxEx(tbox);
+		isVisible = !(tbox.IntersectsWithBox(frustum.GetBoundingBox()));
+	}
+
+	// can be seen by a bounding sphere
+	if (!isVisible && (node->GetAutomaticCulling() & AC_FRUSTUM_SPHERE))
+	{ // requires bbox diameter
+	}
+
+	// can be seen by cam pyramid planes ?
+	if (!isVisible && (node->GetAutomaticCulling() & AC_FRUSTUM_BOX))
+	{
+		//transform the frustum to the node's current absolute transformation
+		Matrix4x4<float> invTrans(toWorld, Matrix4x4<float>::EM4CONST_INVERSE);
+		//invTrans.makeInverse();
+		frustum.Transform(invTrans);
+
+		Vector3<float> edges[8];
+		node->GetBoundingBox().GetEdges(edges);
+
+		for (int i = 0; i< ViewFrustum::VF_PLANE_COUNT; ++i)
+		{
+			bool boxInFrustum = false;
+			for (unsigned int j = 0; j<8; ++j)
+			{
+				if (frustum.Planes[i].ClassifyPointRelation(edges[j]) != ISREL3D_FRONT)
+				{
+					boxInFrustum = true;
+					break;
+				}
+			}
+
+			if (!boxInFrustum)
+			{
+				isVisible = true;
+				break;
+			}
+		}
+	}
+	*/
+	return isVisible;
+}
+
 void Scene::NewRenderComponentDelegate(BaseEventDataPtr pEventData)
 {
     eastl::shared_ptr<EventDataNewRenderComponent> pCastEventData = 
@@ -508,13 +571,11 @@ void Scene::NewRenderComponentDelegate(BaseEventDataPtr pEventData)
     eastl::shared_ptr<Node> pSceneNode(pCastEventData->GetSceneNode());
 
     // FUTURE WORK: Add better error handling here.	
-	/*
     if (FAILED(pSceneNode->OnRestore(this)))
     {
         LogError(eastl::string("Failed to restore scene node to the scene for actorid ") + eastl::to_string(actorId));
         return;
     }
-	*/
     AddSceneNode(actorId, pSceneNode);
 }
 
@@ -529,7 +590,6 @@ void Scene::ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData)
 		LogError("ModifiedRenderComponentDelegate - unknown actor id!");
 		return;
 	}
-	/*
 	if (GameLogic::Get()->GetState()==BGS_LOADINGGAMEENVIRONMENT)
 		return;
 
@@ -540,7 +600,6 @@ void Scene::ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData)
     {
 		LogError(eastl::string("Failed to restore scene node to the scene for actorid ") + eastl::to_string(actorId));
     }
-	*/
 }
 
 void Scene::DestroyActorDelegate(BaseEventDataPtr pEventData)
@@ -559,104 +618,8 @@ void Scene::MoveActorDelegate(BaseEventDataPtr pEventData)
     const Transform& transform = pCastEventData->GetTransform();
 
     eastl::shared_ptr<Node> pNode = GetSceneNode(id);
+	/*
     if (pNode)
 		pNode->SetTransform(&transform);
-}
-
-//
-// Scene::RenderAlphaPass			- Chapter 16, page 543
-//
-void Scene::RenderAlphaPass()
-{
-/*
-	eastl::shared_ptr<BaseRenderState> alphaPass = mRenderer->PrepareAlphaPass();
-
-	mAlphaSceneNodes.sort();
-	while (!mAlphaSceneNodes.empty())
-	{
-		AlphaSceneNodes::reverse_iterator i = mAlphaSceneNodes.rbegin();
-		PushAndSetMatrix((*i)->mConcat);
-		(*i)->mNode->VRender(this);
-		delete (*i);
-		PopMatrix();
-		mAlphaSceneNodes.pop_back();
-	}
-*/
-}
-
-
-//
-// Scene::IsCulled				- Chapter 16, page 533
-//	
-bool Scene::IsCulled(Node* node)
-{
-	return true;
-	/*
-	if (!node->Get()->IsVisible())
-		return true;
-	
-	// transform the location of this node into the camera space 
-	// of the camera attached to the scene
-
-	matrix4 toWorld, fromWorld;
-	GetActiveCamera()->Get()->Transform(&toWorld, &fromWorld);
-	ViewFrustum frustum(GetActiveCamera()->GetViewFrustum());
-
-	bool isVisible = false;
-
-	// has occlusion query information
-	if (node->Get()->GetAutomaticCulling() & EAC_OCC_QUERY)
-	{
-		isVisible = 
-			(mRenderer->GetOcclusionQueryResult(GetSceneNode(node->Get()->ActorId()))==0);
-	}
-
-	// can be seen by a bounding box ?
-	if (!isVisible && (node->Get()->GetAutomaticCulling() & EAC_BOX))
-	{
-		AABBox3<float> tbox = node->GetBoundingBox();
-		toWorld.TransformBoxEx(tbox);
-		isVisible = !(tbox.IntersectsWithBox(frustum.GetBoundingBox()));
-	}
-
-	// can be seen by a bounding sphere
-	if (!isVisible && (node->Get()->GetAutomaticCulling() & EAC_FRUSTUM_SPHERE))
-	{ // requires bbox diameter
-	}
-
-	// can be seen by cam pyramid planes ?
-	if (!isVisible && (node->Get()->GetAutomaticCulling() & EAC_FRUSTUM_BOX))
-	{
-		//transform the frustum to the node's current absolute transformation
-		matrix4 invTrans(toWorld, matrix4::EM4CONST_INVERSE);
-		//invTrans.makeInverse();
-		frustum.Transform(invTrans);
-
-		Vector3<float> edges[8];
-		node->GetBoundingBox().GetEdges(edges);
-
-		for (int i=0; i< ViewFrustum::VF_PLANE_COUNT; ++i)
-		{
-			bool boxInFrustum=false;
-			for (unsigned int j=0; j<8; ++j)
-			{
-				if (frustum.Planes[i].ClassifyPointRelation(edges[j]) != ISREL3D_FRONT)
-				{
-					boxInFrustum=true;
-					break;
-				}
-			}
-
-			if (!boxInFrustum)
-			{
-				isVisible = true;
-				break;
-			}
-		}
-	}
-	return isVisible;
 	*/
 }
-
-
-

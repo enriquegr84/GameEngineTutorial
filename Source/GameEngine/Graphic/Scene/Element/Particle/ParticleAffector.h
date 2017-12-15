@@ -8,7 +8,7 @@
 #include "Graphic/Effect/Particle.h"
 
 //! Types of built in particle affectors
-enum ParticleAffectorType
+enum GRAPHIC_ITEM ParticleAffectorType
 {
 	PAT_NONE = 0,
 	PAT_ATTRACT,

@@ -943,6 +943,24 @@
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorTexture.cpp">
       <Filter>Graphic\Scene\Element\Animator</Filter>
     </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\RootNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Controller\BlendTransformController.cpp">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Controller\KeyframeController.cpp">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Controller\SkinController.cpp">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Controller\TransformController.cpp">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Resource\Buffer\MeshBuffer.cpp">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -2218,12 +2236,6 @@
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\AnimatedMesh.h">
       <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\Mesh.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshBuffer.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshCache.h">
       <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClInclude>
@@ -2295,6 +2307,45 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorTexture.h">
       <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Resource\Buffer\MeshBuffer.h">
+      <Filter>Graphic\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Geometric\AlignedBox.h">
+      <Filter>Mathematic\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\Mesh.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\RootNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Geometric\Frustum.h">
+      <Filter>Mathematic\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Controller\BlendTransformController.h">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Controller\KeyframeController.h">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Controller\SkinController.h">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Controller\TransformController.h">
+      <Filter>Graphic\Scene\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Utility\Array2.h">
+      <Filter>Core\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Utility\Array3.h">
+      <Filter>Core\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Utility\Array4.h">
+      <Filter>Core\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\StandardMesh.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

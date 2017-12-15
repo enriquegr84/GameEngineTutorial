@@ -74,7 +74,7 @@ public:
 	unsigned int GetMaterialCount() const;
 
 	//! returns the axis aligned bounding box of this node
-	const AABBox3<float>& GetBoundingBox() const;
+	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! Sets if the particles should be global. If they are, the particles are affected by
 	//! the movement of the particle system scene node too, otherwise they completely
@@ -90,7 +90,7 @@ public:
 	void DoParticleSystem(unsigned int time);
 
 	//! Returns type of the scene node
-	E_SCENE_NODE_TYPE GetType() const { return ESNT_PARTICLE_SYSTEM; } 
+	NodeType GetType() const { return ESNT_PARTICLE_SYSTEM; } 
 
 	//! Creates a particle emitter for an animated mesh scene node
 	ParticleAnimatedMeshSceneNodeEmitter* CreateAnimatedMeshNodeEmitter(
@@ -106,7 +106,7 @@ public:
 
 	//! Creates a box particle emitter.
 	ParticleBoxEmitter* CreateBoxEmitter(
-		const AABBox3<float>& box = AABBox3<float>{ -10.f,0.f,-10.f,5.f,30.f,10.f },
+		const AlignedBox3<float>& box = AlignedBox3<float>{ -10.f,0.f,-10.f,5.f,30.f,10.f },
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
 		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{255.f, 0.f, 0.f, 0.f},
@@ -208,13 +208,13 @@ private:
 	unsigned int mLastEmitTime;
 	int mMaxParticles;
 
-	enum E_PARTICLES_PRIMITIVE
+	enum GRAPHIC_ITEM ParticlePrimitive
 	{
-		EPP_POINT=0,
-		EPP_BILLBOARD,
-		EPP_POINTSPRITE
+		PP_POINT=0,
+		PP_BILLBOARD,
+		PP_POINTSPRITE
 	};
-	E_PARTICLES_PRIMITIVE mParticlePrimitive;
+	ParticlePrimitive mParticlePrimitive;
 
 	bool mParticlesAreGlobal;
 };

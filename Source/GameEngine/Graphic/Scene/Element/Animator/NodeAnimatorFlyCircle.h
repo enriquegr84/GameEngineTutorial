@@ -20,7 +20,7 @@ public:
 	virtual void AnimateNode(Node* node, unsigned int timeMs);
 
 	//! Returns type of the scene node animator
-	virtual E_SCENE_NODE_ANIMATOR_TYPE GetType() const { return ESNAT_FLY_CIRCLE; }
+	virtual NodeAnimatorType GetType() const { return ESNAT_FLY_CIRCLE; }
 
 	//! Creates a clone of this animator.
 	virtual NodeAnimator* CreateClone(Node* node);

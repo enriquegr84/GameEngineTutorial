@@ -2,46 +2,46 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#ifndef _PARTICLE_H_INCLUDED_
-#define _PARTICLE_H_INCLUDED_
+#ifndef PARTICLE_H
+#define PARTICLE_H
 
-#include "Utilities/Vector3.h"
-#include "Utilities/dimension2.h"
-#include "Utilities/Color.h"
+#include "Graphic/GraphicStd.h"
+
+#include "Mathematic/Algebra/Vector3.h"
 
 //! Struct for holding particle data
-struct Particle
+struct GRAPHIC_ITEM Particle
 {
 	//! Position of the particle
-	Vector3<float> pos;
+	Vector3<float> mPos;
 
 	//! Direction and speed of the particle
-	Vector3<float> vector;
+	Vector3<float> mVector;
 
 	//! Start life time of the particle
-	unsigned int startTime;
+	unsigned int mStartTime;
 
 	//! End life time of the particle
-	unsigned int endTime;
+	unsigned int mEndTime;
 
 	//! Current color of the particle
-	Color color;
+	eastl::array<float, 4> mColor;
 
 	//! Original color of the particle.
 	/** That's the color of the particle it had when it was emitted. */
-	Color startColor;
+	eastl::array<float, 4> mStartColor;
 
 	//! Original direction and speed of the particle.
 	/** The direction and speed the particle had when it was emitted. */
-	Vector3<float> startVector;
+	Vector3<float> mStartVector;
 
 	//! Scale of the particle.
 	/** The current scale of the particle. */
-	Vector2<float> size;
+	Vector2<float> mSize;
 
 	//! Original scale of the particle.
 	/** The scale of the particle when it was emitted. */
-	Vector2<float> startSize;
+	Vector2<float> mStartSize;
 };
 
 #endif

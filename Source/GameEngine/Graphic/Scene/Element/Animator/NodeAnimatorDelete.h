@@ -20,7 +20,7 @@ public:
 	virtual void AnimateNode(Node* node, unsigned int timeMs);
 
 	//! Returns type of the scene node animator
-	virtual E_SCENE_NODE_ANIMATOR_TYPE GetType() const { return ESNAT_DELETION; }
+	virtual NodeAnimatorType GetType() const { return ESNAT_DELETION; }
 
 	virtual bool HasFinished(void) const { return mHasFinished; }
 

@@ -66,7 +66,7 @@ SkyNode::SkyNode(const char *pTextureBaseName)
 HRESULT SkyNode::VPreRender(Scene *pScene)
 {
 	Vector3<float> cameraPos = m_camera->VGet()->ToWorld().GetPosition();
-	matrix4 mat = m_Props.ToWorld();
+	Matrix4x4<float> mat = m_Props.ToWorld();
 	mat.SetPosition(cameraPos);
 	VSetTransform(&mat);
 
@@ -157,9 +157,9 @@ HRESULT D3DSkyNode9::VOnRestore(Scene *pScene)
 	normal = edge1.Cross(edge2);
 	normal.Normalize();
 
-	matrix4 rotY;
+	Matrix4x4<float> rotY;
 	rotY.BuildRotationY(GE_PI/2.0f);
-	matrix4 rotX;
+	Matrix4x4<float> rotX;
 	rotX.BuildRotationX(-GE_PI/2.0f);
 	
 	m_sides = 5;
@@ -313,9 +313,9 @@ HRESULT D3DSkyNode11::VOnRestore(Scene *pScene)
 	normal = edge1.Cross(edge2);
 	normal.Normalize();
 
-	matrix4 rotY;
+	Matrix4x4<float> rotY;
 	rotY.BuildRotationY(GE_PI/2.0f);
-	matrix4 rotX;
+	Matrix4x4<float> rotX;
 	rotX.BuildRotationX(-GE_PI/2.0f);
 	
 	m_sides = 5;

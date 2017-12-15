@@ -10,10 +10,12 @@
 //----------------------------------------------------------------------------
 
 LightManager::LightManager()
-{
+	: mMode(NO_MANAGEMENT), mRequestedMode(NO_MANAGEMENT),
+	mSceneLightList(0), mCurrentRenderPass(RP_NONE), mCurrentSceneNode(0)
+{ 
 	/*
 	mEngine->SetClearColor({ 0.0f, 0.25f, 0.75f, 1.0f });
-	mWireState = std::make_shared<RasterizerState>();
+	mWireState = eastl::make_shared<RasterizerState>();
 	mWireState->fillMode = RasterizerState::FILL_WIREFRAME;
 
 	CreateScene();
@@ -35,12 +37,12 @@ void LightManager::CalculateLighting(Scene *pScene)
 {
 	/*
 	// FUTURE WORK: There might be all kinds of things you'd want to do here for optimization, especially turning off lights on actors that can't be seen, etc.
-	pScene->GetRenderer()->VCalcLighting(&m_Lights, MAXIMUM_LIGHTS_SUPPORTED);
+	pScene->GetRenderer()->CalculateLighting(&mLights, MAXIMUM_LIGHTS_SUPPORTED);
 
 	int count = 0;
 
-	LogAssertion(m_Lights.size() < MAXIMUM_LIGHTS_SUPPORTED);
-	for (Lights::iterator i = m_Lights.begin(); i != m_Lights.end(); ++i, ++count)
+	LogAssertion(mLights.size() < MAXIMUM_LIGHTS_SUPPORTED);
+	for (Lights::iterator i = mLights.begin(); i != mLights.end(); ++i, ++count)
 	{
 	shared_ptr<LightNode> light = *i;
 
@@ -48,12 +50,12 @@ void LightManager::CalculateLighting(Scene *pScene)
 	{
 	// Light 0 is the only one we use for ambient lighting. The rest are ignored in the simple shaders used for GameCode4.
 	Color ambient = light->VGet()->GetMaterial().GetAmbient();
-	m_vLightAmbient = D3DXVECTOR4(ambient.r, ambient.g, ambient.b, 1.0f);
+	mLightAmbient = D3DXVECTOR4(ambient.r, ambient.g, ambient.b, 1.0f);
 	}
 
 	Vec3 lightDir = light->GetDirection();
-	m_vLightDir[count] = D3DXVECTOR4(lightDir.x, lightDir.y, lightDir.z, 1.0f);
-	m_vLightDiffuse[count] = light->VGet()->GetMaterial().GetDiffuse();
+	mLightDir[count] = D3DXVECTOR4(lightDir.x, lightDir.y, lightDir.z, 1.0f);
+	mLightDiffuse[count] = light->VGet()->GetMaterial().GetDiffuse();
 	}
 	*/
 }
@@ -71,6 +73,152 @@ void LightManager::CalculateLighting(Lighting* pLighting, Node *pNode)
 	pLighting->mNumLights = count;
 	}
 	*/
+}
+/*
+// The input receiver interface, which just switches light management strategy
+bool LightManager::OnEvent(const Event & event)
+{
+	bool handled = false;
+
+	if (event.mEventType == ET_KEY_INPUT_EVENT && event.mKeyInput.mPressedDown)
+	{
+		handled = true;
+		switch (event.mKeyInput.mKey)
+		{
+		case KEY_KEY_1:
+			mRequestedMode = NO_MANAGEMENT;
+			break;
+		case KEY_KEY_2:
+			mRequestedMode = LIGHTS_NEAREST_NODE;
+			break;
+		case KEY_KEY_3:
+			mRequestedMode = LIGHTS_IN_ZONE;
+			break;
+		default:
+			handled = false;
+			break;
+		}
+
+		if (NO_MANAGEMENT == mRequestedMode)
+			SceneManager->SetLightManager(0); // Show that it's safe to register the light manager
+		else
+			SceneManager->SetLightManager(this);
+	}
+
+	return handled;
+}
+*/
+
+// This is called before the first scene node is rendered.
+void LightManager::OnPreRender(eastl::vector<Node*> & lightList)
+{
+	// Update the mode; changing it here ensures that it's consistent throughout a render
+	mMode = mRequestedMode;
+
+	// Store the light list. I am free to alter this list until the end of OnPostRender().
+	mSceneLightList = &lightList;
+}
+
+// Called after the last scene node is rendered.
+void LightManager::OnPostRender()
+{
+	// Since light management might be switched off in the event handler, we'll turn all
+	// lights on to ensure that they are in a consistent state. You wouldn't normally have
+	// to do this when using a light manager, since you'd continue to do light management
+	// yourself.
+	for (unsigned int i = 0; i < mSceneLightList->size(); i++)
+		(*mSceneLightList)[i]->SetVisible(true);
+}
+
+void LightManager::OnRenderPassPreRender(RenderPass renderPass)
+{
+	// I don't have to do anything here except remember which render pass I am in.
+	mCurrentRenderPass = renderPass;
+}
+
+void LightManager::OnRenderPassPostRender(RenderPass renderPass)
+{
+	// I only want solid nodes to be lit, so after the solid pass, turn all lights off.
+	if (RP_SOLID == renderPass)
+		for (unsigned int i = 0; i < mSceneLightList->size(); ++i)
+			(*mSceneLightList)[i]->SetVisible(false);
+}
+
+// This is called before the specified scene node is rendered
+void LightManager::OnNodePreRender(Node* node)
+{
+	mCurrentSceneNode = node;
+
+	// This light manager only considers solid objects, but you are free to manipulate
+	// lights during any phase, depending on your requirements.
+	if (RP_SOLID != mCurrentRenderPass)
+		return;
+
+	// And in fact for this example, I only want to consider lighting for cube scene
+	// nodes.  You will probably want to deal with lighting for (at least) mesh /
+	// animated mesh scene nodes as well.
+	if (node->GetType() != NT_CUBE)
+		return;
+
+	if (LIGHTS_NEAREST_NODE == mMode)
+	{
+		// This is a naive implementation that prioritises every light in the scene
+		// by its proximity to the node being rendered.  This produces some flickering
+		// when lights orbit closer to a cube than its 'zone' lights.
+
+		// const Vector3<float> nodePosition = node->GetAbsolutePosition();
+
+		// Sort the light list by prioritising them based on their distance from the node
+		// that's about to be rendered.
+		eastl::vector<LightDistanceElement> sortingArray(mSceneLightList->size());
+
+		unsigned int i;
+		for (i = 0; i < mSceneLightList->size(); ++i)
+		{
+			Node* lightNode = (*mSceneLightList)[i];
+			/*
+			const float distance = lightNode->GetAbsolutePosition().GetDistanceFromSQ(nodePosition);
+			sortingArray.push_back(LightDistanceElement(lightNode, distance));
+			*/
+		}
+
+		eastl::sort(sortingArray.begin(), sortingArray.end());
+
+		// The list is now sorted by proximity to the node.
+		// Turn on the three nearest lights, and turn the others off.
+		for (i = 0; i < sortingArray.size(); ++i)
+			sortingArray[i].node->SetVisible(i < 3);
+	}
+	else if (LIGHTS_IN_ZONE == mMode)
+	{
+		// Empty scene nodes are used to represent 'zones'.  For each solid mesh that
+		// is being rendered, turn off all lights, then find its 'zone' parent, and turn
+		// on all lights that are found under that node in the scene graph.
+		// This is a general purpose algorithm that doesn't use any special
+		// knowledge of how this particular scene graph is organised.
+		for (unsigned int i = 0; i < mSceneLightList->size(); ++i)
+		{
+			if ((*mSceneLightList)[i]->GetType() != NT_LIGHT)
+				continue;
+			Node* lightNode = static_cast<Node*>((*mSceneLightList)[i]);
+			/*
+			Light & lightData = lightNode->GetLightData();
+
+			if (LT_DIRECTIONAL != lightData.Type)
+				lightNode->SetVisible(false);
+			*/
+		}
+
+		Node * parentZone = FindZone(node);
+		if (parentZone)
+			TurnOnZoneLights(parentZone);
+	}
+}
+
+// Called after the specified scene node is rendered
+void LightManager::OnNodePostRender(Node* node)
+{
+	// I don't need to do any light management after individual node rendering.
 }
 
 /*

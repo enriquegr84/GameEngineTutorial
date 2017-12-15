@@ -83,23 +83,23 @@ public:
     // set explicitly by the client.
     inline MeshDescription(MeshTopology inTopology, uint32_t inNumRows, uint32_t inNumCols);
 
-    MeshTopology topology;
-    uint32_t numVertices;
-    uint32_t numTriangles;
-    eastl::vector<VertexAttribute> vertexAttributes;
-    IndexAttribute indexAttribute;
-    bool wantDynamicTangentSpaceUpdate;  // default: false
-    bool wantCCW;  // default: true
+    MeshTopology mTopology;
+    uint32_t mNumVertices;
+    uint32_t mNumTriangles;
+    eastl::vector<VertexAttribute> mVertexAttributes;
+    IndexAttribute mIndexAttribute;
+    bool mWantDynamicTangentSpaceUpdate;  // default: false
+    bool mWantCCW;  // default: true
 
     // For internal use only.
-    bool hasTangentSpaceVectors;
-    bool allowUpdateFrame;
-    uint32_t numRows, numCols;
-    uint32_t rMax, cMax, rIncrement;
+    bool mHasTangentSpaceVectors;
+    bool mAllowUpdateFrame;
+    uint32_t mNumRows, mNumCols;
+    uint32_t mRMax, mCMax, mRIncrement;
 
     // After an attempt to construct a Mesh or Mesh-derived object, examine
     // this value to determine whether the construction was successful.
-    bool constructed;
+    bool mConstructed;
 };
 
 /*
@@ -200,93 +200,93 @@ protected:
 
 inline MeshDescription::MeshDescription(uint32_t inNumVertices, uint32_t inNumTriangles)
     :
-    topology(MeshTopology::ARBITRARY),
-    numVertices(inNumVertices),
-    numTriangles(inNumTriangles),
-    wantDynamicTangentSpaceUpdate(false),
-    wantCCW(true),
-    hasTangentSpaceVectors(false),
-    allowUpdateFrame(false),
-    numRows(0),
-    numCols(0),
-    rMax(0),
-    cMax(0),
-    rIncrement(0),
-    constructed(false)
+    mTopology(MeshTopology::ARBITRARY),
+    mNumVertices(inNumVertices),
+    mNumTriangles(inNumTriangles),
+    mWantDynamicTangentSpaceUpdate(false),
+    mWantCCW(true),
+    mHasTangentSpaceVectors(false),
+    mAllowUpdateFrame(false),
+    mNumRows(0),
+    mNumCols(0),
+    mRMax(0),
+    mCMax(0),
+    mRIncrement(0),
+    mConstructed(false)
 {
-    LogAssert(numVertices >= 3, "Invalid number of vertices.");
-    LogAssert(numTriangles >= 1, "Invalid number of triangles.");
+    LogAssert(mNumVertices >= 3, "Invalid number of vertices.");
+    LogAssert(mNumTriangles >= 1, "Invalid number of triangles.");
 }
 
 inline MeshDescription::MeshDescription(MeshTopology inTopology, uint32_t inNumRows, uint32_t inNumCols)
     :
-    topology(inTopology),
-    wantDynamicTangentSpaceUpdate(false),
-    wantCCW(true),
-    hasTangentSpaceVectors(false),
-    allowUpdateFrame(false),
-    constructed(false)
+    mTopology(inTopology),
+    mWantDynamicTangentSpaceUpdate(false),
+    mWantCCW(true),
+    mHasTangentSpaceVectors(false),
+    mAllowUpdateFrame(false),
+    mConstructed(false)
 {
-    switch (topology)
+    switch (mTopology)
     {
     case MeshTopology::ARBITRARY:
-        numVertices = inNumRows;
-        numTriangles = inNumCols;
-        numRows = 0;
-        numCols = 0;
-        rMax = 0;
-        cMax = 0;
-        rIncrement = 0;
+        mNumVertices = inNumRows;
+        mNumTriangles = inNumCols;
+        mNumRows = 0;
+        mNumCols = 0;
+        mRMax = 0;
+        mCMax = 0;
+        mRIncrement = 0;
         break;
 
     case MeshTopology::RECTANGLE:
-        numRows = eastl::max(inNumRows, 2u);
-        numCols = eastl::max(inNumCols, 2u);
-        rMax = numRows - 1;
-        cMax = numCols - 1;
-        rIncrement = numCols;
-        numVertices = (rMax + 1) * (cMax + 1);
-        numTriangles = 2 * rMax * cMax;
+        mNumRows = eastl::max(inNumRows, 2u);
+        mNumCols = eastl::max(inNumCols, 2u);
+        mRMax = mNumRows - 1;
+        mCMax = mNumCols - 1;
+        mRIncrement = mNumCols;
+        mNumVertices = (mRMax + 1) * (mCMax + 1);
+        mNumTriangles = 2 * mRMax * mCMax;
         break;
 
     case MeshTopology::CYLINDER:
-        numRows = eastl::max(inNumRows, 2u);
-        numCols = eastl::max(inNumCols, 3u);
-        rMax = numRows - 1;
-        cMax = numCols;
-        rIncrement = numCols + 1;
-        numVertices = (rMax + 1) * (cMax + 1);
-        numTriangles = 2 * rMax * cMax;
+        mNumRows = eastl::max(inNumRows, 2u);
+        mNumCols = eastl::max(inNumCols, 3u);
+        mRMax = mNumRows - 1;
+        mCMax = mNumCols;
+        mRIncrement = mNumCols + 1;
+        mNumVertices = (mRMax + 1) * (mCMax + 1);
+        mNumTriangles = 2 * mRMax * mCMax;
         break;
 
     case MeshTopology::TORUS:
-        numRows = eastl::max(inNumRows, 2u);
-        numCols = eastl::max(inNumCols, 3u);
-        rMax = numRows;
-        cMax = numCols;
-        rIncrement = numCols + 1;
-        numVertices = (rMax + 1) * (cMax + 1);
-        numTriangles = 2 * rMax * cMax;
+        mNumRows = eastl::max(inNumRows, 2u);
+        mNumCols = eastl::max(inNumCols, 3u);
+        mRMax = mNumRows;
+        mCMax = mNumCols;
+        mRIncrement = mNumCols + 1;
+        mNumVertices = (mRMax + 1) * (mCMax + 1);
+        mNumTriangles = 2 * mRMax * mCMax;
         break;
 
     case MeshTopology::DISK:
-        numRows = eastl::max(inNumRows, 1u);
-        numCols = eastl::max(inNumCols, 3u);
-        rMax = numRows - 1;
-        cMax = numCols;
-        rIncrement = numCols + 1;
-        numVertices = (rMax + 1) * (cMax + 1) + 1;
-        numTriangles = 2 * rMax * cMax + numCols;
+        mNumRows = eastl::max(inNumRows, 1u);
+        mNumCols = eastl::max(inNumCols, 3u);
+        mRMax = mNumRows - 1;
+        mCMax = mNumCols;
+        mRIncrement = mNumCols + 1;
+        mNumVertices = (mRMax + 1) * (mCMax + 1) + 1;
+        mNumTriangles = 2 * mRMax * mCMax + mNumCols;
         break;
 
     case MeshTopology::SPHERE:
-        numRows = eastl::max(inNumRows, 1u);
-        numCols = eastl::max(inNumCols, 3u);
-        rMax = numRows - 1;
-        cMax = numCols;
-        rIncrement = numCols + 1;
-        numVertices = (rMax + 1) * (cMax + 1) + 2;
-        numTriangles = 2 * rMax * cMax + 2 * numCols;
+        mNumRows = eastl::max(inNumRows, 1u);
+        mNumCols = eastl::max(inNumCols, 3u);
+        mRMax = mNumRows - 1;
+        mCMax = mNumCols;
+        mRIncrement = mNumCols + 1;
+        mNumVertices = (mRMax + 1) * (mCMax + 1) + 2;
+        mNumTriangles = 2 * mRMax * mCMax + 2 * mNumCols;
         break;
     }
 }
@@ -310,27 +310,27 @@ Mesh<Real>::Mesh(MeshDescription const& description, eastl::vector<MeshTopology>
     mDPDVStride(0),
     mTCoordStride(0)
 {
-    mDescription.constructed = false;
+    mDescription.mConstructed = false;
     for (auto const& topology : validTopologies)
     {
-        if (mDescription.topology == topology)
+        if (mDescription.mTopology == topology)
         {
-            mDescription.constructed = true;
+            mDescription.mConstructed = true;
             break;
         }
     }
 
-    if (!mDescription.indexAttribute.source)
+    if (!mDescription.mIndexAttribute.source)
     {
         LogError("The mesh needs triangles/indices.");
-        mDescription.constructed = false;
+        mDescription.mConstructed = false;
         return;
     }
 
     // Set sources for the requested vertex attributes.
-    mDescription.hasTangentSpaceVectors = false;
-    mDescription.allowUpdateFrame = mDescription.wantDynamicTangentSpaceUpdate;
-    for (auto const& attribute : mDescription.vertexAttributes)
+    mDescription.mHasTangentSpaceVectors = false;
+    mDescription.mAllowUpdateFrame = mDescription.mWantDynamicTangentSpaceUpdate;
+    for (auto const& attribute : mDescription.mVertexAttributes)
     {
         if (attribute.source != nullptr && attribute.stride > 0)
         {
@@ -352,7 +352,7 @@ Mesh<Real>::Mesh(MeshDescription const& description, eastl::vector<MeshTopology>
             {
                 mTangents = reinterpret_cast<Vector3<Real>*>(attribute.source);
                 mTangentStride = attribute.stride;
-                mDescription.hasTangentSpaceVectors = true;
+                mDescription.mHasTangentSpaceVectors = true;
                 continue;
             }
 
@@ -360,7 +360,7 @@ Mesh<Real>::Mesh(MeshDescription const& description, eastl::vector<MeshTopology>
             {
                 mBitangents = reinterpret_cast<Vector3<Real>*>(attribute.source);
                 mBitangentStride = attribute.stride;
-                mDescription.hasTangentSpaceVectors = true;
+                mDescription.mHasTangentSpaceVectors = true;
                 continue;
             }
 
@@ -368,7 +368,7 @@ Mesh<Real>::Mesh(MeshDescription const& description, eastl::vector<MeshTopology>
             {
                 mDPDUs = reinterpret_cast<Vector3<Real>*>(attribute.source);
                 mDPDUStride = attribute.stride;
-                mDescription.hasTangentSpaceVectors = true;
+                mDescription.mHasTangentSpaceVectors = true;
                 continue;
             }
 
@@ -376,7 +376,7 @@ Mesh<Real>::Mesh(MeshDescription const& description, eastl::vector<MeshTopology>
             {
                 mDPDVs = reinterpret_cast<Vector3<Real>*>(attribute.source);
                 mDPDVStride = attribute.stride;
-                mDescription.hasTangentSpaceVectors = true;
+                mDescription.mHasTangentSpaceVectors = true;
                 continue;
             }
 
@@ -406,7 +406,7 @@ Mesh<Real>::Mesh(MeshDescription const& description, eastl::vector<MeshTopology>
         mDPDUStride = 0;
         mDPDVStride = 0;
         mTCoordStride = 0;
-        mDescription.constructed = false;
+        mDescription.mConstructed = false;
         return;
     }
 
@@ -416,23 +416,23 @@ Mesh<Real>::Mesh(MeshDescription const& description, eastl::vector<MeshTopology>
     // necessary.  If tangent-space vectors are present, the update algorithm
     // requires texture coordinates (mTCoords must be nonnull) or must compute
     // local coordinates (mNormals must be nonnull).
-    if (mDescription.allowUpdateFrame)
+    if (mDescription.mAllowUpdateFrame)
     {
-        if (!mDescription.hasTangentSpaceVectors)
+        if (!mDescription.mHasTangentSpaceVectors)
         {
-            mDescription.allowUpdateFrame = false;
+            mDescription.mAllowUpdateFrame = false;
         }
 
         if (!mTCoords && !mNormals)
         {
-            mDescription.allowUpdateFrame = false;
+            mDescription.mAllowUpdateFrame = false;
         }
     }
 
-    if (mDescription.allowUpdateFrame)
+    if (mDescription.mAllowUpdateFrame)
     {
-        mUTU.resize(mDescription.numVertices);
-        mDTU.resize(mDescription.numVertices);
+        mUTU.resize(mDescription.mNumVertices);
+        mDTU.resize(mDescription.mNumVertices);
     }
 }
 
@@ -450,7 +450,7 @@ inline MeshDescription const& Mesh<Real>::GetDescription() const
 template <typename Real>
 void Mesh<Real>::Update()
 {
-    if (!mDescription.constructed)
+    if (!mDescription.mConstructed)
     {
         LogError("The Mesh object failed the construction.");
         return;
@@ -458,7 +458,7 @@ void Mesh<Real>::Update()
 
     UpdatePositions();
 
-    if (mDescription.allowUpdateFrame)
+    if (mDescription.mAllowUpdateFrame)
     {
         UpdateFrame();
     }
@@ -522,68 +522,68 @@ template <typename Real>
 void Mesh<Real>::ComputeIndices()
 {
     uint32_t t = 0;
-    for (uint32_t r = 0, i = 0; r < mDescription.rMax; ++r)
+    for (uint32_t r = 0, i = 0; r < mDescription.mRMax; ++r)
     {
         uint32_t v0 = i, v1 = v0 + 1;
-        i += mDescription.rIncrement;
+        i += mDescription.mRIncrement;
         uint32_t v2 = i, v3 = v2 + 1;
-        for (uint32_t c = 0; c < mDescription.cMax; ++c, ++v0, ++v1, ++v2, ++v3)
+        for (uint32_t c = 0; c < mDescription.mCMax; ++c, ++v0, ++v1, ++v2, ++v3)
         {
-            if (mDescription.wantCCW)
+            if (mDescription.mWantCCW)
             {
-                mDescription.indexAttribute.SetTriangle(t++, v0, v1, v2);
-                mDescription.indexAttribute.SetTriangle(t++, v1, v3, v2);
+                mDescription.mIndexAttribute.SetTriangle(t++, v0, v1, v2);
+                mDescription.mIndexAttribute.SetTriangle(t++, v1, v3, v2);
             }
             else
             {
-                mDescription.indexAttribute.SetTriangle(t++, v0, v2, v1);
-                mDescription.indexAttribute.SetTriangle(t++, v1, v2, v3);
+                mDescription.mIndexAttribute.SetTriangle(t++, v0, v2, v1);
+                mDescription.mIndexAttribute.SetTriangle(t++, v1, v2, v3);
             }
         }
     }
 
-    if (mDescription.topology == MeshTopology::DISK)
+    if (mDescription.mTopology == MeshTopology::DISK)
     {
-        uint32_t v0 = 0, v1 = 1, v2 = mDescription.numVertices - 1;
-        for (unsigned int c = 0; c < mDescription.numCols; ++c, ++v0, ++v1)
+        uint32_t v0 = 0, v1 = 1, v2 = mDescription.mNumVertices - 1;
+        for (unsigned int c = 0; c < mDescription.mNumCols; ++c, ++v0, ++v1)
         {
-            if (mDescription.wantCCW)
+            if (mDescription.mWantCCW)
             {
-                mDescription.indexAttribute.SetTriangle(t++, v0, v2, v1);
+                mDescription.mIndexAttribute.SetTriangle(t++, v0, v2, v1);
             }
             else
             {
-                mDescription.indexAttribute.SetTriangle(t++, v0, v1, v2);
+                mDescription.mIndexAttribute.SetTriangle(t++, v0, v1, v2);
             }
         }
     }
-    else if (mDescription.topology == MeshTopology::SPHERE)
+    else if (mDescription.mTopology == MeshTopology::SPHERE)
     {
-        uint32_t v0 = 0, v1 = 1, v2 = mDescription.numVertices - 2;
-        for (uint32_t c = 0; c < mDescription.numCols; ++c, ++v0, ++v1)
+        uint32_t v0 = 0, v1 = 1, v2 = mDescription.mNumVertices - 2;
+        for (uint32_t c = 0; c < mDescription.mNumCols; ++c, ++v0, ++v1)
         {
-            if (mDescription.wantCCW)
+            if (mDescription.mWantCCW)
             {
-                mDescription.indexAttribute.SetTriangle(t++, v0, v2, v1);
+                mDescription.mIndexAttribute.SetTriangle(t++, v0, v2, v1);
             }
             else
             {
-                mDescription.indexAttribute.SetTriangle(t++, v0, v1, v2);
+                mDescription.mIndexAttribute.SetTriangle(t++, v0, v1, v2);
             }
         }
 
-        v0 = (mDescription.numRows - 1) * mDescription.numCols;
+        v0 = (mDescription.mNumRows - 1) * mDescription.mNumCols;
         v1 = v0 + 1;
-        v2 = mDescription.numVertices - 1;
-        for (uint32_t c = 0; c < mDescription.numCols; ++c, ++v0, ++v1)
+        v2 = mDescription.mNumVertices - 1;
+        for (uint32_t c = 0; c < mDescription.mNumCols; ++c, ++v0, ++v1)
         {
-            if (mDescription.wantCCW)
+            if (mDescription.mWantCCW)
             {
-                mDescription.indexAttribute.SetTriangle(t++, v0, v2, v1);
+                mDescription.mIndexAttribute.SetTriangle(t++, v0, v2, v1);
             }
             else
             {
-                mDescription.indexAttribute.SetTriangle(t++, v0, v1, v2);
+                mDescription.mIndexAttribute.SetTriangle(t++, v0, v1, v2);
             }
         }
     }
@@ -597,17 +597,17 @@ void Mesh<Real>::UpdateNormals()
 
     // Set the normals to zero to allow accumulation of triangle normals.
     Vector3<Real> zero{ (Real)0, (Real)0, (Real)0 };
-    for (uint32_t i = 0; i < mDescription.numVertices; ++i)
+    for (uint32_t i = 0; i < mDescription.mNumVertices; ++i)
     {
         Normal(i) = zero;
     }
 
     // Accumulate the triangle normals.
-    for (uint32_t t = 0; t < mDescription.numTriangles; ++t)
+    for (uint32_t t = 0; t < mDescription.mNumTriangles; ++t)
     {
         // Get the positions for the triangle.
         uint32_t v0, v1, v2;
-        mDescription.indexAttribute.GetTriangle(t, v0, v1, v2);
+        mDescription.mIndexAttribute.GetTriangle(t, v0, v1, v2);
         Vector3<Real> P0 = Position(v0);
         Vector3<Real> P1 = Position(v1);
         Vector3<Real> P2 = Position(v2);
@@ -627,7 +627,7 @@ void Mesh<Real>::UpdateNormals()
     }
 
     // Normalize the normals.
-    for (uint32_t i = 0; i < mDescription.numVertices; ++i)
+    for (uint32_t i = 0; i < mDescription.mNumVertices; ++i)
     {
         Normalize(Normal(i), true);
     }
@@ -650,11 +650,11 @@ void Mesh<Real>::UpdateFrame()
     Matrix<3, 2, Real> zero3x2;  // initialized to zero
     std::fill(mUTU.begin(), mUTU.end(), zero2x2);
     std::fill(mDTU.begin(), mDTU.end(), zero3x2);
-    for (uint32_t t = 0; t < mDescription.numTriangles; ++t)
+    for (uint32_t t = 0; t < mDescription.mNumTriangles; ++t)
     {
         // Get the positions and differences for the triangle.
         uint32_t v0, v1, v2;
-        mDescription.indexAttribute.GetTriangle(t, v0, v1, v2);
+        mDescription.mIndexAttribute.GetTriangle(t, v0, v1, v2);
         Vector3<Real> P0 = Position(v0);
         Vector3<Real> P1 = Position(v1);
         Vector3<Real> P2 = Position(v2);
@@ -717,7 +717,7 @@ void Mesh<Real>::UpdateFrame()
 
     }
 
-    for (uint32_t i = 0; i < mDescription.numVertices; ++i)
+    for (uint32_t i = 0; i < mDescription.mNumVertices; ++i)
     {
         Matrix<3, 2, Real> jacobian = mDTU[i] * Inverse(mUTU[i]);
 

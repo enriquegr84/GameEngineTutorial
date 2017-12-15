@@ -44,10 +44,12 @@
 #include "Graphic/ScreenElement.h"
 #include "Graphic/Renderer/Renderer.h"
 
+#include "Mathematic/Mathematic.h"
 #include "Core/Event/EventManager.h"
 
-class Node;
-class Camera;
+#include "Graphic/Scene/Hierarchy/Node.h"
+#include "Graphic/Scene/Hierarchy/Camera.h"
+
 class LightManager;
 
 // Forward declarations
@@ -78,202 +80,6 @@ typedef eastl::vector<Node*> SceneNodeRenderList;
 //class CameraSceneNode;
 
 
-/////////////////////////////////////////////////////////////////////////////
-// enum RenderPass							- Chapter 16, page 529
-//
-//   3D scenes are drawn in passes - this enum defines the render passes
-//   supported by the 3D scene graph created by class Scene.
-/////////////////////////////////////////////////////////////////////////////
-
-//! Enumeration for render passes.
-/** A parameter passed to the registerNodeForRendering() method of the ISceneManager,
-specifying when the node wants to be drawn in relation to the other nodes. */
-enum E_RENDER_PASS
-{
-	//! No pass currently active
-	ERP_NONE = 0,
-
-	//! Camera pass. The active view is set up here. The very first pass.
-	ERP_CAMERA,
-
-	//! Static nodes
-	ERP_STATIC,
-
-	//! In this pass, lights are transformed into camera space and added to the driver
-	ERP_LIGHT,
-
-	//! This is used for sky boxes.
-	ERP_SKY_BOX,
-
-	//! Solid scene nodes or special scene nodes without materials.
-	ERP_SOLID,
-
-	//! Transparent scene nodes, drawn after solid nodes. They are sorted from back to front and drawn in that order.
-	ERP_TRANSPARENT,
-
-	//! Transparent effect scene nodes, drawn after Transparent nodes. They are sorted from back to front and drawn in that order.
-	ERP_TRANSPARENT_EFFECT,
-
-	//! Drawn after the solid nodes, before the transparent nodes, the time for drawing shadow volumes
-	ERP_SHADOW,
-
-	//! Last render pass, it doesnt do anything
-	ERP_LAST
-};
-
-//! An enumeration for all types of built-in scene node animators
-enum E_SCENE_NODE_ANIMATOR_TYPE
-{
-	//! Fly circle scene node animator
-	ESNAT_FLY_CIRCLE = 0,
-
-	//! Fly straight scene node animator
-	ESNAT_FLY_STRAIGHT,
-
-	//! Follow spline scene node animator
-	ESNAT_FOLLOW_SPLINE,
-
-	//! Rotation scene node animator
-	ESNAT_ROTATION,
-
-	//! Texture scene node animator
-	ESNAT_TEXTURE,
-
-	//! Deletion scene node animator
-	ESNAT_DELETION,
-
-	//! Amount of built-in scene node animators
-	ESNAT_COUNT,
-
-	//! Unknown scene node animator
-	ESNAT_UNKNOWN,
-
-	//! This enum is never used, it only forces the compiler to compile this enumeration to 32 bit.
-	ESNAT_FORCE_32_BIT = 0x7fffffff
-};
-
-//! An enumeration for all types of built-in scene nodes
-/** A scene node type is represented by a four character code
-such as 'cube' or 'mesh' instead of simple numbers, to avoid
-name clashes with external scene nodes.*/
-enum E_SCENE_NODE_TYPE
-{
-
-	//! simple object scene node
-	ESNT_SHAPE,
-
-	//! simple cube scene node
-	ESNT_CUBE,
-
-	//! Sphere scene node
-	ESNT_SPHERE,
-
-	//! Text Scene Node
-	ESNT_TEXT,
-
-	//! Water Surface Scene Node
-	ESNT_WATER_SURFACE,
-
-	//! Terrain Scene Node
-	ESNT_TERRAIN,
-
-	//! Sky Box Scene Node
-	ESNT_SKY_BOX,
-
-	//! Sky Dome Scene Node
-	ESNT_SKY_DOME,
-
-	//! Shadow Volume Scene Node
-	ESNT_SHADOW_VOLUME,
-
-	//! Octree Scene Node
-	ESNT_OCTREE,
-
-	//! Mesh Scene Node
-	ESNT_MESH,
-
-	//! Light Scene Node
-	ESNT_LIGHT,
-
-	//! Empty Scene Node
-	ESNT_EMPTY,
-
-	//! Dummy Transformation Scene Node
-	ESNT_DUMMY_TRANSFORMATION,
-
-	//! Camera Scene Node
-	ESNT_CAMERA,
-
-	//! Billboard Scene Node
-	ESNT_BILLBOARD,
-
-	//! Animated Mesh Scene Node
-	ESNT_ANIMATED_MESH,
-
-	//! Particle System Scene Node
-	ESNT_PARTICLE_SYSTEM,
-
-	//! Quake3 Shader Scene Node
-	ESNT_Q3SHADER,
-
-	//! Quake3 Model Scene Node ( has tag to link to )
-	ESNT_MD3,
-
-	//! Volume Light Scene Node
-	ESNT_VOLUME_LIGHT,
-
-	//! First Person Shooter Camera
-	/** Legacy, for loading version <= 1.4.x .irr files */
-	ESNT_CAMERA_FPS,
-
-	//! Unknown scene node
-	ESNT_UNKNOWN,
-
-	//! Will match with any scene node when checking types
-	ESNT_ANY
-};
-
-//! An enumeration for all types of automatic culling for built-in scene nodes
-enum E_CULLING_TYPE
-{
-	EAC_OFF = 0,
-	EAC_BOX = 1,
-	EAC_FRUSTUM_BOX = 2,
-	EAC_FRUSTUM_SPHERE = 4,
-	EAC_OCC_QUERY = 8
-};
-
-//! An enumeration for all types of debug data for built-in scene nodes (flags)
-enum E_DEBUG_SCENE_TYPE
-{
-	//! No Debug Data ( Default )
-	EDS_OFF = 0,
-
-	//! Show Bounding Boxes of SceneNode
-	EDS_BBOX = 1,
-
-	//! Show Vertex Normals
-	EDS_NORMALS = 2,
-
-	//! Shows Skeleton/Tags
-	EDS_SKELETON = 4,
-
-	//! Overlays Mesh Wireframe
-	EDS_MESH_WIRE_OVERLAY = 8,
-
-	//! Temporary use transparency Material Type
-	EDS_HALF_TRANSPARENCY = 16,
-
-	//! Show Bounding Boxes of all MeshBuffers
-	EDS_BBOX_BUFFERS = 32,
-
-	//! EDS_BBOX | EDS_BBOX_BUFFERS
-	EDS_BBOX_ALL = EDS_BBOX | EDS_BBOX_BUFFERS,
-
-	//! Show all debug infos
-	EDS_FULL = 0xffffffff
-};
-
 class Scene
 {
 protected:
@@ -283,16 +89,14 @@ protected:
 	LightManager* mLightManager;
 
 	SceneNodeActorMap mSceneNodeActors;		
-	E_RENDER_PASS mCurrentRenderPass;
+	RenderPass mCurrentRenderPass;
 	
 	eastl::array<float, 4> mShadowColor;
 	eastl::array<float, 4> mAmbientLight;
 
 	//! scene node lists
 	SceneNodeRenderList mDeletionList;
-	SceneNodeRenderList mRenderList[ERP_LAST];
-
-	void RenderAlphaPass();
+	SceneNodeRenderList mRenderList[RP_LAST];
 
 	void RemoveAll();
 	void Clear();
@@ -311,7 +115,7 @@ public:
 
 	// event delegates
 	void NewRenderComponentDelegate(BaseEventDataPtr pEventData);
-	void ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData);			// added post-press!
+	void ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData);
 	void DestroyActorDelegate(BaseEventDataPtr pEventData);
 	void MoveActorDelegate(BaseEventDataPtr pEventData);
 
@@ -319,9 +123,9 @@ public:
 	/** Can be used for doing advanced transformations
 	or structuring the scene graph.
 	\return Pointer to the created scene node. */
-	eastl::shared_ptr<Node> AddEmptyNode(const ActorId actorId,
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-		int id = -1);
+	eastl::shared_ptr<Node> AddEmptyNode(
+		WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, int id = -1);
 
 	//! Adds a cube scene node
 	/** \param size: Size of the cube, uniformly in each dimension.
@@ -334,9 +138,9 @@ public:
 	\return Pointer to the created test scene node. This
 	pointer should not be dropped. See IReferenceCounted::drop()
 	for more information. */
-	eastl::shared_ptr<Node> AddCubeNode(const ActorId actorId,
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-		float size = 10.0f, int id = -1);
+	eastl::shared_ptr<Node> AddCubeNode(
+		WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent,  float size = 10.0f, int id = -1);
 
 	//! Adds a sphere scene node of the given radius and detail
 	/** \param radius: Radius of the sphere.
@@ -353,9 +157,9 @@ public:
 	\return Pointer to the created test scene node. This
 	pointer should not be dropped. See IReferenceCounted::drop()
 	for more information. */
-	eastl::shared_ptr<Node> AddSphereNode(const ActorId actorId,
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-		float radius = 5.0f, int polyCount = 16, int id = -1);
+	eastl::shared_ptr<Node> AddSphereNode(
+		WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, float radius = 5.f, int polyCount = 16, int id = -1);
 
 	//! Adds Volume Lighting Scene Node.
 	/** Example Usage:
@@ -371,7 +175,7 @@ public:
 	}
 	\return Pointer to the volumeLight if successful, otherwise NULL.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddVolumeLightNode(const ActorId actorId,
+	eastl::shared_ptr<Node> AddVolumeLightNode(
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
 		int id = -1, const unsigned int subdivU = 32, const unsigned int subdivV = 32,
 		eastl::array<float, 4> const foot = eastl::array<float, 4>{51.f, 0.f, 230.f, 180.f}, 
@@ -394,7 +198,7 @@ public:
 	Make sure you always have one active camera.
 	\return Pointer to interface to camera if successful, otherwise 0.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddCameraNode(const ActorId actorId,
+	eastl::shared_ptr<Node> AddCameraNode(
 		WeakBaseRenderComponentPtr renderComponent, int id = -1, bool makeActive = true);
 
 	//! Adds a billboard scene node to the scene graph.
@@ -416,8 +220,9 @@ public:
 	\return Pointer to the billboard if successful, otherwise NULL.
 	This pointer should not be dropped. See
 	IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddBillboardNode(const ActorId actorId,
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id = -1, 
+	eastl::shared_ptr<Node> AddBillboardNode(
+		WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, int id = -1, 
 		const Vector2<float>& size = Vector2<float>{ 10.0f, 10.0f }, 
 		const Vector3<float>& position = Vector3<float>{ 0, 0, 0 }, 
 		eastl::array<float, 4> const colorTop = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f},
@@ -437,7 +242,7 @@ public:
 	\return Pointer to the created scene node.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 	eastl::shared_ptr<Node> AddParticleSystemNode(
-		const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
+		WeakBaseRenderComponentPtr renderComponent,
 		const eastl::shared_ptr<Node>& parent, int id = -1, bool withDefaultEmitter = true);
 
 	//! Adds a skybox scene node to the scene graph.
@@ -455,26 +260,10 @@ public:
 	\param id: An id of the node. This id can be used to identify the node.
 	\return Pointer to the sky box if successful, otherwise NULL.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddSkyBoxNode(const ActorId actorId,
+	eastl::shared_ptr<Node> AddSkyBoxNode(
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
 		const eastl::shared_ptr<Texture2>& top, const eastl::shared_ptr<Texture2>& bottom, const eastl::shared_ptr<Texture2>& left,
-		const eastl::shared_ptr<Texture2>& right, const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back,
-		int id = -1);
-
-	//! Adds a scene node for rendering an animated mesh model.
-	/** \param mesh: Pointer to the loaded animated mesh to be displayed.
-	\param parent: Parent of the scene node. Can be NULL if no parent.
-	\param id: Id of the node. This id can be used to identify the scene node.
-	\param position: Position of the space relative to its parent where the
-	scene node will be placed.
-	\param rotation: Initital rotation of the scene node.
-	\param scale: Initial scale of the scene node.
-	\param alsoAddIfMeshPointerZero: Add the scene node even if a 0 pointer is passed.
-	\return Pointer to the created scene node.
-	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddAnimatedMeshNode(const ActorId actorId,
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-		eastl::shared_ptr<AnimatedMesh> mesh, int id = -1, bool alsoAddIfMeshPointerZero = false);
+		const eastl::shared_ptr<Texture2>& right, const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back, int id = -1);
 
 	//! Adds a scene node for rendering a static mesh.
 	/** \param mesh: Pointer to the loaded static mesh to be displayed.
@@ -487,9 +276,24 @@ public:
 	\param alsoAddIfMeshPointerZero: Add the scene node even if a 0 pointer is passed.
 	\return Pointer to the created scene node.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddMeshNode(const ActorId actorId,
+	eastl::shared_ptr<Node> AddMeshNode(
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-		eastl::shared_ptr<Mesh> mesh, int id = -1, bool alsoAddIfMeshPointerZero = false);
+		eastl::shared_ptr<BaseMesh> mesh, int id = -1, bool alsoAddIfMeshPointerZero = false);
+
+	//! Adds a scene node for rendering an animated mesh model.
+	/** \param mesh: Pointer to the loaded animated mesh to be displayed.
+	\param parent: Parent of the scene node. Can be NULL if no parent.
+	\param id: Id of the node. This id can be used to identify the scene node.
+	\param position: Position of the space relative to its parent where the
+	scene node will be placed.
+	\param rotation: Initital rotation of the scene node.
+	\param scale: Initial scale of the scene node.
+	\param alsoAddIfMeshPointerZero: Add the scene node even if a 0 pointer is passed.
+	\return Pointer to the created scene node.
+	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
+	eastl::shared_ptr<Node> AddAnimatedMeshNode(
+		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+		eastl::shared_ptr<BaseAnimatedMesh> mesh, int id = -1, bool alsoAddIfMeshPointerZero = false);
 
 	//! Adds a dynamic light scene node to the scene graph.
 	/** The light will cast dynamic light on all
@@ -504,10 +308,9 @@ public:
 	\param id: id of the node. This id can be used to identify the node.
 	\return Pointer to the interface of the light if successful, otherwise NULL.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddLightNode(const ActorId actorId,
+	eastl::shared_ptr<Node> AddLightNode(
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-		eastl::array<float, 4> const color = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f},
-		float radius = 100.f);
+		eastl::array<float, 4> const color = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f}, float radius = 100.f);
 
 	//! Gets the root scene node.
 	/** This is the scene node which is parent
@@ -532,6 +335,12 @@ public:
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 	virtual eastl::shared_ptr<Node> GetSceneNode(ActorId id);
 
+	/* Check if node is culled in current view frustum. Please note that depending on the used
+	culling method this check can be rather coarse, or slow. A positive result is correct, though,
+	i.e. if this method returns true the node is positively not visible. The node might still be
+	invisible even if this method returns false.*/
+	virtual bool IsCulled(Node* node);
+
 	//! Get the current active camera.
 	/** \return The active camera is returned. Note that this can
 	be NULL, if there was no camera created yet.
@@ -544,10 +353,10 @@ public:
 	virtual void SetActiveCamera(const eastl::shared_ptr<Camera>& camera) { mCamera = camera; }
 
 	//! Get current render time.
-	E_RENDER_PASS GetCurrentRenderPass() const { return mCurrentRenderPass; }
+	RenderPass GetCurrentRenderPass() const { return mCurrentRenderPass; }
 
 	//! Set current render time.
-	void SetCurrentRenderPass(E_RENDER_PASS currentRenderPass) { mCurrentRenderPass = currentRenderPass; }
+	void SetCurrentRenderPass(RenderPass currentRenderPass) { mCurrentRenderPass = currentRenderPass; }
 
 	//! Sets ambient color of the scene
 	void SetAmbientLight(const eastl::array<float, 4>& ambientColor) { mAmbientLight = ambientColor; }
@@ -565,7 +374,7 @@ public:
 	SceneNodeRenderList& GetRenderList(unsigned int pass) { return mRenderList[pass]; }
 
 	//! Adds a scene node to the render queue.
-	void AddToRenderQueue(E_RENDER_PASS renderPass, const eastl::shared_ptr<Node>& node);
+	void AddToRenderQueue(RenderPass renderPass, const eastl::shared_ptr<Node>& node);
 
 	//! clears the render list
 	void ClearRenderList();
@@ -575,12 +384,6 @@ public:
 
 	//! clears the deletion list
 	void ClearDeletionList();
-
-	/* Check if node is culled in current view frustum. Please note that depending on the used 
-	culling method this check can be rather coarse, or slow. A positive result is correct, though, 
-	i.e. if this method returns true the node is positively not visible. The node might still be 
-	invisible even if this method returns false.*/
-	virtual bool IsCulled(Node* node);
 };
 
 

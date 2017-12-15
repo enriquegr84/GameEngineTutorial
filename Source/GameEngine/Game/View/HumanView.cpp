@@ -90,8 +90,8 @@ HumanView::HumanView()
 		mScene.reset(new ScreenElementScene());
 		/*
 		mCamera.reset(new CameraSceneNode(
-			GameLogic::Get()->GetNewActorID(), mScene.get(), Matrix4x4<float>::Identity));
-		LogAssert(m_pScene && mCamera, "Out of memory");
+			GameLogic::Get()->GetNewActorID(), mScene, Matrix4x4<float>::Identity));
+		LogAssert(mScene && mCamera, "Out of memory");
 		mCamera->SetFarValue(20000.f); // this increase a shadow visible range.
 
 		mScene->AddChild(mCamera->Get()->GetId(), mCamera);
@@ -165,7 +165,7 @@ void HumanView::OnRender(double time, float elapsedTime )
 			// Let the console render.
 			mConsole.OnRender(time, elapsedTime);
 
-			//GameLogic::Get()->RenderDiagnostics();
+			GameLogic::Get()->RenderDiagnostics();
 		}
     }
 	//renderer->PostRender();

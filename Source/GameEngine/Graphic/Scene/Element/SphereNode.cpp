@@ -31,13 +31,12 @@ SphereNode::~SphereNode()
 //! prerender
 bool SphereNode::PreRender(Scene *pScene)
 {
-	if (mProps.IsVisible())
+	if (IsVisible())
 	{
 		// because this node supports rendering of mixed mode meshes consisting of
 		// transparent and solid material at the same time, we need to go through all
 		// materials, check of what type they are and register this node for the right
 		// render pass according to that.
-		const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
 
 		int transparentCount = 0;
 		int solidCount = 0;
@@ -66,10 +65,10 @@ bool SphereNode::PreRender(Scene *pScene)
 		if (!pScene->IsCulled(this))
 		{
 			if (solidCount)
-				pScene->AddToRenderQueue(ERP_SOLID, eastl::shared_from_this());
+				pScene->AddToRenderQueue(RP_SOLID, shared_from_this());
 
 			if (transparentCount)
-				pScene->AddToRenderQueue(ERP_TRANSPARENT, eastl::shared_from_this());
+				pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
 		}
 	}
 
@@ -79,7 +78,7 @@ bool SphereNode::PreRender(Scene *pScene)
 //! renders the node.
 bool SphereNode::Render(Scene *pScene)
 {
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
@@ -135,7 +134,7 @@ const shared_ptr<ShadowVolumeNode>& SphereNode::AddShadowVolumeNode(const ActorI
 
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
 		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(), 
-		&Matrix4x4::Identity, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
+		&Matrix4x4<float>::Identity, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
 	AddChild(mShadow);
 
 	return mShadow;
@@ -143,7 +142,7 @@ const shared_ptr<ShadowVolumeNode>& SphereNode::AddShadowVolumeNode(const ActorI
 
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& SphereNode::GetBoundingBox() const
+const AlignedBox3<float>& SphereNode::GetBoundingBox() const
 {
 	return mMesh ? mMesh->GetBoundingBox() : mBBox;
 }

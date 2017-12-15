@@ -35,6 +35,7 @@ public:
     static Real Exp10(Real const& x);                   // 10^x
     static Real FAbs(Real const& x);                    // |x|
     static Real Floor(Real const& x);                   // floor(x)
+	static Real Fract(Real const& x);                   // fract(x)
     static Real FMod(Real const& x, Real const& y);     // fmod(x,y)
     static Real InvSqrt(Real const& x);                 // x^{-1/2}
     static Real Log(Real const& x);                     // log_e(x)
@@ -69,7 +70,7 @@ public:
     // iterations, the root-bounding interval consists of two consecutive
     // floating-point numbers.  Thus, you have reached the limit of the
     // precision of the numbers.  WARNING:  The return value for BSNumber
-    // or BSRational types is std::numeric_limits<unsigned int>::max(),
+    // or BSRational types is eastl::numeric_limits<unsigned int>::max(),
     // because there is no limit on precision (other than the practical
     // limitations of memory usage and computational costs).  We recommend
     // you use a reasonable number of the BS* types.
@@ -150,6 +151,10 @@ private:
     template <typename T> static T FloorImpl(T x, Arithmetic::IsFPType tag);
     template <typename T> static T FloorImpl(T x, Arithmetic::IsFP16Type tag);
     template <typename T> static T FloorImpl(T const& x, Arithmetic::IsBSType tag);
+
+	template <typename T> static T FractImpl(T x, Arithmetic::IsFPType tag);
+	template <typename T> static T FractImpl(T x, Arithmetic::IsFP16Type tag);
+	template <typename T> static T FractImpl(T const& x, Arithmetic::IsBSType tag);
 
     template <typename T> static T FModImpl(T x, T y, Arithmetic::IsFPType tag);
     template <typename T> static T FModImpl(T x, T y, Arithmetic::IsFP16Type tag);
@@ -697,6 +702,32 @@ T Function<Real>::FloorImpl(T const& x, Arithmetic::IsBSType)
 
 
 template <typename Real>
+Real Function<Real>::Fract(Real const& x)
+{
+	return FractImpl<Real>(x, Arithmetic::WhichType<Real>());
+}
+
+template <typename Real> template <typename T>
+T Function<Real>::FractImpl(T x, Arithmetic::IsFPType)
+{
+	return x - floor(x);
+}
+
+template <typename Real> template <typename T>
+T Function<Real>::FractImpl(T x, Arithmetic::IsFP16Type)
+{
+	return (T)(x - floor((float)x);
+}
+
+template <typename Real> template <typename T>
+T Function<Real>::FractImpl(T const& x, Arithmetic::IsBSType)
+{
+	return (T)(x - floor((double)x);
+}
+
+
+
+template <typename Real>
 Real Function<Real>::FMod(Real const& x, Real const& y)
 {
     return FModImpl<Real>(x, y, Arithmetic::WhichType<Real>());
@@ -1129,15 +1160,15 @@ unsigned int Function<Real>::GetMaxBisections()
 template <typename Real> template <typename T>
 unsigned int Function<Real>::GetMaxBisectionsImpl(Arithmetic::IsFPType)
 {
-    return (unsigned int)(3 + std::numeric_limits<Real>::digits -
-        std::numeric_limits<Real>::min_exponent);
+    return (unsigned int)(3 + eastl::numeric_limits<Real>::digits -
+		eastl::numeric_limits<Real>::min_exponent);
 }
 
 template <typename Real> template <typename T>
 unsigned int Function<Real>::GetMaxBisectionsImpl(Arithmetic::IsFP16Type)
 {
-    // std::numeric_limits<IEEEBinary16>::digits = 11
-    // std::numeric_limits<IEEEBinary16>::min_exponent = -13
+    // eastl::numeric_limits<IEEEBinary16>::digits = 11
+    // eastl::numeric_limits<IEEEBinary16>::min_exponent = -13
     // 27 = 3 + digits - min_exponent
     return 27;
 }
@@ -1145,7 +1176,7 @@ unsigned int Function<Real>::GetMaxBisectionsImpl(Arithmetic::IsFP16Type)
 template <typename Real> template <typename T>
 unsigned int Function<Real>::GetMaxBisectionsImpl(Arithmetic::IsBSType)
 {
-    return std::numeric_limits<unsigned int>::max();
+    return eastl::numeric_limits<unsigned int>::max();
 }
 
 

@@ -10,6 +10,9 @@
 #define CORE_H
 
 // Utility
+#include "Utility/Array2.h"
+#include "Utility/Array3.h"
+#include "Utility/Array4.h"
 #include "Utility/StringUtil.h"
 
 // IO

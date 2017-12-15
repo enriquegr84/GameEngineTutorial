@@ -86,10 +86,10 @@ bool CubeNode::PreRender(Scene *pScene)
 		if (!pScene->IsCulled(this))
 		{
 			if (solidCount)
-				pScene->AddToRenderQueue(ERP_SOLID, eastl::shared_from_this());
+				pScene->AddToRenderQueue(ERP_SOLID, shared_from_this());
 
 			if (transparentCount)
-				pScene->AddToRenderQueue(ERP_TRANSPARENT, eastl::shared_from_this());
+				pScene->AddToRenderQueue(ERP_TRANSPARENT, shared_from_this());
 		}
 	}
 
@@ -101,7 +101,7 @@ bool CubeNode::PreRender(Scene *pScene)
 //
 bool CubeNode::Render(Scene *pScene)
 {
-	matrix4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
@@ -169,7 +169,7 @@ bool CubeNode::Render(Scene *pScene)
 }
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& CubeNode::GetBoundingBox() const
+const AlignedBox3<float>& CubeNode::GetBoundingBox() const
 {
 	return mMesh->GetMeshBuffer(0)->GetBoundingBox();
 }
@@ -203,7 +203,7 @@ eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId 
 
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
 		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(), 
-		&Matrix4x4::Identity, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
+		&Matrix4x4<float>::Identity, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
 	AddChild(mShadow);
 
 	return mShadow;

@@ -10,7 +10,7 @@
 #include "BaseFileArchive.h"
 
 //! BaseFileSystemType: which Filesystem should be used for e.g. browsing
-enum BaseFileSystemType
+enum CORE_ITEM BaseFileSystemType
 {
 	FILESYSTEM_NATIVE = 0,	// Native OS FileSystem
 	FILESYSTEM_VIRTUAL	// Virtual FileSystem

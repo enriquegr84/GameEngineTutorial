@@ -10,9 +10,6 @@
 
 #include "Controller.h"
 
-#include <list>
-#include <memory>
-
 class GRAPHIC_ITEM ControlledObject
 {
 protected:
@@ -22,19 +19,20 @@ public:
     virtual ~ControlledObject();
 
     // Access to the controllers that control this object.
-    typedef std::list<std::shared_ptr<Controller>> List;
-    inline List const& GetControllers() const;
-    void AttachController(std::shared_ptr<Controller> const& controller);
-    void DetachController(std::shared_ptr<Controller> const& controller);
+    typedef eastl::list<eastl::shared_ptr<Controller>> ControllerList;
+
+    inline ControllerList const& GetControllers() const;
+    void AttachController(eastl::shared_ptr<Controller> const& controller);
+    void DetachController(eastl::shared_ptr<Controller> const& controller);
     void DetachAllControllers();
     bool UpdateControllers(double applicationTime);
 
 private:
-    List mControllers;
+	ControllerList mControllers;
 };
 
 
-inline ControlledObject::List const& ControlledObject::GetControllers() const
+inline ControlledObject::ControllerList const& ControlledObject::GetControllers() const
 {
     return mControllers;
 }

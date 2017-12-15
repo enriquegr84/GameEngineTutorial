@@ -29,7 +29,7 @@ public:
 	bool Render(Scene *pScene);
 
 	//! returns the axis aligned bounding box of this node
-	const AABBox3<float>& GetBoundingBox() const;
+	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use getMaterialCount().
@@ -42,7 +42,7 @@ public:
 	unsigned int GetMaterialCount() const;
 
 	//! Returns type of the scene node
-	E_SCENE_NODE_TYPE GetType() const { return ESNT_SPHERE; }
+	NodeType GetType() const { return ESNT_SPHERE; }
 
 	//! Returns the current mesh
 	const eastl::shared_ptr<Mesh>& GetMesh() { return mMesh; }
@@ -69,7 +69,7 @@ private:
 
 	eastl::shared_ptr<Mesh> mMesh;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
-	AABBox3<float> mBBox;
+	AlignedBox3<float> mBBox;
 	float mRadius;
 	unsigned int mPolyCountX;
 	unsigned int mPolyCountY;

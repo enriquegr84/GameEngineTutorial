@@ -9,16 +9,16 @@
 
 #include "ShadowVolumeNode.h"
 
-enum E_JOINT_UPDATE_ON_RENDER
+enum GRAPHIC_ITEM JointUpdateOnRender
 {
 	//! do nothing
-	EJUOR_NONE = 0,
+	JUOR_NONE = 0,
 
 	//! get joints positions from the mesh (for attached nodes, etc)
-	EJUOR_READ,
+	JUOR_READ,
 
 	//! control joint positions in the mesh (eg. ragdolls, or set the animation from animateJoints() )
-	EJUOR_CONTROL
+	JUOR_CONTROL
 };
 
 class AnimatedMeshNode;
@@ -48,11 +48,12 @@ public:
 
 	//! Constructor
 	AnimatedMeshNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-		const eastl::shared_ptr<AnimatedMesh>& aMesh,
+		const eastl::shared_ptr<AnimatedMesh>& aMesh);
+	/*
 		const Vector3<float>& position = Vector3<float>{ 0,0,0 },
 		const Vector3<float>& rotation = Vector3<float>{ 0,0,0 },
 		const Vector3<float>& scale = Vector3<float>{ 255.f, 255.f, 255.f });
-
+	*/
 	//! Destructor
 	~AnimatedMeshNode() {}
 
@@ -90,7 +91,7 @@ public:
 	bool OnAnimate(Scene* pScene, unsigned int timeMs);
 
 	//! returns the axis aligned bounding box of this node
-	const AABBox3<float>& GetBoundingBox() const;
+	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use GetMaterialCount().
@@ -123,7 +124,7 @@ public:
 	\return Pointer to the created shadow scene node. This pointer
 	should not be dropped. */
 	eastl::shared_ptr<ShadowVolumeNode> AddShadowVolumeNode(
-		const ActorId actorId, Scene* pScene, const eastl::shared_ptr<Mesh>& shadowMesh = 0,
+		const ActorId actorId, Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh = 0,
 		bool zfailmethod=true, float infinity=10000.0f);
 
 	//! Returns the currently displayed frame number.
@@ -152,30 +153,29 @@ public:
 	//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
 	/** In this way it is possible to change the materials a mesh
 	causing all mesh scene nodes referencing this mesh to change too. */
-	virtual void SetReadOnlyMaterials(bool readonly);
+	void SetReadOnlyMaterials(bool readonly);
 
 	//! Returns if the scene node should not copy the materials of the mesh but use them in a read only style
-	virtual bool IsReadOnlyMaterials() const;
+	bool IsReadOnlyMaterials() const;
 
 	//! Sets a new mesh
-	virtual void SetMesh(const eastl::shared_ptr<AnimatedMesh>& mesh);
+	void SetMesh(const eastl::shared_ptr<AnimatedMesh>& mesh);
 
 	//! Returns the current mesh
-	virtual const eastl::shared_ptr<AnimatedMesh>& GetMesh(void);
+	const eastl::shared_ptr<AnimatedMesh>& GetMesh(void);
 
 	//! render mesh ignoring its transformation.
-	/** Culling is unaffected. */
-	virtual void SetRenderFromIdentity( bool On );
+	void SetRenderFromIdentity( bool On );
 
 private:
 
 	//! Get a static mesh for the current frame of this animated mesh
-	eastl::shared_ptr<Mesh> GetMeshForCurrentFrame();
+	eastl::shared_ptr<BaseMesh> GetMeshForCurrentFrame();
 
 	void BuildFrameNr(unsigned int timeMs);
 
 	eastl::vector<Material> mMaterials;
-	AABBox3<float> mBBox;
+	AlignedBox3<float> mBBox;
 	eastl::shared_ptr<AnimatedMesh> mMesh;
 
 	int mStartFrame;

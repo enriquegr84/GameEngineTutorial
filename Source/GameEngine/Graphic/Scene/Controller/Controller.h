@@ -9,8 +9,7 @@
 #define CONTROLLER_H
 
 #include "Graphic/GraphicStd.h"
-
-#include <EASTL/string.h>
+#include "Core/CoreStd.h"
 
 class ControlledObject;
 
@@ -22,41 +21,33 @@ protected:
 public:
     virtual ~Controller();
 
-    // Member access.
-    inline ControlledObject* GetObject() const;
-    inline void SetApplicationTime(double applicationTime);
-    inline double GetApplicationTime() const;
-
     // The animation update.  The application time is in milliseconds.
     virtual bool Update(double applicationTime);
 
-    // Time management.  A controller may use its own time scale, and it
-    // specifies how times are to be mapped to application time.
-    enum GRAPHIC_ITEM RepeatType
-    {
-        RT_CLAMP,
-        RT_WRAP,
-        RT_CYCLE
-    };
-
-    // Member access.
-    RepeatType repeat;  // default = RT_CLAMP
-    double minTime;     // default = 0
-    double maxTime;     // default = 0
-    double phase;       // default = 0
-    double frequency;   // default = 1
-    bool active;        // default = true
-
-    // Allow user-readable names for nodes in a scene graph.
-    eastl::string name;
-
-public:  // INTERNAL USE ONLY
     // The class ControlledObject needs to set the object during a call to
     // AttachController.  Derived classes that manage a set of controllers
     // also need to set the objects during a call to AttachController.
     virtual void SetObject(ControlledObject* object);
 
 protected:
+
+	// Time management.  A controller may use its own time scale, and it
+	// specifies how times are to be mapped to application time.
+	enum GRAPHIC_ITEM RepeatType
+	{
+		RT_CLAMP,
+		RT_WRAP,
+		RT_CYCLE
+	};
+
+	// Member access.
+	RepeatType mRepeat;  // default = RT_CLAMP
+	double mMinTime;     // default = 0
+	double mMaxTime;     // default = 0
+	double mPhase;       // default = 0
+	double mFrequency;   // default = 1
+	bool mActive;        // default = true
+
     // Conversion from application time units to controller time units.
     // Derived classes may use this in their update routines.
     double GetControlTime(double applicationTime);

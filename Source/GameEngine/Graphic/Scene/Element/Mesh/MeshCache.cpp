@@ -4,7 +4,7 @@
 
 #include "MeshCache.h"
 #include "AnimatedMesh.h"
-#include "Mesh.h"
+#include "Graphic/Effect/Mesh.h"
 
 MeshCache::~MeshCache()
 {
@@ -76,7 +76,7 @@ eastl::shared_ptr<BaseAnimatedMesh> MeshCache::GetMeshByIndex(unsigned int numbe
 
 
 //! Returns a mesh based on its name.
-shared_ptr<BaseAnimatedMesh> MeshCache::GetMeshByName(const eastl::string& name)
+eastl::shared_ptr<BaseAnimatedMesh> MeshCache::GetMeshByName(const eastl::string& name)
 {
 	eastl::vector<MeshEntry>::iterator itMesh = mMeshes.begin();
 	for (; itMesh < mMeshes.end(); itMesh++)
@@ -100,17 +100,17 @@ const eastl::string& MeshCache::GetMeshName(unsigned int index) const
 
 
 //! Get the name of a loaded mesh, if there is any.
-const eastl::string& MeshCache::GetMeshName(const shared_ptr<IMesh>& mesh) const
+const eastl::string& MeshCache::GetMeshName(const eastl::shared_ptr<BaseMesh>& mesh) const
 {
 	if (!mesh)
 		return eastl::string();
 
-	eastl::vector<MeshEntry>::const_iterator itMesh = m_Meshes.begin();
-	for (; itMesh < m_Meshes.end(); itMesh++)
+	eastl::vector<MeshEntry>::const_iterator itMesh = mMeshes.begin();
+	for (; itMesh < mMeshes.end(); itMesh++)
 	{
-		if (((*itMesh).m_Mesh == mesh) ||  
-			((*itMesh).m_Mesh && (*itMesh).m_Mesh->GetMesh(0) == mesh))
-			return (*itMesh).m_MeshNamedPath;
+		if (((*itMesh).mMesh == mesh) ||  
+			((*itMesh).mMesh && (*itMesh).mMesh->GetMesh(0) == mesh))
+			return (*itMesh).mMeshNamedPath;
 	}
 
 	return eastl::string();
@@ -122,7 +122,7 @@ bool MeshCache::RenameMesh(unsigned int index, const eastl::string& name)
 	if (index >= mMeshes.size())
 		return false;
 
-	mMeshes[index].mMeshNamedPath.SetPath(name);
+	mMeshes[index].mMeshNamedPath = name;
 	return true;
 }
 
@@ -134,10 +134,9 @@ bool MeshCache::RenameMesh(const eastl::shared_ptr<BaseMesh>& mesh, const eastl:
 	for (; itMesh < mMeshes.end(); itMesh++)
 	{
 		if (((*itMesh).mMesh == mesh) ||  
-			((*itMesh).mMesh && 
-			(*itMesh).mMesh->GetMesh(0) == mesh))
+			((*itMesh).mMesh && (*itMesh).mMesh->GetMesh(0) == mesh))
 		{
-			(*itMesh).mMeshNamedPath.SetPath(name);
+			(*itMesh).mMeshNamedPath = name;
 			return true;
 		}
 	}

@@ -36,7 +36,7 @@ public:
 
 
 	//! returns the axis aligned bounding box of this node
-	const AABBox3<float>& GetBoundingBox() const;
+	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use GetMaterialCount().
@@ -72,7 +72,7 @@ protected:
 	void CopyMaterials();
 
 	eastl::vector<Material> mMaterials;
-	AABBox3<float> mBBox;
+	AlignedBox3<float> mBBox;
 	Material mReadOnlyMaterial;
 
 	eastl::shared_ptr<Mesh> mMesh;

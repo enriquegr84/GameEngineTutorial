@@ -94,7 +94,7 @@ bool GameDemoController::OnKeyDown(const KeyCode c)
     // send a thrust event if necessary
     if (mKey[KEY_KEY_W] || mKey[KEY_KEY_S])
     {
-		const ActorId actorId = INVALID_ACTOR_ID;// = mObject->Get()->ActorId();
+		const ActorId actorId = mObject->GetId();
         eastl::shared_ptr<EventDataStartThrust> pEvent(new EventDataStartThrust(
 			actorId, (c == 'W' ? ACTOR_ACCELERATION : (-ACTOR_ACCELERATION))));
         EventManager::Get()->QueueEvent(pEvent);
@@ -103,7 +103,7 @@ bool GameDemoController::OnKeyDown(const KeyCode c)
     // send a steer event if necessary
     if (mKey[KEY_KEY_A] || mKey[KEY_KEY_D])
     {
-		const ActorId actorId = INVALID_ACTOR_ID;// = mObject->Get()->ActorId();
+		const ActorId actorId = mObject->GetId();
         eastl::shared_ptr<EventDataStartSteer> pEvent(new EventDataStartSteer(
 			actorId, (c == 'D' ? ACTOR_ANGULAR_ACCELERATION : (-ACTOR_ANGULAR_ACCELERATION))));
         EventManager::Get()->QueueEvent(pEvent);
@@ -120,7 +120,7 @@ bool GameDemoController::OnKeyUp(const KeyCode c)
     // send an end thrust event if necessary
     if (mKey[KEY_KEY_W] || mKey[KEY_KEY_S])
     {
-		const ActorId actorId = INVALID_ACTOR_ID;// = mObject->Get()->ActorId();
+		const ActorId actorId = mObject->GetId();
         eastl::shared_ptr<EventDataEndThrust> pEvent(new EventDataEndThrust(actorId));
         EventManager::Get()->QueueEvent(pEvent);
     }
@@ -128,7 +128,7 @@ bool GameDemoController::OnKeyUp(const KeyCode c)
     // send an end steer event if necessary
     if (mKey[KEY_KEY_A] || mKey[KEY_KEY_D])
     {
-		const ActorId actorId = INVALID_ACTOR_ID;// = mObject->Get()->ActorId();
+		const ActorId actorId = mObject->GetId();
         eastl::shared_ptr<EventDataEndSteer> pEvent(new EventDataEndSteer(actorId));
         EventManager::Get()->QueueEvent(pEvent);
     }

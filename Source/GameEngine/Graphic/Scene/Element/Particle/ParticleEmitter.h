@@ -8,7 +8,7 @@
 #include "Graphic/Effect/Particle.h"
 
 //! Types of built in particle emitters
-enum ParticleEmitterType
+enum GRAPHIC_ITEM ParticleEmitterType
 {
 	PET_POINT = 0,
 	PET_ANIMATED_MESH,

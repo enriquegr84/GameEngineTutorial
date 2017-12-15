@@ -7,20 +7,32 @@
 
 #include "Spatial.h"
 
-Spatial::~Spatial()
+Spatial::Spatial()
+    : mWorldTransformIsCurrent(false), mWorldBoundIsCurrent(false),
+    mCulling(CULL_DYNAMIC), mAutomaticCullingState(AC_OFF), mDebugDataVisible(DS_OFF)
 {
-    // The mParent member is not reference counted by Spatial, so do not
-    // release it here.
+	mPosition = Vector3<float>();
+	mRotation = Vector3<float>();
+	mScale = Vector3<float>{ 1.f, 1.f, 1.f };
 }
 
-Spatial::Spatial()
-    :
-    worldTransformIsCurrent(false),
-    culling(CULL_DYNAMIC),
-    worldBoundIsCurrent(false),
-    name(""),
-    mParent(nullptr)
+Spatial::~Spatial()
 {
+	// The mParent member is not reference counted by Spatial, so do not
+	// release it here.
+}
+
+//! Updates the absolute position based on the relative and the parents position
+/** Note: This does not recursively update the parents absolute positions, so if
+you have a deeper hierarchy you might want to update the parents first.*/
+void Spatial::UpdateAbsoluteTransformation()
+{
+	/*
+	if (mParent && mParent->GetType() != NT_ROOT)
+		SetTransform(&(mParent->ToWorld() * GetRelativeTransformation()));
+	else
+		SetTransform(&GetRelativeTransformation());
+	*/
 }
 
 void Spatial::Update(double applicationTime, bool initiator)
@@ -36,18 +48,18 @@ void Spatial::Update(double applicationTime, bool initiator)
 void Spatial::OnGetVisibleSet(Culler& culler, 
 	eastl::shared_ptr<Camera> const& camera, bool noCull)
 {
-    if (culling == CULL_ALWAYS)
+    if (mCulling == CULL_ALWAYS)
     {
         return;
     }
 
-    if (culling == CULL_NEVER)
+    if (mCulling == CULL_NEVER)
     {
         noCull = true;
     }
 
     unsigned int savePlaneState = culler.GetPlaneState();
-    if (noCull || culler.IsVisible(worldBound))
+    if (noCull || culler.IsVisible(mWorldBound))
     {
         GetVisibleSet(culler, camera, noCull);
     }
@@ -60,19 +72,19 @@ void Spatial::UpdateWorldData(double applicationTime)
     UpdateControllers(applicationTime);
 
     // Update world transforms.
-    if (!worldTransformIsCurrent)
+    if (!mWorldTransformIsCurrent)
     {
         if (mParent)
         {
 #if defined(GE_USE_MAT_VEC)
-            worldTransform = mParent->worldTransform*localTransform;
+            mWorldTransform = mParent->mWorldTransform*mLocalTransform;
 #else
             worldTransform = localTransform*mParent->worldTransform;
 #endif
         }
         else
         {
-            worldTransform = localTransform;
+            mWorldTransform = mLocalTransform;
         }
     }
 }
@@ -84,4 +96,14 @@ void Spatial::PropagateBoundToRoot ()
         mParent->UpdateWorldBound();
         mParent->PropagateBoundToRoot();
     }
+}
+
+Spatial* Spatial::GetParent()
+{
+	return mParent;
+}
+
+void Spatial::SetParent(Spatial* parent)
+{
+	mParent = parent;
 }

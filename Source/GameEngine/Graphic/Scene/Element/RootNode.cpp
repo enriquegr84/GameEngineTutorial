@@ -1,0 +1,146 @@
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
+// This file is part of the "Irrlicht Engine".
+// For conditions of distribution and use, see copyright notice in irrlicht.h
+
+#include "RootNode.h"
+
+#include "Graphic/Scene/Hierarchy/Node.h"
+#include "Graphic/Scene/Scene.h"
+
+////////////////////////////////////////////////////
+// RootNode Implementation
+////////////////////////////////////////////////////
+
+//
+// RootNode::RootNode					- Chapter 16, page 545
+//
+RootNode::RootNode()
+	: Node(INVALID_ACTOR_ID, WeakBaseRenderComponentPtr(), RP_NONE, NT_ROOT)
+{
+
+}
+
+//
+// RootNode::RootNode					- Chapter 16, page 545
+//
+RootNode::RootNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent)
+	: Node(actorId, renderComponent, RP_NONE, NT_ROOT)
+{
+
+}
+
+//
+// RootNode::PreRender
+//
+bool RootNode::PreRender(Scene *pScene)
+{
+	/*
+	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
+
+	// reset all transforms
+	renderer->SetMaterial(Material());
+	renderer->SetTransform(TS_PROJECTION, Matrix4x4<float>::Identity());
+	renderer->SetTransform(TS_VIEW, Matrix4x4<float>::Identity());
+	renderer->SetTransform(TS_WORLD, Matrix4x4<float>::Identity());
+	for (unsigned int i = TS_COUNT - 1; i >= TS_TEXTURE_0; --i)
+		renderer->SetTransform((E_TRANSFORMATION_STATE)i, Matrix4x4<float>::Identity());
+	renderer->SetAllowZWriteOnTransparent(true);
+
+	// first scene node for prerendering should be the active camera
+	// consistent Camera is needed for culling
+	if (pScene->GetActiveCamera())
+		pScene->GetActiveCamera()->Render(pScene);
+	*/
+	bool success = Node::PreRender(pScene);
+
+	if (success)
+		Node::SortRenderList(pScene);
+
+	return success;
+}
+
+//
+// RootNode::RenderChildren					- Chapter 16, page 547
+//
+bool RootNode::RenderChildren(Scene *pScene)
+{
+	// Iterate through the render children....
+	for (int pass = 0; pass < RP_LAST; pass++)
+	{
+		SceneNodeRenderList::iterator itNode = pScene->GetRenderList(pass).begin();
+		SceneNodeRenderList::iterator end = pScene->GetRenderList(pass).end();
+
+		/*
+		pScene->GetRenderer()->GetOverrideMaterial().mEnabled =
+			((pScene->GetRenderer()->GetOverrideMaterial().mEnablePasses & pass) != 0);
+
+		if (pScene->GetLightManager())
+			pScene->GetLightManager()->OnRenderPassPreRender((RenderPass)pass);
+
+		if (pass == RP_LIGHT)
+		{
+			pScene->GetRenderer()->DeleteAllDynamicLights();
+			pScene->GetRenderer()->SetAmbientLight(pScene->GetAmbientLight());
+
+			unsigned int maxLights = pScene->GetRenderList(pass).size();
+			if (!pScene->GetLightManager())
+				end = itNode +
+				eastl::min(pScene->GetRenderer()->GetMaximalDynamicLightAmount(), maxLights);
+		}
+
+		// This code creates fine control of the render passes.
+		for (; itNode != end; ++itNode)
+		{
+			if (pScene->GetLightManager())
+				pScene->GetLightManager()->OnNodePreRender((*itNode));
+			(*itNode)->Render(pScene);
+			if (pScene->GetLightManager())
+				pScene->GetLightManager()->OnNodePostRender((*itNode));
+
+		}
+
+		if (pass == RP_SHADOW)
+		{
+			if (!pScene->GetRenderList(pass).empty())
+				pScene->GetRenderer()->DrawStencilShadow(true,
+					pScene->GetShadowColor(), pScene->GetShadowColor(),
+					pScene->GetShadowColor(), pScene->GetShadowColor());
+		}
+
+		if (pScene->GetLightManager())
+			pScene->GetLightManager()->OnRenderPassPostRender((RenderPass)pass);
+		*/
+	}
+
+	return true;
+}
+
+//
+// RootNode::Render
+//
+bool RootNode::Render(Scene* pScene)
+{
+
+	return RenderChildren(pScene);
+}
+
+//
+// RootNode::Render
+//
+bool RootNode::PostRender(Scene* pScene)
+{
+	pScene->ClearRenderList();
+	pScene->ClearDeletionList();
+
+	pScene->SetCurrentRenderPass(RP_NONE);
+
+	return Node::PostRender(pScene);
+}
+
+
+//! returns the axis aligned bounding box of this node
+const AlignedBox3<float>& RootNode::GetBoundingBox() const
+{
+	// should never be used.
+	return *((AlignedBox3<float>*)0);
+}

@@ -515,7 +515,7 @@ eastl::shared_ptr<SceneNode> ParticleSystemRenderComponent::CreateSceneNode(void
 			{
 				eastl::shared_ptr<IParticleEmitter> em(
 					ps->CreateBoxEmitter(
-						AABBox3<float>(-7,0,-7,7,1,7), // emitter size
+						AlignedBox3<float>(-7,0,-7,7,1,7), // emitter size
 						Vector3(0.0f,0.06f,0.0f),   // initial direction
 						80,100,                     // emit rate
 						Color(0,255,255,255),       // darkest color

@@ -62,7 +62,7 @@ bool VolumeLightNode::PreRender(Scene *pScene)
 //
 bool VolumeLightNode::Render(Scene *pScene)
 {
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
@@ -76,7 +76,7 @@ bool VolumeLightNode::Render(Scene *pScene)
 
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& VolumeLightNode::GetBoundingBox() const
+const AlignedBox3<float>& VolumeLightNode::GetBoundingBox() const
 {
 	return mMesh->GetBoundingBox();
 }

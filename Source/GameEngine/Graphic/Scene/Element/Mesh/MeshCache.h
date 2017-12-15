@@ -41,7 +41,7 @@ public:
 	set by this method.
 	\param mesh Pointer to a mesh which will now be referenced by
 	this name. */
-	virtual void AddMesh(const eastl::string& name, 
+	virtual void AddMesh(const eastl::string& name,
 		const eastl::shared_ptr<BaseAnimatedMesh>& mesh) = 0;
 
 	//! Removes the mesh from the cache.
@@ -86,7 +86,7 @@ public:
 	//! Get the name of the loaded mesh if there is any.
 	/** \param mesh Pointer to mesh to query.
 	\return The name if mesh was found and has a name, else the path is empty. */
-	virtual const eastl::string& GetMeshName(const shared_ptr<BaseMesh>& mesh) const = 0;
+	virtual const eastl::string& GetMeshName(const eastl::shared_ptr<BaseMesh>& mesh) const = 0;
 
 	//! Renames a loaded mesh.
 	/** Note that renaming meshes might change the ordering of the
@@ -122,6 +122,7 @@ public:
 	/** Warning: If you have pointers to meshes that were loaded with ISceneManager::getMesh()
 	and you did not grab them, then they may become invalid. */
 	virtual void ClearUnusedMeshes() = 0;
+};
 
 class MeshCache : public BaseMeshCache
 {
@@ -145,7 +146,7 @@ public:
 	//! Removes a mesh from the cache.
 	/** After loading a mesh with getMesh(), the mesh can be removed from the cache
 	using this method, freeing a lot of memory. */
-	virtual void RemoveMesh(const shared_ptr<BaseMesh>& mesh);
+	virtual void RemoveMesh(const eastl::shared_ptr<BaseMesh>& mesh);
 
 	//! Returns amount of loaded meshes in the cache.
 	/** You can load new meshes into the cache using getMesh() and addMesh().

@@ -169,7 +169,7 @@ static unsigned int LocaleIdToCodepage(unsigned int lcid)
 	return 65001;   // utf-8
 }
 
-enum KeyCode
+enum CORE_ITEM KeyCode
 {
 	KEY_LBUTTON = 0x01,  // Left mouse button
 	KEY_RBUTTON = 0x02,  // Right mouse button
@@ -389,7 +389,7 @@ enum CORE_ITEM EventType
 };
 
 //! Enumeration for all mouse input events
-enum MouseInputEvent
+enum CORE_ITEM MouseInputEvent
 {
 	//! Left mouse button was pressed down.
 	MIE_LMOUSE_PRESSED_DOWN = 0,
@@ -445,7 +445,7 @@ enum MouseInputEvent
 };
 
 //! Masks for mouse button states
-enum MouseButtonStateMask
+enum CORE_ITEM MouseButtonStateMask
 {
 	MBSM_LEFT = 0x01,
 	MBSM_RIGHT = 0x02,
@@ -463,7 +463,7 @@ enum MouseButtonStateMask
 class BaseUIElement;
 
 //! Enumeration for all events which are sendable by the gui system
-enum UIEventType
+enum CORE_ITEM UIEventType
 {
 	//! A gui element has lost its focus.
 	/** GUIEvent.Caller is losing the focus to GUIEvent.Element.

@@ -35,7 +35,7 @@ CameraNode::CameraNode(ActorId actorid, Scene* pScene)
 /** The matrix4 class has some methods
 to build a projection matrix. e.g: matrix4::buildProjectionMatrixPerspectiveFovLH
 \param projection: The new projection matrix of the camera. */
-void CameraNode::SetProjectionMatrix(const Matrix4x4& projection, bool isOrthogonal)
+void CameraNode::SetProjectionMatrix(const Matrix4x4<float>& projection, bool isOrthogonal)
 {
 	mIsOrthogonal = isOrthogonal;
 	ViewArea.GetTransform ( ETS_PROJECTION ) = projection;
@@ -44,7 +44,7 @@ void CameraNode::SetProjectionMatrix(const Matrix4x4& projection, bool isOrthogo
 
 //! Gets the current projection matrix of the camera
 //! \return Returns the current projection matrix of the camera.
-const Matrix4x4& CameraNode::GetProjectionMatrix() const
+const Matrix4x4<float>& CameraNode::GetProjectionMatrix() const
 {
 	return ViewArea.GetTransform ( ETS_PROJECTION );
 }
@@ -52,7 +52,7 @@ const Matrix4x4& CameraNode::GetProjectionMatrix() const
 
 //! Gets the current view matrix of the camera
 //! \return Returns the current view matrix of the camera.
-const Matrix4x4& CameraNode::GetViewMatrix() const
+const Matrix4x4<float>& CameraNode::GetViewMatrix() const
 {
 	return ViewArea.GetTransform ( ETS_VIEW );
 }
@@ -62,14 +62,14 @@ const Matrix4x4& CameraNode::GetViewMatrix() const
 //! multiplied with the view matrix when it gets updated.
 //! This allows for custom camera setups like, for example, a reflection camera.
 /** \param affector: The affector matrix. */
-void CameraNode::SetViewMatrixAffector(const Matrix4x4& affector)
+void CameraNode::SetViewMatrixAffector(const Matrix4x4<float>& affector)
 {
 	Affector = affector;
 }
 
 
 //! Gets the custom view matrix affector.
-const Matrix4x4& CameraNode::GetViewMatrixAffector() const
+const Matrix4x4<float>& CameraNode::GetViewMatrixAffector() const
 {
 	return Affector;
 }
@@ -177,7 +177,7 @@ void CameraNode::RecalculateProjectionMatrix()
 //! update
 void CameraNode::UpdateMatrices()
 {
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	Vector3<float> pos = toWorld.GetTranslation();
@@ -206,12 +206,12 @@ void CameraNode::UpdateMatrices()
 
 void CameraNode::RecalculateViewArea()
 {
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	ViewArea.CameraPosition = toWorld.GetTranslation();
 
-	Matrix4x4 m(Matrix4x4::EM4CONST_NOTHING);
+	Matrix4x4<float> m(Matrix4x4<float>::EM4CONST_NOTHING);
 	m.setbyproductnocheck(	ViewArea.GetTransform(ETS_PROJECTION),
 							ViewArea.GetTransform(ETS_VIEW));
 	ViewArea.SetFrom(m);
@@ -220,10 +220,10 @@ void CameraNode::RecalculateViewArea()
 //! prerender
 bool CameraNode::PreRender(Scene *pScene)
 {
-	if (pScene->GetActiveCamera() == eastl::shared_from_this())
+	if (pScene->GetActiveCamera() == shared_from_this())
 	{
 		// register according to material types counted
-		pScene->AddToRenderQueue(ERP_CAMERA, eastl::shared_from_this());
+		pScene->AddToRenderQueue(ERP_CAMERA, shared_from_this());
 	}
 
 	return SceneNode::PreRender(pScene);
@@ -258,7 +258,7 @@ bool CameraNode::SetViewTransform(Scene *pScene)
 	//rigidly attached right behind the target
 	if(mTarget)
 	{
-		Matrix4x4 mat = mTarget->Get()->ToWorld();
+		Matrix4x4<float> mat = mTarget->Get()->ToWorld();
 		Vector4<float> at = mCamOffsetVector;
 		Vector4<float> atWorld = mat.Xform(at);
 		Vector3<float> pos = mat.GetPosition() + Vector3<float>(atWorld);
@@ -278,16 +278,16 @@ bool CameraNode::SetViewTransform(Scene *pScene)
 //
 //    Returns the concatenation of the world and view projection, which is generally sent into vertex shaders
 //
-Matrix4x4 CameraNode::GetWorldViewProjection(Scene *pScene)
+Matrix4x4<float> CameraNode::GetWorldViewProjection(Scene *pScene)
 { 
-	Matrix4x4 world = Get()->ToWorld();
-	Matrix4x4 view = Get()->FromWorld();
-	Matrix4x4 worldView = world * view;
+	Matrix4x4<float> world = Get()->ToWorld();
+	Matrix4x4<float> view = Get()->FromWorld();
+	Matrix4x4<float> worldView = world * view;
 	return worldView * m_Projection;
 }
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& CameraNode::GetBoundingBox() const
+const AlignedBox3<float>& CameraNode::GetBoundingBox() const
 {
 	// should never be used.
 	return ViewArea.GetBoundingBox();

@@ -9,13 +9,15 @@
 
 ControlledObject::~ControlledObject()
 {
+
 }
 
 ControlledObject::ControlledObject()
 {
+
 }
 
-void ControlledObject::AttachController(std::shared_ptr<Controller> const& controller)
+void ControlledObject::AttachController(eastl::shared_ptr<Controller> const& controller)
 {
     if (controller)
     {
@@ -38,7 +40,7 @@ void ControlledObject::AttachController(std::shared_ptr<Controller> const& contr
     }
 }
 
-void ControlledObject::DetachController(std::shared_ptr<Controller> const& controller)
+void ControlledObject::DetachController(eastl::shared_ptr<Controller> const& controller)
 {
     for (auto const& element : mControllers)
     {

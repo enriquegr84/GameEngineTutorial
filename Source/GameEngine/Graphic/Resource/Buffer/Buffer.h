@@ -10,6 +10,33 @@
 
 #include "Graphic/Resource/Resource.h"
 
+enum GRAPHIC_ITEM HardwareMapping
+{
+	//! Don't store on the hardware
+	HM_NEVER = 0,
+
+	//! Rarely changed, usually stored completely on the hardware
+	HM_STATIC,
+
+	//! Sometimes changed, driver optimized placement
+	HM_DYNAMIC,
+
+	//! Always changed, cache optimizing on the GPU
+	HM_STREAM
+};
+
+enum GRAPHIC_ITEM BufferType
+{
+	//! Does not change anything
+	BT_NONE = 0,
+	//! Change the vertex mapping
+	BT_VERTEX,
+	//! Change the index mapping
+	BT_INDEX,
+	//! Change both vertex and index mapping to the same value
+	BT_VERTEX_AND_INDEX
+};
+
 class GRAPHIC_ITEM Buffer : public Resource
 {
 protected:

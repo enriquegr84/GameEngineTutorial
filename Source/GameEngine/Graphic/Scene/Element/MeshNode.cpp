@@ -92,10 +92,10 @@ bool MeshNode::PreRender(Scene *pScene)
 		if (!pScene->IsCulled(this))
 		{
 			if (solidCount)
-				pScene->AddToRenderQueue(ERP_SOLID, eastl::shared_from_this());
+				pScene->AddToRenderQueue(ERP_SOLID, shared_from_this());
 
 			if (transparentCount)
-				pScene->AddToRenderQueue(ERP_TRANSPARENT, eastl::shared_from_this());
+				pScene->AddToRenderQueue(ERP_TRANSPARENT, shared_from_this());
 		}
 
 	}
@@ -111,7 +111,7 @@ bool MeshNode::Render(Scene *pScene)
 	if (!mMesh || !renderer)
 		return false;
 
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	bool isTransparentPass = Get()->GetRenderPass() && ERP_TRANSPARENT;
@@ -242,7 +242,7 @@ bool MeshNode::RemoveChild(ActorId id)
 
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& MeshNode::GetBoundingBox() const
+const AlignedBox3<float>& MeshNode::GetBoundingBox() const
 {
 	return mMesh ? mMesh->GetBoundingBox() : mBBox;
 }
@@ -262,7 +262,7 @@ Material& MeshNode::GetMaterial(unsigned int i)
 	}
 
 	if (i >= mMaterials.size())
-		return Matrix4x4::Identity;
+		return Matrix4x4<float>::Identity;
 
 	return mMaterials[i];
 }
@@ -301,7 +301,7 @@ eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId 
 
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
 		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(), 
-		&Matrix4x4::Identity, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
+		&Matrix4x4<float>::Identity, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
 	AddChild(mShadow);
 
 	return mShadow;

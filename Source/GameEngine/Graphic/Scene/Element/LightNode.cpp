@@ -34,7 +34,7 @@ bool LightNode::PreRender(Scene *pScene)
 	DoLightRecalc();
 
 	if (mProps.IsVisible())
-		pScene->AddToRenderQueue(ERP_LIGHT, eastl::shared_from_this());
+		pScene->AddToRenderQueue(ERP_LIGHT, shared_from_this());
 
 	return Node::PreRender(pScene);
 }
@@ -44,7 +44,7 @@ bool LightNode::PreRender(Scene *pScene)
 //
 bool LightNode::Render(Scene *pScene)
 {
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
@@ -118,7 +118,7 @@ void LightNode::SetVisible(bool isVisible)
 }
 
 //! returns the axis aligned bounding box of this node
-const AABBox3<float>& LightNode::GetBoundingBox() const
+const AlignedBox3<float>& LightNode::GetBoundingBox() const
 {
 	return mBBox;
 }
@@ -182,7 +182,7 @@ bool LightNode::GetCastShadow() const
 
 void LightNode::DoLightRecalc()
 {
-	Matrix4x4 toWorld, fromWorld;
+	Matrix4x4<float> toWorld, fromWorld;
 	Get()->Transform(&toWorld, &fromWorld);
 
 	if ((mLightData.mType == ELT_SPOT) || (mLightData.mType == ELT_DIRECTIONAL))
