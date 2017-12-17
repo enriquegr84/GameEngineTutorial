@@ -73,13 +73,13 @@ public:
 	GetMeshBufferCount() - 1;
 	\return Pointer to the mesh buffer or 0 if there is no such
 	mesh buffer. */
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(unsigned int nr) const = 0;
+	virtual eastl::shared_ptr<MeshBuffer<float>> GetMeshBuffer(unsigned int nr) const = 0;
 
 	//! Get pointer to a mesh buffer which fits a material
 	/** \param material: material to search for
 	\return Pointer to the mesh buffer or 0 if there is no such
 	mesh buffer. */
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(const Material &material) const = 0;
+	virtual eastl::shared_ptr<MeshBuffer<float>> GetMeshBuffer(const Material &material) const = 0;
 
 	//! Get an axis aligned bounding box of the mesh.
 	/** \return Bounding box of this mesh. */

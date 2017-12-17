@@ -175,7 +175,6 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 
 	bool isTransparentPass = 
 		pScene->GetCurrentRenderPass() == RP_TRANSPARENT;
-
 	++mPassCount;
 
 	const eastl::shared_ptr<BaseMesh>& m = GetMeshForCurrentFrame();
@@ -190,7 +189,7 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		#endif
 	}
 
-	renderer->SetTransform(TS_WORLD, toWorld);
+	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
 
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
@@ -205,13 +204,15 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		{
 			for (unsigned int i=0; i<m->GetMeshBufferCount(); ++i)
 			{
-				const eastl::shared_ptr<MeshBuffer>& mb = m->GetMeshBuffer(i);
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = m->GetMeshBuffer(i);
 				mat = mReadOnlyMaterials ? mb->GetMaterial() : mMaterials[i];
 				mat.mType = MT_TRANSPARENT_ADD_COLOR;
+				/*
 				if (mRenderFromIdentity)
-					renderer->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
-				renderer->SetMaterial(mat);
-				renderer->DrawMeshBuffer(mb);
+					Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+				Renderer::Get()->SetMaterial(mat);
+				Renderer::Get()->DrawMeshBuffer(mb);
+				*/
 			}
 			renderMeshes = false;
 		}
@@ -222,9 +223,7 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 	{
 		for (unsigned int i=0; i<m->GetMeshBufferCount(); ++i)
 		{
-			const eastl::shared_ptr<MaterialRenderer>& rnd =
-				renderer->GetMaterialRenderer(mMaterials[i].MaterialType);
-			bool transparent = (rnd && rnd->IsTransparent());
+			bool transparent = (mMaterials[i].IsTransparent());
 
 			// only render transparent buffer if this is the transparent render pass
 			// and solid only in solid pass

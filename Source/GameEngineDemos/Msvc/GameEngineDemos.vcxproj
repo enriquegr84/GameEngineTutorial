@@ -14,7 +14,7 @@
     <ProjectGuid>{63B8049B-62EF-4FA0-BDC3-6B7FC807C03A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GameEngineDemos11</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>GameEngineDemos</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

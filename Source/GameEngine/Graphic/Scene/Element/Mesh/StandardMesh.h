@@ -42,13 +42,13 @@ public:
 	}
 
 	//! Get pointer to a mesh buffer.
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(unsigned int nr) const
+	virtual eastl::shared_ptr<MeshBuffer<float>> GetMeshBuffer(unsigned int nr) const
 	{
 		return mMeshBuffers[nr];
 	}
 
 	//! Get pointer to a mesh buffer which fits a material
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(const Material &material) const
+	virtual eastl::shared_ptr<MeshBuffer<float>> GetMeshBuffer(const Material &material) const
 	{
 		for (int i = (int)mMeshBuffers.size() - 1; i >= 0; --i)
 		{
@@ -89,14 +89,14 @@ public:
 
 	//! adds a MeshBuffer
 	/** The bounding box is not updated automatically. */
-	void AddMeshBuffer(const eastl::shared_ptr<MeshBuffer>& buf)
+	void AddMeshBuffer(const eastl::shared_ptr<MeshBuffer<float>>& buf)
 	{
 		if (buf)
 			mMeshBuffers.push_back(buf);
 	}
 
 	//! The meshbuffers of this mesh
-	eastl::vector<eastl::shared_ptr<MeshBuffer>> mMeshBuffers;
+	eastl::vector<eastl::shared_ptr<MeshBuffer<float>>> mMeshBuffers;
 
 	//! The bounding box of this mesh
 	AlignedBox3<float> mBoundingBox;

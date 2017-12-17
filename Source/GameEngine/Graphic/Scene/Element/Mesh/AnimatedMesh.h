@@ -117,7 +117,7 @@ struct AnimatedMesh : public BaseAnimatedMesh
 	}
 
 	//! returns pointer to a mesh buffer
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(unsigned int nr) const
+	virtual eastl::shared_ptr<MeshBuffer<float>> GetMeshBuffer(unsigned int nr) const
 	{
 		if (mMeshes.empty())
 			return 0;
@@ -129,7 +129,7 @@ struct AnimatedMesh : public BaseAnimatedMesh
 	/** \param material: material to search for
 	\return Returns the pointer to the mesh buffer or
 	NULL if there is no such mesh buffer. */
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer( const Material &material) const
+	virtual eastl::shared_ptr<MeshBuffer<float>> GetMeshBuffer( const Material &material) const
 	{
 		if (mMeshes.empty())
 			return 0;
