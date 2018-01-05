@@ -90,9 +90,6 @@ public:
 	//! OnAnimate() is called just before rendering the whole scene.
 	bool OnAnimate(Scene* pScene, unsigned int timeMs);
 
-	//! returns the axis aligned bounding box of this node
-	const AlignedBox3<float>& GetBoundingBox() const;
-
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use GetMaterialCount().
 	//! This function is needed for inserting the node into the scene hirachy on a
@@ -102,9 +99,6 @@ public:
 
 	//! returns amount of materials used by this scene node.
 	unsigned int GetMaterialCount() const;
-
-	//! Updates transformation matrix of the node based on the relative and the parents transformation
-	void UpdateAbsoluteTransformation();
 
 	//! Creates shadow volume scene node as child of this node.
 	/** The shadow can be rendered using the ZPass or the zfail
@@ -124,7 +118,8 @@ public:
 	\return Pointer to the created shadow scene node. This pointer
 	should not be dropped. */
 	eastl::shared_ptr<ShadowVolumeNode> AddShadowVolumeNode(
-		const ActorId actorId, Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh = 0,
+		const ActorId actorId, Scene* pScene, 
+		const eastl::shared_ptr<BaseMesh>& shadowMesh = 0,
 		bool zfailmethod=true, float infinity=10000.0f);
 
 	//! Returns the currently displayed frame number.
@@ -175,7 +170,6 @@ private:
 	void BuildFrameNr(unsigned int timeMs);
 
 	eastl::vector<Material> mMaterials;
-	AlignedBox3<float> mBBox;
 	eastl::shared_ptr<AnimatedMesh> mMesh;
 
 	int mStartFrame;

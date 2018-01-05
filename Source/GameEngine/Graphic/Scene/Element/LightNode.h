@@ -36,9 +36,6 @@ public:
 	\param isVisible If the node shall be visible. */
 	void SetVisible(bool isVisible);
 
-	//! returns the axis aligned bounding box of this node
-	const AlignedBox3<float>& GetBoundingBox() const;
-
 	//! Returns type of the scene node
 	NodeType GetType() const { return ESNT_LIGHT; }
 
@@ -78,7 +75,6 @@ private:
 	void DoLightRecalc();
 
 	Light mLightData;
-	AlignedBox3<float> mBBox;
 	int mDriverLightIndex;
 	bool mLightIsOn;
 };

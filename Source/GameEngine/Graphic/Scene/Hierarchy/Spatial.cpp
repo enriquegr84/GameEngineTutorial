@@ -11,9 +11,7 @@ Spatial::Spatial()
     : mWorldTransformIsCurrent(false), mWorldBoundIsCurrent(false),
     mCulling(CULL_DYNAMIC), mAutomaticCullingState(AC_OFF), mDebugDataVisible(DS_OFF)
 {
-	mPosition = Vector3<float>();
-	mRotation = Vector3<float>();
-	mScale = Vector3<float>{ 1.f, 1.f, 1.f };
+
 }
 
 Spatial::~Spatial()
@@ -22,22 +20,9 @@ Spatial::~Spatial()
 	// release it here.
 }
 
-//! Updates the absolute position based on the relative and the parents position
-/** Note: This does not recursively update the parents absolute positions, so if
-you have a deeper hierarchy you might want to update the parents first.*/
-void Spatial::UpdateAbsoluteTransformation()
+void Spatial::Update(Scene* pScene, double applicationTime, bool initiator)
 {
-	/*
-	if (mParent && mParent->GetType() != NT_ROOT)
-		SetTransform(&(mParent->ToWorld() * GetRelativeTransformation()));
-	else
-		SetTransform(&GetRelativeTransformation());
-	*/
-}
-
-void Spatial::Update(double applicationTime, bool initiator)
-{
-    UpdateWorldData(applicationTime);
+    UpdateWorldData(pScene, applicationTime);
     UpdateWorldBound();
     if (initiator)
     {
@@ -66,7 +51,7 @@ void Spatial::OnGetVisibleSet(Culler& culler,
     culler.SetPlaneState(savePlaneState);
 }
 
-void Spatial::UpdateWorldData(double applicationTime)
+void Spatial::UpdateWorldData(Scene* pScene, double applicationTime)
 {
     // Update any controllers associated with this object.
     UpdateControllers(applicationTime);

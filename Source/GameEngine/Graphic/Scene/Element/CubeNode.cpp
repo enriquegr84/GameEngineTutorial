@@ -24,7 +24,7 @@
 
 //! constructor
 CubeNode::CubeNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, float size)
-	:	Node(actorId, renderComponent, ERP_NONE, ESNT_CUBE, t), mMesh(0), mSize(size), mShadow(0)
+	:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mMesh(0), mSize(size), mShadow(0)
 {
 	#ifdef _DEBUG
 	//setDebugName("CubeSceneNode");
@@ -42,16 +42,25 @@ CubeNode::~CubeNode()
 
 void CubeNode::SetSize()
 {
-	const eastl::shared_ptr<Scene>& pScene = gameApp->GetHumanView()->mScene;
-	mMesh = eastl::shared_ptr<Mesh>(
-		pScene->GetGeometryCreator()->CreateCubeMesh(Vector3<float>(mSize)));
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	MeshFactory mf;
+	mf.SetVertexFormat(vformat);
+	mf.CreateBox(mSize, mSize, mSize);
 }
 
 
 //! prerender
 bool CubeNode::PreRender(Scene *pScene)
 {
-	if (Get()->IsVisible())
+	if (IsVisible())
 	{
 		// because this node supports rendering of mixed mode meshes consisting of
 		// transparent and solid material at the same time, we need to go through all
@@ -86,10 +95,10 @@ bool CubeNode::PreRender(Scene *pScene)
 		if (!pScene->IsCulled(this))
 		{
 			if (solidCount)
-				pScene->AddToRenderQueue(ERP_SOLID, shared_from_this());
+				pScene->AddToRenderQueue(RP_SOLID, shared_from_this());
 
 			if (transparentCount)
-				pScene->AddToRenderQueue(ERP_TRANSPARENT, shared_from_this());
+				pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
 		}
 	}
 
@@ -166,12 +175,6 @@ bool CubeNode::Render(Scene *pScene)
 	}
 
 	return true;
-}
-
-//! returns the axis aligned bounding box of this node
-const AlignedBox3<float>& CubeNode::GetBoundingBox() const
-{
-	return mMesh->GetMeshBuffer(0)->GetBoundingBox();
 }
 
 

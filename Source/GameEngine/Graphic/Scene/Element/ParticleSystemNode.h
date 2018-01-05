@@ -73,9 +73,6 @@ public:
 	//! Returns amount of materials used by this scene node.
 	unsigned int GetMaterialCount() const;
 
-	//! returns the axis aligned bounding box of this node
-	const AlignedBox3<float>& GetBoundingBox() const;
-
 	//! Sets if the particles should be global. If they are, the particles are affected by
 	//! the movement of the particle system scene node too, otherwise they completely
 	//! ignore it. Default is true.

@@ -48,7 +48,6 @@
 #include "Core/Event/EventManager.h"
 
 #include "Graphic/Scene/Hierarchy/Node.h"
-#include "Graphic/Scene/Hierarchy/Camera.h"
 
 class LightManager;
 
@@ -84,7 +83,7 @@ class Scene
 {
 protected:
 	eastl::shared_ptr<Node> mRoot;
-	eastl::shared_ptr<Camera> mCamera;
+	eastl::shared_ptr<CameraNode> mCamera;
 
 	LightManager* mLightManager;
 
@@ -345,12 +344,12 @@ public:
 	/** \return The active camera is returned. Note that this can
 	be NULL, if there was no camera created yet.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	virtual const eastl::shared_ptr<Camera>& GetActiveCamera() const { return mCamera; }
+	virtual const eastl::shared_ptr<CameraNode>& GetActiveCamera() const { return mCamera; }
 
 	//! Sets the currently active camera.
 	/** The previous active camera will be deactivated.
 	\param camera: The new camera which should be active. */
-	virtual void SetActiveCamera(const eastl::shared_ptr<Camera>& camera) { mCamera = camera; }
+	virtual void SetActiveCamera(const eastl::shared_ptr<CameraNode>& camera) { mCamera = camera; }
 
 	//! Get current render time.
 	RenderPass GetCurrentRenderPass() const { return mCurrentRenderPass; }

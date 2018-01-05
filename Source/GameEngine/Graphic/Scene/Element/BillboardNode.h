@@ -17,14 +17,6 @@ class GRAPHIC_ITEM BillboardNode : public Node
 public:
     // The model space of the billboard has an up vector of (0,1,0) that is
     // chosen to be the billboard's axis of rotation.
-
-    // Construction.
-    BillboardNode(eastl::shared_ptr<Camera> const& camera);
-
-    // The camera to which the billboard is aligned.
-    inline void AlignTo(eastl::shared_ptr<Camera> const& camera);
-
-
 	//! Constructor
 	BillboardNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, const Vector2<float>& size,
 		eastl::array<float, 4> const colorTop = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f},
@@ -33,9 +25,6 @@ public:
 	//! Renders event
 	bool PreRender(Scene *pScene);
 	bool Render(Scene *pScene);
-
-	//! returns the axis aligned bounding box of this node
-	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! sets the size of the billboard
 	void SetSize(const Vector2<float>& size);
@@ -69,31 +58,21 @@ public:
 	void GetColor(eastl::array<float, 4>& topColor, eastl::array<float, 4>& bottomColor) const;
 
 	//! Returns type of the scene node
-	E_SCENE_NODE_TYPE GetType() const { return ESNT_BILLBOARD; }
+	NodeType GetType() const { return NT_BILLBOARD; }
 
 protected:
     // Support for the geometric update.
-    virtual void UpdateWorldData(double applicationTime);
-
-	eastl::shared_ptr<Camera> mCamera;
+    virtual void UpdateWorldData(Scene* pScene, double applicationTime);
 
 private:
 
 	//! Size.Width is the bottom edge width
 	Vector2<float> mSize;
 	float mTopEdgeWidth;
-	AlignedBox3<float> mBBox;
 	Material mMaterial;
 
-	VertexBuffer mVertices[4];
-	unsigned int mIndices[6];
+	eastl::shared_ptr<VertexBuffer> mVertices;
+	eastl::shared_ptr<IndexBuffer> mIndices;
 };
-
-
-inline void BillboardNode::AlignTo(eastl::shared_ptr<Camera> const& camera)
-{
-    mCamera = camera;
-}
-
 
 #endif

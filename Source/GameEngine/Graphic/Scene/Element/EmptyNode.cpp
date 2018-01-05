@@ -58,10 +58,3 @@ bool EmptyNode::Render(Scene *pScene)
 	// do nothing
 	return Node::Render(pScene);
 }
-
-
-//! returns the axis aligned bounding box of this node
-const AlignedBox3<float>& EmptyNode::GetBoundingBox() const
-{
-	return mBBox;
-}

@@ -26,9 +26,6 @@ public:
 	bool PreRender(Scene *pScene);
 	bool Render(Scene *pScene);
 
-	//! returns the axis aligned bounding box of this node
-	const AlignedBox3<float>& GetBoundingBox() const;
-
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use getMaterialCount().
 	//! This function is needed for inserting the node into the scene hirachy on a

@@ -15,8 +15,9 @@
 VolumeLightNode::VolumeLightNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
 	const unsigned int subdivU, const unsigned int subdivV, 
 	const eastl::array<float, 4> foot, const eastl::array<float, 4> tail)
-:	Node(actorId, renderComponent, ERP_TRANSPARENT, ESNT_VOLUME_LIGHT, t), mMesh(0), mLPDistance(8.0f),
-mSubdivideU(subdivU), mSubdivideV(subdivV), mFootColor(foot), mTailColor(tail), mLightDimensions(Vector3<float>{1.0f, 1.2f, 1.0f})
+:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_VOLUME_LIGHT), mMesh(0), 
+	mLPDistance(8.0f), mSubdivideU(subdivU), mSubdivideV(subdivV), mFootColor(foot), 
+	mTailColor(tail), mLightDimensions(Vector3<float>{1.0f, 1.2f, 1.0f})
 {
 
 	#ifdef _DEBUG
@@ -72,13 +73,6 @@ bool VolumeLightNode::Render(Scene *pScene)
 	renderer->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
 
 	return Node::Render(pScene);
-}
-
-
-//! returns the axis aligned bounding box of this node
-const AlignedBox3<float>& VolumeLightNode::GetBoundingBox() const
-{
-	return mMesh->GetBoundingBox();
 }
 
 

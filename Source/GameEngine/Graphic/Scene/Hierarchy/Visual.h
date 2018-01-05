@@ -37,7 +37,7 @@ public:
     bool UpdateModelNormals();
 
     // Public member access.
-    BoundingSphere modelBound;
+    BoundingSphere mModelBound;
 
 protected:
     // Support for geometric updates.
@@ -85,7 +85,7 @@ inline eastl::shared_ptr<VisualEffect> const& Visual::GetEffect() const
 
 inline void Visual::UpdateWorldBound()
 {
-    modelBound.TransformBy(mWorldTransform, mWorldBound);
+    mModelBound.TransformBy(mWorldTransform, mWorldBound);
 }
 
 inline void Visual::GetVisibleSet(Culler& culler, eastl::shared_ptr<Camera> const&, bool)

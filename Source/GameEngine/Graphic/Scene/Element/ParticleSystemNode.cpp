@@ -143,13 +143,6 @@ bool ParticleSystemNode::Render(Scene *pScene)
 }
 
 
-//! returns the axis aligned bounding box of this node
-const AlignedBox3<float>& ParticleSystemNode::GetBoundingBox() const
-{
-	return mBuffer->GetBoundingBox();
-}
-
-
 void ParticleSystemNode::DoParticleSystem(u32 time)
 {
 	Matrix4x4<float> toWorld, fromWorld;

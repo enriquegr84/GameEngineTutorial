@@ -68,6 +68,13 @@ public:
 	eastl::shared_ptr<Visual> CreateTriangle(unsigned int numSamples,
         float xExtent, float yExtent);
 
+	// The box has center (0,0,0); unit-length axes (1,0,0), (0,1,0), and
+	// (0,0,1); and extents (half-lengths) xExtent, yExtent, and zExtent.  The
+	// mesh has 8 vertices and 12 triangles.  For example, the box corner in
+	// the first octant is (xExtent, yExtent, zExtent).
+	eastl::shared_ptr<Visual> CreateBox(float xExtent, float yExtent,
+		float zExtent);
+
 private:
     // Support for creating vertex and index buffers.
 	eastl::shared_ptr<VertexBuffer> CreateVBuffer(unsigned int numVertices);
@@ -86,6 +93,9 @@ private:
     void SetTangent(unsigned int i, Vector3<float> const& tan);
     void SetBinormal(unsigned int i, Vector3<float> const& bin);
     void SetTCoord(unsigned int i, Vector2<float> const& tcd);
+
+	// Support for index buffers.
+	void ReverseTriangleOrder(IndexBuffer* ibuffer);
 
     VertexFormat mVFormat;
     size_t mIndexSize;

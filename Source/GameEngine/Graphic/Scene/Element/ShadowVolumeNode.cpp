@@ -324,14 +324,6 @@ bool ShadowVolumeNode::Render(Scene* pScene)
 	return true;
 }
 
-
-//! returns the axis aligned bounding box of this node
-const AlignedBox3<float>& ShadowVolumeNode::GetBoundingBox() const
-{
-	return mBBox;
-}
-
-
 //! Generates adjacency information based on mesh indices.
 void ShadowVolumeNode::CalculateAdjacency()
 {

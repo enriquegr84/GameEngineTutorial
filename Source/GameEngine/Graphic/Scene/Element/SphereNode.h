@@ -17,19 +17,11 @@ public:
 	SphereNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
 		float radius, unsigned int polyCountX, unsigned int polyCountY);
 
-/*
-			const Vector3<float>& position = Vector3<float>(0,0,0),
-			const Vector3<float>& rotation = Vector3<float>(0,0,0),
-			const Vector3<float>& scale = Vector3<float>(1.0f, 1.0f, 1.0f));
-*/
 	~SphereNode();
 
 	//! Renders event
 	bool PreRender(Scene *pScene);
 	bool Render(Scene *pScene);
-
-	//! returns the axis aligned bounding box of this node
-	const AlignedBox3<float>& GetBoundingBox() const;
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use getMaterialCount().
@@ -45,7 +37,7 @@ public:
 	NodeType GetType() const { return ESNT_SPHERE; }
 
 	//! Returns the current mesh
-	const eastl::shared_ptr<Mesh>& GetMesh() { return mMesh; }
+	const eastl::shared_ptr<BaseMesh>& GetMesh() { return mMesh; }
 
 	//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
 	/* In this way it is possible to change the materials a mesh causing all mesh scene nodes 
@@ -58,7 +50,7 @@ public:
 	//! Creates shadow volume scene node as child of this node
 	//! and returns a pointer to it.
 	const shared_ptr<ShadowVolumeNode>& AddShadowVolumeNode(const ActorId actorId, Scene* pScene, 
-		const eastl::shared_ptr<IMesh>& shadowMesh = 0, bool zfailmethod=true, float infinity=10000.0f);
+		const eastl::shared_ptr<BaseMesh>& shadowMesh = 0, bool zfailmethod=true, float infinity=10000.0f);
 
 	//! Removes a child from this scene node.
 	//! Implemented here, to be able to remove the shadow properly, if there is one,
@@ -67,9 +59,9 @@ public:
 
 private:
 
-	eastl::shared_ptr<Mesh> mMesh;
+	eastl::shared_ptr<BaseMesh> mMesh;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
-	AlignedBox3<float> mBBox;
+
 	float mRadius;
 	unsigned int mPolyCountX;
 	unsigned int mPolyCountY;

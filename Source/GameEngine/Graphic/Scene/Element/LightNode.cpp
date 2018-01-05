@@ -117,12 +117,6 @@ void LightNode::SetVisible(bool isVisible)
 	renderer->TurnLightOn((unsigned int)mDriverLightIndex, mLightIsOn);
 }
 
-//! returns the axis aligned bounding box of this node
-const AlignedBox3<float>& LightNode::GetBoundingBox() const
-{
-	return mBBox;
-}
-
 //! Sets the light's radius of influence.
 /** Outside this radius the light won't lighten geometry and cast no
 shadows. Setting the radius will also influence the attenuation, setting

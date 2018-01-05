@@ -22,9 +22,6 @@ public:
 	bool PreRender(Scene *pScene);
 	bool Render(Scene *pScene);
 
-	//! returns the axis aligned bounding box of this node
-	const AlignedBox3<float>& GetBoundingBox() const;
-
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use getMaterialCount().
 	//! This function is needed for inserting the node into the scene hirachy on a
@@ -36,11 +33,10 @@ public:
 	unsigned int GetMaterialCount() const;
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return ESNT_SKY_BOX; }
+	NodeType GetType() const { return NT_SKY_BOX; }
 
 private:
 
-	AlignedBox3<float> mBBox;
 	unsigned int mIndices[4];
 	VertexBuffer mVertices[4*6];
 	Material mMaterials[6];

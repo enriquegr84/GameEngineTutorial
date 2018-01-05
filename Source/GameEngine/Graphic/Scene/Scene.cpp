@@ -143,8 +143,6 @@ bool Scene::OnRender()
 		// The scene root could be anything, but it
 		// is usually a SceneNode with the identity
 		// matrix
-		//mCamera->SetViewTransform(this);
-
 		mLightManager->CalculateLighting(this);
 
 		if (mRoot->PreRender(this)==true)
@@ -317,7 +315,7 @@ eastl::shared_ptr<Node> Scene::AddVolumeLightNode(
 eastl::shared_ptr<Node> Scene::AddCameraNode(
 	WeakBaseRenderComponentPtr renderComponent, int id, bool makeActive)
 {
-	eastl::shared_ptr<Node> node(new CameraNode(id, this));
+	eastl::shared_ptr<Node> node(new CameraNode(id, renderComponent));
 	AddSceneNode(id, node);
 	/*
 	if (makeActive)
@@ -337,7 +335,7 @@ eastl::shared_ptr<Node> Scene::AddBillboardNode(
 
 	eastl::shared_ptr<Node> node(
 		new BillboardNode(id, renderComponent, size, colorTop, colorBottom));
-	node->SetPosition(position);
+	node->GetAbsoluteTransform()->SetTranslation(position);
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -503,11 +501,11 @@ bool Scene::IsCulled(Node* node)
 	// of the camera attached to the scene
 
 	Matrix4x4<float> toWorld, fromWorld;
-	//GetActiveCamera()->Transform(&toWorld, &fromWorld);
-	//ViewFrustum frustum(GetActiveCamera()->GetViewFrustum());
+	GetActiveCamera()->Transform(&toWorld, &fromWorld);
+	ViewFrustum frustum(GetActiveCamera()->GetViewFrustum());
 
 	bool isVisible = false;
-	/*
+
 	// has occlusion query information
 	if (node->GetAutomaticCulling() & AC_OCC_QUERY)
 	{
@@ -558,7 +556,7 @@ bool Scene::IsCulled(Node* node)
 			}
 		}
 	}
-	*/
+
 	return isVisible;
 }
 
@@ -618,8 +616,7 @@ void Scene::MoveActorDelegate(BaseEventDataPtr pEventData)
     const Transform& transform = pCastEventData->GetTransform();
 
     eastl::shared_ptr<Node> pNode = GetSceneNode(id);
-	/*
     if (pNode)
 		pNode->SetTransform(&transform);
-	*/
+
 }

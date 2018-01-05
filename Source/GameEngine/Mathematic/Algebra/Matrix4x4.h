@@ -79,8 +79,7 @@ Matrix4x4<Real> MakePerspectiveProjection(Vector4<Real> const& origin,
 // where P is a point on the plane and N is a unit-length plane normal.
 
 template <typename Real>
-Matrix4x4<Real> MakeReflection(Vector4<Real> const& origin,
-    Vector4<Real> const& normal);
+Matrix4x4<Real> MakeReflection(Vector4<Real> const& origin, Vector4<Real> const& normal);
 
 
 template <typename Real>
@@ -298,8 +297,7 @@ Matrix4x4<Real> MakePerspectiveProjection(Vector4<Real> const& origin,
 }
 
 template <typename Real>
-Matrix4x4<Real> MakeReflection(Vector4<Real> const& origin,
-    Vector4<Real> const& normal)
+Matrix4x4<Real> MakeReflection(Vector4<Real> const& origin, Vector4<Real> const& normal)
 {
     Matrix4x4<Real> M;
 

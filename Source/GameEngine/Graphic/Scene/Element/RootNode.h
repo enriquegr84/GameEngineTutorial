@@ -15,9 +15,6 @@ public:
 	RootNode();
 	RootNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent);
 
-	//! returns the axis aligned bounding box of this node
-	const AlignedBox3<float>& GetBoundingBox() const;
-
 	//! Renders event
 	bool PreRender(Scene *pScene);
 	bool Render(Scene *pScene);
@@ -26,10 +23,6 @@ public:
 
 	//! Returns type of the scene node
 	NodeType GetType() const { return NT_ROOT; }
-
-private:
-
-	AlignedBox3<float> mBBox;
 };
 
 

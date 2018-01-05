@@ -9,28 +9,66 @@
 #include "Mathematic/Algebra/Rotation.h"
 #include "Mathematic/Function/Functions.h"
 
-BillboardNode::BillboardNode(eastl::shared_ptr<Camera> const& camera)
-    : mCamera(camera)
+
+//! constructor
+BillboardNode::BillboardNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
+	const Vector2<float>& size, eastl::array<float, 4> colorTop, eastl::array<float, 4> colorBottom)
+	: Node(actorId, renderComponent, RP_TRANSPARENT, NT_BILLBOARD)
 {
+#ifdef _DEBUG
+	//setDebugName("BillboardNode");
+#endif
+
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	mVertices = eastl::make_shared<VertexBuffer>(vformat, 4);
+	mIndices = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	SetSize(size);
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector3<float> normal;
+		Vector2<float> tcoord;
+		Vector4<float> color;
+	};
+	Vertex* vertex = mVertices->Get<Vertex>();
+	vertex[0].tcoord = { 1.0f, 1.0f };
+	vertex[0].color = colorBottom;
+
+	vertex[1].tcoord = { 1.0f, 0.0f };
+	vertex[1].color = colorTop;
+
+	vertex[2].tcoord = { 0.0f, 0.0f };
+	vertex[2].color = colorTop;
+
+	vertex[3].tcoord = { 0.0f, 1.0f };
+	vertex[3].color = colorBottom;
 }
 
-void BillboardNode::UpdateWorldData(double applicationTime)
+void BillboardNode::UpdateWorldData(Scene* pScene, double applicationTime)
 {
     // Compute the billboard's world transforms based on its parent's world
     // transform and its local transforms.  Notice that you should not call
     // Node::UpdateWorldData since that function updates its children.  The
     // children of a BillboardNode cannot be updated until the billboard is
     // aligned with the camera.
-    Spatial::UpdateWorldData(applicationTime);
+    Spatial::UpdateWorldData(pScene, applicationTime);
 
-    if (mCamera)
+	const eastl::shared_ptr<CameraNode>& node = pScene->GetActiveCamera();
+    if (node)
     {
         // Inverse-transform the camera to the model space of the billboard.
-        Matrix4x4<float> const& inverse = worldTransform.GetHInverse();
+        Matrix4x4<float> const& inverse = mWorldTransform.GetHInverse();
 #if defined(GE_USE_MAT_VEC)
-        Vector4<float> modelPos = inverse * mCamera->GetPosition();
+        Vector4<float> modelPos = inverse * node->GetCamera()->GetPosition();
 #else
-        Vector4<float> modelPos = mCamera->GetPosition() * inverse;
+        Vector4<float> modelPos = node->GetCamera()->GetPosition() * inverse;
 #endif
 
         // To align the billboard, the projection of the camera to the
@@ -43,52 +81,20 @@ void BillboardNode::UpdateWorldData(double applicationTime)
         Matrix4x4<float> orient = Rotation<4, float>(AxisAngle<4, float>(
             Vector4<float>::Unit(1), angle));
 #if defined(GE_USE_MAT_VEC)
-        worldTransform.SetRotation(worldTransform.GetRotation() * orient);
+        mWorldTransform.SetRotation(mWorldTransform.GetRotation() * orient);
 #else
-        worldTransform.SetRotation(orient * worldTransform.GetRotation());
+        mWorldTransform.SetRotation(orient * mWorldTransform.GetRotation());
 #endif
     }
 
     // Update the children now that the billboard orientation is known.
-    for (auto& child : mChild)
+    for (auto& child : mChildren)
     {
         if (child)
         {
-            child->Update(applicationTime, false);
+            child->Update(pScene, applicationTime, false);
         }
     }
-}
-
-
-//! constructor
-BillboardNode::BillboardNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-	const Vector2<float>& size, eastl::array<float, 4> colorTop, eastl::array<float, 4> colorBottom)
-	: Node(actorId, renderComponent, ERP_TRANSPARENT, ESNT_BILLBOARD)
-{
-#ifdef _DEBUG
-	//setDebugName("BillboardNode");
-#endif
-
-	SetSize(size);
-
-	mIndices[0] = 0;
-	mIndices[1] = 2;
-	mIndices[2] = 1;
-	mIndices[3] = 0;
-	mIndices[4] = 3;
-	mIndices[5] = 2;
-
-	mVertices[0].mTCoords.set(1.0f, 1.0f);
-	mVertices[0].mColor = colorBottom;
-
-	mVertices[1].mTCoords.set(1.0f, 0.0f);
-	mVertices[1].mColor = colorTop;
-
-	mVertices[2].mTCoords.set(0.0f, 0.0f);
-	mVertices[2].mColor = colorTop;
-
-	mVertices[3].mTCoords.set(0.0f, 1.0f);
-	mVertices[3].mColor = colorBottom;
 }
 
 //! prerender
@@ -135,46 +141,51 @@ bool BillboardNode::PreRender(Scene *pScene)
 //
 bool BillboardNode::Render(Scene *pScene)
 {
-	Matrix4x4<float> toWorld, fromWorld;
-	Get()->Transform(&toWorld, &fromWorld);
+	const eastl::shared_ptr<CameraNode>& node = pScene->GetActiveCamera();
 
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-	const eastl::shared_ptr<CameraNode>& camera = pScene->GetActiveCamera();
-
-	if (!camera || !renderer)
+	if (!node || !Renderer::Get())
 		return false;
 
 	// make billboard look to camera
-	Vector3<float> pos = toWorld.GetTranslation();
+	Vector4<float> pos = mWorldTransform.GetTranslationW1();
 
-	Vector3<float> campos = camera->Get()->ToWorld().GetTranslation();
-	Vector3<float> target = camera->Get()->ToWorld().GetTranslation() +
-		camera->Get()->ToWorld().GetRotationDegrees().RotationToDirection();
-	if (camera->GetTarget())
-		target = camera->GetTarget()->Get()->ToWorld().GetTranslation();
+	Vector4<float> campos = node->GetCamera()->GetPosition();
+	Vector4<float> target = 
+		node->GetCamera()->GetPosition() + node->GetCamera()->GetDVector();
 
-	Vector3<float> up = camera->GetUpVector();
-	Vector3<float> view = target - campos;
-	view.Normalize();
+	if (node->GetTarget())
+		target = node->GetTarget()->GetAbsoluteTransform().GetTranslationW1();
 
-	Vector3<float> horizontal = up.CrossProduct(view);
-	if (horizontal.GetLength() == 0)
+	Vector4<float> up = node->GetCamera()->GetUVector();
+	Vector4<float> view = Normalize(target - campos);
+
+	Vector4<float> horizontal = Cross(up, view);
+	if (Length(horizontal) == 0)
 	{
-		horizontal.set(up.Y, up.X, up.Z);
+		horizontal = { up[1], up[0], up[2], up[3] };
 	}
-	horizontal.Normalize();
-	Vector3<float> topHorizontal = horizontal * 0.5f * mTopEdgeWidth;
-	horizontal *= 0.5f * mSize.Width;
+
+	horizontal = Normalize(horizontal);
+	Vector4<float> topHorizontal = horizontal * 0.5f * mTopEdgeWidth;
+	horizontal *= 0.5f * mSize[0];
 
 	// pointing down!
-	Vector3<float> vertical = horizontal.CrossProduct(view);
-	vertical.Normalize();
-	vertical *= 0.5f * mSize.Height;
+	Vector4<float> vertical = Cross(horizontal, view);
+	vertical = Normalize(vertical);
+	vertical *= 0.5f * mSize[1];
 
 	view *= -1.0f;
 
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector3<float> normal;
+		Vector2<float> tcoord;
+		Vector4<float> color;
+	};
+	Vertex* vertex = mVertices->Get<Vertex>();
 	for (int i = 0; i<4; ++i)
-		mVertices[i].mNormal = view;
+		vertex[i].normal = { view[0], view[1], view[2] };
 
 	/* Vertices are:
 	2--1
@@ -182,76 +193,72 @@ bool BillboardNode::Render(Scene *pScene)
 	| \|
 	3--0
 	*/
-	mVertices[0].mPos = pos + horizontal + vertical;
-	mVertices[1].mPos = pos + topHorizontal - vertical;
-	mVertices[2].mPos = pos - topHorizontal - vertical;
-	mVertices[3].mPos = pos - horizontal + vertical;
-
+	Vector4<float> vertexPos = pos + horizontal + vertical;
+	vertex[0].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
+	vertexPos = pos + topHorizontal - vertical;
+	vertex[1].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
+	vertexPos = pos - topHorizontal - vertical;
+	vertex[2].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
+	vertexPos = pos - horizontal + vertical;
+	vertex[3].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
+	/*
 	// draw
-	if (mProps.DebugDataVisible() & EDS_BBOX)
+	if (DebugDataVisible() & DS_BBOX)
 	{
-		renderer->SetTransform(ETS_WORLD, toWorld);
+		Renderer::Get()->SetTransform(TS_WORLD, toWorld);
 		Material m;
-		m.Lighting = false;
-		renderer->SetMaterial(m);
-		renderer->Draw3DBox(mBBox, eastl::array<float, 4>{0.f, 208.f, 195.f, 152.f});
+		m.mLighting = false;
+		Renderer::Get()->SetMaterial(m);
+		Renderer::Get()->Draw3DBox(mBBox, eastl::array<float, 4>{0.f, 208.f, 195.f, 152.f});
 	}
 
-	renderer->SetTransform(ETS_WORLD, Matrix4x4<float>::Identity);
-	renderer->SetMaterial(mMaterial);
-	renderer->DrawIndexedTriangleList(mVertices, 4, mIndices, 2);
-
+	Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity);
+	Renderer::Get()->SetMaterial(mMaterial);
+	Renderer::Get()->DrawIndexedTriangleList(mVertices, 4, mIndices, 2);
+	*/
 	return Node::Render(pScene);
 }
-
-
-//! returns the axis aligned bounding box of this node
-const AlignedBox3<float>& BillboardNode::GetBoundingBox() const
-{
-	return mBBox;
-}
-
 
 //! sets the size of the billboard
 void BillboardNode::SetSize(const Vector2<float>& size)
 {
 	mSize = size;
 
-	if (eastl::equals(mSize.Width, 0.0f))
-		mSize.Width = 1.0f;
-	mTopEdgeWidth = mSize.Width;
+	if (Function<float>::Equals(mSize[0], 0.0f))
+		mSize[0] = 1.0f;
+	mTopEdgeWidth = mSize[0];
 
-	if (eastl::equals(mSize.Height, 0.0f))
-		mSize.Height = 1.0f;
+	if (Function<float>::Equals(mSize[1], 0.0f))
+		mSize[1] = 1.0f;
 
-	const float avg = (mSize.Width + mSize.Height) / 6;
-	mBBox.MinEdge.set(-avg, -avg, -avg);
-	mBBox.MaxEdge.set(avg, avg, avg);
+	const float avg = (mSize[0] + mSize[1]) / 6;
+	//mBBox.mMinEdge.set(-avg, -avg, -avg);
+	//mBBox.mMaxEdge.set(avg, avg, avg);
 }
 
 
 void BillboardNode::SetSize(float height, float bottomEdgeWidth, float topEdgeWidth)
 {
-	mSize.set(bottomEdgeWidth, height);
+	mSize = { bottomEdgeWidth, height };
 	mTopEdgeWidth = topEdgeWidth;
 
-	if (eastl::equals(mSize.Height, 0.0f))
-		mSize.Height = 1.0f;
+	if (Function<float>::Equals(mSize[1], 0.0f))
+		mSize[1] = 1.0f;
 
-	if (eastl::equals(mSize.Width, 0.f) && 
-		eastl::equals(mTopEdgeWidth, 0.f))
+	if (Function<float>::Equals(mSize[0], 0.f) &&
+		Function<float>::Equals(mTopEdgeWidth, 0.f))
 	{
-		mSize.Width = 1.0f;
+		mSize[0] = 1.0f;
 		mTopEdgeWidth = 1.0f;
 	}
 
-	const float avg = (eastl::max(mSize.Width, mTopEdgeWidth) + mSize.Height) / 6;
-	mBBox.MinEdge.set(-avg, -avg, -avg);
-	mBBox.MaxEdge.set(avg, avg, avg);
+	const float avg = (eastl::max(mSize[0], mTopEdgeWidth) + mSize[1]) / 6;
+	//mBBox.MinEdge.set(-avg, -avg, -avg);
+	//mBBox.MaxEdge.set(avg, avg, avg);
 }
 
 
-Material& BillboardNode::GetMaterial()
+Material& BillboardNode::GetMaterial(unsigned int i)
 {
 	return mMaterial;
 }
@@ -274,8 +281,8 @@ const Vector2<float>& BillboardNode::GetSize() const
 //! Gets the widths of the top and bottom edges of the billboard.
 void BillboardNode::GetSize(float& height, float& bottomEdgeWidth, float& topEdgeWidth) const
 {
-	height = mSize.Height;
-	bottomEdgeWidth = mSize.Width;
+	height = mSize[1];
+	bottomEdgeWidth = mSize[0];
 	topEdgeWidth = mTopEdgeWidth;
 }
 
@@ -284,8 +291,16 @@ void BillboardNode::GetSize(float& height, float& bottomEdgeWidth, float& topEdg
 //! \param overallColor: the color to set
 void BillboardNode::SetColor(const eastl::array<float, 4>& overallColor)
 {
-	for (unsigned int vertex = 0; vertex < 4; ++vertex)
-		mVertices[vertex].mColor = overallColor;
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector3<float> normal;
+		Vector2<float> tcoord;
+		Vector4<float> color;
+	};
+	Vertex* vertex = mVertices->Get<Vertex>();
+	for (unsigned int idx = 0; idx < 4; ++idx)
+		vertex[idx].color = overallColor;
 }
 
 
@@ -294,10 +309,18 @@ void BillboardNode::SetColor(const eastl::array<float, 4>& overallColor)
 //! \param bottomColor: the color to set the bottom vertices
 void BillboardNode::SetColor(const eastl::array<float, 4>& topColor, const eastl::array<float, 4>& bottomColor)
 {
-	mVertices[0].mColor = bottomColor;
-	mVertices[1].mColor = topColor;
-	mVertices[2].mColor = topColor;
-	mVertices[3].mColor = bottomColor;
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector3<float> normal;
+		Vector2<float> tcoord;
+		Vector4<float> color;
+	};
+	Vertex* vertex = mVertices->Get<Vertex>();
+	vertex[0].color = bottomColor;
+	vertex[1].color = topColor;
+	vertex[2].color = topColor;
+	vertex[3].color = bottomColor;
 }
 
 
@@ -306,7 +329,15 @@ void BillboardNode::SetColor(const eastl::array<float, 4>& topColor, const eastl
 //! \param[out] bottomColor: stores the color of the bottom vertices
 void BillboardNode::GetColor(eastl::array<float, 4>& topColor, eastl::array<float, 4>& bottomColor) const
 {
-	bottomColor = mVertices[0].mColor;
-	topColor = mVertices[1].mColor;
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector3<float> normal;
+		Vector2<float> tcoord;
+		Vector4<float> color;
+	};
+	Vertex* vertex = mVertices->Get<Vertex>();
+	bottomColor = { vertex[0].color[0], vertex[0].color[1], vertex[0].color[2], vertex[0].color[3] };
+	topColor = { vertex[1].color[0], vertex[1].color[1], vertex[1].color[2], vertex[1].color[3] };
 }
 

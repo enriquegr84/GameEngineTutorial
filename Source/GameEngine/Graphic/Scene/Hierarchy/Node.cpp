@@ -268,15 +268,15 @@ eastl::shared_ptr<NodeAnimator> Node::GetAnimator(int i)
 }
 
 
-void Node::UpdateWorldData(double applicationTime)
+void Node::UpdateWorldData(Scene* pScene, double applicationTime)
 {
-    Spatial::UpdateWorldData(applicationTime);
+    Spatial::UpdateWorldData(pScene, applicationTime);
 
     for (auto& child : mChildren)
     {
         if (child)
         {
-            child->Update(applicationTime, false);
+            child->Update(pScene, applicationTime, false);
         }
     }
 }
@@ -404,11 +404,10 @@ bool Node::OnAnimate(Scene* pScene, unsigned int timeMs)
 			anim->AnimateNode(this, timeMs);
 		}
 
-		// update absolute transformation
-		UpdateAbsoluteTransformation();
+		// update node
+		Update(pScene, timeMs);
 
 		// perform the post render process on all children
-
 		SceneNodeList::iterator it = mChildren.begin();
 		for (; it != mChildren.end(); ++it)
 			(*it)->OnAnimate(pScene, timeMs);
@@ -542,7 +541,7 @@ bool Node::RenderChildren(Scene *pScene)
 	SceneNodeList::iterator i = mChildren.begin();
 	SceneNodeList::iterator end = mChildren.end();
 
-	//LightManager* lightManager = pScene->GetLightManager();
+	LightManager* lightManager = pScene->GetLightManager();
 
 	while (i != end)
 	{
@@ -585,14 +584,14 @@ bool Node::RenderChildren(Scene *pScene)
 				}
 				*/
 
-				//if (lightManager)
-				//	lightManager->OnNodePreRender(node);
+				if (lightManager)
+					lightManager->OnNodePreRender(node);
 
 				node->Render(pScene);
 				node->RenderChildren(pScene);
-
-				//if (lightManager)
-				//	lightManager->OnNodePostRender(node);
+				
+				if (lightManager)
+					lightManager->OnNodePostRender(node);
 			}
 		}
 		node->PostRender(pScene);

@@ -8,8 +8,7 @@
 #ifndef SPATIAL_H
 #define SPATIAL_H
 
-#include "Graphic/Scene/Controller/ControlledObject.h"
-#include "Graphic/Scene/Visibility/Culler.h"
+#include "Graphic/Scene/Scene.h"
 
 #include <EASTL/string.h>
 
@@ -64,7 +63,7 @@ public:
     // volumes on the upward pass of the traversal.  The object that calls the
     // update is the initiator.  Other objects visited during the update are
     // not initiators.  The application time is in milliseconds.
-    void Update(double applicationTime = 0.0, bool initiator = true);
+    void Update(Scene* pScene, double applicationTime = 0.0, bool initiator = true);
 
     // Access to the parent object, which is null for the root of the
     // hierarchy.
@@ -86,45 +85,25 @@ public:
 	//! Returns if this scene node is a debug object.
 	bool IsDebugObject() const { return mIsDebugObject; }
 
-	//! Gets the scale of the scene node relative to its parent.
-	const Vector3<float>& GetScale() const { return mScale; }
-	//! Sets the relative scale of the scene node.
-	void SetScale(const Vector3<float>& scale) { mScale = scale; }
-	//! Gets the rotation of the node relative to its parent.
-	const Vector3<float>& GetRotation() const { return mRotation; }
-	//! Sets the rotation of the node relative to its parent.
-	void SetRotation(const Vector3<float>& rotation) { mRotation = rotation; }
-	//! Gets the position of the node relative to its parent.
-	const Vector3<float>& GetPosition() const { return mPosition; }
-	//! Sets the position of the node relative to its parent.
-	void SetPosition(const Vector3<float>& position) { mPosition = position; }
-
 	//! Returns the relative transformation of the scene node.
 	/** The relative transformation is stored internally as 3
 	vectors: translation, rotation and scale. To get the relative
 	transformation matrix, it is calculated from these values.
 	\return The relative transformation matrix. */
-	virtual Matrix4x4<float> GetRelativeTransformation() const
+	const Transform& GetRelativeTransform() const
 	{
-		Matrix4x4<float> mat;
-		/*
-		mat.SetRotationDegrees(mProps.mRotation);
-		mat.SetTranslation(mProps.mPosition);
-
-		if (mProps.m_Scale != Vector3<float>(1.f, 1.f, 1.f))
-		{
-		Matrix4x4<float> smat;
-		smat.SetScale(mProps.mScale);
-		mat *= smat;
-		}
-		*/
-		return mat;
+		mLocalTransform;
 	}
 
-	//! Updates transformation matrix of the node based on the relative and the parents transformation
-	virtual void UpdateAbsoluteTransformation();
-
-	const AlignedBox3<float>& GetBoundingBox() const { return *((AlignedBox3<float>*)0); }
+	//! Returns the absolute transformation of the scene node.
+	/** The absolute transformation is stored internally as 3
+	vectors: translation, rotation and scale. To get the absolute
+	transformation matrix, it is calculated from these values.
+	\return The relative transformation matrix. */
+	const Transform& GetAbsoluteTransform() const
+	{
+		mWorldTransform;
+	}
 
 public:
     // Support for hierarchical culling.
@@ -142,7 +121,7 @@ protected:
     Spatial();
 
     // Support for geometric updates.
-    virtual void UpdateWorldData(double applicationTime);
+    virtual void UpdateWorldData(Scene* pScene, double applicationTime);
     virtual void UpdateWorldBound() = 0;
     void PropagateBoundToRoot();
 
@@ -159,7 +138,6 @@ protected:
 	// which case worldBoundIsCurrent flag should be set to 'true'.
 	BoundingSphere mWorldBound;
 	bool mWorldBoundIsCurrent;
-	Vector3<float> mPosition, mRotation, mScale;
 
 	CullingMode mCulling;
 	bool					mIsVisible;

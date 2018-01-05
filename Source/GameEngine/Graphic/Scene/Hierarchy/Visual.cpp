@@ -38,7 +38,7 @@ bool Visual::UpdateModelBound()
     {
         int const numElements = mVBuffer->GetNumElements();
         int const vertexSize = (int)mVBuffer->GetElementSize();
-        modelBound.ComputeFromData(numElements, vertexSize, positions);
+        mModelBound.ComputeFromData(numElements, vertexSize, positions);
         return true;
     }
 

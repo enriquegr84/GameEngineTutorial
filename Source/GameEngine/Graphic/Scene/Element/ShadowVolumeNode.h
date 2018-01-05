@@ -32,9 +32,6 @@ public:
 	/** Called each render cycle from Animated Mesh SceneNode render method. */
 	void UpdateShadowVolumes(Scene *pScene);
 
-	//! returns the axis aligned bounding box of this node
-	const AlignedBox3<f32>& GetBoundingBox() const;
-
 
 private:
 
@@ -45,8 +42,6 @@ private:
 
 	//! Generates adjacency information based on mesh indices.
 	void CalculateAdjacency();
-
-	AlignedBox3<float> mBBox;
 
 	// a shadow volume for every light
 	eastl::vector<ShadowVolume> mShadowVolumes;

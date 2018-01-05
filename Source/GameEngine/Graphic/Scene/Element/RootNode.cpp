@@ -34,7 +34,6 @@ RootNode::RootNode(const ActorId actorId, WeakBaseRenderComponentPtr renderCompo
 //
 bool RootNode::PreRender(Scene *pScene)
 {
-	/*
 	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
 
 	// reset all transforms
@@ -50,7 +49,7 @@ bool RootNode::PreRender(Scene *pScene)
 	// consistent Camera is needed for culling
 	if (pScene->GetActiveCamera())
 		pScene->GetActiveCamera()->Render(pScene);
-	*/
+
 	bool success = Node::PreRender(pScene);
 
 	if (success)
@@ -70,7 +69,6 @@ bool RootNode::RenderChildren(Scene *pScene)
 		SceneNodeRenderList::iterator itNode = pScene->GetRenderList(pass).begin();
 		SceneNodeRenderList::iterator end = pScene->GetRenderList(pass).end();
 
-		/*
 		pScene->GetRenderer()->GetOverrideMaterial().mEnabled =
 			((pScene->GetRenderer()->GetOverrideMaterial().mEnablePasses & pass) != 0);
 
@@ -109,7 +107,6 @@ bool RootNode::RenderChildren(Scene *pScene)
 
 		if (pScene->GetLightManager())
 			pScene->GetLightManager()->OnRenderPassPostRender((RenderPass)pass);
-		*/
 	}
 
 	return true;
@@ -135,12 +132,4 @@ bool RootNode::PostRender(Scene* pScene)
 	pScene->SetCurrentRenderPass(RP_NONE);
 
 	return Node::PostRender(pScene);
-}
-
-
-//! returns the axis aligned bounding box of this node
-const AlignedBox3<float>& RootNode::GetBoundingBox() const
-{
-	// should never be used.
-	return *((AlignedBox3<float>*)0);
 }

@@ -101,6 +101,95 @@ eastl::shared_ptr<Visual> MeshFactory::CreateTriangle(unsigned int numSamples,
     return visual;
 }
 
+eastl::shared_ptr<Visual> MeshFactory::CreateBox(float xExtent, float yExtent, float zExtent)
+{
+	// Quantities derived from inputs.
+	int numVertices = 8;
+	int numTriangles = 12;
+
+	// Generate geometry.
+	eastl::shared_ptr<VertexBuffer> vbuffer = CreateVBuffer(numVertices);
+	if (!vbuffer)
+	{
+		return nullptr;
+	}
+
+	Vector3<float> pos, nor, basis[3];
+	Vector2<float> tcd;
+
+	// Choose vertex normals in the diagonal directions.
+	Vector3<float> diag{ xExtent, yExtent, zExtent };
+	Normalize(diag);
+	if (!mOutside)
+	{
+		diag = -diag;
+	}
+
+	for (unsigned int z = 0, v = 0; z < 2; ++z)
+	{
+		float fz = static_cast<float>(z), omfz = 1.0f - fz;
+		float zSign = 2.0f*fz - 1.0f;
+		pos[2] = zSign*zExtent;
+		nor[2] = zSign*diag[2];
+		for (unsigned int y = 0; y < 2; ++y)
+		{
+			float fy = static_cast<float>(y);
+			float ySign = 2.0f*fy - 1.0f;
+			pos[1] = ySign*yExtent;
+			nor[1] = ySign*diag[1];
+			tcd[1] = (1.0f - fy)*omfz + (0.75f - 0.5f*fy)*fz;
+			for (unsigned int x = 0; x < 2; ++x, ++v)
+			{
+				float fx = static_cast<float>(x);
+				float xSign = 2.0f*fx - 1.0f;
+				pos[0] = xSign*xExtent;
+				nor[0] = xSign*diag[0];
+				tcd[0] = fx*omfz + (0.25f + 0.5f*fx)*fz;
+
+				basis[0] = nor;
+				ComputeOrthogonalComplement(1, basis);
+
+				SetPosition(v, pos);
+				SetNormal(v, nor);
+				SetTangent(v, basis[1]);
+				SetBinormal(v, basis[2]);
+				SetTCoord(v, tcd);
+			}
+		}
+	}
+
+	// Generate indices (outside view).
+	eastl::shared_ptr<IndexBuffer> ibuffer = CreateIBuffer(numTriangles);
+	if (!ibuffer)
+	{
+		return nullptr;
+	}
+	ibuffer->SetTriangle(0, 0, 2, 3);
+	ibuffer->SetTriangle(1, 0, 3, 1);
+	ibuffer->SetTriangle(2, 0, 1, 5);
+	ibuffer->SetTriangle(3, 0, 5, 4);
+	ibuffer->SetTriangle(4, 0, 4, 6);
+	ibuffer->SetTriangle(5, 0, 6, 2);
+	ibuffer->SetTriangle(6, 7, 6, 4);
+	ibuffer->SetTriangle(7, 7, 4, 5);
+	ibuffer->SetTriangle(8, 7, 5, 1);
+	ibuffer->SetTriangle(9, 7, 1, 3);
+	ibuffer->SetTriangle(10, 7, 3, 2);
+	ibuffer->SetTriangle(11, 7, 2, 6);
+	if (!mOutside)
+	{
+		ReverseTriangleOrder(ibuffer.get());
+	}
+
+	// Create the mesh.
+	eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
+	if (visual)
+	{
+		visual->UpdateModelBound();
+	}
+	return visual;
+}
+
 eastl::shared_ptr<VertexBuffer> MeshFactory::CreateVBuffer(unsigned int numVertices)
 {
     auto vbuffer = eastl::make_shared<VertexBuffer>(mVFormat, numVertices);
@@ -214,4 +303,15 @@ void MeshFactory::SetTCoord(unsigned int i, Vector2<float> const& tcd)
             TCoord(unit, i) = tcd;
         }
     }
+}
+
+void MeshFactory::ReverseTriangleOrder(IndexBuffer* ibuffer)
+{
+	unsigned int const numTriangles = ibuffer->GetNumPrimitives();
+	for (unsigned int t = 0; t < numTriangles; ++t)
+	{
+		unsigned int v0, v1, v2;
+		ibuffer->GetTriangle(t, v0, v1, v2);
+		ibuffer->SetTriangle(t, v0, v2, v1);
+	}
 }
