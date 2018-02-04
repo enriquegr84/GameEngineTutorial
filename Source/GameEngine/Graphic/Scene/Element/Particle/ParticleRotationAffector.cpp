@@ -33,12 +33,12 @@ void ParticleRotationAffector::Affect(unsigned int now, Particle* particlearray,
 	for(unsigned int i=0; i<count; ++i)
 	{
 		if( mSpeed.X != 0.0f )
-			particlearray[i].pos.RotateYZBy( timeDelta * mSpeed.X, mPivotPoint );
+			particlearray[i].mPos.RotateYZBy( timeDelta * mSpeed.X, mPivotPoint );
 
 		if( mSpeed.Y != 0.0f )
-			particlearray[i].pos.RotateXZBy( timeDelta * mSpeed.Y, mPivotPoint );
+			particlearray[i].mPos.RotateXZBy( timeDelta * mSpeed.Y, mPivotPoint );
 
 		if( mSpeed.Z != 0.0f )
-			particlearray[i].pos.RotateXYBy( timeDelta * mSpeed.Z, mPivotPoint );
+			particlearray[i].mPos.RotateXYBy( timeDelta * mSpeed.Z, mPivotPoint );
 	}
 }

@@ -49,7 +49,7 @@ public:
 
 	//! Creates shadow volume scene node as child of this node
 	//! and returns a pointer to it.
-	const shared_ptr<ShadowVolumeNode>& AddShadowVolumeNode(const ActorId actorId, Scene* pScene, 
+	const eastl::shared_ptr<ShadowVolumeNode>& AddShadowVolumeNode(const ActorId actorId, Scene* pScene, 
 		const eastl::shared_ptr<BaseMesh>& shadowMesh = 0, bool zfailmethod=true, float infinity=10000.0f);
 
 	//! Removes a child from this scene node.

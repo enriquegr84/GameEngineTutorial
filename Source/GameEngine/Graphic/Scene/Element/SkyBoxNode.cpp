@@ -13,13 +13,13 @@
 SkyBoxNode::SkyBoxNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, 
 	const eastl::shared_ptr<Texture2>& top, const eastl::shared_ptr<Texture2>& bottom, const eastl::shared_ptr<Texture2>& left,
 	const eastl::shared_ptr<Texture2>& right, const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back)
-:	Node(actorId, renderComponent, ERP_SKY_BOX, ESNT_SKY_BOX)
+:	Node(actorId, renderComponent, RP_SKY_BOX, NT_SKY_BOX)
 {
 	#ifdef _DEBUG
 	//setDebugName("SkyBoxSceneNode");
 	#endif
 
-	Get()->SetAutomaticCulling(EAC_OFF);
+	//SetAutomaticCulling(AC_OFF);
 	mBBox.MaxEdge.set(0,0,0);
 	mBBox.MinEdge.set(0,0,0);
 
@@ -33,12 +33,12 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, WeakBaseRenderComponentPtr renderC
 	// create material
 
 	Material mat;
-	mat.Lighting = false;
-	mat.ZBuffer = ECFN_DISABLED;
-	mat.ZWriteEnable = false;
-	mat.AntiAliasing=0;
-	mat.TextureLayer[0].TextureWrapU = ETC_CLAMP_TO_EDGE;
-	mat.TextureLayer[0].TextureWrapV = ETC_CLAMP_TO_EDGE;
+	mat.mLighting = false;
+	mat.mZBuffer = CFN_DISABLED;
+	mat.mZWriteEnable = false;
+	mat.mAntiAliasing=0;
+	mat.mTextureLayer[0].TextureWrapU = TC_CLAMP_TO_EDGE;
+	mat.mTextureLayer[0].TextureWrapV = TC_CLAMP_TO_EDGE;
 
 	/* Hey, I am no artist, but look at that
 	   cool ASCII art I made! ;)
@@ -125,8 +125,8 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, WeakBaseRenderComponentPtr renderC
 //! pre render method
 bool SkyBoxNode::PreRender(Scene* pScene)
 {
-	if (Get()->IsVisible())
-		pScene->AddToRenderQueue(ERP_SKY_BOX, shared_from_this());
+	if (IsVisible())
+		pScene->AddToRenderQueue(RP_SKY_BOX, shared_from_this());
 
 	return Node::PreRender(pScene);
 }
@@ -134,14 +134,13 @@ bool SkyBoxNode::PreRender(Scene* pScene)
 //! renders the node.
 bool SkyBoxNode::Render(Scene* pScene)
 {
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
 	const eastl::shared_ptr<CameraNode>& camera = pScene->GetActiveCamera();
 
-	if (!camera || !renderer)
+	if (!camera || !Renderer::Get())
 		return false;
 
 	Matrix4x4<float> toWorld, fromWorld;
-	mParent->Get()->Transform(&toWorld, &fromWorld);
+	mParent->Transform(&toWorld, &fromWorld);
 
 	if ( !camera->IsOrthogonal() )
 	{
@@ -155,12 +154,12 @@ bool SkyBoxNode::Render(Scene* pScene)
 		Matrix4x4<float> scale;
 		scale.SetScale(Vector3<float>(viewDistance, viewDistance, viewDistance));
 
-		renderer->SetTransform(ETS_WORLD, translate * scale);
+		Renderer::Get()->SetTransform(TS_WORLD, translate * scale);
 
 		for (int i=0; i<6; ++i)
 		{
-			renderer->SetMaterial(mMaterials[i]);
-			renderer->DrawIndexedTriangleFan(&mVertices[i*4], 4, mIndices, 2);
+			Renderer::Get()->SetMaterial(mMaterials[i]);
+			Renderer::Get()->DrawIndexedTriangleFan(&mVertices[i*4], 4, mIndices, 2);
 		}
 	}
 	else
@@ -207,7 +206,7 @@ bool SkyBoxNode::Render(Scene* pScene)
 			RectangleShape<int> rctSrc(Vector2<int>(0,0),
 									Dimension2i(tex->GetSize()));
 
-			renderer->Draw2DImage(tex, rctDest, rctSrc);
+			Renderer::Get()->Draw2DImage(tex, rctDest, rctSrc);
 		}
 	}
 

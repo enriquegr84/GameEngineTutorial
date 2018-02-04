@@ -16,7 +16,7 @@
 //! constructor
 ParticleSystemNode::ParticleSystemNode(const ActorId actorId, 
 	WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter)
-:	Node(actorId, renderComponent, ERP_TRANSPARENT, ESNT_PARTICLE_SYSTEM),
+:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_PARTICLE_SYSTEM),
 	mEmitter(0), mParticleSize(Vector2<float>{5.f, 5.f}), mLastEmitTime(0),
 	mMaxParticles(0xffff), mBuffer(0), mParticlesAreGlobal(true)
 {
@@ -24,9 +24,9 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId,
 	//setDebugName("CParticleSystemSceneNode");
 	#endif
 
-	mBuffer = eastl::shared_ptr<MeshBufferVertex>(new MeshBufferVertex());
+	mBuffer = eastl::make_shared<MeshBuffer<float>>();
 	if (createDefaultEmitter)
-		SetEmitter(eastl::shared_ptr<BaseParticleEmitter>(CreateBoxEmitter()));
+		SetEmitter(eastl::make_shared<BaseParticleEmitter>(CreateBoxEmitter()));
 }
 
 
@@ -48,10 +48,16 @@ bool ParticleSystemNode::PreRender(Scene *pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		if (GetMaterial().IsTransparent())
-			++transparentCount;
-		else
-			++solidCount;
+		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+		{
+			if (GetMaterial(i).IsTransparent())
+				++transparentCount;
+			else
+				++solidCount;
+
+			if (solidCount && transparentCount)
+				break;
+		}
 
 		// register according to material types counted
 		if (!pScene->IsCulled(this))
@@ -72,16 +78,15 @@ bool ParticleSystemNode::PreRender(Scene *pScene)
 //
 bool ParticleSystemNode::Render(Scene *pScene)
 {
-	Matrix4x4<float> toWorld, fromWorld;
-	Get()->Transform(&toWorld, &fromWorld);
+	Transform toWorld, fromWorld;
+	//Transform(&toWorld, &fromWorld);
 
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-	const eastl::shared_ptr<CameraNode>& camera = pScene->GetActiveCamera();
+	const eastl::shared_ptr<CameraNode>& node = pScene->GetActiveCamera();
 
-	if (!camera || !renderer)
+	if (!node || !Renderer::Get())
 		return false;
 
-	const Matrix4x4<float> &m = camera->GetViewFrustum().GetTransform( ETS_VIEW );
+	const Matrix4x4<float> &m = node->GetCamera()->GetViewMatrix();
 	const Vector3<float> view{ -m[2], -m[6] , -m[10] };
 
 	// reallocate arrays, if they are too small
@@ -93,60 +98,60 @@ bool ParticleSystemNode::Render(Scene *pScene)
 	{
 		const Particle& particle = mParticles[i];
 
-		float f = 0.5f * particle.size.Width;
+		float f = 0.5f * particle.mSize[0];
 		const Vector3<float> horizontal{ m[0] * f, m[4] * f, m[8] * f };
 
-		f = -0.5f * particle.size.Height;
+		f = -0.5f * particle.mSize[1];
 		const Vector3<float> vertical{ m[1] * f, m[5] * f, m[9] * f };
 
-		mBuffer->m_Vertices[0+idx].mPos = particle.pos + horizontal + vertical;
-		mBuffer->m_Vertices[0+idx].mColor = particle.color;
-		mBuffer->m_Vertices[0+idx].mNormal = view;
+		mBuffer->mVertices[0+idx].mPos = particle.mPos + horizontal + vertical;
+		mBuffer->mVertices[0+idx].mColor = particle.mColor;
+		mBuffer->mVertices[0+idx].mNormal = view;
 
-		mBuffer->m_Vertices[1+idx].mPos = particle.pos + horizontal - vertical;
-		mBuffer->m_Vertices[1+idx].mColor = particle.color;
-		mBuffer->m_Vertices[1+idx].mNormal = view;
+		mBuffer->mVertices[1+idx].mPos = particle.mPos + horizontal - vertical;
+		mBuffer->mVertices[1+idx].mColor = particle.mColor;
+		mBuffer->mVertices[1+idx].mNormal = view;
 
-		mBuffer->m_Vertices[2+idx].mPos = particle.pos - horizontal - vertical;
-		mBuffer->m_Vertices[2+idx].mColor = particle.color;
-		mBuffer->m_Vertices[2+idx].mNormal = view;
+		mBuffer->mVertices[2+idx].mPos = particle.mPos - horizontal - vertical;
+		mBuffer->mVertices[2+idx].mColor = particle.mColor;
+		mBuffer->mVertices[2+idx].mNormal = view;
 
-		mBuffer->m_Vertices[3+idx].mPos = particle.pos - horizontal + vertical;
-		mBuffer->m_Vertices[3+idx].mColor = particle.color;
-		mBuffer->m_Vertices[3+idx].mNormal = view;
+		mBuffer->mVertices[3+idx].mPos = particle.mPos - horizontal + vertical;
+		mBuffer->mVertices[3+idx].mColor = particle.mColor;
+		mBuffer->mVertices[3+idx].mNormal = view;
 
 		idx +=4;
 	}
 
 	// render all
-	Matrix4x4<float> mat;
+	Transform mat;
 	if (!mParticlesAreGlobal)
 		mat.SetTranslation(toWorld.GetTranslation());
-	renderer->SetTransform(ETS_WORLD, mat);
+	//Renderer::Get()->SetTransform(TS_WORLD, mat);
 
-	renderer->SetMaterial(mBuffer->m_Material);
+	//Renderer::Get()->SetMaterial(mBuffer->mMaterial);
 
-	renderer->DrawVertexPrimitiveList(mBuffer->GetVertices(), mParticles.size()*4, 
-		mBuffer->GetIndices(), mParticles.size()*2, EVT_STANDARD, EPT_TRIANGLES, mBuffer->GetIndexType());
+	Renderer::Get()->DrawVertexPrimitiveList(mBuffer->GetVertices(), mParticles.size()*4,
+		mBuffer->GetIndices(), mParticles.size()*2, VT_STANDARD, PT_TRIANGLES, mBuffer->GetIndexType());
 
 	// for debug purposes only:
-	if ( mProps.DebugDataVisible() & EDS_BBOX )
+	if (DebugDataVisible() & DS_BBOX )
 	{
-		renderer->SetTransform(ETS_WORLD, toWorld);
+		Renderer::Get()->SetTransform(TS_WORLD, toWorld);
 		Material debM;
-		debM.Lighting = false;
-		renderer->SetMaterial(debM);
-		renderer->Draw3DBox(mBuffer->mBoundingBox, eastl::array<float, 4>{0.f, 255.f, 255.f, 255.f});
+		debM.mLighting = false;
+		Renderer::Get()->SetMaterial(debM);
+		Renderer::Get()->Draw3DBox(mBuffer->mBoundingBox, eastl::array<float, 4>{0.f, 255.f, 255.f, 255.f});
 	}
 
 	return Node::Render(pScene);
 }
 
 
-void ParticleSystemNode::DoParticleSystem(u32 time)
+void ParticleSystemNode::DoParticleSystem(unsigned int time)
 {
 	Matrix4x4<float> toWorld, fromWorld;
-	Get()->Transform(&toWorld, &fromWorld);
+	//Transform(&toWorld, &fromWorld);
 
 	if (mLastEmitTime==0)
 	{
@@ -160,7 +165,7 @@ void ParticleSystemNode::DoParticleSystem(u32 time)
 
 	// run emitter
 
-	if (mEmitter && mProps.IsVisible())
+	if (mEmitter && IsVisible())
 	{
 		Particle* array = 0;
 		int newParticles = mEmitter->Emitt(now, timediff, array);
@@ -175,9 +180,9 @@ void ParticleSystemNode::DoParticleSystem(u32 time)
 			for (int i=j; i<j+newParticles; ++i)
 			{
 				mParticles[i]=array[i-j];
-				toWorld.RotateVect(mParticles[i].startVector);
+				toWorld.RotateVect(mParticles[i].mStartVector);
 				if (mParticlesAreGlobal)
-					toWorld.TransformVect(mParticles[i].pos);
+					toWorld.TransformVect(mParticles[i].mPos);
 			}
 		}
 	}
@@ -188,9 +193,9 @@ void ParticleSystemNode::DoParticleSystem(u32 time)
 		(*ait)->Affect(now, mParticles.data(), mParticles.size());
 
 	if (mParticlesAreGlobal)
-		mBuffer->m_BoundingBox.Reset(toWorld.GetTranslation());
+		mBuffer->mBoundingBox.Reset(toWorld.GetTranslation());
 	else
-		mBuffer->m_BoundingBox.Reset(Vector3<float>{0.f, 0.f, 0.f});
+		mBuffer->mBoundingBox.Reset(Vector3<float>{0.f, 0.f, 0.f});
 
 	// animate all particles
 	float scale = (float)timediff;
@@ -198,7 +203,7 @@ void ParticleSystemNode::DoParticleSystem(u32 time)
 	for (unsigned int i=0; i<mParticles.size();)
 	{
 		// erase is pretty expensive!
-		if (now > mParticles[i].endTime)
+		if (now > mParticles[i].mEndTime)
 		{
 			// Particle order does not seem to matter.
 			// So we can delete by switching with last particle and deleting that one.
@@ -209,13 +214,13 @@ void ParticleSystemNode::DoParticleSystem(u32 time)
 		}
 		else
 		{
-			mParticles[i].pos += (mParticles[i].vector * scale);
-			mBuffer->mBoundingBox.AddInternalPoint(mParticles[i].pos);
+			mParticles[i].mPos += (mParticles[i].mVector * scale);
+			mBuffer->mBoundingBox.AddInternalPoint(mParticles[i].mPos);
 			++i;
 		}
 	}
 
-	const float m = (mParticleSize.Width > mParticleSize.Height ? mParticleSize.Width : mParticleSize.Height) * 0.5f;
+	const float m = (mParticleSize[0] > mParticleSize[1] ? mParticleSize[0] : mParticleSize[1]) * 0.5f;
 	mBuffer->mBoundingBox.MaxEdge.X += m;
 	mBuffer->mBoundingBox.MaxEdge.Y += m;
 	mBuffer->mBoundingBox.MaxEdge.Z += m;
@@ -251,7 +256,7 @@ void ParticleSystemNode::ReallocateBuffers()
 		mParticles.size() * 6 > mBuffer->GetIndexCount())
 	{
 		unsigned int oldSize = mBuffer->GetVertexCount();
-		mBuffer->m_Vertices.resize(mParticles.size() * 4);
+		mBuffer->mVertices.resize(mParticles.size() * 4);
 
 		unsigned int i;
 
@@ -303,7 +308,7 @@ void ParticleSystemNode::AddAffector(const eastl::shared_ptr<BaseParticleAffecto
 }
 
 //! Get a list of all particle affectors.
-const eastl::list<eastl::shared_ptr<BaseParticleAffector>>& ParticleSystemSceneNode::GetAffectors() const
+const eastl::list<eastl::shared_ptr<BaseParticleAffector>>& ParticleSystemNode::GetAffectors() const
 {
 	return mAffectorList;
 }
@@ -372,7 +377,7 @@ ParticleCylinderEmitter* ParticleSystemNode::CreateCylinderEmitter(
 
 //! Creates a mesh particle emitter.
 ParticleMeshEmitter* ParticleSystemNode::CreateMeshEmitter(
-	const eastl::shared_ptr<Mesh>& mesh, bool useNormalDirection, const Vector3<float>& direction, 
+	const eastl::shared_ptr<BaseMesh>& mesh, bool useNormalDirection, const Vector3<float>& direction, 
 	float normalDirectionModifier, int mbNumber, bool everyMeshVertex, unsigned int minParticlesPerSecond, 
 	unsigned int maxParticlesPerSecond, const eastl::array<float, 4>& minStartColor, const eastl::array<float, 4>& maxStartColor, 
 	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, const Vector2<float>& minStartSize, 

@@ -4,6 +4,7 @@
 
 #include "ParticlePointEmitter.h"
 
+#include "Core/OS/os.h"
 
 //! constructor
 ParticlePointEmitter::ParticlePointEmitter(
@@ -32,41 +33,41 @@ int ParticlePointEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall
 	mTime += timeSinceLastCall;
 
 	const unsigned int pps = (mMaxParticlesPerSecond - mMinParticlesPerSecond);
-	const float perSecond = pps ? ((float)mMinParticlesPerSecond + Randomizer::frand() * pps) : mMinParticlesPerSecond;
+	const float perSecond = pps ? ((float)mMinParticlesPerSecond + Randomizer::FRand() * pps) : mMinParticlesPerSecond;
 	const float everyWhatMillisecond = 1000.0f / perSecond;
 
 	if (mTime > everyWhatMillisecond)
 	{
 		mTime = 0;
-		mParticle.startTime = now;
-		mParticle.vector = mDirection;
+		mParticle.mStartTime = now;
+		mParticle.mVector = mDirection;
 
 		if (mMaxAngleDegrees)
 		{
 			Vector3<float> tgt = mDirection;
-			tgt.RotateXYBy(Randomizer::frand() * mMaxAngleDegrees);
-			tgt.RotateYZBy(Randomizer::frand() * mMaxAngleDegrees);
-			tgt.RotateXZBy(Randomizer::frand() * mMaxAngleDegrees);
-			mParticle.vector = tgt;
+			tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
+			tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
+			tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
+			mParticle.mVector = tgt;
 		}
 
-		mParticle.endTime = now + mMinLifeTime;
+		mParticle.mEndTime = now + mMinLifeTime;
 		if (mMaxLifeTime != mMinLifeTime)
-			mParticle.endTime += Randomizer::rand() % (mMaxLifeTime - mMinLifeTime);
+			mParticle.mEndTime += Randomizer::Rand() % (mMaxLifeTime - mMinLifeTime);
 
 		if (mMinStartColor==mMaxStartColor)
-			mParticle.color=mMinStartColor;
+			mParticle.mColor=mMinStartColor;
 		else
-			mParticle.color = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::frand());
+			mParticle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
 
-		mParticle.startColor = mParticle.color;
-		mParticle.startVector = mParticle.vector;
+		mParticle.mStartColor = mParticle.mColor;
+		mParticle.mStartVector = mParticle.mVector;
 
 		if (mMinStartSize==mMaxStartSize)
-			mParticle.startSize = mMinStartSize;
+			mParticle.mStartSize = mMinStartSize;
 		else
-			mParticle.startSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::frand());
-		mParticle.size = mParticle.startSize;
+			mParticle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+		mParticle.mSize = mParticle.mStartSize;
 
 		outArray = &mParticle;
 		return 1;

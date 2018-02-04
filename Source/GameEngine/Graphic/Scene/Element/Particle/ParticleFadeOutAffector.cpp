@@ -28,10 +28,10 @@ void ParticleFadeOutAffector::Affect(unsigned int now, Particle* particlearray, 
 
 	for (unsigned int i=0; i<count; ++i)
 	{
-		if (particlearray[i].endTime - now < mFadeOutTime)
+		if (particlearray[i].mEndTime - now < mFadeOutTime)
 		{
-			d = (particlearray[i].endTime - now) / mFadeOutTime;	// FadeOutTime probably float to save casts here (just guessing)
-			particlearray[i].color = particlearray[i].startColor.GetInterpolated(mTargetColor, d);
+			d = (particlearray[i].mEndTime - now) / mFadeOutTime;	// FadeOutTime probably float to save casts here (just guessing)
+			particlearray[i].mColor = particlearray[i].mStartColor.GetInterpolated(mTargetColor, d);
 		}
 	}
 }

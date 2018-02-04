@@ -7,6 +7,10 @@
 
 #include "ParticleEmitter.h"
 
+#include "Graphic/Effect/Mesh.h"
+
+#include "Mathematic/Algebra/Vector2.h"
+
 
 //! A particle emitter which emits from vertices of a mesh
 class ParticleMeshEmitter : public BaseParticleEmitter
@@ -15,7 +19,7 @@ public:
 
 	//! constructor
 	ParticleMeshEmitter(
-		const eastl::shared_ptr<Mesh>& mesh, bool useNormalDirection = true,
+		const eastl::shared_ptr<BaseMesh>& mesh, bool useNormalDirection = true,
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.f, 0.f },
 		float normalDirectionModifier = 100.0f,  int mbNumber = -1, bool everyMeshVertex = false,
 		unsigned int minParticlesPerSecond = 20, unsigned int maxParticlesPerSecond = 40,
@@ -31,7 +35,7 @@ public:
 	virtual int Emitt(unsigned int now, unsigned int timeSinceLastCall, Particle*& outArray);
 
 	//! Set Mesh to emit particles from
-	virtual void SetMesh( const eastl::shared_ptr<Mesh>& mesh );
+	virtual void SetMesh( const eastl::shared_ptr<BaseMesh>& mesh );
 
 	//! Set whether to use vertex normal for direction, or direction specified
 	virtual void SetUseNormalDirection( bool useNormalDirection ) { mUseNormalDirection = useNormalDirection; }
@@ -74,7 +78,7 @@ public:
 	virtual void SetMaxAngleDegrees( int maxAngleDegrees ) { mMaxAngleDegrees = maxAngleDegrees; }
 
 	//! Get Mesh we're emitting particles from
-	virtual const eastl::shared_ptr<Mesh>& GetMesh() const { return mParticleMesh; }
+	virtual const eastl::shared_ptr<BaseMesh>& GetMesh() const { return mParticleMesh; }
 
 	//! Get whether to use vertex normal for direciton, or direction specified
 	virtual bool IsUsingNormalDirection() const { return mUseNormalDirection; }
@@ -118,7 +122,7 @@ public:
 
 private:
 
-	eastl::shared_ptr<Mesh> mParticleMesh;
+	eastl::shared_ptr<BaseMesh> mParticleMesh;
 	eastl::vector<int> mVertexPerMeshBufferList;
 	int mTotalVertices;
 	unsigned int mMBCount;

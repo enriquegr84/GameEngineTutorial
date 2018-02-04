@@ -7,6 +7,8 @@
 
 #include "ParticleEmitter.h"
 
+#include "Mathematic/Geometric/AlignedBox.h"
+#include "Mathematic/Algebra/Vector2.h"
 
 //! A default box emitter
 class ParticleBoxEmitter : public BaseParticleEmitter
@@ -14,7 +16,7 @@ class ParticleBoxEmitter : public BaseParticleEmitter
 public:
 
 	//! constructor
-	ParticleBoxEmitter( const AlignedBox3f& box,
+	ParticleBoxEmitter( const AlignedBox3<float>& box,
 		const Vector3<float>& direction = Vector3<float>{ 0.0f, 0.03f, 0.f },
 		unsigned int minParticlesPerSecond = 20, unsigned int maxParticlesPerSecond = 40,
 		eastl::array<float, 4> minStartColor = eastl::array<float, 4>{255.f, 0.f, 0.f, 0.f},
@@ -58,7 +60,7 @@ public:
 	virtual void SetMaxAngleDegrees( int maxAngleDegrees ) { mMaxAngleDegrees = maxAngleDegrees; }
 
 	//! Set box from which the particles are emitted.
-	virtual void SetBox( const AlignedBox3f& box ) { mBox = box; }
+	virtual void SetBox( const AlignedBox3<float>& box ) { mBox = box; }
 
 	//! Gets direction the emitter emits particles.
 	virtual const Vector3<float>& GetDirection() const { return mDirection; }
@@ -91,12 +93,12 @@ public:
 	virtual int GetMaxAngleDegrees() const { return mMaxAngleDegrees; }
 
 	//! Get box from which the particles are emitted.
-	virtual const AlignedBox3f& GetBox() const { return mBox; }
+	virtual const AlignedBox3<float>& GetBox() const { return mBox; }
 
 private:
 
 	eastl::vector<Particle> mParticles;
-	AlignedBox3f mBox;
+	AlignedBox3<float> mBox;
 	Vector3<float> mDirection;
 	Vector2<float> mMaxStartSize, mMinStartSize;
 	unsigned int mMinParticlesPerSecond, mMaxParticlesPerSecond;

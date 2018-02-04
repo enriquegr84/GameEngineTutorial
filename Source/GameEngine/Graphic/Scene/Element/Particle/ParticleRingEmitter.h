@@ -7,6 +7,8 @@
 
 #include "ParticleEmitter.h"
 
+#include "Mathematic/Algebra/Vector2.h"
+
 //! A ring emitter
 class ParticleRingEmitter : public BaseParticleEmitter
 {

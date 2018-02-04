@@ -4,6 +4,8 @@
 
 #include "ParticleCylinderEmitter.h"
 
+#include "Core/OS/os.h"
+
 //! constructor
 ParticleCylinderEmitter::ParticleCylinderEmitter(
 	const Vector3<float>& center, float radius, 
@@ -37,7 +39,7 @@ int ParticleCylinderEmitter::Emitt(unsigned int now, unsigned int timeSinceLastC
 	mTime += timeSinceLastCall;
 
 	const unsigned int pps = (mMaxParticlesPerSecond - mMinParticlesPerSecond);
-	const float perSecond = pps ? ((float)mMinParticlesPerSecond + Randomizer::frand() * pps) : mMinParticlesPerSecond;
+	const float perSecond = pps ? ((float)mMinParticlesPerSecond + Randomizer::FRand() * pps) : mMinParticlesPerSecond;
 	const float everyWhatMillisecond = 1000.0f / perSecond;
 
 	if(mTime > everyWhatMillisecond)
@@ -52,47 +54,47 @@ int ParticleCylinderEmitter::Emitt(unsigned int now, unsigned int timeSinceLastC
 		for(unsigned int i=0; i<amount; ++i)
 		{
 			// Random distance from center if outline only is not true
-			const float distance = (!mOutlineOnly) ? (Randomizer::frand() * mRadius) : mRadius;
+			const float distance = (!mOutlineOnly) ? (Randomizer::FRand() * mRadius) : mRadius;
 
 			// Random direction from center
-			p.pos.set(mCenter.X + distance, mCenter.Y, mCenter.Z + distance);
-			p.pos.RotateXZBy(Randomizer::frand() * 360, mCenter);
+			p.mPos.set(mCenter.X + distance, mCenter.Y, mCenter.Z + distance);
+			p.mPos.RotateXZBy(Randomizer::FRand() * 360, mCenter);
 
 			// Random length
-			const float length = Randomizer::frand() * mLength;
+			const float length = Randomizer::FRand() * mLength;
 
 			// Random point along the cylinders length
-			p.pos += mNormal * length;
+			p.mPos += mNormal * length;
 
-			p.startTime = now;
-			p.vector = mDirection;
+			p.mStartTime = now;
+			p.mVector = mDirection;
 
 			if ( mMaxAngleDegrees )
 			{
 				Vector3<float> tgt = mDirection;
-				tgt.RotateXYBy(Randomizer::frand() * mMaxAngleDegrees);
-				tgt.RotateYZBy(Randomizer::frand() * mMaxAngleDegrees);
-				tgt.RotateXZBy(Randomizer::frand() * mMaxAngleDegrees);
-				p.vector = tgt;
+				tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
+				tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
+				tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
+				p.mVector = tgt;
 			}
 
-			p.endTime = now + mMinLifeTime;
+			p.mEndTime = now + mMinLifeTime;
 			if (mMaxLifeTime != mMinLifeTime)
-				p.endTime += Randomizer::rand() % (mMaxLifeTime - mMinLifeTime);
+				p.mEndTime += Randomizer::Rand() % (mMaxLifeTime - mMinLifeTime);
 
 			if (mMinStartColor==mMaxStartColor)
-				p.color = mMinStartColor;
+				p.mColor = mMinStartColor;
 			else
-				p.color = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::frand());
+				p.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
 
-			p.startColor = p.color;
-			p.startVector = p.vector;
+			p.mStartColor = p.mColor;
+			p.mStartVector = p.mVector;
 
 			if (mMinStartSize==mMaxStartSize)
-				p.startSize = mMinStartSize;
+				p.mStartSize = mMinStartSize;
 			else
-				p.startSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::frand());
-			p.size = p.startSize;
+				p.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+			p.mSize = p.mStartSize;
 
 			mParticles.push_back(p);
 		}

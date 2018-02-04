@@ -23,18 +23,19 @@ NodeAnimatorFlyCircle::NodeAnimatorFlyCircle(unsigned int time, const Vector3<fl
 
 void NodeAnimatorFlyCircle::Init()
 {
-	mDirection.Normalize();
+	Normalize(mDirection);
 
 	if (mDirection.Y != 0)
-		mVecV = Vector3<float>(50,0,0).CrossProduct(mDirection).Normalize();
+		mVecV = Normalize(Cross(Vector3<float>{ 50.f, 0.f, 0.f },mDirection));
 	else
-		mVecV = Vector3<float>(0,50,0).CrossProduct(mDirection).Normalize();
-	mVecU = mVecV.CrossProduct(mDirection).Normalize();
+		mVecV = Normalize(Cross(Vector3<float>{ 0.f, 50.f, 0.f }, mDirection));
+
+	mVecU = Normalize(Cross(mVecV, mDirection));
 }
 
 
 //! animates a scene node
-void NodeAnimatorFlyCircle::AnimateNode(Node* node, unsigned int timeMs)
+void NodeAnimatorFlyCircle::AnimateNode(Scene* pScene, Node* node, unsigned int timeMs)
 {
 	if ( 0 == node )
 		return;

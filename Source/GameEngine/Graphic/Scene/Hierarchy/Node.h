@@ -468,7 +468,7 @@ public:
 	//! Animates a scene node.
 	/** \param node Node to animate.
 	\param timeMs Current time in milli seconds. */
-	virtual void AnimateNode(Node* node, unsigned int timeMs) = 0;
+	virtual void AnimateNode(Scene* pScene, Node* node, unsigned int timeMs) = 0;
 
 	//! Returns true if this animator receives events.
 	/** When attached to an active camera, this animator will be

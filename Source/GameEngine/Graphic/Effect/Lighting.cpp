@@ -10,10 +10,10 @@
 
 Lighting::Lighting()
     :
-    ambient({ 1.0f, 1.0f, 1.0f, 1.0f }),
-    diffuse({ 1.0f, 1.0f, 1.0f, 1.0f }),
-    specular({ 1.0f, 1.0f, 1.0f, 1.0f }),
-    spotCutoff({ (float)GE_C_HALF_PI, 0.0f, 1.0f, 1.0f }),
-    attenuation({ 1.0f, 0.0f, 0.0f, 1.0f })
+    mAmbient({ 1.0f, 1.0f, 1.0f, 1.0f }),
+    mDiffuse({ 1.0f, 1.0f, 1.0f, 1.0f }),
+    mSpecular({ 1.0f, 1.0f, 1.0f, 1.0f }),
+    mSpotCutoff({ (float)GE_C_HALF_PI, 0.0f, 1.0f, 1.0f }),
+    mAttenuation({ 1.0f, 0.0f, 0.0f, 1.0f })
 {
 }

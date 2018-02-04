@@ -20,7 +20,7 @@ public:
 	ParticleAnimatedMeshNodeEmitter(
 		const ActorId actorId, 
 		WeakBaseRenderComponentPtr renderComponent, 
-		const eastl::shared_ptr<AnimatedMeshSceneNode>& node,
+		const eastl::shared_ptr<AnimatedMeshNode>& node,
 		bool useNormalDirection = true,
 		const Vector3<float>& direction = Vector3<float>{ 0.f,0.f,-1.f },
 		float normalDirectionModifier = 100.0f,
@@ -130,7 +130,7 @@ private:
 
 	eastl::shared_ptr<AnimatedMeshNode>		mAnimatedNode;
 	eastl::shared_ptr<AnimatedMesh>			mAnimatedMesh;
-	eastl::shared_ptr<Mesh>					mBaseMesh;
+	eastl::shared_ptr<BaseMesh>					mBaseMesh;
 	int						mTotalVertices;
 	unsigned int			mMBCount;
 	int						mMBNumber;

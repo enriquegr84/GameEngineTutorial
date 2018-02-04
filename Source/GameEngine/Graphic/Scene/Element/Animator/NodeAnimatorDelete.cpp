@@ -19,18 +19,17 @@ NodeAnimatorDelete::NodeAnimatorDelete(unsigned int time)
 
 
 //! animates a scene node
-void NodeAnimatorDelete::AnimateNode(Node* node, unsigned int timeMs)
+void NodeAnimatorDelete::AnimateNode(Scene* pScene, Node* node, unsigned int timeMs)
 {
 	if (timeMs > mFinishTime)
 	{
 		mHasFinished = true;
-		eastl::shared_ptr<ScreenElementScene> pScene = gameApp->GetHumanView()->mScene;
 
 		if(node && pScene)
 		{
 			// don't delete if scene manager is attached to an editor
 			//if (!pScene->GetParameters()->GetAttributeAsBool(_SCENE_MANAGER_IS_EDITOR))
-				pScene->AddToDeletionQueue(node);
+			pScene->AddToDeletionQueue(node);
 		}
 	}
 }

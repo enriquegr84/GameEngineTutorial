@@ -23,7 +23,7 @@ inline int NodeAnimatorFollowSpline::Clamp(int idx, int size)
 
 
 //! animates a scene node
-void NodeAnimatorFollowSpline::AnimateNode(Node* node, unsigned int timeMs)
+void NodeAnimatorFollowSpline::AnimateNode(Scene* pScene, Node* node, unsigned int timeMs)
 {
 	if(!node)
 		return;

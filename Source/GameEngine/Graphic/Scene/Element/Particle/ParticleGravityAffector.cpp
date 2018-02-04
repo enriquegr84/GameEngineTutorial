@@ -25,13 +25,13 @@ void ParticleGravityAffector::Affect(unsigned int now, Particle* particlearray, 
 
 	for (unsigned int i=0; i<count; ++i)
 	{
-		d = (now - particlearray[i].startTime) / mTimeForceLost;
+		d = (now - particlearray[i].mStartTime) / mTimeForceLost;
 		if (d > 1.0f)
 			d = 1.0f;
 		if (d < 0.0f)
 			d = 0.0f;
 		d = 1.0f - d;
 
-		particlearray[i].vector = particlearray[i].startVector.GetInterpolated(mGravity, d);
+		particlearray[i].mVector = particlearray[i].mStartVector.GetInterpolated(mGravity, d);
 	}
 }

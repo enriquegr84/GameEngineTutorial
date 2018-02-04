@@ -14,7 +14,7 @@ public:
 
 	//! constructor
 	ShadowVolumeNode( const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, 
-		const eastl::shared_ptr<Mesh>& shadowMesh, bool zfailmethod=true, float infinity=10000.0f );
+		const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod=true, float infinity=10000.0f );
 
 	//! destructor
 	~ShadowVolumeNode(){ }

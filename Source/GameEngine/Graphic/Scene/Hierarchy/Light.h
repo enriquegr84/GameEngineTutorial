@@ -14,7 +14,6 @@
 
 #include "ViewVolume.h"
 
-
 class GRAPHIC_ITEM Light : public ViewVolume
 {
 public:
@@ -23,7 +22,7 @@ public:
     // set isDepthRangeZeroOne to false.
     Light(bool isPerspective, bool isDepthRangeZeroOne);
 
-    eastl::shared_ptr<Lighting> lighting;
+    eastl::shared_ptr<Lighting> mLighting;
 };
 
 #endif

@@ -51,10 +51,10 @@ void PointLightEffect::UpdateMaterialConstant()
 void PointLightEffect::UpdateLightingConstant()
 {
     InternalLighting* internalLighting = mLightingConstant->Get<InternalLighting>();
-    internalLighting->ambient = mLighting->ambient;
-    internalLighting->diffuse = mLighting->diffuse;
-    internalLighting->specular = mLighting->specular;
-    internalLighting->attenuation = mLighting->attenuation;
+    internalLighting->ambient = mLighting->mAmbient;
+    internalLighting->diffuse = mLighting->mDiffuse;
+    internalLighting->specular = mLighting->mSpecular;
+    internalLighting->attenuation = mLighting->mAttenuation;
     LightingEffect::UpdateLightingConstant();
 }
 

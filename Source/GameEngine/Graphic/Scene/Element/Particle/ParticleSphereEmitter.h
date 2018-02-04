@@ -7,6 +7,7 @@
 
 #include "ParticleEmitter.h"
 
+#include "Mathematic/Algebra/Vector2.h"
 
 //! A default box emitter
 class ParticleSphereEmitter : public BaseParticleEmitter
@@ -38,10 +39,10 @@ public:
 	virtual void SetMaxParticlesPerSecond( unsigned int maxPPS ) { mMaxParticlesPerSecond = maxPPS; }
 
 	//! Set minimum start color
-	virtual void SetMinStartColor( const Color& color ) { mMinStartColor = color; }
+	virtual void SetMinStartColor( const eastl::array<float, 4>& color ) { mMinStartColor = color; }
 
 	//! Set maximum start color
-	virtual void SetMaxStartColor( const Color& color ) { mMaxStartColor = color; }
+	virtual void SetMaxStartColor( const eastl::array<float, 4>& color ) { mMaxStartColor = color; }
 
 	//! Set the maximum starting size for particles
 	virtual void SetMaxStartSize( const Vector2<float>& size ) { mMaxStartSize = size; }
@@ -74,10 +75,10 @@ public:
 	virtual unsigned int GetMaxParticlesPerSecond() const { return mMaxParticlesPerSecond; }
 
 	//! Get minimum start color
-	virtual const Color& GetMinStartColor() const { return mMinStartColor; }
+	virtual const eastl::array<float, 4>& GetMinStartColor() const { return mMinStartColor; }
 
 	//! Get maximum start color
-	virtual const Color& GetMaxStartColor() const { return mMaxStartColor; }
+	virtual const eastl::array<float, 4>& GetMaxStartColor() const { return mMaxStartColor; }
 
 	//! Gets the maximum starting size for particles
 	virtual const Vector2<float>& GetMaxStartSize() const { return mMaxStartSize; }
@@ -110,7 +111,7 @@ private:
 
 	Vector2<float> mMinStartSize, mMaxStartSize;
 	unsigned int mMinParticlesPerSecond, mMaxParticlesPerSecond;
-	Color mMinStartColor, mMaxStartColor;
+	eastl::array<float, 4> mMinStartColor, mMaxStartColor;
 	unsigned int mMinLifeTime, mMaxLifeTime;
 
 	unsigned int mTime;

@@ -37,15 +37,15 @@ public:
 	unsigned int GetMaterialCount() const;
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return ESNT_CUBE; }
+	NodeType GetType() const { return NT_CUBE; }
 
 	//! Creates shadow volume scene node as child of this node
 	//! and returns a pointer to it.
 	eastl::shared_ptr<ShadowVolumeNode> AddShadowVolumeNode(const ActorId actorId, 
-		Scene* pScene, const eastl::shared_ptr<Mesh>& shadowMesh = 0, bool zfailmethod=true, float infinity=10000.0f);
+		Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh = 0, bool zfailmethod=true, float infinity=10000.0f);
 
 	//! Returns the current mesh
-	eastl::shared_ptr<Mesh> GetMesh(void) { return mMesh; }
+	eastl::shared_ptr<StandardMesh> GetMesh(void) { return mMesh; }
 
 	//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
 	/* In this way it is possible to change the materials a mesh causing all mesh scene nodes 
@@ -63,10 +63,9 @@ public:
 private:
 	void SetSize();
 
-	eastl::shared_ptr<Mesh> mMesh;
+	eastl::shared_ptr<StandardMesh> mMesh;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
 	float mSize;
 };
 
 #endif
-

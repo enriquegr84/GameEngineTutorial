@@ -9,16 +9,14 @@
 //! constructor
 SphereNode::SphereNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
 		float radius, unsigned int polyCountX, unsigned int polyCountY)
-:	Node(actorId, renderComponent, ERP_NONE, ESNT_CUBE), mMesh(0), mShadow(0),
+:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mMesh(0), mShadow(0),
 	mRadius(radius), mPolyCountX(polyCountX), mPolyCountY(polyCountY)
 {
 	#ifdef _DEBUG
 	//setDebugName("CSphereSceneNode");
 	#endif
 
-	const eastl::shared_ptr<Scene>& pScene = gameApp->GetHumanView()->mScene;
-	mMesh = eastl::shared_ptr<Mesh>(
-		pScene->GetGeometryCreator()->CreateSphereMesh(radius, polyCountX, polyCountY));
+	mMesh = eastl::make_shared<BaseMesh>(CreateSphereMesh(radius, polyCountX, polyCountY));
 }
 
 
@@ -47,11 +45,9 @@ bool SphereNode::PreRender(Scene *pScene)
 			// count mesh materials
 			for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
 			{
-				const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
-				const eastl::shared_ptr<MaterialRenderer>& rnd =
-					mb ? renderer->GetMaterialRenderer(mb->GetMaterial().MaterialType) : 0;
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
 
-				if (rnd && rnd->IsTransparent())
+				if (mb->GetMaterial().IsTransparent())
 					++transparentCount;
 				else
 					++solidCount;
@@ -79,22 +75,20 @@ bool SphereNode::PreRender(Scene *pScene)
 bool SphereNode::Render(Scene *pScene)
 {
 	Matrix4x4<float> toWorld, fromWorld;
-	Get()->Transform(&toWorld, &fromWorld);
-
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
+	//Get()->Transform(&toWorld, &fromWorld);
 
 	if (mMesh && renderer)
 	{
-		renderer->SetMaterial(m_Mesh->GetMeshBuffer(0)->GetMaterial());
-		renderer->SetTransform(ETS_WORLD, toWorld);
+		Renderer::Get()->SetMaterial(mMesh->GetMeshBuffer(0)->GetMaterial());
+		Renderer::Get()->SetTransform(TS_WORLD, toWorld);
 		if (mShadow)
 			mShadow->UpdateShadowVolumes(pScene);
 
 		renderer->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
-		if ( mProps.DebugDataVisible() & EDS_BBOX )
+		if (DebugDataVisible() & DS_BBOX )
 		{
 			Material m;
-			m.Lighting = false;
+			m.mLighting = false;
 			renderer->SetMaterial(m);
 			renderer->Draw3DBox(
 				mMesh->GetMeshBuffer(0)->GetBoundingBox(), 
@@ -111,31 +105,30 @@ bool SphereNode::Render(Scene *pScene)
 //! or to remove attached childs.
 bool SphereNode::RemoveChild(ActorId id)
 {
-	for(SceneNodeList::iterator i=mChildren.begin(); i!=mChildren.end(); ++i)
-	{
-		if((mProps.ActorId() != INVALID_ACTOR_ID) && (id == mProps.ActorId()))
-			if ((*i) && mShadow == (*i))
-				mShadow = 0;
-	}
+	const eastl::shared_ptr<Node>& child = GetChild(id);
+	if (child && mShadow == child)
+		mShadow = 0;
 
-	return Node::RemoveChild(id);
+	if (Node::DetachChild(child))
+		return true;
+
+	return false;
 }
 
 
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
-const shared_ptr<ShadowVolumeNode>& SphereNode::AddShadowVolumeNode(const ActorId actorId,
-	Scene* pScene, const shared_ptr<IMesh>& shadowMesh, bool zfailmethod, f32 infinity)
+const eastl::shared_ptr<ShadowVolumeNode>& SphereNode::AddShadowVolumeNode(const ActorId actorId,
+	Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod, float infinity)
 {
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-
-	if (renderer->QueryFeature(EVDF_STENCIL_BUFFER))
-		return mShadow;
-
+	/*
+	if (!Renderer::Get()->QueryFeature(VDF_STENCIL_BUFFER))
+	return 0;
+	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
-		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(), 
-		&Matrix4x4<float>::Identity, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
-	AddChild(mShadow);
+		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(),
+			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
+	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;
 }
@@ -147,15 +140,12 @@ const shared_ptr<ShadowVolumeNode>& SphereNode::AddShadowVolumeNode(const ActorI
 //! to directly modify the material of a scene node.
 Material& SphereNode::GetMaterial(unsigned int i)
 {
-	if (i>0 || !mMesh)
-		return Node::GetMaterial(i);
-	else
-		return mMesh->GetMeshBuffer(i)->GetMaterial();
+	return mMesh->GetMeshBuffer(0)->GetMaterial();
 }
 
 
 //! returns amount of materials used by this scene node.
-u32 SphereNode::GetMaterialCount() const
+unsigned int SphereNode::GetMaterialCount() const
 {
 	return 1;
 }

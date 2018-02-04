@@ -40,7 +40,7 @@ void NodeAnimatorTexture::ClearTextures()
 
 
 //! animates a scene node
-void NodeAnimatorTexture::AnimateNode(Node* node, unsigned int timeMs)
+void NodeAnimatorTexture::AnimateNode(Scene* pScene, Node* node, unsigned int timeMs)
 {
 	if(!node)
 		return;

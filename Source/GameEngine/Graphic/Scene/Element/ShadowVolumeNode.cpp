@@ -12,13 +12,13 @@
 
 //! constructor
 ShadowVolumeNode::ShadowVolumeNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-	const eastl::shared_ptr<Mesh>& shadowMesh, bool zfailmethod, float infinity)
-:	Node(actorId, renderComponent, RP_SHADOW, SNT_SHADOW_VOLUME, t), mShadowMesh(0), mIndexCount(0), 
+	const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod, float infinity)
+:	Node(actorId, renderComponent, RP_SHADOW, NT_SHADOW_VOLUME, t), mShadowMesh(0), mIndexCount(0), 
 	mVertexCount(0), mShadowVolumesUsed(0), mInfinity(infinity), mUseZFailMethod(zfailmethod)
 {
 	SetShadowMesh(shadowMesh);
 	
-	Get()->SetAutomaticCulling(EAC_OFF);
+	//SetAutomaticCulling(AC_OFF);
 }
 
 
@@ -40,7 +40,7 @@ void ShadowVolumeNode::CreateShadowVolume(const Vector3<float>& light, bool isDi
 		mShadowVolumes.push_back(ShadowVolume());
 		svp = &mShadowVolumes.back();
 
-		mShadowBBox.push_back(AlignedBox3<f32>());
+		mShadowBBox.push_back(AlignedBox3<float>());
 		bb = &mShadowBBox.back();
 	}
 	++mShadowVolumesUsed;
@@ -55,8 +55,8 @@ void ShadowVolumeNode::CreateShadowVolume(const Vector3<float>& light, bool isDi
 	{
 		const Vector3<float> &v1 = mVertices[mEdges[2*i+0]];
 		const Vector3<float> &v2 = mVertices[mEdges[2*i+1]];
-		const Vector3<float> v3(v1+(v1 - light).Normalize()*mInfinity);
-		const Vector3<float> v4(v2+(v2 - light).Normalize()*mInfinity);
+		const Vector3<float> v3(Normalize(v1+(v1 - light))*mInfinity);
+		const Vector3<float> v4(Normalize(v2+(v2 - light))*mInfinity);
 
 		// Add a quad (two triangles) to the vertex list
 		svp->push_back(v1);
@@ -104,9 +104,9 @@ unsigned int ShadowVolumeNode::CreateEdgesAndCaps(const Vector3<float>& light, S
 			svp->push_back(v0);
 
 			// add back cap
-			const Vector3<float> i0 = v0+(v0-light).Normalize()*mInfinity;
-			const Vector3<float> i1 = v1+(v1-light).Normalize()*mInfinity;
-			const Vector3<float> i2 = v2+(v2-light).Normalize()*mInfinity;
+			const Vector3<float> i0 = Normalize(v0+(v0-light))*mInfinity;
+			const Vector3<float> i1 = Normalize(v1+(v1-light))*mInfinity;
+			const Vector3<float> i2 = Normalize(v2+(v2-light))*mInfinity;
 
 			svp->push_back(i0);
 			svp->push_back(i1);
@@ -169,7 +169,7 @@ unsigned int ShadowVolumeNode::CreateEdgesAndCaps(const Vector3<float>& light, S
 }
 
 
-void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<Mesh>& mesh)
+void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 {
 	if (mShadowMesh == mesh)
 		return;
@@ -185,12 +185,12 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 	const unsigned int oldIndexCount = mIndexCount;
 	const unsigned int oldVertexCount = mVertexCount;
 
-	const Mesh* const mesh = mShadowMesh.get();
+	const BaseMesh* const mesh = mShadowMesh.get();
 	if (!mesh) return;
 
 	// create as much shadow volumes as there are lights but
 	// do not ignore the max light settings.
-	const unsigned int lightCount = pScene->GetRenderer()->GetDynamicLightCount();
+	const unsigned int lightCount = Renderer::Get()->GetDynamicLightCount();
 	if (!lightCount)
 		return;
 
@@ -207,7 +207,7 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 
 	for (i=0; i<bufcnt; ++i)
 	{
-		const MeshBuffer* buf = mesh->GetMeshBuffer(i).get();
+		const MeshBuffer<float>* buf = mesh->GetMeshBuffer(i).get();
 		totalIndices += buf->GetIndexCount();
 		totalVertices += buf->GetVertexCount();
 	}
@@ -215,7 +215,7 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 	// copy mesh
 	for (i=0; i<bufcnt; ++i)
 	{
-		const MeshBuffer* buf = mesh->GetMeshBuffer(i).get();
+		const MeshBuffer<float>* buf = mesh->GetMeshBuffer(i).get();
 
 		const unsigned int* idxp = buf->GetIndices();
 		const unsigned int* idxpend = idxp + buf->GetIndexCount();
@@ -232,18 +232,18 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 		CalculateAdjacency();
 
 	Matrix4x4<float> toWorld, fromWorld;
-	mParent->Get()->Transform(&toWorld, &fromWorld);
+	mParent->GetAbsoluteTransform(&toWorld, &fromWorld);
 	toWorld.MakeInverse();
 
-	const Vector3<float> parentpos = m_pParent->Get()->ToWorld().GetTranslation();
+	const Vector3<float> parentpos = mParent->GetAbsoluteTransform().GetTranslation();
 
 	// TODO: Only correct for point lights.
 	for (i=0; i<lightCount; ++i)
 	{
-		const Light& dl = pScene->GetRenderer()->GetDynamicLight(i);
-		Vector3<float> lpos = dl.mPosition;
-		if (dl.mCastShadows &&
-			fabs((lpos - parentpos).GetLengthSQ()) <= (dl.mRadius*dl.mRadius*4.0f))
+		const Light& dl = Renderer::Get()->GetDynamicLight(i);
+		Vector3<float> lpos = dl.mLighting->mPosition;
+		if (dl.mLighting->mCastShadows &&
+			fabs((lpos - parentpos).GetLengthSQ()) <= (dl.mLighting->mRadius*dl.mLighting->mRadius*4.0f))
 		{
 			toWorld.TransformVect(lpos);
 			CreateShadowVolume(lpos);
@@ -254,11 +254,11 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 //! pre render method
 bool ShadowVolumeNode::PreRender(Scene* pScene)
 {
-	if (Get()->IsVisible())
+	if (IsVisible())
 	{
 		// register according to material types counted
 		if (!pScene->IsCulled(this))
-			pScene->AddToRenderQueue(ERP_SHADOW, shared_from_this());
+			pScene->AddToRenderQueue(RP_SHADOW, shared_from_this());
 	}
 
 	return Node::PreRender(pScene);
@@ -267,15 +267,13 @@ bool ShadowVolumeNode::PreRender(Scene* pScene)
 //! renders the node.
 bool ShadowVolumeNode::Render(Scene* pScene)
 {
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-
-	if (!mShadowVolumesUsed || !renderer)
+	if (!mShadowVolumesUsed || !Renderer::Get())
 		return false;
 
 	Matrix4x4<float> toWorld, fromWorld;
-	mParent->Get()->Transform(&toWorld, &fromWorld);
+	mParent->Transform(&toWorld, &fromWorld);
 
-	renderer->SetTransform(ETS_WORLD, toWorld);
+	Renderer::Get()->SetTransform(TS_WORLD, toWorld);
 
 	for (unsigned int i=0; i<mShadowVolumesUsed; ++i)
 	{
@@ -285,9 +283,9 @@ bool ShadowVolumeNode::Render(Scene* pScene)
 		{
 			// Disable shadows drawing, when back cap is behind of ZFar plane.
 
-			ViewFrustum frust(pScene->GetActiveCamera()->GetViewFrustum());
+			ViewFrustum frust(pScene->GetActiveCamera()->GetCamera()->GetFrustrum());
 
-			Matrix4x4<float> invTrans(toWorld, Matrix4::EM4CONST_INVERSE);
+			Matrix4x4<float> invTrans(toWorld, Matrix4x4<float>::EM4CONST_INVERSE);
 			frust.Transform(invTrans);
 
 			Vector3<float> edges[8];
@@ -295,13 +293,13 @@ bool ShadowVolumeNode::Render(Scene* pScene)
 
 			Vector3<float> largestEdge = edges[0];
 			float maxDistance = 
-				Vector3f(pScene->GetActiveCamera()->Get()->ToWorld().GetTranslation() - edges[0]).GetLength();
+				Vector3<float>(pScene->GetActiveCamera()->Get()->ToWorld().GetTranslation() - edges[0]).GetLength();
 			float curDistance = 0.f;
 
 			for(int j = 1; j < 8; ++j)
 			{
 				curDistance = 
-					Vector3f(pScene->GetActiveCamera()->Get()->ToWorld().GetTranslation()  - edges[j]).GetLength();
+					Vector3<float>(pScene->GetActiveCamera()->Get()->ToWorld().GetTranslation()  - edges[j]).GetLength();
 
 				if(curDistance > maxDistance)
 				{
@@ -317,9 +315,9 @@ bool ShadowVolumeNode::Render(Scene* pScene)
 		if(!drawShadow)
 		{
 			eastl::vector<Vector3<float>> triangles;
-			renderer->DrawStencilShadowVolume(triangles, mUseZFailMethod, mProps.DebugDataVisible());			
+			Renderer::Get()->DrawStencilShadowVolume(triangles, mUseZFailMethod, DebugDataVisible());
 		}
-		else renderer->DrawStencilShadowVolume(mShadowVolumes[i], mUseZFailMethod, mProps.DebugDataVisible());
+		else Renderer::Get()->DrawStencilShadowVolume(mShadowVolumes[i], mUseZFailMethod, DebugDataVisible());
 	}
 	return true;
 }
@@ -349,10 +347,10 @@ void ShadowVolumeNode::CalculateAdjacency()
 
 					for (int e=0; e<3; ++e)
 					{
-						if (v1.equal(mVertices[mIndices[of+e]]))
+						if (v1 == mVertices[mIndices[of+e]])
 							cnt1=true;
 
-						if (v2.equal(mVertices[mIndices[of+e]]))
+						if (v2 == mVertices[mIndices[of+e]])
 							cnt2=true;
 					}
 					// one match for each vertex, i.e. edge is the same

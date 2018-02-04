@@ -66,7 +66,6 @@ bool CubeNode::PreRender(Scene *pScene)
 		// transparent and solid material at the same time, we need to go through all
 		// materials, check of what type they are and register this node for the right
 		// render pass according to that.
-		const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
 
 		int transparentCount = 0;
 		int solidCount = 0;
@@ -77,11 +76,9 @@ bool CubeNode::PreRender(Scene *pScene)
 			// count mesh materials
 			for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
 			{
-				const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
-				const eastl::shared_ptr<MaterialRenderer>& rnd =
-					mb ? renderer->GetMaterialRenderer(mb->GetMaterial().MaterialType) : 0;
-
-				if (rnd && rnd->IsTransparent())
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
+				
+				if (mb->GetMaterial().IsTransparent())
 					++transparentCount;
 				else
 					++solidCount;
@@ -110,44 +107,43 @@ bool CubeNode::PreRender(Scene *pScene)
 //
 bool CubeNode::Render(Scene *pScene)
 {
-	Matrix4x4<float> toWorld, fromWorld;
-	Get()->Transform(&toWorld, &fromWorld);
+	if (!Renderer::Get())
+		return false;
 
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-	renderer->SetTransform(ETS_WORLD, toWorld);
+	Matrix4x4<float> toWorld, fromWorld;
+	//Transform(&toWorld, &fromWorld);
 
 	if (mShadow)
 		mShadow->UpdateShadowVolumes(pScene);
 
 	// for debug purposes only:
 	Material mat = mMesh->GetMeshBuffer(0)->GetMaterial();
-
+	/*
 	// overwrite half transparency
-	if (mProps.DebugDataVisible() & EDS_HALF_TRANSPARENCY)
-		mat.MaterialType = EMT_TRANSPARENT_ADD_COLOR;
-	renderer->SetMaterial(mat);
-	
-	renderer->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
+	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
+		mat.mType = MT_TRANSPARENT_ADD_COLOR;
+	Renderer::Get()->SetMaterial(mat);
+	Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
 
 	// for debug purposes only:
-	if (mProps.DebugDataVisible())
+	if (DebugDataVisible())
 	{
 		Material m;
-		m.Lighting = false;
-		m.AntiAliasing=0;
-		renderer->SetMaterial(m);
+		m.mLighting = false;
+		m.mAntiAliasing=0;
+		Renderer::Get()->SetMaterial(m);
 
-		if (mProps.DebugDataVisible() & EDS_BBOX)
+		if (DebugDataVisible() & DS_BBOX)
 		{
-			renderer->Draw3DBox(
+			Renderer::Get()->Draw3DBox(
 				mMesh->GetMeshBuffer(0)->GetBoundingBox(), eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});
 		}
-		if (mProps.DebugDataVisible() & EDS_BBOX_BUFFERS)
+		if (DebugDataVisible() & DS_BBOX_BUFFERS)
 		{
-			renderer->Draw3DBox(
+			Renderer::Get()->Draw3DBox(
 				mMesh->GetMeshBuffer(0)->GetBoundingBox(), eastl::array<float, 4>{255.f, 190.f, 128.f, 128.f});
 		}
-		if (mProps.DebugDataVisible() & EDS_NORMALS)
+		if (DebugDataVisible() & DS_NORMALS)
 		{
 			// draw normals
 			//const f32 debugNormalLength = pScene->GetParameters()->GetAttributeAsFloat(DEBUG_NORMAL_LENGTH);
@@ -160,20 +156,20 @@ bool CubeNode::Render(Scene *pScene)
 
 			for (unsigned int i=0; i != count; ++i)
 			{
-				renderer->DrawMeshBufferNormals(
+				Renderer::Get()->DrawMeshBufferNormals(
 					mMesh->GetMeshBuffer(i), debugNormalLength, debugNormalColor);
 			}
 		}
 
 		// show mesh
-		if (mProps.DebugDataVisible() & EDS_MESH_WIRE_OVERLAY)
+		if (DebugDataVisible() & DS_MESH_WIRE_OVERLAY)
 		{
-			m.Wireframe = true;
-			renderer->SetMaterial(m);
-			renderer->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
+			m.mWireframe = true;
+			Renderer::Get()->SetMaterial(m);
+			Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
 		}
 	}
-
+	*/
 	return true;
 }
 
@@ -183,31 +179,30 @@ bool CubeNode::Render(Scene *pScene)
 //! or to remove attached childs.
 bool CubeNode::RemoveChild(ActorId id)
 {
-	for(SceneNodeList::iterator i=mChildren.begin(); i!=mChildren.end(); ++i)
-	{
-		if((mProps.ActorId() != INVALID_ACTOR_ID) && (id == mProps.ActorId()))
-			if ((*i) && mShadow == (*i))
-				mShadow = 0;
-	}
+	const eastl::shared_ptr<Node>& child = GetChild(id);
+	if (child && mShadow == child)
+		mShadow = 0;
 
-	return Node::RemoveChild(id);
+	if (Node::DetachChild(child))
+		return true;
+
+	return false;
 }
 
 
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
 eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId actorId,
-	Scene* pScene, const eastl::shared_ptr<Mesh>& shadowMesh, bool zfailmethod, float infinity)
+	Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod, float infinity)
 {
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-
-	if (renderer->QueryFeature(EVDF_STENCIL_BUFFER))
-		return 0;
-
+	/*
+	if (!Renderer::Get()->QueryFeature(VDF_STENCIL_BUFFER))
+	return 0;
+	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
 		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(), 
-		&Matrix4x4<float>::Identity, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
-	AddChild(mShadow);
+			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
+	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;
 }

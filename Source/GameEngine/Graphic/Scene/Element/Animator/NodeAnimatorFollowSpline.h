@@ -19,10 +19,10 @@ public:
 			float speed = 1.0f, float tightness = 0.5f, bool loop=true, bool pingpong=false);
 
 	//! animates a scene node
-	virtual void AnimateNode(Node* node, unsigned int timeMs);
+	virtual void AnimateNode(Scene* pScene, Node* node, unsigned int timeMs);
 
 	//! Returns type of the scene node animator
-	virtual E_SCENE_NODE_ANIMATOR_TYPE GetType() const { return ESNAT_FOLLOW_SPLINE; }
+	virtual NodeAnimatorType GetType() const { return NAT_FOLLOW_SPLINE; }
 
 	virtual bool HasFinished(void) const { return mHasFinished; }
 

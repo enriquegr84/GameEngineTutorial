@@ -6,9 +6,11 @@
 
 #include "ParticleMeshEmitter.h"
 
+#include "Core/OS/os.h"
+
 //! constructor
 ParticleMeshEmitter::ParticleMeshEmitter(
-	const eastl::shared_ptr<Mesh>& mesh, bool useNormalDirection,
+	const eastl::shared_ptr<BaseMesh>& mesh, bool useNormalDirection,
 	const Vector3<float>& direction, float normalDirectionModifier, 
 	int mbNumber, bool everyMeshVertex,
 	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond,
@@ -19,7 +21,8 @@ ParticleMeshEmitter::ParticleMeshEmitter(
 	: mParticleMesh(0), mTotalVertices(0), mMBCount(0), mMBNumber(mbNumber),
 	mNormalDirectionModifier(normalDirectionModifier), mDirection(direction),
 	mMaxStartSize(maxStartSize), mMinStartSize(minStartSize),
-	mMinParticlesPerSecond(minParticlesPerSecond), mMaxParticlesPerSecond(maxParticlesPerSecond),
+	mMinParticlesPerSecond(minParticlesPerSecond), 
+	mMaxParticlesPerSecond(maxParticlesPerSecond),
 	mMinStartColor(minStartColor), mMaxStartColor(maxStartColor),
 	mMinLifeTime(lifeTimeMin), mMaxLifeTime(lifeTimeMax),
 	mTime(0), mEmitted(0), mMaxAngleDegrees(maxAngleDegrees),
@@ -39,15 +42,15 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 	mTime += timeSinceLastCall;
 
 	const unsigned int pps = (mMaxParticlesPerSecond - mMinParticlesPerSecond);
-	const float perSecond = pps ? ((float)mMinParticlesPerSecond + Randomizer::frand() * pps) : mMinParticlesPerSecond;
+	const float perSecond = pps ? ((float)mMinParticlesPerSecond + Randomizer::FRand() * pps) : mMinParticlesPerSecond;
 	const float everyWhatMillisecond = 1000.0f / perSecond;
 
 	if(mTime > everyWhatMillisecond)
 	{
 		unsigned int amount = (unsigned int)((mTime / everyWhatMillisecond) + 0.5f);
 		mTime = 0;
-		Particle p;
 
+		Particle particle;
 		if(amount > mMaxParticlesPerSecond * 2)
 			amount = mMaxParticlesPerSecond * 2;
 
@@ -57,92 +60,92 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 			{
 				for( unsigned int j=0; j<mParticleMesh->GetMeshBufferCount(); ++j )
 				{
-					for( unsigned int k=0; k<ParticleMesh->GetMeshBuffer(j)->GetVertexCount(); ++k )
+					for( unsigned int k=0; k<mParticleMesh->GetMeshBuffer(j)->GetVertexCount(); ++k )
 					{
-						p.pos = ParticleMesh->GetMeshBuffer(j)->GetPosition(k);
+						particle.mPos = mParticleMesh->GetMeshBuffer(j)->GetPosition(k);
 						if( mUseNormalDirection )
-							p.vector = mParticleMesh->GetMeshBuffer(j)->GetNormal(k) / mNormalDirectionModifier;
+							particle.mVector = mParticleMesh->GetMeshBuffer(j)->GetNormal(k) / mNormalDirectionModifier;
 						else
-							p.vector = mDirection;
+							particle.mVector = mDirection;
 
-						p.startTime = now;
+						particle.mStartTime = now;
 
 						if( mMaxAngleDegrees )
 						{
-							Vector3<float> tgt = p.vector;
-							tgt.RotateXYBy(Randomizer::frand() * mMaxAngleDegrees);
-							tgt.RotateYZBy(Randomizer::frand() * mMaxAngleDegrees);
-							tgt.RotateXZBy(Randomizer::frand() * mMaxAngleDegrees);
-							p.vector = tgt;
+							Vector3<float> tgt = particle.mVector;
+							tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
+							tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
+							tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
+							particle.mVector = tgt;
 						}
 
-						p.endTime = now + mMinLifeTime;
+						particle.mEndTime = now + mMinLifeTime;
 						if (mMaxLifeTime != mMinLifeTime)
-							p.endTime += Randomizer::rand() % (mMaxLifeTime - mMinLifeTime);
+							particle.mEndTime += Randomizer::Rand() % (mMaxLifeTime - mMinLifeTime);
 
 						if (mMinStartColor==mMaxStartColor)
-							p.color=mMinStartColor;
+							particle.mColor=mMinStartColor;
 						else
-							p.color = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::frand());
+							particle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
 
-						p.startColor = p.color;
-						p.startVector = p.vector;
+						particle.mStartColor = particle.mColor;
+						particle.mStartColor = particle.mVector;
 
 						if (mMinStartSize==mMaxStartSize)
-							p.startSize = mMinStartSize;
+							particle.mStartSize = mMinStartSize;
 						else
-							p.startSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::frand());
-						p.size = p.startSize;
+							particle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+						particle.mSize = particle.mStartSize;
 
-						mParticles.push_back(p);
+						mParticles.push_back(particle);
 					}
 				}
 			}
 			else
 			{
-				const int randomMB = (mMBNumber < 0) ? (Randomizer::rand() % mMBCount) : mMBNumber;
+				const int randomMB = (mMBNumber < 0) ? (Randomizer::Rand() % mMBCount) : mMBNumber;
 
 				unsigned int vertexNumber = mParticleMesh->GetMeshBuffer(randomMB)->GetVertexCount();
 				if (!vertexNumber)
 					continue;
-				vertexNumber = Randomizer::rand() % vertexNumber;
+				vertexNumber = Randomizer::Rand() % vertexNumber;
 
-				p.pos = mParticleMesh->GetMeshBuffer(randomMB)->GetPosition(vertexNumber);
+				particle.mPos = mParticleMesh->GetMeshBuffer(randomMB)->GetPosition(vertexNumber);
 				if( mUseNormalDirection )
-					p.vector = mParticleMesh->GetMeshBuffer(randomMB)->GetNormal(vertexNumber) /mNormalDirectionModifier;
+					particle.mVector = mParticleMesh->GetMeshBuffer(randomMB)->GetNormal(vertexNumber) /mNormalDirectionModifier;
 				else
-					p.vector = mDirection;
+					particle.mVector = mDirection;
 
-				p.startTime = now;
+				particle.mStartTime = now;
 
 				if( mMaxAngleDegrees )
 				{
-					Vector3<float> tgt = Direction;
-					tgt.RotateXYBy(Randomizer::frand() * mMaxAngleDegrees);
-					tgt.RotateYZBy(Randomizer::frand() * mMaxAngleDegrees);
-					tgt.RotateXZBy(Randomizer::frand() * mMaxAngleDegrees);
-					p.vector = tgt;
+					Vector3<float> tgt = mDirection;
+					tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
+					tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
+					tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
+					particle.mVector = tgt;
 				}
 
-				p.endTime = now + mMinLifeTime;
+				particle.mEndTime = now + mMinLifeTime;
 				if (mMaxLifeTime != mMinLifeTime)
-					p.endTime += Randomizer::rand() % (mMaxLifeTime - mMinLifeTime);
+					particle.mEndTime += Randomizer::Rand() % (mMaxLifeTime - mMinLifeTime);
 
 				if (mMinStartColor==mMaxStartColor)
-					p.color=mMinStartColor;
+					particle.mColor=mMinStartColor;
 				else
-					p.color = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::frand());
+					particle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
 
-				p.startColor = p.color;
-				p.startVector = p.vector;
+				particle.mStartColor = particle.mColor;
+				particle.mStartVector = particle.mVector;
 
 				if (mMinStartSize==mMaxStartSize)
-					p.startSize = mMinStartSize;
+					particle.mStartSize = mMinStartSize;
 				else
-					p.startSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::frand());
-				p.size = p.startSize;
+					particle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+				particle.mSize = particle.mStartSize;
 
-				mParticles.push_back(p);
+				mParticles.push_back(particle);
 			}
 		}
 
@@ -156,7 +159,7 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 
 
 //! Set Mesh to emit particles from
-void ParticleMeshEmitter::SetMesh(const eastl::shared_ptr<Mesh>& mesh)
+void ParticleMeshEmitter::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 {
 	mParticleMesh = mesh;
 

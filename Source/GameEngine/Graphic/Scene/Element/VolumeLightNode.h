@@ -38,7 +38,7 @@ public:
 	unsigned int GetMaterialCount() const;
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return ESNT_VOLUME_LIGHT; }
+	NodeType GetType() const { return NT_VOLUME_LIGHT; }
 
 	//! Sets the number of segments across the U axis
 	void SetSubDivideU(const unsigned int inU);

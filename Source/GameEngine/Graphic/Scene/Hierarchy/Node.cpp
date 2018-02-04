@@ -401,7 +401,7 @@ bool Node::OnAnimate(Scene* pScene, unsigned int timeMs)
 			// node without the iterator becoming invalid
 			const eastl::shared_ptr<NodeAnimator>& anim = *ait;
 			++ait;
-			anim->AnimateNode(this, timeMs);
+			anim->AnimateNode(pScene, this, timeMs);
 		}
 
 		// update node

@@ -17,10 +17,10 @@ public:
 					float speed, const Vector3<float>& direction, float radiusEllipsoid);
 
 	//! animates a scene node
-	virtual void AnimateNode(Node* node, unsigned int timeMs);
+	virtual void AnimateNode(Scene* pScene, Node* node, unsigned int timeMs);
 
 	//! Returns type of the scene node animator
-	virtual NodeAnimatorType GetType() const { return ESNAT_FLY_CIRCLE; }
+	virtual NodeAnimatorType GetType() const { return NAT_FLY_CIRCLE; }
 
 	//! Creates a clone of this animator.
 	virtual NodeAnimator* CreateClone(Node* node);

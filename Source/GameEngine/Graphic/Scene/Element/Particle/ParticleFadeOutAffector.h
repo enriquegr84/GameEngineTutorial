@@ -29,7 +29,7 @@ public:
 	virtual const eastl::array<float, 4>& GetTargetColor() const { return mTargetColor; }
 
 	//! Sets the amount of time it takes for each particle to fade out.
-	virtual unsigned int GetFadeOutTime() const { return static_cast<unsigned int>(m_FadeOutTime); }
+	virtual unsigned int GetFadeOutTime() const { return static_cast<unsigned int>(mFadeOutTime); }
 
 	//! Get affector type
 	virtual ParticleAffectorType GetType() const { return PAT_FADE_OUT; }

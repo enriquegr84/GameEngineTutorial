@@ -7,6 +7,8 @@
 
 #include "ParticleEmitter.h"
 
+#include "Mathematic/Algebra/Vector2.h"
+
 //! A default point emitter
 class ParticlePointEmitter : public BaseParticleEmitter
 {

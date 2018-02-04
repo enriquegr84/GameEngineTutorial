@@ -36,23 +36,19 @@ VolumeLightNode::~VolumeLightNode()
 
 void VolumeLightNode::ConstructLight()
 {
-	const shared_ptr<ScreenElementScene>& pScene = g_pGameApp->GetHumanView()->m_pScene;
-	m_Mesh = shared_ptr<IMesh>(
-		pScene->GetGeometryCreator()->CreateVolumeLightMesh(
-					m_SubdivideU, m_SubdivideV, m_FootColor, 
-					m_TailColor, m_LPDistance, m_LightDimensions)
-		);
+	mMesh = eastl::shared_ptr<BaseMesh>(GetGeometryCreator()->CreateVolumeLightMesh(
+		mSubdivideU, mSubdivideV, mFootColor, mTailColor, mLPDistance, mLightDimensions));
 }
 
 
 //! prerender
 bool VolumeLightNode::PreRender(Scene *pScene)
 {
-	if (Get()->IsVisible())
+	if (IsVisible())
 	{
 		// register according to material types counted
 		if (!pScene->IsCulled(this))
-			pScene->AddToRenderQueue(ERP_TRANSPARENT, shared_from_this());
+			pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
 	}
 
 	return Node::PreRender(pScene);
@@ -64,13 +60,12 @@ bool VolumeLightNode::PreRender(Scene *pScene)
 bool VolumeLightNode::Render(Scene *pScene)
 {
 	Matrix4x4<float> toWorld, fromWorld;
-	Get()->Transform(&toWorld, &fromWorld);
+	//Get()->Transform(&toWorld, &fromWorld);
 
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-	renderer->SetTransform(ETS_WORLD, toWorld);
+	Renderer::Get()->SetTransform(ETS_WORLD, toWorld);
 
-	renderer->SetMaterial(mMesh->GetMeshBuffer(0)->GetMaterial());
-	renderer->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
+	Renderer::Get()->SetMaterial(mMesh->GetMeshBuffer(0)->GetMaterial());
+	Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
 
 	return Node::Render(pScene);
 }

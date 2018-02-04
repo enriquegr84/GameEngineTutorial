@@ -16,10 +16,10 @@ void ParticleScaleAffector::Affect (unsigned int now, Particle *particlearray, u
 {
 	for(unsigned int i=0;i<count;i++)
 	{
-		const unsigned int maxdiff = particlearray[i].endTime - particlearray[i].startTime;
-		const unsigned int curdiff = now - particlearray[i].startTime;
+		const unsigned int maxdiff = particlearray[i].mEndTime - particlearray[i].mStartTime;
+		const unsigned int curdiff = now - particlearray[i].mStartTime;
 		const float newscale = (float)curdiff / maxdiff;
-		particlearray[i].size = particlearray[i].startSize + mScaleTo*newscale;
+		particlearray[i].mSize = particlearray[i].mStartSize + mScaleTo*newscale;
 	}
 }
 

@@ -21,16 +21,16 @@ public:
 	virtual void Affect(unsigned int now, Particle* particlearray, unsigned int count);
 
 	//! Set the point that particles will attract to
-	virtual void SetPivotPoint( const Vector3<float>& point ) { m_PivotPoint = point; }
+	virtual void SetPivotPoint( const Vector3<float>& point ) { mPivotPoint = point; }
 
 	//! Set the speed in degrees per second
-	virtual void SetSpeed( const Vector3<float>& speed ) { m_Speed = speed; }
+	virtual void SetSpeed( const Vector3<float>& speed ) { mSpeed = speed; }
 
 	//! Get the point that particles are attracted to
-	virtual const Vector3<float>& GetPivotPoint() const { return m_PivotPoint; }
+	virtual const Vector3<float>& GetPivotPoint() const { return mPivotPoint; }
 
 	//! Get the speed in degrees per second
-	virtual const Vector3<float>& GetSpeed() const { return m_Speed; }
+	virtual const Vector3<float>& GetSpeed() const { return mSpeed; }
 
 	//! Get affector type
 	virtual ParticleAffectorType GetType() const { return PAT_ROTATE; }

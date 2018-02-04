@@ -34,16 +34,14 @@ RootNode::RootNode(const ActorId actorId, WeakBaseRenderComponentPtr renderCompo
 //
 bool RootNode::PreRender(Scene *pScene)
 {
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-
 	// reset all transforms
-	renderer->SetMaterial(Material());
-	renderer->SetTransform(TS_PROJECTION, Matrix4x4<float>::Identity());
-	renderer->SetTransform(TS_VIEW, Matrix4x4<float>::Identity());
-	renderer->SetTransform(TS_WORLD, Matrix4x4<float>::Identity());
+	Renderer::Get()->SetMaterial(Material());
+	Renderer::Get()->SetTransform(TS_PROJECTION, Matrix4x4<float>::Identity());
+	Renderer::Get()->SetTransform(TS_VIEW, Matrix4x4<float>::Identity());
+	Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity());
 	for (unsigned int i = TS_COUNT - 1; i >= TS_TEXTURE_0; --i)
-		renderer->SetTransform((E_TRANSFORMATION_STATE)i, Matrix4x4<float>::Identity());
-	renderer->SetAllowZWriteOnTransparent(true);
+		renderer->SetTransform((TRANSFORMATION_STATE)i, Matrix4x4<float>::Identity());
+	Renderer::Get()->SetAllowZWriteOnTransparent(true);
 
 	// first scene node for prerendering should be the active camera
 	// consistent Camera is needed for culling
@@ -69,21 +67,21 @@ bool RootNode::RenderChildren(Scene *pScene)
 		SceneNodeRenderList::iterator itNode = pScene->GetRenderList(pass).begin();
 		SceneNodeRenderList::iterator end = pScene->GetRenderList(pass).end();
 
-		pScene->GetRenderer()->GetOverrideMaterial().mEnabled =
-			((pScene->GetRenderer()->GetOverrideMaterial().mEnablePasses & pass) != 0);
+		Renderer::Get()->GetOverrideMaterial().mEnabled =
+			((Renderer::Get()->GetOverrideMaterial().mEnablePasses & pass) != 0);
 
 		if (pScene->GetLightManager())
 			pScene->GetLightManager()->OnRenderPassPreRender((RenderPass)pass);
 
 		if (pass == RP_LIGHT)
 		{
-			pScene->GetRenderer()->DeleteAllDynamicLights();
-			pScene->GetRenderer()->SetAmbientLight(pScene->GetAmbientLight());
+			Renderer::Get()->DeleteAllDynamicLights();
+			Renderer::Get()->SetAmbientLight(pScene->GetAmbientLight());
 
 			unsigned int maxLights = pScene->GetRenderList(pass).size();
 			if (!pScene->GetLightManager())
 				end = itNode +
-				eastl::min(pScene->GetRenderer()->GetMaximalDynamicLightAmount(), maxLights);
+				eastl::min(Renderer::Get()->GetMaximalDynamicLightAmount(), maxLights);
 		}
 
 		// This code creates fine control of the render passes.
@@ -100,7 +98,7 @@ bool RootNode::RenderChildren(Scene *pScene)
 		if (pass == RP_SHADOW)
 		{
 			if (!pScene->GetRenderList(pass).empty())
-				pScene->GetRenderer()->DrawStencilShadow(true,
+				Renderer::Get()->DrawStencilShadow(true,
 					pScene->GetShadowColor(), pScene->GetShadowColor(),
 					pScene->GetShadowColor(), pScene->GetShadowColor());
 		}

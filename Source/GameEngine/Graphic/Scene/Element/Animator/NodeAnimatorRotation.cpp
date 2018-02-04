@@ -17,7 +17,7 @@ NodeAnimatorRotation::NodeAnimatorRotation(unsigned int time, const Vector3<floa
 
 
 //! animates a scene node
-void NodeAnimatorRotation::AnimateNode(Node* node, unsigned int timeMs)
+void NodeAnimatorRotation::AnimateNode(Scene* pScene, Node* node, unsigned int timeMs)
 {
 	if (node) // thanks to warui for this fix
 	{

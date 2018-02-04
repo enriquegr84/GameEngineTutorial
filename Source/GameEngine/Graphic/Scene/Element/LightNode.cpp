@@ -14,17 +14,17 @@
 //! constructor
 LightNode::LightNode(const ActorId actorId,
 	WeakBaseRenderComponentPtr renderComponent, eastl::array<float, 4> color, float radius)
-:	Node(actorId, renderComponent, ERP_TRANSPARENT, ESNT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true)
+	:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true)
 {
 	#ifdef _DEBUG
 	//setDebugName("LightSceneNode");
 	#endif
 
-	mLightData.mDiffuseColor = color;
+	mLightData.mLighting->mDiffuse = color;
 	// set some useful specular color
-	mLightData.mSpecularColor = 
-		color.GetInterpolated(eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f}, 0.7f);
-
+	//mLightData.mLighting->mSpecular = 
+	//	color.GetInterpolated(eastl::array<float, 4>{1.0f, 1.0f, 1.0f, 1.0f}, 0.7f);
+	
 	SetRadius(radius);
 }
 
@@ -33,8 +33,8 @@ bool LightNode::PreRender(Scene *pScene)
 {
 	DoLightRecalc();
 
-	if (mProps.IsVisible())
-		pScene->AddToRenderQueue(ERP_LIGHT, shared_from_this());
+	if (IsVisible())
+		pScene->AddToRenderQueue(RP_LIGHT, shared_from_this());
 
 	return Node::PreRender(pScene);
 }
@@ -44,38 +44,38 @@ bool LightNode::PreRender(Scene *pScene)
 //
 bool LightNode::Render(Scene *pScene)
 {
-	Matrix4x4<float> toWorld, fromWorld;
-	Get()->Transform(&toWorld, &fromWorld);
-
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-	if (!renderer)
+	if (!Renderer::Get())
 		return false;
 
-	if ( mProps.DebugDataVisible() & EDS_BBOX )
+	Matrix4x4<float> toWorld, fromWorld;
+	//Transform(&toWorld, &fromWorld);
+	/*
+	if (DebugDataVisible() & DS_BBOX )
 	{
-		renderer->SetTransform(ETS_WORLD, toWorld);
+		Renderer::Get()->SetTransform(TS_WORLD, toWorld);
 		Material m;
-		m.Lighting = false;
-		renderer->SetMaterial(m);
+		m.mLighting = false;
+		Renderer::Get()->SetMaterial(m);
 
 		switch ( mLightData.mType )
 		{
-			case ELT_POINT:
-			case ELT_SPOT:
-				renderer->Draw3DBox(mBBox, mLightData.mDiffuseColor.ToColor());
+			case LT_POINT:
+			case LT_SPOT:
+				Renderer::Get()->Draw3DBox(mBBox, mLightData.mLighting->mDiffuse.ToColor());
 				break;
 
-			case ELT_DIRECTIONAL:
-				renderer->Draw3DLine(Vector3<float>{0.f, 0.f, 0.f},
-						mLightData.mDirection * mLightData.mRadius,
-						mLightData.mDiffuseColor.ToColor());
+			case LT_DIRECTIONAL:
+				Renderer::Get()->Draw3DLine(Vector3<float>{0.f, 0.f, 0.f},
+						mLightData.mLighting->mDirection * mLightData.mRadius,
+						mLightData.mLighting.>mDiffuse.ToColor());
 				break;
 			default:
 				break;
 		}
 	}
 
-	mDriverLightIndex = renderer->AddDynamicLight(mLightData);
+	mDriverLightIndex = Renderer::Get()->AddDynamicLight(mLightData.mLighting);
+	*/
 	SetVisible(mLightIsOn);
 	return true;
 }
@@ -103,18 +103,16 @@ Light& LightNode::GetLightData()
 
 void LightNode::SetVisible(bool isVisible)
 {
-	mProps.SetVisible(isVisible);
+	SetVisible(isVisible);
 
 	if(mDriverLightIndex < 0)
 		return;
 
-	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-	if (!renderer)
+	if (!Renderer::Get())
 		return;
 
 	mLightIsOn = isVisible;
-	renderer->TurnLightOn((unsigned int)mDriverLightIndex, mLightIsOn);
+	//Renderer::Get()->TurnLightOn((unsigned int)mDriverLightIndex, mLightIsOn);
 }
 
 //! Sets the light's radius of influence.
@@ -125,8 +123,8 @@ attenuation after the radius.
 \param radius The new radius. */
 void LightNode::SetRadius(float radius)
 {
-	mLightData.m_Radius=radius;
-	mLightData.m_Attenuation.set(0.f, 1.f/radius, 0.f);
+	mLightData.mLighting->mRadius=radius;
+	mLightData.mLighting->mAttenuation = Vector4<float>{ 0.f, 1.f / radius, 0.f, 0.f };
 	DoLightRecalc();
 }
 
@@ -135,23 +133,23 @@ void LightNode::SetRadius(float radius)
 /** \return The current radius. */
 float LightNode::GetRadius() const
 {
-	return mLightData.m_Radius;
+	return mLightData.mLighting->mRadius;
 }
 
 
 //! Sets the light type.
 /** \param type The new type. */
-void LightNode::SetLightType(E_LIGHT_TYPE type)
+void LightNode::SetLightType(LightType type)
 {
-	mLightData.mType=type;
+	mLightData.mLighting->mType=type;
 }
 
 
 //! Gets the light type.
 /** \return The current light type. */
-E_LIGHT_TYPE LightNode::GetLightType() const
+LightType LightNode::GetLightType() const
 {
-	return mLightData.m_Type;
+	return mLightData.mLighting->mType;
 }
 
 
@@ -162,7 +160,7 @@ disable distinct lights for shadow casting for performance reasons.
 \param shadow True if this light shall cast shadows. */
 void LightNode::EnableCastShadow(bool shadow)
 {
-	mLightData.mCastShadows=shadow;
+	mLightData.mLighting->mCastShadows=shadow;
 }
 
 
@@ -170,35 +168,37 @@ void LightNode::EnableCastShadow(bool shadow)
 /** \return True if light would cast shadows, else false. */
 bool LightNode::GetCastShadow() const
 {
-	return mLightData.mCastShadows;
+	return mLightData.mLighting->mCastShadows;
 }
 
 
 void LightNode::DoLightRecalc()
 {
 	Matrix4x4<float> toWorld, fromWorld;
-	Get()->Transform(&toWorld, &fromWorld);
+	//Transform(&toWorld, &fromWorld);
 
-	if ((mLightData.mType == ELT_SPOT) || (mLightData.mType == ELT_DIRECTIONAL))
+	if ((mLightData.mLighting->mType == LT_SPOT) || 
+		(mLightData.mLighting->mType == LT_DIRECTIONAL))
 	{
-		mLightData.mDirection = Vector3<float>{ 0.f, 0.f, 1.f };
-		toWorld.RotateVect(mLightData.mDirection);
-		mLightData.mDirection.Normalize();
+		mLightData.mLighting->mDirection = Vector3<float>{ 0.f, 0.f, 1.f };
+		//toWorld.RotateVect(mLightData.mLighting->mDirection);
+		//mLightData.mLighting->mDirection.Normalize();
 	}
-	if ((mLightData.mType == ELT_SPOT) || (mLightData.mType == ELT_POINT))
+	if ((mLightData.mLighting->mType == LT_SPOT) || 
+		(mLightData.mLighting->mType == LT_POINT))
 	{
-		const float r = mLightData.mRadius * mLightData.mRadius * 0.5f;
-		mBBox.MaxEdge.set( r, r, r );
-		mBBox.MinEdge.set( -r, -r, -r );
-		//Get()->SetAutomaticCulling( EAC_BOX );
-		Get()->SetAutomaticCulling( EAC_OFF );
-		mLightData.mPosition = toWorld.GetTranslation();
+		const float r = mLightData.mLighting->mRadius * mLightData.mLighting->mRadius * 0.5f;
+		//mBBox.MaxEdge.set( r, r, r );
+		//mBBox.MinEdge.set( -r, -r, -r );
+		//Get()->SetAutomaticCulling( AC_BOX );
+		//Get()->SetAutomaticCulling( AC_OFF );
+		//mLightData.mLighting->mPosition = toWorld.GetTranslation();
 	}
-	if (mLightData.mType == ELT_DIRECTIONAL)
+	if (mLightData.mLighting->mType == LT_DIRECTIONAL)
 	{
-		mBBox.Reset( 0, 0, 0 );
-		Get()->SetAutomaticCulling( EAC_OFF );
+		//mBBox.Reset( 0, 0, 0 );
+		//Get()->SetAutomaticCulling( AC_OFF );
 	}
 
-	SetTransform(&toWorld);
+	//SetTransform(&toWorld);
 }

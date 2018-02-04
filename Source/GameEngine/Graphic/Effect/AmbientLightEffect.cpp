@@ -33,7 +33,7 @@ void AmbientLightEffect::UpdateMaterialConstant()
 void AmbientLightEffect::UpdateLightingConstant()
 {
     InternalLighting* internalLighting = mLightingConstant->Get<InternalLighting>();
-    internalLighting->ambient = mLighting->ambient;
-    internalLighting->attenuation = mLighting->attenuation;
+    internalLighting->ambient = mLighting->mAmbient;
+    internalLighting->attenuation = mLighting->mAttenuation;
     LightingEffect::UpdateLightingConstant();
 }

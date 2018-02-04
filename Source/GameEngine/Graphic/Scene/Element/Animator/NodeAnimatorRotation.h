@@ -16,10 +16,10 @@ public:
 	NodeAnimatorRotation(unsigned int time, const Vector3<float>& rotation);
 
 	//! animates a scene node
-	virtual void AnimateNode(SceneNode* node, unsigned int timeMs);
+	virtual void AnimateNode(Scene* pScene, Node* node, unsigned int timeMs);
 
 	//! Returns type of the scene node animator
-	virtual E_SCENE_NODE_ANIMATOR_TYPE GetType() const { return ESNAT_ROTATION; }
+	virtual NodeAnimatorType GetType() const { return NAT_ROTATION; }
 
 	//! Creates a clone of this animator.
 	virtual NodeAnimator* CreateClone(Node* node);

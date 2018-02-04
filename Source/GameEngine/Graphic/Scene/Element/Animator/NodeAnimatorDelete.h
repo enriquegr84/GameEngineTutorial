@@ -17,10 +17,10 @@ public:
 	NodeAnimatorDelete(unsigned int when);
 
 	//! animates a scene node
-	virtual void AnimateNode(Node* node, unsigned int timeMs);
+	virtual void AnimateNode(Scene* pScene, Node* node, unsigned int timeMs);
 
 	//! Returns type of the scene node animator
-	virtual NodeAnimatorType GetType() const { return ESNAT_DELETION; }
+	virtual NodeAnimatorType GetType() const { return NAT_DELETION; }
 
 	virtual bool HasFinished(void) const { return mHasFinished; }
 

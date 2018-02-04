@@ -10,21 +10,21 @@
 
 #include "Graphic/Scene/Hierarchy/Node.h"
 
-#include "Graphic/Scene/Particle/IParticleAffector.h"
-#include "Graphic/Scene/Particle/IParticleEmitter.h"
+#include "Graphic/Scene/Element/Particle/ParticleAffector.h"
+#include "Graphic/Scene/Element/Particle/ParticleEmitter.h"
 
-#include "Graphic/Scene/Particle/ParticleBoxEmitter.h"
-#include "Graphic/Scene/Particle/ParticleRingEmitter.h"
-#include "Graphic/Scene/Particle/ParticleMeshEmitter.h"
-#include "Graphic/Scene/Particle/ParticlePointEmitter.h"
-#include "Graphic/Scene/Particle/ParticleSphereEmitter.h"
-#include "Graphic/Scene/Particle/ParticleCylinderEmitter.h"
+#include "Graphic/Scene/Element/Particle/ParticleBoxEmitter.h"
+#include "Graphic/Scene/Element/Particle/ParticleRingEmitter.h"
+#include "Graphic/Scene/Element/Particle/ParticleMeshEmitter.h"
+#include "Graphic/Scene/Element/Particle/ParticlePointEmitter.h"
+#include "Graphic/Scene/Element/Particle/ParticleSphereEmitter.h"
+#include "Graphic/Scene/Element/Particle/ParticleCylinderEmitter.h"
 
-#include "Graphic/Scene/Particle/ParticleScaleAffector.h"
-#include "Graphic/Scene/Particle/ParticleFadeOutAffector.h"
-#include "Graphic/Scene/Particle/ParticleGravityAffector.h"
-#include "Graphic/Scene/Particle/ParticleRotationAffector.h"
-#include "Graphic/Scene/Particle/ParticleAttractionAffector.h"
+#include "Graphic/Scene/Element/Particle/ParticleScaleAffector.h"
+#include "Graphic/Scene/Element/Particle/ParticleFadeOutAffector.h"
+#include "Graphic/Scene/Element/Particle/ParticleGravityAffector.h"
+#include "Graphic/Scene/Element/Particle/ParticleRotationAffector.h"
+#include "Graphic/Scene/Element/Particle/ParticleAttractionAffector.h"
 
 
 //! A particle system scene node.
@@ -38,12 +38,6 @@ public:
 
 	//! Constructor
 	ParticleSystemNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter);
-
-/*
-			const Vector3<float>& position = Vector3<float>(0,0,0),
-			const Vector3<float>& rotation = Vector3<float>(0,0,0),
-			const Vector3<float>& scale = Vector3<float>(1.0f, 1.0f, 1.0f));
-*/
 
 	//! destructor
 	~ParticleSystemNode();
@@ -87,10 +81,10 @@ public:
 	void DoParticleSystem(unsigned int time);
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return ESNT_PARTICLE_SYSTEM; } 
+	NodeType GetType() const { return NT_PARTICLE_SYSTEM; } 
 
 	//! Creates a particle emitter for an animated mesh scene node
-	ParticleAnimatedMeshSceneNodeEmitter* CreateAnimatedMeshNodeEmitter(
+	ParticleAnimatedMeshNodeEmitter* CreateAnimatedMeshNodeEmitter(
 		const ActorId actorId, const eastl::shared_ptr<AnimatedMeshNode>& node, 
 		bool useNormalDirection = true, const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		float normalDirectionModifier = 100.0f, int mbNumber = -1, bool everyMeshVertex = false, 
@@ -103,7 +97,7 @@ public:
 
 	//! Creates a box particle emitter.
 	ParticleBoxEmitter* CreateBoxEmitter(
-		const AlignedBox3<float>& box = AlignedBox3<float>{ -10.f,0.f,-10.f,5.f,30.f,10.f },
+		const AlignedBox3<float>& box,// = AlignedBox3<float>{ -10.f,0.f,-10.f,5.f,30.f,10.f },
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
 		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{255.f, 0.f, 0.f, 0.f},
@@ -114,7 +108,7 @@ public:
 
 	//! Creates a particle emitter for emitting from a cylinder
 	ParticleCylinderEmitter* CreateCylinderEmitter(
-		const Vector3<float>& center, f32 radius, const Vector3<float>& normal, float length,
+		const Vector3<float>& center, float radius, const Vector3<float>& normal, float length,
 		bool outlineOnly = false, const Vector3<float>& direction = Vector3<float>{ 0.f, 0.5f, 0.f },
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
 		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{255.f, 0.f, 0.f, 0.f},
@@ -125,7 +119,7 @@ public:
 
 	//! Creates a mesh particle emitter.
 	ParticleMeshEmitter* CreateMeshEmitter(
-		const eastl::shared_ptr<Mesh>& mesh, bool useNormalDirection = true,
+		const eastl::shared_ptr<BaseMesh>& mesh, bool useNormalDirection = true,
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		float normalDirectionModifier = 100.0f, int mbNumber = -1, bool everyMeshVertex = false,
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
@@ -197,7 +191,7 @@ private:
 
 	void ReallocateBuffers();
 
-	eastl::shared_ptr<MeshBufferVertex> mBuffer;
+	eastl::shared_ptr<MeshBuffer<float>> mBuffer;
 	eastl::list<eastl::shared_ptr<BaseParticleAffector>> mAffectorList;
 	eastl::shared_ptr<BaseParticleEmitter> mEmitter;
 	eastl::vector<Particle> mParticles;

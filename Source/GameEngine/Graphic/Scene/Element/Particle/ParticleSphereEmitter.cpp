@@ -4,24 +4,22 @@
 
 #include "ParticleSphereEmitter.h"
 
-#include "OS/os.h"
+#include "Core/OS/os.h"
 
 //! constructor
 ParticleSphereEmitter::ParticleSphereEmitter(
 	const Vector3<float>& center, float radius,
 	const Vector3<float>& direction, unsigned int minParticlesPerSecond,
-	unsigned int maxParticlesPerSecond, const Color& minStartColor,
-	const Color& maxStartColor, unsigned int lifeTimeMin, unsigned int lifeTimeMax,
-	int maxAngleDegrees,
-	const Vector2<float>& minStartSize,
-	const Vector2<float>& maxStartSize )
-:	m_Center(center), m_Radius(radius), m_Direction(direction),
-	m_MinStartSize(minStartSize), m_MaxStartSize(maxStartSize),
-	m_MinParticlesPerSecond(minParticlesPerSecond),
-	m_MaxParticlesPerSecond(maxParticlesPerSecond),
-	m_MinStartColor(minStartColor), m_MaxStartColor(maxStartColor),
-	m_MinLifeTime(lifeTimeMin), m_MaxLifeTime(lifeTimeMax),
-	m_Time(0), m_Emitted(0), m_MaxAngleDegrees(maxAngleDegrees)
+	unsigned int maxParticlesPerSecond, const eastl::array<float, 4>& minStartColor,
+	const eastl::array<float, 4>& maxStartColor, unsigned int lifeTimeMin, unsigned int lifeTimeMax,
+	int maxAngleDegrees, const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
+:	mCenter(center), mRadius(radius), mDirection(direction),
+	mMinStartSize(minStartSize), mMaxStartSize(maxStartSize),
+	mMinParticlesPerSecond(minParticlesPerSecond),
+	mMaxParticlesPerSecond(maxParticlesPerSecond),
+	mMinStartColor(minStartColor), mMaxStartColor(maxStartColor),
+	mMinLifeTime(lifeTimeMin), mMaxLifeTime(lifeTimeMax),
+	mTime(0), mEmitted(0), mMaxAngleDegrees(maxAngleDegrees)
 {
 	#ifdef _DEBUG
 	//setDebugName("CParticleSphereEmitter");
@@ -32,68 +30,68 @@ ParticleSphereEmitter::ParticleSphereEmitter(
 //! and returns how much new particles there are.
 int ParticleSphereEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall, Particle*& outArray)
 {
-	m_Time += timeSinceLastCall;
+	mTime += timeSinceLastCall;
 
-	const unsigned int pps = (m_MaxParticlesPerSecond - m_MinParticlesPerSecond);
-	const float perSecond = pps ? ((float)m_MinParticlesPerSecond + Randomizer::frand() * pps) : m_MinParticlesPerSecond;
+	const unsigned int pps = (mMaxParticlesPerSecond - mMinParticlesPerSecond);
+	const float perSecond = pps ? ((float)mMinParticlesPerSecond + Randomizer::FRand() * pps) : mMinParticlesPerSecond;
 	const float everyWhatMillisecond = 1000.0f / perSecond;
 
-	if(m_Time > everyWhatMillisecond)
+	if(mTime > everyWhatMillisecond)
 	{
-		unsigned int amount = (unsigned int)((m_Time / everyWhatMillisecond) + 0.5f);
-		m_Time = 0;
-		Particle p;
+		unsigned int amount = (unsigned int)((mTime / everyWhatMillisecond) + 0.5f);
+		mTime = 0;
+		Particle particle;
 
-		if(amount > m_MaxParticlesPerSecond*2)
-			amount = m_MaxParticlesPerSecond * 2;
+		if(amount > mMaxParticlesPerSecond*2)
+			amount = mMaxParticlesPerSecond * 2;
 
 		for(unsigned int i=0; i<amount; ++i)
 		{
 			// Random distance from center
-			const float distance = Randomizer::frand() * m_Radius;
+			const float distance = Randomizer::FRand() * mRadius;
 
 			// Random direction from center
-			p.pos.set(m_Center + distance);
-			p.pos.RotateXYBy(Randomizer::frand() * 360.f, m_Center );
-			p.pos.RotateYZBy(Randomizer::frand() * 360.f, m_Center );
-			p.pos.RotateXZBy(Randomizer::frand() * 360.f, m_Center );
+			particle.mPos.set(mCenter + distance);
+			particle.mPos.RotateXYBy(Randomizer::FRand() * 360.f, mCenter );
+			particle.mPos.RotateYZBy(Randomizer::FRand() * 360.f, mCenter );
+			particle.mPos.RotateXZBy(Randomizer::FRand() * 360.f, mCenter );
 
-			p.startTime = now;
-			p.vector = m_Direction;
+			particle.mStartTime = now;
+			particle.mVector = mDirection;
 
-			if(m_MaxAngleDegrees)
+			if(mMaxAngleDegrees)
 			{
-				Vector3<float> tgt = m_Direction;
-				tgt.RotateXYBy(Randomizer::frand() * m_MaxAngleDegrees);
-				tgt.RotateYZBy(Randomizer::frand() * m_MaxAngleDegrees);
-				tgt.RotateXZBy(Randomizer::frand() * m_MaxAngleDegrees);
-				p.vector = tgt;
+				Vector3<float> tgt = mDirection;
+				tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
+				tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
+				tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
+				particle.mVector = tgt;
 			}
 
-			p.endTime = now + m_MinLifeTime;
-			if (m_MaxLifeTime != m_MinLifeTime)
-				p.endTime += Randomizer::rand() % (m_MaxLifeTime - m_MinLifeTime);
+			particle.mEndTime = now + mMinLifeTime;
+			if (mMaxLifeTime != mMinLifeTime)
+				particle.mEndTime += Randomizer::Rand() % (mMaxLifeTime - mMinLifeTime);
 
-			if (m_MinStartColor==m_MaxStartColor)
-				p.color=m_MinStartColor;
+			if (mMinStartColor==mMaxStartColor)
+				particle.mColor=mMinStartColor;
 			else
-				p.color = m_MinStartColor.GetInterpolated(m_MaxStartColor, Randomizer::frand());
+				particle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
 
-			p.startColor = p.color;
-			p.startVector = p.vector;
+			particle.mStartColor = particle.mColor;
+			particle.mStartVector = particle.mVector;
 
-			if (m_MinStartSize==m_MaxStartSize)
-				p.startSize = m_MinStartSize;
+			if (mMinStartSize==mMaxStartSize)
+				particle.mStartSize = mMinStartSize;
 			else
-				p.startSize = m_MinStartSize.GetInterpolated(m_MaxStartSize, Randomizer::frand());
-			p.size = p.startSize;
+				particle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+			particle.mSize = particle.mStartSize;
 
-			m_Particles.push_back(p);
+			mParticles.push_back(particle);
 		}
 
-		outArray = m_Particles.data();
+		outArray = mParticles.data();
 
-		return m_Particles.size();
+		return mParticles.size();
 	}
 
 	return 0;

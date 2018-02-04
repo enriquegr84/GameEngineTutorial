@@ -37,7 +37,7 @@ public:
 	void SetVisible(bool isVisible);
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return ESNT_LIGHT; }
+	NodeType GetType() const { return NT_LIGHT; }
 
 	//! Sets the light's radius of influence.
 	/** Outside this radius the light won't lighten geometry and cast no
@@ -53,11 +53,11 @@ public:
 
 	//! Sets the light type.
 	/** \param type The new type. */
-	void SetLightType(E_LIGHT_TYPE type);
+	void SetLightType(LightType type);
 
 	//! Gets the light type.
 	/** \return The current light type. */
-	E_LIGHT_TYPE GetLightType() const;
+	LightType GetLightType() const;
 
 	//! Sets whether this light casts shadows.
 	/** Enabling this flag won't automatically cast shadows, the meshes

@@ -49,11 +49,11 @@ void SpotLightEffect::UpdateMaterialConstant()
 void SpotLightEffect::UpdateLightingConstant()
 {
     InternalLighting* internalLighting = mLightingConstant->Get<InternalLighting>();
-    internalLighting->ambient = mLighting->ambient;
-    internalLighting->diffuse = mLighting->diffuse;
-    internalLighting->specular = mLighting->specular;
-    internalLighting->spotCutoff = mLighting->spotCutoff;
-    internalLighting->attenuation = mLighting->attenuation;
+    internalLighting->ambient = mLighting->mAmbient;
+    internalLighting->diffuse = mLighting->mDiffuse;
+    internalLighting->specular = mLighting->mSpecular;
+    internalLighting->spotCutoff = mLighting->mSpotCutoff;
+    internalLighting->attenuation = mLighting->mAttenuation;
     LightingEffect::UpdateLightingConstant();
 }
 

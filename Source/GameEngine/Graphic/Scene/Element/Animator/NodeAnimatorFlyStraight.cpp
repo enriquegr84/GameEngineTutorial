@@ -28,7 +28,7 @@ void NodeAnimatorFlyStraight::RecalculateIntermediateValues()
 
 
 //! animates a scene node
-void NodeAnimatorFlyStraight::AnimateNode(Node* node, unsigned int timeMs)
+void NodeAnimatorFlyStraight::AnimateNode(Scene* pScene, Node* node, unsigned int timeMs)
 {
 	if (!node)
 		return;

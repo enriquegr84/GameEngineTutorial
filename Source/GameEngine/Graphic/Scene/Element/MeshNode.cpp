@@ -19,8 +19,8 @@
 
 //! constructor
 MeshNode::MeshNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-	const eastl::shared_ptr<Mesh>& mesh)
-:	Node(actorId, renderComponent, ERP_NONE, ESNT_MESH), 
+	const eastl::shared_ptr<BaseMesh>& mesh)
+:	Node(actorId, renderComponent, RP_NONE, NT_MESH), 
 	mMesh(0), mShadow(0), mPassCount(0), mReadOnlyMaterials(false)
 {
 	#ifdef _DEBUG
@@ -41,13 +41,12 @@ MeshNode::~MeshNode()
 //! frame
 bool MeshNode::PreRender(Scene *pScene)
 {
-	if (mProps.IsVisible())
+	if (IsVisible())
 	{
 		// because this node supports rendering of mixed mode meshes consisting of
 		// transparent and solid material at the same time, we need to go through all
 		// materials, check of what type they are and register this node for the right
 		// render pass according to that.
-		const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
 
 		mPassCount = 0;
 		int transparentCount = 0;
@@ -59,10 +58,9 @@ bool MeshNode::PreRender(Scene *pScene)
 			// count mesh materials
 			for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
 			{
-				const eastl::shared_ptr<IMeshBuffer>& mb = mMesh->GetMeshBuffer(i);
-				const eastl::shared_ptr<IMaterialRenderer>& rnd =
-					mb ? renderer->GetMaterialRenderer(mb->GetMaterial().MaterialType) : 0;
-				if (rnd && rnd->IsTransparent())
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
+
+				if (mb->GetMaterial().IsTransparent())
 					++transparentCount;
 				else
 					++solidCount;
@@ -76,9 +74,7 @@ bool MeshNode::PreRender(Scene *pScene)
 			// count copied materials
 			for (unsigned int i=0; i<mMaterials.size(); ++i)
 			{
-				const eastl::shared_ptr<MaterialRenderer>& rnd =
-					renderer->GetMaterialRenderer(mMaterials[i].MaterialType);
-				if (rnd && rnd->IsTransparent())
+				if (mMaterials[i].IsTransparent())
 					++transparentCount;
 				else
 					++solidCount;
@@ -92,10 +88,10 @@ bool MeshNode::PreRender(Scene *pScene)
 		if (!pScene->IsCulled(this))
 		{
 			if (solidCount)
-				pScene->AddToRenderQueue(ERP_SOLID, shared_from_this());
+				pScene->AddToRenderQueue(RP_SOLID, shared_from_this());
 
 			if (transparentCount)
-				pScene->AddToRenderQueue(ERP_TRANSPARENT, shared_from_this());
+				pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
 		}
 
 	}
@@ -106,20 +102,18 @@ bool MeshNode::PreRender(Scene *pScene)
 //! renders the node.
 bool MeshNode::Render(Scene *pScene)
 {
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-
-	if (!mMesh || !renderer)
+	if (!mMesh || !Renderer::Get())
 		return false;
 
 	Matrix4x4<float> toWorld, fromWorld;
-	Get()->Transform(&toWorld, &fromWorld);
+	//Transform(&toWorld, &fromWorld);
 
-	bool isTransparentPass = Get()->GetRenderPass() && ERP_TRANSPARENT;
+	bool isTransparentPass = GetRenderPass() && RP_TRANSPARENT;
 
 	++mPassCount;
 
-	renderer->SetTransform(ETS_WORLD, toWorld);
-	mBBox = mMesh->GetBoundingBox();
+	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
+	//mBBox = mMesh->GetBoundingBox();
 
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
@@ -128,17 +122,17 @@ bool MeshNode::Render(Scene *pScene)
 
 	bool renderMeshes = true;
 	Material mat;
-	if (mProps.DebugDataVisible() && mPassCount==1)
+	if (DebugDataVisible() && mPassCount==1)
 	{
 		// overwrite half transparency
-		if (mProps.DebugDataVisible() & EDS_HALF_TRANSPARENCY)
+		if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
 		{
 			for (unsigned int g=0; g< mMesh->GetMeshBufferCount(); ++g)
 			{
 				mat = mMaterials[g];
-				mat.MaterialType = EMT_TRANSPARENT_ADD_COLOR;
-				renderer->SetMaterial(mat);
-				renderer->DrawMeshBuffer(mMesh->GetMeshBuffer(g));
+				mat.mType = MT_TRANSPARENT_ADD_COLOR;
+				//Renderer::Get()->SetMaterial(mat);
+				//Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(g));
 			}
 			renderMeshes = false;
 		}
@@ -149,56 +143,52 @@ bool MeshNode::Render(Scene *pScene)
 	{
 		for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
 		{
-			const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
+			const eastl::shared_ptr<MeshBuffer<FLOAT>>& mb = mMesh->GetMeshBuffer(i);
 			if (mb)
 			{
 				const Material& material = 
 					mReadOnlyMaterials ? mb->GetMaterial() : mMaterials[i];
 
-				const eastl::shared_ptr<MaterialRenderer>& rnd =
-					renderer->GetMaterialRenderer(material.MaterialType);
-				bool transparent = (rnd && rnd->IsTransparent());
-
 				// only render transparent buffer if this is the transparent render pass
 				// and solid only in solid pass
-				if (transparent == isTransparentPass)
+				if (material.IsTransparent() == isTransparentPass)
 				{
-					renderer->SetMaterial(material);
-					renderer->DrawMeshBuffer(mb);
+					//Renderer::Get()->SetMaterial(material);
+					//Renderer::Get()->DrawMeshBuffer(mb);
 				}
 			}
 		}
 	}
 
-	renderer->SetTransform(ETS_WORLD, toWorld);
-
+	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
+	/*
 	// for debug purposes only:
-	if (mProps.DebugDataVisible() && mPassCount==1)
+	if (DebugDataVisible() && mPassCount==1)
 	{
 		Material m;
-		m.Lighting = false;
-		m.AntiAliasing=0;
-		renderer->SetMaterial(m);
+		m.mLighting = false;
+		m.mAntiAliasing=0;
+		Renderer::Get()->SetMaterial(m);
 
-		if (mProps.DebugDataVisible() & EDS_BBOX)
+		if (DebugDataVisible() & DS_BBOX)
 		{
-			renderer->Draw3DBox(mBBox, Color(255,255,255,255));
+			Renderer::Get()->Draw3DBox(mBBox, Vector4<float>{1.f,1.f,1.f,1.f});
 		}
-		if (mProps.DebugDataVisible() & EDS_BBOX_BUFFERS)
+		if (DebugDataVisible() & DS_BBOX_BUFFERS)
 		{
 			for (unsigned int g=0; g<mMesh->GetMeshBufferCount(); ++g)
 			{
-				renderer->Draw3DBox(
+				Renderer::Get()->Draw3DBox(
 					mMesh->GetMeshBuffer(g)->GetBoundingBox(),
 					eastl::array<float, 4>{255.f, 190.f, 128.f, 128.f});
 			}
 		}
 
-		if (mProps.DebugDataVisible() & EDS_NORMALS)
+		if (DebugDataVisible() & DS_NORMALS)
 		{
 			// draw normals
-			//const float debugNormalLength = pScene->GetParameters()->GetAttributeAsFloat(DEBUG_NORMAL_LENGTH);
-			//const eastl::array<float, 4> debugNormalColor = pScene->GetParameters()->GetAttributeAColor(DEBUG_NORMAL_COLOR);
+			//const float debugNormalLength = GetParameters()->GetAttributeAsFloat(DEBUG_NORMAL_LENGTH);
+			//const eastl::array<float, 4> debugNormalColor = GetParameters()->GetAttributeAColor(DEBUG_NORMAL_COLOR);
 
 			// draw normals
 			const float debugNormalLength = 1.f;
@@ -206,21 +196,22 @@ bool MeshNode::Render(Scene *pScene)
 			const unsigned int count = mMesh->GetMeshBufferCount();
 
 			for (unsigned int i=0; i != count; ++i)
-				renderer->DrawMeshBufferNormals(mMesh->GetMeshBuffer(i), debugNormalLength, debugNormalColor);
+				Renderer::Get()->DrawMeshBufferNormals(mMesh->GetMeshBuffer(i), debugNormalLength, debugNormalColor);
 		}
 
 		// show mesh
-		if (mProps.DebugDataVisible() & EDS_MESH_WIRE_OVERLAY)
+		if (DebugDataVisible() & DS_MESH_WIRE_OVERLAY)
 		{
-			m.Wireframe = true;
-			renderer->SetMaterial(m);
+			m.mWireframe = true;
+			Renderer::Get()->SetMaterial(m);
 
 			for (unsigned int g=0; g<mMesh->GetMeshBufferCount(); ++g)
 			{
-				renderer->DrawMeshBuffer(mMesh->GetMeshBuffer(g));
+				Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(g));
 			}
 		}
 	}
+	*/
 	return true;
 }
 
@@ -230,14 +221,14 @@ bool MeshNode::Render(Scene *pScene)
 //! or to remove attached childs.
 bool MeshNode::RemoveChild(ActorId id)
 {
-	for(SceneNodeList::iterator i=mChildren.begin(); i!=mChildren.end(); ++i)
-	{
-		if((mProps.ActorId() != INVALID_ACTOR_ID) && (id == mProps.ActorId()))
-			if ((*i) && mShadow == (*i))
-				mShadow = 0;
-	}
+	const eastl::shared_ptr<Node>& child = GetChild(id);
+	if (child && mShadow == child)
+		mShadow = 0;
 
-	return Node::RemoveChild(id);
+	if (Node::DetachChild(child))
+		return true;
+
+	return false;
 }
 
 
@@ -255,7 +246,7 @@ Material& MeshNode::GetMaterial(unsigned int i)
 	}
 
 	if (i >= mMaterials.size())
-		return Matrix4x4<float>::Identity;
+		return Material();
 
 	return mMaterials[i];
 }
@@ -272,7 +263,7 @@ unsigned int MeshNode::GetMaterialCount() const
 
 
 //! Sets a new mesh
-void MeshNode::SetMesh(const eastl::shared_ptr<Mesh>& mesh)
+void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 {
 	if (mesh)
 	{
@@ -285,17 +276,16 @@ void MeshNode::SetMesh(const eastl::shared_ptr<Mesh>& mesh)
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
 eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId actorId,
-	Scene* pScene, const eastl::shared_ptr<Mesh>& shadowMesh, bool zfailmethod, float infinity)
+	Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod, float infinity)
 {
-	const eastl::shared_ptr<Renderer>& renderer = pScene->GetRenderer();
-
-	if (renderer->QueryFeature(EVDF_STENCIL_BUFFER))
-		return 0;
-
+	/*
+	if (!Renderer::Get()->QueryFeature(VDF_STENCIL_BUFFER))
+	return 0;
+	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
-		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(), 
-		&Matrix4x4<float>::Identity, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
-	AddChild(mShadow);
+		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(),
+			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
+	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;
 }
@@ -311,7 +301,7 @@ void MeshNode::CopyMaterials()
 
 		for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
 		{
-			const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
+			const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
 			if (mb)
 				mat = mb->GetMaterial();
 
