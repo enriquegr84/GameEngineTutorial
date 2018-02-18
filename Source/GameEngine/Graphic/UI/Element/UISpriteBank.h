@@ -7,7 +7,6 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
 

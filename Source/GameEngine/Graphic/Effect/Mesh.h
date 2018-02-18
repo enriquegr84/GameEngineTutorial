@@ -10,7 +10,6 @@
 #include "Material.h"
 
 #include "Graphic/Resource/Buffer/MeshBuffer.h"
-#include "Graphic/Renderer/Renderer.h"
 
 #include "Mathematic/Geometric/AlignedBox.h"
 

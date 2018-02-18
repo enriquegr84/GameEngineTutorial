@@ -11,6 +11,7 @@
 #include "GameEngineStd.h"
 
 #include "Graphic/Scene/Hierarchy/Node.h"
+#include "Graphic/Scene/Hierarchy/Light.h"
 
 class Scene;
 
@@ -55,8 +56,8 @@ public:
 	/** \param[in] node: the scene node that has just been rendered */
 	void OnNodePostRender(Node* node);
 
-	void CalculateLighting(Scene *pScene);
-	void CalculateLighting(Lighting* pLighting, Node *pNode);
+	void UpdateLighting(Scene *pScene);
+	void UpdateLighting(Lighting* pLighting, Node *pNode);
 	int GetLightCount(const Node *node) { return mLights.size(); }
 
 	const Vector4<float>* GetLightAmbient(const Node *node) { return &mLightAmbient; }
@@ -71,6 +72,9 @@ protected:
 
 	eastl::shared_ptr<RasterizerState> mWireState;
 	*/
+	eastl::shared_ptr<Node> mDLightRoot;
+	eastl::shared_ptr<Light> mDLight;
+
 	enum { LDIR, LPNT, LSPT, LNUM };
 	enum { GPLN, GSPH, GNUM };
 	enum { SVTX, SPXL, SNUM };
@@ -103,8 +107,10 @@ protected:
 	RenderPass mCurrentRenderPass;
 	Node * mCurrentSceneNode;
 
-
 private:
+
+	void UpdateCameraLightModelPositions(
+		eastl::shared_ptr<Node> object, eastl::shared_ptr<Camera> camera);
 
 	// Find the empty scene node that is the parent of the specified node
 	Node * FindZone(Node* node)

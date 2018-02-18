@@ -14,12 +14,9 @@ class CubeNode : public Node
 public:
 
 	//! constructor
-	CubeNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, float size);
-	/*
-		const Vector3<float>& position = Vector3<float>{ 0.f, 0.f, 0.f },
-		const Vector3<float>& rotation = Vector3<float>{ 0.f, 0.f, 0.f },
-		const Vector3<float>& scale = Vector3<float>{ 255.f, 255.f, 255.f });
-	*/
+	CubeNode(const ActorId actorId, PVWUpdater& updater, 
+		WeakBaseRenderComponentPtr renderComponent, float size);
+
 	~CubeNode();
 
 	//! Renders event
@@ -31,7 +28,7 @@ public:
 	//! This function is needed for inserting the node into the scene hirachy on a
 	//! optimal position for minimizing renderstate changes, but can also be used
 	//! to directly modify the material of a scene node.
-	Material& GetMaterial(unsigned int i);
+	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
 	unsigned int GetMaterialCount() const;
@@ -43,9 +40,6 @@ public:
 	//! and returns a pointer to it.
 	eastl::shared_ptr<ShadowVolumeNode> AddShadowVolumeNode(const ActorId actorId, 
 		Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh = 0, bool zfailmethod=true, float infinity=10000.0f);
-
-	//! Returns the current mesh
-	eastl::shared_ptr<StandardMesh> GetMesh(void) { return mMesh; }
 
 	//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
 	/* In this way it is possible to change the materials a mesh causing all mesh scene nodes 
@@ -63,7 +57,7 @@ public:
 private:
 	void SetSize();
 
-	eastl::shared_ptr<StandardMesh> mMesh;
+	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
 	float mSize;
 };

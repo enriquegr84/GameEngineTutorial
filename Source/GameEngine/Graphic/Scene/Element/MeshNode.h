@@ -14,8 +14,8 @@ class MeshNode : public Node
 public:
 
 	//! constructor
-	MeshNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-		const eastl::shared_ptr<BaseMesh>& mesh);
+	MeshNode(const ActorId actorId, PVWUpdater& updater, 
+		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh);
 
 	//! destructor
 	~MeshNode();
@@ -34,7 +34,7 @@ public:
 	//! This function is needed for inserting the node into the scene hirachy on a
 	//! optimal position for minimizing renderstate changes, but can also be used
 	//! to directly modify the material of a scene node.
-	Material& GetMaterial(unsigned int i);
+	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
 	unsigned int GetMaterialCount() const;
@@ -60,10 +60,7 @@ public:
 
 protected:
 
-	void CopyMaterials();
-
-	eastl::vector<Material> mMaterials;
-	Material mReadOnlyMaterial;
+	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
 
 	eastl::shared_ptr<BaseMesh> mMesh;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;

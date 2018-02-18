@@ -4,10 +4,6 @@
 
 #include "UISkin.h"
 
-#include "UIFont.h"
-#include "UISpriteBank.h"
-#include "UIElement.h"
-
 #include "Graphic/Renderer/Renderer.h"
 
 

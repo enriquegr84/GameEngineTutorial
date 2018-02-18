@@ -7,70 +7,117 @@
 
 #include "LightManager.h"
 
+#include "Application/GameApplication.h"
+
 //----------------------------------------------------------------------------
 
 LightManager::LightManager()
 	: mMode(NO_MANAGEMENT), mRequestedMode(NO_MANAGEMENT),
 	mSceneLightList(0), mCurrentRenderPass(RP_NONE), mCurrentSceneNode(0)
 { 
+	mDLight = eastl::make_shared<Light>(true, true);
+	mDLight->mLighting = eastl::make_shared<Lighting>();
+
+	eastl::shared_ptr<ViewVolumeNode> lightNode = 
+		eastl::make_shared<ViewVolumeNode>(GameLogic::Get()->GetNewActorID(), mDLight);
 	/*
-	mEngine->SetClearColor({ 0.0f, 0.25f, 0.75f, 1.0f });
-	mWireState = eastl::make_shared<RasterizerState>();
-	mWireState->fillMode = RasterizerState::FILL_WIREFRAME;
-
-	CreateScene();
-
-	Vector3<float> pos{ 16.0f, 0.0f, 8.0f };
-	Vector3<float> dir = -pos;
-	Normalize(dir);
-	Vector3<float> up{ dir[2], 0.0f, -dir[0] };
-	InitializeCamera(60.0f, GetAspectRatio(), 0.1f, 100.0f, 0.01f, 0.001f,
-	{ pos[0], pos[1], pos[2] }, { dir[0], dir[1], dir[2] }, { up[0], up[1], up[2] });
-	mPVWMatrices.Update();
+	lightNode->GetRelativeTransform().SetTranslation(1628.448730f, -51.877197f, 0.0f);
+	lightNode->GetRelativeTransform().SetRotation(
+		AxisAngle<4, float>({ -1.0f, 0.0f, 0.0f, 0.0f }, (float)GE_C_HALF_PI));
 	*/
+	mDLightRoot = eastl::make_shared<Node>();
+	/*mDLightRoot->GetRelativeTransform().SetTranslation(-1824.998657f, -1531.269775f, 3886.592773f);
+	mDLightRoot->GetRelativeTransform().SetRotation(
+		AxisAngle<4, float>({ -0.494124f, 0.325880f, 0.806005f }, 1.371538f));*/
+
+	mDLightRoot->AttachChild(lightNode);
+	mDLightRoot->Update();
+}
+
+void LightManager::UpdateCameraLightModelPositions(
+	eastl::shared_ptr<Node> node, eastl::shared_ptr<Camera> camera)
+{
+	Visual* visual = dynamic_cast<Visual*>(node.get());
+	if (visual)
+	{
+		VisualEffect* effect = visual->GetEffect().get();
+#if defined(USE_DIRECTIONAL_LIGHT_TEXTURE)
+		DirectionalLightTextureEffect* ltEffect =
+			dynamic_cast<DirectionalLightTextureEffect*>(effect);
+#else
+		PointLightTextureEffect* ltEffect =
+			dynamic_cast<PointLightTextureEffect*>(effect);
+#endif
+		if (ltEffect)
+		{
+			Matrix4x4<float> invWMatrix = visual->GetAbsoluteTransform().GetHInverse();
+			auto geometry = ltEffect->GetGeometry();
+#if defined(GE_USE_MAT_VEC)
+			geometry->lightModelPosition = invWMatrix * mDLight->GetPosition();
+			geometry->lightModelDirection = invWMatrix * mDLight->GetDVector();
+			geometry->cameraModelPosition = invWMatrix * camera->GetPosition();
+#else
+			geometry->lightModelPosition = mDLight->GetPosition() * invWMatrix;
+			geometry->lightModelDirection = mDLight->GetDVector() * invWMatrix;
+			geometry->cameraModelPosition = mCamera->GetPosition() * invWMatrix;
+#endif
+			Normalize(geometry->lightModelDirection);
+			ltEffect->UpdateGeometryConstant();
+		}
+		return;
+	}
+
+	if (node)
+	{
+		for (int i = 0; i < node->GetNumChildren(); ++i)
+			if (node->GetChild(i))
+				UpdateCameraLightModelPositions(node->GetChild(i), camera);
+	}
 }
 
 //
-// LightManager::CalculateLighting					- Chapter 16, page 554
+// LightManager::UpdateLighting					- Chapter 16, page 554
 //
-void LightManager::CalculateLighting(Scene *pScene)
+void LightManager::UpdateLighting(Scene *pScene)
 {
+	UpdateCameraLightModelPositions(pScene->GetRootNode(), pScene->GetActiveCamera()->Get());
 	/*
-	// FUTURE WORK: There might be all kinds of things you'd want to do here for optimization, especially turning off lights on actors that can't be seen, etc.
-	pScene->GetRenderer()->CalculateLighting(&mLights, MAXIMUM_LIGHTS_SUPPORTED);
+	//	FUTURE WORK: There might be all kinds of things you'd want to do here for optimization, 
+	//	especially turning off lights on actors that can't be seen, etc.
+	pScene->GetRenderer()->UpdateLighting(&mLights, MAXIMUM_LIGHTS_SUPPORTED);
 
 	int count = 0;
 
 	LogAssertion(mLights.size() < MAXIMUM_LIGHTS_SUPPORTED);
 	for (Lights::iterator i = mLights.begin(); i != mLights.end(); ++i, ++count)
 	{
-	shared_ptr<LightNode> light = *i;
+		shared_ptr<LightNode> light = *i;
 
-	if (count == 0)
-	{
-	// Light 0 is the only one we use for ambient lighting. The rest are ignored in the simple shaders used for GameCode4.
-	Color ambient = light->VGet()->GetMaterial().GetAmbient();
-	mLightAmbient = D3DXVECTOR4(ambient.r, ambient.g, ambient.b, 1.0f);
-	}
+		if (count == 0)
+		{
+			// Light 0 is the only one we use for ambient lighting. The rest are ignored in the simple shaders used for GameCode4.
+			Color ambient = light->VGet()->GetMaterial().GetAmbient();
+			mLightAmbient = D3DXVECTOR4(ambient.r, ambient.g, ambient.b, 1.0f);
+		}
 
-	Vec3 lightDir = light->GetDirection();
-	mLightDir[count] = D3DXVECTOR4(lightDir.x, lightDir.y, lightDir.z, 1.0f);
-	mLightDiffuse[count] = light->VGet()->GetMaterial().GetDiffuse();
+		Vec3 lightDir = light->GetDirection();
+		mLightDir[count] = D3DXVECTOR4(lightDir.x, lightDir.y, lightDir.z, 1.0f);
+		mLightDiffuse[count] = light->VGet()->GetMaterial().GetDiffuse();
 	}
 	*/
 }
 
 
-void LightManager::CalculateLighting(Lighting* pLighting, Node *pNode)
+void LightManager::UpdateLighting(Lighting* pLighting, Node *pNode)
 {
 	/*
 	int count = GetLightCount(pNode);
 	if (count)
 	{
-	pLighting->ambient = *GetLightAmbient(pNode);
-	memcpy(pLighting->specular, GetLightDirection(pNode), sizeof(Vec4) * count);
-	memcpy(pLighting->diffuse, GetLightDiffuse(pNode), sizeof(Vec4) * count);
-	pLighting->mNumLights = count;
+		pLighting->ambient = *GetLightAmbient(pNode);
+		memcpy(pLighting->specular, GetLightDirection(pNode), sizeof(Vec4) * count);
+		memcpy(pLighting->diffuse, GetLightDiffuse(pNode), sizeof(Vec4) * count);
+		pLighting->mNumLights = count;
 	}
 	*/
 }
@@ -166,7 +213,7 @@ void LightManager::OnNodePreRender(Node* node)
 		// by its proximity to the node being rendered.  This produces some flickering
 		// when lights orbit closer to a cube than its 'zone' lights.
 
-		// const Vector3<float> nodePosition = node->GetAbsolutePosition();
+		const Vector3<float> nodePosition = node->GetAbsoluteTransform().GetTranslation();
 
 		// Sort the light list by prioritising them based on their distance from the node
 		// that's about to be rendered.
@@ -176,10 +223,11 @@ void LightManager::OnNodePreRender(Node* node)
 		for (i = 0; i < mSceneLightList->size(); ++i)
 		{
 			Node* lightNode = (*mSceneLightList)[i];
-			/*
-			const float distance = lightNode->GetAbsolutePosition().GetDistanceFromSQ(nodePosition);
+
+			const float distance = Length(
+				lightNode->GetAbsoluteTransform().GetTranslation() - nodePosition);
 			sortingArray.push_back(LightDistanceElement(lightNode, distance));
-			*/
+
 		}
 
 		eastl::sort(sortingArray.begin(), sortingArray.end());
@@ -200,13 +248,11 @@ void LightManager::OnNodePreRender(Node* node)
 		{
 			if ((*mSceneLightList)[i]->GetType() != NT_LIGHT)
 				continue;
-			Node* lightNode = static_cast<Node*>((*mSceneLightList)[i]);
-			/*
-			Light & lightData = lightNode->GetLightData();
+			LightNode* lightNode = static_cast<LightNode*>((*mSceneLightList)[i]);
 
-			if (LT_DIRECTIONAL != lightData.Type)
+			Light & lightData = lightNode->GetLightData();
+			if (LT_DIRECTIONAL != lightData.mLighting->mType)
 				lightNode->SetVisible(false);
-			*/
 		}
 
 		Node * parentZone = FindZone(node);
@@ -450,15 +496,15 @@ void LightManager::CreateScene()
 		for (int st = 0; st < SNUM; ++st)
 		{
 			mEffect[LDIR][gt][st] = std::make_shared<DirectionalLightEffect>(
-				mProgramFactory, mUpdater, st,
+				mProgramFactory, mBufferUpdater, st,
 				material[LDIR][gt], lighting[LDIR][gt], geometry[LDIR][gt]);
 
 			mEffect[LPNT][gt][st] = std::make_shared<PointLightEffect>(
-				mProgramFactory, mUpdater, st,
+				mProgramFactory, mBufferUpdater, st,
 				material[LPNT][gt], lighting[LPNT][gt], geometry[LPNT][gt]);
 
 			mEffect[LSPT][gt][st] = std::make_shared<SpotLightEffect>(
-				mProgramFactory, mUpdater, st,
+				mProgramFactory, mBufferUpdater, st,
 				material[LSPT][gt], lighting[LSPT][gt], geometry[LSPT][gt]);
 		}
 	}

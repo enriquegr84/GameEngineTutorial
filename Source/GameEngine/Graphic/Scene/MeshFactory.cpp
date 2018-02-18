@@ -29,6 +29,124 @@ MeshFactory::MeshFactory()
     }
 }
 
+eastl::shared_ptr<Visual> MeshFactory::CreateMesh(const Mesh<float>* mesh)
+{
+	if (!mesh->GetDescription().mConstructed)
+	{
+		// The logger system will report these errors in the Mesh constructor.
+		return nullptr;
+	}
+
+	if (!mesh->GetDescription().mIndexAttribute.source)
+	{
+		LogError("The mesh needs triangles/indices.");
+		return;
+	}
+
+	//we need to set the vertexformat
+	mVFormat = VertexFormat();
+	for (auto const& attribute : mesh->GetDescription().mVertexAttributes)
+	{
+		if (attribute.source != nullptr && attribute.stride > 0)
+		{
+			if (attribute.semantic == "position")
+			{
+				mVFormat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+				continue;
+			}
+
+			if (attribute.semantic == "normal")
+			{
+				mVFormat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+				continue;
+			}
+
+			if (attribute.semantic == "tangent")
+			{
+				mVFormat.Bind(VA_TANGENT, DF_R32G32B32_FLOAT, 0);
+				continue;
+			}
+
+			if (attribute.semantic == "bitangent")
+			{
+				mVFormat.Bind(VA_BINORMAL, DF_R32G32B32_FLOAT, 0);
+				continue;
+			}
+
+			if (attribute.semantic == "tcoord")
+			{
+				mVFormat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+				continue;
+			}
+		}
+	}
+
+	// Determine the number of vertices and triangles.
+	auto vbuffer = CreateVBuffer(mesh->GetDescription().mNumVertices);
+	if (!vbuffer)
+	{
+		return nullptr;
+	}
+
+	auto ibuffer = CreateIBuffer(mesh->GetDescription().mNumTriangles);
+	if (!vbuffer)
+	{
+		return nullptr;
+	}
+
+	// Set sources for the requested vertex attributes.
+	unsigned int unit = 0;
+	for (auto const& attribute : mesh->GetDescription().mVertexAttributes)
+	{
+		if (attribute.source != nullptr && attribute.stride > 0)
+		{
+			if (attribute.semantic == "position")
+			{
+				mPositions = reinterpret_cast<char*>(attribute.source);
+				continue;
+			}
+
+			if (attribute.semantic == "normal")
+			{
+				mNormals = reinterpret_cast<char*>(attribute.source);
+				continue;
+			}
+
+			if (attribute.semantic == "tangent")
+			{
+				mTangents = reinterpret_cast<char*>(attribute.source);
+				continue;
+			}
+
+			if (attribute.semantic == "bitangent")
+			{
+				mBitangents = reinterpret_cast<char*>(attribute.source);
+				continue;
+			}
+
+			if (attribute.semantic == "tcoord")
+			{
+				mTCoords[unit] = reinterpret_cast<char*>(attribute.source);
+				unit++;
+				continue;
+			}
+		}
+	}
+
+	if (!mPositions)
+	{
+		LogError("The mesh needs positions.");
+		return;
+	}
+
+	auto visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
+	if (visual)
+	{
+		visual->UpdateModelBound();
+	}
+	return visual;
+}
+
 eastl::shared_ptr<Visual> MeshFactory::CreateTriangle(unsigned int numSamples,
     float xExtent, float yExtent)
 {

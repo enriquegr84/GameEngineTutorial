@@ -86,17 +86,36 @@ HumanView::HumanView()
 	Renderer* renderer = Renderer::Get();
 	if (renderer)
 	{
+		// Graphics engine state.
+		/*mEngine->SetClearColor({ 0.6f, 0.851f, 0.918f, 1.0f });
+
+		mBlendState = std::make_shared<BlendState>();
+		mBlendState->target[0].enable = true;
+		mBlendState->target[0].srcColor = BlendState::BM_SRC_ALPHA;
+		mBlendState->target[0].dstColor = BlendState::BM_INV_SRC_ALPHA;
+		mBlendState->target[0].srcAlpha = BlendState::BM_SRC_ALPHA;
+		mBlendState->target[0].dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+		mWireState = std::make_shared<RasterizerState>();
+		mWireState->fillMode = RasterizerState::FILL_WIREFRAME;*/
+
+		// Create the scene and camera rig.
 		// Moved to the HumanView class post press
 		mScene.reset(new ScreenElementScene());
-		/*
-		mCamera.reset(new CameraSceneNode(
-			GameLogic::Get()->GetNewActorID(), mScene, Matrix4x4<float>::Identity));
-		LogAssert(mScene && mCamera, "Out of memory");
-		mCamera->SetFarValue(20000.f); // this increase a shadow visible range.
 
-		mScene->AddChild(mCamera->Get()->GetId(), mCamera);
+		mCamera.reset(new CameraNode(GameLogic::Get()->GetNewActorID()));
+		LogAssert(mScene && mCamera, "Out of memory");
+		//mCamera->SetFarValue(20000.f); // this increase a shadow visible range.
 		mScene->SetActiveCamera(mCamera);
-		*/
+
+		mScene->AddChild(mCamera->GetId(), mCamera);
+		//InitializeFixedHeightRig();
+		//mFixedHeightRig.SetPicker(mScene, mPicker);
+
+		// The model bounds must be updated first before the scene update.  The
+		// latter update uses the model bounds to compute world bounds.
+		mScene->GetRootNode()->UpdateVisualModelSpace(mScene->GetRootNode());
+		mScene->GetRootNode()->Update();
 	}
 }
 

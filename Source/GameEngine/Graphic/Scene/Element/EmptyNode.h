@@ -12,7 +12,7 @@ class EmptyNode : public Node
 public:
 
 	//! constructor
-	EmptyNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent);
+	EmptyNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent);
 
 	//! Renders event
 	bool PreRender(Scene *pScene);

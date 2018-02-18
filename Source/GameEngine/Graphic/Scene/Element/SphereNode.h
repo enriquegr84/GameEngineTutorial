@@ -14,7 +14,7 @@ class SphereNode : public Node
 public:
 
 	//! constructor
-	SphereNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
+	SphereNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
 		float radius, unsigned int polyCountX, unsigned int polyCountY);
 
 	~SphereNode();
@@ -28,13 +28,13 @@ public:
 	//! This function is needed for inserting the node into the scene hirachy on a
 	//! optimal position for minimizing renderstate changes, but can also be used
 	//! to directly modify the material of a scene node.
-	Material& GetMaterial(unsigned int i);
+	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
 	unsigned int GetMaterialCount() const;
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return ESNT_SPHERE; }
+	NodeType GetType() const { return NT_SPHERE; }
 
 	//! Returns the current mesh
 	const eastl::shared_ptr<BaseMesh>& GetMesh() { return mMesh; }

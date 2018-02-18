@@ -42,14 +42,12 @@
 #include "GameEngineStd.h"
 
 #include "Graphic/ScreenElement.h"
-#include "Graphic/Renderer/Renderer.h"
 
 #include "Mathematic/Mathematic.h"
 #include "Core/Event/EventManager.h"
 
 #include "Graphic/Scene/Hierarchy/Node.h"
-
-class LightManager;
+#include "Graphic/Scene/Hierarchy/Light.h"
 
 // Forward declarations
 ////////////////////////////////////////////////////
@@ -76,16 +74,23 @@ typedef eastl::vector<Node*> SceneNodeRenderList;
 //class SkyNode;
 //class LightNode;
 //class LightManager;
-//class CameraSceneNode;
 
+class BaseMesh;
+class BaseAnimatedMesh;
+
+class CameraNode;
+class LightManager;
 
 class Scene
 {
 protected:
+	Culler mCuller;
+	PVWUpdater mPVWUpdater;
+	BufferUpdater mBufferUpdater;
+
 	eastl::shared_ptr<Node> mRoot;
 	eastl::shared_ptr<CameraNode> mCamera;
-
-	LightManager* mLightManager;
+	eastl::shared_ptr<LightManager> mLightManager;
 
 	SceneNodeActorMap mSceneNodeActors;		
 	RenderPass mCurrentRenderPass;
@@ -197,8 +202,7 @@ public:
 	Make sure you always have one active camera.
 	\return Pointer to interface to camera if successful, otherwise 0.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddCameraNode(
-		WeakBaseRenderComponentPtr renderComponent, int id = -1, bool makeActive = true);
+	eastl::shared_ptr<Node> AddCameraNode(int id = -1, bool makeActive = true);
 
 	//! Adds a billboard scene node to the scene graph.
 	/** A billboard is like a 3d sprite: A 2d element,
@@ -318,7 +322,7 @@ public:
 	be removed from the scene.
 	\return Pointer to the root scene node.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	virtual const eastl::shared_ptr<Node>& GetRootSceneNode() { return mRoot; }
+	virtual const eastl::shared_ptr<Node>& GetRootNode() { return mRoot; }
 
 	bool RemoveSceneNode(ActorId id);
 
@@ -332,24 +336,31 @@ public:
 	\return Pointer to the first scene node with this id,
 	and null if no scene node could be found.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	virtual eastl::shared_ptr<Node> GetSceneNode(ActorId id);
+	eastl::shared_ptr<Node> GetSceneNode(ActorId id);
 
 	/* Check if node is culled in current view frustum. Please note that depending on the used
 	culling method this check can be rather coarse, or slow. A positive result is correct, though,
 	i.e. if this method returns true the node is positively not visible. The node might still be
 	invisible even if this method returns false.*/
-	virtual bool IsCulled(Node* node);
+	bool IsCulled(Node* node);
 
 	//! Get the current active camera.
 	/** \return The active camera is returned. Note that this can
 	be NULL, if there was no camera created yet.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	virtual const eastl::shared_ptr<CameraNode>& GetActiveCamera() const { return mCamera; }
+	const eastl::shared_ptr<CameraNode>& GetActiveCamera() const { return mCamera; }
 
 	//! Sets the currently active camera.
 	/** The previous active camera will be deactivated.
 	\param camera: The new camera which should be active. */
-	virtual void SetActiveCamera(const eastl::shared_ptr<CameraNode>& camera) { mCamera = camera; }
+	void SetActiveCamera(const eastl::shared_ptr<CameraNode>& camera);
+
+	//! Register a custom callbacks manager which gets callbacks during scene rendering.
+	/** \param[in] lightManager: the new callbacks manager. You may pass 0 to remove the
+	current callbacks manager and restore the default behavior. */
+	void SetLightManager(const eastl::shared_ptr<LightManager>& lightManager) { mLightManager = lightManager; }
+
+	const eastl::shared_ptr<LightManager>& GetLightManager() { return mLightManager; }
 
 	//! Get current render time.
 	RenderPass GetCurrentRenderPass() const { return mCurrentRenderPass; }

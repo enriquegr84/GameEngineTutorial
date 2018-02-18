@@ -56,7 +56,6 @@
 
 #include "View/GameView.h"
 #include "View/HumanView.h"
-#include "View/UI/UserInterface.h"
 
 #include "GameLogic.h"
 #include "GameOption.h"

@@ -8,7 +8,8 @@
 #ifndef SPATIAL_H
 #define SPATIAL_H
 
-#include "Graphic/Scene/Scene.h"
+#include "Graphic/Scene/Controller/ControlledObject.h"
+#include "Graphic/Scene/Visibility/Culler.h"
 
 #include <EASTL/string.h>
 
@@ -63,7 +64,7 @@ public:
     // volumes on the upward pass of the traversal.  The object that calls the
     // update is the initiator.  Other objects visited during the update are
     // not initiators.  The application time is in milliseconds.
-    void Update(Scene* pScene, double applicationTime = 0.0, bool initiator = true);
+    void Update(double applicationTime = 0.0, bool initiator = true);
 
     // Access to the parent object, which is null for the root of the
     // hierarchy.
@@ -80,32 +81,47 @@ public:
 	void SetDebugDataVisible(unsigned int state) { mDebugDataVisible = state; }
 	//! Returns if debug data like bounding boxes are drawn.
 	unsigned int DebugDataVisible() const { return mDebugDataVisible; }
-	//! Sets if this scene node is a debug object.
+	//! Sets if this spatial node is a debug object.
 	void SetIsDebugObject(bool debugObject) { mIsDebugObject = debugObject; }
-	//! Returns if this scene node is a debug object.
+	//! Returns if this spatial node is a debug object.
 	bool IsDebugObject() const { return mIsDebugObject; }
 
-	//! Returns the relative transformation of the scene node.
+	//! Returns the relative transformation of the spatial node.
 	/** The relative transformation is stored internally as 3
 	vectors: translation, rotation and scale. To get the relative
 	transformation matrix, it is calculated from these values.
 	\return The relative transformation matrix. */
-	const Transform& GetRelativeTransform() const
+	Transform& GetRelativeTransform() const
 	{
 		mLocalTransform;
 	}
 
-	//! Returns the absolute transformation of the scene node.
+	//! Returns the absolute transformation of the spatial node.
 	/** The absolute transformation is stored internally as 3
 	vectors: translation, rotation and scale. To get the absolute
 	transformation matrix, it is calculated from these values.
 	\return The relative transformation matrix. */
-	const Transform& GetAbsoluteTransform() const
+	Transform& GetAbsoluteTransform() const
 	{
 		mWorldTransform;
 	}
 
-public:
+	void SetCurrentAbsoluteTransform(bool enable)
+	{
+		mWorldTransformIsCurrent = enable;
+	}
+
+	//! Returns the absoulte bound of the spatial node
+	BoundingSphere& GetAbsoulteBound() const
+	{
+		mWorldBound;
+	}
+
+	void SetCurrentAbsoluteBound(bool enable)
+	{
+		mWorldBoundIsCurrent = enable;
+	}
+
     // Support for hierarchical culling.
     void OnGetVisibleSet(
 		Culler& culler, eastl::shared_ptr<Camera> const& camera, bool noCull);
@@ -121,7 +137,7 @@ protected:
     Spatial();
 
     // Support for geometric updates.
-    virtual void UpdateWorldData(Scene* pScene, double applicationTime);
+    virtual void UpdateWorldData(double applicationTime);
     virtual void UpdateWorldBound() = 0;
     void PropagateBoundToRoot();
 
@@ -139,7 +155,7 @@ protected:
 	BoundingSphere mWorldBound;
 	bool mWorldBoundIsCurrent;
 
-	CullingMode mCulling;
+	CullingMode				mCulling;
 	bool					mIsVisible;
 	bool					mIsDebugObject;
 	unsigned int			mDebugDataVisible;

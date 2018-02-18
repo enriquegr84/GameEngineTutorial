@@ -18,7 +18,7 @@ public:
 
 	//! constructor
 	ParticleAnimatedMeshNodeEmitter(
-		const ActorId actorId, 
+		const ActorId actorId, PVWUpdater& updater,
 		WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<AnimatedMeshNode>& node,
 		bool useNormalDirection = true,
@@ -129,8 +129,8 @@ public:
 private:
 
 	eastl::shared_ptr<AnimatedMeshNode>		mAnimatedNode;
-	eastl::shared_ptr<AnimatedMesh>			mAnimatedMesh;
-	eastl::shared_ptr<BaseMesh>					mBaseMesh;
+	eastl::shared_ptr<BaseAnimatedMesh>		mAnimatedMesh;
+	eastl::shared_ptr<BaseMesh>				mBaseMesh;
 	int						mTotalVertices;
 	unsigned int			mMBCount;
 	int						mMBNumber;

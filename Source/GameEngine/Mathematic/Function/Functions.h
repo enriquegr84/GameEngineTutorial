@@ -716,13 +716,13 @@ T Function<Real>::FractImpl(T x, Arithmetic::IsFPType)
 template <typename Real> template <typename T>
 T Function<Real>::FractImpl(T x, Arithmetic::IsFP16Type)
 {
-	return (T)(x - floor((float)x);
+	return (T)(x - floor((float)x));
 }
 
 template <typename Real> template <typename T>
 T Function<Real>::FractImpl(T const& x, Arithmetic::IsBSType)
 {
-	return (T)(x - floor((double)x);
+	return (T)(x - floor((double)x));
 }
 
 

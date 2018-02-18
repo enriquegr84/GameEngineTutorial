@@ -18,9 +18,9 @@
 */
 
 //! constructor
-AnimatedMeshNode::AnimatedMeshNode(const ActorId actorId, 
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<AnimatedMesh>& mesh)
-:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_ANIMATED_MESH),  
+AnimatedMeshNode::AnimatedMeshNode(const ActorId actorId, PVWUpdater& updater,
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
+:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_ANIMATED_MESH),
 	mMesh(0), mStartFrame(0), mEndFrame(0), mFramesPerSecond(0.025f), mCurrentFrameNr(0.f), 
 	mLastTime(0), mLooping(true), mReadOnlyMaterials(false), mRenderFromIdentity(false), 
 	mLoopCallBack(0), mPassCount(0), mShadow(0)
@@ -28,8 +28,52 @@ AnimatedMeshNode::AnimatedMeshNode(const ActorId actorId,
 	#ifdef _DEBUG
 	//setDebugName("AnimatedMeshNode");
 	#endif
-
+	mPVWUpdater = updater;
 	SetMesh(mesh);
+}
+
+
+//! Sets a new mesh
+void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
+{
+	if (!mesh)
+		return; // won't set null mesh
+
+	mMesh = mesh;
+
+	const eastl::shared_ptr<BaseMesh>& baseMesh = mMesh->GetMesh(0, 0);
+	if (baseMesh)
+	{
+		MeshFactory mf;
+
+		mVisuals.clear();
+		for (unsigned int i = 0; i<baseMesh->GetMeshBufferCount(); ++i)
+		{
+			const eastl::shared_ptr<MeshBuffer<float>>& meshBuffer = baseMesh->GetMeshBuffer(i);
+			if (meshBuffer)
+			{
+				eastl::shared_ptr<Visual> visual = mf.CreateMesh(meshBuffer->mMesh.get());
+				eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
+					ProgramFactory::Get(), mPVWUpdater.GetUpdater(), meshBuffer->GetMaterial(), eastl::make_shared<Light>(), 
+					eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(), SamplerState::MIN_L_MAG_L_MIP_L, 
+					SamplerState::WRAP, SamplerState::WRAP);
+				visual->SetEffect(effect);
+				mVisuals.push_back(visual);
+				mPVWUpdater.Subscribe(visual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+			}
+		}
+	}
+
+	// get start and begin time
+	//SetAnimationSpeed(mMesh->GetAnimationSpeed());
+	SetFrameLoop(0, mMesh->GetFrameCount());
+}
+
+
+//! Get a mesh
+const eastl::shared_ptr<BaseAnimatedMesh>& AnimatedMeshNode::GetMesh(void)
+{
+	return mMesh;
 }
 
 
@@ -143,9 +187,12 @@ bool AnimatedMeshNode::PreRender(Scene* pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		for (unsigned int i=0; i<mMaterials.size(); ++i)
+		for (auto const& visual : mVisuals)
 		{
-			if (mMaterials[i].IsTransparent())
+			eastl::shared_ptr<PointLightTextureEffect> effect =
+				eastl::static_pointer_cast<PointLightTextureEffect>(visual->GetEffect());
+
+			if (effect->GetMaterial()->IsTransparent())
 				++transparentCount;
 			else
 				++solidCount;
@@ -171,22 +218,19 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 	if (!mMesh || !Renderer::Get())
 		return false;
 
-	Matrix4x4<float> toWorld, fromWorld;
-	//Transform(&toWorld, &fromWorld);
-
 	bool isTransparentPass = 
 		pScene->GetCurrentRenderPass() == RP_TRANSPARENT;
 	++mPassCount;
 
-	const eastl::shared_ptr<BaseMesh>& m = GetMeshForCurrentFrame();
-	if(m)
+	const eastl::shared_ptr<BaseMesh>& mesh = GetMeshForCurrentFrame();
+	if(mesh)
 	{
-		//mBBox = m->GetBoundingBox();
+		//mBBox = mesh->GetBoundingBox();
 	}
 	else
 	{
 		#ifdef _DEBUG
-			LogWarning("Animated Mesh returned no mesh to render.");// + Mesh->GetDebugName());
+			LogWarning("Animated Mesh returned no mesh to render.");
 		#endif
 	}
 
@@ -197,23 +241,25 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 
 	// for debug purposes only:
 	bool renderMeshes = true;
-	Material mat;
 	if (DebugDataVisible() && mPassCount==1)
 	{
 		// overwrite half transparency
 		if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
 		{
-			for (unsigned int i=0; i<m->GetMeshBufferCount(); ++i)
+			for (unsigned int i=0; i<mesh->GetMeshBufferCount(); ++i)
 			{
-				const eastl::shared_ptr<MeshBuffer<float>>& mb = m->GetMeshBuffer(i);
-				mat = mReadOnlyMaterials ? mb->GetMaterial() : mMaterials[i];
-				mat.mType = MT_TRANSPARENT_ADD_COLOR;
-				/*
+				eastl::shared_ptr<PointLightTextureEffect> effect =
+					eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
+
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = mesh->GetMeshBuffer(i);
+				eastl::shared_ptr<Material> material = 
+					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
+				material->mType = MT_TRANSPARENT_ADD_COLOR;
+
 				if (mRenderFromIdentity)
-					Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
-				Renderer::Get()->SetMaterial(mat);
-				Renderer::Get()->DrawMeshBuffer(mb);
-				*/
+					//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+				effect->SetMaterial(material);
+				Renderer::Get()->Draw(mVisuals[i]);
 			}
 			renderMeshes = false;
 		}
@@ -222,30 +268,32 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 	// render original meshes
 	if (renderMeshes)
 	{
-		for (unsigned int i=0; i<m->GetMeshBufferCount(); ++i)
+		for (unsigned int i=0; i<mesh->GetMeshBufferCount(); ++i)
 		{
-			bool transparent = (mMaterials[i].IsTransparent());
+			eastl::shared_ptr<PointLightTextureEffect> effect =
+				eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
+			bool transparent = (effect->GetMaterial()->IsTransparent());
 
 			// only render transparent buffer if this is the transparent render pass
 			// and solid only in solid pass
 			if (transparent == isTransparentPass)
 			{
-				const eastl::shared_ptr<MeshBuffer<float>>& mb = m->GetMeshBuffer(i);
-				const Material& material = mReadOnlyMaterials ? mb->GetMaterial() : mMaterials[i];
-				/*
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = mesh->GetMeshBuffer(i);
+				eastl::shared_ptr<Material> material =
+					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
+
 				if (mRenderFromIdentity)
-					Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
-				Renderer::Get()->SetMaterial(material);
-				Renderer::Get()->DrawMeshBuffer(mb);
-				*/
+					//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+				effect->SetMaterial(material);
+				Renderer::Get()->Draw(mVisuals[i]);
 			}
 		}
 	}
 
-	/*
-	Renderer::Get()->SetTransform(TS_WORLD, toWorld);
+	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
 
 	// for debug purposes only:
+	/*
 	if (DebugDataVisible() && mPassCount==1)
 	{
 		Material debugMat;
@@ -262,12 +310,12 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 			// draw normals
 			const float debugNormalLength = 1.f;
 			const eastl::array<float, 4> debugNormalColor{ 255.f, 34.f, 221.f, 221.f };
-			const unsigned int count = m->GetMeshBufferCount();
+			const unsigned int count = mesh->GetMeshBufferCount();
 
 			// draw normals
 			for (unsigned int g=0; g < count; ++g)
 			{
-				Renderer::Get()->DrawMeshBufferNormals(m->GetMeshBuffer(g), debugNormalLength, debugNormalColor);
+				Renderer::Get()->DrawMeshBufferNormals(mesh->GetMeshBuffer(g), debugNormalLength, debugNormalColor);
 			}
 		}
 
@@ -281,9 +329,9 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		// show bounding box
 		if (DebugDataVisible() & DS_BBOX_BUFFERS)
 		{
-			for (unsigned int g=0; g< m->GetMeshBufferCount(); ++g)
+			for (unsigned int g=0; g< mesh->GetMeshBufferCount(); ++g)
 			{
-				const eastl::shared_ptr<MeshBuffer<float>>& mb = m->GetMeshBuffer(g);
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = mesh->GetMeshBuffer(g);
 
 				Renderer::Get()->Draw3DBox(mb->GetBoundingBox(), eastl::array<float, 4>{255.f, 190.f, 128.f, 128.f});
 			}
@@ -297,9 +345,9 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 			debugMat.mZBuffer = CFN_DISABLED;
 			Renderer::Get()->SetMaterial(debugMat);
 
-			for (unsigned int g=0; g<m->GetMeshBufferCount(); ++g)
+			for (unsigned int g=0; g<mesh->GetMeshBufferCount(); ++g)
 			{
-				const eastl::shared_ptr<MeshBuffer<float>>& mb = m->GetMeshBuffer(g);
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = mesh->GetMeshBuffer(g);
 				if (mRenderFromIdentity)
 					Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
 				Renderer::Get()->DrawMeshBuffer(mb);
@@ -367,12 +415,14 @@ float AnimatedMeshNode::GetAnimationSpeed() const
 //! This function is needed for inserting the node into the scene hirachy on a
 //! optimal position for minimizing renderstate changes, but can also be used
 //! to directly modify the material of a scene node.
-Material& AnimatedMeshNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& AnimatedMeshNode::GetMaterial(unsigned int i)
 {
-	if (i >= mMaterials.size())
-		return Material();
+	if (i >= mVisuals.size())
+		return nullptr;
 
-	return mMaterials[i];
+	eastl::shared_ptr<PointLightTextureEffect> effect =
+		eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
+	return effect->GetMaterial();
 }
 
 
@@ -380,7 +430,7 @@ Material& AnimatedMeshNode::GetMaterial(unsigned int i)
 //! returns amount of materials used by this scene node.
 unsigned int AnimatedMeshNode::GetMaterialCount() const
 {
-	return mMaterials.size();
+	return mVisuals.size();
 }
 
 
@@ -394,7 +444,7 @@ eastl::shared_ptr<ShadowVolumeNode> AnimatedMeshNode::AddShadowVolumeNode(const 
 		return 0;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
-		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(), 
+		new ShadowVolumeNode(actorId, mPVWUpdater, WeakBaseRenderComponentPtr(), 
 			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 
@@ -454,39 +504,6 @@ void AnimatedMeshNode::SetReadOnlyMaterials(bool readonly)
 bool AnimatedMeshNode::IsReadOnlyMaterials() const
 {
 	return mReadOnlyMaterials;
-}
-
-//! Get a mesh
-const eastl::shared_ptr<AnimatedMesh>& AnimatedMeshNode::GetMesh(void)
-{
-	return mMesh;
-}
-
-//! Sets a new mesh
-void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<AnimatedMesh>& mesh)
-{
-	if (!mesh)
-		return; // won't set null mesh
-
-	mMesh = mesh;
-
-	const eastl::shared_ptr<BaseMesh>& m = mMesh->GetMesh(0,0);
-	if (m)
-	{
-		mMaterials.clear();
-		for (unsigned int i=0; i<m->GetMeshBufferCount(); ++i)
-		{
-			const eastl::shared_ptr<MeshBuffer<float>>& mb = m->GetMeshBuffer(i);
-			if (mb)
-				mMaterials.push_back(mb->GetMaterial());
-			else
-				mMaterials.push_back(Material());
-		}
-	}
-
-	// get start and begin time
-	//SetAnimationSpeed(mMesh->GetAnimationSpeed());
-	SetFrameLoop(0, mMesh->GetFrameCount());
 }
 
 //! render mesh ignoring its transformation. Used with ragdolls. (culling is unaffected)

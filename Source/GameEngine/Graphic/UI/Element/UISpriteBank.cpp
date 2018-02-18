@@ -4,8 +4,6 @@
 
 #include "UISpriteBank.h"
 
-#include "UserInterface.h"
-
 #include "Core/OS/OS.h"
 
 #include "Graphic/Image/ImageResource.h"

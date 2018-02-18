@@ -60,6 +60,11 @@ public:
     // outside).
     inline void SetOutside(bool outside);
 
+	// The triangle is in the plane z = 0 and is visible to an observer who is
+	// on the side of the plane to which the normal (0,0,1) points.  It has
+	//  any vertices and indices
+	eastl::shared_ptr<Visual> CreateMesh(const Mesh<float>*);
+
     // The triangle is in the plane z = 0 and is visible to an observer who is
     // on the side of the plane to which the normal (0,0,1) points.  It has
     // vertices (0, 0, 0), (xExtent, 0, 0), and (0, yExtent, 0).  The mesh

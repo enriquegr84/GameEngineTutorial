@@ -12,9 +12,9 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-VolumeLightNode::VolumeLightNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-	const unsigned int subdivU, const unsigned int subdivV, 
-	const eastl::array<float, 4> foot, const eastl::array<float, 4> tail)
+VolumeLightNode::VolumeLightNode(const ActorId actorId, PVWUpdater& updater, 
+	WeakBaseRenderComponentPtr renderComponent, const unsigned int subdivU, 
+	const unsigned int subdivV, const eastl::array<float, 4> foot, const eastl::array<float, 4> tail)
 :	Node(actorId, renderComponent, RP_TRANSPARENT, NT_VOLUME_LIGHT), mMesh(0), 
 	mLPDistance(8.0f), mSubdivideU(subdivU), mSubdivideV(subdivV), mFootColor(foot), 
 	mTailColor(tail), mLightDimensions(Vector3<float>{1.0f, 1.2f, 1.0f})
@@ -23,7 +23,7 @@ VolumeLightNode::VolumeLightNode(const ActorId actorId, WeakBaseRenderComponentP
 	#ifdef _DEBUG
 	//setDebugName("VolumeLightSceneNode");
 	#endif
-
+	mPVWUpdater = updater;
 	ConstructLight();
 }
 
@@ -76,7 +76,7 @@ bool VolumeLightNode::Render(Scene *pScene)
 //! This function is needed for inserting the node into the scene hirachy on a
 //! optimal position for minimizing renderstate changes, but can also be used
 //! to directly modify the material of a scene node.
-Material& VolumeLightNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& VolumeLightNode::GetMaterial(unsigned int i)
 {
 	return mMesh->GetMeshBuffer(i)->GetMaterial();
 }

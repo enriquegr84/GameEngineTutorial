@@ -44,7 +44,6 @@
 #include "Core/Event/EventManager.h"
 
 #include "Game/View/HumanView.h"
-#include "Game/View/UI/UserInterface.h"
 
 //! Macro for save Dropping an Element
 #define DropElement(x)	if (x) { x->Remove(); x = 0; }

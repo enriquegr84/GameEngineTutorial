@@ -44,14 +44,14 @@
 #include "GameView.h"
 #include "Game/GameLogic.h"
 
-#include "UI/UserInterface.h"
+#include "Graphic/UI/UserInterface.h"
 #include "Graphic/ScreenElement.h"
 
 #include "Core/Process/ProcessManager.h"
 #include "Core/Event/EventManager.h"
 
 class ScreenElementScene;
-class CameraSceneNode;
+class CameraNode;
 class Renderer;
 class System;
 
@@ -120,7 +120,7 @@ public:
 
 	// Added post press
 	eastl::shared_ptr<ScreenElementScene> mScene;
-	eastl::shared_ptr<CameraSceneNode> mCamera;
+	eastl::shared_ptr<CameraNode> mCamera;
 
 	// Added post press - this helps the network system attach views to the right actor.
 	virtual void SetControlledActor(ActorId actorId) { mActorId = actorId; }

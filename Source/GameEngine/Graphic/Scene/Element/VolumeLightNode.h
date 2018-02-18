@@ -9,21 +9,16 @@
 
 #include "Graphic/Scene/Hierarchy/Node.h"
 
-class VolumeLightNode : public Node
+class GRAPHIC_ITEM VolumeLightNode : public Node
 {
 public:
 
 	//! constructor
-	VolumeLightNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
+	VolumeLightNode(const ActorId actorId, PVWUpdater& updater, 
+		WeakBaseRenderComponentPtr renderComponent,
 		const unsigned int subdivU = 32, const unsigned int subdivV = 32,
 		const eastl::array<float, 4> foot = eastl::array<float, 4>{51.f, 0.f, 230.f, 180.f},
 		const eastl::array<float, 4> tail = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f});
-
-/*
-			const Vector3<float>& position = Vector3<float>(0,0,0),
-			const Vector3<float>& rotation = Vector3<float>(0,0,0),
-			const Vector3<float>& scale = Vector3<float>(1.0f, 1.0f, 1.0f));
-*/
 
 	~VolumeLightNode();
 
@@ -32,7 +27,7 @@ public:
 	bool Render(Scene *pScene);
 
 	//! returns the material based on the zero based index i.
-	Material& GetMaterial(unsigned int i);
+	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
 	unsigned int GetMaterialCount() const;
@@ -68,7 +63,7 @@ private:
 
 	void ConstructLight();
 
-	eastl::shared_ptr<Mesh> mMesh;
+	eastl::shared_ptr<BaseMesh> mMesh;
 
 	float  mLPDistance;		// Distance to hypothetical lightsource point -- affects fov angle
 

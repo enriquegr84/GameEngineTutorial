@@ -267,16 +267,34 @@ eastl::shared_ptr<NodeAnimator> Node::GetAnimator(int i)
 	return nullptr;
 }
 
-
-void Node::UpdateWorldData(Scene* pScene, double applicationTime)
+void Node::UpdateVisualModelSpace(eastl::shared_ptr<Node> node)
 {
-    Spatial::UpdateWorldData(pScene, applicationTime);
+	Visual* visual = dynamic_cast<Visual*>(node.get());
+	if (visual)
+	{
+		visual->UpdateModelBound();
+		visual->UpdateModelNormals();
+		return;
+	}
+
+	if (node)
+	{
+		for (int i = 0; i < node->GetNumChildren(); ++i)
+			if (node->GetChild(i))
+				UpdateVisualModelSpace(node->GetChild(i));
+	}
+}
+
+
+void Node::UpdateWorldData(double applicationTime)
+{
+    Spatial::UpdateWorldData(applicationTime);
 
     for (auto& child : mChildren)
     {
         if (child)
         {
-            child->Update(pScene, applicationTime, false);
+            child->Update(applicationTime, false);
         }
     }
 }
@@ -405,7 +423,7 @@ bool Node::OnAnimate(Scene* pScene, unsigned int timeMs)
 		}
 
 		// update node
-		Update(pScene, timeMs);
+		Update(timeMs);
 
 		// perform the post render process on all children
 		SceneNodeList::iterator it = mChildren.begin();
@@ -458,7 +476,7 @@ void Node::SortRenderList(Scene* pScene)
 		// Sort the lights by distance from the camera
 		Vector4<float> camWorldPos;
 		if (pScene->GetActiveCamera())
-			camWorldPos = pScene->GetActiveCamera()->GetPosition();
+			camWorldPos = pScene->GetActiveCamera()->Get()->GetPosition();
 
 		eastl::vector<DistanceNodeEntry> SortedLights;
 		for (int light = renderList.size() - 1; light >= 0; --light)
@@ -492,7 +510,7 @@ void Node::SortRenderList(Scene* pScene)
 		// Sort the transparent nodes by distance from the camera
 		Vector4<float> camWorldPos;
 		if (pScene->GetActiveCamera())
-			camWorldPos = pScene->GetActiveCamera()->ToWorld().GetTranslation();
+			camWorldPos = pScene->GetActiveCamera()->Get()->GetPosition();
 
 		eastl::vector<TransparentNodeEntry> SortedTransparent;
 		for (int transparent = renderList.size() - 1; transparent >= 0; --transparent)
@@ -511,7 +529,7 @@ void Node::SortRenderList(Scene* pScene)
 		// Sort the transparent nodes by distance from the camera
 		Vector4<float> camWorldPos;
 		if (pScene->GetActiveCamera())
-			camWorldPos = pScene->GetActiveCamera()->ToWorld().GetTranslation();
+			camWorldPos = pScene->GetActiveCamera()->Get()->GetPosition();
 
 		eastl::vector<TransparentNodeEntry> SortedTransparent;
 		for (int transparent = renderList.size() - 1; transparent >= 0; --transparent)
@@ -540,8 +558,6 @@ bool Node::RenderChildren(Scene *pScene)
 	// Iterate through the children....
 	SceneNodeList::iterator i = mChildren.begin();
 	SceneNodeList::iterator end = mChildren.end();
-
-	LightManager* lightManager = pScene->GetLightManager();
 
 	while (i != end)
 	{
@@ -584,14 +600,14 @@ bool Node::RenderChildren(Scene *pScene)
 				}
 				*/
 
-				if (lightManager)
-					lightManager->OnNodePreRender(node);
+				if (pScene->GetLightManager())
+					pScene->GetLightManager()->OnNodePreRender(node);
 
 				node->Render(pScene);
 				node->RenderChildren(pScene);
 				
-				if (lightManager)
-					lightManager->OnNodePostRender(node);
+				if (pScene->GetLightManager())
+					pScene->GetLightManager()->OnNodePostRender(node);
 			}
 		}
 		node->PostRender(pScene);

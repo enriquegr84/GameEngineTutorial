@@ -4,12 +4,7 @@
 
 #include "UIWindow.h"
 
-#include "UISkin.h"
-#include "UIButton.h"
-#include "UIFont.h"
-
 #include "Graphic/Renderer/Renderer.h"
-#include "UserInterface.h"
 
 //! constructor
 UIWindow::UIWindow(BaseUI* ui, int id, RectangleShape<2, int> rectangle)

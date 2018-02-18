@@ -3,9 +3,6 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "UIFont.h"
-//#include "UISpriteBank.h"
-
-#include "UserInterface.h"
 
 #include "Core/OS/OS.h"
 #include "Core/IO/ReadFile.h"

@@ -11,13 +11,14 @@
 
 
 //! constructor
-ShadowVolumeNode::ShadowVolumeNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-	const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod, float infinity)
+ShadowVolumeNode::ShadowVolumeNode(const ActorId actorId, PVWUpdater& updater, 
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& shadowMesh, 
+	bool zfailmethod, float infinity)
 :	Node(actorId, renderComponent, RP_SHADOW, NT_SHADOW_VOLUME, t), mShadowMesh(0), mIndexCount(0), 
 	mVertexCount(0), mShadowVolumesUsed(0), mInfinity(infinity), mUseZFailMethod(zfailmethod)
 {
 	SetShadowMesh(shadowMesh);
-	
+	mPVWUpdater = updater;
 	//SetAutomaticCulling(AC_OFF);
 }
 

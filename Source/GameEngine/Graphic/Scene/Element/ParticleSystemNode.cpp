@@ -11,10 +11,12 @@
 
 #include "Graphic/Scene/Scene.h"
 
+#include "ParticleAnimatedMeshNodeEmitter.h"
+
 //#include "Utilities/ViewFrustum.h"
 
 //! constructor
-ParticleSystemNode::ParticleSystemNode(const ActorId actorId, 
+ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater& updater,
 	WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter)
 :	Node(actorId, renderComponent, RP_TRANSPARENT, NT_PARTICLE_SYSTEM),
 	mEmitter(0), mParticleSize(Vector2<float>{5.f, 5.f}), mLastEmitTime(0),
@@ -23,7 +25,7 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId,
 	#ifdef _DEBUG
 	//setDebugName("CParticleSystemSceneNode");
 	#endif
-
+	mPVWUpdater = updater;
 	mBuffer = eastl::make_shared<MeshBuffer<float>>();
 	if (createDefaultEmitter)
 		SetEmitter(eastl::make_shared<BaseParticleEmitter>(CreateBoxEmitter()));
@@ -323,7 +325,7 @@ void ParticleSystemNode::RemoveAllAffectors()
 
 
 //! Returns the material based on the zero based index i.
-Material& ParticleSystemNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& ParticleSystemNode::GetMaterial(unsigned int i)
 {
 	return mBuffer->mMaterial;
 }

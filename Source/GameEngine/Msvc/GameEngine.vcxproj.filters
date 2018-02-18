@@ -184,9 +184,6 @@
     <Filter Include="Network">
       <UniqueIdentifier>{db25fdac-9f4c-434b-aff4-25917167a048}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Game\View\UI">
-      <UniqueIdentifier>{64c46103-8c16-4966-ad94-86e6b6f4b0e5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\3rdParty\fastdelegate">
       <UniqueIdentifier>{59300da9-2bb7-4124-bd60-b6ba478dab5d}</UniqueIdentifier>
     </Filter>
@@ -219,6 +216,15 @@
     </Filter>
     <Filter Include="Graphic\Scene\Element\Mesh">
       <UniqueIdentifier>{9d34edc5-20c9-4df6-8e9e-00dd2a0797bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\UI">
+      <UniqueIdentifier>{64c46103-8c16-4966-ad94-86e6b6f4b0e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mathematic\Interpolation">
+      <UniqueIdentifier>{5d89dd50-00d8-4956-97ca-5ead19cd9c82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\UI\Element">
+      <UniqueIdentifier>{a5a458e2-d8e2-441b-8986-830007ba1ac8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -685,12 +691,6 @@
     <ClCompile Include="..\Application\GameApplication.cpp">
       <Filter>Application</Filter>
     </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UserInterface.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIRoot.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
     <ClCompile Include="..\Core\IO\FileList.cpp">
       <Filter>Core\IO</Filter>
     </ClCompile>
@@ -718,59 +718,17 @@
     <ClCompile Include="..\Game\GameLogic.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\Game\View\UI\DefaultUIElementFactory.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Scene.cpp">
       <Filter>Graphic\Scene</Filter>
     </ClCompile>
     <ClCompile Include="..\Core\Utility\StringUtil.cpp">
       <Filter>Core\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIWindow.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIButton.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIFont.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UISkin.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
     <ClCompile Include="..\Core\IO\Environment.cpp">
       <Filter>Core\IO</Filter>
     </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIStaticText.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UISpriteBank.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Effect\Texture2Effect.cpp">
       <Filter>Graphic\Effect</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UICheckBox.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIComboBox.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIEditBox.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIImage.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIListBox.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UIScrollBar.cpp">
-      <Filter>Game\View\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Game\View\UI\UITreeView.cpp">
-      <Filter>Game\View\UI</Filter>
     </ClCompile>
     <ClCompile Include="..\Mathematic\Arithmetic\IEEEBinary16.cpp">
       <Filter>Mathematic\Arithmetic</Filter>
@@ -960,6 +918,60 @@
     </ClCompile>
     <ClCompile Include="..\Graphic\Resource\Buffer\MeshBuffer.cpp">
       <Filter>Graphic\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Hierarchy\PVWUpdater.cpp">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\ViewVolumeNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\UserInterface.cpp">
+      <Filter>Graphic\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIRoot.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIScrollBar.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UISkin.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UISpriteBank.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIStaticText.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UITreeView.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIWindow.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIButton.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UICheckBox.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIComboBox.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIEditBox.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIFont.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIImage.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\Element\UIListBox.cpp">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\UI\UIElementFactory.cpp">
+      <Filter>Graphic\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1969,24 +1981,6 @@
     <ClInclude Include="..\Application\GameApplication.h">
       <Filter>Application</Filter>
     </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UserInterface.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIElement.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIElementFactory.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIFont.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIRoot.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UISkin.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
     <ClInclude Include="..\Core\IO\FileList.h">
       <Filter>Core\IO</Filter>
     </ClInclude>
@@ -2047,9 +2041,6 @@
     <ClInclude Include="..\Game\GameLogic.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\Game\View\UI\DefaultUIElementFactory.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Scene.h">
       <Filter>Graphic\Scene</Filter>
     </ClInclude>
@@ -2059,44 +2050,11 @@
     <ClInclude Include="..\Core\Utility\StringUtil.h">
       <Filter>Core\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIWindow.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIButton.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
     <ClInclude Include="..\Core\IO\Environment.h">
       <Filter>Core\IO</Filter>
     </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIStaticText.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UISpriteBank.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\Effect\Texture2Effect.h">
       <Filter>Graphic\Effect</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UICheckBox.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIComboBox.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIEditBox.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIImage.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIListBox.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UIScrollBar.h">
-      <Filter>Game\View\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Game\View\UI\UITreeView.h">
-      <Filter>Game\View\UI</Filter>
     </ClInclude>
     <ClInclude Include="..\Mathematic\Function\Functions.h">
       <Filter>Mathematic\Function</Filter>
@@ -2346,6 +2304,63 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\StandardMesh.h">
       <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Hierarchy\PVWUpdater.h">
+      <Filter>Graphic\Scene\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\ViewVolumeNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\UserInterface.h">
+      <Filter>Graphic\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIRoot.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIScrollBar.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UISkin.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UISpriteBank.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIStaticText.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UITreeView.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIWindow.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIButton.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UICheckBox.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIComboBox.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIEditBox.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIElement.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIFont.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIImage.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\Element\UIListBox.h">
+      <Filter>Graphic\UI\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\UI\UIElementFactory.h">
+      <Filter>Graphic\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

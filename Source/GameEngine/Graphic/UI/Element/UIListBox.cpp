@@ -3,11 +3,6 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "UIListBox.h"
-#include "UISkin.h"
-#include "UIFont.h"
-#include "UIScrollBar.h"
-
-#include "UserInterface.h"
 
 #include "Core/OS/OS.h"
 

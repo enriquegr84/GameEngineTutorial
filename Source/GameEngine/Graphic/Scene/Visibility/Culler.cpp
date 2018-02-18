@@ -46,17 +46,17 @@ bool Culler::PopPlane()
 
 void Culler::ComputeVisibleSet(
 	eastl::shared_ptr<Camera> const& camera,
-    eastl::shared_ptr<Spatial> const& scene)
+    eastl::shared_ptr<Spatial> const& root)
 {
-    if (scene)
+    if (root)
     {
         PushViewFrustumPlanes(camera);
         mVisibleSet.clear();
-        scene->OnGetVisibleSet(*this, camera, false);
+		root->OnGetVisibleSet(*this, camera, false);
     }
     else
     {
-        LogError("A scene is required for culling.");
+        LogError("A node is required for culling.");
     }
 }
 

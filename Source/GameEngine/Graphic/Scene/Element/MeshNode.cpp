@@ -3,7 +3,6 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "MeshNode.h"
-#include "CameraNode.h"
 
 #include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Effect/Material.h"
@@ -18,15 +17,14 @@
 
 
 //! constructor
-MeshNode::MeshNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-	const eastl::shared_ptr<BaseMesh>& mesh)
-:	Node(actorId, renderComponent, RP_NONE, NT_MESH), 
-	mMesh(0), mShadow(0), mPassCount(0), mReadOnlyMaterials(false)
+MeshNode::MeshNode(const ActorId actorId, PVWUpdater& updater, 
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh)
+:	Node(actorId, renderComponent, RP_NONE, NT_MESH), mMesh(0), mShadow(0), mPassCount(0)
 {
 	#ifdef _DEBUG
 	//setDebugName("CMeshSceneNode");
 	#endif
-
+	mPVWUpdater = updater;
 	SetMesh(mesh);
 }
 
@@ -35,6 +33,34 @@ MeshNode::MeshNode(const ActorId actorId, WeakBaseRenderComponentPtr renderCompo
 MeshNode::~MeshNode()
 {
 
+}
+
+
+//! Sets a new mesh
+void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
+{
+	if (!mesh)
+		return; // won't set null mesh
+
+	mMesh = mesh;
+	MeshFactory mf;
+
+	mVisuals.clear();
+	for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
+	{
+		const eastl::shared_ptr<MeshBuffer<float>>& meshBuffer = mMesh->GetMeshBuffer(i);
+		if (meshBuffer)
+		{
+			eastl::shared_ptr<Visual> visual = mf.CreateMesh(meshBuffer->mMesh.get());
+			eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
+				ProgramFactory::Get(), mPVWUpdater.GetUpdater(), meshBuffer->GetMaterial(), eastl::make_shared<Light>(),
+				eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(), SamplerState::MIN_L_MAG_L_MIP_L,
+				SamplerState::WRAP, SamplerState::WRAP);
+			visual->SetEffect(effect);
+			mVisuals.push_back(visual);
+			mPVWUpdater.Subscribe(visual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+		}
+	}
 }
 
 
@@ -53,35 +79,18 @@ bool MeshNode::PreRender(Scene *pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		if (mReadOnlyMaterials && mMesh)
+		for (auto const& visual : mVisuals)
 		{
-			// count mesh materials
-			for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
-			{
-				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
+			eastl::shared_ptr<PointLightTextureEffect> effect =
+				eastl::static_pointer_cast<PointLightTextureEffect>(visual->GetEffect());
 
-				if (mb->GetMaterial().IsTransparent())
-					++transparentCount;
-				else
-					++solidCount;
+			if (effect->GetMaterial()->IsTransparent())
+				++transparentCount;
+			else
+				++solidCount;
 
-				if (solidCount && transparentCount)
-					break;
-			}
-		}
-		else
-		{
-			// count copied materials
-			for (unsigned int i=0; i<mMaterials.size(); ++i)
-			{
-				if (mMaterials[i].IsTransparent())
-					++transparentCount;
-				else
-					++solidCount;
-
-				if (solidCount && transparentCount)
-					break;
-			}
+			if (solidCount && transparentCount)
+				break;
 		}
 
 		// register according to material types counted
@@ -121,18 +130,23 @@ bool MeshNode::Render(Scene *pScene)
 	// for debug purposes only:
 
 	bool renderMeshes = true;
-	Material mat;
 	if (DebugDataVisible() && mPassCount==1)
 	{
 		// overwrite half transparency
 		if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
 		{
-			for (unsigned int g=0; g< mMesh->GetMeshBufferCount(); ++g)
+			for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 			{
-				mat = mMaterials[g];
-				mat.mType = MT_TRANSPARENT_ADD_COLOR;
-				//Renderer::Get()->SetMaterial(mat);
-				//Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(g));
+				eastl::shared_ptr<PointLightTextureEffect> effect =
+					eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
+
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
+				eastl::shared_ptr<Material> material =
+					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
+				material->mType = MT_TRANSPARENT_ADD_COLOR;
+
+				//effect->SetMaterial(material);
+				Renderer::Get()->Draw(mVisuals[i]);
 			}
 			renderMeshes = false;
 		}
@@ -141,21 +155,22 @@ bool MeshNode::Render(Scene *pScene)
 	// render original meshes
 	if (renderMeshes)
 	{
-		for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
+		for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 		{
-			const eastl::shared_ptr<MeshBuffer<FLOAT>>& mb = mMesh->GetMeshBuffer(i);
-			if (mb)
-			{
-				const Material& material = 
-					mReadOnlyMaterials ? mb->GetMaterial() : mMaterials[i];
+			eastl::shared_ptr<PointLightTextureEffect> effect =
+				eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
+			bool transparent = (effect->GetMaterial()->IsTransparent());
 
-				// only render transparent buffer if this is the transparent render pass
-				// and solid only in solid pass
-				if (material.IsTransparent() == isTransparentPass)
-				{
-					//Renderer::Get()->SetMaterial(material);
-					//Renderer::Get()->DrawMeshBuffer(mb);
-				}
+			// only render transparent buffer if this is the transparent render pass
+			// and solid only in solid pass
+			if (transparent == isTransparentPass)
+			{
+				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
+				eastl::shared_ptr<Material> material =
+					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
+
+				effect->SetMaterial(material);
+				Renderer::Get()->Draw(mVisuals[i]);
 			}
 		}
 	}
@@ -237,39 +252,21 @@ bool MeshNode::RemoveChild(ActorId id)
 //! This function is needed for inserting the node into the scene hierarchy on a
 //! optimal position for minimizing renderstate changes, but can also be used
 //! to directly modify the material of a scene node.
-Material& MeshNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& MeshNode::GetMaterial(unsigned int i)
 {
-	if (mMesh && mReadOnlyMaterials && i<mMesh->GetMeshBufferCount())
-	{
-		mReadOnlyMaterial = mMesh->GetMeshBuffer(i)->GetMaterial();
-		return mReadOnlyMaterial;
-	}
+	if (i >= mVisuals.size())
+		return nullptr;
 
-	if (i >= mMaterials.size())
-		return Material();
-
-	return mMaterials[i];
+	eastl::shared_ptr<PointLightTextureEffect> effect =
+		eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
+	return effect->GetMaterial();
 }
 
 
 //! returns amount of materials used by this scene node.
 unsigned int MeshNode::GetMaterialCount() const
 {
-	if (mMesh && mReadOnlyMaterials)
-		return mMesh->GetMeshBufferCount();
-
-	return mMaterials.size();
-}
-
-
-//! Sets a new mesh
-void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
-{
-	if (mesh)
-	{
-		mMesh = mesh;
-		CopyMaterials();
-	}
+	return mVisuals.size();
 }
 
 
@@ -283,36 +280,14 @@ eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId 
 	return 0;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
-		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(),
+		new ShadowVolumeNode(actorId, mPVWUpdater, WeakBaseRenderComponentPtr(),
 			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;
 }
 
-
-void MeshNode::CopyMaterials()
-{
-	mMaterials.clear();
-
-	if (mMesh)
-	{
-		Material mat;
-
-		for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
-		{
-			const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
-			if (mb)
-				mat = mb->GetMaterial();
-
-			mMaterials.push_back(mat);
-		}
-	}
-}
-
 //! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
-/* In this way it is possible to change the materials a mesh causing all mesh scene nodes
-referencing this mesh to change too. */
 void MeshNode::SetReadOnlyMaterials(bool readonly)
 {
 	mReadOnlyMaterials = readonly;
@@ -324,5 +299,3 @@ bool MeshNode::IsReadOnlyMaterials() const
 {
 	return mReadOnlyMaterials;
 }
-
-

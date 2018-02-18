@@ -7,7 +7,7 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-SphereNode::SphereNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
+SphereNode::SphereNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
 		float radius, unsigned int polyCountX, unsigned int polyCountY)
 :	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mMesh(0), mShadow(0),
 	mRadius(radius), mPolyCountX(polyCountX), mPolyCountY(polyCountY)
@@ -15,7 +15,7 @@ SphereNode::SphereNode(const ActorId actorId, WeakBaseRenderComponentPtr renderC
 	#ifdef _DEBUG
 	//setDebugName("CSphereSceneNode");
 	#endif
-
+	mPVWUpdater = updater;
 	mMesh = eastl::make_shared<BaseMesh>(CreateSphereMesh(radius, polyCountX, polyCountY));
 }
 
@@ -138,7 +138,7 @@ const eastl::shared_ptr<ShadowVolumeNode>& SphereNode::AddShadowVolumeNode(const
 //! This function is needed for inserting the node into the scene hirachy on a
 //! optimal position for minimizing renderstate changes, but can also be used
 //! to directly modify the material of a scene node.
-Material& SphereNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& SphereNode::GetMaterial(unsigned int i)
 {
 	return mMesh->GetMeshBuffer(0)->GetMaterial();
 }

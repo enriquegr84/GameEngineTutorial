@@ -23,10 +23,11 @@ RootNode::RootNode()
 //
 // RootNode::RootNode					- Chapter 16, page 545
 //
-RootNode::RootNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent)
+RootNode::RootNode(const ActorId actorId, PVWUpdater& updater, 
+	WeakBaseRenderComponentPtr renderComponent)
 	: Node(actorId, renderComponent, RP_NONE, NT_ROOT)
 {
-
+	mPVWUpdater = updater;
 }
 
 //
@@ -106,7 +107,6 @@ bool RootNode::RenderChildren(Scene *pScene)
 		if (pScene->GetLightManager())
 			pScene->GetLightManager()->OnRenderPassPostRender((RenderPass)pass);
 	}
-
 	return true;
 }
 
@@ -115,7 +115,6 @@ bool RootNode::RenderChildren(Scene *pScene)
 //
 bool RootNode::Render(Scene* pScene)
 {
-
 	return RenderChildren(pScene);
 }
 

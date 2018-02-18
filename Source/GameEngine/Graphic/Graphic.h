@@ -95,11 +95,11 @@
 #include "Scene/Element/Mesh/MeshLoader.h"
 #include "Scene/Element/Mesh/MeshFileLoader.h"
 
+#include "Scene/Element/Particle/ParticleEmitter.h"
 #include "Scene/Element/Particle/ParticleAffector.h"
 #include "Scene/Element/Particle/ParticleAttractionAffector.h"
 #include "Scene/Element/Particle/ParticleBoxEmitter.h"
 #include "Scene/Element/Particle/ParticleCylinderEmitter.h"
-#include "Scene/Element/Particle/ParticleEmitter.h"
 #include "Scene/Element/Particle/ParticleFadeOutAffector.h"
 #include "Scene/Element/Particle/ParticleGravityAffector.h"
 #include "Scene/Element/Particle/ParticleMeshEmitter.h"
@@ -123,12 +123,14 @@
 #include "Scene/Element/SkyBoxNode.h"
 #include "Scene/Element/SphereNode.h"
 #include "Scene/Element/VolumeLightNode.h"
+#include "Scene/Element/ViewVolumeNode.h"
 
 #include "Scene/Hierarchy/Node.h"
 #include "Scene/Hierarchy/Light.h"
 #include "Scene/Hierarchy/Visual.h"
 #include "Scene/Hierarchy/Camera.h"
 #include "Scene/Hierarchy/Spatial.h"
+#include "Scene/Hierarchy/PVWUpdater.h"
 #include "Scene/Hierarchy/ViewVolume.h"
 #include "Scene/Hierarchy/BoundingSphere.h"
 
@@ -155,5 +157,8 @@
 
 // Renderers
 #include "Renderer/Renderer.h"
+
+// User Interfaces
+#include "UI/UserInterface.h"
 
 #endif

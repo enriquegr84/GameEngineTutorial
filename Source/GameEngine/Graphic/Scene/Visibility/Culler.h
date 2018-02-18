@@ -89,6 +89,7 @@ protected:
     // allowed to.
     friend class Spatial;
     friend class Visual;
+	friend class Scene;
 
     // Compare the object's world bounding sphere against the culling planes.
     // Only Spatial calls this function.

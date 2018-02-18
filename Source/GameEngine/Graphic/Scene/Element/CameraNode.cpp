@@ -4,14 +4,16 @@
 
 #include "CameraNode.h"
 
+#include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-CameraNode::CameraNode(const ActorId actorid, WeakBaseRenderComponentPtr renderComponent)
-	: Node(actorid, WeakBaseRenderComponentPtr(), RP_NONE, NT_CAMERA), mActive(true), mTarget(0)
+CameraNode::CameraNode(const ActorId actorid)
+	: Node(actorid, WeakBaseRenderComponentPtr(), RP_NONE, NT_CAMERA), 
+	mActive(true), mTarget(0), mCamera(eastl::make_shared<Camera>(true, true))
 {
 	#ifdef _DEBUG
-	//setDebugName("CameraSceneNode");
+	//setDebugName("CameraNode");
 	#endif
 
 	mAffector = Matrix4x4<float>::Identity();

@@ -43,21 +43,21 @@ public:
 
 	//! Get the material of this meshbuffer
 	/** \return Material of this buffer. */
-	const Material& GetMaterial() const
+	const eastl::shared_ptr<Material>& GetMaterial() const
 	{
 		return mMaterial;
 	}
 
 	//! Get material of this meshbuffer
 	/** \return Material of this buffer */
-	Material& GetMaterial()
+	eastl::shared_ptr<Material>& GetMaterial()
 	{
 		return mMaterial;
 	}
 
 
 	//! Material for this meshbuffer.
-	Material mMaterial;
+	eastl::shared_ptr<Material> mMaterial;
 
 	//! mesh of this meshbuffer.
 	eastl::shared_ptr<Mesh<Real>> mMesh;

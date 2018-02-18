@@ -12,14 +12,14 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-LightNode::LightNode(const ActorId actorId,
+LightNode::LightNode(const ActorId actorId, PVWUpdater& updater,
 	WeakBaseRenderComponentPtr renderComponent, eastl::array<float, 4> color, float radius)
-	:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true)
+	:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true), mLightData(true, true)
 {
 	#ifdef _DEBUG
-	//setDebugName("LightSceneNode");
+	//setDebugName("LightNode");
 	#endif
-
+	mPVWUpdater = updater;
 	mLightData.mLighting->mDiffuse = color;
 	// set some useful specular color
 	//mLightData.mLighting->mSpecular = 

@@ -35,9 +35,9 @@ public:
     Rotation(EulerAngles<Real> const& eulerAngles);
 
     // Convert one representation to another.
-    operator Matrix<N,N,Real>() const;
-    operator Quaternion<Real>() const;
-    operator AxisAngle<N,Real>() const;
+	operator Matrix<N, N, Real>() const;
+	operator Quaternion<Real>() const;
+	operator AxisAngle<N, Real>() const;
     EulerAngles<Real> const& operator()(int i0, int i1, int i2) const;
 
 private:

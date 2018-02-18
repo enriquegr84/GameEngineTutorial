@@ -41,26 +41,25 @@
 
 #include "GameEngineStd.h"
 
-#include "UIRoot.h"
-#include "UIFont.h"
-#include "UISkin.h"
-#include "UIButton.h"
-#include "UIWindow.h"
-#include "UIElement.h"
-#include "UICheckBox.h"
-#include "UIComboBox.h"
-#include "UIEditBox.h"
-#include "UIImage.h"
-#include "UIListBox.h"
-#include "UIScrollBar.h"
-#include "UITreeView.h"
-#include "UIStaticText.h"
-#include "UISpriteBank.h"
+#include "Element/UIRoot.h"
+#include "Element/UIFont.h"
+#include "Element/UISkin.h"
+#include "Element/UIButton.h"
+#include "Element/UIWindow.h"
+#include "Element/UIElement.h"
+#include "Element/UICheckBox.h"
+#include "Element/UIComboBox.h"
+#include "Element/UIEditBox.h"
+#include "Element/UIImage.h"
+#include "Element/UIListBox.h"
+#include "Element/UIScrollBar.h"
+#include "Element/UITreeView.h"
+#include "Element/UIStaticText.h"
+#include "Element/UISpriteBank.h"
+
 #include "UIElementFactory.h"
-#include "DefaultUIElementFactory.h"
 
 #include "Graphic/ScreenElement.h"
-#include "Graphic/Renderer/Renderer.h"
 
 const unsigned long QuitNoPrompt = MAKELPARAM(-1,-1);
 const UINT MsgEndModal = (WM_USER+100);

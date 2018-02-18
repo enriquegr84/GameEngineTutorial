@@ -133,15 +133,16 @@ public:
     // A derived class
     void Update();
 
+	// Access the vertex attributes.
+	inline Vector3<Real>& Position(uint32_t i);
+	inline Vector3<Real>& Normal(uint32_t i);
+	inline Vector3<Real>& Tangent(uint32_t i);
+	inline Vector3<Real>& Bitangent(uint32_t i);
+	inline Vector3<Real>& DPDU(uint32_t i);
+	inline Vector3<Real>& DPDV(uint32_t i);
+	inline Vector2<Real>& TCoord(uint32_t i);
+
 protected:
-    // Access the vertex attributes.
-    inline Vector3<Real>& Position(uint32_t i);
-    inline Vector3<Real>& Normal(uint32_t i);
-    inline Vector3<Real>& Tangent(uint32_t i);
-    inline Vector3<Real>& Bitangent(uint32_t i);
-    inline Vector3<Real>& DPDU(uint32_t i);
-    inline Vector3<Real>& DPDV(uint32_t i);
-    inline Vector2<Real>& TCoord(uint32_t i);
 
     // Compute the indices for non-arbitrary topologies.  This function is
     // called by derived classes.

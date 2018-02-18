@@ -61,11 +61,11 @@
 //          The book only describes D3D11, so to find all the differences, just search for mRenderer!
 //
 Scene::Scene()
-: mShadowColor{ 150,0,0,0 }, mAmbientLight{ 0, 0, 0, 0 }
+	: mShadowColor{ 150 / 255.f,0.f,0.f,0.f }, mAmbientLight{ 0.f, 0.f, 0.f, 0.f }, mCurrentRenderPass(RP_NONE), mPVWUpdater(),
+	mBufferUpdater([this](eastl::shared_ptr<Buffer> const& buffer) { Renderer::Get()->Update(buffer); })
 {
+	mLightManager.reset(new LightManager());
 	mRoot.reset(new RootNode());
-	mCurrentRenderPass = RP_NONE;
-	mLightManager = new LightManager();
 
 	// [mrmike] - event delegates were added post-press
     BaseEventManager* pEventMgr = BaseEventManager::Get();
@@ -100,8 +100,6 @@ Scene::~Scene()
     pEventMgr->RemoveListener(MakeDelegate(this, &Scene::DestroyActorDelegate), EventDataDestroyActor::skEventType);
     pEventMgr->RemoveListener(MakeDelegate(this, &Scene::MoveActorDelegate), EventDataMoveActor::skEventType);
     pEventMgr->RemoveListener(MakeDelegate(this, &Scene::ModifiedRenderComponentDelegate), EventDataModifiedRenderComponent::skEventType);
-
-	delete mLightManager;
 }
 
 //
@@ -138,12 +136,19 @@ bool Scene::OnRender()
 	// 3. The Sky
 	// 4. Anything with Alpha
 	
-	if (mRoot && mCamera)
+	if (mRoot && mPVWUpdater.GetCamera())
 	{
-		// The scene root could be anything, but it
-		// is usually a SceneNode with the identity
-		// matrix
-		mLightManager->CalculateLighting(this);
+
+		//if (mFixedHeightRig.Move())
+		{
+			// The scene root could be anything, but it
+			// is usually a SceneNode with the identity
+			// matrix
+			mLightManager->UpdateLighting(this);
+			mPVWUpdater.Update();
+			mCuller.ComputeVisibleSet(mPVWUpdater.GetCamera(), mRoot);
+		}
+
 
 		if (mRoot->PreRender(this)==true)
 		{
@@ -151,6 +156,21 @@ bool Scene::OnRender()
 				mLightManager->OnPreRender(mRenderList[RP_LIGHT]);
 
 			mRoot->Render(this);
+
+			for (auto const& visual : mCuller.GetVisibleSet())
+			{
+				//if (visual->name.find("Water") == std::string::npos)
+				{
+					Renderer::Get()->Draw(visual);
+				}
+			}
+			/*
+			Renderer::Get()->SetBlendState(mBlendState);
+			Renderer::Get()->Draw(mWaterMesh[0]);
+			Renderer::Get()->Draw(mWaterMesh[1]);
+			Renderer::Get()->SetDefaultBlendState();
+			*/
+
 			mRoot->PostRender(this);
 			
 			if (mLightManager)
@@ -227,7 +247,7 @@ void Scene::ClearDeletionList()
 void Scene::RemoveAll()
 {
 	mSceneNodeActors.clear();
-	SetActiveCamera(0);
+	mPVWUpdater.UnsubscribeAll();
 	// Make sure the driver is reset, might need a more complex method at some point
 	/*
 	if (mRenderer)
@@ -249,7 +269,7 @@ or structuring the scene graph. */
 eastl::shared_ptr<Node> Scene::AddEmptyNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id)
 {
-	eastl::shared_ptr<Node> node(new EmptyNode(id, renderComponent));
+	eastl::shared_ptr<Node> node(new EmptyNode(id, mPVWUpdater, renderComponent));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -264,7 +284,7 @@ eastl::shared_ptr<Node> Scene::AddCubeNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
 	float size, int id)
 {
-	eastl::shared_ptr<Node> node(new CubeNode(id, renderComponent, size));
+	eastl::shared_ptr<Node> node(new CubeNode(id, mPVWUpdater, renderComponent, size));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -280,7 +300,7 @@ eastl::shared_ptr<Node> Scene::AddSphereNode(
 	float radius, int polyCount, int id)
 {
 	eastl::shared_ptr<Node> node(
-		new SphereNode(id, renderComponent, radius, polyCount, polyCount));
+		new SphereNode(id, mPVWUpdater, renderComponent, radius, polyCount, polyCount));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -297,7 +317,7 @@ eastl::shared_ptr<Node> Scene::AddVolumeLightNode(
 	eastl::array<float, 4> const tail)
 {
 	eastl::shared_ptr<Node> node(
-		new VolumeLightNode(id, renderComponent, subdivU, subdivV, foot, tail));
+		new VolumeLightNode(id, mPVWUpdater, renderComponent, subdivU, subdivV, foot, tail));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -312,10 +332,9 @@ eastl::shared_ptr<Node> Scene::AddVolumeLightNode(
 //! \param parent: Parent scene node of the camera. Can be null. If the parent moves,
 //! the camera will move too.
 //! \return Returns pointer to interface to camera
-eastl::shared_ptr<Node> Scene::AddCameraNode(
-	WeakBaseRenderComponentPtr renderComponent, int id, bool makeActive)
+eastl::shared_ptr<Node> Scene::AddCameraNode(int id, bool makeActive)
 {
-	eastl::shared_ptr<Node> node(new CameraNode(id, renderComponent));
+	eastl::shared_ptr<Node> node(new CameraNode(id));
 	AddSceneNode(id, node);
 	/*
 	if (makeActive)
@@ -334,8 +353,8 @@ eastl::shared_ptr<Node> Scene::AddBillboardNode(
 {
 
 	eastl::shared_ptr<Node> node(
-		new BillboardNode(id, renderComponent, size, colorTop, colorBottom));
-	node->GetAbsoluteTransform()->SetTranslation(position);
+		new BillboardNode(id, mPVWUpdater, renderComponent, size, colorTop, colorBottom));
+	node->GetAbsoluteTransform().SetTranslation(position);
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -350,7 +369,7 @@ eastl::shared_ptr<Node> Scene::AddParticleSystemNode(
 	int id, bool withDefaultEmitter)
 {
 	eastl::shared_ptr<Node> node(
-		new ParticleSystemNode(id, renderComponent, withDefaultEmitter));
+		new ParticleSystemNode(id, mPVWUpdater, renderComponent, withDefaultEmitter));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -370,7 +389,7 @@ eastl::shared_ptr<Node> Scene::AddSkyBoxNode(
 {
 
 	eastl::shared_ptr<Node> node(
-		new SkyBoxNode(id, renderComponent, top, bottom, left, right, front, back));
+		new SkyBoxNode(id, mPVWUpdater, renderComponent, top, bottom, left, right, front, back));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -389,7 +408,7 @@ eastl::shared_ptr<Node> Scene::AddMeshNode(
 	if (!alsoAddIfMeshPointerZero && !mesh)
 		return 0;
 
-	eastl::shared_ptr<Node> node(new MeshNode(id, renderComponent, mesh));
+	eastl::shared_ptr<Node> node(new MeshNode(id, mPVWUpdater, renderComponent, mesh));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -408,7 +427,8 @@ eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
 	if (!alsoAddIfMeshPointerZero && !mesh)
 		return 0;
 
-	eastl::shared_ptr<Node> node(new AnimatedMeshNode(id, renderComponent, mesh));
+	eastl::shared_ptr<Node> node(
+		new AnimatedMeshNode(id, mPVWUpdater, renderComponent, mesh));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -425,7 +445,8 @@ eastl::shared_ptr<Node> Scene::AddLightNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
 	eastl::array<float, 4> const color, float radius)
 {
-	eastl::shared_ptr<Node> node(new LightNode(INVALID_ACTOR_ID, renderComponent, color, radius));
+	eastl::shared_ptr<Node> node(
+		new LightNode(INVALID_ACTOR_ID, mPVWUpdater, renderComponent, color, radius));
 
 	if (!parent) 
 		AddSceneNode(INVALID_ACTOR_ID, node);
@@ -468,8 +489,7 @@ bool Scene::RemoveSceneNode(ActorId id)
 		return false;
 
 	eastl::shared_ptr<Node> node = GetSceneNode(id);
-
-	eastl::shared_ptr<Node> pLight = eastl::dynamic_pointer_cast<Node>(node);
+	eastl::shared_ptr<Light> pLight = eastl::dynamic_pointer_cast<Light>(node);
 	if (pLight != NULL)
 	{
 		mLightManager->mLights.remove(pLight);
@@ -489,6 +509,12 @@ eastl::shared_ptr<Node> Scene::GetSceneNode(ActorId id)
 	return i->second;
 }
 
+void Scene::SetActiveCamera(const eastl::shared_ptr<CameraNode>& camera)
+{
+	mCamera = camera;
+	mPVWUpdater.Set(camera->Get(), mBufferUpdater);
+}
+
 //
 // Scene::IsCulled				- Chapter 16, page 533
 //	
@@ -499,38 +525,46 @@ bool Scene::IsCulled(Node* node)
 
 	// transform the location of this node into the camera space 
 	// of the camera attached to the scene
-
-	Matrix4x4<float> toWorld, fromWorld;
-	GetActiveCamera()->Transform(&toWorld, &fromWorld);
-	ViewFrustum frustum(GetActiveCamera()->GetViewFrustum());
+	/*
+	ViewFrustum frustum(mPVWUpdater.GetCamera()->GetViewFrustum());
+	*/
+	float const* frustum = mPVWUpdater.GetCamera()->GetFrustum();
 
 	bool isVisible = false;
-
+	/*
 	// has occlusion query information
 	if (node->GetAutomaticCulling() & AC_OCC_QUERY)
 	{
 		isVisible =
-			(mRenderer->GetOcclusionQueryResult(GetSceneNode(node->GetId())) == 0);
+			(Renderer::Get()->GetOcclusionQueryResult(GetSceneNode(node->GetId())) == 0);
 	}
-
+	*/
 	// can be seen by a bounding box ?
 	if (!isVisible && (node->GetAutomaticCulling() & AC_BOX))
 	{
+		/*
 		AlignedBox3<float> tbox = node->GetBoundingBox();
 		toWorld.TransformBoxEx(tbox);
 		isVisible = !(tbox.IntersectsWithBox(frustum.GetBoundingBox()));
+		*/
+		isVisible = mCuller.IsVisible(node->GetAbsoulteBound());
 	}
 
 	// can be seen by a bounding sphere
 	if (!isVisible && (node->GetAutomaticCulling() & AC_FRUSTUM_SPHERE))
-	{ // requires bbox diameter
+	{ 
+		// requires bbox diameter
+		isVisible = mCuller.IsVisible(node->GetAbsoulteBound());
 	}
 
 	// can be seen by cam pyramid planes ?
 	if (!isVisible && (node->GetAutomaticCulling() & AC_FRUSTUM_BOX))
 	{
+		/*
 		//transform the frustum to the node's current absolute transformation
-		Matrix4x4<float> invTrans(toWorld, Matrix4x4<float>::EM4CONST_INVERSE);
+		Matrix4x4<float> invTrans(
+			node->GetAbsoluteTransform().GetMatrix(), 
+			Matrix4x4<float>::EM4CONST_INVERSE);
 		//invTrans.makeInverse();
 		frustum.Transform(invTrans);
 
@@ -555,6 +589,7 @@ bool Scene::IsCulled(Node* node)
 				break;
 			}
 		}
+		*/
 	}
 
 	return isVisible;
@@ -617,6 +652,6 @@ void Scene::MoveActorDelegate(BaseEventDataPtr pEventData)
 
     eastl::shared_ptr<Node> pNode = GetSceneNode(id);
     if (pNode)
-		pNode->SetTransform(&transform);
+		pNode->GetAbsoluteTransform() = transform;
 
 }

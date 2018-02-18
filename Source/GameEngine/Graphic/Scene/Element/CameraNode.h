@@ -25,7 +25,7 @@ class CameraNode : public Node
 public:
 
 	//! constructor
-	CameraNode(const ActorId actorid, WeakBaseRenderComponentPtr renderComponent);
+	CameraNode(const ActorId actorid);
 
 	//! Sets a custom view matrix affector.
 	/** \param affector: The affector matrix. */
@@ -53,7 +53,7 @@ public:
 
 	//! Gets the current camera
 	/** \return The current camera */
-	eastl::shared_ptr<Camera> GetCamera() { return mCamera; }
+	eastl::shared_ptr<Camera> Get() { return mCamera; }
 
 	void ClearTarget() { mTarget = 0; }
 

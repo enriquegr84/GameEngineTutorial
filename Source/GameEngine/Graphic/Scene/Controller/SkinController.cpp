@@ -47,8 +47,8 @@ bool SkinController::Update(double applicationTime)
         // The skin vertices are calculated in the bone world coordinate system,
         // so the visual's world transform must be the identity.
         Visual* visual = reinterpret_cast<Visual*>(mObject);
-        visual->worldTransform = Transform::IDENTITY;
-        visual->worldTransformIsCurrent = true;
+		visual->GetAbsoluteTransform().MakeIdentity();
+		visual->SetCurrentAbsoluteTransform();
 
         // Compute the skin vertex locations.
         char* current = mPosition;
@@ -66,7 +66,7 @@ bool SkinController::Update(double applicationTime)
                         mBones[bone].lock()->worldTransform * offset;
 #else
                     Vector4<float> worldOffset =
-                        offset * mBones[bone].lock()->worldTransform;
+                        offset * mBones[bone].lock()->GetAbsoluteTransform();
 #endif
                     position += weight * worldOffset;
                 }

@@ -10,7 +10,7 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-SkyBoxNode::SkyBoxNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, 
+SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
 	const eastl::shared_ptr<Texture2>& top, const eastl::shared_ptr<Texture2>& bottom, const eastl::shared_ptr<Texture2>& left,
 	const eastl::shared_ptr<Texture2>& right, const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back)
 :	Node(actorId, renderComponent, RP_SKY_BOX, NT_SKY_BOX)
@@ -18,7 +18,7 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, WeakBaseRenderComponentPtr renderC
 	#ifdef _DEBUG
 	//setDebugName("SkyBoxSceneNode");
 	#endif
-
+	mPVWUpdater = updater;
 	//SetAutomaticCulling(AC_OFF);
 	mBBox.MaxEdge.set(0,0,0);
 	mBBox.MinEdge.set(0,0,0);
@@ -218,7 +218,7 @@ bool SkyBoxNode::Render(Scene* pScene)
 //! This function is needed for inserting the node into the scene hirachy on a
 //! optimal position for minimizing renderstate changes, but can also be used
 //! to directly modify the material of a scene node.
-Material& SkyBoxNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& SkyBoxNode::GetMaterial(unsigned int i)
 {
 	return mMaterials[i];
 }

@@ -5,7 +5,7 @@
 #ifndef SHADOWVOLUMENODE_H
 #define SHADOWVOLUMENODE_H
 
-#include "Graphic/Scene/Scene.h"
+#include "Graphic/Scene/Hierarchy/Node.h"
 
 //! Scene node for rendering a shadow volume into a stencil buffer.
 class ShadowVolumeNode : public Node
@@ -13,7 +13,7 @@ class ShadowVolumeNode : public Node
 public:
 
 	//! constructor
-	ShadowVolumeNode( const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, 
+	ShadowVolumeNode( const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
 		const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod=true, float infinity=10000.0f );
 
 	//! destructor
@@ -22,7 +22,7 @@ public:
 	//! Sets the mesh from which the shadow volume should be generated.
 	/** To optimize shadow rendering, use a simpler mesh for shadows.
 	*/
-	void SetShadowMesh(const eastl::shared_ptr<Mesh>& mesh);
+	void SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh);
 
 	//! Render events
 	bool PreRender(Scene *pScene);
@@ -56,7 +56,7 @@ private:
 	// tells if face is front facing
 	eastl::vector<bool> mFaceData;
 
-	eastl::shared_ptr<Mesh> mShadowMesh;
+	eastl::shared_ptr<BaseMesh> mShadowMesh;
 
 	unsigned int mIndexCount;
 	unsigned int mVertexCount;

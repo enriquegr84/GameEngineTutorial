@@ -2,10 +2,10 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#include "DefaultUIElementFactory.h"
+#include "UIElementFactory.h"
 
 DefaultUIElementFactory::DefaultUIElementFactory(BaseUI* ui)
-:	UI(ui)
+	: UI(ui)
 {
 	// don't grab the gui environment here to prevent cyclic references
 }
@@ -23,3 +23,4 @@ int DefaultUIElementFactory::GetCreatableUIElementTypeCount() const
 {
 	return UIEVT_COUNT;
 }
+

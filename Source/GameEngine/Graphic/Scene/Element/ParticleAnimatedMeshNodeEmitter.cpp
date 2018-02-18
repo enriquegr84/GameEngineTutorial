@@ -3,7 +3,6 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "ParticleAnimatedMeshNodeEmitter.h"
-#include "AnimatedMeshNode.h"
 
 #include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Effect/Material.h"
@@ -13,8 +12,8 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-ParticleAnimatedMeshNodeEmitter::ParticleAnimatedMeshNodeEmitter(
-		const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, 
+ParticleAnimatedMeshNodeEmitter::ParticleAnimatedMeshNodeEmitter(const ActorId actorId, 
+		PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<AnimatedMeshNode>& node, bool useNormalDirection, 
 		const Vector3<float>& direction, float normalDirectionModifier, int mbNumber, 
 		bool everyMeshVertex, unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond,
@@ -33,6 +32,7 @@ ParticleAnimatedMeshNodeEmitter::ParticleAnimatedMeshNodeEmitter(
 	#ifdef _DEBUG
 	//setDebugName("ParticleAnimatedMeshNodeEmitter");
 	#endif
+	mPVWUpdater = updater;
 	SetAnimatedMeshNode(node);
 }
 
@@ -67,12 +67,13 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 			{
 				for(unsigned int j=0; j<frameMesh->GetMeshBufferCount(); ++j )
 				{
-					for(unsigned int k=0; k<frameMesh->GetMeshBuffer(j)->GetVertexCount(); ++k )
+					const MeshDescription& md = frameMesh->GetMeshBuffer(j)->mMesh->GetDescription();
+					for(unsigned int k=0; k<md.mNumVertices; ++k )
 					{
-						particle.mPos = frameMesh->GetMeshBuffer(j)->GetPosition(k);
+						particle.mPos = frameMesh->GetMeshBuffer(j)->mMesh->Position(k);
 						if( mUseNormalDirection )
-							particle.mVector = frameMesh->GetMeshBuffer(j)->GetNormal(k) /
-								mNormalDirectionModifier;
+							particle.mVector = 
+								frameMesh->GetMeshBuffer(j)->mMesh->Normal(k) / mNormalDirectionModifier;
 						else
 							particle.mVector = mDirection;
 
@@ -80,11 +81,15 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 
 						if( mMaxAngleDegrees )
 						{
-							Vector3<float> tgt = particle.mVector;
-							tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
-							tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
-							tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
-							particle.mVector = tgt;
+							Quaternion<float> tgt = Rotation<3, float>(
+								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+							particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 0.0f, 1.0f, 0.0f }));
+							tgt = Rotation<3, float>(
+								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+							particle.mVector = HProject(Rotate(tgt, Vector4<float> { 1.0f, 0.0f, 0.0f, 0.0f }));
+							tgt = Rotation<3, float>(
+								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+							particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 1.0f, 0.0f, 0.0f }));
 						}
 
 						particle.mEndTime = now + mMinLifeTime;
@@ -186,7 +191,8 @@ void ParticleAnimatedMeshNodeEmitter::SetAnimatedMeshNode( const eastl::shared_p
 	mMBCount = mBaseMesh->GetMeshBufferCount();
 	for( unsigned int i = 0; i < mMBCount; ++i )
 	{
-		mVertexPerMeshBufferList.push_back( mBaseMesh->GetMeshBuffer(i)->GetVertexCount() );
-		mTotalVertices += mBaseMesh->GetMeshBuffer(i)->GetVertexCount();
+		const MeshDescription& md = mBaseMesh->GetMeshBuffer(i)->mMesh->GetDescription();
+		mVertexPerMeshBufferList.push_back(md.mNumVertices);
+		mTotalVertices += md.mNumVertices;
 	}
 }

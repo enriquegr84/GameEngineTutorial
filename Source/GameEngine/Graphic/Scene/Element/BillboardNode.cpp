@@ -6,27 +6,35 @@
 // File Version: 3.0.0 (2016/06/19)
 
 #include "BillboardNode.h"
+
 #include "Mathematic/Algebra/Rotation.h"
 #include "Mathematic/Function/Functions.h"
 
+#include "Graphic/Renderer/Renderer.h"
+#include "Graphic/Effect/Material.h"
+
+#include "Graphic/Scene/Scene.h"
 
 //! constructor
-BillboardNode::BillboardNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
+BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
 	const Vector2<float>& size, eastl::array<float, 4> colorTop, eastl::array<float, 4> colorBottom)
 	: Node(actorId, renderComponent, RP_TRANSPARENT, NT_BILLBOARD)
 {
 #ifdef _DEBUG
 	//setDebugName("BillboardNode");
 #endif
+	mPVWUpdater = updater;
 
 	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_POSITION, DF_R32G32B32A32_FLOAT, 0);
+	vformat.Bind(VA_NORMAL, DF_R32G32B32A32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 
-	mVertices = eastl::make_shared<VertexBuffer>(vformat, 4);
-	mIndices = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	eastl::shared_ptr<VertexBuffer> vertices = eastl::make_shared<VertexBuffer>(vformat, 4);
+	eastl::shared_ptr<IndexBuffer> indices = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
+		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), eastl::make_shared<Material>(), eastl::make_shared<Light>());
 
 	SetSize(size);
 
@@ -37,7 +45,7 @@ BillboardNode::BillboardNode(const ActorId actorId, WeakBaseRenderComponentPtr r
 		Vector2<float> tcoord;
 		Vector4<float> color;
 	};
-	Vertex* vertex = mVertices->Get<Vertex>();
+	Vertex* vertex = vertices->Get<Vertex>();
 	vertex[0].tcoord = { 1.0f, 1.0f };
 	vertex[0].color = colorBottom;
 
@@ -49,26 +57,28 @@ BillboardNode::BillboardNode(const ActorId actorId, WeakBaseRenderComponentPtr r
 
 	vertex[3].tcoord = { 0.0f, 1.0f };
 	vertex[3].color = colorBottom;
+
+	mVisual = eastl::make_shared<Visual>(vertices, indices, effect);
+	mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 
-void BillboardNode::UpdateWorldData(Scene* pScene, double applicationTime)
+void BillboardNode::UpdateWorldData(double applicationTime)
 {
     // Compute the billboard's world transforms based on its parent's world
     // transform and its local transforms.  Notice that you should not call
     // Node::UpdateWorldData since that function updates its children.  The
     // children of a BillboardNode cannot be updated until the billboard is
     // aligned with the camera.
-    Spatial::UpdateWorldData(pScene, applicationTime);
+    Spatial::UpdateWorldData(applicationTime);
 
-	const eastl::shared_ptr<CameraNode>& node = pScene->GetActiveCamera();
-    if (node)
+    if (mPVWUpdater.GetCamera())
     {
         // Inverse-transform the camera to the model space of the billboard.
         Matrix4x4<float> const& inverse = mWorldTransform.GetHInverse();
 #if defined(GE_USE_MAT_VEC)
-        Vector4<float> modelPos = inverse * node->GetCamera()->GetPosition();
+        Vector4<float> modelPos = inverse * mPVWUpdater.GetCamera()->GetPosition();
 #else
-        Vector4<float> modelPos = node->GetCamera()->GetPosition() * inverse;
+        Vector4<float> modelPos = mPVWUpdater.GetCamera()->GetPosition() * inverse;
 #endif
 
         // To align the billboard, the projection of the camera to the
@@ -92,7 +102,7 @@ void BillboardNode::UpdateWorldData(Scene* pScene, double applicationTime)
     {
         if (child)
         {
-            child->Update(pScene, applicationTime, false);
+            child->Update(applicationTime, false);
         }
     }
 }
@@ -111,15 +121,14 @@ bool BillboardNode::PreRender(Scene *pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 		{
-			if (GetMaterial(i).IsTransparent())
+			eastl::shared_ptr<AmbientLightEffect> effect =
+				eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+
+			if (effect->GetMaterial()->IsTransparent())
 				++transparentCount;
 			else
 				++solidCount;
-
-			if (solidCount && transparentCount)
-				break;
 		}
 
 		// register according to material types counted
@@ -141,22 +150,22 @@ bool BillboardNode::PreRender(Scene *pScene)
 //
 bool BillboardNode::Render(Scene *pScene)
 {
-	const eastl::shared_ptr<CameraNode>& node = pScene->GetActiveCamera();
+	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
 
-	if (!node || !Renderer::Get())
+	if (!cameraNode || !Renderer::Get())
 		return false;
 
 	// make billboard look to camera
 	Vector4<float> pos = mWorldTransform.GetTranslationW1();
 
-	Vector4<float> campos = node->GetCamera()->GetPosition();
+	Vector4<float> campos = cameraNode->Get()->GetPosition();
 	Vector4<float> target = 
-		node->GetCamera()->GetPosition() + node->GetCamera()->GetDVector();
+		cameraNode->Get()->GetPosition() + cameraNode->Get()->GetDVector();
 
-	if (node->GetTarget())
-		target = node->GetTarget()->GetAbsoluteTransform().GetTranslationW1();
+	if (cameraNode->GetTarget())
+		target = cameraNode->GetTarget()->GetAbsoluteTransform().GetTranslationW1();
 
-	Vector4<float> up = node->GetCamera()->GetUVector();
+	Vector4<float> up = cameraNode->Get()->GetUVector();
 	Vector4<float> view = Normalize(target - campos);
 
 	Vector4<float> horizontal = Cross(up, view);
@@ -183,7 +192,7 @@ bool BillboardNode::Render(Scene *pScene)
 		Vector2<float> tcoord;
 		Vector4<float> color;
 	};
-	Vertex* vertex = mVertices->Get<Vertex>();
+	Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
 	for (int i = 0; i<4; ++i)
 		vertex[i].normal = { view[0], view[1], view[2] };
 
@@ -201,8 +210,9 @@ bool BillboardNode::Render(Scene *pScene)
 	vertex[2].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
 	vertexPos = pos - horizontal + vertical;
 	vertex[3].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
-	/*
+
 	// draw
+	/*
 	if (DebugDataVisible() & DS_BBOX)
 	{
 		Renderer::Get()->SetTransform(TS_WORLD, toWorld);
@@ -215,7 +225,14 @@ bool BillboardNode::Render(Scene *pScene)
 	Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity);
 	Renderer::Get()->SetMaterial(mMaterial);
 	Renderer::Get()->DrawIndexedTriangleList(mVertices, 4, mIndices, 2);
+
+	eastl::shared_ptr<AmbientLightEffect> effect =
+		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+	effect->SetMaterial(material);
 	*/
+
+	Renderer::Get()->Draw(mVisual);
+
 	return Node::Render(pScene);
 }
 
@@ -258,9 +275,11 @@ void BillboardNode::SetSize(float height, float bottomEdgeWidth, float topEdgeWi
 }
 
 
-Material& BillboardNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& BillboardNode::GetMaterial(unsigned int i)
 {
-	return mMaterial;
+	eastl::shared_ptr<AmbientLightEffect> effect =
+		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+	return effect->GetMaterial();
 }
 
 
@@ -298,7 +317,7 @@ void BillboardNode::SetColor(const eastl::array<float, 4>& overallColor)
 		Vector2<float> tcoord;
 		Vector4<float> color;
 	};
-	Vertex* vertex = mVertices->Get<Vertex>();
+	Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
 	for (unsigned int idx = 0; idx < 4; ++idx)
 		vertex[idx].color = overallColor;
 }
@@ -316,7 +335,7 @@ void BillboardNode::SetColor(const eastl::array<float, 4>& topColor, const eastl
 		Vector2<float> tcoord;
 		Vector4<float> color;
 	};
-	Vertex* vertex = mVertices->Get<Vertex>();
+	Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
 	vertex[0].color = bottomColor;
 	vertex[1].color = topColor;
 	vertex[2].color = topColor;
@@ -336,7 +355,7 @@ void BillboardNode::GetColor(eastl::array<float, 4>& topColor, eastl::array<floa
 		Vector2<float> tcoord;
 		Vector4<float> color;
 	};
-	Vertex* vertex = mVertices->Get<Vertex>();
+	Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
 	bottomColor = { vertex[0].color[0], vertex[0].color[1], vertex[0].color[2], vertex[0].color[3] };
 	topColor = { vertex[1].color[0], vertex[1].color[1], vertex[1].color[2], vertex[1].color[3] };
 }

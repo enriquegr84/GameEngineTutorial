@@ -2,7 +2,7 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#ifndef PARTICLECYLINDEREMITTER_H_
+#ifndef PARTICLECYLINDEREMITTER_H
 #define PARTICLECYLINDEREMITTER_H
 
 #include "ParticleEmitter.h"
@@ -24,8 +24,7 @@ public:
 		const eastl::array<float, 4>& maxStartColor = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f},
 		unsigned int lifeTimeMin=2000, unsigned int lifeTimeMax=4000, int maxAngleDegrees=0,
 		const Vector2<float>& minStartSize = Vector2<float>{ 5.f,5.f },
-		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f,5.f }
-		);
+		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f,5.f });
 
 	//! Prepares an array with new particles to emitt into the system
 	//! and returns how much new particles there are.

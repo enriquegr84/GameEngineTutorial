@@ -5,6 +5,7 @@
 #include "CubeNode.h"
 
 #include "Graphic/Scene/Hierarchy/Node.h"
+#include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Scene/Scene.h"
 
 //#include "Scenes/Mesh/MeshBuffer.h"
@@ -23,13 +24,14 @@
 	*/
 
 //! constructor
-CubeNode::CubeNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, float size)
-	:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mMesh(0), mSize(size), mShadow(0)
+CubeNode::CubeNode(const ActorId actorId, PVWUpdater& updater, 
+	WeakBaseRenderComponentPtr renderComponent, float size)
+	:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mSize(size), mShadow(0)
 {
 	#ifdef _DEBUG
 	//setDebugName("CubeSceneNode");
 	#endif
-
+	mPVWUpdater = updater;
 	SetSize();
 }
 
@@ -53,7 +55,12 @@ void CubeNode::SetSize()
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);
-	mf.CreateBox(mSize, mSize, mSize);
+	mVisual = mf.CreateBox(mSize, mSize, mSize);
+
+	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
+		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), eastl::make_shared<Material>(), eastl::make_shared<Light>());
+	mVisual->SetEffect(effect);
+	mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 
 
@@ -71,21 +78,14 @@ bool CubeNode::PreRender(Scene *pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		if (mMesh)
 		{
-			// count mesh materials
-			for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
-			{
-				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
-				
-				if (mb->GetMaterial().IsTransparent())
-					++transparentCount;
-				else
-					++solidCount;
+			eastl::shared_ptr<AmbientLightEffect> effect =
+				eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
 
-				if (solidCount && transparentCount)
-					break;
-			}
+			if (effect->GetMaterial()->IsTransparent())
+				++transparentCount;
+			else
+				++solidCount;
 		}
 
 		// register according to material types counted
@@ -110,21 +110,21 @@ bool CubeNode::Render(Scene *pScene)
 	if (!Renderer::Get())
 		return false;
 
-	Matrix4x4<float> toWorld, fromWorld;
-	//Transform(&toWorld, &fromWorld);
-
 	if (mShadow)
 		mShadow->UpdateShadowVolumes(pScene);
 
 	// for debug purposes only:
-	Material mat = mMesh->GetMeshBuffer(0)->GetMaterial();
-	/*
+	eastl::shared_ptr<AmbientLightEffect> effect =
+		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+	eastl::shared_ptr<Material> material = effect->GetMaterial();
+
 	// overwrite half transparency
 	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
-		mat.mType = MT_TRANSPARENT_ADD_COLOR;
-	Renderer::Get()->SetMaterial(mat);
-	Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
+		material->mType = MT_TRANSPARENT_ADD_COLOR;
+	//effect->SetMaterial(material);
+	Renderer::Get()->Draw(mVisual);
 
+	/*
 	// for debug purposes only:
 	if (DebugDataVisible())
 	{
@@ -199,9 +199,8 @@ eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId 
 	if (!Renderer::Get()->QueryFeature(VDF_STENCIL_BUFFER))
 	return 0;
 	*/
-	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
-		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(), 
-			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
+	mShadow = eastl::shared_ptr<ShadowVolumeNode>(new ShadowVolumeNode(
+		actorId, mPVWUpdater, WeakBaseRenderComponentPtr(), shadowMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;
@@ -209,9 +208,11 @@ eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId 
 
 
 //! returns the material based on the zero based index i.
-Material& CubeNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& CubeNode::GetMaterial(unsigned int i)
 {
-	return mMesh->GetMeshBuffer(0)->GetMaterial();
+	eastl::shared_ptr<AmbientLightEffect> effect =
+		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+	return effect->GetMaterial();
 }
 
 

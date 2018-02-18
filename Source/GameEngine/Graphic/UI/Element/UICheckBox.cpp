@@ -4,11 +4,6 @@
 
 #include "UICheckBox.h"
 
-#include "UISkin.h"
-#include "UIFont.h"
-
-#include "UserInterface.h"
-
 #include "Core/OS/OS.h"
 
 #include "Graphic/Renderer/Renderer.h"

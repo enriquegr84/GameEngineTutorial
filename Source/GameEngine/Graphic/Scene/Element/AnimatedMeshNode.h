@@ -47,13 +47,9 @@ class AnimatedMeshNode : public Node
 public:
 
 	//! Constructor
-	AnimatedMeshNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent,
-		const eastl::shared_ptr<AnimatedMesh>& aMesh);
-	/*
-		const Vector3<float>& position = Vector3<float>{ 0,0,0 },
-		const Vector3<float>& rotation = Vector3<float>{ 0,0,0 },
-		const Vector3<float>& scale = Vector3<float>{ 255.f, 255.f, 255.f });
-	*/
+	AnimatedMeshNode(const ActorId actorId, PVWUpdater& updater,
+		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseAnimatedMesh>& aMesh);
+
 	//! Destructor
 	~AnimatedMeshNode() {}
 
@@ -95,7 +91,7 @@ public:
 	//! This function is needed for inserting the node into the scene hirachy on a
 	//! optimal position for minimizing renderstate changes, but can also be used
 	//! to directly modify the material of a scene node.
-	Material& GetMaterial(unsigned int i);
+	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
 	unsigned int GetMaterialCount() const;
@@ -154,10 +150,10 @@ public:
 	bool IsReadOnlyMaterials() const;
 
 	//! Sets a new mesh
-	void SetMesh(const eastl::shared_ptr<AnimatedMesh>& mesh);
+	void SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh);
 
 	//! Returns the current mesh
-	const eastl::shared_ptr<AnimatedMesh>& GetMesh(void);
+	const eastl::shared_ptr<BaseAnimatedMesh>& GetMesh(void);
 
 	//! render mesh ignoring its transformation.
 	void SetRenderFromIdentity( bool On );
@@ -169,8 +165,8 @@ private:
 
 	void BuildFrameNr(unsigned int timeMs);
 
-	eastl::vector<Material> mMaterials;
-	eastl::shared_ptr<AnimatedMesh> mMesh;
+	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
+	eastl::shared_ptr<BaseAnimatedMesh> mMesh;
 
 	int mStartFrame;
 	int mEndFrame;

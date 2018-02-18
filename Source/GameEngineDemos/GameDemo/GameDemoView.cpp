@@ -458,7 +458,7 @@ void MainMenuUI::SetUIActive(int command)
 	{
 		sceneTree->GetRoot()->ClearChildren();
 		AddSceneTreeItem(
-			g_DemosApp.GetHumanView()->m_pScene->GetRootSceneNode().get(), sceneTree->GetRoot().get());
+			g_DemosApp.GetHumanView()->m_pScene->GetRootNode().get(), sceneTree->GetRoot().get());
 	}
 	*/
 	SetFocus(guiActive ? window : 0);

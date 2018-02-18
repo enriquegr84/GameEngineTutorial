@@ -5,7 +5,7 @@
 #ifndef SKYBOXNODE_H
 #define SKYBOXNODE_H
 
-#include "Graphic/Scene/Scene.h"
+#include "Graphic/Scene/Hierarchy/Node.h"
 
 // Skybox, rendered with zbuffer turned off, before all other nodes.
 class SkyBoxNode : public Node
@@ -13,7 +13,7 @@ class SkyBoxNode : public Node
 public:
 
 	//! constructor
-	SkyBoxNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, 
+	SkyBoxNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
 		const eastl::shared_ptr<Texture2>& top, const eastl::shared_ptr<Texture2>& bottom, 
 		const eastl::shared_ptr<Texture2>& left, const eastl::shared_ptr<Texture2>& right, 
 		const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back);
@@ -27,7 +27,7 @@ public:
 	//! This function is needed for inserting the node into the scene hirachy on a
 	//! optimal position for minimizing renderstate changes, but can also be used
 	//! to directly modify the material of a scene node.
-	Material& GetMaterial(unsigned int i);
+	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
 	unsigned int GetMaterialCount() const;

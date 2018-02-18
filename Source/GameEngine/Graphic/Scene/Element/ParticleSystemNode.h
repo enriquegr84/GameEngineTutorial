@@ -6,7 +6,6 @@
 #define PARTICLESYSTEMNODE_H
 
 #include "AnimatedMeshNode.h"
-#include "ParticleAnimatedMeshNodeEmitter.h"
 
 #include "Graphic/Scene/Hierarchy/Node.h"
 
@@ -26,6 +25,7 @@
 #include "Graphic/Scene/Element/Particle/ParticleRotationAffector.h"
 #include "Graphic/Scene/Element/Particle/ParticleAttractionAffector.h"
 
+class ParticleAnimatedMeshNodeEmitter;
 
 //! A particle system scene node.
 /** A scene node controlling a particle system. The behavior of the particles
@@ -37,7 +37,8 @@ class ParticleSystemNode : public Node
 public:
 
 	//! Constructor
-	ParticleSystemNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter);
+	ParticleSystemNode(const ActorId actorId, PVWUpdater& updater, 
+		WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter);
 
 	//! destructor
 	~ParticleSystemNode();
@@ -62,7 +63,7 @@ public:
 	void RemoveAllAffectors();
 
 	//! Returns the material based on the zero based index i.
-	Material& GetMaterial(unsigned int i);
+	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! Returns amount of materials used by this scene node.
 	unsigned int GetMaterialCount() const;

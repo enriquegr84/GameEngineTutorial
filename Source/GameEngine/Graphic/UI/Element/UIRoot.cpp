@@ -3,7 +3,8 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "UIRoot.h"
-#include "UserInterface.h"
+
+#include "Graphic/UI/UserInterface.h"
 
 //! constructor
 UIRoot::UIRoot(BaseUI* ui, UIElementType type, int id, RectangleShape<2, int> rectangle)

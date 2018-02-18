@@ -9,8 +9,12 @@
 #define NODE_H
 
 #include "Spatial.h"
+#include "PVWUpdater.h"
 
-#include "Graphic/Scene/Scene.h"
+#include "Graphic/Effect/Material.h"
+#include "Graphic/Resource/Texture/Texture2.h"
+
+#include "Application/System/EventSystem.h"
 
 //! An enumeration for all types of built-in scene node animators
 enum GRAPHIC_ITEM NodeAnimatorType
@@ -126,17 +130,6 @@ enum GRAPHIC_ITEM NodeType
 	NT_ANY
 };
 
-// Forward declarations
-/*
-class Scene;
-class MovementController;
-class BaseResourceExtraData;
-class ActorComponent;
-*/
-class BaseRenderComponent;
-
-// FUTURE WORK - Smart pointers don't work right....going to use a naked pointer for now!
-typedef BaseRenderComponent* WeakBaseRenderComponentPtr;
 
 ////////////////////////////////////////////////////
 //
@@ -191,6 +184,38 @@ enum GRAPHIC_ITEM RenderPass
 	RP_LAST
 };
 
+// Forward declarations
+/*
+class Scene;
+class MovementController;
+class BaseResourceExtraData;
+class ActorComponent;
+*/
+class Scene;
+class Node;
+class NodeAnimator;
+class BaseRenderComponent;
+
+// FUTURE WORK - Smart pointers don't work right....going to use a naked pointer for now!
+typedef BaseRenderComponent* WeakBaseRenderComponentPtr;
+
+//////////////////////////////////////////////////////////////
+//
+// SceneNodeList						- Chapter 16, page 529
+//
+//   Every scene node has a list of its children - this 
+//   is implemented as a vector since it is expected that
+//   we won't add/delete nodes very often, and we'll want 
+//   fast random access to each child.
+//
+//////////////////////////////////////////////////////////////
+
+typedef eastl::vector<eastl::shared_ptr<Node>> SceneNodeList;
+typedef eastl::vector<eastl::shared_ptr<NodeAnimator>> SceneNodeAnimatorList;
+
+typedef eastl::vector<Node*> SceneNodeRenderList;
+typedef eastl::vector<NodeAnimator*> SceneNodeAnimateList;
+
 
 // This class represents grouping nodes in a spatial hiearchy.
 class GRAPHIC_ITEM Node : public Spatial, public eastl::enable_shared_from_this<Node>
@@ -213,6 +238,9 @@ public:
 
 	bool OnRestore(Scene *pScene);
 	bool OnLostDevice(Scene *pScene);
+
+	// Support for geometric updates.
+	void UpdateVisualModelSpace(eastl::shared_ptr<Node> node);
 
 	bool OnUpdate(Scene *, unsigned long const elapsedMs);
 	bool OnAnimate(Scene* pScene, unsigned int timeMs);
@@ -386,7 +414,7 @@ protected:
 	//! sort on distance (center) to camera
 	struct TransparentNodeEntry
 	{
-		TransparentNodeEntry(Node* n, const Vector3<float>& cameraPos)
+		TransparentNodeEntry(Node* n, const Vector4<float>& cameraPos)
 			: mNode(n)
 		{
 			//mDistance = mNode->Get()->ToWorld().GetTranslation().GetDistanceFromSQ(cameraPos);
@@ -407,7 +435,7 @@ protected:
 	//! sort on distance (sphere) to camera
 	struct DistanceNodeEntry
 	{
-		DistanceNodeEntry(Node* n, const Vector3<float>& cameraPos)
+		DistanceNodeEntry(Node* n, const Vector4<float>& cameraPos)
 			: mNode(n)
 		{
 			SetNodeAndDistanceFromPosition(n, cameraPos);
@@ -418,7 +446,7 @@ protected:
 			return mDistance < other.mDistance;
 		}
 
-		void SetNodeAndDistanceFromPosition(Node* n, const Vector3<float>& fromPosition)
+		void SetNodeAndDistanceFromPosition(Node* n, const Vector4<float>& fromPosition)
 		{
 			mNode = n;
 			/*
@@ -437,19 +465,20 @@ protected:
 protected:
 
     // Support for geometric updates.
-    virtual void UpdateWorldData(Scene* pScene, double applicationTime);
+    virtual void UpdateWorldData(double applicationTime);
     virtual void UpdateWorldBound();
 
     // Support for hierarchical culling.
     virtual void GetVisibleSet(Culler& culler,
 		eastl::shared_ptr<Camera> const& camera, bool noCull);
 
-	int						mId;
-	eastl::string			mName;
+	int mId;
+	eastl::string mName;
 
 	NodeType mType;
 	Material mMaterial;
 	RenderPass mRenderPass;
+	PVWUpdater mPVWUpdater;
 
 	SceneNodeList mChildren;
 	SceneNodeAnimatorList mAnimators;
@@ -461,7 +490,7 @@ protected:
 //! Animates a scene node. Can animate position, rotation, material, and so on.
 /** A scene node animator is able to animate a scene node in a very simple way. It may
 change its position, rotation, scale and/or material. There are lots of animators
-to choose from. You can create scene node animators with the ISceneManager interface. */
+to choose from. You can create scene node animators with the SceneManager interface. */
 class GRAPHIC_ITEM NodeAnimator
 {
 public:
@@ -498,24 +527,6 @@ public:
 		return false;
 	}
 };
-
-
-//////////////////////////////////////////////////////////////
-//
-// SceneNodeList						- Chapter 16, page 529
-//
-//   Every scene node has a list of its children - this 
-//   is implemented as a vector since it is expected that
-//   we won't add/delete nodes very often, and we'll want 
-//   fast random access to each child.
-//
-//////////////////////////////////////////////////////////////
-
-typedef eastl::vector<eastl::shared_ptr<Node>> SceneNodeList;
-typedef eastl::vector<eastl::shared_ptr<NodeAnimator>> SceneNodeAnimatorList;
-
-typedef eastl::vector<Node*> SceneNodeRenderList;
-typedef eastl::vector<NodeAnimator*> SceneNodeAnimateList;
 
 
 #endif

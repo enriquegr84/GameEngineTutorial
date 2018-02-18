@@ -5,7 +5,9 @@
 #ifndef UIELEMENTFACTORY_H
 #define UIELEMENTFACTORY_H
 
-#include "UIElement.h"
+#include "GameEngineStd.h"
+
+#include "UserInterface.h"
 
 //! Interface making it possible to dynamically create UI elements
 /** To be able to add custom elements to Irrlicht and to make it possible for the
@@ -30,5 +32,27 @@ public:
 	virtual int GetCreatableUIElementTypeCount() const = 0;
 };
 
-#endif
 
+//! This interface makes it possible to dynamically create gui elements.
+class DefaultUIElementFactory : public UIElementFactory
+{
+public:
+
+	DefaultUIElementFactory(BaseUI*);
+
+	//! Adds an element to the gui environment based on its type id.
+	/** \param type: Type of the element to add.
+	\param parent: Parent scene node of the new element. A value of 0 adds it to the root.
+	\return Returns pointer to the new element or 0 if unsuccessful. */
+	virtual eastl::shared_ptr<BaseUIElement> AddUIElement(
+		UIElementType type, const eastl::shared_ptr<BaseUIElement>& parent = 0);
+
+	//! Returns the amount of GUI element types this factory is able to create.
+	virtual int GetCreatableUIElementTypeCount() const;
+
+private:
+
+	BaseUI* UI;
+};
+
+#endif

@@ -4,11 +4,7 @@
 
 #include "UIStaticText.h"
 
-#include "UISkin.h"
-#include "UIFont.h"
-
 #include "Graphic/Renderer/Renderer.h"
-#include "UserInterface.h"
 
 //! constructor
 UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text, 

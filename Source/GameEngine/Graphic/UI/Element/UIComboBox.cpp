@@ -4,11 +4,6 @@
 
 #include "UIComboBox.h"
 
-#include "UISkin.h"
-#include "UIFont.h"
-
-#include "UserInterface.h"
-
 #include "Core/OS/OS.h"
 
 #include "Graphic/Image/ImageResource.h"

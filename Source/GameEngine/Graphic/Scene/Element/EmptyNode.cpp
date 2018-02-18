@@ -8,13 +8,14 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-EmptyNode::EmptyNode(const ActorId actorId, WeakBaseRenderComponentPtr renderComponent)
+EmptyNode::EmptyNode(const ActorId actorId, PVWUpdater& updater, 
+	WeakBaseRenderComponentPtr renderComponent)
 :	Node(actorId, renderComponent, RP_TRANSPARENT, NT_UNKNOWN)
 {
 	#ifdef _DEBUG
 	//setDebugName("EmptyNode");
 	#endif
-
+	mPVWUpdater = updater;
 	SetAutomaticCulling(AC_OFF);
 }
 
