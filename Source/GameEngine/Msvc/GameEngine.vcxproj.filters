@@ -220,9 +220,6 @@
     <Filter Include="Graphic\UI">
       <UniqueIdentifier>{64c46103-8c16-4966-ad94-86e6b6f4b0e5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Mathematic\Interpolation">
-      <UniqueIdentifier>{5d89dd50-00d8-4956-97ca-5ead19cd9c82}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Graphic\UI\Element">
       <UniqueIdentifier>{a5a458e2-d8e2-441b-8986-830007ba1ac8}</UniqueIdentifier>
     </Filter>

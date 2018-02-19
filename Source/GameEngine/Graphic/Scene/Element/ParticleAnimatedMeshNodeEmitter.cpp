@@ -99,7 +99,7 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 						if (mMinStartColor==mMaxStartColor)
 							particle.mColor=mMinStartColor;
 						else
-							particle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
+							particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
 
 						particle.mStartColor = particle.mColor;
 						particle.mStartVector = particle.mVector;
@@ -107,7 +107,7 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 						if (mMinStartSize==mMaxStartSize)
 							particle.mStartSize = mMinStartSize;
 						else
-							particle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+							particle.mStartSize = Function<float>::Lerp(mMinStartSize, mMaxStartSize, Randomizer::FRand());
 						particle.mSize = particle.mStartSize;
 
 						mParticles.push_back(particle);
@@ -122,14 +122,15 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 				else
 					randomMB = mMBNumber;
 
-				unsigned int vertexNumber = frameMesh->GetMeshBuffer(randomMB)->GetVertexCount();
+				const MeshDescription& md = frameMesh->GetMeshBuffer(randomMB)->mMesh->GetDescription();
+				unsigned int vertexNumber = md.mNumVertices;
 				if (!vertexNumber)
 					continue;
 				vertexNumber = Randomizer::Rand() % vertexNumber;
 
-				particle.mPos = frameMesh->GetMeshBuffer(randomMB)->GetPosition(vertexNumber);
+				particle.mPos = frameMesh->GetMeshBuffer(randomMB)->mMesh->Position(vertexNumber);
 				if( mUseNormalDirection )
-					particle.mVector = frameMesh->GetMeshBuffer(randomMB)->GetNormal(vertexNumber) / mNormalDirectionModifier;
+					particle.mVector = frameMesh->GetMeshBuffer(randomMB)->mMesh->Normal(vertexNumber) / mNormalDirectionModifier;
 				else
 					particle.mVector = mDirection;
 
@@ -137,11 +138,16 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 
 				if( mMaxAngleDegrees )
 				{
-					Vector3<float> tgt = mDirection;
-					tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
-					tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
-					tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
-					particle.mVector = tgt;
+					Quaternion<float> tgt = Rotation<3, float>(
+						AxisAngle<3, float>(mDirection, Randomizer::FRand() * mMaxAngleDegrees));
+					mDirection = HProject(Rotate(tgt, Vector4<float> { 0.0f, 0.0f, 1.0f, 0.0f }));
+					tgt = Rotation<3, float>(
+						AxisAngle<3, float>(mDirection, Randomizer::FRand() * mMaxAngleDegrees));
+					mDirection = HProject(Rotate(tgt, Vector4<float> { 1.0f, 0.0f, 0.0f, 0.0f }));
+					tgt = Rotation<3, float>(
+						AxisAngle<3, float>(mDirection, Randomizer::FRand() * mMaxAngleDegrees));
+					mDirection = HProject(Rotate(tgt, Vector4<float> { 0.0f, 1.0f, 0.0f, 0.0f }));
+					particle.mVector = mDirection;
 				}
 
 				particle.mEndTime = now + mMinLifeTime;
@@ -151,7 +157,7 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 				if (mMinStartColor==mMaxStartColor)
 					particle.mColor = mMinStartColor;
 				else
-					particle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
+					particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
 
 				particle.mStartColor = particle.mColor;
 				particle.mStartVector = particle.mVector;
@@ -159,7 +165,7 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 				if (mMinStartSize == mMaxStartSize)
 					particle.mStartSize = mMinStartSize;
 				else
-					particle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+					particle.mStartSize = Function<float>::Lerp(mMinStartSize, mMaxStartSize, Randomizer::FRand());
 				particle.mSize = particle.mStartSize;
 
 				mParticles.push_back(particle);

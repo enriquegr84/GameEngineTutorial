@@ -52,4 +52,7 @@
 #include "Surface/IndexAttribute.h"
 #include "Surface/Mesh.h"
 
+//Interpolation
+#include "Interpolation/IntpBilinear2.h"
+
 #endif

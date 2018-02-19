@@ -87,7 +87,7 @@ private:
 
     friend class UnitTestBSNumber;
 
-#if defined(GTE_COLLECT_UINTEGERFP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERFP32_STATISTICS)
     static eastl::atomic<int32_t> msMaxSize;
 public:
     static void SetMaxSizeToZero() { msMaxSize = 0; }
@@ -132,7 +132,7 @@ UIntegerFP32<N>::UIntegerFP32(uint32_t number)
         mSize = 0;
     }
 
-#if defined(GTE_COLLECT_UINTEGERFP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERFP32_STATISTICS)
     AtomicMax(msMaxSize, mSize);
 #endif
 }
@@ -161,7 +161,7 @@ UIntegerFP32<N>::UIntegerFP32(uint64_t number)
         mSize = 0;
     }
 
-#if defined(GTE_COLLECT_UINTEGERFP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERFP32_STATISTICS)
     AtomicMax(msMaxSize, mSize);
 #endif
 }
@@ -174,11 +174,11 @@ UIntegerFP32<N>::UIntegerFP32(int numBits)
 {
     static_assert(N >= 1, "Invalid size N.");
 
-#if defined(GTE_ASSERT_ON_UINTEGERFP32_OUT_OF_RANGE)
+#if defined(GE_ASSERT_ON_UINTEGERFP32_OUT_OF_RANGE)
     LogAssert(mSize <= N, "N not large enough to store number of bits.");
 #endif
 
-#if defined(GTE_COLLECT_UINTEGERFP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERFP32_STATISTICS)
     AtomicMax(msMaxSize, mSize);
 #endif
 }
@@ -219,11 +219,11 @@ void UIntegerFP32<N>::SetNumBits(uint32_t numBits)
     mNumBits = numBits;
     mSize = 1 + (numBits - 1) / 32;
 
-#if defined(GTE_ASSERT_ON_UINTEGERFP32_OUT_OF_RANGE)
+#if defined(GE_ASSERT_ON_UINTEGERFP32_OUT_OF_RANGE)
     LogAssert(mSize <= N, "N not large enough to store number of bits.");
 #endif
 
-#if defined(GTE_COLLECT_UINTEGERFP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERFP32_STATISTICS)
     AtomicMax(msMaxSize, mSize);
 #endif
 }
