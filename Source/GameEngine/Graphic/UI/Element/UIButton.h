@@ -6,8 +6,6 @@
 #define UIBUTTON_H
 
 #include "UIElement.h"
-#include "UIFont.h"
-#include "UISpriteBank.h"
 
 #include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
@@ -42,6 +40,9 @@ const char* const UIButtonStateNames[] =
 	0,
 	0,
 };
+
+class BaseUISpriteBank;
+class BaseUIFont;
 
 //! GUI Button interface.
 /** \par This element can create the following events of type EGUI_EVENT_TYPE:

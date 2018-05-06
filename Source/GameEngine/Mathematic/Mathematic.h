@@ -6,8 +6,8 @@
 //
 // File Version: 5.0.6 (2014/01/04)
 
-#ifndef MATHEMATICS_H
-#define MATHEMATICS_H
+#ifndef MATHEMATIC_H
+#define MATHEMATIC_H
 
 #include "MathematicStd.h"
 
@@ -47,12 +47,12 @@
 #include "Geometric/Rectangle.h"
 #include "Geometric/AlignedBox.h"
 
+//NumericalMethod
+#include "NumericalMethod/GaussianElimination.h"
+
 //Surface
 #include "Surface/VertexAttribute.h"
 #include "Surface/IndexAttribute.h"
 #include "Surface/Mesh.h"
-
-//Interpolation
-#include "Interpolation/IntpBilinear2.h"
 
 #endif

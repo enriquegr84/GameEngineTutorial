@@ -363,13 +363,13 @@ BulletPhysics::~BulletPhysics()
 void BulletPhysics::LoadXml()
 {
     // Load the physics config file and grab the root XML node
-    XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(L"config\\Physics.xml");
+	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(L"config\\Physics.xml");
     LogAssert(pRoot, "Physcis xml doesn't exists");
 
     // load all materials
-    XMLElement* pParentNode = pRoot->FirstChildElement("PhysicsMaterials");
+	tinyxml2::XMLElement* pParentNode = pRoot->FirstChildElement("PhysicsMaterials");
 	LogAssert(pParentNode, "No materials");
-    for (XMLElement* pNode = pParentNode->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
+    for (tinyxml2::XMLElement* pNode = pParentNode->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
     {
         double restitution = 0;
         double friction = 0;
@@ -382,7 +382,7 @@ void BulletPhysics::LoadXml()
     // load all densities
     pParentNode = pRoot->FirstChildElement("DensityTable");
 	LogAssert(pParentNode, "No desinty table");
-    for (XMLElement* pNode = pParentNode->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
+    for (tinyxml2::XMLElement* pNode = pParentNode->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
     {
         mDensityTable.insert(eastl::make_pair(pNode->Value(), (float)atof(pNode->FirstChild()->Value())));
     }

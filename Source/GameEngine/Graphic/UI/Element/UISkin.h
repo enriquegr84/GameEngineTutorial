@@ -5,8 +5,9 @@
 #ifndef UISKIN_H
 #define UISKIN_H
 
-#include "UIFont.h"
 #include "UIElement.h"
+
+#include "Graphic/Scene/Hierarchy/Visual.h"
 
 //! Enumeration of available default skins.
 /** To set one of the skins, use the following code, for example to set
@@ -17,6 +18,10 @@ environment->SetSkin(newskin);
 newskin->drop();
 \endcode
 */
+
+class BaseUISpriteBank;
+class BaseUIFont;
+
 enum UISkinThemeType
 {
 	//! Default windows look and feel
@@ -246,7 +251,6 @@ enum UIDefaultFont
 	//! available.
 	DF_COUNT
 };
-
 
 //! A skin modifies the look of the UI elements.
 class BaseUISkin

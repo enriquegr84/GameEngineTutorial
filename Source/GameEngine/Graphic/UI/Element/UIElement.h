@@ -13,11 +13,6 @@
 
 #include "Mathematic/Mathematic.h"
 
-class BaseUI;
-class UISkin;
-class UIFont;
-class UIElementFactory;
-
 enum UIAlignment
 {
 	//! Aligned to parent's top or left side (default)

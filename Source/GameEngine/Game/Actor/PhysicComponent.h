@@ -58,10 +58,10 @@ public:
 public:
 	PhysicComponent(void);
     virtual ~PhysicComponent(void);
-    virtual XMLElement* GenerateXml(void) override;
+    virtual tinyxml2::XMLElement* GenerateXml(void) override;
 
     // ActorComponent interface
-    virtual bool Init(XMLElement* pData) override;
+    virtual bool Init(tinyxml2::XMLElement* pData) override;
     virtual void PostInit(void) override;
     virtual void Update(int deltaMs) override;
 
@@ -85,7 +85,7 @@ public:
 
 
 protected:
-    void BuildRigidBodyTransform(XMLElement* pTransformElement);
+    void BuildRigidBodyTransform(tinyxml2::XMLElement* pTransformElement);
 
     float mAcceleration, mAngularAcceleration;
     float mMaxVelocity, mMaxAngularVelocity;

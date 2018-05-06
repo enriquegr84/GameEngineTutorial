@@ -136,13 +136,13 @@ HumanView::~HumanView()
 }
 
 
-bool HumanView::LoadGameDelegate(XMLElement* pLevelData) 
+bool HumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 { 
 	PushElement(mScene);  
 	return true; 
 }
 
-bool HumanView::LoadGame(XMLElement* pLevelData)
+bool HumanView::LoadGame(tinyxml2::XMLElement* pLevelData)
 {
     // call the delegate method
     return LoadGameDelegate(pLevelData);

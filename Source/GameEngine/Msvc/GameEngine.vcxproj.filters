@@ -223,6 +223,9 @@
     <Filter Include="Graphic\UI\Element">
       <UniqueIdentifier>{a5a458e2-d8e2-441b-8986-830007ba1ac8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Mathematic\NumericalMethod">
+      <UniqueIdentifier>{f0b7662f-1b6b-4e44-8807-ba8c3383bd8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -2358,6 +2361,12 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\UI\UIElementFactory.h">
       <Filter>Graphic\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\NumericalMethod\GaussianElimination.h">
+      <Filter>Mathematic\NumericalMethod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Utility\LexicoArray2.h">
+      <Filter>Core\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

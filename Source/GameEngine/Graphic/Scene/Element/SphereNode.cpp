@@ -4,19 +4,38 @@
 
 #include "SphereNode.h"
 
+#include "Graphic/Scene/Hierarchy/Node.h"
+#include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
 SphereNode::SphereNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
 		float radius, unsigned int polyCountX, unsigned int polyCountY)
-:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mMesh(0), mShadow(0),
+:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mShadow(0),
 	mRadius(radius), mPolyCountX(polyCountX), mPolyCountY(polyCountY)
 {
 	#ifdef _DEBUG
 	//setDebugName("CSphereSceneNode");
 	#endif
 	mPVWUpdater = updater;
-	mMesh = eastl::make_shared<BaseMesh>(CreateSphereMesh(radius, polyCountX, polyCountY));
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+
+	MeshFactory mf;
+	mf.SetVertexFormat(vformat);
+	mVisual = mf.CreateSphere(radius, polyCountX, polyCountY);
+
+	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
+		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), eastl::make_shared<Material>(), eastl::make_shared<Light>());
+	mVisual->SetEffect(effect);
+	mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 
 
@@ -40,21 +59,14 @@ bool SphereNode::PreRender(Scene *pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		if (mMesh)
 		{
-			// count mesh materials
-			for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
-			{
-				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
+			eastl::shared_ptr<AmbientLightEffect> effect =
+				eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
 
-				if (mb->GetMaterial().IsTransparent())
-					++transparentCount;
-				else
-					++solidCount;
-
-				if (solidCount && transparentCount)
-					break;
-			}
+			if (effect->GetMaterial()->IsTransparent())
+				++transparentCount;
+			else
+				++solidCount;
 		}
 
 		// register according to material types counted
@@ -74,28 +86,30 @@ bool SphereNode::PreRender(Scene *pScene)
 //! renders the node.
 bool SphereNode::Render(Scene *pScene)
 {
-	Matrix4x4<float> toWorld, fromWorld;
+	//Matrix4x4<float> toWorld, fromWorld;
 	//Get()->Transform(&toWorld, &fromWorld);
 
-	if (mMesh && renderer)
+	if (!Renderer::Get())
+		return false;
+
+	//Renderer::Get()->SetMaterial(mMesh->GetMeshBuffer(0)->GetMaterial());
+	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
+	if (mShadow)
+		mShadow->UpdateShadowVolumes(pScene);
+
+	//Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
+	Renderer::Get()->Draw(mVisual);
+	/*
+	if (DebugDataVisible() & DS_BBOX )
 	{
-		Renderer::Get()->SetMaterial(mMesh->GetMeshBuffer(0)->GetMaterial());
-		Renderer::Get()->SetTransform(TS_WORLD, toWorld);
-		if (mShadow)
-			mShadow->UpdateShadowVolumes(pScene);
-
-		renderer->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
-		if (DebugDataVisible() & DS_BBOX )
-		{
-			Material m;
-			m.mLighting = false;
-			renderer->SetMaterial(m);
-			renderer->Draw3DBox(
-				mMesh->GetMeshBuffer(0)->GetBoundingBox(), 
-				eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});
-		}
+		Material m;
+		m.mLighting = false;
+		Renderer::Get()->SetMaterial(m);
+		Renderer::Get()->Draw3DBox(
+			mMesh->GetMeshBuffer(0)->GetBoundingBox(), 
+			eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});
 	}
-
+	*/
 	return Node::Render(pScene);
 }
 
@@ -118,16 +132,15 @@ bool SphereNode::RemoveChild(ActorId id)
 
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
-const eastl::shared_ptr<ShadowVolumeNode>& SphereNode::AddShadowVolumeNode(const ActorId actorId,
+eastl::shared_ptr<ShadowVolumeNode> SphereNode::AddShadowVolumeNode(const ActorId actorId,
 	Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod, float infinity)
 {
 	/*
 	if (!Renderer::Get()->QueryFeature(VDF_STENCIL_BUFFER))
 	return 0;
 	*/
-	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
-		new ShadowVolumeNode(actorId, WeakBaseRenderComponentPtr(),
-			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
+	mShadow = eastl::shared_ptr<ShadowVolumeNode>(new ShadowVolumeNode(
+		actorId, mPVWUpdater, WeakBaseRenderComponentPtr(), shadowMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;
@@ -140,7 +153,9 @@ const eastl::shared_ptr<ShadowVolumeNode>& SphereNode::AddShadowVolumeNode(const
 //! to directly modify the material of a scene node.
 eastl::shared_ptr<Material> const& SphereNode::GetMaterial(unsigned int i)
 {
-	return mMesh->GetMeshBuffer(0)->GetMaterial();
+	eastl::shared_ptr<AmbientLightEffect> effect =
+		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+	return effect->GetMaterial();
 }
 
 

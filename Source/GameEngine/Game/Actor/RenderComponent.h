@@ -64,11 +64,11 @@ public:
     MeshRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XMLElement* pData) override;
+    virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -86,11 +86,11 @@ public:
     SphereRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XMLElement* pData) override;
+    virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ protected:
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
 
@@ -128,11 +128,11 @@ public:
 	const int GetDivision() { return mSquares; }
 
 protected:
-    virtual bool DelegateInit(XMLElement* pData) override;
+    virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
 
@@ -159,11 +159,11 @@ public:
     LightRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XMLElement* pData) override;
+    virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
 
@@ -180,11 +180,11 @@ public:
     ParticleSystemRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XMLElement* pData) override;
+    virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
 
@@ -202,11 +202,11 @@ public:
     SkyRenderComponent(void);
 
 protected:
-    virtual bool DelegateInit(XMLElement* pData) override;
+    virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement);
+    virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
 #endif

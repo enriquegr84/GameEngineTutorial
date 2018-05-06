@@ -83,7 +83,7 @@ public:
 	void EndSteerDelegate(BaseEventDataPtr pEventData);
 
 protected:
-	virtual bool LoadGameDelegate(XMLElement* pLevelData);
+	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData);
 
 private:
 	void RegisterAllDelegates(void);

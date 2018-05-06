@@ -36,9 +36,6 @@ public:
 	//! Returns type of the scene node
 	NodeType GetType() const { return NT_SPHERE; }
 
-	//! Returns the current mesh
-	const eastl::shared_ptr<BaseMesh>& GetMesh() { return mMesh; }
-
 	//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
 	/* In this way it is possible to change the materials a mesh causing all mesh scene nodes 
 	referencing this mesh to change too. */
@@ -49,8 +46,8 @@ public:
 
 	//! Creates shadow volume scene node as child of this node
 	//! and returns a pointer to it.
-	const eastl::shared_ptr<ShadowVolumeNode>& AddShadowVolumeNode(const ActorId actorId, Scene* pScene, 
-		const eastl::shared_ptr<BaseMesh>& shadowMesh = 0, bool zfailmethod=true, float infinity=10000.0f);
+	eastl::shared_ptr<ShadowVolumeNode> AddShadowVolumeNode(const ActorId actorId,
+		Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh = 0, bool zfailmethod = true, float infinity = 10000.0f);
 
 	//! Removes a child from this scene node.
 	//! Implemented here, to be able to remove the shadow properly, if there is one,
@@ -59,7 +56,7 @@ public:
 
 private:
 
-	eastl::shared_ptr<BaseMesh> mMesh;
+	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
 
 	float mRadius;

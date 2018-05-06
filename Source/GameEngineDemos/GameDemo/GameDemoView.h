@@ -147,7 +147,7 @@ public:
 	virtual void OnAttach(GameViewId vid, ActorId aid);
 
 	virtual void SetControlledActor(ActorId actorId);
-	virtual bool LoadGameDelegate(XMLElement* pLevelData) override;
+	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData) override;
 
     // event delegates
     void GameplayUiUpdateDelegate(BaseEventDataPtr pEventData);

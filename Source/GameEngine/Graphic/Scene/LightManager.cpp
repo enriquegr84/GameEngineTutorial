@@ -25,7 +25,7 @@ LightManager::LightManager()
 	lightNode->GetRelativeTransform().SetRotation(
 		AxisAngle<4, float>({ -1.0f, 0.0f, 0.0f, 0.0f }, (float)GE_C_HALF_PI));
 	*/
-	mDLightRoot = eastl::make_shared<Node>();
+	//mDLightRoot = eastl::make_shared<Node>(GameLogic::Get()->GetNewActorID());
 	/*mDLightRoot->GetRelativeTransform().SetTranslation(-1824.998657f, -1531.269775f, 3886.592773f);
 	mDLightRoot->GetRelativeTransform().SetRotation(
 		AxisAngle<4, float>({ -0.494124f, 0.325880f, 0.806005f }, 1.371538f));*/

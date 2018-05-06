@@ -4,7 +4,12 @@
 
 #include "ParticlePointEmitter.h"
 
-#include "Core/OS/os.h"
+#include "Graphic/Renderer/Renderer.h"
+#include "Graphic/Effect/Material.h"
+
+#include "Core/OS/OS.h"
+
+#include "Graphic/Scene/Scene.h"
 
 //! constructor
 ParticlePointEmitter::ParticlePointEmitter(
@@ -44,11 +49,15 @@ int ParticlePointEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall
 
 		if (mMaxAngleDegrees)
 		{
-			Vector3<float> tgt = mDirection;
-			tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
-			tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
-			tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
-			mParticle.mVector = tgt;
+			Quaternion<float> tgt = Rotation<3, float>(
+				AxisAngle<3, float>(mParticle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+			mParticle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 0.0f, 1.0f, 0.0f }));
+			tgt = Rotation<3, float>(
+				AxisAngle<3, float>(mParticle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+			mParticle.mVector = HProject(Rotate(tgt, Vector4<float> { 1.0f, 0.0f, 0.0f, 0.0f }));
+			tgt = Rotation<3, float>(
+				AxisAngle<3, float>(mParticle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+			mParticle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 1.0f, 0.0f, 0.0f }));
 		}
 
 		mParticle.mEndTime = now + mMinLifeTime;
@@ -58,7 +67,7 @@ int ParticlePointEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall
 		if (mMinStartColor==mMaxStartColor)
 			mParticle.mColor=mMinStartColor;
 		else
-			mParticle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
+			mParticle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
 
 		mParticle.mStartColor = mParticle.mColor;
 		mParticle.mStartVector = mParticle.mVector;
@@ -66,7 +75,7 @@ int ParticlePointEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall
 		if (mMinStartSize==mMaxStartSize)
 			mParticle.mStartSize = mMinStartSize;
 		else
-			mParticle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+			mParticle.mStartSize = Function<float>::Lerp(mMinStartSize, mMaxStartSize, Randomizer::FRand());
 		mParticle.mSize = mParticle.mStartSize;
 
 		outArray = &mParticle;

@@ -95,7 +95,7 @@ public:
 	virtual void RemoveElement(const eastl::shared_ptr<BaseScreenElement>& pElement);
 
 	void TogglePause(bool active);
-    bool LoadGame(XMLElement* pLevelData);
+    bool LoadGame(tinyxml2::XMLElement* pLevelData);
 
 	/*
 		list of pointers to objects that implement the BaseScreenElement interface. A screen
@@ -223,7 +223,7 @@ protected:
 		elements in the game. It might include a background music track, which could be appreciated
 		by the human playing but is inconsequential for the game logic
 	*/
-	virtual bool LoadGameDelegate(XMLElement* pLevelData);
+	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData);
 
 	Console mConsole;
 

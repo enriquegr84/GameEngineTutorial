@@ -161,7 +161,7 @@ bool GameLogic::LoadGame(const char* levelResource)
 	eastl::wstring levelName(ToWideString(levelResource));
 
     // Grab the root XML node
-    XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(levelName.c_str());
+	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(levelName.c_str());
     if (!pRoot)
     {
         LogError(L"Failed to find level resource file: " + levelName);
@@ -173,7 +173,7 @@ bool GameLogic::LoadGame(const char* levelResource)
     const char* postLoadScript = NULL;
 
     // parse the pre & post script attributes
-    XMLElement* pScriptElement = pRoot->FirstChildElement("Script");
+	tinyxml2::XMLElement* pScriptElement = pRoot->FirstChildElement("Script");
     if (pScriptElement)
     {
         preLoadScript = pScriptElement->Attribute("preLoad");
@@ -191,10 +191,10 @@ bool GameLogic::LoadGame(const char* levelResource)
 	*/
 
     // load all initial actors
-    XMLElement* pActorsNode = pRoot->FirstChildElement("StaticActors");
+	tinyxml2::XMLElement* pActorsNode = pRoot->FirstChildElement("StaticActors");
     if (pActorsNode)
     {
-		XMLElement* pNode = pActorsNode->FirstChildElement();
+		tinyxml2::XMLElement* pNode = pActorsNode->FirstChildElement();
         for (; pNode; pNode = pNode->NextSiblingElement())
         {
             const char* actorResource = pNode->Attribute("resource");
@@ -262,7 +262,7 @@ void GameLogic::SetProxy()
 	mPhysics.reset(CreateNullPhysics());
 }
 
-eastl::shared_ptr<Actor> GameLogic::CreateActor(const eastl::string &actorResource, XMLElement *overrides, 
+eastl::shared_ptr<Actor> GameLogic::CreateActor(const eastl::string &actorResource, tinyxml2::XMLElement *overrides,
 	const Transform *initialTransform, const ActorId serversActorId)
 {
     LogAssert(mActorFactory, "actor factory is not initialized");
@@ -316,7 +316,7 @@ eastl::weak_ptr<Actor> GameLogic::GetActor(const ActorId actorId)
     return eastl::weak_ptr<Actor>();
 }
 
-void GameLogic::ModifyActor(const ActorId actorId, XMLElement* overrides)
+void GameLogic::ModifyActor(const ActorId actorId, tinyxml2::XMLElement* overrides)
 {
     LogAssert(mActorFactory, "actor factory is not initialized");
 	if (!mActorFactory)

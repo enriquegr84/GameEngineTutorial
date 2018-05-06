@@ -82,7 +82,7 @@ struct GameOption
 	int mMaxPlayers;
 
 	// XMLElement - look at this to find other options added by the developer
-	XMLElement *mRoot;
+	tinyxml2::XMLElement *mRoot;
 
 	GameOption();
 	~GameOption() { }

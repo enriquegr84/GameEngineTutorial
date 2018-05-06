@@ -59,10 +59,10 @@ public:
 
     AudioComponent(void);
 
-    virtual XMLElement* GenerateXml(void);
+    virtual tinyxml2::XMLElement* GenerateXml(void);
 
     // ActorComponent interface
-    virtual bool Init(XMLElement* pData) override;
+    virtual bool Init(tinyxml2::XMLElement* pData) override;
     virtual void PostInit(void) override;
 };
 

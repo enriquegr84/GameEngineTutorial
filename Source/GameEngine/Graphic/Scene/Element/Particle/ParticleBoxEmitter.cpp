@@ -4,7 +4,12 @@
 
 #include "ParticleBoxEmitter.h"
 
-#include "Core/OS/os.h"
+#include "Graphic/Renderer/Renderer.h"
+#include "Graphic/Effect/Material.h"
+
+#include "Core/OS/OS.h"
+
+#include "Graphic/Scene/Scene.h"
 
 //! constructor
 ParticleBoxEmitter::ParticleBoxEmitter( const AlignedBox3<float>& box, const Vector3<float>& direction,
@@ -37,27 +42,34 @@ int ParticleBoxEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall, 
 		unsigned int amount = (unsigned int)((mTime / everyWhatMillisecond) + 0.5f);
 		mTime = 0;
 		Particle particle;
-		const Vector3<float>& extent = mBox.GetExtent();
+		Vector3<float> center, extent;
+		mBox.GetCenteredForm(center, extent);
 
 		if (amount > mMaxParticlesPerSecond*2)
 			amount = mMaxParticlesPerSecond * 2;
 
 		for (unsigned int i=0; i<amount; ++i)
 		{
-			particle.mPos.X = mBox.MinEdge.X + Randomizer::FRand() * extent.X;
-			particle.mPos.Y = mBox.MinEdge.Y + Randomizer::FRand() * extent.Y;
-			particle.mPos.Z = mBox.MinEdge.Z + Randomizer::FRand() * extent.Z;
+			particle.mPos[0] = center[0] + Randomizer::FRand() * extent[0];
+			particle.mPos[1] = center[1] + Randomizer::FRand() * extent[1];
+			particle.mPos[2] = center[2] + Randomizer::FRand() * extent[2];
 
 			particle.mStartTime = now;
 			particle.mVector = mDirection;
 
 			if (mMaxAngleDegrees)
 			{
-				Vector3<float> tgt = mDirection;
-				tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
-				tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
-				tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
-				particle.mVector = tgt;
+				particle.mVector = mDirection;
+
+				Quaternion<float> tgt = Rotation<3, float>(
+					AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+				particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 0.0f, 1.0f, 0.0f }));
+				tgt = Rotation<3, float>(
+					AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+				particle.mVector = HProject(Rotate(tgt, Vector4<float> { 1.0f, 0.0f, 0.0f, 0.0f }));
+				tgt = Rotation<3, float>(
+					AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+				particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 1.0f, 0.0f, 0.0f }));
 			}
 
 			particle.mEndTime = now + mMinLifeTime;
@@ -67,7 +79,7 @@ int ParticleBoxEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall, 
 			if (mMinStartColor==mMaxStartColor)
 				particle.mColor=mMinStartColor;
 			else
-				particle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
+				particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
 
 			particle.mStartColor = particle.mColor;
 			particle.mStartVector = particle.mVector;
@@ -75,7 +87,7 @@ int ParticleBoxEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall, 
 			if (mMinStartSize==mMaxStartSize)
 				particle.mStartSize = mMinStartSize;
 			else
-				particle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+				particle.mStartSize = Function<float>::Lerp(mMinStartSize, mMaxStartSize, Randomizer::FRand());
 			particle.mSize = particle.mStartSize;
 
 			mParticles.push_back(particle);

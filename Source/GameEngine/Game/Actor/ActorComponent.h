@@ -64,13 +64,13 @@ public:
 	virtual ~ActorComponent(void) { mOwner.reset(); }
 
     // These functions are meant to be overridden by the implementation classes of the components.
-	virtual bool Init(XMLElement* pData) = 0;
+	virtual bool Init(tinyxml2::XMLElement* pData) = 0;
 	virtual void PostInit(void) { }
 	virtual void Update(int deltaMs) { }
 	virtual void OnChanged(void) { }				// [mrmike] - added post-press
 
     // for the editor
-    virtual XMLElement* GenerateXml(void) = 0;
+    virtual tinyxml2::XMLElement* GenerateXml(void) = 0;
 
     // This function should be overridden by the interface class.
 	virtual ComponentId GetId(void) const { return GetIdFromName(GetName()); }

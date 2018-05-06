@@ -36,6 +36,7 @@ RootNode::RootNode(const ActorId actorId, PVWUpdater& updater,
 bool RootNode::PreRender(Scene *pScene)
 {
 	// reset all transforms
+	/*
 	Renderer::Get()->SetMaterial(Material());
 	Renderer::Get()->SetTransform(TS_PROJECTION, Matrix4x4<float>::Identity());
 	Renderer::Get()->SetTransform(TS_VIEW, Matrix4x4<float>::Identity());
@@ -43,7 +44,7 @@ bool RootNode::PreRender(Scene *pScene)
 	for (unsigned int i = TS_COUNT - 1; i >= TS_TEXTURE_0; --i)
 		renderer->SetTransform((TRANSFORMATION_STATE)i, Matrix4x4<float>::Identity());
 	Renderer::Get()->SetAllowZWriteOnTransparent(true);
-
+	*/
 	// first scene node for prerendering should be the active camera
 	// consistent Camera is needed for culling
 	if (pScene->GetActiveCamera())

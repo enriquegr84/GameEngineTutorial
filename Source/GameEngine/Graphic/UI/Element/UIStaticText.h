@@ -6,10 +6,11 @@
 #define UISTATICTEXT_H
 
 #include "UIElement.h"
-#include "UIFont.h"
 
 #include "Graphic/Effect/ColorEffect.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
+
+class BaseUIFont;
 
 //! Multi or single line text label.
 class BaseUIStaticText : public BaseUIElement

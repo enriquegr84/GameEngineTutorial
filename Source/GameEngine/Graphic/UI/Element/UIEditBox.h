@@ -6,7 +6,6 @@
 #define UIEDITBOX_H
 
 #include "UIElement.h"
-#include "UIFont.h"
 
 #include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Effect/ColorEffect.h"
@@ -19,6 +18,9 @@
 \li UIEDITBOX_CHANGED
 \li UIEDITBOX_MARKING_CHANGED
 */
+
+class BaseUIFont;
+
 class BaseUIEditBox : public BaseUIElement
 {
 public:

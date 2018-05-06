@@ -449,6 +449,7 @@
     <ClInclude Include="..\Core\Utility\Array2.h" />
     <ClInclude Include="..\Core\Utility\Array3.h" />
     <ClInclude Include="..\Core\Utility\Array4.h" />
+    <ClInclude Include="..\Core\Utility\LexicoArray2.h" />
     <ClInclude Include="..\Core\Utility\StringUtil.h" />
     <ClInclude Include="..\GameEngineStd.h" />
     <ClInclude Include="..\Game\Actor\Actor.h" />
@@ -726,6 +727,7 @@
     <ClInclude Include="..\Mathematic\Geometric\Rectangle.h" />
     <ClInclude Include="..\Mathematic\Mathematic.h" />
     <ClInclude Include="..\Mathematic\MathematicStd.h" />
+    <ClInclude Include="..\Mathematic\NumericalMethod\GaussianElimination.h" />
     <ClInclude Include="..\Mathematic\Surface\IndexAttribute.h" />
     <ClInclude Include="..\Mathematic\Surface\Mesh.h" />
     <ClInclude Include="..\Mathematic\Surface\VertexAttribute.h" />

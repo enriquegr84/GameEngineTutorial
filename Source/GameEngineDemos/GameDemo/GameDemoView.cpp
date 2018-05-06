@@ -882,7 +882,7 @@ void GameDemoHumanView::OnAttach(GameViewId vid, ActorId aid)
 	HumanView::OnAttach(vid, aid);
 }
 
-bool GameDemoHumanView::LoadGameDelegate(XMLElement* pLevelData)
+bool GameDemoHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 {
 	if (!HumanView::LoadGameDelegate(pLevelData))
 		return false;

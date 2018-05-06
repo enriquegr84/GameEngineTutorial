@@ -4,6 +4,8 @@
 
 #include "ParticleGravityAffector.h"
 
+#include "Graphic/Scene/Scene.h"
+
 //! constructor
 ParticleGravityAffector::ParticleGravityAffector(
 	const Vector3<float>& gravity, unsigned int timeForceLost)
@@ -32,6 +34,6 @@ void ParticleGravityAffector::Affect(unsigned int now, Particle* particlearray, 
 			d = 0.0f;
 		d = 1.0f - d;
 
-		particlearray[i].mVector = particlearray[i].mStartVector.GetInterpolated(mGravity, d);
+		particlearray[i].mVector = Function<float>::Lerp(particlearray[i].mStartVector, mGravity, d);
 	}
 }

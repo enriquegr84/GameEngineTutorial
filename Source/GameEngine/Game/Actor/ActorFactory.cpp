@@ -78,11 +78,11 @@ ActorFactory::ActorFactory(void)
 		ActorComponent::GetIdFromName(AudioComponent::Name));
 }
 
-eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, XMLElement *overrides, 
+eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, tinyxml2::XMLElement *overrides,
 	const Transform *pInitialTransform, const ActorId serversActorId)
 {
     // Grab the root XML node
-    XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(actorResource);
+	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(actorResource);
     if (!pRoot)
     {
         LogError(L"Failed to create actor from resource: " + eastl::wstring(actorResource));
@@ -103,7 +103,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
     }
 
 	bool initialTransformSet = false;
-	XMLElement* pNode = pRoot->FirstChildElement();
+	tinyxml2::XMLElement* pNode = pRoot->FirstChildElement();
 
     // Loop through each child element and load the component
     for (; pNode; pNode = pNode->NextSiblingElement())
@@ -144,7 +144,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
     return pActor;
 }
 
-eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(XMLElement* pData)
+eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(tinyxml2::XMLElement* pData)
 {
     const char* name = pData->Value();
     eastl::shared_ptr<ActorComponent> pComponent(
@@ -171,10 +171,10 @@ eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(XMLElement* pDat
 }
 
 
-void ActorFactory::ModifyActor(eastl::shared_ptr<Actor> pActor, XMLElement* overrides)
+void ActorFactory::ModifyActor(eastl::shared_ptr<Actor> pActor, tinyxml2::XMLElement* overrides)
 {
 	// Loop through each child element and load the component
-	XMLElement* pNode = overrides->FirstChildElement();
+	tinyxml2::XMLElement* pNode = overrides->FirstChildElement();
 	for (; pNode; pNode = pNode->NextSiblingElement())
 	{
 		ComponentId componentId = ActorComponent::GetIdFromName(pNode->Value());

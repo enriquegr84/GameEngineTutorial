@@ -37,9 +37,7 @@ public:
 
 private:
 
-	unsigned int mIndices[4];
-	VertexBuffer mVertices[4*6];
-	Material mMaterials[6];
+	eastl::shared_ptr<Visual> mVisual;
 };
 
 

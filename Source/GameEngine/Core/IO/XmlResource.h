@@ -45,12 +45,12 @@
 
 class XmlResourceExtraData : public BaseResourceExtraData
 {
-	XMLDocument mXmlDocument;
+	tinyxml2::XMLDocument mXmlDocument;
 
 public:
     virtual eastl::wstring ToString() { return L"XmlResourceExtraData"; }
     void ParseXml(char* pRawBuffer);
-    XMLElement* GetRoot(void) { return mXmlDocument.RootElement(); }
+	tinyxml2::XMLElement* GetRoot(void) { return mXmlDocument.RootElement(); }
 
 };
 
@@ -65,7 +65,7 @@ public:
 	virtual bool MatchResourceFormat(eastl::wstring name) { return IsALoadableFileExtension(name.c_str()); }
 
     // convenience function
-    static XMLElement* LoadAndReturnRootXMLElement(const wchar_t* resourceString);
+    static tinyxml2::XMLElement* LoadAndReturnRootXMLElement(const wchar_t* resourceString);
 
 protected:
 

@@ -74,10 +74,10 @@ int BulletDebugDrawer::getDebugMode() const
     return mDebugModes;
 }
 
-void BulletDebugDrawer::ReadOptions(XMLElement *pRoot)
+void BulletDebugDrawer::ReadOptions(tinyxml2::XMLElement *pRoot)
 {
 	int debugModes = btIDebugDraw::DBG_NoDebug;
-	XMLElement *pNode = pRoot->FirstChildElement("PhysicsDebug");
+	tinyxml2::XMLElement *pNode = pRoot->FirstChildElement("PhysicsDebug");
 	if (pNode)
 	{
 		if (pNode->Attribute("DrawWireFrame"))

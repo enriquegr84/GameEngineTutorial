@@ -64,7 +64,7 @@ public:
 	virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color) override;
 
 	// [mrmike] Added post press to read PlayerOptions.xml to turn on physics debug options.
-	void ReadOptions(XMLElement *pRoot);
+	void ReadOptions(tinyxml2::XMLElement *pRoot);
 };
 
 #endif

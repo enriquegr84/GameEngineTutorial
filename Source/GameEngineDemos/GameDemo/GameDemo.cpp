@@ -492,7 +492,7 @@ void GameDemoLogic::DestroyAllNetworkEventForwarders(void)
 }
 
 
-bool GameDemoLogic::LoadGameDelegate(XMLElement* pLevelData)
+bool GameDemoLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 {
 	return true;
 }

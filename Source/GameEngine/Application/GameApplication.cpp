@@ -16,7 +16,7 @@
 #include "Core/IO/ResourceCache.h"
 #include "Core/IO/XmlResource.h"
 
-#include "Game/View/UI/UserInterface.h"
+#include "Graphic/UI/UserInterface.h"
 #include "Game/View/HumanView.h"
 
 // All event type headers
@@ -637,7 +637,7 @@ HumanView* GameApplication::GetHumanView()
 	return pView;
 }
 
-void GameApplication::InitHumanViews(XMLElement* pRoot)
+void GameApplication::InitHumanViews(tinyxml2::XMLElement* pRoot)
 {
 	for (auto it = mGameViews.begin(); it != mGameViews.end(); ++it)
 	{

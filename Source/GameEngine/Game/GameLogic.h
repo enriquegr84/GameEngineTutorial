@@ -79,7 +79,7 @@ class BaseGameLogic
 public:
 	virtual eastl::weak_ptr<Actor> GetActor(const ActorId id) = 0;
 	virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource, 
-		XMLElement *overrides, const Transform *initialTransform = NULL, 
+		tinyxml2::XMLElement *overrides, const Transform *initialTransform = NULL,
 		const ActorId serversActorId = INVALID_ACTOR_ID) = 0;
 	virtual void DestroyActor(const ActorId actorId) = 0;
 	virtual bool LoadGame(const char* levelResource) = 0;
@@ -119,12 +119,12 @@ public:
 
 	// [rez] note: don't store this strong pointer outside of this class 
 	virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource,
-		XMLElement *overrides, const Transform *initialTransform = NULL,
+		tinyxml2::XMLElement *overrides, const Transform *initialTransform = NULL,
 		const ActorId serversActorId = INVALID_ACTOR_ID);
 
 	virtual void DestroyActor(const ActorId actorId);
 	virtual eastl::weak_ptr<Actor> GetActor(const ActorId actorId);
-	virtual void ModifyActor(const ActorId actorId, XMLElement *overrides);
+	virtual void ModifyActor(const ActorId actorId, tinyxml2::XMLElement *overrides);
 
 	virtual void MoveActor(const ActorId id, Transform const &transform) {}
 
@@ -172,7 +172,7 @@ protected:
 	virtual ActorFactory* CreateActorFactory(void);
 
 	// [rez] Override this function to do any game-specific loading.
-	virtual bool LoadGameDelegate(XMLElement* pLevelData) { return true; }
+	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData) { return true; }
 
 	void MoveActorDelegate(BaseEventDataPtr pEventData);
 	void RequestNewActorDelegate(BaseEventDataPtr pEventData);

@@ -194,7 +194,6 @@
 using fastdelegate::MakeDelegate;
 
 #include "tinyxml2.h"
-using namespace tinyxml2;
 
 #ifdef _WINDOWS_
 

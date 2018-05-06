@@ -80,6 +80,16 @@ public:
 	eastl::shared_ptr<Visual> CreateBox(float xExtent, float yExtent,
 		float zExtent);
 
+	// The sphere has center (0,0,0) and the specified radius.  The north pole
+	// is at (0,0,radius) and the south pole is at (0,0,-radius).  The mesh has
+	// the topology of an open cylinder (which is also the topology of a
+	// rectangle with wrap-around for one pair of parallel edges) and is then
+	// stitched to the north and south poles.  The triangles are unevenly
+	// distributed.  If you want a more even distribution, create an
+	// icosahedron and subdivide it.
+	eastl::shared_ptr<Visual> CreateSphere(unsigned int numZSamples,
+		unsigned int numRadialSamples, float radius);
+
 private:
     // Support for creating vertex and index buffers.
 	eastl::shared_ptr<VertexBuffer> CreateVBuffer(unsigned int numVertices);

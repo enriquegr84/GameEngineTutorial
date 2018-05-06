@@ -40,7 +40,7 @@ eastl::shared_ptr<Visual> MeshFactory::CreateMesh(const Mesh<float>* mesh)
 	if (!mesh->GetDescription().mIndexAttribute.source)
 	{
 		LogError("The mesh needs triangles/indices.");
-		return;
+		return nullptr;
 	}
 
 	//we need to set the vertexformat
@@ -136,7 +136,7 @@ eastl::shared_ptr<Visual> MeshFactory::CreateMesh(const Mesh<float>* mesh)
 	if (!mPositions)
 	{
 		LogError("The mesh needs positions.");
-		return;
+		return nullptr;
 	}
 
 	auto visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
@@ -304,6 +304,173 @@ eastl::shared_ptr<Visual> MeshFactory::CreateBox(float xExtent, float yExtent, f
 	if (visual)
 	{
 		visual->UpdateModelBound();
+	}
+	return visual;
+}
+
+eastl::shared_ptr<Visual> MeshFactory::CreateSphere(unsigned int numZSamples,
+	unsigned int numRadialSamples, float radius)
+{
+	// Quantities derived from inputs.
+	unsigned int zsm1 = numZSamples - 1;
+	unsigned int zsm2 = numZSamples - 2;
+	unsigned int zsm3 = numZSamples - 3;
+	unsigned int rsp1 = numRadialSamples + 1;
+	float invRS = 1.0f / static_cast<float>(numRadialSamples);
+	float zFactor = 2.0f / static_cast<float>(zsm1);
+	unsigned int numVertices = zsm2*rsp1 + 2;
+	unsigned int numTriangles = 2 * zsm2*numRadialSamples;
+
+	// Generate geometry.
+	eastl::shared_ptr<VertexBuffer> vbuffer = CreateVBuffer(numVertices);
+	if (!vbuffer)
+	{
+		return nullptr;
+	}
+
+	Vector3<float> pos, nor, basis[3];
+	Vector2<float> tcd;
+
+	// Generate points on the unit circle to be used in computing the mesh
+	// points on a sphere slice.
+	eastl::vector<float> cs(rsp1), sn(rsp1);
+	for (unsigned int r = 0; r < numRadialSamples; ++r)
+	{
+		float angle = invRS*r*(float)GE_C_TWO_PI;
+		cs[r] = cos(angle);
+		sn[r] = sin(angle);
+	}
+	cs[numRadialSamples] = cs[0];
+	sn[numRadialSamples] = sn[0];
+
+	// Generate the sphere itself.
+	unsigned int i = 0;
+	for (unsigned int z = 1; z < zsm1; ++z)
+	{
+		float zFraction = -1.0f + zFactor*static_cast<float>(z);  // in (-1,1)
+		float zValue = radius*zFraction;
+
+		// Compute center of slice.
+		Vector3<float> sliceCenter{ 0.0f, 0.0f, zValue };
+
+		// Compute radius of slice.
+		float sliceRadius = sqrt(fabs(radius*radius - zValue*zValue));
+
+		// Compute slice vertices with duplication at endpoint.
+		for (unsigned int r = 0; r <= numRadialSamples; ++r, ++i)
+		{
+			float radialFraction = r*invRS;  // in [0,1)
+			Vector3<float> radial{ cs[r], sn[r], 0.0f };
+			pos = sliceCenter + sliceRadius*radial;
+			nor = pos;
+			Normalize(nor);
+			if (!mOutside)
+			{
+				nor = -nor;
+			}
+
+			basis[0] = nor;
+			ComputeOrthogonalComplement(1, basis);
+			tcd = { radialFraction, 0.5f*(zFraction + 1.0f) };
+
+			SetPosition(i, pos);
+			SetNormal(i, nor);
+			SetTangent(i, basis[1]);
+			SetBinormal(i, basis[2]);
+			SetTCoord(i, tcd);
+		}
+	}
+
+	// The point at the south pole.
+	pos = { 0.0f, 0.0f, -radius };
+	if (mOutside)
+	{
+		nor = { 0.0f, 0.0f, -1.0f };
+	}
+	else
+	{
+		nor = { 0.0f, 0.0f, 1.0f };
+	}
+	basis[0] = nor;
+	ComputeOrthogonalComplement(1, basis);
+	tcd = { 0.5f, 0.5f };
+	SetPosition(i, pos);
+	SetNormal(i, nor);
+	SetTangent(i, basis[1]);
+	SetBinormal(i, basis[2]);
+	SetTCoord(i, tcd);
+	++i;
+
+	// The point at the north pole.
+	pos = { 0.0f, 0.0f, radius };
+	if (mOutside)
+	{
+		nor = { 0.0f, 0.0f, 1.0f };
+	}
+	else
+	{
+		nor = { 0.0f, 0.0f, -1.0f };
+	}
+	basis[0] = nor;
+	ComputeOrthogonalComplement(1, basis);
+	tcd = { 0.5f, 1.0f };
+	SetPosition(i, pos);
+	SetNormal(i, nor);
+	SetTangent(i, basis[1]);
+	SetBinormal(i, basis[2]);
+	SetTCoord(i, tcd);
+
+	// Generate indices (outside view).
+	eastl::shared_ptr<IndexBuffer> ibuffer = CreateIBuffer(numTriangles);
+	if (!ibuffer)
+	{
+		return nullptr;
+	}
+	unsigned int t = 0;
+	for (unsigned int z = 0, zStart = 0; z < zsm3; ++z)
+	{
+		unsigned int i0 = zStart;
+		unsigned int i1 = i0 + 1;
+		zStart += rsp1;
+		unsigned int i2 = zStart;
+		unsigned int i3 = i2 + 1;
+		for (i = 0; i < numRadialSamples; ++i, ++i0, ++i1, ++i2, ++i3)
+		{
+			ibuffer->SetTriangle(t++, i0, i1, i2);
+			ibuffer->SetTriangle(t++, i1, i3, i2);
+		}
+	}
+
+	// The south pole triangles (outside view).
+	unsigned int numVerticesM2 = numVertices - 2;
+	for (i = 0; i < numRadialSamples; ++i, ++t)
+	{
+		ibuffer->SetTriangle(t, i, numVerticesM2, i + 1);
+	}
+
+	// The north pole triangles (outside view).
+	unsigned int numVerticesM1 = numVertices - 1, offset = zsm3*rsp1;
+	for (i = 0; i < numRadialSamples; ++i, ++t)
+	{
+		ibuffer->SetTriangle(t, i + offset, i + 1 + offset, numVerticesM1);
+	}
+
+	if (!mOutside)
+	{
+		ReverseTriangleOrder(ibuffer.get());
+	}
+
+	// Create the mesh.
+	eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
+	if (visual)
+	{
+		visual->UpdateModelBound();
+
+		// The duplication of vertices at the seam cause the automatically
+		// generated bounding volume to be slightly off center.  Reset the
+		// bound to use the true information.
+		visual->mModelBound.SetCenter({ 0.0f, 0.0f, 0.0f, 1.0f });
+		visual->mModelBound.SetRadius(radius);
 	}
 	return visual;
 }

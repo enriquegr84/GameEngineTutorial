@@ -78,7 +78,7 @@ void GameOption::Init(const wchar_t* xmlFileName)
 	else
 	{
         // Loop through each child element and load the component
-        XMLElement* pNode = NULL;
+		tinyxml2::XMLElement* pNode = NULL;
 		pNode = mRoot->FirstChildElement("Graphics"); 
 		if (pNode)
 		{

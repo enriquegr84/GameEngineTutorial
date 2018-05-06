@@ -13,6 +13,8 @@
 #include "Graphic/Scene/Hierarchy/Node.h"
 #include "Graphic/Scene/Hierarchy/Light.h"
 
+#include "Graphic/Effect/LightingEffect.h"
+
 class Scene;
 
 typedef eastl::list<eastl::shared_ptr<Light> > Lights;

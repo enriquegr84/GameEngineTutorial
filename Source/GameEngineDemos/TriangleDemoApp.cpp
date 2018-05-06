@@ -113,7 +113,7 @@ void TriangleDemoApplication::InitializeCamera(
 //----------------------------------------------------------------------------
 bool TriangleDemoApplication::CreateScene()
 {
-	mScene = eastl::make_shared<Node>();
+	//mScene = eastl::make_shared<Node>();
 
 	struct Vertex
 	{
@@ -141,7 +141,7 @@ bool TriangleDemoApplication::CreateScene()
 	//mPVWMatrices.Subscribe(
 	//mRectangle[i]->worldTransform, mVCEffect[i]->GetPVWMatrixConstant());
 
-	mScene->AttachChild(mTriangle);
+	//mScene->AttachChild(mTriangle);
 	mTriangle->Update();
 
 	return true;

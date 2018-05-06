@@ -570,11 +570,11 @@ Real Orthonormalize(int numInputs, Vector<N, Real>* v, bool robust)
 template <int N, typename Real>
 Vector<N, Real> GetOrthogonal(Vector<N, Real> const& v, bool unitLength)
 {
-    Real cmax = eastl::abs(v[0]);
+    Real cmax = fabs(v[0]);
     int imax = 0;
     for (int i = 1; i < N; ++i)
     {
-        Real c = eastl::abs(v[i]);
+        Real c = fabs(v[i]);
         if (c > cmax)
         {
             cmax = c;

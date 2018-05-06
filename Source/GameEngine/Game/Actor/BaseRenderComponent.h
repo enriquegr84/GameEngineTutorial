@@ -62,21 +62,22 @@ protected:
 	//virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) = 0;
 
 public:
-    virtual bool Init(XMLElement* pData) override;
+    virtual bool Init(tinyxml2::XMLElement* pData) override;
     virtual void PostInit(void) override;
 	virtual void OnChanged(void) override;
-    virtual XMLElement* GenerateXml(void) override;
+    virtual tinyxml2::XMLElement* GenerateXml(void) override;
 	//const Color GetColor() const { return mColor; }
 
 protected:
     // loads the SceneNode specific data (represented in the <SceneNode> tag)
-    virtual bool DelegateInit(XMLElement* pData) { return true; }
+    virtual bool DelegateInit(tinyxml2::XMLElement* pData) { return true; }
 	// factory method to create the appropriate scene node
     //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) = 0;  
     //Color LoadColor(XMLElement* pData);
 
     // editor stuff
-    virtual void CreateInheritedXMLElements(XMLDocument doc, XMLElement* pBaseElement) = 0;
+    virtual void CreateInheritedXMLElements(
+		tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement) = 0;
 
 private:
     //virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) override;

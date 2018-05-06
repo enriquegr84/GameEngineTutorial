@@ -47,8 +47,6 @@ bool LightNode::Render(Scene *pScene)
 	if (!Renderer::Get())
 		return false;
 
-	Matrix4x4<float> toWorld, fromWorld;
-	//Transform(&toWorld, &fromWorld);
 	/*
 	if (DebugDataVisible() & DS_BBOX )
 	{

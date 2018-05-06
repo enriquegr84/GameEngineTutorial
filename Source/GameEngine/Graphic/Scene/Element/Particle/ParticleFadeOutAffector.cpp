@@ -4,6 +4,8 @@
 
 #include "ParticleFadeOutAffector.h"
 
+#include "Graphic/Scene/Scene.h"
+
 //! constructor
 ParticleFadeOutAffector::ParticleFadeOutAffector(
 	const eastl::array<float, 4>& targetColor, unsigned int fadeOutTime)
@@ -31,7 +33,7 @@ void ParticleFadeOutAffector::Affect(unsigned int now, Particle* particlearray, 
 		if (particlearray[i].mEndTime - now < mFadeOutTime)
 		{
 			d = (particlearray[i].mEndTime - now) / mFadeOutTime;	// FadeOutTime probably float to save casts here (just guessing)
-			particlearray[i].mColor = particlearray[i].mStartColor.GetInterpolated(mTargetColor, d);
+			particlearray[i].mColor = Function<float>::Lerp(particlearray[i].mStartColor, mTargetColor, d);
 		}
 	}
 }

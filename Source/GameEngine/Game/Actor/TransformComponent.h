@@ -56,8 +56,8 @@ public:
 	virtual const char* GetName() const { return Name; }
 
 	TransformComponent(void) { mTransform.MakeIdentity(); }
-    virtual bool Init(XMLElement* pData) override;
-    virtual XMLElement* GenerateXml(void) override;
+    virtual bool Init(tinyxml2::XMLElement* pData) override;
+    virtual tinyxml2::XMLElement* GenerateXml(void) override;
 
     // transform functions
 	Transform GetTransform(void) const { return mTransform; }

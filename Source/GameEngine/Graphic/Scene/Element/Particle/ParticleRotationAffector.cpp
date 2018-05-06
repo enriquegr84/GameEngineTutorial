@@ -4,6 +4,12 @@
 
 #include "ParticleRotationAffector.h"
 
+#include "Graphic/Renderer/Renderer.h"
+#include "Graphic/Effect/Material.h"
+
+#include "Core/OS/OS.h"
+
+#include "Graphic/Scene/Scene.h"
 
 //! constructor
 ParticleRotationAffector::ParticleRotationAffector( const Vector3<float>& speed, const Vector3<float>& pivotPoint )
@@ -32,13 +38,28 @@ void ParticleRotationAffector::Affect(unsigned int now, Particle* particlearray,
 
 	for(unsigned int i=0; i<count; ++i)
 	{
-		if( mSpeed.X != 0.0f )
-			particlearray[i].mPos.RotateYZBy( timeDelta * mSpeed.X, mPivotPoint );
+		if (mSpeed[0] != 0.0f)
+		{
+			Quaternion<float> tgt = Rotation<3, float>(
+				AxisAngle<3, float>(particlearray[i].mPos, timeDelta * mSpeed[0]));
+			particlearray[i].mPos = HProject(Rotate(tgt, Vector4<float> { 1.0f, 0.0f, 0.0f, 0.0f }));
+			//particlearray[i].mPos.RotateYZBy(timeDelta * mSpeed.X, mPivotPoint);
+		}
 
-		if( mSpeed.Y != 0.0f )
-			particlearray[i].mPos.RotateXZBy( timeDelta * mSpeed.Y, mPivotPoint );
+		if (mSpeed[1] != 0.0f)
+		{
+			Quaternion<float> tgt = Rotation<3, float>(
+				AxisAngle<3, float>(particlearray[i].mPos, timeDelta * mSpeed[1]));
+			particlearray[i].mPos = HProject(Rotate(tgt, Vector4<float> { 0.0f, 1.0f, 0.0f, 0.0f }));
+			//particlearray[i].mPos.RotateXZBy(timeDelta * mSpeed.Y, mPivotPoint);
+		}
 
-		if( mSpeed.Z != 0.0f )
-			particlearray[i].mPos.RotateXYBy( timeDelta * mSpeed.Z, mPivotPoint );
+		if (mSpeed[2] != 0.0f)
+		{
+			Quaternion<float> tgt = Rotation<3, float>(
+				AxisAngle<3, float>(particlearray[i].mPos, timeDelta * mSpeed[2]));
+			particlearray[i].mPos = HProject(Rotate(tgt, Vector4<float> { 0.0f, 0.0f, 1.0f, 0.0f }));
+			//particlearray[i].mPos.RotateXYBy(timeDelta * mSpeed.Z, mPivotPoint);
+		}
 	}
 }

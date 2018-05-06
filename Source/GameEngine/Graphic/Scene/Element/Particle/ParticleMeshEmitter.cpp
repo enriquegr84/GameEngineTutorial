@@ -2,11 +2,14 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#include "GameEngineStd.h"
-
 #include "ParticleMeshEmitter.h"
 
-#include "Core/OS/os.h"
+#include "Graphic/Renderer/Renderer.h"
+#include "Graphic/Effect/Material.h"
+
+#include "Core/OS/OS.h"
+
+#include "Graphic/Scene/Scene.h"
 
 //! constructor
 ParticleMeshEmitter::ParticleMeshEmitter(
@@ -60,11 +63,14 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 			{
 				for( unsigned int j=0; j<mParticleMesh->GetMeshBufferCount(); ++j )
 				{
-					for( unsigned int k=0; k<mParticleMesh->GetMeshBuffer(j)->GetVertexCount(); ++k )
+					const eastl::shared_ptr<MeshBuffer<float>>& meshBuffer = mParticleMesh->GetMeshBuffer(j);
+					const MeshDescription& meshDescription = meshBuffer->mMesh->GetDescription();
+					
+					for( unsigned int k=0; k<meshDescription.mNumVertices; ++k )
 					{
-						particle.mPos = mParticleMesh->GetMeshBuffer(j)->GetPosition(k);
+						particle.mPos = meshBuffer->mMesh->Position(k);
 						if( mUseNormalDirection )
-							particle.mVector = mParticleMesh->GetMeshBuffer(j)->GetNormal(k) / mNormalDirectionModifier;
+							particle.mVector = meshBuffer->mMesh->Normal(k) / mNormalDirectionModifier;
 						else
 							particle.mVector = mDirection;
 
@@ -72,11 +78,15 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 
 						if( mMaxAngleDegrees )
 						{
-							Vector3<float> tgt = particle.mVector;
-							tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
-							tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
-							tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
-							particle.mVector = tgt;
+							Quaternion<float> tgt = Rotation<3, float>(
+								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+							particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 0.0f, 1.0f, 0.0f }));
+							tgt = Rotation<3, float>(
+								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+							particle.mVector = HProject(Rotate(tgt, Vector4<float> { 1.0f, 0.0f, 0.0f, 0.0f }));
+							tgt = Rotation<3, float>(
+								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+							particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 1.0f, 0.0f, 0.0f }));
 						}
 
 						particle.mEndTime = now + mMinLifeTime;
@@ -86,15 +96,15 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 						if (mMinStartColor==mMaxStartColor)
 							particle.mColor=mMinStartColor;
 						else
-							particle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
+							particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
 
 						particle.mStartColor = particle.mColor;
-						particle.mStartColor = particle.mVector;
+						particle.mStartVector = particle.mVector;
 
 						if (mMinStartSize==mMaxStartSize)
 							particle.mStartSize = mMinStartSize;
 						else
-							particle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+							particle.mStartSize = Function<float>::Lerp(mMinStartSize, mMaxStartSize, Randomizer::FRand());
 						particle.mSize = particle.mStartSize;
 
 						mParticles.push_back(particle);
@@ -105,14 +115,17 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 			{
 				const int randomMB = (mMBNumber < 0) ? (Randomizer::Rand() % mMBCount) : mMBNumber;
 
-				unsigned int vertexNumber = mParticleMesh->GetMeshBuffer(randomMB)->GetVertexCount();
-				if (!vertexNumber)
-					continue;
-				vertexNumber = Randomizer::Rand() % vertexNumber;
+				const eastl::shared_ptr<MeshBuffer<float>>& meshBuffer = mParticleMesh->GetMeshBuffer(randomMB);
+				const MeshDescription& meshDescription = meshBuffer->mMesh->GetDescription();
 
-				particle.mPos = mParticleMesh->GetMeshBuffer(randomMB)->GetPosition(vertexNumber);
+				if (!meshDescription.mNumVertices)
+					continue;
+				
+				unsigned int vertexNumber = Randomizer::Rand() % meshDescription.mNumVertices;
+
+				particle.mPos = meshBuffer->mMesh->Position(vertexNumber);
 				if( mUseNormalDirection )
-					particle.mVector = mParticleMesh->GetMeshBuffer(randomMB)->GetNormal(vertexNumber) /mNormalDirectionModifier;
+					particle.mVector = meshBuffer->mMesh->Normal(vertexNumber) /mNormalDirectionModifier;
 				else
 					particle.mVector = mDirection;
 
@@ -120,11 +133,17 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 
 				if( mMaxAngleDegrees )
 				{
-					Vector3<float> tgt = mDirection;
-					tgt.RotateXYBy(Randomizer::FRand() * mMaxAngleDegrees);
-					tgt.RotateYZBy(Randomizer::FRand() * mMaxAngleDegrees);
-					tgt.RotateXZBy(Randomizer::FRand() * mMaxAngleDegrees);
-					particle.mVector = tgt;
+					particle.mVector = mDirection;
+
+					Quaternion<float> tgt = Rotation<3, float>(
+						AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+					particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 0.0f, 1.0f, 0.0f }));
+					tgt = Rotation<3, float>(
+						AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+					particle.mVector = HProject(Rotate(tgt, Vector4<float> { 1.0f, 0.0f, 0.0f, 0.0f }));
+					tgt = Rotation<3, float>(
+						AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
+					particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 1.0f, 0.0f, 0.0f }));
 				}
 
 				particle.mEndTime = now + mMinLifeTime;
@@ -134,7 +153,7 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 				if (mMinStartColor==mMaxStartColor)
 					particle.mColor=mMinStartColor;
 				else
-					particle.mColor = mMinStartColor.GetInterpolated(mMaxStartColor, Randomizer::FRand());
+					particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
 
 				particle.mStartColor = particle.mColor;
 				particle.mStartVector = particle.mVector;
@@ -142,7 +161,7 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 				if (mMinStartSize==mMaxStartSize)
 					particle.mStartSize = mMinStartSize;
 				else
-					particle.mStartSize = mMinStartSize.GetInterpolated(mMaxStartSize, Randomizer::FRand());
+					particle.mStartSize = Function<float>::Lerp(mMinStartSize, mMaxStartSize, Randomizer::FRand());
 				particle.mSize = particle.mStartSize;
 
 				mParticles.push_back(particle);
@@ -173,7 +192,10 @@ void ParticleMeshEmitter::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 	mMBCount = mParticleMesh->GetMeshBufferCount();
 	for( unsigned int i = 0; i < mMBCount; ++i )
 	{
-		mVertexPerMeshBufferList.push_back( mParticleMesh->GetMeshBuffer(i)->GetVertexCount() );
-		mTotalVertices += mParticleMesh->GetMeshBuffer(i)->GetVertexCount();
+		const eastl::shared_ptr<MeshBuffer<float>>& meshBuffer = mParticleMesh->GetMeshBuffer(i);
+		const MeshDescription& meshDescription = meshBuffer->mMesh->GetDescription();
+
+		mVertexPerMeshBufferList.push_back( meshDescription.mNumVertices );
+		mTotalVertices += meshDescription.mNumVertices;
 	}
 }

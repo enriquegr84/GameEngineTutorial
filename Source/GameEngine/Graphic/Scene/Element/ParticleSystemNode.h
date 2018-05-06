@@ -98,7 +98,7 @@ public:
 
 	//! Creates a box particle emitter.
 	ParticleBoxEmitter* CreateBoxEmitter(
-		const AlignedBox3<float>& box,// = AlignedBox3<float>{ -10.f,0.f,-10.f,5.f,30.f,10.f },
+		const AlignedBox3<float>& box = AlignedBox3<float>(),//{ -10.f,0.f,-10.f,5.f,30.f,10.f },
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
 		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{1.f, 0.f, 0.f, 0.f},
@@ -192,7 +192,7 @@ private:
 
 	void ReallocateBuffers();
 
-	eastl::shared_ptr<MeshBuffer<float>> mBuffer;
+	eastl::shared_ptr<Visual> mVisual;
 	eastl::list<eastl::shared_ptr<BaseParticleAffector>> mAffectorList;
 	eastl::shared_ptr<BaseParticleEmitter> mEmitter;
 	eastl::vector<Particle> mParticles;

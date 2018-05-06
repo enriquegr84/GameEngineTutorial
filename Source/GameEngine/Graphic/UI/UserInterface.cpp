@@ -701,7 +701,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::wstring& fileName)
 	auto itFont = mFonts.find(fileName);
 	if (itFont != mFonts.end()) return mFonts[fileName];
 
-	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(fileName.c_str());
+	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(fileName.c_str());
     // font doesn't exist, attempt to load it
 	if (!pRoot)
     {
@@ -713,7 +713,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::wstring& fileName)
 	// this is an XML font, but we need to know what type
 	UIFontType t = FT_CUSTOM;
 	// Loop through each child element and load the component
-    for (XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
+    for (tinyxml2::XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
     {
 		if (eastl::string("font").compare(eastl::string(pNode->Value())) == 0)
 		{
@@ -821,7 +821,7 @@ eastl::shared_ptr<BaseUISpriteBank> BaseUI::GetSpriteBank(const eastl::wstring& 
 
 	// todo: load it!
 	/*
-	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(fileName.c_str());
+	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(fileName.c_str());
 	// font doesn't exist, attempt to load it
 	if (!pRoot)
 	{

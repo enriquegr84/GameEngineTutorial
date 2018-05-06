@@ -7,7 +7,7 @@
 
 #include "GameEngineStd.h"
 
-#include "UserInterface.h"
+#include "Element/UIElement.h"
 
 //! Interface making it possible to dynamically create UI elements
 /** To be able to add custom elements to Irrlicht and to make it possible for the

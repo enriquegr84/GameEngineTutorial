@@ -85,7 +85,7 @@ void CameraNode::UpdateMatrices()
 	up = Normalize(up);
 
 	float dp = Dot(direction, up);
-	if ( Function<float>::Equals(Function<float>::FAbs(dp), 1.f) )
+	if ( Function<float>::Equals(fabs(dp), 1.f) )
 		up[0] += 0.5f;
 
 	Vector4<float> right = Cross(direction, up);

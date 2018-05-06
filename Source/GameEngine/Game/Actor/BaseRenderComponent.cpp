@@ -45,10 +45,10 @@
 // RenderComponent
 //---------------------------------------------------------------------------------------------------------------------
 
-bool BaseRenderComponent::Init(XMLElement* pData)
+bool BaseRenderComponent::Init(tinyxml2::XMLElement* pData)
 {
     // color
-    XMLElement* pColorNode = pData->FirstChildElement("Color");
+	tinyxml2::XMLElement* pColorNode = pData->FirstChildElement("Color");
 	/*
     if (pColorNode)
         mColor = LoadColor(pColorNode);
@@ -78,15 +78,15 @@ void BaseRenderComponent::OnChanged(void)
 }
 
 
-XMLElement* BaseRenderComponent::GenerateXml(void)
+tinyxml2::XMLElement* BaseRenderComponent::GenerateXml(void)
 {
-	XMLDocument doc;
+	tinyxml2::XMLDocument doc;
 
 	// base element
-	XMLElement* pBaseElement = doc.NewElement(GetName());
+	tinyxml2::XMLElement* pBaseElement = doc.NewElement(GetName());
 
     // color
-    XMLElement* pColor = doc.NewElement("Color");
+	tinyxml2::XMLElement* pColor = doc.NewElement("Color");
 	/*
     pColor->SetAttribute("r", eastl::string(mColor.GetRed()).c_str());
     pColor->SetAttribute("g", eastl::string(mColor.GetGreen()).c_str());

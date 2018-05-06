@@ -64,7 +64,7 @@ Actor::~Actor(void)
     LogAssert(mComponents.empty(), "components are empty");
 }
 
-bool Actor::Init(XMLElement* pData)
+bool Actor::Init(tinyxml2::XMLElement* pData)
 {
 	mType = pData->Attribute("type");
 	mResource = pData->Attribute("resource");
@@ -98,10 +98,10 @@ void Actor::Update(int deltaMs)
 
 eastl::string Actor::ToXML()
 {
-    XMLDocument outDoc;
+    tinyxml2::XMLDocument outDoc;
 
     // Actor element
-    XMLElement* pActorElement = outDoc.NewElement("Actor");
+	tinyxml2::XMLElement* pActorElement = outDoc.NewElement("Actor");
     pActorElement->SetAttribute("type", mType.c_str());
 	pActorElement->SetAttribute("resource", mResource.c_str());
 
@@ -109,12 +109,12 @@ eastl::string Actor::ToXML()
     for (auto it = mComponents.begin(); it != mComponents.end(); ++it)
     {
         eastl::shared_ptr<ActorComponent> pComponent = it->second;
-        XMLElement* pComponentElement = pComponent->GenerateXml();
+		tinyxml2::XMLElement* pComponentElement = pComponent->GenerateXml();
         pActorElement->LinkEndChild(pComponentElement);
     }
 
     outDoc.LinkEndChild(pActorElement);
-	XMLPrinter printer;
+	tinyxml2::XMLPrinter printer;
 	outDoc.Accept(&printer);
 
 	return printer.CStr();

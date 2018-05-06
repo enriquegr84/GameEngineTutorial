@@ -36,8 +36,10 @@ VolumeLightNode::~VolumeLightNode()
 
 void VolumeLightNode::ConstructLight()
 {
+	/*
 	mMesh = eastl::shared_ptr<BaseMesh>(GetGeometryCreator()->CreateVolumeLightMesh(
 		mSubdivideU, mSubdivideV, mFootColor, mTailColor, mLPDistance, mLightDimensions));
+	*/
 }
 
 
@@ -59,6 +61,7 @@ bool VolumeLightNode::PreRender(Scene *pScene)
 //
 bool VolumeLightNode::Render(Scene *pScene)
 {
+	/*
 	Matrix4x4<float> toWorld, fromWorld;
 	//Get()->Transform(&toWorld, &fromWorld);
 
@@ -66,7 +69,7 @@ bool VolumeLightNode::Render(Scene *pScene)
 
 	Renderer::Get()->SetMaterial(mMesh->GetMeshBuffer(0)->GetMaterial());
 	Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
-
+	*/
 	return Node::Render(pScene);
 }
 

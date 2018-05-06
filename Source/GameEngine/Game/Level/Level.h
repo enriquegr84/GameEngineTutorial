@@ -109,7 +109,7 @@ private:
 	eastl::wstring mName;
 
 	void LoadLevelInfo();
-	bool LoadMainLevel(const XMLElement* pNode);
+	bool LoadMainLevel(const tinyxml2::XMLElement* pNode);
 
 };   // class Level
 

@@ -80,7 +80,7 @@ eastl::shared_ptr<BaseResourceLoader> CreateXmlResourceLoader()
     return eastl::shared_ptr<BaseResourceLoader>(new XmlResourceLoader());
 }
 
-XMLElement* XmlResourceLoader::LoadAndReturnRootXMLElement(const wchar_t* resourceName)
+tinyxml2::XMLElement* XmlResourceLoader::LoadAndReturnRootXMLElement(const wchar_t* resourceName)
 {
 	BaseResource resource(resourceName);
 	// this actually loads the XML file from the zip file

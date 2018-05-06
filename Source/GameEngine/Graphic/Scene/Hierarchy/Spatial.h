@@ -166,7 +166,7 @@ private:
     // pointer.  Node provides the child pointers.  The parent pointer is not
     // shared to avoid reference-count cycles between mParent and 'this.
     // Because the pointer links are set internally rather than by an external
-    // manager, it is not possible to use std::weak_ptr to avoid the cycle
+    // manager, it is not possible to use eastl::weak_ptr to avoid the cycle
     // because we do not know the shared_ptr object that owns mParent.
     Spatial* mParent;
 };

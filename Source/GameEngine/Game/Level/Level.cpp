@@ -57,7 +57,7 @@ void Level::Reset()
 //-----------------------------------------------------------------------------
 void Level::LoadLevelInfo()
 {
-	XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(mFileName.c_str());
+	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(mFileName.c_str());
 
 	if (!pRoot)
 	{
@@ -73,7 +73,7 @@ void Level::LoadLevelInfo()
  *  scene might use raycast on this track model to determine the actual
  *  height of the terrain.
  */
-bool Level::LoadMainLevel(const XMLElement* pRoot)
+bool Level::LoadMainLevel(const tinyxml2::XMLElement* pRoot)
 {
 
     return true;

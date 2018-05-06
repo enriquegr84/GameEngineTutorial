@@ -52,7 +52,7 @@ public:
 	{
 		for (int i = (int)mMeshBuffers.size() - 1; i >= 0; --i)
 		{
-			if (material == mMeshBuffers[i]->GetMaterial())
+			if (&material == mMeshBuffers[i]->GetMaterial().get())
 				return mMeshBuffers[i];
 		}
 

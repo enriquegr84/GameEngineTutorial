@@ -10,6 +10,8 @@
 
 #include "Vector.h"
 
+#include "Mathematic/NumericalMethod/GaussianElimination.h"
+
 template <int NumRows, int NumCols, typename Real>
 class Matrix
 {
@@ -618,10 +620,10 @@ operator/=(Matrix<NumRows, NumCols, Real>& M, Real scalar)
 template <int NumRows, int NumCols, typename Real>
 Real L1Norm(Matrix<NumRows, NumCols, Real> const& M)
 {
-    Real sum = eastl::abs(M[0]);
+    Real sum = fabs(M[0]);
     for (int i = 1; i < NumRows*NumCols; ++i)
     {
-        sum += eastl::abs(M[i]);
+        sum += fabs(M[i]);
     }
     return sum;
 }
@@ -643,7 +645,7 @@ Real LInfinityNorm(Matrix<NumRows, NumCols, Real> const& M)
     Real maxAbsElement = M[0];
     for (int i = 1; i < NumRows*NumCols; ++i)
     {
-        Real absElement = eastl::abs(M[i]);
+        Real absElement = fabs(M[i]);
         if (absElement > maxAbsElement)
         {
             maxAbsElement = absElement;

@@ -47,7 +47,7 @@ private:
 	eastl::vector<ShadowVolume> mShadowVolumes;
 
 	// a back cap bounding box for every light
-	eastl::vector<AlignedBox3<float> > mShadowBBox;
+	eastl::vector<AlignedBox3<float>> mShadowBBox;
 
 	eastl::vector<Vector3<float>> mVertices;
 	eastl::vector<unsigned int> mIndices;
@@ -56,6 +56,7 @@ private:
 	// tells if face is front facing
 	eastl::vector<bool> mFaceData;
 
+	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
 	eastl::shared_ptr<BaseMesh> mShadowMesh;
 
 	unsigned int mIndexCount;
