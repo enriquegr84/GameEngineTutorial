@@ -26,21 +26,23 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater& update
 	//setDebugName("CParticleSystemSceneNode");
 	#endif
 	mPVWUpdater = updater;
-	eastl::shared_ptr<MeshBuffer<float>> buffer = eastl::make_shared<MeshBuffer<float>>();
+	eastl::shared_ptr<MeshBuffer> buffer = eastl::make_shared<MeshBuffer>(1,1,1,1);
 	if (buffer)
 	{
 		MeshFactory mf;
 		mVisual = mf.CreateMesh(buffer->mMesh.get());
+
+		eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 		eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-			ProgramFactory::Get(), mPVWUpdater.GetUpdater(), buffer->GetMaterial(), eastl::make_shared<Light>(),
-			eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(), SamplerState::MIN_L_MAG_L_MIP_L,
-			SamplerState::WRAP, SamplerState::WRAP);
+			ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, buffer->GetMaterial(), eastl::make_shared<Lighting>(),
+			eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
+			SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 		mVisual->SetEffect(effect);
 		mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 	}
 
 	if (createDefaultEmitter)
-		SetEmitter(eastl::make_shared<BaseParticleEmitter>(CreateBoxEmitter()));
+		SetEmitter(eastl::shared_ptr<ParticleBoxEmitter>(CreateBoxEmitter()));
 }
 
 
@@ -289,9 +291,9 @@ void ParticleSystemNode::ReallocateBuffers()
 	{
 		unsigned int oldSize = mVisual->GetVertexBuffer()->GetNumElements();
 		mVisual->GetVertexBuffer()->Reallocate(mParticles.size() * 4);
-
-		unsigned int i;
 		/*
+		unsigned int i;
+
 		// fill remaining vertices
 		for (i=oldSize; i<mBuffer->mVertices.size(); i+=4)
 		{

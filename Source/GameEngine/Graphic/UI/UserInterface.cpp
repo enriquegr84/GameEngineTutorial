@@ -706,7 +706,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::wstring& fileName)
 	if (!pRoot)
     {
         LogError(L"Failed to find resource file: " + fileName);
-        return 0;
+        return nullptr;
     }
 	
 	bool found=false;
@@ -765,7 +765,7 @@ eastl::shared_ptr<BaseUIFont> BaseUI::GetFont(const eastl::wstring& fileName)
 		if (!font->Load(fileName))
 		{
 			font = 0;
-			return 0;
+			return nullptr;
 		}
 	}
 
@@ -809,7 +809,7 @@ void BaseUI::RemoveFont(const eastl::shared_ptr<BaseUIFont>& font)
 eastl::shared_ptr<BaseUIFont> BaseUI::GetBuiltInFont()
 {
 	if (mFonts.empty())
-		return 0;
+		return nullptr;
 
 	return mFonts[L"DefaultFont"];
 }
@@ -826,10 +826,10 @@ eastl::shared_ptr<BaseUISpriteBank> BaseUI::GetSpriteBank(const eastl::wstring& 
 	if (!pRoot)
 	{
 		LogError(L"Failed to find resource file: " + fileName);
-		return 0;
+		return nullptr;
 	}
 	*/
-	return 0;
+	return nullptr;
 }
 
 
@@ -879,7 +879,7 @@ eastl::shared_ptr<UIElementFactory> BaseUI::GetUIElementFactory(unsigned int ind
 	if (index < UIElementFactoryList.size())
 		return UIElementFactoryList[index];
 	else
-		return 0;
+		return nullptr;
 }
 
 
@@ -935,7 +935,7 @@ eastl::shared_ptr<BaseUIElement> BaseUI::GetNextElement(bool reverse, bool group
 	else if (group)
 		return mRoot; // no group found? root group
 	else
-		return 0;
+		return nullptr;
 }
 
 //! adds a UI Element using its name

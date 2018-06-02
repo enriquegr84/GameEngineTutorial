@@ -7,8 +7,6 @@
 
 #include "ParticleAffector.h"
 
-#include "Mathematic/Algebra/Vector2.h"
-
 class ParticleScaleAffector : public BaseParticleAffector
 {
 

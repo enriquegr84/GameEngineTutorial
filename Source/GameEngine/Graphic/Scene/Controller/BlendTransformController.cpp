@@ -101,7 +101,7 @@ bool BlendTransformController::Update(double applicationTime)
     mLocalTransform.SetScale(blendSca);
 
     Spatial* spatial = reinterpret_cast<Spatial*>(mObject);
-    spatial->localTransform = mLocalTransform;
+    spatial->GetRelativeTransform() = mLocalTransform;
     return true;
 }
 

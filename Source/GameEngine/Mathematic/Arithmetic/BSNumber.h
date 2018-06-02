@@ -910,7 +910,7 @@ typename IEEE::UIntType BSNumber<UIntegerType>::GetTrailing(int32_t normal,
     int32_t roundBitIndex = 64 - diff;
 
     // Determine rounding value based on round-to-nearest-ties-to-even.
-    uint64_t mask = (GTE_U64(1) << roundBitIndex);
+    uint64_t mask = (GE_U64(1) << roundBitIndex);
     uint64_t round;
     if (prefix & mask)
     {

@@ -91,36 +91,21 @@ public:
 	vectors: translation, rotation and scale. To get the relative
 	transformation matrix, it is calculated from these values.
 	\return The relative transformation matrix. */
-	Transform& GetRelativeTransform() const
-	{
-		mLocalTransform;
-	}
+	Transform& GetRelativeTransform() { return mLocalTransform; }
 
 	//! Returns the absolute transformation of the spatial node.
 	/** The absolute transformation is stored internally as 3
 	vectors: translation, rotation and scale. To get the absolute
 	transformation matrix, it is calculated from these values.
 	\return The relative transformation matrix. */
-	Transform& GetAbsoluteTransform() const
-	{
-		mWorldTransform;
-	}
+	Transform& GetAbsoluteTransform() { return mWorldTransform; }
 
-	void SetCurrentAbsoluteTransform(bool enable)
-	{
-		mWorldTransformIsCurrent = enable;
-	}
+	void SetCurrentAbsoluteTransform(bool enable) { mWorldTransformIsCurrent = enable; }
 
 	//! Returns the absoulte bound of the spatial node
-	BoundingSphere& GetAbsoulteBound() const
-	{
-		mWorldBound;
-	}
+	BoundingSphere& GetAbsoulteBound() { return mWorldBound; }
 
-	void SetCurrentAbsoluteBound(bool enable)
-	{
-		mWorldBoundIsCurrent = enable;
-	}
+	void SetCurrentAbsoluteBound(bool enable) { mWorldBoundIsCurrent = enable; }
 
     // Support for hierarchical culling.
     void OnGetVisibleSet(

@@ -39,10 +39,10 @@ SpotLightEffect::SpotLightEffect(eastl::shared_ptr<ProgramFactory> const& factor
 void SpotLightEffect::UpdateMaterialConstant()
 {
     InternalMaterial* internalMaterial = mMaterialConstant->Get<InternalMaterial>();
-    internalMaterial->emissive = mMaterial->emissive;
-    internalMaterial->ambient = mMaterial->ambient;
-    internalMaterial->diffuse = mMaterial->diffuse;
-    internalMaterial->specular = mMaterial->specular;
+    internalMaterial->emissive = mMaterial->mEmissive;
+    internalMaterial->ambient = mMaterial->mAmbient;
+    internalMaterial->diffuse = mMaterial->mDiffuse;
+    internalMaterial->specular = mMaterial->mSpecular;
     LightingEffect::UpdateMaterialConstant();
 }
 

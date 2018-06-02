@@ -115,10 +115,10 @@ private:
 		eastl::shared_ptr<Node> object, eastl::shared_ptr<Camera> camera);
 
 	// Find the empty scene node that is the parent of the specified node
-	Node * FindZone(Node* node)
+	Node* FindZone(Node* node)
 	{
 		if (!node)
-			return 0;
+			return nullptr;
 
 		if (node->GetType() == NT_EMPTY)
 			return node;

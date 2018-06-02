@@ -41,6 +41,7 @@
 //Function
 #include "Function/Constants.h"
 #include "Function/Functions.h"
+#include "Function/ChebyshevRatio.h"
 
 //Geometric
 #include "Geometric/Frustum.h"

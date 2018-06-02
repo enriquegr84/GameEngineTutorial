@@ -406,7 +406,7 @@ eastl::shared_ptr<Node> Scene::AddMeshNode(
 	eastl::shared_ptr<BaseMesh> mesh, int id, bool alsoAddIfMeshPointerZero)
 {
 	if (!alsoAddIfMeshPointerZero && !mesh)
-		return 0;
+		return nullptr;
 
 	eastl::shared_ptr<Node> node(new MeshNode(id, mPVWUpdater, renderComponent, mesh));
 
@@ -425,7 +425,7 @@ eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
 	eastl::shared_ptr<BaseAnimatedMesh> mesh, int id, bool alsoAddIfMeshPointerZero)
 {
 	if (!alsoAddIfMeshPointerZero && !mesh)
-		return 0;
+		return nullptr;
 
 	eastl::shared_ptr<Node> node(
 		new AnimatedMeshNode(id, mPVWUpdater, renderComponent, mesh));
@@ -504,7 +504,7 @@ eastl::shared_ptr<Node> Scene::GetSceneNode(ActorId id)
 {
 	SceneNodeActorMap::iterator i = mSceneNodeActors.find(id);
 	if (i==mSceneNodeActors.end())
-		return 0;
+		return nullptr;
 
 	return i->second;
 }

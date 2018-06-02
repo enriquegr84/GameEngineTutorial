@@ -8,7 +8,6 @@
 #include "ParticleEmitter.h"
 
 #include "Mathematic/Geometric/AlignedBox.h"
-#include "Mathematic/Algebra/Vector2.h"
 
 //! A default box emitter
 class ParticleBoxEmitter : public BaseParticleEmitter

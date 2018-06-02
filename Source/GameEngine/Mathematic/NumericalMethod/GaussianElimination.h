@@ -12,7 +12,7 @@
 //#include "Core/Logger/Logger.h"
 
 // The input matrix M must be NxN.  The storage convention for element lookup
-// is determined by GTE_USE_ROW_MAJOR or GTE_USE_COL_MAJOR, whichever is
+// is determined by GE_USE_ROW_MAJOR or GE_USE_COL_MAJOR, whichever is
 // active.  If you want the inverse of M, pass a nonnull pointer inverseM;
 // this matrix must also be NxN and use the same storage convention as M.  If
 // you do not want the inverse of M, pass a nullptr for inverseM.  If you want
@@ -244,7 +244,7 @@ bool GaussianElimination<Real>::operator()(int numRows, Real const* M,
 template <typename Real>
 void GaussianElimination<Real>::Set(int numElements, Real const* source, Real* target) const
 {
-    if (eastl::is_floating_point<Real>() == eastl::true_type())
+    if (std::is_floating_point<Real>() == std::true_type())
     {
         // Fast set/copy for native floating-point.
         size_t numBytes = numElements * sizeof(Real);

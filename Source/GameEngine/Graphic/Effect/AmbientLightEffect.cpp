@@ -25,8 +25,8 @@ AmbientLightEffect::AmbientLightEffect(eastl::shared_ptr<ProgramFactory> const& 
 void AmbientLightEffect::UpdateMaterialConstant()
 {
     InternalMaterial* internalMaterial = mMaterialConstant->Get<InternalMaterial>();
-    internalMaterial->emissive = mMaterial->emissive;
-    internalMaterial->ambient = mMaterial->ambient;
+    internalMaterial->emissive = mMaterial->mEmissive;
+    internalMaterial->ambient = mMaterial->mAmbient;
     LightingEffect::UpdateMaterialConstant();
 }
 

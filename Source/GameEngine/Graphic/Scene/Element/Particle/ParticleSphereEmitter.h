@@ -7,8 +7,6 @@
 
 #include "ParticleEmitter.h"
 
-#include "Mathematic/Algebra/Vector2.h"
-
 //! A default box emitter
 class ParticleSphereEmitter : public BaseParticleEmitter
 {

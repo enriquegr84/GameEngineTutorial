@@ -57,8 +57,10 @@ void CubeNode::SetSize()
 	mf.SetVertexFormat(vformat);
 	mVisual = mf.CreateBox(mSize, mSize, mSize);
 
+	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
 	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
-		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), eastl::make_shared<Material>(), eastl::make_shared<Light>());
+		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, eastl::make_shared<Material>(),
+		eastl::make_shared<Lighting>());
 	mVisual->SetEffect(effect);
 	mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
@@ -197,7 +199,7 @@ eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId 
 {
 	/*
 	if (!Renderer::Get()->QueryFeature(VDF_STENCIL_BUFFER))
-	return 0;
+		return nullptr;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(new ShadowVolumeNode(
 		actorId, mPVWUpdater, WeakBaseRenderComponentPtr(), shadowMesh, zfailmethod, infinity));

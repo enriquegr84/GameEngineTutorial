@@ -8,7 +8,7 @@
 
 //! constructor
 NodeAnimatorTexture::NodeAnimatorTexture(
-	const eastl::vector<Texture*>& textures, int timePerFrame, bool loop, unsigned int now)
+	const eastl::vector<Texture2*>& textures, int timePerFrame, bool loop, unsigned int now)
 : mFinishTime(0), mHasFinished(false), mTimePerFrame(timePerFrame), mStartTime(now), mLoop(loop)
 {
 	#ifdef _DEBUG

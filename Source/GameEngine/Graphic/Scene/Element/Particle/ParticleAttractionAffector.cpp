@@ -33,7 +33,8 @@ void ParticleAttractionAffector::Affect(unsigned int now, Particle* particlearra
 
 	for(unsigned int i=0; i<count; ++i)
 	{
-		Vector3<float> direction = Normalize(mPoint - particlearray[i].mPos);
+		Vector3<float> direction(mPoint - particlearray[i].mPos);
+		Normalize(direction);
 		direction *= mSpeed * timeDelta;
 
 		if( !mAttract )

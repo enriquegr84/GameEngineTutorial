@@ -32,7 +32,6 @@ passed to a video driver and only drop the buffer once it's not used in
 the current code block anymore.
 */
 
-template <typename Real>
 class GRAPHIC_ITEM MeshBuffer : public Buffer
 {
 public:
@@ -60,7 +59,7 @@ public:
 	eastl::shared_ptr<Material> mMaterial;
 
 	//! mesh of this meshbuffer.
-	eastl::shared_ptr<Mesh<Real>> mMesh;
+	eastl::shared_ptr<Mesh<float>> mMesh;
 };
 
 #endif

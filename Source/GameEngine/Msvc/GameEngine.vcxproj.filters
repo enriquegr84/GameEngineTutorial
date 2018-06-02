@@ -2368,6 +2368,9 @@
     <ClInclude Include="..\Core\Utility\LexicoArray2.h">
       <Filter>Core\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="..\Mathematic\Function\ChebyshevRatio.h">
+      <Filter>Mathematic\Function</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl">

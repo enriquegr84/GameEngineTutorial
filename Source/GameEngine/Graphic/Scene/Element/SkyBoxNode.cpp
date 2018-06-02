@@ -68,8 +68,10 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRende
 
 	eastl::shared_ptr<VertexBuffer> vertices = eastl::make_shared<VertexBuffer>(vformat, 24);
 	eastl::shared_ptr<IndexBuffer> indices = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 4);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), mat, eastl::make_shared<Light>(),
+		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, mat, eastl::make_shared<Lighting>(),
 		eastl::make_shared<LightCameraGeometry>(), tex, SamplerState::MIN_L_MAG_L_MIP_L,
 		SamplerState::WRAP, SamplerState::WRAP);
 
@@ -270,9 +272,9 @@ bool SkyBoxNode::Render(Scene* pScene)
 		if (camera->GetTarget())
 			target = camera->GetTarget()->GetAbsoluteTransform().GetTranslation();
 
-		Vector3<float> lookVect = target - camera->GetAbsoluteTransform().GetTranslation();
-		lookVect = Normalize(lookVect);
-		Vector3<float> absVect( fabs(lookVect[0]), fabs(lookVect[1]), fabs(lookVect[2]));
+		Vector3<float> lookVect(target - camera->GetAbsoluteTransform().GetTranslation());
+		Normalize(lookVect);
+		Vector3<float> absVect{ fabs(lookVect[0]), fabs(lookVect[1]), fabs(lookVect[2]) };
 
 		int idx = 0;
 		if ( absVect[0] >= absVect[1] && absVect[0] >= absVect[2] )

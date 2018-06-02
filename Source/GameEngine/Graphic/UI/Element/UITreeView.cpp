@@ -145,7 +145,7 @@ eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::InsertChildBefore(
 eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::GetFrontChild() const
 {
 	if( mChildren.empty() )
-		return 0;
+		return nullptr;
 	else
 		return mChildren.front();
 }
@@ -153,7 +153,7 @@ eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::GetFrontChild() const
 eastl::shared_ptr<BaseUITreeViewNode> UITreeViewNode::GetBackChild() const
 {
 	if( mChildren.empty() )
-		return 0;
+		return nullptr;
 	else
 		return mChildren.back();
 }

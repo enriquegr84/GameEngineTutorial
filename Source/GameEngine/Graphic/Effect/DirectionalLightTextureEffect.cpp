@@ -44,10 +44,10 @@ DirectionalLightTextureEffect::DirectionalLightTextureEffect(eastl::shared_ptr<P
 void DirectionalLightTextureEffect::UpdateMaterialConstant()
 {
     InternalMaterial* internalMaterial = mMaterialConstant->Get<InternalMaterial>();
-    internalMaterial->emissive = mMaterial->emissive;
-    internalMaterial->ambient = mMaterial->ambient;
-    internalMaterial->diffuse = mMaterial->diffuse;
-    internalMaterial->specular = mMaterial->specular;
+    internalMaterial->emissive = mMaterial->mEmissive;
+    internalMaterial->ambient = mMaterial->mAmbient;
+    internalMaterial->diffuse = mMaterial->mDiffuse;
+    internalMaterial->specular = mMaterial->mSpecular;
     LightingEffect::UpdateMaterialConstant();
 }
 

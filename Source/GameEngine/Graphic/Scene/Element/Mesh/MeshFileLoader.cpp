@@ -5,8 +5,6 @@
 #include "GameEngineStd.h"
 
 #include "MeshFileLoader.h"
-#include "AnimatedMesh.h"
-
 
 //! Constructor
 MeshFileLoader::MeshFileLoader( )
@@ -23,7 +21,7 @@ MeshFileLoader::~MeshFileLoader()
 // CreateMeshResourceLoader
 eastl::shared_ptr<BaseResourceLoader> CreateMeshResourceLoader()
 {
-	return eastl::shared_ptr<BaseResourceLoader>(new MeshFileLoader());
+	return eastl::shared_ptr<MeshFileLoader>(new MeshFileLoader());
 }
 
 // MD3MeshFileLoader::GetLoadedResourceSize
@@ -48,7 +46,7 @@ bool MeshFileLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const e
 		pExtraData->SetMesh( CreateMesh(file) );
 		if (pExtraData->GetMesh())
 		{
-			handle->SetExtra(shared_ptr<MeshResourceExtraData>(pExtraData));
+			handle->SetExtra(eastl::shared_ptr<MeshResourceExtraData>(pExtraData));
 			return true;
 		}
 	}
@@ -59,19 +57,24 @@ bool MeshFileLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const e
 
 //! returns true if the file maybe is able to be loaded by this class
 //! based on the file extension (e.g. ".bsp")
-bool MeshFileLoader::IsALoadableFileExtension(const eastl::string& filename) const
+bool MeshFileLoader::IsALoadableFileExtension(const eastl::wstring& fileName) const
 {
-	return HasFileExtension ( filename, "*" );
+	if (fileName.rfind('.') != eastl::string::npos)
+	{
+		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
+		return fileExtension.compare(L"*") == 0;
+	}
+	else return false;
 }
 
 
 AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 {
 	AnimatedMesh * mesh = new AnimatedMesh();
-
+	/*
 	if ( mesh->LoadModelFile ( 0, file ) )
 		return mesh;
-
+	*/
 	delete mesh;
-	return 0;
+	return nullptr;
 }

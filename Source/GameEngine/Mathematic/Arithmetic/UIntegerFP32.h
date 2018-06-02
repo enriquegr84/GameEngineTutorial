@@ -149,10 +149,10 @@ UIntegerFP32<N>::UIntegerFP32(uint64_t number)
         number >>= last;
         mNumBits = first - last + 1;
         mSize = 1 + (mNumBits - 1) / 32;
-        mBits[0] = GTE_GET_LO_U64(number);
+        mBits[0] = GE_GET_LO_U64(number);
         if (mSize > 1)
         {
-            mBits[1] = GTE_GET_HI_U64(number);
+            mBits[1] = GE_GET_HI_U64(number);
         }
     }
     else

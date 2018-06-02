@@ -76,7 +76,7 @@ private:
 
     friend class UnitTestBSNumber;
 
-#if defined(GTE_COLLECT_UINTEGERAP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERAP32_STATISTICS)
     static eastl::atomic<size_t> msMaxSize;
 public:
     static void SetMaxSizeToZero() { msMaxSize = 0; }

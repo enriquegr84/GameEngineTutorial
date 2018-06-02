@@ -4,16 +4,14 @@
 
 #include "MeshBuffer.h"
 
-template <typename Real>
 MeshBuffer::MeshBuffer(unsigned int numVertices, unsigned int numIndices,
-	uint32_t numPrimitives, size_t meshSize, bool createStorage = false)
+	uint32_t numPrimitives, size_t meshSize, bool createStorage)
 	: Buffer(numPrimitives, meshSize, createStorage)
 {
 	MeshDescription desc(numVertices, numIndices);
-	mMesh = eastl::make_shared<Mesh>(desc, desc.mTopology);
+	mMesh = eastl::make_shared<Mesh<float>>(desc, eastl::vector<MeshTopology>{ desc.mTopology });
 }
 
-template <typename Real>
 MeshBuffer::~MeshBuffer()
 {
 

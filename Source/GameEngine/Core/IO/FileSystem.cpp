@@ -75,7 +75,7 @@ BaseReadFile* FileSystem::CreateMemoryReadFile(const void* memory, int len,
 	if (memory)
 		return new MemoryReadFile(memory, len, fileName, deleteMemoryWhenDropped);
 	
-	return 0;
+	return nullptr;
 }
 
 
@@ -86,7 +86,7 @@ BaseReadFile* FileSystem::CreateLimitReadFile(const eastl::wstring& fileName,
 	if (alreadyOpenedFile)
 		return new LimitReadFile(alreadyOpenedFile, pos, areaSize, fileName);
 
-	return 0;
+	return nullptr;
 }
 
 //! Creates a list of files and directories in the current working directory

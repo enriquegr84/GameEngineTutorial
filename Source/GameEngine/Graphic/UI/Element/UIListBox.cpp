@@ -86,7 +86,7 @@ unsigned int UIListBox::GetItemCount() const
 const wchar_t* UIListBox::GetListItem(unsigned int id) const
 {
 	if (id>=mItems.size())
-		return 0;
+		return nullptr;
 
 	return mItems[id].mText.c_str();
 }

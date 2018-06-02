@@ -23,7 +23,7 @@ bool TransformController::Update(double applicationTime)
     }
 
     Spatial* spatial = reinterpret_cast<Spatial*>(mObject);
-    spatial->localTransform = mLocalTransform;
+    spatial->GetRelativeTransform() = mLocalTransform;
     return true;
 }
 

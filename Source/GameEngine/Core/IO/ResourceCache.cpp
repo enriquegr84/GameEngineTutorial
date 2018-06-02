@@ -196,7 +196,7 @@ eastl::shared_ptr<ResHandle> ResCache::Load(BaseResource *r)
 	if (!loader)
 	{
 		LogAssert(loader, "Default resource loader not found!");
-		return 0;		// Resource not loaded!
+		return nullptr;		// Resource not loaded!
 	}
 
 	void* rawBuffer = NULL;
@@ -205,7 +205,7 @@ eastl::shared_ptr<ResHandle> ResCache::Load(BaseResource *r)
 	{
 		// resource cache out of memory
 		LogAssert(false, eastl::wstring("Resource not found ") + r->mName);
-		return 0;
+		return nullptr;
 	}
 	/*
 	if (loader->UseRawFile())
@@ -236,7 +236,7 @@ eastl::shared_ptr<ResHandle> ResCache::Load(BaseResource *r)
 		if (!success)
 		{
 			// resource cache out of memory
-			return 0;
+			return nullptr;
 		}
 	}
 
@@ -282,7 +282,7 @@ eastl::shared_ptr<ResHandle> ResCache::Find(BaseResource * r)
 {
 	ResHandleMap::iterator i = mResources.find(r->mName);
 	if (i==mResources.end())
-		return 0;
+		return nullptr;
 
 	return i->second;
 }

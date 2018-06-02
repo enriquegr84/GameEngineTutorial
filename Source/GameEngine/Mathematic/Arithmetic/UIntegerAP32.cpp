@@ -39,7 +39,7 @@ UIntegerAP32::UIntegerAP32(uint32_t number)
         mNumBits = 0;
     }
 
-#if defined(GTE_COLLECT_UINTEGERAP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERAP32_STATISTICS)
     AtomicMax(msMaxSize, mBits.size());
 #endif
 }
@@ -64,7 +64,7 @@ UIntegerAP32::UIntegerAP32(uint64_t number)
         mNumBits = 0;
     }
 
-#if defined(GTE_COLLECT_UINTEGERAP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERAP32_STATISTICS)
     AtomicMax(msMaxSize, mBits.size());
 #endif
 }
@@ -74,7 +74,7 @@ UIntegerAP32::UIntegerAP32(int numBits)
     mNumBits(numBits),
     mBits(1 + (numBits - 1) / 32)
 {
-#if defined(GTE_COLLECT_UINTEGERAP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERAP32_STATISTICS)
     AtomicMax(msMaxSize, mBits.size());
 #endif
 }
@@ -111,7 +111,7 @@ void UIntegerAP32::SetNumBits(uint32_t numBits)
         mBits.clear();
     }
 
-#if defined(GTE_COLLECT_UINTEGERAP32_STATISTICS)
+#if defined(GE_COLLECT_UINTEGERAP32_STATISTICS)
     AtomicMax(msMaxSize, mBits.size());
 #endif
 }

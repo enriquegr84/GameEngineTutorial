@@ -141,7 +141,7 @@ unsigned int UIComboBox::GetItemCount() const
 const wchar_t* UIComboBox::GetItem(unsigned int idx) const
 {
 	if (idx >= mItems.size())
-		return 0;
+		return nullptr;
 
 	return mItems[idx].mName.c_str();
 }

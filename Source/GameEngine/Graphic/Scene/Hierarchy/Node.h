@@ -11,6 +11,7 @@
 #include "Spatial.h"
 #include "PVWUpdater.h"
 
+#include "Graphic/Effect/Mesh.h"
 #include "Graphic/Effect/Material.h"
 #include "Graphic/Resource/Texture/Texture2.h"
 
@@ -185,12 +186,6 @@ enum GRAPHIC_ITEM RenderPass
 };
 
 // Forward declarations
-/*
-class Scene;
-class MovementController;
-class BaseResourceExtraData;
-class ActorComponent;
-*/
 class Scene;
 class Node;
 class NodeAnimator;

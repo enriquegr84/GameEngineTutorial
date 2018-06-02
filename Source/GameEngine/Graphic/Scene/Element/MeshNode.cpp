@@ -9,12 +9,6 @@
 
 #include "Graphic/Scene/Scene.h"
 
-/*
-#include "Graphic/Scene/Mesh/Mesh.h"
-#include "Graphic/Scene/Mesh/MeshCache.h"
-#include "Graphic/Scene/Mesh/AnimatedMesh.h"
-*/
-
 
 //! constructor
 MeshNode::MeshNode(const ActorId actorId, PVWUpdater& updater, 
@@ -48,14 +42,16 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 	mVisuals.clear();
 	for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 	{
-		const eastl::shared_ptr<MeshBuffer<float>>& meshBuffer = mMesh->GetMeshBuffer(i);
+		const eastl::shared_ptr<MeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
 		if (meshBuffer)
 		{
 			eastl::shared_ptr<Visual> visual = mf.CreateMesh(meshBuffer->mMesh.get());
+
+			eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 			eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-				ProgramFactory::Get(), mPVWUpdater.GetUpdater(), meshBuffer->GetMaterial(), eastl::make_shared<Light>(),
-				eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(), SamplerState::MIN_L_MAG_L_MIP_L,
-				SamplerState::WRAP, SamplerState::WRAP);
+				ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, meshBuffer->GetMaterial(), eastl::make_shared<Lighting>(),
+				eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
+				SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 			visual->SetEffect(effect);
 			mVisuals.push_back(visual);
 			mPVWUpdater.Subscribe(visual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
@@ -140,7 +136,7 @@ bool MeshNode::Render(Scene *pScene)
 				eastl::shared_ptr<PointLightTextureEffect> effect =
 					eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
 
-				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
+				const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
 				eastl::shared_ptr<Material> material =
 					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
 				material->mType = MT_TRANSPARENT_ADD_COLOR;
@@ -165,7 +161,7 @@ bool MeshNode::Render(Scene *pScene)
 			// and solid only in solid pass
 			if (transparent == isTransparentPass)
 			{
-				const eastl::shared_ptr<MeshBuffer<float>>& mb = mMesh->GetMeshBuffer(i);
+				const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
 				eastl::shared_ptr<Material> material =
 					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
 
@@ -277,7 +273,7 @@ eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId 
 {
 	/*
 	if (!Renderer::Get()->QueryFeature(VDF_STENCIL_BUFFER))
-	return 0;
+		return nullptr;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
 		new ShadowVolumeNode(actorId, mPVWUpdater, WeakBaseRenderComponentPtr(),

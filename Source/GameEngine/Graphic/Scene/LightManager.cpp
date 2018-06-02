@@ -380,7 +380,7 @@ bool LightManager::OnCharPress(unsigned char key, int x, int y)
 				auto effect = mEffect[LSPT][gt][st];
 				auto lighting = effect->GetLighting();
 				lighting->spotCutoff[0] -= 0.1f;
-				lighting->spotCutoff[0] = std::min(lighting->spotCutoff[0], (float)GTE_C_HALF_PI);
+				lighting->spotCutoff[0] = eastl::min(lighting->spotCutoff[0], (float)GE_C_HALF_PI);
 				lighting->spotCutoff[1] = cos(lighting->spotCutoff[0]);
 				lighting->spotCutoff[2] = sin(lighting->spotCutoff[0]);
 				effect->UpdateLightingConstant();
@@ -437,7 +437,7 @@ void LightManager::CreateScene()
 	// Fedora 21 Linux.
 	Vector4<float> darkGray{ 0.1f, 0.1f, 0.1f, 1.0f };
 	Vector4<float> lightGray{ 0.75f, 0.75f, 0.75f, 1.0f };
-	float angle = 0.125f*(float)GTE_C_PI;
+	float angle = 0.125f*(float)GE_C_PI;
 	Vector4<float> lightSpotCutoff{ angle, (float)cos(angle), (float)sin(angle), 1.0f };
 
 	mLightWorldPosition[SVTX] = { 4.0f, 4.0f - 8.0f, 8.0f, 1.0f };

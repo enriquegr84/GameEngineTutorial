@@ -33,8 +33,11 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater& updater, WeakBas
 
 	eastl::shared_ptr<VertexBuffer> vertices = eastl::make_shared<VertexBuffer>(vformat, 4);
 	eastl::shared_ptr<IndexBuffer> indices = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
 	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
-		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), eastl::make_shared<Material>(), eastl::make_shared<Light>());
+		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, eastl::make_shared<Material>(),
+		eastl::make_shared<Lighting>());
 
 	SetSize(size);
 
@@ -166,7 +169,8 @@ bool BillboardNode::Render(Scene *pScene)
 		target = cameraNode->GetTarget()->GetAbsoluteTransform().GetTranslationW1();
 
 	Vector4<float> up = cameraNode->Get()->GetUVector();
-	Vector4<float> view = Normalize(target - campos);
+	Vector4<float> view(target - campos);
+	Normalize(view);
 
 	Vector4<float> horizontal = Cross(up, view);
 	if (Length(horizontal) == 0)
@@ -174,13 +178,13 @@ bool BillboardNode::Render(Scene *pScene)
 		horizontal = { up[1], up[0], up[2], up[3] };
 	}
 
-	horizontal = Normalize(horizontal);
+	Normalize(horizontal);
 	Vector4<float> topHorizontal = horizontal * 0.5f * mTopEdgeWidth;
 	horizontal *= 0.5f * mSize[0];
 
 	// pointing down!
 	Vector4<float> vertical = Cross(horizontal, view);
-	vertical = Normalize(vertical);
+	Normalize(vertical);
 	vertical *= 0.5f * mSize[1];
 
 	view *= -1.0f;

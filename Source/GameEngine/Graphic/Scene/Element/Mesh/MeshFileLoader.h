@@ -22,17 +22,17 @@ public:
 	virtual bool DiscardRawBufferAfterLoad() { return false; }
 	virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize);
 	virtual bool LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
-	virtual bool MatchResourceFormat(eastl::string name)  { return IsALoadableFileExtension(name.c_str()); }
+	virtual bool MatchResourceFormat(eastl::wstring name) { return IsALoadableFileExtension(name.c_str()); }
 
 protected:
 
 	//! returns true if the file maybe is able to be loaded by this class
 	//! based on the file extension
-	virtual bool IsALoadableFileExtension(const eastl::string& filename) const;
+	virtual bool IsALoadableFileExtension(const eastl::wstring& fileName) const;
 
 	//! creates/loads an animated mesh from the file.
 	//! \return Pointer to the created mesh. Returns 0 if loading failed.
-	virtual AnimatedMesh* CreateMesh(BaseReadFile* file);
+	AnimatedMesh* CreateMesh(BaseReadFile* file);
 
 };
 

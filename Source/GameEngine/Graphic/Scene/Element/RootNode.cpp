@@ -7,6 +7,9 @@
 #include "Graphic/Scene/Hierarchy/Node.h"
 #include "Graphic/Scene/Scene.h"
 
+#include "Graphic/Renderer/Renderer.h"
+#include "Graphic/Effect/Material.h"
+
 ////////////////////////////////////////////////////
 // RootNode Implementation
 ////////////////////////////////////////////////////
@@ -68,13 +71,13 @@ bool RootNode::RenderChildren(Scene *pScene)
 	{
 		SceneNodeRenderList::iterator itNode = pScene->GetRenderList(pass).begin();
 		SceneNodeRenderList::iterator end = pScene->GetRenderList(pass).end();
-
+		/*
 		Renderer::Get()->GetOverrideMaterial().mEnabled =
 			((Renderer::Get()->GetOverrideMaterial().mEnablePasses & pass) != 0);
-
+		*/
 		if (pScene->GetLightManager())
 			pScene->GetLightManager()->OnRenderPassPreRender((RenderPass)pass);
-
+		/*
 		if (pass == RP_LIGHT)
 		{
 			Renderer::Get()->DeleteAllDynamicLights();
@@ -85,7 +88,7 @@ bool RootNode::RenderChildren(Scene *pScene)
 				end = itNode +
 				eastl::min(Renderer::Get()->GetMaximalDynamicLightAmount(), maxLights);
 		}
-
+		*/
 		// This code creates fine control of the render passes.
 		for (; itNode != end; ++itNode)
 		{
@@ -96,7 +99,7 @@ bool RootNode::RenderChildren(Scene *pScene)
 				pScene->GetLightManager()->OnNodePostRender((*itNode));
 
 		}
-
+		/*
 		if (pass == RP_SHADOW)
 		{
 			if (!pScene->GetRenderList(pass).empty())
@@ -104,7 +107,7 @@ bool RootNode::RenderChildren(Scene *pScene)
 					pScene->GetShadowColor(), pScene->GetShadowColor(),
 					pScene->GetShadowColor(), pScene->GetShadowColor());
 		}
-
+		*/
 		if (pScene->GetLightManager())
 			pScene->GetLightManager()->OnRenderPassPostRender((RenderPass)pass);
 	}

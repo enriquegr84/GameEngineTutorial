@@ -41,14 +41,16 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 		mVisuals.clear();
 		for (unsigned int i = 0; i<mShadowMesh->GetMeshBufferCount(); ++i)
 		{
-			const eastl::shared_ptr<MeshBuffer<float>>& meshBuffer = mShadowMesh->GetMeshBuffer(i);
+			const eastl::shared_ptr<MeshBuffer>& meshBuffer = mShadowMesh->GetMeshBuffer(i);
 			if (meshBuffer)
 			{
 				eastl::shared_ptr<Visual> visual = mf.CreateMesh(meshBuffer->mMesh.get());
+
+				eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 				eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-					ProgramFactory::Get(), mPVWUpdater.GetUpdater(), meshBuffer->GetMaterial(), eastl::make_shared<Light>(),
-					eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(), SamplerState::MIN_L_MAG_L_MIP_L,
-					SamplerState::WRAP, SamplerState::WRAP);
+					ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, meshBuffer->GetMaterial(), eastl::make_shared<Lighting>(),
+					eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
+					SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 				visual->SetEffect(effect);
 				mVisuals.push_back(visual);
 				mPVWUpdater.Subscribe(visual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
@@ -90,10 +92,12 @@ void ShadowVolumeNode::CreateShadowVolume(const Vector3<float>& light, bool isDi
 	// for all edges add the near->far quads
 	for (unsigned int i=0; i<numEdges; ++i)
 	{
-		const Vector3<float> &v1 = mVertices[mEdges[2*i+0]];
-		const Vector3<float> &v2 = mVertices[mEdges[2*i+1]];
-		const Vector3<float> v3(Normalize(v1+(v1 - light))*mInfinity);
-		const Vector3<float> v4(Normalize(v2+(v2 - light))*mInfinity);
+		Vector3<float> &v1 = mVertices[mEdges[2*i+0]];
+		Vector3<float> &v2 = mVertices[mEdges[2*i+1]];
+		Vector3<float> v3((v1+(v1 - light))*mInfinity);
+		Vector3<float> v4((v2+(v2 - light))*mInfinity);
+		Normalize(v3);
+		Normalize(v4);
 
 		// Add a quad (two triangles) to the vertex list
 		svp->push_back(v1);
@@ -147,9 +151,12 @@ unsigned int ShadowVolumeNode::CreateEdgesAndCaps(const Vector3<float>& light, S
 			svp->push_back(v0);
 
 			// add back cap
-			const Vector3<float> i0 = Normalize(v0+(v0-light))*mInfinity;
-			const Vector3<float> i1 = Normalize(v1+(v1-light))*mInfinity;
-			const Vector3<float> i2 = Normalize(v2+(v2-light))*mInfinity;
+			Vector3<float> i0((v0+(v0-light))*mInfinity);
+			Vector3<float> i1((v1+(v1-light))*mInfinity);
+			Vector3<float> i2((v2+(v2-light))*mInfinity);
+			Normalize(i0);
+			Normalize(i1);
+			Normalize(i2);
 
 			svp->push_back(i0);
 			svp->push_back(i1);
@@ -240,7 +247,7 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 
 	for (i=0; i<bufcnt; ++i)
 	{
-		const MeshBuffer<float>* buf = mesh->GetMeshBuffer(i).get();
+		const MeshBuffer* buf = mesh->GetMeshBuffer(i).get();
 		totalIndices += buf->GetNumElements();
 		totalVertices += buf->GetNumElements();
 	}

@@ -239,7 +239,7 @@ public:
 	template <int N>
 	inline static eastl::array<float, N> Lerp(eastl::array<float, N> v0, eastl::array<float, N> v1, float intp)
 	{
-		intp = clamp(intp, 0.f, 1.f);
+		intp = eastl::clamp(intp, 0.f, 1.f);
 		const float inv = 1.0f - intp;
 
 		eastl::array<float, N> lerp = eastl::array<float, N>();
@@ -252,7 +252,7 @@ public:
 	template <int N>
 	inline static Vector<N, float> Lerp(Vector<N, float> v0, Vector<N, float> v1, float intp)
 	{
-		intp = clamp(intp, 0.f, 1.f);
+		intp = eastl::clamp(intp, 0.f, 1.f);
 		const float inv = 1.0f - intp;
 
 		Vector<N, float> lerp = Vector<N, float>();

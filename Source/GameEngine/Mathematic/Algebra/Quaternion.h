@@ -10,6 +10,7 @@
 
 #include "Vector4.h"
 #include "Matrix.h"
+#include "Mathematic/Function/ChebyshevRatio.h"
 
 template <typename Real>
 class Quaternion : public Vector<4,Real>

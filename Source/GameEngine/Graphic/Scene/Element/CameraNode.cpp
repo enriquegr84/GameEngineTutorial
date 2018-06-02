@@ -25,7 +25,7 @@ CameraNode::CameraNode(const ActorId actorid)
 			(float)Renderer::Get()->GetScreenSize()[0] /
 			(float)Renderer::Get()->GetScreenSize()[1];
 	}
-	mCamera->SetFrustum(GE_C_PI, aspectRatio, 1.0f, 3000.0f);
+	mCamera->SetFrustum((float)GE_C_PI, aspectRatio, 1.0f, 3000.0f);
 }
 
 
@@ -79,10 +79,10 @@ void CameraNode::UpdateMatrices()
 		target = mTarget->GetAbsoluteTransform().GetTranslationW1();
 
 	Vector4<float> direction = target - pos;
-	direction = Normalize(direction);
+	Normalize(direction);
 
 	Vector4<float> up = mCamera->GetUVector();
-	up = Normalize(up);
+	Normalize(up);
 
 	float dp = Dot(direction, up);
 	if ( Function<float>::Equals(fabs(dp), 1.f) )

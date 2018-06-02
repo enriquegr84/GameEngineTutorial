@@ -720,6 +720,7 @@
     <ClInclude Include="..\Mathematic\Arithmetic\UIntegerALU32.h" />
     <ClInclude Include="..\Mathematic\Arithmetic\UIntegerAP32.h" />
     <ClInclude Include="..\Mathematic\Arithmetic\UIntegerFP32.h" />
+    <ClInclude Include="..\Mathematic\Function\ChebyshevRatio.h" />
     <ClInclude Include="..\Mathematic\Function\Constants.h" />
     <ClInclude Include="..\Mathematic\Function\Functions.h" />
     <ClInclude Include="..\Mathematic\Geometric\AlignedBox.h" />

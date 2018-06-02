@@ -69,7 +69,7 @@ int MeshCache::GetMeshIndex(const eastl::shared_ptr<BaseMesh>& mesh) const
 eastl::shared_ptr<BaseAnimatedMesh> MeshCache::GetMeshByIndex(unsigned int number)
 {
 	if (number >= mMeshes.size())
-		return 0;
+		return nullptr;
 
 	return mMeshes[number].mMesh;
 }
@@ -85,7 +85,7 @@ eastl::shared_ptr<BaseAnimatedMesh> MeshCache::GetMeshByName(const eastl::string
 			return (*itMesh).mMesh;
 	}
 
-	return 0;
+	return nullptr;
 }
 
 
@@ -93,7 +93,7 @@ eastl::shared_ptr<BaseAnimatedMesh> MeshCache::GetMeshByName(const eastl::string
 const eastl::string& MeshCache::GetMeshName(unsigned int index) const
 {
 	if (index >= mMeshes.size())
-		return eastl::string();
+		return nullptr;
 
 	return mMeshes[index].mMeshNamedPath;
 }
@@ -103,7 +103,7 @@ const eastl::string& MeshCache::GetMeshName(unsigned int index) const
 const eastl::string& MeshCache::GetMeshName(const eastl::shared_ptr<BaseMesh>& mesh) const
 {
 	if (!mesh)
-		return eastl::string();
+		return nullptr;
 
 	eastl::vector<MeshEntry>::const_iterator itMesh = mMeshes.begin();
 	for (; itMesh < mMeshes.end(); itMesh++)
@@ -113,7 +113,7 @@ const eastl::string& MeshCache::GetMeshName(const eastl::shared_ptr<BaseMesh>& m
 			return (*itMesh).mMeshNamedPath;
 	}
 
-	return eastl::string();
+	return nullptr;
 }
 
 //! Renames a loaded mesh.

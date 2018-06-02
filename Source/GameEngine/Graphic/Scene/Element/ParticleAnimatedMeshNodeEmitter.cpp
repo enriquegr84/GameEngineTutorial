@@ -58,7 +58,7 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 
 		// Get Mesh for this frame
 		const eastl::shared_ptr<BaseMesh>& frameMesh = 
-			mAnimatedMesh->GetMesh(Function<float>::Floor(mAnimatedNode->GetFrameNr()), 
+			mAnimatedMesh->GetMesh((int)Function<float>::Floor(mAnimatedNode->GetFrameNr()), 
 			255, mAnimatedNode->GetStartFrame(), mAnimatedNode->GetEndFrame() );
 
 		for(unsigned int i=0; i<amount; ++i)

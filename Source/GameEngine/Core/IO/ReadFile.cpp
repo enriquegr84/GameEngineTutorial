@@ -88,6 +88,6 @@ BaseReadFile* ReadFile::CreateReadFile(const eastl::wstring& fileName)
 	if (file->IsOpen())
 		return file;
 
-	return 0;
+	return nullptr;
 }
 

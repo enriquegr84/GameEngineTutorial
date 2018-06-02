@@ -25,12 +25,14 @@ void NodeAnimatorFlyCircle::Init()
 {
 	Normalize(mDirection);
 
-	if (mDirection.Y != 0)
-		mVecV = Normalize(Cross(Vector3<float>{ 50.f, 0.f, 0.f },mDirection));
+	if (mDirection[1] != 0)
+		mVecV = Cross(Vector3<float>{ 50.f, 0.f, 0.f },mDirection);
 	else
-		mVecV = Normalize(Cross(Vector3<float>{ 0.f, 50.f, 0.f }, mDirection));
+		mVecV = Cross(Vector3<float>{ 0.f, 50.f, 0.f }, mDirection);
+	Normalize(mVecV);
 
-	mVecU = Normalize(Cross(mVecV, mDirection));
+	mVecU = Cross(mVecV, mDirection);
+	Normalize(mVecU);
 }
 
 
@@ -50,7 +52,7 @@ void NodeAnimatorFlyCircle::AnimateNode(Scene* pScene, Node* node, unsigned int 
 
 //	node->SetPosition(mCenter + Radius * ((mVecU*cosf(time)) + (mVecV*sinf(time))));
 	float r2 = mRadiusEllipsoid == 0.f ? mRadius : mRadiusEllipsoid;
-	node->SetPosition(mCenter + (mRadius*cosf(time)*mVecU) + (r2*sinf(time)*mVecV ) );
+	node->GetAbsoluteTransform().SetTranslation(mCenter + (mRadius*cosf(time)*mVecU) + (r2*sinf(time)*mVecV ) );
 }
 
 

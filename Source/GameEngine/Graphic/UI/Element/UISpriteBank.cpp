@@ -51,7 +51,7 @@ eastl::shared_ptr<Texture2> UISpriteBank::GetTexture(unsigned int index) const
 	if (index < mTextures.size())
 		return mTextures[index];
 	else
-		return 0;
+		return nullptr;
 }
 
 

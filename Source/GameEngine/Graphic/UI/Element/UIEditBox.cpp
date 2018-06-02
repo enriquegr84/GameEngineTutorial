@@ -108,7 +108,7 @@ const eastl::shared_ptr<BaseUIFont>& UIEditBox::GetOverrideFont() const
 //! Get the font which is used right now for drawing
 const eastl::shared_ptr<BaseUIFont>& UIEditBox::GetActiveFont() const
 {
-	if ( mOverrideFont )
+	if ( !mOverrideFont )
 		return mOverrideFont;
 
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
@@ -334,7 +334,7 @@ bool UIEditBox::ProcessKey(const Event& event)
 				const int realmend = mMarkBegin < mMarkEnd ? mMarkEnd : mMarkBegin;
 
 				// add new character
-				const char* p; // = Operator->getTextFromClipboard();
+				const char* p = nullptr; // = Operator->getTextFromClipboard();
 				if (p)
 				{
 					// TODO: we should have such a function in core::string

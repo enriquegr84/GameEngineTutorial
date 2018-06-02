@@ -2,7 +2,7 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#ifndef PARTICLEANIMATEDMESHSNODEEMITTER_H
+#ifndef PARTICLEANIMATEDMESHNODEEMITTER_H
 #define PARTICLEANIMATEDMESHNODEEMITTER_H
 
 #include "AnimatedMeshNode.h"

@@ -36,11 +36,6 @@ Node::Node(int id, WeakBaseRenderComponentPtr renderComponent, RenderPass render
 
 Node::~Node()
 {
-}
-
-
-Node::~Node()
-{
 	// delete all children
 	DetachAllChildren();
 

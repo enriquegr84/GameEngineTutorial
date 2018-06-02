@@ -238,7 +238,7 @@ const wchar_t* UISkin::GetIcon(UIDefaultIcon icon) const
 	if ((unsigned int)icon < DI_COUNT)
 		return mIcons[icon].c_str();
 	else
-		return 0;
+		return nullptr;
 }
 
 

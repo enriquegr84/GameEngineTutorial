@@ -5,9 +5,11 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
+#include "Core/CoreStd.h"
 #include "Graphic/GraphicStd.h"
 
 #include "Mathematic/Algebra/Vector3.h"
+#include "Mathematic/Algebra/Vector2.h"
 
 //! Struct for holding particle data
 struct GRAPHIC_ITEM Particle

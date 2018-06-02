@@ -101,7 +101,7 @@ Light& LightNode::GetLightData()
 
 void LightNode::SetVisible(bool isVisible)
 {
-	SetVisible(isVisible);
+	mIsVisible = isVisible;
 
 	if(mDriverLightIndex < 0)
 		return;

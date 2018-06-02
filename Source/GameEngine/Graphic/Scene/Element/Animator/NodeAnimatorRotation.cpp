@@ -27,7 +27,8 @@ void NodeAnimatorRotation::AnimateNode(Scene* pScene, Node* node, unsigned int t
 		{
 			// clip the rotation to small values, to avoid
 			// precision problems with huge floats.
-			Vector3<float> rot = node->GetRotation() + mRotation*(diffTime*0.1f);
+			/*
+			Vector3<float> rot = node->GetAbsoluteTransform().GetRotation() + mRotation*(diffTime*0.1f);
 			if (rot.X>360.f)
 				rot.X=fmodf(rot.X, 360.f);
 			if (rot.Y>360.f)
@@ -35,6 +36,7 @@ void NodeAnimatorRotation::AnimateNode(Scene* pScene, Node* node, unsigned int t
 			if (rot.Z>360.f)
 				rot.Z=fmodf(rot.Z, 360.f);
 			node->SetRotation(rot);
+			*/
 			mStartTime=timeMs;
 		}
 	}

@@ -22,8 +22,8 @@ NodeAnimatorFlyStraight::NodeAnimatorFlyStraight(const Vector3<float>& startPoin
 void NodeAnimatorFlyStraight::RecalculateIntermediateValues()
 {
 	mVector = mEnd - mStart;
-	mTimeFactor = (float)mVector.GetLength() / mTimeForWay;
-	mVector.Normalize();
+	mTimeFactor = (float)mVector.GetSize() / mTimeForWay;
+	Normalize(mVector);
 }
 
 
@@ -63,7 +63,7 @@ void NodeAnimatorFlyStraight::AnimateNode(Scene* pScene, Node* node, unsigned in
 		}
 	}
 
-	node->SetPosition(pos);
+	node->GetAbsoluteTransform().SetTranslation(pos);
 }
 
 NodeAnimator* NodeAnimatorFlyStraight::CreateClone(Node* node)

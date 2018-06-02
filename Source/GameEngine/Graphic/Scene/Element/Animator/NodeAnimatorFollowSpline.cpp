@@ -4,6 +4,8 @@
 
 #include "NodeAnimatorFollowSpline.h"
 
+#include "Graphic/Scene/Scene.h"
+
 //! constructor
 NodeAnimatorFollowSpline::NodeAnimatorFollowSpline(unsigned int time, const eastl::vector<Vector3<float>>& points,  
 		float speed, float tightness, bool loop, bool pingpong)
@@ -39,7 +41,7 @@ void NodeAnimatorFollowSpline::AnimateNode(Scene* pScene, Node* node, unsigned i
 	{
 		if ( timeMs > mStartTime )
 		{
-			node->SetPosition(mPoints[0]);
+			node->GetAbsoluteTransform().SetTranslation(mPoints[0]);
 			if ( !mLoop )
 				mHasFinished = true;
 		}
@@ -47,15 +49,15 @@ void NodeAnimatorFollowSpline::AnimateNode(Scene* pScene, Node* node, unsigned i
 	}
 
 	const float dt = ( (timeMs-mStartTime) * mSpeed * 0.001f );
-	const int unwrappedIdx = floor32( dt );
+	const int unwrappedIdx = (int)Function<float>::Floor( dt );
 	if ( !mLoop && unwrappedIdx >= (int)pSize-1 )
 	{
-		node->SetPosition(mPoints[pSize-1]);
+		node->GetAbsoluteTransform().SetTranslation(mPoints[pSize-1]);
 		mHasFinished = true;
 		return;
 	}
 	const bool pong = mPingPong && (unwrappedIdx/(pSize-1))%2;
-	const float u =  pong ? 1.f-fract ( dt ) : fract ( dt );
+	const float u =  pong ? 1.f- Function<float>::Fract ( dt ) : Function<float>::Fract ( dt );
 	const int idx = pong ?	(pSize-2) - (unwrappedIdx % (pSize-1))
 						: (mPingPong ? unwrappedIdx % (pSize-1) 
 							: unwrappedIdx % pSize);
@@ -77,7 +79,7 @@ void NodeAnimatorFollowSpline::AnimateNode(Scene* pScene, Node* node, unsigned i
 	const Vector3<float> t2 = ( p3 - p1 ) * mTightness;
 
 	// interpolated point
-	node->SetPosition(p1 * h1 + p2 * h2 + t1 * h3 + t2 * h4);
+	node->GetAbsoluteTransform().SetTranslation(p1 * h1 + p2 * h2 + t1 * h3 + t2 * h4);
 }
 
 

@@ -205,7 +205,7 @@ void MountPointReader::BuildDirectory()
 BaseReadFile* MountPointReader::CreateAndOpenFile(unsigned int index)
 {
 	if (index >= mFiles.size())
-		return 0;
+		return nullptr;
 
 	return ReadFile::CreateReadFile(mRealFileNames[mFiles[index].mID]);
 }
@@ -217,5 +217,5 @@ BaseReadFile* MountPointReader::CreateAndOpenFile(const eastl::wstring& filename
 	if (index != -1)
 		return CreateAndOpenFile(index);
 	else
-		return 0;
+		return nullptr;
 }

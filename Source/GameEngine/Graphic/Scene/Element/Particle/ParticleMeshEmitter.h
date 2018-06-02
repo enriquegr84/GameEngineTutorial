@@ -9,8 +9,6 @@
 
 #include "Graphic/Effect/Mesh.h"
 
-#include "Mathematic/Algebra/Vector2.h"
-
 
 //! A particle emitter which emits from vertices of a mesh
 class ParticleMeshEmitter : public BaseParticleEmitter
