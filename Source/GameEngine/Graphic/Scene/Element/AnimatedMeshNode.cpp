@@ -422,7 +422,6 @@ eastl::shared_ptr<Material> const& AnimatedMeshNode::GetMaterial(unsigned int i)
 }
 
 
-
 //! returns amount of materials used by this scene node.
 unsigned int AnimatedMeshNode::GetMaterialCount() const
 {
