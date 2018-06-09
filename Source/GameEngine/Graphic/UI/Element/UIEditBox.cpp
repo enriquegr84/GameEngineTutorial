@@ -108,7 +108,7 @@ const eastl::shared_ptr<BaseUIFont>& UIEditBox::GetOverrideFont() const
 //! Get the font which is used right now for drawing
 const eastl::shared_ptr<BaseUIFont>& UIEditBox::GetActiveFont() const
 {
-	if ( !mOverrideFont )
+	if ( mOverrideFont )
 		return mOverrideFont;
 
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();

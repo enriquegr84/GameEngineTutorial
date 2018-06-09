@@ -8,7 +8,7 @@
 #include "Spatial.h"
 
 Spatial::Spatial()
-    : mWorldTransformIsCurrent(false), mWorldBoundIsCurrent(false),
+    : mParent(nullptr), mWorldTransformIsCurrent(false), mWorldBoundIsCurrent(false),
     mCulling(CULL_DYNAMIC), mAutomaticCullingState(AC_OFF), mDebugDataVisible(DS_OFF)
 {
 

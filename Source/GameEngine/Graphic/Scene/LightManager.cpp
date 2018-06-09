@@ -17,21 +17,22 @@ LightManager::LightManager()
 { 
 	mDLight = eastl::make_shared<Light>(true, true);
 	mDLight->mLighting = eastl::make_shared<Lighting>();
-
+	/*
 	eastl::shared_ptr<ViewVolumeNode> lightNode = 
 		eastl::make_shared<ViewVolumeNode>(GameLogic::Get()->GetNewActorID(), mDLight);
-	/*
+
 	lightNode->GetRelativeTransform().SetTranslation(1628.448730f, -51.877197f, 0.0f);
 	lightNode->GetRelativeTransform().SetRotation(
 		AxisAngle<4, float>({ -1.0f, 0.0f, 0.0f, 0.0f }, (float)GE_C_HALF_PI));
-	*/
-	//mDLightRoot = eastl::make_shared<Node>(GameLogic::Get()->GetNewActorID());
-	/*mDLightRoot->GetRelativeTransform().SetTranslation(-1824.998657f, -1531.269775f, 3886.592773f);
+
+	mDLightRoot = eastl::make_shared<Node>(GameLogic::Get()->GetNewActorID());
+	mDLightRoot->GetRelativeTransform().SetTranslation(-1824.998657f, -1531.269775f, 3886.592773f);
 	mDLightRoot->GetRelativeTransform().SetRotation(
-		AxisAngle<4, float>({ -0.494124f, 0.325880f, 0.806005f }, 1.371538f));*/
+		AxisAngle<4, float>({ -0.494124f, 0.325880f, 0.806005f }, 1.371538f));
 
 	mDLightRoot->AttachChild(lightNode);
 	mDLightRoot->Update();
+	*/
 }
 
 void LightManager::UpdateCameraLightModelPositions(
