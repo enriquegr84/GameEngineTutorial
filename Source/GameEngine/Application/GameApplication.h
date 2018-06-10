@@ -173,7 +173,7 @@ protected:
 	eastl::array<float, 4> mClearColor;
     bool mAllowResize;
 
-	//HINSTANCE m_hInstance;	//	the module instance
+	//HINSTANCE mHInstance;	//	the module instance
 	bool mWindowedMode;			//	true if the app is windowed, false if fullscreen
 	bool mIsRunning;			//	true if everything is initialized and the game is in the main loop
 	bool mQuitRequested;		//	true if the app should run the exit sequence

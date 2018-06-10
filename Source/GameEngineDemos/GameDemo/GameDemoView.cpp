@@ -107,7 +107,7 @@ MainMenuUI::~MainMenuUI()
 { 
 	//GUIEngine::DialogQueue::deallocate();
 
-	//D3DRenderer::g_DialogResourceManager.UnregisterDialog(&m_SampleUI);
+	//D3DRenderer::DialogResourceManager.UnregisterDialog(&mSampleUI);
 	//if(demos_manager)
 	//	SAFE_DELETE ( demos_manager );
 
@@ -458,7 +458,7 @@ void MainMenuUI::SetUIActive(int command)
 	{
 		sceneTree->GetRoot()->ClearChildren();
 		AddSceneTreeItem(
-			g_DemosApp.GetHumanView()->m_pScene->GetRootNode().get(), sceneTree->GetRoot().get());
+			DemosApp.GetHumanView()->mScene->GetRootNode().get(), sceneTree->GetRoot().get());
 	}
 	*/
 	SetFocus(guiActive ? window : 0);
@@ -488,29 +488,29 @@ bool MainMenuUI::OnRender(double time, float elapsedTime)
 	*/
 
     {
-		//g_SuperTuxKartApp.m_pRenderer->PreRender(
+		//g_SuperTuxKartApp.mRenderer->PreRender(
 		//	/*backBuffer clear*/ true, /*zBuffer*/ true, Color(255,100,101,140));
 
 		//float dt = gameApp->GetLimitedDt();
 		//UIEngine::Update(dt);
 		//UIEngine::Render(dt);
 
-		//g_SuperTuxKartApp.m_pRenderer->PostRender();
+		//SuperTuxKartApp.mRenderer->PostRender();
     }
 
-    //if (m_request_screenshot) doScreenShot();
+    //if (mRequestScreenshot) doScreenShot();
 
     // Enable this next print statement to get render information printed
     // E.g. number of triangles rendered, culled etc. The stats is only
     // printed while the race is running and not while the in-game menu
     // is shown. This way the output can be studied by just opening the
     // menu.
-    //if(World::getWorld() && World::getWorld()->isRacePhase())
-    //    printRenderStats();
+    //if(World::GetWorld() && World::GetWorld()->IsRacePhase())
+    //    PrintRenderStats();
 	/*
 	HRESULT hr;
 	DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"TeapotWarsHUD"); // These events are to help PIX identify what the code is doing
-	V(m_SampleUI.OnRender(elapsedTime));
+	V(mSampleUI.OnRender(elapsedTime));
 	DXUT_EndPerfEvent();
 	return S_OK;
 	*/
@@ -532,7 +532,7 @@ bool MainMenuUI::OnRender(double time, float elapsedTime)
 bool MainMenuUI::OnMsgProc( const Event& evt )
 {
 	return BaseUI::OnMsgProc(evt);
-	//return m_SampleUI.MsgProc( msg.m_hWnd, msg.m_uMsg, msg.m_wParam, msg.m_lParam );
+	//return mSampleUI.MsgProc( msg.m_hWnd, msg.m_uMsg, msg.m_wParam, msg.m_lParam );
 }
 
 
@@ -554,6 +554,7 @@ bool MainMenuUI::OnEvent(const Event& evt)
 				break;
 			}
 
+			case CID_DEMO_WINDOW:
 			case CID_SET_GAME_RADIO:
 			{
 				break;
@@ -565,6 +566,17 @@ bool MainMenuUI::OnEvent(const Event& evt)
 			case CID_HOST_LISTEN_PORT:
 			case CID_CLIENT_ATTACH_PORT:
 			case CID_HOST_NAME:
+			{
+				break;
+			}
+
+			case CID_NUM_AI_LABEL:
+			case CID_NUM_PLAYER_LABEL:
+			case CID_HOST_LISTEN_PORT_LABEL:
+			case CID_CLIENT_ATTACH_PORT_LABEL:
+			case CID_HOST_NAME_LABEL:
+			case CID_LEVEL_LABEL:
+			case CID_STATUS_LABEL:
 			{
 				break;
 			}
@@ -749,7 +761,7 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 					case KEY_KEY_1:
 					{
 						mShowUI = !mShowUI;
-						//mStandardHUD->SetVisible(m_bShowUI);
+						//mStandardHUD->SetVisible(mShowUI);
 						return true;
 					}
 
@@ -765,7 +777,7 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 						mScene->Pick(&rayCast);
 						rayCast.Sort();
 
-						if (rayCast.m_NumIntersections)
+						if (rayCast.mNumIntersections)
 						{
 							// You can iterate through the intersections on the raycast.
 							int a = 0;

@@ -315,6 +315,83 @@ public:
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
 		eastl::array<float, 4> const color = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f}, float radius = 100.f);
 
+	//! Creates a rotation animator, which rotates the attached scene node around itself.
+	/** \param rotationSpeed Specifies the speed of the animation in degree per 10 milliseconds.
+	\return The animator. Attach it to a scene node with ISceneNode::addAnimator()
+	and the animator will animate it.
+	If you no longer need the animator, you should call ISceneNodeAnimator::drop().
+	See IReferenceCounted::drop() for more information. */
+	eastl::shared_ptr<NodeAnimator> Scene::CreateRotationAnimator(const Vector3<float>& rotationPerSecond);
+
+	//! Creates a fly circle animator, which lets the attached scene node fly around a center.
+	/** \param center: Center of the circle.
+	\param radius: Radius of the circle.
+	\param speed: The orbital speed, in radians per millisecond.
+	\param direction: Specifies the upvector used for alignment of the mesh.
+	\param startPosition: The position on the circle where the animator will
+	begin. Value is in multiples of a circle, i.e. 0.5 is half way around. (phase)
+	\param radiusEllipsoid: if radiusEllipsoid != 0 then radius2 froms a ellipsoid
+	begin. Value is in multiples of a circle, i.e. 0.5 is half way around. (phase)
+	\return The animator. Attach it to a scene node with ISceneNode::addAnimator()
+	and the animator will animate it.
+	If you no longer need the animator, you should call ISceneNodeAnimator::drop().
+	See IReferenceCounted::drop() for more information. */
+	eastl::shared_ptr<NodeAnimator> Scene::CreateFlyCircleAnimator(
+		const Vector3<float>& center = Vector3<float>{ 0.f, 0.f, 0.f }, float radius = 100.f, float speed = 0.001f,
+		const Vector3<float>& direction = Vector3<float>{ 0.f, 1.f, 0.f }, float startPosition = 0.f, float radiusEllipsoid = 0.f);
+
+	//! Creates a fly straight animator, which lets the attached scene node fly or move 
+	//	along a line between two points.
+	/** \param startPoint: Start point of the line.
+	\param endPoint: End point of the line.
+	\param timeForWay: Time in milli seconds how long the node should need to
+	move from the start point to the end point.
+	\param loop: If set to false, the node stops when the end point is reached.
+	If loop is true, the node begins again at the start.
+	\param pingpong Flag to set whether the animator should fly
+	back from end to start again.
+	\return The animator. Attach it to a scene node with ISceneNode::addAnimator()
+	and the animator will animate it.
+	If you no longer need the animator, you should call ISceneNodeAnimator::drop().
+	See IReferenceCounted::drop() for more information. */
+	eastl::shared_ptr<NodeAnimator> Scene::CreateFlyStraightAnimator(const Vector3<float>& startPoint,
+		const Vector3<float>& endPoint, unsigned int timeForWay, bool loop = false, bool pingpong = false);
+
+	//! Creates a texture animator, which switches the textures of the target scene node based 
+	//	on a list of textures.
+	/** \param textures: List of textures to use.
+	\param timePerFrame: Time in milliseconds, how long any texture in the list
+	should be visible.
+	\param loop: If set to to false, the last texture remains set, and the animation
+	stops. If set to true, the animation restarts with the first texture.
+	\return The animator. Attach it to a scene node with ISceneNode::addAnimator()
+	and the animator will animate it.
+	If you no longer need the animator, you should call ISceneNodeAnimator::drop().
+	See IReferenceCounted::drop() for more information. */
+	eastl::shared_ptr<NodeAnimator> Scene::CreateTextureAnimator(
+		const eastl::vector<Texture2*>& textures, int timePerFrame, bool loop = true);
+
+	//! Creates a scene node animator, which deletes the scene node after some time automatically.
+	/** \param timeMs: Time in milliseconds, after when the node will be deleted.
+	\return The animator. Attach it to a scene node with ISceneNode::addAnimator()
+	and the animator will animate it.
+	If you no longer need the animator, you should call ISceneNodeAnimator::drop().
+	See IReferenceCounted::drop() for more information. */
+	eastl::shared_ptr<NodeAnimator> Scene::CreateDeleteAnimator(unsigned int when);
+
+	//! Creates a follow spline animator.
+	/** The animator modifies the position of
+	the attached scene node to make it follow a hermite spline.
+	It uses a subset of hermite splines: either cardinal splines
+	(tightness != 0.5) or catmull-rom-splines (tightness == 0.5).
+	The animator moves from one control point to the next in
+	1/speed seconds. This code was sent in by Matthias Gall.
+	If you no longer need the animator, you should call ISceneNodeAnimator::drop().
+	See IReferenceCounted::drop() for more information. */
+	eastl::shared_ptr<NodeAnimator> Scene::CreateFollowSplineAnimator(int startTime,
+		const eastl::vector<Vector3<float>>& points, float speed = 1.0f, float tightness = 0.5f,
+		bool loop = true, bool pingpong = false);
+
 	//! Gets the root scene node.
 	/** This is the scene node which is parent
 	of all scene nodes. The root scene node is a special scene node which

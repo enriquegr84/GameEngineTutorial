@@ -46,8 +46,8 @@
 Process::Process(void)
 {
 	mState = STATE_UNINITIALIZED;
-	//m_pParent = NULL;
-	//m_pChild = NULL;
+	//mParent = NULL;
+	//mChild = NULL;
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ bool Process::AttachToParent(Process* pParent)
 	// it means we're trying to double-attach this process, which is an error.
 	if (IsAlive())
 	{
-		m_state = REMOVED;
+		mState = REMOVED;
 	}
 	else if (IsDead())
 	{

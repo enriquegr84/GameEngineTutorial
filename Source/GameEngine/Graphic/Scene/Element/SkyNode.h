@@ -36,8 +36,8 @@
 //
 //========================================================================
 /*
-#ifndef _SKY_H_INCLUDED_
-#define _SKY_H_INCLUDED_
+#ifndef SKY_H
+#define SKY_H
 
 #include "GameEngineStd.h"
 

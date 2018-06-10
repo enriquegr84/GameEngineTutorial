@@ -508,7 +508,7 @@ void HumanView::GameStateDelegate(BaseEventDataPtr pEventData)
 {
 //    eastl::shared_ptr<EventDataGame_State> pCastEventData = 
 //		static_pointer_cast<EventDataGame_State>(pEventData);
-//    m_BaseGameState = pCastEventData->GetGameState(); 
+//    mBaseGameState = pCastEventData->GetGameState(); 
 }
 
 

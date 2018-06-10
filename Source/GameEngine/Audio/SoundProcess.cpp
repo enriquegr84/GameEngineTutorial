@@ -72,7 +72,7 @@ SoundProcess::~SoundProcess()
 void SoundProcess::InitializeVolume()
 {
 	// FUTURE WORK: Somewhere set an adjusted volume based on game options
-	// m_volume = g_GraphicalApp->GetVolume(typeOfSound);
+	// mVolume = GraphicalApp->GetVolume(typeOfSound);
 }
 
 //

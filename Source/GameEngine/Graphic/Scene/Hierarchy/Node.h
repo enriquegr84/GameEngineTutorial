@@ -192,7 +192,7 @@ class NodeAnimator;
 class BaseRenderComponent;
 
 // FUTURE WORK - Smart pointers don't work right....going to use a naked pointer for now!
-typedef BaseRenderComponent* WeakBaseRenderComponentPtr;
+typedef eastl::weak_ptr<BaseRenderComponent> WeakBaseRenderComponentPtr;
 
 //////////////////////////////////////////////////////////////
 //

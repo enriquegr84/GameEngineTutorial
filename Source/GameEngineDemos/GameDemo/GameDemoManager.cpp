@@ -154,7 +154,7 @@ void GameDemoManager::LoadGameDemosList()
             if(*subdir==L"." || *subdir==L"..") continue;
             LoadGameDemo(dir+*subdir+L"/");
         }   // for dir in dirs
-    }   // for i <m_demo_search_path.size()
+    }   // for i <mDemoSearchPath.size()
 }  // loadDemosList
 
 // ----------------------------------------------------------------------------
@@ -180,15 +180,15 @@ bool GameDemoManager::LoadGameDemo(const eastl::wstring& dirname)
         return false;
     }
 	/*
-    if (gameDemo->getVersion()<stk_config->m_min_track_version ||
-        gameDemo->getVersion()>stk_config->m_max_track_version)
+    if (gameDemo->getVersion()<stk_config->mMinTrackVersion ||
+        gameDemo->getVersion()>stk_config->mMaxTrackVersion)
     {
         fprintf(stderr, "[TrackManager] Warning: track '%s' is not supported "
                         "by this binary, ignored. (Track is version %i, this "
                         "executable supports from %i to %i)\n",
-                track->getIdent().c_str(), track->getVersion(),
-                stk_config->m_min_track_version,
-                stk_config->m_max_track_version);
+                track->GetIdent().c_str(), track->GetVersion(),
+                stkConfig->mMinTrackVersion,
+                stkConfig->mMaxTrackVersion);
         delete track;
         return false;
     }

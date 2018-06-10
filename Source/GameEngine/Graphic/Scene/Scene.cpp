@@ -456,6 +456,63 @@ eastl::shared_ptr<Node> Scene::AddLightNode(
 	return node;
 }
 
+//! creates a rotation animator, which rotates the attached scene node around itself.
+eastl::shared_ptr<NodeAnimator> Scene::CreateRotationAnimator(const Vector3<float>& rotationPerSecond)
+{
+	return eastl::shared_ptr<NodeAnimator>(
+		new NodeAnimatorRotation(Timer::GetTime(), rotationPerSecond));
+}
+
+
+//! creates a fly circle animator, which lets the attached scene node fly around a center.
+eastl::shared_ptr<NodeAnimator> Scene::CreateFlyCircleAnimator(const Vector3<float>& center,
+	float radius, float speed, const Vector3<float>& direction, float startPosition, float radiusEllipsoid)
+{
+	const float orbitDurationMs = ((float)GE_C_DEG_TO_RAD * 360.f) / speed;
+	const unsigned int effectiveTime = Timer::GetTime() + (unsigned int)(orbitDurationMs * startPosition);
+
+	return eastl::shared_ptr<NodeAnimator>(
+		new NodeAnimatorFlyCircle(effectiveTime, center, radius, speed, direction, radiusEllipsoid));
+}
+
+
+//! Creates a fly straight animator, which lets the attached scene node
+//! fly or move along a line between two points.
+eastl::shared_ptr<NodeAnimator> Scene::CreateFlyStraightAnimator(const Vector3<float>& startPoint,
+	const Vector3<float>& endPoint, unsigned int timeForWay, bool loop, bool pingpong)
+{
+	return eastl::shared_ptr<NodeAnimator>(
+		new NodeAnimatorFlyStraight(startPoint, endPoint, timeForWay, loop, Timer::GetTime(), pingpong));
+}
+
+
+//! Creates a texture animator, which switches the textures of the target scene
+//! node based on a list of textures.
+eastl::shared_ptr<NodeAnimator> Scene::CreateTextureAnimator(
+	const eastl::vector<Texture2*>& textures, int timePerFrame, bool loop)
+{
+	return eastl::shared_ptr<NodeAnimator>(
+		new NodeAnimatorTexture(textures, timePerFrame, loop, Timer::GetTime()));
+}
+
+
+//! Creates a scene node animator, which deletes the scene node after
+//! some time automaticly.
+eastl::shared_ptr<NodeAnimator> Scene::CreateDeleteAnimator(unsigned int when)
+{
+	return eastl::shared_ptr<NodeAnimator>(new NodeAnimatorDelete(Timer::GetTime() + when));
+}
+
+
+//! Creates a follow spline animator.
+eastl::shared_ptr<NodeAnimator> Scene::CreateFollowSplineAnimator(int startTime,
+	const eastl::vector<Vector3<float>>& points, float speed, float tightness, bool loop, bool pingpong)
+{
+	return eastl::shared_ptr<NodeAnimator>(
+		new NodeAnimatorFollowSpline(startTime, points, speed, tightness, loop, pingpong));
+}
+
+
 //! Adds a child to this scene node.
 /** If the scene node already has a parent it is first removed
 from the other parent.
@@ -604,7 +661,7 @@ void Scene::NewRenderComponentDelegate(BaseEventDataPtr pEventData)
     eastl::shared_ptr<Node> pSceneNode(pCastEventData->GetSceneNode());
 
     // FUTURE WORK: Add better error handling here.	
-    if (FAILED(pSceneNode->OnRestore(this)))
+    if (!pSceneNode || FAILED(pSceneNode->OnRestore(this)))
     {
         LogError(eastl::string("Failed to restore scene node to the scene for actorid ") + eastl::to_string(actorId));
         return;

@@ -114,8 +114,8 @@ public:
 		return ++mLastActorId;
 	}
 
-	//shared_ptr<PathingGraph> GetPathingGraph(void) { return m_pPathingGraph; }
-	//RandomGenerator& GetRNG(void) { return m_Random; }
+	//shared_ptr<PathingGraph> GetPathingGraph(void) { return mPathingGraph; }
+	//RandomGenerator& GetRNG(void) { return mRandom; }
 
 	// [rez] note: don't store this strong pointer outside of this class 
 	virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource,

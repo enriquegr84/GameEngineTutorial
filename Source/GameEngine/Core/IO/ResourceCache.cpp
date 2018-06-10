@@ -387,7 +387,7 @@ void ResCache::Free(const eastl::shared_ptr<ResHandle>& gonner)
 	// so the cache can't actually count the memory freed until the
 	// ResHandle pointing to it is destroyed.
 
-	//m_allocated -= gonner->m_resource.m_size;
+	//mAllocated -= gonner->mResource.mSize;
 	//delete gonner;
 }
 

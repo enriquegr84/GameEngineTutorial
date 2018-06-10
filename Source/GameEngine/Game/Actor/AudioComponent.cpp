@@ -135,13 +135,13 @@ void AudioComponent::PostInit()
 	{
 		// The editor can play sounds, but it shouldn't run them when AudioComponents are initialized.
 		/*
-		BaseResource resource(m_audioResource);
+		BaseResource resource(mAudioResource);
 		eastl::shared_ptr<ResHandle> rh = ResCache::Get()->GetHandle(&resource);
 		eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, 0, true));
 		processManager->AttachProcess(sound);
 
 		// fade process
-		if (m_fadeInTime > 0.0f)
+		if (mFadeInTime > 0.0f)
 		{
 			eastl::shared_ptr<FadeProcess> fadeProc(new FadeProcess(sound, 10000, 100));
 			processManager->AttachProcess(fadeProc);

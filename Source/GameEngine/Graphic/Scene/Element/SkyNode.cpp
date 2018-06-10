@@ -66,7 +66,7 @@ SkyNode::SkyNode(const char *pTextureBaseName)
 HRESULT SkyNode::VPreRender(Scene *pScene)
 {
 	Vector3<float> cameraPos = m_camera->VGet()->ToWorld().GetPosition();
-	Matrix4x4<float> mat = m_Props.ToWorld();
+	Matrix4x4<float> mat = mProps.ToWorld();
 	mat.SetPosition(cameraPos);
 	VSetTransform(&mat);
 

@@ -56,25 +56,25 @@ ActorFactory::ActorFactory(void)
 {
     mLastActorId = INVALID_ACTOR_ID;
 
-    m_componentFactory.Register<TransformComponent>(
+    mComponentFactory.Register<TransformComponent>(
 		ActorComponent::GetIdFromName(TransformComponent::Name));
-	m_componentFactory.Register<MeshRenderComponent>(
+	mComponentFactory.Register<MeshRenderComponent>(
 		ActorComponent::GetIdFromName(MeshRenderComponent::Name));
-    m_componentFactory.Register<SphereRenderComponent>(
+    mComponentFactory.Register<SphereRenderComponent>(
 		ActorComponent::GetIdFromName(SphereRenderComponent::Name));
-    m_componentFactory.Register<PhysicComponent>(
+    mComponentFactory.Register<PhysicComponent>(
 		ActorComponent::GetIdFromName(PhysicComponent::Name));
-    m_componentFactory.Register<TeapotRenderComponent>(
+    mComponentFactory.Register<TeapotRenderComponent>(
 		ActorComponent::GetIdFromName(TeapotRenderComponent::Name));
-    m_componentFactory.Register<GridRenderComponent>(
+    mComponentFactory.Register<GridRenderComponent>(
 		ActorComponent::GetIdFromName(GridRenderComponent::Name));
-    m_componentFactory.Register<ParticleSystemRenderComponent>(
+    mComponentFactory.Register<ParticleSystemRenderComponent>(
 		ActorComponent::GetIdFromName(ParticleSystemRenderComponent::Name));
-    m_componentFactory.Register<LightRenderComponent>(
+    mComponentFactory.Register<LightRenderComponent>(
 		ActorComponent::GetIdFromName(LightRenderComponent::Name));
-    m_componentFactory.Register<SkyRenderComponent>(
+    mComponentFactory.Register<SkyRenderComponent>(
 		ActorComponent::GetIdFromName(SkyRenderComponent::Name));
-    m_componentFactory.Register<AudioComponent>(
+    mComponentFactory.Register<AudioComponent>(
 		ActorComponent::GetIdFromName(AudioComponent::Name));
 }
 
@@ -148,7 +148,7 @@ eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(tinyxml2::XMLEle
 {
     const char* name = pData->Value();
     eastl::shared_ptr<ActorComponent> pComponent(
-		m_componentFactory.Create(ActorComponent::GetIdFromName(name)));
+		mComponentFactory.Create(ActorComponent::GetIdFromName(name)));
 
     // initialize the component if we found one
     if (pComponent)

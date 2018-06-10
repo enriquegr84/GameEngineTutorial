@@ -37,12 +37,15 @@
 //
 //========================================================================
 
-#ifndef _BASERENDERCOMPONENT_H_INCLUDED_
-#define _BASERENDERCOMPONENT_H_INCLUDED_
+#ifndef BASERENDERCOMPONENT_H
+#define BASERENDERCOMPONENT_H
 
 #include "GameEngineStd.h"
 
 #include "ActorComponent.h"
+
+#include "Graphic/Scene/Hierarchy/Node.h"
+#include "Graphic/Scene/Hierarchy/Light.h"
 
 //---------------------------------------------------------------------------------------------------------------------
 // RenderComponent base class.  This class does most of the work except actually creating the scene, which is 
@@ -54,12 +57,10 @@ class BaseRenderComponent : public ActorComponent
 {
 protected:
     //Color mColor;
-    //eastl::shared_ptr<SceneNode> mSceneNode;
-
-	// virtual ComponentId GetComponentId(void) const override { return COMPONENT_ID; }
+    eastl::shared_ptr<Node> mSceneNode;
 
 	// RenderComponentInterface
-	//virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) = 0;
+	virtual const eastl::shared_ptr<Node>& GetSceneNode(void);
 
 public:
     virtual bool Init(tinyxml2::XMLElement* pData) override;
@@ -72,15 +73,12 @@ protected:
     // loads the SceneNode specific data (represented in the <SceneNode> tag)
     virtual bool DelegateInit(tinyxml2::XMLElement* pData) { return true; }
 	// factory method to create the appropriate scene node
-    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) = 0;  
+    virtual eastl::shared_ptr<Node> CreateSceneNode(void) = 0;  
     //Color LoadColor(XMLElement* pData);
 
     // editor stuff
     virtual void CreateInheritedXMLElements(
 		tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement) = 0;
-
-private:
-    //virtual const eastl::shared_ptr<SceneNode>& GetSceneNode(void) override;
 };
 
 

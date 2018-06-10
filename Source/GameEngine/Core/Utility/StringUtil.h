@@ -86,7 +86,7 @@ public:
 
 private:
 
-	// note: m_ident is stored as a void* not an int, so that in
+	// note: mID is stored as a void* not an int, so that in
 	// the debugger it will show up as hex-values instead of
 	// integer values. This is a bit more representative of what
 	// we're doing here and makes it easy to allow external code

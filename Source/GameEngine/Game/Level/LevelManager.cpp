@@ -77,7 +77,7 @@ Level* LevelManager::GetLevel(const eastl::wstring& ident) const
 void LevelManager::RemoveAllCachedData()
 {
 /*
-    for(LevelList::const_iterator i = m_levels.begin(); i != m_levels.end(); ++i)
+    for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
         (*i)->RemoveCachedData();
 */
 }   // removeAllCachedData
@@ -172,15 +172,15 @@ bool LevelManager::LoadLevel(const eastl::wstring& levelname)
         return false;
     }
 	/*
-    if (demo->getVersion()<stk_config->m_min_track_version ||
-        demo->getVersion()>stk_config->m_max_track_version)
+    if (demo->getVersion()<stkConfig->mMinTrackVersion ||
+        demo->getVersion()>stkConfig->mMaxTrackVersion)
     {
         fprintf(stderr, "[TrackManager] Warning: track '%s' is not supported "
                         "by this binary, ignored. (Track is version %i, this "
                         "executable supports from %i to %i)\n",
                 track->getIdent().c_str(), track->getVersion(),
-                stk_config->m_min_track_version,
-                stk_config->m_max_track_version);
+                stkConfig->mMinTrackVersion,
+                stkConfig->mMaxTrackVersion);
         delete track;
         return false;
     }

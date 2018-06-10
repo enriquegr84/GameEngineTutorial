@@ -73,7 +73,7 @@ GameLogic::GameLogic()
 	mLastActorId = 0;
 	mLifetime = 0;
 
-	//m_Random.Randomize();
+	//mRandom.Randomize();
 	mGameState = BGS_INITIALIZING;
 	mIsProxy = false;
 	mIsRenderDiagnostics = false;

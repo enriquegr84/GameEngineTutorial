@@ -66,7 +66,7 @@ public:
 	/** This variable is publicly accessible from the interface in order to
 	avoid single access patterns to this place, and hence allow some more
 	obscurity. */
-	eastl::wstring m_Password;
+	eastl::wstring mPassword;
 };
 
 #endif

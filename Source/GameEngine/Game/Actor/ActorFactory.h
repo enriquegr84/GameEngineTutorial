@@ -56,7 +56,7 @@ class ActorFactory
     ActorId mLastActorId;
 
 protected:
-    GenericObjectFactory<ActorComponent, ComponentId> m_componentFactory;
+    GenericObjectFactory<ActorComponent, ComponentId> mComponentFactory;
 
 public:
     ActorFactory(void);

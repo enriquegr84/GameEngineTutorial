@@ -76,7 +76,7 @@ unsigned int FileList::AddItem(const eastl::wstring& fullPath,
 	if (entry.mName.rfind('/') != eastl::string::npos)
 		entry.mName = entry.mName.substr(entry.mName.rfind('/') + 1);
 
-	//LogInformation(m_Path.c_str() entry.m_FullName);
+	//LogInformation(mPath.c_str() entry.mFullName);
 	mFiles.push_back(entry);
 
 	return mFiles.size() - 1;

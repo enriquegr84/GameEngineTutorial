@@ -65,7 +65,7 @@ public:
 
 protected:
     virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
-    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+    virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
@@ -87,7 +87,7 @@ public:
 
 protected:
     virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
-    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
@@ -104,7 +104,7 @@ public:
 	virtual const char *GetName() const { return Name; }
 
 protected:
-    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
@@ -129,7 +129,7 @@ public:
 
 protected:
     virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
-    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
@@ -141,13 +141,13 @@ protected:
 //---------------------------------------------------------------------------------------------------------------------
 class LightRenderComponent : public BaseRenderComponent
 {
-	//Light mProps; 
+	Light mLightData; 
 
 	float mAnimatorSpeed;
-	eastl::string m_animatorType;
-	Vector3<float> m_animatorCenter;
+	eastl::string mAnimatorType;
+	Vector3<float> mAnimatorCenter;
 
-	bool m_addBillboard;
+	bool mAddBillboard;
 	eastl::string mBillboardMaterial;
 	eastl::string mBillboardTexture;
 	Vector2<float> mBillboardSize;
@@ -160,7 +160,7 @@ public:
 
 protected:
     virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
-    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
@@ -181,7 +181,7 @@ public:
 
 protected:
     virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
-    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
@@ -203,7 +203,7 @@ public:
 
 protected:
     virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
-    //virtual eastl::shared_ptr<SceneNode> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
     // editor stuff
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);

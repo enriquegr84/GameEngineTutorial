@@ -552,13 +552,13 @@ void GameApplication::InitUserConfig()
 {
 	UserConfig* userConfig = new UserConfig();     // needs file_manager
 	const bool config_ok = user_config->LoadConfig();
-	if (UserConfigParams::m_language.ToString() != L"system")
+	if (UserConfigParams::mLanguage.ToString() != L"system")
 	{
 #ifdef WIN32
-		eastl::string s = eastl::string("LANGUAGE=") + UserConfigParams::m_language.c_str();
+		eastl::string s = eastl::string("LANGUAGE=") + UserConfigParams::mLanguage.c_str();
 		_putenv(s.c_str());
 #else
-		setenv("LANGUAGE", UserConfigParams::m_language.c_str(), 1);
+		setenv("LANGUAGE", UserConfigParams::mLanguage.c_str(), 1);
 #endif
 	}
 
@@ -568,10 +568,10 @@ void GameApplication::InitUserConfig()
 	//stk_config              = new STKConfig();      // in case of --stk-config
 	// command line parameters
 	user_config->PostLoadInit();
-	if (!config_ok || UserConfigParams::m_allPlayers.size() == 0)
+	if (!configOk || UserConfigParams::mAllPlayers.size() == 0)
 	{
-		user_config->AddDefaultPlayer();
-		user_config->SaveConfig();
+		userConfig->AddDefaultPlayer();
+		userConfig->SaveConfig();
 	}
 
 }   // InitUserConfig

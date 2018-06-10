@@ -41,6 +41,11 @@
 
 #include "BaseRenderComponent.h"
 
+#include "Core/Event/Event.h"
+
+#include "Game/Actor/Actor.h"
+#include "Game/Actor/TransformComponent.h"
+
 //---------------------------------------------------------------------------------------------------------------------
 // RenderComponent
 //---------------------------------------------------------------------------------------------------------------------
@@ -59,22 +64,18 @@ bool BaseRenderComponent::Init(tinyxml2::XMLElement* pData)
 
 void BaseRenderComponent::PostInit(void)
 {
-	/*
-	eastl::shared_ptr<SceneNode> pSceneNode(GetSceneNode());
+	eastl::shared_ptr<Node> pSceneNode(GetSceneNode());
 	eastl::shared_ptr<EventDataNewRenderComponent> pEvent(
 		new EventDataNewRenderComponent(mOwner->GetId(), pSceneNode));
     BaseEventManager::Get()->TriggerEvent(pEvent);
-	*/
 }
 
 
 void BaseRenderComponent::OnChanged(void)
 {
-	/*
 	eastl::shared_ptr<EventDataModifiedRenderComponent> pEvent(
-		new EventDataModifiedRenderComponent(m_pOwner->GetId()));
+		new EventDataModifiedRenderComponent(mOwner->GetId()));
     BaseEventManager::Get()->TriggerEvent(pEvent);
-	*/
 }
 
 
@@ -100,14 +101,15 @@ tinyxml2::XMLElement* BaseRenderComponent::GenerateXml(void)
 
     return pBaseElement;
 }
-/*
-const eastl::shared_ptr<SceneNode>& BaseRenderComponent::GetSceneNode(void)
+
+const eastl::shared_ptr<Node>& BaseRenderComponent::GetSceneNode(void)
 {
     if (!mSceneNode)
         mSceneNode = CreateSceneNode();
     return mSceneNode;
 }
 
+/*
 Color BaseRenderComponent::LoadColor(XMLElement* pData)
 {
 	Color color;
