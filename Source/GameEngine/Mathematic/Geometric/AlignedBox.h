@@ -35,7 +35,7 @@ public:
         const;
 
     // Public member access.  It is required that min[i] <= max[i].
-    Vector<N, Real> min, max;
+    Vector<N, Real> mMin, mMax;
 
 public:
     // Comparisons to support sorted containers.
@@ -60,8 +60,8 @@ AlignedBox<N, Real>::AlignedBox()
 {
     for (int i = 0; i < N; ++i)
     {
-        min[i] = (Real)-1;
-        max[i] = (Real)+1;
+        mMin[i] = (Real)-1;
+        mMax[i] = (Real)+1;
     }
 }
 
@@ -71,8 +71,8 @@ AlignedBox<N, Real>::AlignedBox(Vector<N, Real> const& inMin,
 {
     for (int i = 0; i < N; ++i)
     {
-        min[i] = inMin[i];
-        max[i] = inMax[i];
+        mMin[i] = inMin[i];
+        mMax[i] = inMax[i];
     }
 }
 
@@ -80,14 +80,14 @@ template <int N, typename Real>
 void AlignedBox<N, Real>::GetCenteredForm(Vector<N, Real>& center,
     Vector<N, Real>& extent) const
 {
-    center = (max + min) * (Real)0.5;
-    extent = (max - min) * (Real)0.5;
+    center = (mMax + mMin) * (Real)0.5;
+    extent = (mMax - mMin) * (Real)0.5;
 }
 
 template <int N, typename Real>
 bool AlignedBox<N, Real>::operator==(AlignedBox const& box) const
 {
-    return min == box.min && max == box.max;
+    return mMin == box.mMin && mMax == box.mMax;
 }
 
 template <int N, typename Real>
@@ -99,17 +99,17 @@ bool AlignedBox<N, Real>::operator!=(AlignedBox const& box) const
 template <int N, typename Real>
 bool AlignedBox<N, Real>::operator<(AlignedBox const& box) const
 {
-    if (min < box.min)
+    if (mMin < box.mMin)
     {
         return true;
     }
 
-    if (min > box.min)
+    if (mMin > box.mMin)
     {
         return false;
     }
 
-    return max < box.max;
+    return mMax < box.mMax;
 }
 
 template <int N, typename Real>

@@ -20,21 +20,21 @@ public:
 	~CubeNode();
 
 	//! Renders event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use getMaterialCount().
 	//! This function is needed for inserting the node into the scene hirachy on a
 	//! optimal position for minimizing renderstate changes, but can also be used
 	//! to directly modify the material of a scene node.
-	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
-	unsigned int GetMaterialCount() const;
+	virtual unsigned int GetMaterialCount() const;
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return NT_CUBE; }
+	virtual NodeType GetType() const { return NT_CUBE; }
 
 	//! Creates shadow volume scene node as child of this node
 	//! and returns a pointer to it.
@@ -52,7 +52,7 @@ public:
 	//! Removes a child from this scene node.
 	//! Implemented here, to be able to remove the shadow properly, if there is one,
 	//! or to remove attached childs.
-	bool RemoveChild(ActorId id);
+	virtual int DetachChild(eastl::shared_ptr<Node> const& child);
 
 private:
 	void SetSize();

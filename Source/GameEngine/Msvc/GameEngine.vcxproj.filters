@@ -973,6 +973,9 @@
     <ClCompile Include="..\Graphic\UI\UIElementFactory.cpp">
       <Filter>Graphic\UI</Filter>
     </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\RectangleNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -2370,6 +2373,12 @@
     </ClInclude>
     <ClInclude Include="..\Mathematic\Function\ChebyshevRatio.h">
       <Filter>Mathematic\Function</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Surface\RectangleMesh.h">
+      <Filter>Mathematic\Surface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\RectangleNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

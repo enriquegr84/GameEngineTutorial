@@ -95,10 +95,10 @@ int UISpriteBank::AddTextureAsSprite(eastl::shared_ptr<Texture2> texture)
 	unsigned int rectangleIndex = mRectangles.size();
 
 	RectangleShape<2, int> rectangle;
-	rectangle.center[0] = texture->GetDimension(0) / 2;
-	rectangle.center[1] = texture->GetDimension(1) / 2;
-	rectangle.extent[0] = texture->GetDimension(0);
-	rectangle.extent[1] = texture->GetDimension(1);
+	rectangle.mCenter[0] = texture->GetDimension(0) / 2;
+	rectangle.mCenter[1] = texture->GetDimension(1) / 2;
+	rectangle.mExtent[0] = texture->GetDimension(0);
+	rectangle.mExtent[1] = texture->GetDimension(1);
 	mRectangles.push_back(rectangle);
 
 	UISprite sprite;
@@ -140,11 +140,11 @@ void UISpriteBank::Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visu
 	if (rn >= mRectangles.size()) return;
 
 	const RectangleShape<2, int>& sourceRect = mRectangles[rn];
-	Vector2<int> sourceSize(sourceRect.extent);
+	Vector2<int> sourceSize(sourceRect.mExtent);
 
-	Vector2<int> targetPos = pos.center;
-	Vector2<int> dimension(clip->extent / 2);
-	if (!center) targetPos -= (pos.extent / 2);
+	Vector2<int> targetPos = pos.mCenter;
+	Vector2<int> dimension(clip->mExtent / 2);
+	if (!center) targetPos -= (pos.mExtent / 2);
 
 	eastl::shared_ptr<Texture2Effect> effect =
 		eastl::static_pointer_cast<Texture2Effect>(visual->GetEffect());
@@ -157,29 +157,29 @@ void UISpriteBank::Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visu
 	};
 	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
 	vertex[0].position = {
-		(float)(targetPos[0] - dimension[0] - (pos.extent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] - (pos.extent[1] / 2)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] - (pos.mExtent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (pos.mExtent[1] / 2)) / dimension[1], 0.0f };
 	vertex[0].tcoord = { 
-		(float)(sourceRect.center[0] - (sourceSize[0] / 2)) / sourceSize[0],
-		(float)(sourceRect.center[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+		(float)(sourceRect.mCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceRect.mCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 	vertex[1].position = {
-		(float)(targetPos[0] - dimension[0] + (int)round(pos.extent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] - (pos.extent[1] / 2)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] + (int)round(pos.mExtent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (pos.mExtent[1] / 2)) / dimension[1], 0.0f };
 	vertex[1].tcoord = { 
-		(float)(sourceRect.center[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-		(float)(sourceRect.center[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+		(float)(sourceRect.mCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceRect.mCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 	vertex[2].position = {
-		(float)(targetPos[0] - dimension[0] - (pos.extent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] + (int)round(pos.extent[1] / 2.f)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] - (pos.mExtent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(pos.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 	vertex[2].tcoord = { 
-		(float)(sourceRect.center[0] - (sourceSize[0] / 2)) / sourceSize[0],
-		(float)(sourceRect.center[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+		(float)(sourceRect.mCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+		(float)(sourceRect.mCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 	vertex[3].position = {
-		(float)(targetPos[0] - dimension[0] + (int)round(pos.extent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] + (int)round(pos.extent[1] / 2.f)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] + (int)round(pos.mExtent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(pos.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 	vertex[3].tcoord = { 
-		(float)(sourceRect.center[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
-		(float)(sourceRect.center[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+		(float)(sourceRect.mCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+		(float)(sourceRect.mCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 
 	// Create the geometric object for drawing.
 	Renderer::Get()->Update(visual->GetVertexBuffer());
@@ -234,15 +234,15 @@ void UISpriteBank::Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, 
 
 		if (center)
 		{
-			Vector2<int> p = pos[i].center;
-			p -= r.extent / 2;
+			Vector2<int> p = pos[i].mCenter;
+			p -= r.mExtent / 2;
 
 			currentBatch.mPositions.push_back(p);
 			currentBatch.mSourceRects.push_back(r);
 		}
 		else
 		{
-			currentBatch.mPositions.push_back(pos[i].center);
+			currentBatch.mPositions.push_back(pos[i].mCenter);
 			currentBatch.mSourceRects.push_back(r);
 		}
 	}

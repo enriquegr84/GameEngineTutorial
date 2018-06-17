@@ -278,7 +278,23 @@ eastl::shared_ptr<Node> Scene::AddEmptyNode(
 	return node;
 }
 
-//! adds a test scene node for test purposes to the scene. It is a simple cube of (1,1,1) size.
+//! adds a rectangle scene node to the scene graph.
+//! the returned pointer must not be dropped.
+eastl::shared_ptr<Node> Scene::AddRectangleNode(
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+	const eastl::shared_ptr<Texture2>& texture, float xSize, float ySize, int xPolyCount, int yPolyCount, int id)
+{
+	eastl::shared_ptr<Node> node(new RectangleNode(
+		id, mPVWUpdater, renderComponent, texture, xSize, ySize, xPolyCount, yPolyCount));
+	if (!parent)
+		AddSceneNode(id, node);
+	else
+		parent->AttachChild(node);
+
+	return node;
+}
+
+//! adds a cube scene node to the scene graph.
 //! the returned pointer must not be dropped.
 eastl::shared_ptr<Node> Scene::AddCubeNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 

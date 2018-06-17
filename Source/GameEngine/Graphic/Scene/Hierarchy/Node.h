@@ -227,9 +227,9 @@ public:
 	const eastl::string& GetName() const { return mName; }
 	void SetName(const eastl::string& name) { mName = name; }
 
-	NodeType GetType() const { return mType; }
-
 	unsigned int GetRenderPass() const { return mRenderPass; }
+
+	virtual NodeType GetType() const { return mType; }
 
 	bool OnRestore(Scene *pScene);
 	bool OnLostDevice(Scene *pScene);
@@ -238,10 +238,11 @@ public:
 	void UpdateVisualModelSpace(eastl::shared_ptr<Node> node);
 
 	bool OnUpdate(Scene *, unsigned long const elapsedMs);
-	bool OnAnimate(Scene* pScene, unsigned int timeMs);
+	virtual bool OnAnimate(Scene* pScene, unsigned int timeMs);
 
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene) { return true; }
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene) { return true; }
+	
 	bool RenderChildren(Scene *pScene);
 	bool PostRender(Scene *pScene);
 
@@ -286,7 +287,7 @@ public:
     // Detach a child from this node.  If the 'child' is non-null and in the
     // array, the return value is the index in the array that had stored the
     // child.  Otherwise, the function returns -1.
-    int DetachChild(eastl::shared_ptr<Node> const& child);
+    virtual int DetachChild(eastl::shared_ptr<Node> const& child);
 
 	// Detach a child from this node.  If 0 <= i < GetNumChildren(), the
 	// return value is the child at index i; otherwise, the function returns
@@ -334,11 +335,11 @@ public:
 	directly modify the material of a scene node.
 	\param num Zero based index. The maximal value is getMaterialCount() - 1.
 	\return The material at that index. */
-	Material& GetMaterial() { return mMaterial; }
+	virtual Material& GetMaterial() { return mMaterial; }
 
 	//! Get amount of materials used by this scene node.
 	/** \return Current amount of materials of this scene node. */
-	unsigned int GetMaterialCount() const { return 1; }
+	virtual unsigned int GetMaterialCount() const { return 1; }
 
 	void SetMaterial(const Material &mat) { mMaterial = mat; }
 

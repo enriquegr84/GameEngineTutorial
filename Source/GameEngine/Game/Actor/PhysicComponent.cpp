@@ -206,7 +206,7 @@ void PhysicComponent::Update(int deltaMs)
 		Transform transform = pTransformComponent->GetTransform();
 		transform.GetRotation(rotation);
 
-		Vector3<float> direction{ rotation.angle[0], rotation.angle[1], rotation.angle[2] };
+		Vector3<float> direction{ rotation.mAngle[0], rotation.mAngle[1], rotation.mAngle[2] };
 		gamePhysics->ApplyForce(direction, accelerationPerFrame, mOwner->GetId());
 
         // logging

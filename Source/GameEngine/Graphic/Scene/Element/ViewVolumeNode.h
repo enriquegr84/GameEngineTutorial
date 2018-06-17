@@ -30,11 +30,11 @@ public:
     ViewVolumeNode(const ActorId actorid, eastl::shared_ptr<ViewVolume> const& viewVolume = nullptr);
 
 	//! Renders event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return NT_LIGHT; }
+	virtual NodeType GetType() const { return NT_LIGHT; }
 
     // When you set the view volume, the node's local transformation is set to the
     // view volumes's current current coordinate system.  The node's world

@@ -249,16 +249,16 @@ void UIButton::Draw( )
 	if (!mPressed)
 	{
 		if (mDrawBorder)
-			skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mAbsoluteClippingRect.extent / 2);
+			skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mAbsoluteClippingRect.mExtent / 2);
 
 		if (mImage)
 		{
 			mEffect->SetTexture(mImage);
 
 			if (mScaleImage)
-				skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mImageRect.extent);
+				skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mImageRect.mExtent);
 			else 
-				skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.extent / 2);
+				skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.mExtent / 2);
 		}
 	}
 	else
@@ -269,19 +269,19 @@ void UIButton::Draw( )
 
 			if (mScaleImage)
 			{
-				spritePos.center[0] -= mPressedImageRect.extent[0] / 2;
-				spritePos.center[1] -= mPressedImageRect.extent[1] / 2;
+				spritePos.mCenter[0] -= mPressedImageRect.mExtent[0] / 2;
+				spritePos.mCenter[1] -= mPressedImageRect.mExtent[1] / 2;
 
 				if (mImage == mPressedImage && mPressedImageRect == mImageRect)
 				{
-					spritePos.center[0] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_X);
-					spritePos.center[1] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_Y);
+					spritePos.mCenter[0] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_X);
+					spritePos.mCenter[1] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_Y);
 				}
 
-				skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mImageRect.extent);
+				skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mImageRect.mExtent);
 			}
 			else
-				skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.extent / 2);
+				skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.mExtent / 2);
 
 		}
 	}
@@ -326,13 +326,13 @@ void UIButton::Draw( )
 		const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 
 		RectangleShape<2, int> rect = mAbsoluteRect;
-		rect.extent[0] = font->GetDimension(mText.c_str())[0];
+		rect.mExtent[0] = font->GetDimension(mText.c_str())[0];
 		if (mPressed)
 		{
-			rect.center[0] += skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_X);
-			rect.extent[0] -= skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_X);
-			rect.center[1] += skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_Y);
-			rect.extent[1] -= skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_Y);
+			rect.mCenter[0] += skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_X);
+			rect.mExtent[0] -= skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_X);
+			rect.mCenter[1] += skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_Y);
+			rect.mExtent[1] -= skin->GetSize(DS_BUTTON_PRESSED_TEXT_OFFSET_Y);
 		}
 
 		if (font)
@@ -378,10 +378,10 @@ void UIButton::SetImage(const eastl::shared_ptr<Texture2>& image)
 	if (image)
 	{
 		mImageRect = RectangleShape<2, int>();
-		mImageRect.center[0] = image->GetDimension(0) / 2;
-		mImageRect.center[1] = image->GetDimension(1) / 2;
-		mImageRect.extent[0] = image->GetDimension(0);
-		mImageRect.extent[1] = image->GetDimension(1);
+		mImageRect.mCenter[0] = image->GetDimension(0) / 2;
+		mImageRect.mCenter[1] = image->GetDimension(1) / 2;
+		mImageRect.mExtent[0] = image->GetDimension(0);
+		mImageRect.mExtent[1] = image->GetDimension(1);
 	}
 
 	if (!mPressedImage)
@@ -405,10 +405,10 @@ void UIButton::SetPressedImage(const eastl::shared_ptr<Texture2>& image)
 	if (image)
 	{
 		mPressedImageRect = RectangleShape<2, int>();
-		mImageRect.center[0] = image->GetDimension(0) / 2;
-		mImageRect.center[1] = image->GetDimension(1) / 2;
-		mImageRect.extent[0] = image->GetDimension(0);
-		mImageRect.extent[1] = image->GetDimension(1);
+		mImageRect.mCenter[0] = image->GetDimension(0) / 2;
+		mImageRect.mCenter[1] = image->GetDimension(1) / 2;
+		mImageRect.mExtent[0] = image->GetDimension(0);
+		mImageRect.mExtent[1] = image->GetDimension(1);
 	}
 }
 

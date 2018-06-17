@@ -177,8 +177,8 @@ void Transform::SetRotation(EulerAngles<float> const& eulerAngles)
 void Transform::GetRotation(EulerAngles<float>& eulerAngles) const
 {
     LogAssert(mIsRSMatrix, "Transform is not rotation-scale.");
-    eulerAngles = Rotation<4, float>(mMatrix)(eulerAngles.axis[0],
-        eulerAngles.axis[1], eulerAngles.axis[2]);
+    eulerAngles = Rotation<4, float>(mMatrix)(eulerAngles.mAxis[0],
+        eulerAngles.mAxis[1], eulerAngles.mAxis[2]);
 }
 
 float Transform::GetNorm() const

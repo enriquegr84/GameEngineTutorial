@@ -783,7 +783,7 @@ void UIEditBox::Draw()
 		bgCol = focus ? DC_FOCUSED_EDITABLE : DC_EDITABLE;
 
 	// draw the border
-	skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.extent / 2);
+	skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.mExtent / 2);
 
 	if (mBorder)
 		CalculateFrameRect();
@@ -865,11 +865,11 @@ void UIEditBox::Draw()
 				int cursorWidth = font->GetDimension(L"_")[0];
 				int txtWidth = font->GetDimension(txtLine->c_str())[0];
 				const bool hasBrokenText = mMultiLine || mWordWrap;
-				if (mCurrentTextRect.extent[0] <= txtWidth + cursorWidth)
+				if (mCurrentTextRect.mExtent[0] <= txtWidth + cursorWidth)
 				{
 					for (unsigned int txtPosition = 1; txtPosition <= (unsigned int)txtLine->size(); txtPosition++)
 					{
-						if (mCurrentTextRect.extent[0] <= font->GetDimension(txtLine->substr(mHScrollPos, txtPosition).c_str())[0] + cursorWidth)
+						if (mCurrentTextRect.mExtent[0] <= font->GetDimension(txtLine->substr(mHScrollPos, txtPosition).c_str())[0] + cursorWidth)
 						{
 							txtWidth = hasBrokenText ? txtPosition - mBrokenTextPositions[cursorLine] : txtPosition;
 							break;
@@ -908,10 +908,10 @@ void UIEditBox::Draw()
 					else mend = font->GetDimension(txtLine->c_str())[0];
 
 					RectangleShape<2, int> highlightTextRect = mFrameRect;
-					highlightTextRect.center[0] -= highlightTextRect.extent[0] / 2;
-					highlightTextRect.center[0] -= font->GetDimension(txtLine->substr(0, mHScrollPos).c_str())[0];
-					highlightTextRect.center[0] += mbegin + (mend - mbegin) / 2;
-					highlightTextRect.extent[0] = mend - mbegin;
+					highlightTextRect.mCenter[0] -= highlightTextRect.mExtent[0] / 2;
+					highlightTextRect.mCenter[0] -= font->GetDimension(txtLine->substr(0, mHScrollPos).c_str())[0];
+					highlightTextRect.mCenter[0] += mbegin + (mend - mbegin) / 2;
+					highlightTextRect.mExtent[0] = mend - mbegin;
 
 					// draw mark
 					skin->Draw2DRectangle(shared_from_this(), skin->GetColor(DC_HIGH_LIGHT), 
@@ -947,7 +947,7 @@ void UIEditBox::Draw()
 			if (focus && (Timer::GetTime() - mBlinkStartTime) % 700 < 350)
 			{
 				SetTextRect(cursorLine);
-				mCurrentTextRect.center[0] += font->GetDimension(s.c_str())[0];
+				mCurrentTextRect.mCenter[0] += font->GetDimension(s.c_str())[0];
 
 				font->Draw(L"_", mCurrentTextRect,
 					mOverrideColorEnabled ? mOverrideColor : skin->GetColor(DC_BUTTON_TEXT),
@@ -1000,19 +1000,19 @@ Vector2<int> UIEditBox::GetTextDimension()
 	for (unsigned int i=1; i < mBrokenText.size(); ++i)
 	{
 		SetTextRect(i);
-		if (mCurrentTextRect.extent[0] > ret.extent[0])
+		if (mCurrentTextRect.mExtent[0] > ret.mExtent[0])
 		{
-			ret.center[0] = mCurrentTextRect.center[0];
-			ret.extent[0] = mCurrentTextRect.extent[0];
+			ret.mCenter[0] = mCurrentTextRect.mCenter[0];
+			ret.mExtent[0] = mCurrentTextRect.mExtent[0];
 		}
-		if (mCurrentTextRect.extent[1] > ret.extent[1])
+		if (mCurrentTextRect.mExtent[1] > ret.mExtent[1])
 		{
-			ret.center[1] = mCurrentTextRect.center[1];
-			ret.extent[1] = mCurrentTextRect.extent[1];
+			ret.mCenter[1] = mCurrentTextRect.mCenter[1];
+			ret.mExtent[1] = mCurrentTextRect.mExtent[1];
 		}
 	}
 
-	return ret.extent;
+	return ret.mExtent;
 }
 
 
@@ -1114,14 +1114,14 @@ int UIEditBox::GetCursorPos(int x, int y)
 	for (unsigned int i=0; i < lineCount; ++i)
 	{
 		SetTextRect(i);
-		if (i == 0 && y < mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2))
-			y = mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2);
-		if (i == lineCount - 1 && y > mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f))
-			y = mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f);
+		if (i == 0 && y < mCurrentTextRect.mCenter[1] - (mCurrentTextRect.mExtent[1] / 2))
+			y = mCurrentTextRect.mCenter[1] - (mCurrentTextRect.mExtent[1] / 2);
+		if (i == lineCount - 1 && y > mCurrentTextRect.mCenter[1] + (int)round(mCurrentTextRect.mExtent[1] / 2.f))
+			y = mCurrentTextRect.mCenter[1] + (int)round(mCurrentTextRect.mExtent[1] / 2.f);
 
 		// is it inside this region?
-		if (y >= mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2) && 
-			y <= mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f))
+		if (y >= mCurrentTextRect.mCenter[1] - (mCurrentTextRect.mExtent[1] / 2) && 
+			y <= mCurrentTextRect.mCenter[1] + (int)round(mCurrentTextRect.mExtent[1] / 2.f))
 		{
 			// we've found the clicked line
 			txtLine = (mWordWrap || mMultiLine) ? &mBrokenText[i] : &mText;
@@ -1130,14 +1130,14 @@ int UIEditBox::GetCursorPos(int x, int y)
 		}
 	}
 
-	if (x <  mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2))
-		x = mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2);
+	if (x <  mCurrentTextRect.mCenter[0] - (mCurrentTextRect.mExtent[0] / 2))
+		x = mCurrentTextRect.mCenter[0] - (mCurrentTextRect.mExtent[0] / 2);
 
 	if ( !txtLine )
 		return 0;
 
 	const wchar_t* txt = txtLine->c_str();
-	int pixel = x - (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2));
+	int pixel = x - (mCurrentTextRect.mCenter[0] - (mCurrentTextRect.mExtent[0] / 2));
 
 	// click was on or left of the line
 	if (pixel <= font->GetDimension(txt)[0])
@@ -1171,7 +1171,7 @@ void UIEditBox::BreakText()
 	int lastLineStart = 0;
 	int size = mText.size();
 	int length = 0;
-	int elWidth = mRelativeRect.extent[0] - 6;
+	int elWidth = mRelativeRect.mExtent[0] - 6;
 	wchar_t c;
 
 	for (int i=0; i<size; ++i)
@@ -1288,14 +1288,14 @@ void UIEditBox::SetTextRect(int line)
 	else
 	{
 		d = font->GetDimension(mText.c_str());
-		d[1] = mAbsoluteRect.extent[1];
+		d[1] = mAbsoluteRect.mExtent[1];
 	}
 
 	// justification
 	mCurrentTextRect = mFrameRect;
 
-	mCurrentTextRect.center[0] += 4;
-	mCurrentTextRect.extent[1] = d[1];
+	mCurrentTextRect.mCenter[0] += 4;
+	mCurrentTextRect.mExtent[1] = d[1];
 }
 
 
@@ -1352,12 +1352,12 @@ void UIEditBox::CalculateScrollPos()
 		int cStart = font->GetDimension(txtLine->substr(mHScrollPos, cPos - mHScrollPos).c_str())[0]; // pixels from text-start
 		int cEnd = cStart + cursorWidth;
 
-		if (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cStart < 
-			mFrameRect.center[0] - (mFrameRect.extent[0] / 2))
+		if (mCurrentTextRect.mCenter[0] - (mCurrentTextRect.mExtent[0] / 2) + cStart < 
+			mFrameRect.mCenter[0] - (mFrameRect.mExtent[0] / 2))
 		{
 			// cursor to the left of the clipping area
 			int scrollPos = 0;
-			if (mCurrentTextRect.extent[0] <= font->GetDimension(txtLine->c_str())[0] + cursorWidth)
+			if (mCurrentTextRect.mExtent[0] <= font->GetDimension(txtLine->c_str())[0] + cursorWidth)
 				scrollPos = cPos;
 
 			mHScrollPos = scrollPos;
@@ -1366,14 +1366,14 @@ void UIEditBox::CalculateScrollPos()
 			// TODO: should show more characters to the left when we're scrolling left
 			//	and the cursor reaches the border.
 		}
-		else if (mCurrentTextRect.center[0] - (mCurrentTextRect.extent[0] / 2) + cEnd > 
-			mFrameRect.center[0] + (int)round(mFrameRect.extent[0] / 2.f))
+		else if (mCurrentTextRect.mCenter[0] - (mCurrentTextRect.mExtent[0] / 2) + cEnd > 
+			mFrameRect.mCenter[0] + (int)round(mFrameRect.mExtent[0] / 2.f))
 		{
 			// cursor to the right of the clipping area
 			int scrollPos = 0;
-			if (mCurrentTextRect.extent[0] <= font->GetDimension(txtLine->c_str())[0] + cursorWidth)
+			if (mCurrentTextRect.mExtent[0] <= font->GetDimension(txtLine->c_str())[0] + cursorWidth)
 				for (scrollPos = mHScrollPos; scrollPos < (int)txtLine->size(); scrollPos++)
-					if (mCurrentTextRect.extent[0] > font->GetDimension(txtLine->substr(scrollPos, cPos - scrollPos).c_str())[0] + cursorWidth)
+					if (mCurrentTextRect.mExtent[0] > font->GetDimension(txtLine->substr(scrollPos, cPos - scrollPos).c_str())[0] + cursorWidth)
 						break;
 
 			mHScrollPos = scrollPos;
@@ -1385,9 +1385,9 @@ void UIEditBox::CalculateScrollPos()
 			// scrolling tests for top/bottom. This check just fixes the case where it was most noticable 
 			// (text smaller than clipping area).
 			int scrollPos = mHScrollPos;
-			if (mCurrentTextRect.extent[0] <= cEnd)
+			if (mCurrentTextRect.mExtent[0] <= cEnd)
 				for (scrollPos = mHScrollPos+1; scrollPos < (int)txtLine->size(); scrollPos++)
-					if (mCurrentTextRect.extent[0] > font->GetDimension(txtLine->substr(scrollPos, cPos - scrollPos).c_str())[0] + cursorWidth)
+					if (mCurrentTextRect.mExtent[0] > font->GetDimension(txtLine->substr(scrollPos, cPos - scrollPos).c_str())[0] + cursorWidth)
 						break;
 
 			mHScrollPos = scrollPos;
@@ -1400,20 +1400,20 @@ void UIEditBox::CalculateScrollPos()
 	{
 		int lineHeight = font->GetDimension(L"A")[1];
 		// only up to 1 line fits?
-		if ( lineHeight >= mFrameRect.extent[1] )
+		if ( lineHeight >= mFrameRect.mExtent[1] )
 		{
 			mVScrollPos = 0;
 			SetTextRect(cursLine);
-			int unscrolledPos = mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2);
-			int pivot = mFrameRect.center[1] - (mFrameRect.extent[1] / 2);
+			int unscrolledPos = mCurrentTextRect.mCenter[1] - (mCurrentTextRect.mExtent[1] / 2);
+			int pivot = mFrameRect.mCenter[1] - (mFrameRect.mExtent[1] / 2);
 			switch (mVAlign)
 			{
 				case UIA_CENTER:
-					pivot += mFrameRect.extent[1] / 2;
+					pivot += mFrameRect.mExtent[1] / 2;
 					unscrolledPos += lineHeight / 2;
 					break;
 				case UIA_LOWERRIGHT:
-					pivot += mFrameRect.extent[1];
+					pivot += mFrameRect.mExtent[1];
 					unscrolledPos += lineHeight;
 					break;
 				default:
@@ -1426,8 +1426,8 @@ void UIEditBox::CalculateScrollPos()
 		{
 			// First 2 checks are necessary when people delete lines
 			SetTextRect(0);
-			if (mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2) > 
-				mFrameRect.center[1] - (mFrameRect.extent[1] / 2) &&
+			if (mCurrentTextRect.mCenter[1] - (mCurrentTextRect.mExtent[1] / 2) > 
+				mFrameRect.mCenter[1] - (mFrameRect.mExtent[1] / 2) &&
 				mVAlign != UIA_LOWERRIGHT)
 			{
 				// first line is leaving a gap on top
@@ -1437,27 +1437,27 @@ void UIEditBox::CalculateScrollPos()
 			{
 				unsigned int lastLine = mBrokenTextPositions.empty() ? 0 : mBrokenTextPositions.size()-1;
 				SetTextRect(lastLine);
-				if ( mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f) < 
-					 mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f) )
+				if ( mCurrentTextRect.mCenter[1] + (int)round(mCurrentTextRect.mExtent[1] / 2.f) < 
+					 mFrameRect.mCenter[1] + (int)round(mFrameRect.mExtent[1] / 2.f) )
 				{
 					// last line is leaving a gap on bottom
-					mVScrollPos -= mCurrentTextRect.extent[1];
+					mVScrollPos -= mCurrentTextRect.mExtent[1];
 				}
 			}
 
 			SetTextRect(cursLine);
-			if (mCurrentTextRect.center[1] - (mCurrentTextRect.extent[1] / 2) <
-				mFrameRect.center[1] - (mFrameRect.extent[1] / 2))
+			if (mCurrentTextRect.mCenter[1] - (mCurrentTextRect.mExtent[1] / 2) <
+				mFrameRect.mCenter[1] - (mFrameRect.mExtent[1] / 2))
 			{
 				// text above valid area
-				mVScrollPos -= mCurrentTextRect.extent[1];
+				mVScrollPos -= mCurrentTextRect.mExtent[1];
 				SetTextRect(cursLine);
 			}
-			if (mCurrentTextRect.center[1] + (int)round(mCurrentTextRect.extent[1] / 2.f) >
-				mFrameRect.center[1] + (int)round(mFrameRect.extent[1] / 2.f))
+			if (mCurrentTextRect.mCenter[1] + (int)round(mCurrentTextRect.mExtent[1] / 2.f) >
+				mFrameRect.mCenter[1] + (int)round(mFrameRect.mExtent[1] / 2.f))
 			{
 				// text below valid area
-				mVScrollPos += mCurrentTextRect.extent[1];
+				mVScrollPos += mCurrentTextRect.mExtent[1];
 				SetTextRect(cursLine);
 			}
 		}
@@ -1474,8 +1474,8 @@ void UIEditBox::CalculateFrameRect()
 
 	if (mBorder)
 	{
-		mFrameRect.extent[0] += 2 * (skin->GetSize(DS_TEXT_DISTANCE_X)+1);
-		mFrameRect.extent[1] += 2 * (skin->GetSize(DS_TEXT_DISTANCE_Y)+1);
+		mFrameRect.mExtent[0] += 2 * (skin->GetSize(DS_TEXT_DISTANCE_X)+1);
+		mFrameRect.mExtent[1] += 2 * (skin->GetSize(DS_TEXT_DISTANCE_Y)+1);
 	}
 }
 

@@ -28,39 +28,39 @@ struct IndexAttribute
     // The source pointer must be 4-byte aligned, which is guaranteed on
     // 32-bit and 64-bit architectures.  The size is the number of bytes
     // per index.
-    void* source;
-    size_t size;
+    void* mSource;
+    size_t mSize;
 };
 
 
 inline IndexAttribute::IndexAttribute()
     :
-    source(nullptr),
-    size(0)
+    mSource(nullptr),
+	mSize(0)
 {
 }
 
 inline IndexAttribute::IndexAttribute(void* inSource, size_t inSize)
     :
-    source(inSource),
-    size(inSize)
+    mSource(inSource),
+	mSize(inSize)
 {
 }
 
 inline void IndexAttribute::SetTriangle(uint32_t t, uint32_t v0, uint32_t v1, uint32_t v2)
 {
-    if (size == sizeof(uint32_t))
+    if (mSize == sizeof(uint32_t))
     {
-        uint32_t* index = reinterpret_cast<uint32_t*>(source) + 3 * t;
+        uint32_t* index = reinterpret_cast<uint32_t*>(mSource) + 3 * t;
         index[0] = v0;
         index[1] = v1;
         index[2] = v2;
         return;
     }
 
-    if (size == sizeof(uint16_t))
+    if (mSize == sizeof(uint16_t))
     {
-        uint16_t* index = reinterpret_cast<uint16_t*>(source) + 3 * t;
+        uint16_t* index = reinterpret_cast<uint16_t*>(mSource) + 3 * t;
         index[0] = static_cast<uint16_t>(v0);
         index[1] = static_cast<uint16_t>(v1);
         index[2] = static_cast<uint16_t>(v2);
@@ -72,18 +72,18 @@ inline void IndexAttribute::SetTriangle(uint32_t t, uint32_t v0, uint32_t v1, ui
 
 inline void IndexAttribute::GetTriangle(uint32_t t, uint32_t& v0, uint32_t& v1, uint32_t& v2) const
 {
-    if (size == sizeof(uint32_t))
+    if (mSize == sizeof(uint32_t))
     {
-        uint32_t* index = reinterpret_cast<uint32_t*>(source) + 3 * t;
+        uint32_t* index = reinterpret_cast<uint32_t*>(mSource) + 3 * t;
         v0 = index[0];
         v1 = index[1];
         v2 = index[2];
         return;
     }
 
-    if (size == sizeof(uint16_t))
+    if (mSize == sizeof(uint16_t))
     {
-        uint16_t* index = reinterpret_cast<uint16_t*>(source) + 3 * t;
+        uint16_t* index = reinterpret_cast<uint16_t*>(mSource) + 3 * t;
         v0 = static_cast<uint32_t>(index[0]);
         v1 = static_cast<uint32_t>(index[1]);
         v2 = static_cast<uint32_t>(index[2]);

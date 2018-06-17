@@ -29,24 +29,24 @@ struct VertexAttribute
     // is reasonable given that (usually) geometric attributes are usually
     // arrays of 'float' or 'double'.
 
-	eastl::string semantic;
-    void* source;
-    size_t stride;
+	eastl::string mSemantic;
+    void* mSource;
+    size_t mStride;
 };
 
 inline VertexAttribute::VertexAttribute()
     :
-    semantic(""),
-    source(nullptr),
-    stride(0)
+    mSemantic(""),
+    mSource(nullptr),
+    mStride(0)
 {
 }
 
 inline VertexAttribute::VertexAttribute(eastl::string const& inSemantic, void* inSource, size_t inStride)
     :
-    semantic(inSemantic),
-    source(inSource),
-    stride(inStride)
+    mSemantic(inSemantic),
+    mSource(inSource),
+    mStride(inStride)
 {
 }
 

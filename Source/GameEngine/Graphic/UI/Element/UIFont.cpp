@@ -90,13 +90,13 @@ void UIFont::Draw(const eastl::wstring& text, const RectangleShape<2, int>& posi
 	if (!Renderer::Get())
 		return;
 
-	Vector2<int> offset = position.center - (position.extent / 2);
+	Vector2<int> offset = position.mCenter - (position.mExtent / 2);
 
 	if (hcenter)
-		offset[0] = position.center[0] + (int)round(position.extent[0] / 2.f);
+		offset[0] = position.mCenter[0] + (int)round(position.mExtent[0] / 2.f);
 
 	if (vcenter)
-		offset[1] = position.center[1] + (int)round(position.extent[1] / 2.f);
+		offset[1] = position.mCenter[1] + (int)round(position.mExtent[1] / 2.f);
 
 	Renderer::Get()->Draw(offset[0], offset[1], color, text);
 }

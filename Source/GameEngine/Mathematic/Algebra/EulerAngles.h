@@ -41,38 +41,38 @@ public:
     EulerAngles();
     EulerAngles(int i0, int i1, int i2, Real a0, Real a1, Real a2);
 
-    int axis[3];
-    Real angle[3];
+    int mAxis[3];
+    Real mAngle[3];
 
     // This member is set during conversions from rotation matrices,
     // quaternions, or axis-angles.
-    EulerResult result;
+    EulerResult mResult;
 };
 
 
 template <typename Real>
 EulerAngles<Real>::EulerAngles()
     :
-    result(ER_INVALID)
+    mResult(ER_INVALID)
 {
     for (int i = 0; i < 3; ++i)
     {
-        axis[i] = 0;
-        angle[i] = (Real)0;
+        mAxis[i] = 0;
+        mAngle[i] = (Real)0;
     }
 }
 
 template <typename Real>
 EulerAngles<Real>::EulerAngles(int i0, int i1, int i2, Real a0, Real a1, Real a2)
     :
-    result(ER_UNIQUE)
+    mResult(ER_UNIQUE)
 {
-    axis[0] = i0;
-    axis[1] = i1;
-    axis[2] = i2;
-    angle[0] = a0;
-    angle[1] = a1;
-    angle[2] = a2;
+    mAxis[0] = i0;
+    mAxis[1] = i1;
+    mAxis[2] = i2;
+    mAngle[0] = a0;
+    mAngle[1] = a1;
+    mAngle[2] = a2;
 }
 
 

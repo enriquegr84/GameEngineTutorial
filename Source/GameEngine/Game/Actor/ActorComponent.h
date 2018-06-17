@@ -51,7 +51,7 @@
 	identified. Each component will have a particular responsability and also subclasses
 	which can change actor's behavior at runtime
 */
-class ActorComponent
+class ActorComponent : public eastl::enable_shared_from_this<ActorComponent>
 {
 	friend class ActorFactory;
 

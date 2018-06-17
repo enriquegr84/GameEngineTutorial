@@ -44,8 +44,8 @@ public:
 	~ParticleSystemNode();
 
 	//! Renders event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! Gets the particle emitter, which creates the particles.
 	eastl::shared_ptr<BaseParticleEmitter> GetEmitter();
@@ -63,10 +63,10 @@ public:
 	void RemoveAllAffectors();
 
 	//! Returns the material based on the zero based index i.
-	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! Returns amount of materials used by this scene node.
-	unsigned int GetMaterialCount() const;
+	virtual unsigned int GetMaterialCount() const;
 
 	//! Sets if the particles should be global. If they are, the particles are affected by
 	//! the movement of the particle system scene node too, otherwise they completely
@@ -82,7 +82,7 @@ public:
 	void DoParticleSystem(unsigned int time);
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return NT_PARTICLE_SYSTEM; } 
+	virtual NodeType GetType() const { return NT_PARTICLE_SYSTEM; }
 
 	//! Creates a particle emitter for an animated mesh scene node
 	ParticleAnimatedMeshNodeEmitter* CreateAnimatedMeshNodeEmitter(

@@ -21,8 +21,8 @@ public:
     AxisAngle();
     AxisAngle(Vector<N,Real> const& inAxis, Real inAngle);
 
-    Vector<N,Real> axis;
-    Real angle;
+    Vector<N,Real> mAxis;
+    Real mAngle;
 };
 
 
@@ -36,8 +36,8 @@ AxisAngle<N, Real>::AxisAngle()
 template <int N, typename Real>
 AxisAngle<N, Real>::AxisAngle(Vector<N, Real> const& inAxis, Real inAngle)
     :
-    axis(inAxis),
-    angle(inAngle)
+    mAxis(inAxis),
+    mAngle(inAngle)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 }

@@ -16,13 +16,14 @@ public:
 	RootNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent);
 
 	//! Renders event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
+
 	bool RenderChildren(Scene *pScene);
 	bool PostRender(Scene *pScene);
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return NT_ROOT; }
+	virtual NodeType GetType() const { return NT_ROOT; }
 };
 
 

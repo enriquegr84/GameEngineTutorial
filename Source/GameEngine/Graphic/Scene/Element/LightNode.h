@@ -19,8 +19,8 @@ public:
 		WeakBaseRenderComponentPtr renderComponent, eastl::array<float, 4> color, float radius);
 
 	//! Renders event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! set node light data from light info
 	void SetLightData(const Light& light);
@@ -38,7 +38,7 @@ public:
 	void SetVisible(bool isVisible);
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return NT_LIGHT; }
+	virtual NodeType GetType() const { return NT_LIGHT; }
 
 	//! Sets the light's radius of influence.
 	/** Outside this radius the light won't lighten geometry and cast no

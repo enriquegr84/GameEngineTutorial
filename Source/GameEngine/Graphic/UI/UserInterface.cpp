@@ -51,10 +51,10 @@ BaseUI::BaseUI()
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
 	RectangleShape<2, int> screenRectangle;
-	screenRectangle.center[0] = screenSize[0] / 2;
-	screenRectangle.center[1] = screenSize[1] / 2;
-	screenRectangle.extent[0] = (int)screenSize[0];
-	screenRectangle.extent[1] = (int)screenSize[1];
+	screenRectangle.mCenter[0] = screenSize[0] / 2;
+	screenRectangle.mCenter[1] = screenSize[1] / 2;
+	screenRectangle.mExtent[0] = (int)screenSize[0];
+	screenRectangle.mExtent[1] = (int)screenSize[1];
 
 	mRoot = eastl::shared_ptr<BaseUIElement>(
 		new UIRoot(this, UIET_ROOT, 0, screenRectangle));
@@ -318,15 +318,15 @@ bool BaseUI::OnRender(double time, float elapsedTime)
 {
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
-	if ((mRoot->mAbsoluteRect.center[0] + (int)round(mRoot->mAbsoluteRect.extent[0] / 2.f)) != screenSize[0] ||
-		(mRoot->mAbsoluteRect.center[1] + (int)round(mRoot->mAbsoluteRect.extent[1] / 2.f)) != screenSize[1])
+	if ((mRoot->mAbsoluteRect.mCenter[0] + (int)round(mRoot->mAbsoluteRect.mExtent[0] / 2.f)) != screenSize[0] ||
+		(mRoot->mAbsoluteRect.mCenter[1] + (int)round(mRoot->mAbsoluteRect.mExtent[1] / 2.f)) != screenSize[1])
 	{
 		// resize gui environment
-		Vector2<int> center(mRoot->mDesiredRect.center);
-		mRoot->mDesiredRect.center[0] = (int)screenSize[0] - (int)round(mRoot->mDesiredRect.extent[0] / 2.f);
-		mRoot->mDesiredRect.center[1] = (int)screenSize[1] - (int)round(mRoot->mDesiredRect.extent[1] / 2.f);
-		mRoot->mDesiredRect.extent[0] = 2 * ((int)screenSize[0] - center[0]);
-		mRoot->mDesiredRect.extent[1] = 2 * ((int)screenSize[1] - center[1]);
+		Vector2<int> center(mRoot->mDesiredRect.mCenter);
+		mRoot->mDesiredRect.mCenter[0] = (int)screenSize[0] - (int)round(mRoot->mDesiredRect.mExtent[0] / 2.f);
+		mRoot->mDesiredRect.mCenter[1] = (int)screenSize[1] - (int)round(mRoot->mDesiredRect.mExtent[1] / 2.f);
+		mRoot->mDesiredRect.mExtent[0] = 2 * ((int)screenSize[0] - center[0]);
+		mRoot->mDesiredRect.mExtent[1] = 2 * ((int)screenSize[1] - center[1]);
 		mRoot->mAbsoluteClippingRect = mRoot->mDesiredRect;
 		mRoot->mAbsoluteRect = mRoot->mDesiredRect;
 		mRoot->UpdateAbsolutePosition();
@@ -396,10 +396,10 @@ bool BaseUI::OnPostRender( unsigned int time )
 		dim[0] += GetSkin()->GetSize(DS_TEXT_DISTANCE_X) * 2;
 		dim[1] += GetSkin()->GetSize(DS_TEXT_DISTANCE_Y) * 2;
 
-		pos.center[0] = mLastHoveredMousePos[0] + (dim[0] / 2);
-		pos.extent[0] = dim[0];
-		pos.center[1] = mLastHoveredMousePos[1] - (dim[1] / 2);
-		pos.extent[1] = dim[1] - 2;
+		pos.mCenter[0] = mLastHoveredMousePos[0] + (dim[0] / 2);
+		pos.mExtent[0] = dim[0];
+		pos.mCenter[1] = mLastHoveredMousePos[1] - (dim[1] / 2);
+		pos.mExtent[1] = dim[1] - 2;
 
 		mToolTip.mElement->SetVisible(true);
 		mToolTip.mElement->SetRelativePosition(pos);
@@ -1027,10 +1027,10 @@ eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(eastl::shared_ptr<Texture2> imag
 	}
 
 	RectangleShape<2, int> rectangle;
-	rectangle.center[0] = pos[0] + (size[0] / 2);
-	rectangle.center[1] = pos[1] + (size[1] / 2);
-	rectangle.extent[0] = size[0];
-	rectangle.extent[1] = size[1];
+	rectangle.mCenter[0] = pos[0] + (size[0] / 2);
+	rectangle.mCenter[1] = pos[1] + (size[1] / 2);
+	rectangle.mExtent[0] = size[0];
+	rectangle.mExtent[1] = size[1];
 	eastl::shared_ptr<BaseUIImage> img(new UIImage(this, id, rectangle));
 	img->SetParent(parent ? parent : mRoot);
 

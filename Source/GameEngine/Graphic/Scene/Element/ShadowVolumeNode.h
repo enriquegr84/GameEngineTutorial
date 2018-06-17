@@ -25,8 +25,8 @@ public:
 	void SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh);
 
 	//! Render events
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! Updates the shadow volumes for current light positions.
 	/** Called each render cycle from Animated Mesh SceneNode render method. */

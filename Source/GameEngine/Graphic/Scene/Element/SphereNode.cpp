@@ -119,9 +119,8 @@ bool SphereNode::Render(Scene *pScene)
 //! Removes a child from this scene node.
 //! Implemented here, to be able to remove the shadow properly, if there is one,
 //! or to remove attached childs.
-bool SphereNode::RemoveChild(ActorId id)
+int SphereNode::DetachChild(eastl::shared_ptr<Node> const& child)
 {
-	const eastl::shared_ptr<Node>& child = GetChild(id);
 	if (child && mShadow == child)
 		mShadow = 0;
 

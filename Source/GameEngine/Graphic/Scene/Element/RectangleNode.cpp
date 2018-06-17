@@ -2,7 +2,7 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#include "CubeNode.h"
+#include "RectangleNode.h"
 
 #include "Graphic/Scene/Hierarchy/Node.h"
 #include "Graphic/Renderer/Renderer.h"
@@ -10,40 +10,19 @@
 
 //#include "Scenes/Mesh/MeshBuffer.h"
 
-	/*
-        011         111
-          /6,8------/5        y
-         /  |      / |        ^  z
-        /   |     /  |        | /
-    010 3,9-------2  |        |/
-        |   7- - -10,4 101     *---->x
-        |  /      |  /
-        |/        | /
-        0------11,1/
-       000       100
-	*/
 
 //! constructor
-CubeNode::CubeNode(const ActorId actorId, PVWUpdater& updater, 
-	WeakBaseRenderComponentPtr renderComponent, float size)
-	:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mSize(size), mShadow(0)
+RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater& updater, 
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Texture2>& texture,
+	float xSize, float ySize, int xPolyCount, int yPolyCount)
+:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mShadow(0),
+	mSizeX(xSize), mSizeY(ySize), mPolyCountX(xPolyCount), mPolyCountY(yPolyCount)
 {
 	#ifdef _DEBUG
 	//setDebugName("CubeSceneNode");
 	#endif
 	mPVWUpdater = updater;
-	SetSize();
-}
 
-
-CubeNode::~CubeNode()
-{
-
-}
-
-
-void CubeNode::SetSize()
-{
 	struct Vertex
 	{
 		Vector3<float> position;
@@ -55,19 +34,24 @@ void CubeNode::SetSize()
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);
-	mVisual = mf.CreateBox(mSize, mSize, mSize);
+	mVisual = mf.CreateRectangle(mPolyCountX, mPolyCountY, mSizeX, mSizeY);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
-	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
-		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, eastl::make_shared<Material>(),
-		eastl::make_shared<Lighting>());
+	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
+	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
+		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, eastl::make_shared<Material>(), eastl::make_shared<Lighting>(),
+		eastl::make_shared<LightCameraGeometry>(), texture, SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 	mVisual->SetEffect(effect);
 	mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 
 
+RectangleNode::~RectangleNode()
+{
+
+}
+
 //! prerender
-bool CubeNode::PreRender(Scene *pScene)
+bool RectangleNode::PreRender(Scene *pScene)
 {
 	if (IsVisible())
 	{
@@ -81,8 +65,8 @@ bool CubeNode::PreRender(Scene *pScene)
 
 		// count transparent and solid materials in this scene node
 		{
-			eastl::shared_ptr<AmbientLightEffect> effect =
-				eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+			eastl::shared_ptr<PointLightTextureEffect> effect =
+				eastl::static_pointer_cast<PointLightTextureEffect>(mVisual->GetEffect());
 
 			if (effect->GetMaterial()->IsTransparent())
 				++transparentCount;
@@ -105,9 +89,9 @@ bool CubeNode::PreRender(Scene *pScene)
 }
 
 //
-// CubeSceneNode::Render					- Chapter 16, page 550
+// RectangleNode::Render					- Chapter 16, page 550
 //
-bool CubeNode::Render(Scene *pScene)
+bool RectangleNode::Render(Scene *pScene)
 {
 	if (!Renderer::Get())
 		return false;
@@ -179,7 +163,7 @@ bool CubeNode::Render(Scene *pScene)
 //! Removes a child from this scene node.
 //! Implemented here, to be able to remove the shadow properly, if there is one,
 //! or to remove attached childs.
-int CubeNode::DetachChild(eastl::shared_ptr<Node> const& child)
+int RectangleNode::DetachChild(eastl::shared_ptr<Node> const& child)
 {
 	if (child && mShadow == child)
 		mShadow = 0;
@@ -193,7 +177,7 @@ int CubeNode::DetachChild(eastl::shared_ptr<Node> const& child)
 
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
-eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId actorId,
+eastl::shared_ptr<ShadowVolumeNode> RectangleNode::AddShadowVolumeNode(const ActorId actorId,
 	Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod, float infinity)
 {
 	/*
@@ -209,16 +193,16 @@ eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId 
 
 
 //! returns the material based on the zero based index i.
-eastl::shared_ptr<Material> const& CubeNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& RectangleNode::GetMaterial(unsigned int i)
 {
-	eastl::shared_ptr<AmbientLightEffect> effect =
-		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+	eastl::shared_ptr<PointLightTextureEffect> effect =
+		eastl::static_pointer_cast<PointLightTextureEffect>(mVisual->GetEffect());
 	return effect->GetMaterial();
 }
 
 
 //! returns amount of materials used by this scene node.
-unsigned int CubeNode::GetMaterialCount() const
+unsigned int RectangleNode::GetMaterialCount() const
 {
 	return 1;
 }

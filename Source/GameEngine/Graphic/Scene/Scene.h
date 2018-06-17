@@ -131,6 +131,27 @@ public:
 		WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<Node>& parent, int id = -1);
 
+	//! Adds a rectangle scene node
+	/** \param xSize: size of the rectangle in x-dimension.
+	\param ySize: size of the rectangle in y-dimension.
+	\param xPolyCount: The number of vertices in horizontal direction. 
+	The total polyCount of the rectangle is xPolyCount*yPolyCount. 
+	\param yPolyCount: The number of vertices in vertical direction.
+	The total polyCount of the rectangle is xPolyCount*yPolyCount.
+	\param parent: Parent of the scene node. Can be 0 if no parent.
+	\param id: Id of the node. This id can be used to identify the scene node.
+	\param position: Position of the space relative to its parent
+	where the scene node will be placed.
+	\param rotation: Initital rotation of the scene node.
+	\param scale: Initial scale of the scene node.
+	\return Pointer to the created test scene node. This
+	pointer should not be dropped. See IReferenceCounted::drop()
+	for more information. */
+	eastl::shared_ptr<Node> AddRectangleNode(
+		WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& texture, 
+		float xSize = 5.f, float ySize = 5.f, int xPolyCount = 16, int yPolyCount = 16, int id = -1);
+
 	//! Adds a cube scene node
 	/** \param size: Size of the cube, uniformly in each dimension.
 	\param parent: Parent of the scene node. Can be 0 if no parent.

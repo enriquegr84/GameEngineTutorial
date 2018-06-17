@@ -144,10 +144,10 @@ bool MainMenuUI::OnInit()
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
 	RectangleShape<2, int> screenRectangle;
-	screenRectangle.center[0] = screenSize[0] / 2;
-	screenRectangle.center[1] = screenSize[1] / 2;
-	screenRectangle.extent[0] = (int)screenSize[0];
-	screenRectangle.extent[1] = (int)screenSize[1];
+	screenRectangle.mCenter[0] = screenSize[0] / 2;
+	screenRectangle.mCenter[1] = screenSize[1] / 2;
+	screenRectangle.mExtent[0] = (int)screenSize[0];
+	screenRectangle.mExtent[1] = (int)screenSize[1];
 
 	eastl::shared_ptr<BaseUIWindow> window = AddWindow(
 		screenRectangle, false, L"Teapot Wars", 0, CID_DEMO_WINDOW);
@@ -155,18 +155,18 @@ bool MainMenuUI::OnInit()
 
 	// add a options line
 	RectangleShape<2, int> playerOptionsRectangle;
-	playerOptionsRectangle.center[0] = 50;
-	playerOptionsRectangle.extent[0] = 90;
-	playerOptionsRectangle.center[1] = 42;
-	playerOptionsRectangle.extent[1] = 16;
+	playerOptionsRectangle.mCenter[0] = 50;
+	playerOptionsRectangle.mExtent[0] = 90;
+	playerOptionsRectangle.mCenter[1] = 42;
+	playerOptionsRectangle.mExtent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> playerOptionsLine =
 		AddStaticText(L"AI Player:", playerOptionsRectangle, false, false, window, CID_NUM_AI_LABEL, true);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	playerOptionsRectangle.center[0] = 250;
-	playerOptionsRectangle.extent[0] = 250;
-	playerOptionsRectangle.center[1] = 40;
-	playerOptionsRectangle.extent[1] = 20;
+	playerOptionsRectangle.mCenter[0] = 250;
+	playerOptionsRectangle.mExtent[0] = 250;
+	playerOptionsRectangle.mCenter[1] = 40;
+	playerOptionsRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIScrollBar> gameAI = 
 		AddScrollBar(true, playerOptionsRectangle, window, CID_NUM_AI_SLIDER);
 	gameAI->SetMin(0);
@@ -176,18 +176,18 @@ bool MainMenuUI::OnInit()
 	gameAI->SetPos(gameApp->mOption.mNumAIs);
 	gameAI->SetToolTipText(L"Set the AI players");
 
-	playerOptionsRectangle.center[0] = 50;
-	playerOptionsRectangle.extent[0] = 90;
-	playerOptionsRectangle.center[1] = 82;
-	playerOptionsRectangle.extent[1] = 16;
+	playerOptionsRectangle.mCenter[0] = 50;
+	playerOptionsRectangle.mExtent[0] = 90;
+	playerOptionsRectangle.mCenter[1] = 82;
+	playerOptionsRectangle.mExtent[1] = 16;
 	playerOptionsLine =
 		AddStaticText(L"Human Player:", playerOptionsRectangle, false, false, window, CID_NUM_PLAYER_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	playerOptionsRectangle.center[0] = 250;
-	playerOptionsRectangle.extent[0] = 250;
-	playerOptionsRectangle.center[1] = 80;
-	playerOptionsRectangle.extent[1] = 20;
+	playerOptionsRectangle.mCenter[0] = 250;
+	playerOptionsRectangle.mExtent[0] = 250;
+	playerOptionsRectangle.mCenter[1] = 80;
+	playerOptionsRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIScrollBar> gamePlayer = 
 		AddScrollBar(true, playerOptionsRectangle, window, CID_NUM_PLAYER_SLIDER);
 	gamePlayer->SetMin(0);
@@ -197,51 +197,51 @@ bool MainMenuUI::OnInit()
 	gamePlayer->SetPos(gameApp->mOption.mExpectedPlayers);
 	gamePlayer->SetToolTipText(L"Set the Human players");
 
-	playerOptionsRectangle.center[0] = 50;
-	playerOptionsRectangle.extent[0] = 90;
-	playerOptionsRectangle.center[1] = 122;
-	playerOptionsRectangle.extent[1] = 16;
+	playerOptionsRectangle.mCenter[0] = 50;
+	playerOptionsRectangle.mExtent[0] = 90;
+	playerOptionsRectangle.mCenter[1] = 122;
+	playerOptionsRectangle.mExtent[1] = 16;
 	playerOptionsLine =
 		AddStaticText(L"Game Host:", playerOptionsRectangle, false, false, window, CID_HOST_NAME_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	playerOptionsRectangle.center[0] = 220;
-	playerOptionsRectangle.extent[0] = 190;
-	playerOptionsRectangle.center[1] = 120;
-	playerOptionsRectangle.extent[1] = 20;
+	playerOptionsRectangle.mCenter[0] = 220;
+	playerOptionsRectangle.mExtent[0] = 190;
+	playerOptionsRectangle.mCenter[1] = 120;
+	playerOptionsRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIEditBox> gameHost = AddEditBox(
 		ToWideString(gameApp->mOption.mGameHost.c_str()).c_str(), playerOptionsRectangle, true, window, CID_HOST_NAME);
 
-	playerOptionsRectangle.center[0] = 350;
-	playerOptionsRectangle.extent[0] = 50;
-	playerOptionsRectangle.center[1] = 120;
-	playerOptionsRectangle.extent[1] = 20;
+	playerOptionsRectangle.mCenter[0] = 350;
+	playerOptionsRectangle.mExtent[0] = 50;
+	playerOptionsRectangle.mCenter[1] = 120;
+	playerOptionsRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIButton> gameStart = 
 		AddButton(playerOptionsRectangle, window, CID_START_BUTTON, L"Start");
 	gameStart->SetToolTipText(L"Start Game");
 
 	// add a status line help text
 	RectangleShape<2, int> statusRectangle;
-	statusRectangle.center[0] = screenSize[0] / 2 + 5;
-	statusRectangle.extent[0] = screenSize[0] - 10;
-	statusRectangle.center[1] = screenSize[1] - 20;
-	statusRectangle.extent[1] = 20;
+	statusRectangle.mCenter[0] = screenSize[0] / 2 + 5;
+	statusRectangle.mExtent[0] = screenSize[0] - 10;
+	statusRectangle.mCenter[1] = screenSize[1] - 20;
+	statusRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIStaticText> statusLine = AddStaticText(L"", statusRectangle, false, false, window, CID_STATUS_LABEL, true);
 	statusLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	RectangleShape<2, int> videoRectangle;
-	videoRectangle.center[0] = screenSize[0] - 355;
-	videoRectangle.extent[0] = 90;
-	videoRectangle.center[1] = 42;
-	videoRectangle.extent[1] = 16;
+	videoRectangle.mCenter[0] = screenSize[0] - 355;
+	videoRectangle.mExtent[0] = 90;
+	videoRectangle.mCenter[1] = 42;
+	videoRectangle.mExtent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoDriverLine = 
 		AddStaticText(L"VideoDriver:", videoRectangle, false, false, window, -1, true);
 	videoDriverLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 	
-	videoRectangle.center[0] = screenSize[0] - 155;
-	videoRectangle.extent[0] = 290;
-	videoRectangle.center[1] = 40;
-	videoRectangle.extent[1] = 20;
+	videoRectangle.mCenter[0] = screenSize[0] - 155;
+	videoRectangle.mExtent[0] = 290;
+	videoRectangle.mCenter[1] = 40;
+	videoRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIComboBox> videoDriver = AddComboBox(videoRectangle, window);
 	videoDriver->AddItem(L"Direct3D 11", RT_DIRECT3D11);
 	videoDriver->AddItem(L"OpenGL", RT_OPENGL);
@@ -249,18 +249,18 @@ bool MainMenuUI::OnInit()
 	videoDriver->SetSelected(videoDriver->GetIndexForItemData(gameApp->mOption.mRendererType));
 	videoDriver->SetToolTipText(L"Use a VideoDriver");
 
-	videoRectangle.center[0] = screenSize[0] - 355;
-	videoRectangle.extent[0] = 90;
-	videoRectangle.center[1] = 82;
-	videoRectangle.extent[1] = 16;
+	videoRectangle.mCenter[0] = screenSize[0] - 355;
+	videoRectangle.mExtent[0] = 90;
+	videoRectangle.mCenter[1] = 82;
+	videoRectangle.mExtent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoModeLine =
 		AddStaticText(L"VideoMode:", videoRectangle, false, false, window, -1, false);
 	videoModeLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	videoRectangle.center[0] = screenSize[0] - 155;
-	videoRectangle.extent[0] = 290;
-	videoRectangle.center[1] = 80;
-	videoRectangle.extent[1] = 20;
+	videoRectangle.mCenter[0] = screenSize[0] - 155;
+	videoRectangle.mExtent[0] = 290;
+	videoRectangle.mCenter[1] = 80;
+	videoRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIComboBox> videoMode = AddComboBox(videoRectangle, window);
 	eastl::vector<Vector2<unsigned int>> videoResolutions = gameApp->mSystem->GetVideoResolutions();
 	for (int i = 0; i != videoResolutions.size(); ++i)
@@ -288,26 +288,26 @@ bool MainMenuUI::OnInit()
 		gameApp->mOption.mScreenSize[0] << 16 | gameApp->mOption.mScreenSize[1]));
 	videoMode->SetToolTipText(L"Supported Screenmodes");
 
-	screenRectangle.center[0] = screenSize[0] - 350;
-	screenRectangle.extent[0] = 100;
-	screenRectangle.center[1] = 120;
-	screenRectangle.extent[1] = 20;
+	screenRectangle.mCenter[0] = screenSize[0] - 350;
+	screenRectangle.mExtent[0] = 100;
+	screenRectangle.mCenter[1] = 120;
+	screenRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUICheckBox> fullScreen = AddCheckBox(
 		gameApp->mOption.mFullScreen, screenRectangle, window, -1, L"Fullscreen");
 	fullScreen->SetToolTipText(L"Set Fullscreen or Window Mode");
 
-	screenRectangle.center[0] = screenSize[0] - 250;
-	screenRectangle.extent[0] = 90;
-	screenRectangle.center[1] = 122;
-	screenRectangle.extent[1] = 16;
+	screenRectangle.mCenter[0] = screenSize[0] - 250;
+	screenRectangle.mExtent[0] = 90;
+	screenRectangle.mCenter[1] = 122;
+	screenRectangle.mExtent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoMultiSampleLine =
 		AddStaticText(L"MultiSample:", screenRectangle, false, false, window, -1, false);
 	videoMultiSampleLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	screenRectangle.center[0] = screenSize[0] - 130;
-	screenRectangle.extent[0] = 120;
-	screenRectangle.center[1] = 120;
-	screenRectangle.extent[1] = 20;
+	screenRectangle.mCenter[0] = screenSize[0] - 130;
+	screenRectangle.mExtent[0] = 120;
+	screenRectangle.mCenter[1] = 120;
+	screenRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIScrollBar> multiSample = AddScrollBar(true, screenRectangle, window, -1);
 	multiSample->SetMin(0);
 	multiSample->SetMax(8);
@@ -316,25 +316,25 @@ bool MainMenuUI::OnInit()
 	multiSample->SetPos(gameApp->mOption.mAntiAlias);
 	multiSample->SetToolTipText(L"Set the multisample (disable, 1x, 2x, 4x, 8x )");
 
-	screenRectangle.center[0] = screenSize[0] - 35;
-	screenRectangle.extent[0] = 50;
-	screenRectangle.center[1] = 120;
-	screenRectangle.extent[1] = 20;
+	screenRectangle.mCenter[0] = screenSize[0] - 35;
+	screenRectangle.mExtent[0] = 50;
+	screenRectangle.mCenter[1] = 120;
+	screenRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIButton> setVideoMode = AddButton(screenRectangle, window, CID_SET_GAME_RADIO, L"Set");
 	setVideoMode->SetToolTipText(L"Set video mode with current values");
 
-	screenRectangle.center[0] = 50;
-	screenRectangle.extent[0] = 90;
-	screenRectangle.center[1] = screenSize[1] - 390;
-	screenRectangle.extent[1] = 20;
+	screenRectangle.mCenter[0] = 50;
+	screenRectangle.mExtent[0] = 90;
+	screenRectangle.mCenter[1] = screenSize[1] - 390;
+	screenRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIStaticText> mapsLine =
 		AddStaticText(L"Maps:", screenRectangle, false, false, window, CID_LEVEL_LABEL, false);
 	mapsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	screenRectangle.center[0] = 190;
-	screenRectangle.extent[0] = 380;
-	screenRectangle.center[1] = screenSize[1] - 210;
-	screenRectangle.extent[1] = 340;
+	screenRectangle.mCenter[0] = 190;
+	screenRectangle.mExtent[0] = 380;
+	screenRectangle.mCenter[1] = screenSize[1] - 210;
+	screenRectangle.mExtent[1] = 340;
 	eastl::shared_ptr<BaseUIListBox> maps = AddListBox(screenRectangle, window, CID_LEVEL_LISTBOX, true);
 	maps->SetToolTipText(L"Show the current maps.\n Double-Click the map to start the level");
 
@@ -343,18 +343,18 @@ bool MainMenuUI::OnInit()
 		maps->AddItem((*it)->GetName().c_str());
 
 	// create a visible Scene Tree
-	screenRectangle.center[0] = screenSize[0] - 350;
-	screenRectangle.extent[0] = 90;
-	screenRectangle.center[1] = screenSize[1] - 390;
-	screenRectangle.extent[1] = 20;
+	screenRectangle.mCenter[0] = screenSize[0] - 350;
+	screenRectangle.mExtent[0] = 90;
+	screenRectangle.mCenter[1] = screenSize[1] - 390;
+	screenRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIStaticText> sceneGraphLine =
 		AddStaticText(L"Scenegraph:", screenRectangle, false, false, window, -1, false);
 	sceneGraphLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	screenRectangle.center[0] = screenSize[0] - 200;
-	screenRectangle.extent[0] = 400;
-	screenRectangle.center[1] = screenSize[1] - 210;
-	screenRectangle.extent[1] = 340;
+	screenRectangle.mCenter[0] = screenSize[0] - 200;
+	screenRectangle.mExtent[0] = 400;
+	screenRectangle.mCenter[1] = screenSize[1] - 210;
+	screenRectangle.mExtent[1] = 340;
 	eastl::shared_ptr<BaseUITreeView> scenes = AddTreeView(screenRectangle, window, -1, true, true, false);
 	scenes->SetToolTipText(L"Show the current scenegraph");
 

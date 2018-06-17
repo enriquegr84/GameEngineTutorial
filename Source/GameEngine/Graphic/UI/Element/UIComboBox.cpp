@@ -67,10 +67,10 @@ void UIComboBox::OnInit()
 	mListBox->SetVisible(false);
 
 	RectangleShape<2, int> r;
-	r.extent[0] = width;
-	r.extent[1] = mRelativeRect.extent[1] - 4;
-	r.center[0] = mRelativeRect.extent[0] - (width / 2) - 1;
-	r.center[1] = mRelativeRect.extent[1] / 2;
+	r.mExtent[0] = width;
+	r.mExtent[1] = mRelativeRect.mExtent[1] - 4;
+	r.mCenter[0] = mRelativeRect.mExtent[0] - (width / 2) - 1;
+	r.mCenter[1] = mRelativeRect.mExtent[1] / 2;
 
 	mListButton = mUI->AddButton(r, shared_from_this(), -1, L"");
 	if (skin && skin->GetSpriteBank())
@@ -83,10 +83,10 @@ void UIComboBox::OnInit()
 	mListButton->SetSubElement(true);
 	mListButton->SetTabStop(false);
 
-	r.center[0] = (mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0]) / 2;
-	r.extent[0] = mRelativeRect.extent[0] - mListButton->GetAbsolutePosition().extent[0] - 4;
-	r.center[1] = (mRelativeRect.extent[1] / 2);
-	r.extent[1] = mRelativeRect.extent[1] - 4;
+	r.mCenter[0] = (mRelativeRect.mExtent[0] - mListButton->GetAbsolutePosition().mExtent[0]) / 2;
+	r.mExtent[0] = mRelativeRect.mExtent[0] - mListButton->GetAbsolutePosition().mExtent[0] - 4;
+	r.mCenter[1] = (mRelativeRect.mExtent[1] / 2);
+	r.mExtent[1] = mRelativeRect.mExtent[1] - 4;
 
 	mSelectedText = mUI->AddStaticText(L"", r, false, false, shared_from_this(), -1, false);
 	mSelectedText->SetSubElement(true);
@@ -434,7 +434,7 @@ void UIComboBox::Draw()
 	mListButton->SetSprite(BS_BUTTON_UP, DI_CURSOR_DOWN, skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
 	mListButton->SetSprite(BS_BUTTON_DOWN, DI_CURSOR_DOWN, skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL));
 
-	skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.extent / 2);
+	skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.mExtent / 2);
 
 	// draw children
 	BaseUIElement::Draw();
@@ -469,25 +469,25 @@ void UIComboBox::OpenCloseMenu()
 
 		// open list box
 		RectangleShape<2, int> r;
-		r.extent[0] = mAbsoluteRect.extent[0];
-		r.extent[1] = height;
-		r.center[0] = mAbsoluteRect.extent[0] / 2;
-		r.center[1] = mAbsoluteRect.extent[1] + (int)round(height / 2.f);
+		r.mExtent[0] = mAbsoluteRect.mExtent[0];
+		r.mExtent[1] = height;
+		r.mCenter[0] = mAbsoluteRect.mExtent[0] / 2;
+		r.mCenter[1] = mAbsoluteRect.mExtent[1] + (int)round(height / 2.f);
 		mListBox->SetRelativePosition(r);
 		mListBox->SetEnabled(true);
 		mListBox->SetVisible(true);
 		mListBox->Clear();
 
 		// ensure that list box is always completely visible
-		if (mListBox->GetAbsolutePosition().center[1] + 
-			(int)round(mListBox->GetAbsolutePosition().extent[1] / 2.f) >
-			mUI->GetRootUIElement()->GetAbsolutePosition().extent[1])
+		if (mListBox->GetAbsolutePosition().mCenter[1] + 
+			(int)round(mListBox->GetAbsolutePosition().mExtent[1] / 2.f) >
+			mUI->GetRootUIElement()->GetAbsolutePosition().mExtent[1])
 		{
 			RectangleShape<2, int> rect;
-			rect.extent[0] = mAbsoluteRect.extent[0];
-			rect.extent[1] = mAbsoluteRect.extent[1];
-			rect.center[0] = mAbsoluteRect.extent[0] / 2;
-			rect.center[1] = -mAbsoluteRect.extent[1] / 2;
+			rect.mExtent[0] = mAbsoluteRect.mExtent[0];
+			rect.mExtent[1] = mAbsoluteRect.mExtent[1];
+			rect.mCenter[0] = mAbsoluteRect.mExtent[0] / 2;
+			rect.mCenter[1] = -mAbsoluteRect.mExtent[1] / 2;
 
 			mListBox->SetRelativePosition(rect);
 		}

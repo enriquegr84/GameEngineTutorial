@@ -173,35 +173,35 @@ public:
 		if (mParent)
 		{
 			const RectangleShape<2, int>& rectangle = mParent->GetAbsolutePosition();
-			Vector2<int> dimension(rectangle.extent);
+			Vector2<int> dimension(rectangle.mExtent);
 
 			if (mAlignLeft == UIA_SCALE)
 			{
-				float corner = mScaleRect.center[0] - (mScaleRect.extent[0] / 2);
-				int scale = (mDesiredRect.center[0] - (mDesiredRect.extent[0] / 2)) / dimension[0];
-				mScaleRect.extent[0] = corner - scale;
-				mScaleRect.center[0] = corner + (mDesiredRect.extent[0] / 2);
+				float corner = mScaleRect.mCenter[0] - (mScaleRect.mExtent[0] / 2);
+				int scale = (mDesiredRect.mCenter[0] - (mDesiredRect.mExtent[0] / 2)) / dimension[0];
+				mScaleRect.mExtent[0] = corner - scale;
+				mScaleRect.mCenter[0] = corner + (mDesiredRect.mExtent[0] / 2);
 			}
 			if (mAlignRight == UIA_SCALE)
 			{
-				float corner = mScaleRect.center[0] + (int)round(mScaleRect.extent[0] / 2.f);
-				int scale = (mDesiredRect.center[0] + (int)round(mDesiredRect.extent[0] / 2.f)) / dimension[0];
-				mScaleRect.extent[0] = scale - corner;
-				mScaleRect.center[0] = corner - (int)round(mDesiredRect.extent[0] / 2.f);
+				float corner = mScaleRect.mCenter[0] + (int)round(mScaleRect.mExtent[0] / 2.f);
+				int scale = (mDesiredRect.mCenter[0] + (int)round(mDesiredRect.mExtent[0] / 2.f)) / dimension[0];
+				mScaleRect.mExtent[0] = scale - corner;
+				mScaleRect.mCenter[0] = corner - (int)round(mDesiredRect.mExtent[0] / 2.f);
 			}
 			if (mAlignTop == UIA_SCALE)
 			{
-				float corner = mScaleRect.center[1] - (mScaleRect.extent[1] / 2);
-				int scale = (mDesiredRect.center[1] - (mDesiredRect.extent[1] / 2)) / dimension[1];
-				mScaleRect.extent[1] = corner - scale;
-				mScaleRect.center[1] = corner + (mDesiredRect.extent[1] / 2);
+				float corner = mScaleRect.mCenter[1] - (mScaleRect.mExtent[1] / 2);
+				int scale = (mDesiredRect.mCenter[1] - (mDesiredRect.mExtent[1] / 2)) / dimension[1];
+				mScaleRect.mExtent[1] = corner - scale;
+				mScaleRect.mCenter[1] = corner + (mDesiredRect.mExtent[1] / 2);
 			}
 			if (mAlignBottom == UIA_SCALE)
 			{
-				float corner = mScaleRect.center[1] + (int)round(mScaleRect.extent[1] / 2.f);
-				int scale = (mDesiredRect.center[1] + (int)round(mDesiredRect.extent[1] / 2.f)) / dimension[1];
-				mScaleRect.extent[1] = scale - corner;
-				mScaleRect.center[1] = corner - (int)round(mDesiredRect.extent[1] / 2.f);
+				float corner = mScaleRect.mCenter[1] + (int)round(mScaleRect.mExtent[1] / 2.f);
+				int scale = (mDesiredRect.mCenter[1] + (int)round(mDesiredRect.mExtent[1] / 2.f)) / dimension[1];
+				mScaleRect.mExtent[1] = scale - corner;
+				mScaleRect.mCenter[1] = corner - (int)round(mDesiredRect.mExtent[1] / 2.f);
 			}
 		}
 
@@ -214,10 +214,10 @@ public:
 	void SetRelativePosition(const Vector2<int>& position)
 	{
 		Vector2<int> center;
-		center[0] = position[0] + (mRelativeRect.extent[0] / 2);
-		center[1] = position[1] + (mRelativeRect.extent[1] / 2);
+		center[0] = position[0] + (mRelativeRect.mExtent[0] / 2);
+		center[1] = position[1] + (mRelativeRect.mExtent[1] / 2);
 		const RectangleShape<2, int> rectangle(
-			center, mRelativeRect.axis, mRelativeRect.extent);
+			center, mRelativeRect.mAxis, mRelativeRect.mExtent);
 		SetRelativePosition(rectangle);
 	}
 
@@ -233,17 +233,17 @@ public:
 			return;
 
 		const RectangleShape<2, int>& rectangle = mParent->GetAbsolutePosition();
-		Vector2<int> dimension(rectangle.extent);
+		Vector2<int> dimension(rectangle.mExtent);
 
 		Vector2<int> upperLeftCorner{ 
-			(int)floor(dimension[0] * (r.center[0] - (r.extent[0] / 2))),
-			(int)floor(dimension[1] * (r.center[1] - (r.extent[1] / 2))) };
+			(int)floor(dimension[0] * (r.mCenter[0] - (r.mExtent[0] / 2))),
+			(int)floor(dimension[1] * (r.mCenter[1] - (r.mExtent[1] / 2))) };
 		Vector2<int> lowerRightCorner{
-			(int)floor(dimension[0] * (r.center[0] + (int)round(r.extent[0] / 2.f))),
-			(int)floor(dimension[1] * (r.center[1] + (int)round(r.extent[1] / 2.f))) };
+			(int)floor(dimension[0] * (r.mCenter[0] + (int)round(r.mExtent[0] / 2.f))),
+			(int)floor(dimension[1] * (r.mCenter[1] + (int)round(r.mExtent[1] / 2.f))) };
 		eastl::array<Vector2<int>, 2U> axis;
-		for (int i = 0; i < r.axis.count; i++)
-			axis[i] = Vector2<int>{ (int)r.axis[i][0], (int)r.axis[i][1] };
+		for (int i = 0; i < r.mAxis.count; i++)
+			axis[i] = Vector2<int>{ (int)r.mAxis[i][0], (int)r.mAxis[i][1] };
 		Vector2<int> extent = lowerRightCorner - upperLeftCorner;
 		Vector2<int> center = lowerRightCorner + (extent / 2);
 
@@ -317,35 +317,35 @@ public:
 		if (mParent)
 		{
 			const RectangleShape<2, int>& rectangle = mParent->GetAbsolutePosition();
-			Vector2<int> dimension(rectangle.extent);
+			Vector2<int> dimension(rectangle.mExtent);
 
 			if (mAlignLeft == UIA_SCALE)
 			{
-				float corner = mScaleRect.center[0] - (mScaleRect.extent[0] / 2);
-				int scale = (mDesiredRect.center[0] - (mDesiredRect.extent[0] / 2)) / dimension[0];
-				mScaleRect.extent[0] = corner - scale;
-				mScaleRect.center[0] = corner + (mDesiredRect.extent[0] / 2);
+				float corner = mScaleRect.mCenter[0] - (mScaleRect.mExtent[0] / 2);
+				int scale = (mDesiredRect.mCenter[0] - (mDesiredRect.mExtent[0] / 2)) / dimension[0];
+				mScaleRect.mExtent[0] = corner - scale;
+				mScaleRect.mCenter[0] = corner + (mDesiredRect.mExtent[0] / 2);
 			}
 			if (mAlignRight == UIA_SCALE)
 			{
-				float corner = mScaleRect.center[0] + (int)round(mScaleRect.extent[0] / 2.f);
-				int scale = (mDesiredRect.center[0] + (int)round(mDesiredRect.extent[0] / 2.f)) / dimension[0];
-				mScaleRect.extent[0] = scale - corner;
-				mScaleRect.center[0] = corner - (int)round(mDesiredRect.extent[0] / 2.f);
+				float corner = mScaleRect.mCenter[0] + (int)round(mScaleRect.mExtent[0] / 2.f);
+				int scale = (mDesiredRect.mCenter[0] + (int)round(mDesiredRect.mExtent[0] / 2.f)) / dimension[0];
+				mScaleRect.mExtent[0] = scale - corner;
+				mScaleRect.mCenter[0] = corner - (int)round(mDesiredRect.mExtent[0] / 2.f);
 			}
 			if (mAlignTop == UIA_SCALE)
 			{
-				float corner = mScaleRect.center[1] - (mScaleRect.extent[1] / 2);
-				int scale = (mDesiredRect.center[1] - (mDesiredRect.extent[1] / 2)) / dimension[1];
-				mScaleRect.extent[1] = corner - scale;
-				mScaleRect.center[1] = corner + (mDesiredRect.extent[1] / 2);
+				float corner = mScaleRect.mCenter[1] - (mScaleRect.mExtent[1] / 2);
+				int scale = (mDesiredRect.mCenter[1] - (mDesiredRect.mExtent[1] / 2)) / dimension[1];
+				mScaleRect.mExtent[1] = corner - scale;
+				mScaleRect.mCenter[1] = corner + (mDesiredRect.mExtent[1] / 2);
 			}
 			if (mAlignBottom == UIA_SCALE)
 			{
-				float corner = mScaleRect.center[1] + (int)round(mScaleRect.extent[1] / 2.f);
-				int scale = (mDesiredRect.center[1] + (int)round(mDesiredRect.extent[1] / 2.f)) / dimension[1];
-				mScaleRect.extent[1] = scale - corner;
-				mScaleRect.center[1] = corner - (int)round(mDesiredRect.extent[1] / 2.f);
+				float corner = mScaleRect.mCenter[1] + (int)round(mScaleRect.mExtent[1] / 2.f);
+				int scale = (mDesiredRect.mCenter[1] + (int)round(mDesiredRect.mExtent[1] / 2.f)) / dimension[1];
+				mScaleRect.mExtent[1] = scale - corner;
+				mScaleRect.mCenter[1] = corner - (int)round(mDesiredRect.mExtent[1] / 2.f);
 			}
 		}
 	}
@@ -409,20 +409,20 @@ public:
 	virtual bool IsPointInside(const Vector2<int>& point) const
 	{
 		return (
-			mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2) <= point[0] &&
-			mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2) <= point[1] &&
-			mAbsoluteRect.center[0] + (int)round(mAbsoluteRect.extent[0] / 2.f) >= point[0] &&
-			mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f) >= point[1] );
+			mAbsoluteRect.mCenter[0] - (mAbsoluteRect.mExtent[0] / 2) <= point[0] &&
+			mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2) <= point[1] &&
+			mAbsoluteRect.mCenter[0] + (int)round(mAbsoluteRect.mExtent[0] / 2.f) >= point[0] &&
+			mAbsoluteRect.mCenter[1] + (int)round(mAbsoluteRect.mExtent[1] / 2.f) >= point[1] );
 	}
 
 
 	virtual bool IsPointInside(const RectangleShape<2, int>& rectangle, const Vector2<int>& point) const
 	{
 		return (
-			rectangle.center[0] - (rectangle.extent[0] / 2) <= point[0] &&
-			rectangle.center[1] - (rectangle.extent[1] / 2) <= point[1] &&
-			rectangle.center[0] + (int)round(rectangle.extent[0] / 2.f) >= point[0] &&
-			rectangle.center[1] + (int)round(rectangle.extent[1] / 2.f) >= point[1]);
+			rectangle.mCenter[0] - (rectangle.mExtent[0] / 2) <= point[0] &&
+			rectangle.mCenter[1] - (rectangle.mExtent[1] / 2) <= point[1] &&
+			rectangle.mCenter[0] + (int)round(rectangle.mExtent[0] / 2.f) >= point[0] &&
+			rectangle.mCenter[1] + (int)round(rectangle.mExtent[1] / 2.f) >= point[1]);
 	}
 
 
@@ -486,11 +486,11 @@ public:
 	//! Moves this element.
 	virtual void Move(Vector2<int> absoluteMovement)
 	{
-		Vector2<int> center(mDesiredRect.center);
+		Vector2<int> center(mDesiredRect.mCenter);
 		center[0] += absoluteMovement[0];
 		center[1] += absoluteMovement[1];
 		const RectangleShape<2, int> rectangle(
-			center, mDesiredRect.axis, mDesiredRect.extent);
+			center, mDesiredRect.mAxis, mDesiredRect.mExtent);
 
 		SetRelativePosition(rectangle);
 	}
@@ -940,32 +940,32 @@ protected:
 				parentAbsoluteClip = mParent->mAbsoluteClippingRect;
 		}
 
-		const int diffx = parentAbsolute.extent[0] - mLastParentRect.extent[0];
-		const int diffy = parentAbsolute.extent[1] - mLastParentRect.extent[1];
+		const int diffx = parentAbsolute.mExtent[0] - mLastParentRect.mExtent[0];
+		const int diffy = parentAbsolute.mExtent[1] - mLastParentRect.mExtent[1];
 
 		if (mAlignLeft == UIA_SCALE || mAlignRight == UIA_SCALE)
-			fw = (float)parentAbsolute.extent[0];
+			fw = (float)parentAbsolute.mExtent[0];
 
 		if (mAlignTop == UIA_SCALE || mAlignBottom == UIA_SCALE)
-			fh = (float)parentAbsolute.extent[1];
+			fh = (float)parentAbsolute.mExtent[1];
 
 		switch (mAlignLeft)
 		{
 			case UIA_UPPERLEFT:
 				break;
 			case UIA_LOWERRIGHT:
-				mDesiredRect.center[0] -= diffx / 2;
-				mDesiredRect.extent[0] -= diffx;
+				mDesiredRect.mCenter[0] -= diffx / 2;
+				mDesiredRect.mExtent[0] -= diffx;
 				break;
 			case UIA_CENTER:
-				mDesiredRect.center[0] -= diffx / 4;
-				mDesiredRect.extent[0] -= diffx / 2;
+				mDesiredRect.mCenter[0] -= diffx / 4;
+				mDesiredRect.mExtent[0] -= diffx / 2;
 				break;
 			case UIA_SCALE:
-				int corner = mDesiredRect.center[0] - (mDesiredRect.extent[0] / 2);
-				int scale = (int)round((mScaleRect.center[0] - (mScaleRect.extent[0] / 2)) * fw);
-				mDesiredRect.extent[0] = corner - scale;
-				mDesiredRect.center[0] = corner - (int)round(mDesiredRect.extent[0] / 2.f);
+				int corner = mDesiredRect.mCenter[0] - (mDesiredRect.mExtent[0] / 2);
+				int scale = (int)round((mScaleRect.mCenter[0] - (mScaleRect.mExtent[0] / 2)) * fw);
+				mDesiredRect.mExtent[0] = corner - scale;
+				mDesiredRect.mCenter[0] = corner - (int)round(mDesiredRect.mExtent[0] / 2.f);
 				break;
 		}
 
@@ -974,18 +974,18 @@ protected:
 			case UIA_UPPERLEFT:
 				break;
 			case UIA_LOWERRIGHT:
-				mDesiredRect.center[0] += diffx / 2;
-				mDesiredRect.extent[0] += diffx;
+				mDesiredRect.mCenter[0] += diffx / 2;
+				mDesiredRect.mExtent[0] += diffx;
 				break;
 			case UIA_CENTER:
-				mDesiredRect.center[0] += diffx / 4;
-				mDesiredRect.extent[0] += diffx / 2;
+				mDesiredRect.mCenter[0] += diffx / 4;
+				mDesiredRect.mExtent[0] += diffx / 2;
 				break;
 			case UIA_SCALE:
-				int corner = mDesiredRect.center[0] - (int)round(mDesiredRect.extent[0] / 2.f);
-				int scale = (int)round((mScaleRect.center[0] + (int)round(mScaleRect.extent[0] / 2.f)) * fw);
-				mDesiredRect.extent[0] = scale - corner;
-				mDesiredRect.center[0] = corner + (mDesiredRect.extent[0] / 2);
+				int corner = mDesiredRect.mCenter[0] - (int)round(mDesiredRect.mExtent[0] / 2.f);
+				int scale = (int)round((mScaleRect.mCenter[0] + (int)round(mScaleRect.mExtent[0] / 2.f)) * fw);
+				mDesiredRect.mExtent[0] = scale - corner;
+				mDesiredRect.mCenter[0] = corner + (mDesiredRect.mExtent[0] / 2);
 				break;
 		}
 
@@ -994,18 +994,18 @@ protected:
 			case UIA_UPPERLEFT:
 				break;
 			case UIA_LOWERRIGHT:
-				mDesiredRect.center[1] -= diffy / 2;
-				mDesiredRect.extent[1] -= diffy;
+				mDesiredRect.mCenter[1] -= diffy / 2;
+				mDesiredRect.mExtent[1] -= diffy;
 				break;
 			case UIA_CENTER:
-				mDesiredRect.center[1] -= diffy / 4;
-				mDesiredRect.extent[1] -= diffy / 2;
+				mDesiredRect.mCenter[1] -= diffy / 4;
+				mDesiredRect.mExtent[1] -= diffy / 2;
 				break;
 			case UIA_SCALE:
-				int corner = mDesiredRect.center[1] - (mDesiredRect.extent[1] / 2);
-				int scale = (int)round((mScaleRect.center[1] - (mScaleRect.extent[1] / 2)) * fh);
-				mDesiredRect.extent[1] = corner - scale;
-				mDesiredRect.center[1] = corner - (int)round(mDesiredRect.extent[1] / 2.f);
+				int corner = mDesiredRect.mCenter[1] - (mDesiredRect.mExtent[1] / 2);
+				int scale = (int)round((mScaleRect.mCenter[1] - (mScaleRect.mExtent[1] / 2)) * fh);
+				mDesiredRect.mExtent[1] = corner - scale;
+				mDesiredRect.mCenter[1] = corner - (int)round(mDesiredRect.mExtent[1] / 2.f);
 				break;
 		}
 
@@ -1014,60 +1014,60 @@ protected:
 			case UIA_UPPERLEFT:
 				break;
 			case UIA_LOWERRIGHT:
-				mDesiredRect.center[1] += diffy / 2;
-				mDesiredRect.extent[1] += diffy;
+				mDesiredRect.mCenter[1] += diffy / 2;
+				mDesiredRect.mExtent[1] += diffy;
 				break;
 			case UIA_CENTER:
-				mDesiredRect.center[1] += diffy / 4;
-				mDesiredRect.extent[1] += diffy / 2;
+				mDesiredRect.mCenter[1] += diffy / 4;
+				mDesiredRect.mExtent[1] += diffy / 2;
 				break;
 			case UIA_SCALE:
-				int corner = mDesiredRect.center[1] - (int)round(mDesiredRect.extent[1] / 2.f);
-				int scale = (int)round((mScaleRect.center[1] + (int)round(mScaleRect.extent[1] / 2.f)) * fw);
-				mDesiredRect.extent[1] = scale - corner;
-				mDesiredRect.center[1] = corner + (mDesiredRect.extent[1] / 2);
+				int corner = mDesiredRect.mCenter[1] - (int)round(mDesiredRect.mExtent[1] / 2.f);
+				int scale = (int)round((mScaleRect.mCenter[1] + (int)round(mScaleRect.mExtent[1] / 2.f)) * fw);
+				mDesiredRect.mExtent[1] = scale - corner;
+				mDesiredRect.mCenter[1] = corner + (mDesiredRect.mExtent[1] / 2);
 				break;
 		}
 
 		mRelativeRect = mDesiredRect;
 
-		const int w = mRelativeRect.extent[0];
-		const int h = mRelativeRect.extent[1];
+		const int w = mRelativeRect.mExtent[0];
+		const int h = mRelativeRect.mExtent[1];
 
 		// make sure the desired rectangle is allowed
 		if (w < (int)mMinSize[0])
 		{
-			mRelativeRect.center[0] -= mRelativeRect.extent[0] / 2;
-			mRelativeRect.center[0] += mMinSize[0] / 2;
-			mRelativeRect.extent[0] = mMinSize[0];
+			mRelativeRect.mCenter[0] -= mRelativeRect.mExtent[0] / 2;
+			mRelativeRect.mCenter[0] += mMinSize[0] / 2;
+			mRelativeRect.mExtent[0] = mMinSize[0];
 		}
 		if (h < (int)mMinSize[1])
 		{
-			mRelativeRect.center[1] -= mRelativeRect.extent[1] / 2;
-			mRelativeRect.center[1] += mMinSize[1] / 2;
-			mRelativeRect.extent[1] = mMinSize[1];
+			mRelativeRect.mCenter[1] -= mRelativeRect.mExtent[1] / 2;
+			mRelativeRect.mCenter[1] += mMinSize[1] / 2;
+			mRelativeRect.mExtent[1] = mMinSize[1];
 		}
 		if (mMaxSize[0] && w > (int)mMaxSize[0])
 		{
-			mRelativeRect.center[0] -= mRelativeRect.extent[0] / 2;
-			mRelativeRect.center[0] += mMaxSize[0] / 2;
-			mRelativeRect.extent[0] = mMaxSize[0];
+			mRelativeRect.mCenter[0] -= mRelativeRect.mExtent[0] / 2;
+			mRelativeRect.mCenter[0] += mMaxSize[0] / 2;
+			mRelativeRect.mExtent[0] = mMaxSize[0];
 		}
 		if (mMaxSize[1] && h > (int)mMaxSize[1])
 		{
-			mRelativeRect.center[1] -= mRelativeRect.extent[1] / 2;
-			mRelativeRect.center[1] += mMaxSize[1] / 2;
-			mRelativeRect.extent[1] = mMaxSize[1];
+			mRelativeRect.mCenter[1] -= mRelativeRect.mExtent[1] / 2;
+			mRelativeRect.mCenter[1] += mMaxSize[1] / 2;
+			mRelativeRect.mExtent[1] = mMaxSize[1];
 		}
 
 		mAbsoluteRect = mRelativeRect;
-		mAbsoluteRect.center += parentAbsolute.center - (parentAbsolute.extent / 2);
+		mAbsoluteRect.mCenter += parentAbsolute.mCenter - (parentAbsolute.mExtent / 2);
 
 		if (!mParent)
 			parentAbsoluteClip = mAbsoluteRect;
 
 		mAbsoluteClippingRect = mAbsoluteRect;
-		mAbsoluteClippingRect.extent = parentAbsoluteClip.extent;
+		mAbsoluteClippingRect.mExtent = parentAbsoluteClip.mExtent;
 
 		mLastParentRect = parentAbsolute;
 

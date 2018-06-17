@@ -321,7 +321,7 @@ Mesh<Real>::Mesh(MeshDescription const& description, eastl::vector<MeshTopology>
         }
     }
 
-    if (!mDescription.mIndexAttribute.source)
+    if (!mDescription.mIndexAttribute.mSource)
     {
         LogError("The mesh needs triangles/indices.");
         mDescription.mConstructed = false;
@@ -333,58 +333,58 @@ Mesh<Real>::Mesh(MeshDescription const& description, eastl::vector<MeshTopology>
     mDescription.mAllowUpdateFrame = mDescription.mWantDynamicTangentSpaceUpdate;
     for (auto const& attribute : mDescription.mVertexAttributes)
     {
-        if (attribute.source != nullptr && attribute.stride > 0)
+        if (attribute.mSource != nullptr && attribute.mStride > 0)
         {
-            if (attribute.semantic == "position")
+            if (attribute.mSemantic == "position")
             {
-                mPositions = reinterpret_cast<Vector3<Real>*>(attribute.source);
-                mPositionStride = attribute.stride;
+                mPositions = reinterpret_cast<Vector3<Real>*>(attribute.mSource);
+                mPositionStride = attribute.mStride;
                 continue;
             }
 
-            if (attribute.semantic == "normal")
+            if (attribute.mSemantic == "normal")
             {
-                mNormals = reinterpret_cast<Vector3<Real>*>(attribute.source);
-                mNormalStride = attribute.stride;
+                mNormals = reinterpret_cast<Vector3<Real>*>(attribute.mSource);
+                mNormalStride = attribute.mStride;
                 continue;
             }
 
-            if (attribute.semantic == "tangent")
+            if (attribute.mSemantic == "tangent")
             {
-                mTangents = reinterpret_cast<Vector3<Real>*>(attribute.source);
-                mTangentStride = attribute.stride;
+                mTangents = reinterpret_cast<Vector3<Real>*>(attribute.mSource);
+                mTangentStride = attribute.mStride;
                 mDescription.mHasTangentSpaceVectors = true;
                 continue;
             }
 
-            if (attribute.semantic == "bitangent")
+            if (attribute.mSemantic == "bitangent")
             {
-                mBitangents = reinterpret_cast<Vector3<Real>*>(attribute.source);
-                mBitangentStride = attribute.stride;
+                mBitangents = reinterpret_cast<Vector3<Real>*>(attribute.mSource);
+                mBitangentStride = attribute.mStride;
                 mDescription.mHasTangentSpaceVectors = true;
                 continue;
             }
 
-            if (attribute.semantic == "dpdu")
+            if (attribute.mSemantic == "dpdu")
             {
-                mDPDUs = reinterpret_cast<Vector3<Real>*>(attribute.source);
-                mDPDUStride = attribute.stride;
+                mDPDUs = reinterpret_cast<Vector3<Real>*>(attribute.mSource);
+                mDPDUStride = attribute.mStride;
                 mDescription.mHasTangentSpaceVectors = true;
                 continue;
             }
 
-            if (attribute.semantic == "dpdv")
+            if (attribute.mSemantic == "dpdv")
             {
-                mDPDVs = reinterpret_cast<Vector3<Real>*>(attribute.source);
-                mDPDVStride = attribute.stride;
+                mDPDVs = reinterpret_cast<Vector3<Real>*>(attribute.mSource);
+                mDPDVStride = attribute.mStride;
                 mDescription.mHasTangentSpaceVectors = true;
                 continue;
             }
 
-            if (attribute.semantic == "tcoord")
+            if (attribute.mSemantic == "tcoord")
             {
-                mTCoords = reinterpret_cast<Vector2<Real>*>(attribute.source);
-                mTCoordStride = attribute.stride;
+                mTCoords = reinterpret_cast<Vector2<Real>*>(attribute.mSource);
+                mTCoordStride = attribute.mStride;
                 continue;
             }
         }

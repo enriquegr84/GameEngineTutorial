@@ -23,17 +23,17 @@ public:
 	~VolumeLightNode();
 
 	//! Renders event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! returns the material based on the zero based index i.
-	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
-	unsigned int GetMaterialCount() const;
+	virtual unsigned int GetMaterialCount() const;
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return NT_VOLUME_LIGHT; }
+	virtual NodeType GetType() const { return NT_VOLUME_LIGHT; }
 
 	//! Sets the number of segments across the U axis
 	void SetSubDivideU(const unsigned int inU);

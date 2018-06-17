@@ -58,8 +58,8 @@ public:
 	void ClearTarget() { mTarget = 0; }
 
 	//! PreRender event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! Update
 	void UpdateMatrices();

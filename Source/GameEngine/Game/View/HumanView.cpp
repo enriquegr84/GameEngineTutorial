@@ -568,10 +568,10 @@ bool HumanView::Console::OnInit( )
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize(renderer->GetScreenSize());
 	RectangleShape<2, int> screenRectangle;
-	screenRectangle.center[0] = 0;
-	screenRectangle.center[1] = (int)screenSize[1];
-	screenRectangle.extent[0] = (int)screenSize[0];
-	screenRectangle.extent[1] = (int)screenSize[1] - 10;
+	screenRectangle.mCenter[0] = 0;
+	screenRectangle.mCenter[1] = (int)screenSize[1];
+	screenRectangle.mExtent[0] = (int)screenSize[0];
+	screenRectangle.mExtent[1] = (int)screenSize[1] - 10;
 
 	shared_ptr<BaseUIStaticText> consoleText(
 		AddStaticText(L">", screenRectangle, false, true, 0, 1, true));

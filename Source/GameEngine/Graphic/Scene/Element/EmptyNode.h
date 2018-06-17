@@ -15,11 +15,11 @@ public:
 	EmptyNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent);
 
 	//! Renders event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return NT_EMPTY; }
+	virtual NodeType GetType() const { return NT_EMPTY; }
 };
 
 

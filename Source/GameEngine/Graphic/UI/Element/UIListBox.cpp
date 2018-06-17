@@ -133,16 +133,16 @@ void UIListBox::RemoveItem(unsigned int idx)
 
 int UIListBox::GetItemAt(int xPos, int yPos) const
 {
-	if (xPos < mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2)  ||
-		yPos < mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2) ||
-		xPos > mAbsoluteRect.center[0] + (int)round(mAbsoluteRect.extent[0] / 2.f) ||
-		yPos > mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f))
+	if (xPos < mAbsoluteRect.mCenter[0] - (mAbsoluteRect.mExtent[0] / 2)  ||
+		yPos < mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2) ||
+		xPos > mAbsoluteRect.mCenter[0] + (int)round(mAbsoluteRect.mExtent[0] / 2.f) ||
+		yPos > mAbsoluteRect.mCenter[1] + (int)round(mAbsoluteRect.mExtent[1] / 2.f))
 		return -1;
 
 	if ( mItemHeight == 0 )
 		return -1;
 
-	int item = ((yPos - (mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2)) - 1) + mScrollBar->GetPos()) / mItemHeight;
+	int item = ((yPos - (mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2)) - 1) + mScrollBar->GetPos()) / mItemHeight;
 	if ( item < 0 || item >= (int)mItems.size())
 		return -1;
 
@@ -179,12 +179,12 @@ void UIListBox::RecalculateItemHeight()
 	}
 
 	mTotalItemHeight = mItemHeight * mItems.size();
-	mScrollBar->SetMax(eastl::max(0, mTotalItemHeight - mAbsoluteRect.extent[1]));
+	mScrollBar->SetMax(eastl::max(0, mTotalItemHeight - mAbsoluteRect.mExtent[1]));
 	int minItemHeight = mItemHeight > 0 ? mItemHeight : 1;
 	mScrollBar->SetSmallStep ( minItemHeight );
 	mScrollBar->SetLargeStep ( 2*minItemHeight );
 
-	if ( mTotalItemHeight <= mAbsoluteRect.extent[1] )
+	if ( mTotalItemHeight <= mAbsoluteRect.mExtent[1] )
 		mScrollBar->SetVisible(false);
 	else
 		mScrollBar->SetVisible(true);
@@ -259,10 +259,10 @@ bool UIListBox::OnEvent(const Event& event)
 							mSelected = (int)mItems.size()-1;
 							break;
 						case KEY_NEXT:
-							mSelected += mAbsoluteRect.extent[1] / mItemHeight;
+							mSelected += mAbsoluteRect.mExtent[1] / mItemHeight;
 							break;
 						case KEY_PRIOR:
-							mSelected -= mAbsoluteRect.extent[1] / mItemHeight;
+							mSelected -= mAbsoluteRect.mExtent[1] / mItemHeight;
 							break;
 						default:
 							break;
@@ -457,7 +457,7 @@ void UIListBox::SelectNew(int ypos, bool onlyHover)
 	unsigned int now = Timer::GetTime();
 	int oldSelected = mSelected;
 
-	mSelected = GetItemAt(mAbsoluteRect.center[0] - mAbsoluteRect.extent[0]/2, ypos);
+	mSelected = GetItemAt(mAbsoluteRect.mCenter[0] - mAbsoluteRect.mExtent[0]/2, ypos);
 	if (mSelected<0 && !mItems.empty())
 		mSelected = 0;
 
@@ -504,47 +504,47 @@ void UIListBox::Draw()
 	RectangleShape<2, int> frameRect(mAbsoluteRect);
 	RectangleShape<2, int> clientClip(mAbsoluteClippingRect);
 	/*
-	clientClip.extent[0] -= 1;
-	clientClip.extent[1] -= 1;
+	clientClip.mExtent[0] -= 1;
+	clientClip.mExtent[1] -= 1;
 
 	if (mScrollBar->IsVisible())
-		clientClip.extent[0] = mAbsoluteRect.extent[0] - skin->GetSize(DS_SCROLLBAR_SIZE);
-	clientClip.extent[1] -= 1;
+		clientClip.mExtent[0] = mAbsoluteRect.mExtent[0] - skin->GetSize(DS_SCROLLBAR_SIZE);
+	clientClip.mExtent[1] -= 1;
 
 	//clientClip.clipAgainst(mAbsoluteClippingRect);
 	*/
 	skin->Draw2DRectangle(
 		shared_from_this(), skin->GetColor(DC_3D_HIGH_LIGHT), mVisual, frameRect, &mAbsoluteClippingRect);
 
-	frameRect.center[0] += 1;
+	frameRect.mCenter[0] += 1;
 	if (mScrollBar->IsVisible())
-		frameRect.extent[0] = mAbsoluteRect.extent[0] - skin->GetSize(DS_SCROLLBAR_SIZE);
+		frameRect.mExtent[0] = mAbsoluteRect.mExtent[0] - skin->GetSize(DS_SCROLLBAR_SIZE);
 
-	frameRect.center[1] -= (mAbsoluteRect.extent[1] / 2);
-	frameRect.center[1] += (mItemHeight / 2);
-	frameRect.center[1] -= mScrollBar->GetPos();
-	frameRect.extent[1] = mItemHeight;
+	frameRect.mCenter[1] -= (mAbsoluteRect.mExtent[1] / 2);
+	frameRect.mCenter[1] += (mItemHeight / 2);
+	frameRect.mCenter[1] -= mScrollBar->GetPos();
+	frameRect.mExtent[1] = mItemHeight;
 
 	bool hl = (mHighlightWhenNotFocused || mUI->HasFocus(shared_from_this()) || mUI->HasFocus(mScrollBar));
 	
 	for (int i=0; i<(int)mItems.size(); ++i)
 	{
-		if (frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) <= 
-			mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2) &&
-			frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= 
-			mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2))
+		if (frameRect.mCenter[1] + (int)round(frameRect.mExtent[1] / 2.f) <= 
+			mAbsoluteRect.mCenter[1] + (int)round(mAbsoluteRect.mExtent[1] / 2) &&
+			frameRect.mCenter[1] + (int)round(frameRect.mExtent[1] / 2.f) >= 
+			mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2))
 		{
 			RectangleShape<2, int> textRect = frameRect;
-			textRect.extent[0] -= 3;
+			textRect.mExtent[0] -= 3;
 
 			if (mFont)
 			{
 				if (mIconBank && (mItems[i].mIcon > -1))
 				{
 					RectangleShape<2, int> iconPos = textRect;
-					iconPos.center = textRect.center - (textRect.center / 2);
-					iconPos.center[1] += textRect.extent[1] / 2;
-					iconPos.center[0] += mItemsIconWidth / 2;
+					iconPos.mCenter = textRect.mCenter - (textRect.mCenter / 2);
+					iconPos.mCenter[1] += textRect.mExtent[1] / 2;
+					iconPos.mCenter[0] += mItemsIconWidth / 2;
 
 					if ( i==mSelected && hl )
 					{
@@ -566,7 +566,7 @@ void UIListBox::Draw()
 					}
 				}
 
-				textRect.center[0] += mItemsIconWidth+3;
+				textRect.mCenter[0] += mItemsIconWidth+3;
 
 				if ( i==mSelected )
 				{
@@ -590,7 +590,7 @@ void UIListBox::Draw()
 					mSelectedText->SetText(mItems[i].mText.c_str());
 
 					RectangleShape<2, int> selectedRect(frameRect);
-					selectedRect.center -= mAbsoluteRect.center - (mAbsoluteRect.extent / 2);
+					selectedRect.mCenter -= mAbsoluteRect.mCenter - (mAbsoluteRect.mExtent / 2);
 					mSelectedText->SetRelativePosition(selectedRect);
 				}
 				else
@@ -602,11 +602,11 @@ void UIListBox::Draw()
 						false, true, &clientClip);
 				}
 
-				textRect.center[0] -= mItemsIconWidth+3;
+				textRect.mCenter[0] -= mItemsIconWidth+3;
 			}
 		}
 
-		frameRect.center[1] += mItemHeight;
+		frameRect.mCenter[1] += mItemHeight;
 	}
 
 	BaseUIElement::Draw();
@@ -648,9 +648,9 @@ void UIListBox::RecalculateScrollPos()
 	{
 		mScrollBar->SetPos(mScrollBar->GetPos() + selPos);
 	}
-	else if (selPos > mAbsoluteRect.extent[1] - mItemHeight)
+	else if (selPos > mAbsoluteRect.mExtent[1] - mItemHeight)
 	{
-		mScrollBar->SetPos(mScrollBar->GetPos() + selPos - mAbsoluteRect.extent[1] + mItemHeight);
+		mScrollBar->SetPos(mScrollBar->GetPos() + selPos - mAbsoluteRect.mExtent[1] + mItemHeight);
 	}
 }
 
@@ -661,10 +661,10 @@ void UIListBox::RecalculateScrollRectangle()
 	const int s = skin->GetSize(DS_SCROLLBAR_SIZE);
 
 	RectangleShape<2, int> rectangle;
-	rectangle.center[0] = mRelativeRect.extent[0] - ( s / 2 );
-	rectangle.center[1] = mRelativeRect.extent[1] / 2;
-	rectangle.extent[0] = s;
-	rectangle.extent[1] = mRelativeRect.extent[1];
+	rectangle.mCenter[0] = mRelativeRect.mExtent[0] - ( s / 2 );
+	rectangle.mCenter[1] = mRelativeRect.mExtent[1] / 2;
+	rectangle.mExtent[0] = s;
+	rectangle.mExtent[1] = mRelativeRect.mExtent[1];
 	mScrollBar->SetRelativePosition(rectangle);
 }
 
@@ -689,7 +689,7 @@ void UIListBox::RecalculateItemWidth(int icon)
 		unsigned int rno = mIconBank->GetSprites()[(unsigned int)icon].mFrames[0].mRectNumber;
 		if (mIconBank->GetPositions().size() > rno)
 		{
-			const int w = mIconBank->GetPositions()[rno].extent[0];
+			const int w = mIconBank->GetPositions()[rno].mExtent[0];
 			if (w > mItemsIconWidth)
 				mItemsIconWidth = w;
 		}

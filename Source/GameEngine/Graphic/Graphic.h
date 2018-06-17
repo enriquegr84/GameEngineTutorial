@@ -112,6 +112,7 @@
 #include "Scene/Element/AnimatedMeshNode.h"
 #include "Scene/Element/BillboardNode.h"
 #include "Scene/Element/CameraNode.h"
+#include "Scene/Element/RectangleNode.h"
 #include "Scene/Element/CubeNode.h"
 #include "Scene/Element/EmptyNode.h"
 #include "Scene/Element/LightNode.h"

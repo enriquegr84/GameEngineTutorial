@@ -209,6 +209,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleRotationAffector.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleScaleAffector.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\RectangleNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\RootNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ShadowVolumeNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\SkyBoxNode.cpp" />
@@ -645,6 +646,7 @@
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleRotationAffector.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleScaleAffector.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleSphereEmitter.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\RectangleNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\RootNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ShadowVolumeNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\SkyBoxNode.h" />
@@ -731,6 +733,7 @@
     <ClInclude Include="..\Mathematic\NumericalMethod\GaussianElimination.h" />
     <ClInclude Include="..\Mathematic\Surface\IndexAttribute.h" />
     <ClInclude Include="..\Mathematic\Surface\Mesh.h" />
+    <ClInclude Include="..\Mathematic\Surface\RectangleMesh.h" />
     <ClInclude Include="..\Mathematic\Surface\VertexAttribute.h" />
     <ClInclude Include="..\Network\Network.h" />
     <ClInclude Include="..\Physic\Physic.h" />

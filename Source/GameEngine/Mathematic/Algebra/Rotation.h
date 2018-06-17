@@ -329,9 +329,9 @@ EulerAngles<Real> const& Rotation<N, Real>::operator()(int i0, int i1,
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
-    mEulerAngles.axis[0] = i0;
-    mEulerAngles.axis[1] = i1;
-    mEulerAngles.axis[2] = i2;
+    mEulerAngles.mAxis[0] = i0;
+    mEulerAngles.mAxis[1] = i1;
+    mEulerAngles.mAxis[2] = i2;
 
     switch (mType)
     {
@@ -477,24 +477,24 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
     Real half = (Real)0.5;
     Real cs = half*(trace - (Real)1);
     cs = std::max(std::min(cs, (Real)1), (Real)-1);
-    a.angle = acos(cs);  // The angle is in [0,pi].
-    a.axis.MakeZero();
+    a.mAngle = acos(cs);  // The angle is in [0,pi].
+    a.mAxis.MakeZero();
 
-    if (a.angle > (Real)0)
+    if (a.mAngle > (Real)0)
     {
-        if (a.angle < (Real)GE_C_PI)
+        if (a.mAngle < (Real)GE_C_PI)
         {
             // The angle is in (0,pi).
 #if defined(GE_USE_MAT_VEC)
-            a.axis[0] = r(2, 1) - r(1, 2);
-            a.axis[1] = r(0, 2) - r(2, 0);
-            a.axis[2] = r(1, 0) - r(0, 1);
-            Normalize(a.axis);
+            a.mAxis[0] = r(2, 1) - r(1, 2);
+            a.mAxis[1] = r(0, 2) - r(2, 0);
+            a.mAxis[2] = r(1, 0) - r(0, 1);
+            Normalize(a.mAxis);
 #else
-            a.axis[0] = r(1, 2) - r(2, 1);
-            a.axis[1] = r(2, 0) - r(0, 2);
-            a.axis[2] = r(0, 1) - r(1, 0);
-            Normalize(a.axis);
+            a.mAxis[0] = r(1, 2) - r(2, 1);
+            a.mAxis[1] = r(2, 0) - r(0, 2);
+            a.mAxis[2] = r(0, 1) - r(1, 0);
+            Normalize(a.mAxis);
 #endif
         }
         else
@@ -511,16 +511,16 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
                 if (r(0, 0) >= r(2, 2))
                 {
                     // r00 is maximum diagonal term
-                    a.axis[0] = r(0, 0) + one;
-                    a.axis[1] = half*(r(0, 1) + r(1, 0));
-                    a.axis[2] = half*(r(0, 2) + r(2, 0));
+                    a.mAxis[0] = r(0, 0) + one;
+                    a.mAxis[1] = half*(r(0, 1) + r(1, 0));
+                    a.mAxis[2] = half*(r(0, 2) + r(2, 0));
                 }
                 else
                 {
                     // r22 is maximum diagonal term
-                    a.axis[0] = half*(r(2, 0) + r(0, 2));
-                    a.axis[1] = half*(r(2, 1) + r(1, 2));
-                    a.axis[2] = r(2, 2) + one;
+                    a.mAxis[0] = half*(r(2, 0) + r(0, 2));
+                    a.mAxis[1] = half*(r(2, 1) + r(1, 2));
+                    a.mAxis[2] = r(2, 2) + one;
                 }
             }
             else
@@ -528,26 +528,26 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
                 if (r(1, 1) >= r(2, 2))
                 {
                     // r11 is maximum diagonal term
-                    a.axis[0] = half*(r(1, 0) + r(0, 1));
-                    a.axis[1] = r(1, 1) + one;
-                    a.axis[2] = half*(r(1, 2) + r(2, 1));
+                    a.mAxis[0] = half*(r(1, 0) + r(0, 1));
+                    a.mAxis[1] = r(1, 1) + one;
+                    a.mAxis[2] = half*(r(1, 2) + r(2, 1));
                 }
                 else
                 {
                     // r22 is maximum diagonal term
-                    a.axis[0] = half*(r(2, 0) + r(0, 2));
-                    a.axis[1] = half*(r(2, 1) + r(1, 2));
-                    a.axis[2] = r(2, 2) + one;
+                    a.mAxis[0] = half*(r(2, 0) + r(0, 2));
+                    a.mAxis[1] = half*(r(2, 1) + r(1, 2));
+                    a.mAxis[2] = r(2, 2) + one;
                 }
             }
-            Normalize(a.axis);
+            Normalize(a.mAxis);
         }
     }
     else
     {
         // The angle is 0 and the matrix is the identity.  Any axis will
         // work, so choose the Unit(0) axis.
-        a.axis[0] = (Real)1;
+        a.mAxis[0] = (Real)1;
     }
 }
 
@@ -559,18 +559,18 @@ void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
 
     r.MakeIdentity();
 
-    Real cs = cos(a.angle);
-    Real sn = sin(a.angle);
+    Real cs = cos(a.mAngle);
+    Real sn = sin(a.mAngle);
     Real oneMinusCos = ((Real)1) - cs;
-    Real x0sqr = a.axis[0] * a.axis[0];
-    Real x1sqr = a.axis[1] * a.axis[1];
-    Real x2sqr = a.axis[2] * a.axis[2];
-    Real x0x1m = a.axis[0] * a.axis[1] * oneMinusCos;
-    Real x0x2m = a.axis[0] * a.axis[2] * oneMinusCos;
-    Real x1x2m = a.axis[1] * a.axis[2] * oneMinusCos;
-    Real x0Sin = a.axis[0] * sn;
-    Real x1Sin = a.axis[1] * sn;
-    Real x2Sin = a.axis[2] * sn;
+    Real x0sqr = a.mAxis[0] * a.mAxis[0];
+    Real x1sqr = a.mAxis[1] * a.mAxis[1];
+    Real x2sqr = a.mAxis[2] * a.mAxis[2];
+    Real x0x1m = a.mAxis[0] * a.mAxis[1] * oneMinusCos;
+    Real x0x2m = a.mAxis[0] * a.mAxis[2] * oneMinusCos;
+    Real x1x2m = a.mAxis[1] * a.mAxis[2] * oneMinusCos;
+    Real x0Sin = a.mAxis[0] * sn;
+    Real x1Sin = a.mAxis[1] * sn;
+    Real x2Sin = a.mAxis[2] * sn;
 
 #if defined(GE_USE_MAT_VEC)
     r(0, 0) = x0sqr*oneMinusCos + cs;
@@ -601,81 +601,81 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
-    if (0 <= e.axis[0] && e.axis[0] < 3
-        && 0 <= e.axis[1] && e.axis[1] < 3
-        && 0 <= e.axis[2] && e.axis[2] < 3
-        && e.axis[1] != e.axis[0]
-        && e.axis[1] != e.axis[2])
+    if (0 <= e.mAxis[0] && e.mAxis[0] < 3
+        && 0 <= e.mAxis[1] && e.mAxis[1] < 3
+        && 0 <= e.mAxis[2] && e.mAxis[2] < 3
+        && e.mAxis[1] != e.mAxis[0]
+        && e.mAxis[1] != e.mAxis[2])
     {
-        if (e.axis[0] != e.axis[2])
+        if (e.mAxis[0] != e.mAxis[2])
         {
 #if defined(GE_USE_MAT_VEC)
             // Map (0,1,2), (1,2,0), and (2,0,1) to +1.
             // Map (0,2,1), (2,1,0), and (1,0,2) to -1.
-            int parity = (((e.axis[2] | (e.axis[1] << 2)) >> e.axis[0]) & 1);
+            int parity = (((e.mAxis[2] | (e.mAxis[1] << 2)) >> e.mAxis[0]) & 1);
             Real const sgn = (parity & 1 ? (Real)-1 : (Real)+1);
 
-            if (r(e.axis[2], e.axis[0]) < (Real)1)
+            if (r(e.mAxis[2], e.mAxis[0]) < (Real)1)
             {
-                if (r(e.axis[2], e.axis[0]) > (Real)-1)
+                if (r(e.mAxis[2], e.mAxis[0]) > (Real)-1)
                 {
-                    e.angle[2] = atan2(sgn*r(e.axis[1], e.axis[0]),
-                        r(e.axis[0], e.axis[0]));
-                    e.angle[1] = asin(-sgn*r(e.axis[2], e.axis[0]));
-                    e.angle[0] = atan2(sgn*r(e.axis[2], e.axis[1]),
-                        r(e.axis[2], e.axis[2]));
-                    e.result = ER_UNIQUE;
+                    e.mAngle[2] = atan2(sgn*r(e.mAxis[1], e.mAxis[0]),
+                        r(e.mAxis[0], e.mAxis[0]));
+                    e.mAngle[1] = asin(-sgn*r(e.mAxis[2], e.mAxis[0]));
+                    e.mAngle[0] = atan2(sgn*r(e.mAxis[2], e.mAxis[1]),
+                        r(e.mAxis[2], e.mAxis[2]));
+                    e.mResult = ER_UNIQUE;
                 }
                 else
                 {
-                    e.angle[2] = (Real)0;
-                    e.angle[1] = sgn*(Real)GE_C_HALF_PI;
-                    e.angle[0] = atan2(-sgn*r(e.axis[1], e.axis[2]),
-                        r(e.axis[1], e.axis[1]));
-                    e.result = ER_NOT_UNIQUE_DIF;
+                    e.mAngle[2] = (Real)0;
+                    e.mAngle[1] = sgn*(Real)GE_C_HALF_PI;
+                    e.mAngle[0] = atan2(-sgn*r(e.mAxis[1], e.mAxis[2]),
+                        r(e.mAxis[1], e.mAxis[1]));
+                    e.mResult = ER_NOT_UNIQUE_DIF;
                 }
             }
             else
             {
-                e.angle[2] = (Real)0;
-                e.angle[1] = -sgn*(Real)GE_C_HALF_PI;
-                e.angle[0] = atan2(-sgn*r(e.axis[1], e.axis[2]),
-                    r(e.axis[1], e.axis[1]));
-                e.result = ER_NOT_UNIQUE_SUM;
+                e.mAngle[2] = (Real)0;
+                e.mAngle[1] = -sgn*(Real)GE_C_HALF_PI;
+                e.mAngle[0] = atan2(-sgn*r(e.mAxis[1], e.mAxis[2]),
+                    r(e.mAxis[1], e.mAxis[1]));
+                e.mResult = ER_NOT_UNIQUE_SUM;
             }
 #else
             // Map (0,1,2), (1,2,0), and (2,0,1) to +1.
             // Map (0,2,1), (2,1,0), and (1,0,2) to -1.
-            int parity = (((e.axis[0] | (e.axis[1] << 2)) >> e.axis[2]) & 1);
+            int parity = (((e.mAxis[0] | (e.mAxis[1] << 2)) >> e.mAxis[2]) & 1);
             Real const sgn = (parity & 1 ? (Real)+1 : (Real)-1);
 
-            if (r(e.axis[0], e.axis[2]) < (Real)1)
+            if (r(e.mAxis[0], e.mAxis[2]) < (Real)1)
             {
-                if (r(e.axis[0], e.axis[2]) > (Real)-1)
+                if (r(e.mAxis[0], e.mAxis[2]) > (Real)-1)
                 {
-                    e.angle[0] = atan2(sgn*r(e.axis[1], e.axis[2]),
-                        r(e.axis[2], e.axis[2]));
-                    e.angle[1] = asin(-sgn*r(e.axis[0], e.axis[2]));
-                    e.angle[2] = atan2(sgn*r(e.axis[0], e.axis[1]),
-                        r(e.axis[0], e.axis[0]));
-                    e.result = ER_UNIQUE;
+                    e.mAngle[0] = atan2(sgn*r(e.mAxis[1], e.mAxis[2]),
+                        r(e.mAxis[2], e.mAxis[2]));
+                    e.mAngle[1] = asin(-sgn*r(e.mAxis[0], e.mAxis[2]));
+                    e.mAngle[2] = atan2(sgn*r(e.mAxis[0], e.mAxis[1]),
+                        r(e.mAxis[0], e.mAxis[0]));
+                    e.mResult = ER_UNIQUE;
                 }
                 else
                 {
-                    e.angle[0] = (Real)0;
-                    e.angle[1] = sgn*(Real)GE_C_HALF_PI;
-                    e.angle[2] = atan2(-sgn*r(e.axis[1], e.axis[0]),
-                        r(e.axis[1], e.axis[1]));
-                    e.result = ER_NOT_UNIQUE_DIF;
+                    e.mAngle[0] = (Real)0;
+                    e.mAngle[1] = sgn*(Real)GE_C_HALF_PI;
+                    e.mAngle[2] = atan2(-sgn*r(e.mAxis[1], e.mAxis[0]),
+                        r(e.mAxis[1], e.mAxis[1]));
+                    e.mResult = ER_NOT_UNIQUE_DIF;
                 }
             }
             else
             {
-                e.angle[0] = (Real)0;
-                e.angle[1] = -sgn*(Real)GE_C_HALF_PI;
-                e.angle[2] = atan2(-sgn*r(e.axis[1], e.axis[0]),
-                    r(e.axis[1], e.axis[1]));
-                e.result = ER_NOT_UNIQUE_SUM;
+                e.mAngle[0] = (Real)0;
+                e.mAngle[1] = -sgn*(Real)GE_C_HALF_PI;
+                e.mAngle[2] = atan2(-sgn*r(e.mAxis[1], e.mAxis[0]),
+                    r(e.mAxis[1], e.mAxis[1]));
+                e.mResult = ER_NOT_UNIQUE_SUM;
             }
 #endif
         }
@@ -684,72 +684,72 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
 #if defined(GE_USE_MAT_VEC)
             // Map (0,2,0), (1,0,1), and (2,1,2) to +1.
             // Map (0,1,0), (1,2,1), and (2,0,2) to -1.
-            int b0 = 3 - e.axis[1] - e.axis[2];
-            int parity = (((b0 | (e.axis[1] << 2)) >> e.axis[2]) & 1);
+            int b0 = 3 - e.mAxis[1] - e.mAxis[2];
+            int parity = (((b0 | (e.mAxis[1] << 2)) >> e.mAxis[2]) & 1);
             Real const sgn = (parity & 1 ? (Real)+1 : (Real)-1);
 
-            if (r(e.axis[2], e.axis[2]) < (Real)1)
+            if (r(e.mAxis[2], e.mAxis[2]) < (Real)1)
             {
-                if (r(e.axis[2], e.axis[2]) > (Real)-1)
+                if (r(e.mAxis[2], e.mAxis[2]) > (Real)-1)
                 {
-                    e.angle[2] = atan2(r(e.axis[1], e.axis[2]),
-                        sgn*r(b0, e.axis[2]));
-                    e.angle[1] = acos(r(e.axis[2], e.axis[2]));
-                    e.angle[0] = atan2(r(e.axis[2], e.axis[1]),
-                        -sgn*r(e.axis[2], b0));
-                    e.result = ER_UNIQUE;
+                    e.mAngle[2] = atan2(r(e.mAxis[1], e.mAxis[2]),
+                        sgn*r(b0, e.mAxis[2]));
+                    e.mAngle[1] = acos(r(e.mAxis[2], e.mAxis[2]));
+                    e.mAngle[0] = atan2(r(e.mAxis[2], e.mAxis[1]),
+                        -sgn*r(e.mAxis[2], b0));
+                    e.mResult = ER_UNIQUE;
                 }
                 else
                 {
-                    e.angle[2] = (Real)0;
-                    e.angle[1] = (Real)GE_C_PI;
-                    e.angle[0] = atan2(sgn*r(e.axis[1], b0),
-                        r(e.axis[1], e.axis[1]));
-                    e.result = ER_NOT_UNIQUE_DIF;
+                    e.mAngle[2] = (Real)0;
+                    e.mAngle[1] = (Real)GE_C_PI;
+                    e.mAngle[0] = atan2(sgn*r(e.mAxis[1], b0),
+                        r(e.mAxis[1], e.mAxis[1]));
+                    e.mResult = ER_NOT_UNIQUE_DIF;
                 }
             }
             else
             {
-                e.angle[2] = (Real)0;
-                e.angle[1] = (Real)0;
-                e.angle[0] = atan2(sgn*r(e.axis[1], b0),
-                    r(e.axis[1], e.axis[1]));
-                e.result = ER_NOT_UNIQUE_SUM;
+                e.mAngle[2] = (Real)0;
+                e.mAngle[1] = (Real)0;
+                e.mAngle[0] = atan2(sgn*r(e.mAxis[1], b0),
+                    r(e.mAxis[1], e.mAxis[1]));
+                e.mResult = ER_NOT_UNIQUE_SUM;
             }
 #else
             // Map (0,2,0), (1,0,1), and (2,1,2) to -1.
             // Map (0,1,0), (1,2,1), and (2,0,2) to +1.
-            int b2 = 3 - e.axis[0] - e.axis[1];
-            int parity = (((b2 | (e.axis[1] << 2)) >> e.axis[0]) & 1);
+            int b2 = 3 - e.mAxis[0] - e.mAxis[1];
+            int parity = (((b2 | (e.mAxis[1] << 2)) >> e.mAxis[0]) & 1);
             Real const sgn = (parity & 1 ? (Real)-1 : (Real)+1);
 
-            if (r(e.axis[0], e.axis[0]) < (Real)1)
+            if (r(e.mAxis[0], e.mAxis[0]) < (Real)1)
             {
-                if (r(e.axis[0], e.axis[0]) > (Real)-1)
+                if (r(e.mAxis[0], e.mAxis[0]) > (Real)-1)
                 {
-                    e.angle[0] = atan2(r(e.axis[1], e.axis[0]),
-                        sgn*r(b2, e.axis[0]));
-                    e.angle[1] = acos(r(e.axis[0], e.axis[0]));
-                    e.angle[2] = atan2(r(e.axis[0], e.axis[1]),
-                        -sgn*r(e.axis[0], b2));
-                    e.result = ER_UNIQUE;
+                    e.mAngle[0] = atan2(r(e.mAxis[1], e.mAxis[0]),
+                        sgn*r(b2, e.mAxis[0]));
+                    e.mAngle[1] = acos(r(e.mAxis[0], e.mAxis[0]));
+                    e.mAngle[2] = atan2(r(e.mAxis[0], e.mAxis[1]),
+                        -sgn*r(e.mAxis[0], b2));
+                    e.mResult = ER_UNIQUE;
                 }
                 else
                 {
-                    e.angle[0] = (Real)0;
-                    e.angle[1] = (Real)GE_C_PI;
-                    e.angle[2] = atan2(sgn*r(e.axis[1], b2),
-                        r(e.axis[1], e.axis[1]));
-                    e.result = ER_NOT_UNIQUE_DIF;
+                    e.mAngle[0] = (Real)0;
+                    e.mAngle[1] = (Real)GE_C_PI;
+                    e.mAngle[2] = atan2(sgn*r(e.mAxis[1], b2),
+                        r(e.mAxis[1], e.mAxis[1]));
+                    e.mResult = ER_NOT_UNIQUE_DIF;
                 }
             }
             else
             {
-                e.angle[0] = (Real)0;
-                e.angle[1] = (Real)0;
-                e.angle[2] = atan2(sgn*r(e.axis[1], b2),
-                    r(e.axis[1], e.axis[1]));
-                e.result = ER_NOT_UNIQUE_SUM;
+                e.mAngle[0] = (Real)0;
+                e.mAngle[1] = (Real)0;
+                e.mAngle[2] = atan2(sgn*r(e.mAxis[1], b2),
+                    r(e.mAxis[1], e.mAxis[1]));
+                e.mResult = ER_NOT_UNIQUE_SUM;
             }
 #endif
         }
@@ -757,10 +757,10 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
     else
     {
         // Invalid angles.
-        e.angle[0] = (Real)0;
-        e.angle[1] = (Real)0;
-        e.angle[2] = (Real)0;
-        e.result = ER_INVALID;
+        e.mAngle[0] = (Real)0;
+        e.mAngle[1] = (Real)0;
+        e.mAngle[2] = (Real)0;
+        e.mResult = ER_INVALID;
     }
 }
 
@@ -770,19 +770,19 @@ void Rotation<N, Real>::Convert(EulerAngles<Real> const& e,
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
-    if (0 <= e.axis[0] && e.axis[0] < 3
-        && 0 <= e.axis[1] && e.axis[1] < 3
-        && 0 <= e.axis[2] && e.axis[2] < 3
-        && e.axis[1] != e.axis[0]
-        && e.axis[1] != e.axis[2])
+    if (0 <= e.mAxis[0] && e.mAxis[0] < 3
+        && 0 <= e.mAxis[1] && e.mAxis[1] < 3
+        && 0 <= e.mAxis[2] && e.mAxis[2] < 3
+        && e.mAxis[1] != e.mAxis[0]
+        && e.mAxis[1] != e.mAxis[2])
     {
         Matrix<N, N, Real> r0, r1, r2;
-        Convert(AxisAngle<N, Real>(Vector<N, Real>::Unit(e.axis[0]),
-            e.angle[0]), r0);
-        Convert(AxisAngle<N, Real>(Vector<N, Real>::Unit(e.axis[1]),
-            e.angle[1]), r1);
-        Convert(AxisAngle<N, Real>(Vector<N, Real>::Unit(e.axis[2]),
-            e.angle[2]), r2);
+        Convert(AxisAngle<N, Real>(Vector<N, Real>::Unit(e.mAxis[0]),
+            e.mAngle[0]), r0);
+        Convert(AxisAngle<N, Real>(Vector<N, Real>::Unit(e.mAxis[1]),
+            e.mAngle[1]), r1);
+        Convert(AxisAngle<N, Real>(Vector<N, Real>::Unit(e.mAxis[2]),
+            e.mAngle[2]), r2);
 #if defined(GE_USE_MAT_VEC)
         r = r2*r1*r0;
 #else
@@ -802,7 +802,7 @@ void Rotation<N, Real>::Convert(Quaternion<Real> const& q,
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
-    a.axis.MakeZero();
+    a.mAxis.MakeZero();
 
     Real axisSqrLen = q[0] * q[0] + q[1] * q[1] + q[2] * q[2];
     if (axisSqrLen > (Real)0)
@@ -812,18 +812,18 @@ void Rotation<N, Real>::Convert(Quaternion<Real> const& q,
 #else
         Real adjust = ((Real)-1) / sqrt(axisSqrLen);
 #endif
-        a.axis[0] = q[0] * adjust;
-        a.axis[1] = q[1] * adjust;
-        a.axis[2] = q[2] * adjust;
+        a.mAxis[0] = q[0] * adjust;
+        a.mAxis[1] = q[1] * adjust;
+        a.mAxis[2] = q[2] * adjust;
         Real cs = std::max(std::min(q[3], (Real)1), (Real)-1);
-        a.angle = ((Real)2)*acos(cs);
+        a.mAngle = ((Real)2)*acos(cs);
     }
     else
     {
         // The angle is 0 (modulo 2*pi). Any axis will work, so choose the
         // Unit(0) axis.
-        a.axis[0] = (Real)1;
-        a.angle = (Real)0;
+        a.mAxis[0] = (Real)1;
+        a.mAngle = (Real)0;
     }
 }
 
@@ -834,14 +834,14 @@ void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
 #if defined(GE_USE_MAT_VEC)
-    Real halfAngle = ((Real)0.5)*a.angle;
+    Real halfAngle = ((Real)0.5)*a.mAngle;
 #else
-    Real halfAngle = ((Real)-0.5)*a.angle;
+    Real halfAngle = ((Real)-0.5)*a.mAngle;
 #endif
     Real sn = sin(halfAngle);
-    q[0] = sn*a.axis[0];
-    q[1] = sn*a.axis[1];
-    q[2] = sn*a.axis[2];
+    q[0] = sn*a.mAxis[0];
+    q[1] = sn*a.mAxis[1];
+    q[2] = sn*a.mAxis[2];
     q[3] = cos(halfAngle);
 }
 

@@ -32,9 +32,9 @@ public:
     // where sign[d] = 2*b[d] - 1.
     void GetVertices(eastl::array<Vector<N, Real>, 4>& vertex) const;
 
-    Vector<N, Real> center;
-	eastl::array<Vector<N, Real>, 2> axis;
-    Vector<2, Real> extent;
+    Vector<N, Real> mCenter;
+	eastl::array<Vector<N, Real>, 2> mAxis;
+    Vector<2, Real> mExtent;
 
 public:
     // Comparisons to support sorted containers.
@@ -54,11 +54,11 @@ using Rectangle3 = RectangleShape<3, Real>;
 template <int N, typename Real>
 RectangleShape<N, Real>::RectangleShape()
 {
-    center.MakeZero();
+    mCenter.MakeZero();
     for (int i = 0; i < 2; ++i)
     {
-        axis[i].MakeUnit(i);
-        extent[i] = (Real)1;
+        mAxis[i].MakeUnit(i);
+        mExtent[i] = (Real)1;
     }
 }
 
@@ -67,9 +67,9 @@ RectangleShape<N, Real>::RectangleShape(Vector<N, Real> const& inCenter,
 	eastl::array<Vector<N, Real>, 2> const& inAxis,
     Vector<2, Real> const& inExtent)
     :
-    center(inCenter),
-    axis(inAxis),
-    extent(inExtent)
+    mCenter(inCenter),
+    mAxis(inAxis),
+    mExtent(inExtent)
 {
 }
 
@@ -77,28 +77,28 @@ template <int N, typename Real>
 void RectangleShape<N, Real>::GetVertices(
 	eastl::array<Vector<N, Real>, 4>& vertex) const
 {
-    Vector<N, Real> product0 = extent[0] * axis[0];
-    Vector<N, Real> product1 = extent[1] * axis[1];
+    Vector<N, Real> product0 = mExtent[0] * mAxis[0];
+    Vector<N, Real> product1 = mExtent[1] * mAxis[1];
     Vector<N, Real> sum = product0 + product1;
     Vector<N, Real> dif = product0 - product1;
 
-    vertex[0] = center - sum;
-    vertex[1] = center + dif;
-    vertex[2] = center - dif;
-    vertex[3] = center + sum;
+    vertex[0] = mCenter - sum;
+    vertex[1] = mCenter + dif;
+    vertex[2] = mCenter - dif;
+    vertex[3] = mCenter + sum;
 }
 
 template <int N, typename Real>
 bool RectangleShape<N, Real>::operator==(RectangleShape const& rectangle) const
 {
-    if (center != rectangle.center)
+    if (mCenter != rectangle.mCenter)
     {
         return false;
     }
 
     for (int i = 0; i < 2; ++i)
     {
-        if (axis[i] != rectangle.axis[i])
+        if (mAxis[i] != rectangle.mAxis[i])
         {
             return false;
         }
@@ -106,7 +106,7 @@ bool RectangleShape<N, Real>::operator==(RectangleShape const& rectangle) const
 
     for (int i = 0; i < 2; ++i)
     {
-        if (extent[i] != rectangle.extent[i])
+        if (mExtent[i] != rectangle.mExtent[i])
         {
             return false;
         }
@@ -124,27 +124,27 @@ bool RectangleShape<N, Real>::operator!=(RectangleShape const& rectangle) const
 template <int N, typename Real>
 bool RectangleShape<N, Real>::operator<(RectangleShape const& rectangle) const
 {
-    if (center < rectangle.center)
+    if (mCenter < rectangle.mCenter)
     {
         return true;
     }
 
-    if (center > rectangle.center)
+    if (mCenter > rectangle.mCenter)
     {
         return false;
     }
 
-    if (axis < rectangle.axis)
+    if (mAxis < rectangle.mAxis)
     {
         return true;
     }
 
-    if (axis > rectangle.axis)
+    if (mAxis > rectangle.mAxis)
     {
         return false;
     }
 
-    return extent < rectangle.extent;
+    return mExtent < rectangle.mExtent;
 }
 
 template <int N, typename Real>

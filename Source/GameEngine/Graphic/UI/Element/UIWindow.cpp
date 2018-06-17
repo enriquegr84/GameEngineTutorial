@@ -90,19 +90,19 @@ void UIWindow::OnInit()
 	{
 		buttonw = skin->GetSize(DS_WINDOW_BUTTON_WIDTH);
 	}
-	int posx = mRelativeRect.extent[0] - buttonw - 4;
+	int posx = mRelativeRect.mExtent[0] - buttonw - 4;
 	
 	RectangleShape<2, int> rect;
-	rect.center[0] = posx + (int)round(buttonw / 2.f);
-	rect.center[1] = 3 + (int)round(buttonw / 2.f);
-	rect.extent[0] = buttonw;
-	rect.extent[1] = buttonw;
+	rect.mCenter[0] = posx + (int)round(buttonw / 2.f);
+	rect.mCenter[1] = 3 + (int)round(buttonw / 2.f);
+	rect.mExtent[0] = buttonw;
+	rect.mExtent[1] = buttonw;
 	mCloseButton = mUI->AddButton(rect, shared_from_this(), -1,
 		L"", skin ? skin->GetDefaultText(DT_WINDOW_CLOSE) : L"Close");
 	mCloseButton->SetSubElement(true);
 	mCloseButton->SetTabStop(false);
 	mCloseButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
-	rect.center[0] -= buttonw + 2;
+	rect.mCenter[0] -= buttonw + 2;
 
 	mRestoreButton = mUI->AddButton(rect, shared_from_this(), -1,
 		L"", skin ? skin->GetDefaultText(DT_WINDOW_RESTORE) : L"Restore");
@@ -110,7 +110,7 @@ void UIWindow::OnInit()
 	mRestoreButton->SetSubElement(true);
 	mRestoreButton->SetTabStop(false);
 	mRestoreButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
-	rect.center[0] -= buttonw + 2;
+	rect.mCenter[0] -= buttonw + 2;
 
 	mMinButton = mUI->AddButton(rect, shared_from_this(), -1,
 		L"", skin ? skin->GetDefaultText(DT_WINDOW_MINIMIZE) : L"Minimize");
@@ -203,10 +203,10 @@ bool UIWindow::OnEvent(const Event& ev)
 							// gui window should not be dragged outside its parent
 							if (mParent)
 							{
-								if (ev.mMouseInput.X < mParent->GetAbsolutePosition().center[0] - (mParent->GetAbsolutePosition().extent[0] / 2) + 1 ||
-									ev.mMouseInput.Y < mParent->GetAbsolutePosition().center[1] - (mParent->GetAbsolutePosition().extent[1] / 2) + 1 ||
-									ev.mMouseInput.X > mParent->GetAbsolutePosition().center[0] + (int)round(mParent->GetAbsolutePosition().extent[0] / 2.f) - 1 ||
-									ev.mMouseInput.Y > mParent->GetAbsolutePosition().center[1] + (int)round(mParent->GetAbsolutePosition().extent[1] / 2.f) - 1)
+								if (ev.mMouseInput.X < mParent->GetAbsolutePosition().mCenter[0] - (mParent->GetAbsolutePosition().mExtent[0] / 2) + 1 ||
+									ev.mMouseInput.Y < mParent->GetAbsolutePosition().mCenter[1] - (mParent->GetAbsolutePosition().mExtent[1] / 2) + 1 ||
+									ev.mMouseInput.X > mParent->GetAbsolutePosition().mCenter[0] + (int)round(mParent->GetAbsolutePosition().mExtent[0] / 2.f) - 1 ||
+									ev.mMouseInput.Y > mParent->GetAbsolutePosition().mCenter[1] + (int)round(mParent->GetAbsolutePosition().mExtent[1] / 2.f) - 1)
 									return true;
 							}
 
@@ -259,13 +259,13 @@ void UIWindow::Draw()
 
 			if (mDrawTitlebar && mText.size())
 			{
-				rect.center[0] += (int)round(skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X) / 2);
-				rect.center[0] -= (skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 5 )/ 2;
-				rect.center[1] += (int)round(skin->GetSize(DS_TITLEBARTEXT_DISTANCE_Y) / 2);
+				rect.mCenter[0] += (int)round(skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X) / 2);
+				rect.mCenter[0] -= (skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 5 )/ 2;
+				rect.mCenter[1] += (int)round(skin->GetSize(DS_TITLEBARTEXT_DISTANCE_Y) / 2);
 
-				rect.extent[0] -= skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X);
-				rect.extent[0] -= skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 5;
-				rect.extent[1] -= skin->GetSize(DS_TITLEBARTEXT_DISTANCE_Y);
+				rect.mExtent[0] -= skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X);
+				rect.mExtent[0] -= skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 5;
+				rect.mExtent[1] -= skin->GetSize(DS_TITLEBARTEXT_DISTANCE_Y);
 
 				eastl::shared_ptr<BaseUIFont> font = skin->GetFont(DF_WINDOW);
 				if (font)
@@ -353,12 +353,12 @@ void UIWindow::UpdateClientRect()
 	if (!mDrawBackground)
 	{
 		mClientRect = RectangleShape<2, int>();
-		mClientRect.center = mAbsoluteRect.extent / 2;
-		mClientRect.extent = mAbsoluteRect.extent;
+		mClientRect.mCenter = mAbsoluteRect.mExtent / 2;
+		mClientRect.mExtent = mAbsoluteRect.mExtent;
 		return;
 	}
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
-	mClientRect.center -= mAbsoluteRect.center - (mAbsoluteRect.extent / 2);
+	mClientRect.mCenter -= mAbsoluteRect.mCenter - (mAbsoluteRect.mExtent / 2);
 }
 
 

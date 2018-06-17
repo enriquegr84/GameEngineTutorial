@@ -19,22 +19,27 @@ public:
 
 	~SphereNode();
 
+	//! Returns type of the scene node
+	virtual NodeType GetType() const { return NT_SPHERE; }
+
 	//! Renders event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
+
+		//! Removes a child from this scene node.
+	//! Implemented here, to be able to remove the shadow properly, if there is one,
+	//! or to remove attached childs.
+	virtual int DetachChild(eastl::shared_ptr<Node> const& child);
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use getMaterialCount().
 	//! This function is needed for inserting the node into the scene hirachy on a
 	//! optimal position for minimizing renderstate changes, but can also be used
 	//! to directly modify the material of a scene node.
-	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
-	unsigned int GetMaterialCount() const;
-
-	//! Returns type of the scene node
-	NodeType GetType() const { return NT_SPHERE; }
+	virtual unsigned int GetMaterialCount() const;
 
 	//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
 	/* In this way it is possible to change the materials a mesh causing all mesh scene nodes 
@@ -48,11 +53,6 @@ public:
 	//! and returns a pointer to it.
 	eastl::shared_ptr<ShadowVolumeNode> AddShadowVolumeNode(const ActorId actorId,
 		Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh = 0, bool zfailmethod = true, float infinity = 10000.0f);
-
-	//! Removes a child from this scene node.
-	//! Implemented here, to be able to remove the shadow properly, if there is one,
-	//! or to remove attached childs.
-	bool RemoveChild(ActorId id);
 
 private:
 

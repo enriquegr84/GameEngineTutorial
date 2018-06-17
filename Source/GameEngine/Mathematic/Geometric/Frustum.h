@@ -42,8 +42,8 @@ public:
 
     void ComputeVertices(Vector3<Real> vertex[8]) const;
 
-    Vector3<Real> origin, dVector, uVector, rVector;
-    Real dMin, dMax, uBound, rBound;
+    Vector3<Real> mOrigin, mDVector, mUVector, mRVector;
+    Real mDMin, mDMax, mUBound, mRBound;
 
 public:
     // Comparisons to support sorted containers.
@@ -63,7 +63,7 @@ protected:
 template <typename Real>
 Frustum3<Real>::Frustum3()
     :
-    origin(Vector3<Real>::Zero()),
+    mOrigin(Vector3<Real>::Zero()),
     dVector(Vector3<Real>::Unit(2)),
     uVector(Vector3<Real>::Unit(1)),
     rVector(Vector3<Real>::Unit(0)),
@@ -81,7 +81,7 @@ Frustum3<Real>::Frustum3(Vector3<Real> const& inOrigin,
     Vector3<Real> const& inRVector, Real inDMin, Real inDMax, Real inUBound,
     Real inRBound)
     :
-    origin(inOrigin),
+    mOrigin(inOrigin),
     dVector(inDVector),
     uVector(inUVector),
     rVector(inRVector),
@@ -133,15 +133,15 @@ void Frustum3<Real>::ComputeVertices(Vector3<Real> vertex[8]) const
 
     for (int i = 0, ip = 4; i < 4; ++i, ++ip)
     {
-        vertex[ip] = origin + mDRatio * vertex[i];
-        vertex[i] += origin;
+        vertex[ip] = mOrigin + mDRatio * vertex[i];
+        vertex[i] += mOrigin;
     }
 }
 
 template <typename Real>
 bool Frustum3<Real>::operator==(Frustum3 const& frustum) const
 {
-    return origin == frustum.origin
+    return mOrigin == frustum.mOrigin
         && dVector == frustum.dVector
         && uVector == frustum.uVector
         && rVector == frustum.rVector
@@ -160,12 +160,12 @@ bool Frustum3<Real>::operator!=(Frustum3 const& frustum) const
 template <typename Real>
 bool Frustum3<Real>::operator<(Frustum3 const& frustum) const
 {
-    if (origin < frustum.origin)
+    if (mOrigin < frustum.mOrigin)
     {
         return true;
     }
 
-    if (origin > frustum.origin)
+    if (mOrigin > frustum.mOrigin)
     {
         return false;
     }

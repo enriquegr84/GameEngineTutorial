@@ -156,10 +156,10 @@ void UICheckBox::Draw()
 		const int height = skin->GetSize(DS_CHECK_BOX_WIDTH);
 
 		RectangleShape<2, int> checkRect(mAbsoluteRect);
-		checkRect.center[0] -= (checkRect.extent[0] / 2);
-		checkRect.center[0] += (height / 2);
-		checkRect.extent[0] = height;
-		checkRect.extent[1] = height;
+		checkRect.mCenter[0] -= (checkRect.mExtent[0] / 2);
+		checkRect.mCenter[0] += (height / 2);
+		checkRect.mExtent[0] = height;
+		checkRect.mExtent[1] = height;
 
 		UIDefaultColor col = DC_GRAY_EDITABLE;
 		if (IsEnabled())
@@ -178,8 +178,8 @@ void UICheckBox::Draw()
 		if (mText.size())
 		{
 			checkRect = mAbsoluteRect;
-			checkRect.extent[0] -= height + 5;
-			checkRect.center[0] += (int)round((height + 5) / 2.f);
+			checkRect.mExtent[0] -= height + 5;
+			checkRect.mCenter[0] += (int)round((height + 5) / 2.f);
 
 			eastl::shared_ptr<BaseUIFont> font = skin->GetFont();
 			if (font)

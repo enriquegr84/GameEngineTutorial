@@ -7,6 +7,8 @@
 
 #include "MeshFactory.h"
 
+#include "Mathematic/Surface/RectangleMesh.h"
+
 MeshFactory::~MeshFactory()
 {
 }
@@ -37,7 +39,7 @@ eastl::shared_ptr<Visual> MeshFactory::CreateMesh(const Mesh<float>* mesh)
 		return nullptr;
 	}
 
-	if (!mesh->GetDescription().mIndexAttribute.source)
+	if (!mesh->GetDescription().mIndexAttribute.mSource)
 	{
 		LogError("The mesh needs triangles/indices.");
 		return nullptr;
@@ -47,33 +49,33 @@ eastl::shared_ptr<Visual> MeshFactory::CreateMesh(const Mesh<float>* mesh)
 	mVFormat = VertexFormat();
 	for (auto const& attribute : mesh->GetDescription().mVertexAttributes)
 	{
-		if (attribute.source != nullptr && attribute.stride > 0)
+		if (attribute.mSource != nullptr && attribute.mStride > 0)
 		{
-			if (attribute.semantic == "position")
+			if (attribute.mSemantic == "position")
 			{
 				mVFormat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 				continue;
 			}
 
-			if (attribute.semantic == "normal")
+			if (attribute.mSemantic == "normal")
 			{
 				mVFormat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
 				continue;
 			}
 
-			if (attribute.semantic == "tangent")
+			if (attribute.mSemantic == "tangent")
 			{
 				mVFormat.Bind(VA_TANGENT, DF_R32G32B32_FLOAT, 0);
 				continue;
 			}
 
-			if (attribute.semantic == "bitangent")
+			if (attribute.mSemantic == "bitangent")
 			{
 				mVFormat.Bind(VA_BINORMAL, DF_R32G32B32_FLOAT, 0);
 				continue;
 			}
 
-			if (attribute.semantic == "tcoord")
+			if (attribute.mSemantic == "tcoord")
 			{
 				mVFormat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 				continue;
@@ -98,35 +100,35 @@ eastl::shared_ptr<Visual> MeshFactory::CreateMesh(const Mesh<float>* mesh)
 	unsigned int unit = 0;
 	for (auto const& attribute : mesh->GetDescription().mVertexAttributes)
 	{
-		if (attribute.source != nullptr && attribute.stride > 0)
+		if (attribute.mSource != nullptr && attribute.mStride > 0)
 		{
-			if (attribute.semantic == "position")
+			if (attribute.mSemantic == "position")
 			{
-				mPositions = reinterpret_cast<char*>(attribute.source);
+				mPositions = reinterpret_cast<char*>(attribute.mSource);
 				continue;
 			}
 
-			if (attribute.semantic == "normal")
+			if (attribute.mSemantic == "normal")
 			{
-				mNormals = reinterpret_cast<char*>(attribute.source);
+				mNormals = reinterpret_cast<char*>(attribute.mSource);
 				continue;
 			}
 
-			if (attribute.semantic == "tangent")
+			if (attribute.mSemantic == "tangent")
 			{
-				mTangents = reinterpret_cast<char*>(attribute.source);
+				mTangents = reinterpret_cast<char*>(attribute.mSource);
 				continue;
 			}
 
-			if (attribute.semantic == "bitangent")
+			if (attribute.mSemantic == "bitangent")
 			{
-				mBitangents = reinterpret_cast<char*>(attribute.source);
+				mBitangents = reinterpret_cast<char*>(attribute.mSource);
 				continue;
 			}
 
-			if (attribute.semantic == "tcoord")
+			if (attribute.mSemantic == "tcoord")
 			{
-				mTCoords[unit] = reinterpret_cast<char*>(attribute.source);
+				mTCoords[unit] = reinterpret_cast<char*>(attribute.mSource);
 				unit++;
 				continue;
 			}
@@ -138,6 +140,52 @@ eastl::shared_ptr<Visual> MeshFactory::CreateMesh(const Mesh<float>* mesh)
 		LogError("The mesh needs positions.");
 		return nullptr;
 	}
+
+	auto visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
+	if (visual)
+	{
+		visual->UpdateModelBound();
+	}
+	return visual;
+}
+
+
+eastl::shared_ptr<Visual> MeshFactory::CreateRectangle(unsigned int numXSamples,
+	unsigned int numYSamples, float xExtent, float yExtent)
+{
+	// Determine the number of vertices and triangles.
+	MeshDescription desc(MeshTopology::RECTANGLE, numXSamples, numYSamples);
+
+	auto vbuffer = CreateVBuffer(desc.mNumVertices);
+	if (!vbuffer)
+	{
+		return nullptr;
+	}
+
+	auto ibuffer = CreateIBuffer(desc.mNumTriangles);
+	if (!vbuffer)
+	{
+		return nullptr;
+	}
+
+	size_t stride = static_cast<size_t>(mVFormat.GetVertexSize());
+	desc.mVertexAttributes =
+	{
+		VertexAttribute("position", mPositions, stride),
+		VertexAttribute("normal", mNormals, stride),
+		VertexAttribute("tangent", mTangents, stride),
+		VertexAttribute("bitangent", mBitangents, stride),
+		VertexAttribute("tcoord", mTCoords[0], stride)
+	};
+
+	desc.mIndexAttribute = IndexAttribute(ibuffer->GetData(), mIndexSize);
+
+	RectangleShape<3, float> rectangle;
+	rectangle.mCenter = { 0.0f, 0.0f, 0.0f };
+	rectangle.mAxis[0] = { 1.0f, 0.0f, 0.0f };
+	rectangle.mAxis[1] = { 0.0f, 1.0f, 0.0f };
+	rectangle.mExtent = { xExtent, yExtent };
+	RectangleMesh<float> mesh(desc, rectangle);
 
 	auto visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
 	if (visual)

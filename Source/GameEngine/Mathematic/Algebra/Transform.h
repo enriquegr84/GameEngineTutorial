@@ -123,7 +123,7 @@ public:
     void GetRotation(AxisAngle<4, float>& axisAngle) const;
 
     // The Euler angles are in radians.  The GetEulerAngles function
-    // expects the eulerAngles.axis[] values to be set to the axis order
+    // expects the eulerAngles.mAxis[] values to be set to the axis order
     // you want.
     void SetRotation(EulerAngles<float> const& eulerAngles);
     void GetRotation(EulerAngles<float>& eulerAngles) const;

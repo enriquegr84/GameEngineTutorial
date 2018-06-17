@@ -23,9 +23,12 @@ public:
 		eastl::array<float, 4> const colorTop = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f},
 		eastl::array<float, 4> const colorBottom = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});
 
+	//! Returns type of the scene node
+	virtual NodeType GetType() const { return NT_BILLBOARD; }
+
 	//! Renders event
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! sets the size of the billboard
 	void SetSize(const Vector2<float>& size);
@@ -39,10 +42,10 @@ public:
 	//! Gets the widths of the top and bottom edges of the billboard.
 	void GetSize(float& height, float& bottomEdgeWidth, float& topEdgeWidth) const;
 
-	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
-	 unsigned int GetMaterialCount() const;
+	virtual unsigned int GetMaterialCount() const;
 
 	//! Set the color of all vertices of the billboard
 	//! \param overallColor: the color to set
@@ -57,9 +60,6 @@ public:
 	//! \param[out] topColor: stores the color of the top vertices
 	//! \param[out] bottomColor: stores the color of the bottom vertices
 	void GetColor(eastl::array<float, 4>& topColor, eastl::array<float, 4>& bottomColor) const;
-
-	//! Returns type of the scene node
-	NodeType GetType() const { return NT_BILLBOARD; }
 
 protected:
     // Support for the geometric update.

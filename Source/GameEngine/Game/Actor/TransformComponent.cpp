@@ -77,9 +77,9 @@ bool TransformComponent::Init(tinyxml2::XMLElement* pData)
         pitch = pOrientationElement->FloatAttribute("y", pitch);
         roll = pOrientationElement->FloatAttribute("z", roll);
 
-		yawPitchRoll.angle[0] = yaw;
-		yawPitchRoll.angle[1] = pitch;
-		yawPitchRoll.angle[2] = roll;
+		yawPitchRoll.mAngle[0] = yaw;
+		yawPitchRoll.mAngle[1] = pitch;
+		yawPitchRoll.mAngle[2] = roll;
 	};
 
 	Transform translation;
@@ -139,9 +139,9 @@ tinyxml2::XMLElement* TransformComponent::GenerateXml(void)
 	tinyxml2::XMLElement* pDirection = doc.NewElement("YawPitchRoll");
 	EulerAngles<float> yawPitchRoll;
 	mTransform.GetRotation(yawPitchRoll);
-    pDirection->SetAttribute("x", eastl::to_string(yawPitchRoll.angle[0]).c_str());
-    pDirection->SetAttribute("y", eastl::to_string(yawPitchRoll.angle[1]).c_str());
-    pDirection->SetAttribute("z", eastl::to_string(yawPitchRoll.angle[2]).c_str());
+    pDirection->SetAttribute("x", eastl::to_string(yawPitchRoll.mAngle[0]).c_str());
+    pDirection->SetAttribute("y", eastl::to_string(yawPitchRoll.mAngle[1]).c_str());
+    pDirection->SetAttribute("z", eastl::to_string(yawPitchRoll.mAngle[2]).c_str());
     pBaseElement->LinkEndChild(pDirection);
 
 	// This is not supported yet

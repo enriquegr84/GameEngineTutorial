@@ -94,12 +94,12 @@ void UIImage::Draw()
 		/*
 		if (!mScaleImage)
 		{
-			targetPos[0] = mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2);
-			targetPos[1] = mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2);
+			targetPos[0] = mAbsoluteRect.mCenter[0] - (mAbsoluteRect.mExtent[0] / 2);
+			targetPos[1] = mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2);
 		}
 		*/
 		mEffect->SetTexture(mTexture);
-		skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.extent / 2);
+		skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.mExtent / 2);
 	}
 	else
 	{

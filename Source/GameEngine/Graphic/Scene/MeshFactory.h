@@ -65,6 +65,15 @@ public:
 	//  any vertices and indices
 	eastl::shared_ptr<Visual> CreateMesh(const Mesh<float>*);
 
+	// The rectangle is in the plane z = 0 and is visible to an observer who
+	// is on the side of the plane to which the normal (0,0,1) points.  It has
+	// corners (-xExtent, -yExtent, 0), (+xExtent, -yExtent, 0),
+	// (-xExtent, +yExtent, 0), and (+xExtent, +yExtent, 0).  The mesh has
+	// numXSamples vertices in the x-direction and numYSamples vertices in the
+	// y-direction for a total of numXSamples*numYSamples vertices.
+	eastl::shared_ptr<Visual> CreateRectangle(unsigned int numXSamples,
+		unsigned int numYSamples, float xExtent, float yExtent);
+
     // The triangle is in the plane z = 0 and is visible to an observer who is
     // on the side of the plane to which the normal (0,0,1) points.  It has
     // vertices (0, 0, 0), (xExtent, 0, 0), and (0, yExtent, 0).  The mesh

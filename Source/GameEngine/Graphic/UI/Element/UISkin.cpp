@@ -286,7 +286,7 @@ void UISkin::Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>& el
 		return;
 
 	RectangleShape<2, int> rect = r;
-	Vector2<int> dimension(clip->extent / 2);
+	Vector2<int> dimension(clip->mExtent / 2);
 
 	struct Vertex
 	{
@@ -301,20 +301,20 @@ void UISkin::Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>& el
 		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
 	else
@@ -322,20 +322,20 @@ void UISkin::Draw3DButtonPaneStandard(const eastl::shared_ptr<BaseUIElement>& el
 		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = color;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = color;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = color;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = color;
 	}
 
@@ -361,7 +361,7 @@ void UISkin::Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>& ele
 		return;
 
 	RectangleShape<2, int> rect = r;
-	Vector2<int> dimension(clip->extent / 2);
+	Vector2<int> dimension(clip->mExtent / 2);
 
 	struct Vertex
 	{
@@ -376,20 +376,20 @@ void UISkin::Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>& ele
 		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
 	else
@@ -397,20 +397,20 @@ void UISkin::Draw3DButtonPanePressed(const eastl::shared_ptr<BaseUIElement>& ele
 		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = color;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = color;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = color;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = color;
 	}
 
@@ -439,7 +439,7 @@ void UISkin::Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element,
 		return;
 
 	RectangleShape<2, int> rect = r;
-	Vector2<int> dimension(clip->extent / 2);
+	Vector2<int> dimension(clip->mExtent / 2);
 
 	struct Vertex
 	{
@@ -451,39 +451,39 @@ void UISkin::Draw3DSunkenPane(const eastl::shared_ptr<BaseUIElement>& element,
 	if (mUseGradient)
 	{
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = bgcolor;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = bgcolor;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = bgcolor;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = bgcolor;
 	}
 	else
 	{
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = bgcolor;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = bgcolor;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = bgcolor;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = bgcolor;
 	}
 
@@ -510,7 +510,7 @@ RectangleShape<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Ba
 	}
 	
 	RectangleShape<2, int> rect = r;
-	Vector2<int> dimension(clip->extent / 2);
+	Vector2<int> dimension(clip->mExtent / 2);
 
 	struct Vertex
 	{
@@ -523,20 +523,20 @@ RectangleShape<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Ba
 	const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
 
 	vertex[0].position = {
-		(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 	vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
 	vertex[1].position = {
-		(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+		(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 	vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
 	vertex[2].position = {
-		(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 	vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
 	vertex[3].position = {
-		(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+		(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 	vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 
 	// Create the geometric object for drawing.
@@ -545,11 +545,11 @@ RectangleShape<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Ba
 
 	// title bar
 	rect = r;
-	rect.extent[0] -= 2;
-	rect.center[1] += 1;
-	rect.extent[1] -= 2;
-	rect.center[1] = (rect.center[1] - rect.extent[1] / 2) + (GetSize(DS_WINDOW_BUTTON_WIDTH) + 2) / 2;
-	rect.extent[1] = GetSize(DS_WINDOW_BUTTON_WIDTH) + 2;
+	rect.mExtent[0] -= 2;
+	rect.mCenter[1] += 1;
+	rect.mExtent[1] -= 2;
+	rect.mCenter[1] = (rect.mCenter[1] - rect.mExtent[1] / 2) + (GetSize(DS_WINDOW_BUTTON_WIDTH) + 2) / 2;
+	rect.mExtent[1] = GetSize(DS_WINDOW_BUTTON_WIDTH) + 2;
 
 	if (drawTitleBar)
 	{
@@ -559,20 +559,20 @@ RectangleShape<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Ba
 
 			// draw title bar
 			vertex[0].position = {
-				(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-				(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+				(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+				(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 			vertex[0].color = titleBarColor;
 			vertex[1].position = {
-				(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-				(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+				(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+				(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 			vertex[1].color = titleBarColor;
 			vertex[2].position = {
-				(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-				(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+				(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+				(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 			vertex[2].color = titleBarColor;
 			vertex[3].position = {
-				(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-				(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+				(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+				(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 			vertex[3].color = titleBarColor;
 
 			// Create the geometric object for drawing.
@@ -581,8 +581,8 @@ RectangleShape<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Ba
 		}
 		else
 		{
-			(*checkClientArea).center[1] = (*checkClientArea).center[1] + (int)round((*checkClientArea).extent[1] / 2.f);
-			(*checkClientArea).extent[1] = 0;
+			(*checkClientArea).mCenter[1] = (*checkClientArea).mCenter[1] + (int)round((*checkClientArea).mExtent[1] / 2.f);
+			(*checkClientArea).mExtent[1] = 0;
 		}
 	}
 	return rect;
@@ -605,7 +605,7 @@ void UISkin::Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
 		return;
 
 	RectangleShape<2, int> rect = r;
-	Vector2<int> dimension(clip->extent / 2);
+	Vector2<int> dimension(clip->mExtent / 2);
 
 	struct Vertex
 	{
@@ -620,20 +620,20 @@ void UISkin::Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
 		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
 	else
@@ -641,20 +641,20 @@ void UISkin::Draw3DMenuPane(const eastl::shared_ptr<BaseUIElement>& element,
 		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = color;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = color;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = color;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = color;
 	}
 
@@ -678,7 +678,7 @@ void UISkin::Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
 		return;
 
 	RectangleShape<2, int> rect = r;
-	Vector2<int> dimension(clip->extent / 2);
+	Vector2<int> dimension(clip->mExtent / 2);
 
 	struct Vertex
 	{
@@ -693,20 +693,20 @@ void UISkin::Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
 		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
 	else
@@ -714,20 +714,20 @@ void UISkin::Draw3DToolBar(const eastl::shared_ptr<BaseUIElement>& element,
 		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = color;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = color;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = color;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = color;
 	}
 
@@ -753,7 +753,7 @@ void UISkin::Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bo
 		return;
 
 	RectangleShape<2, int> rect = r;
-	Vector2<int> dimension(clip->extent / 2);
+	Vector2<int> dimension(clip->mExtent / 2);
 
 	struct Vertex
 	{
@@ -768,20 +768,20 @@ void UISkin::Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bo
 		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
 	else
@@ -789,20 +789,20 @@ void UISkin::Draw3DTabButton(const eastl::shared_ptr<BaseUIElement>& element, bo
 		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = color;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = color;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = color;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = color;
 	}
 
@@ -828,7 +828,7 @@ void UISkin::Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool
 		return;
 
 	RectangleShape<2, int> rect = r;
-	Vector2<int> dimension(clip->extent / 2);
+	Vector2<int> dimension(clip->mExtent / 2);
 
 	struct Vertex
 	{
@@ -843,20 +843,20 @@ void UISkin::Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool
 		const eastl::array<float, 4> c2 = GetColor(DC_3D_DARK_SHADOW);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 	}
 	else
@@ -864,20 +864,20 @@ void UISkin::Draw3DTabBody(const eastl::shared_ptr<BaseUIElement>& element, bool
 		const eastl::array<float, 4> color = GetColor(DC_3D_FACE);
 
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = color;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = color;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = color;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = color;
 	}
 
@@ -893,7 +893,7 @@ void UISkin::Draw2DTexture(const eastl::shared_ptr<BaseUIElement>& element,
 	if (!Renderer::Get())
 		return;
 
-	Vector2<int> targetPos = pos.center;
+	Vector2<int> targetPos = pos.mCenter;
 
 	eastl::shared_ptr<Texture2Effect> effect =
 		eastl::static_pointer_cast<Texture2Effect>(visual->GetEffect());
@@ -908,26 +908,26 @@ void UISkin::Draw2DTexture(const eastl::shared_ptr<BaseUIElement>& element,
 	};
 	Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
 	vertex[0].position = {
-		(float)(targetPos[0] - dimension[0] - (pos.extent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] - (pos.extent[1] / 2)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] - (pos.mExtent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (pos.mExtent[1] / 2)) / dimension[1], 0.0f };
 	vertex[0].tcoord = {
 		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
 		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 	vertex[1].position = {
-		(float)(targetPos[0] - dimension[0] + (int)round(pos.extent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] - (pos.extent[1] / 2)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] + (int)round(pos.mExtent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] - (pos.mExtent[1] / 2)) / dimension[1], 0.0f };
 	vertex[1].tcoord = {
 		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 		(float)(sourceCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
 	vertex[2].position = {
-		(float)(targetPos[0] - dimension[0] - (pos.extent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] + (int)round(pos.extent[1] / 2.f)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] - (pos.mExtent[0] / 2)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(pos.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 	vertex[2].tcoord = {
 		(float)(sourceCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
 		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
 	vertex[3].position = {
-		(float)(targetPos[0] - dimension[0] + (int)round(pos.extent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - targetPos[1] + (int)round(pos.extent[1] / 2.f)) / dimension[1], 0.0f };
+		(float)(targetPos[0] - dimension[0] + (int)round(pos.mExtent[0] / 2.f)) / dimension[0],
+		(float)(dimension[1] - targetPos[1] + (int)round(pos.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 	vertex[3].tcoord = {
 		(float)(sourceCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
 		(float)(sourceCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
@@ -946,7 +946,7 @@ void UISkin::Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element,
 		return;
 
 	RectangleShape<2, int> rect = r;
-	Vector2<int> dimension(clip->extent / 2);
+	Vector2<int> dimension(clip->mExtent / 2);
 
 	struct Vertex
 	{
@@ -958,39 +958,39 @@ void UISkin::Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element,
 	if (mUseGradient)
 	{
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = color;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = color;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = color;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = color;
 	}
 	else
 	{
 		vertex[0].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[0].color = color;
 		vertex[1].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] - (rect.extent[1] / 2)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
 		vertex[1].color = color;
 		vertex[2].position = {
-			(float)(rect.center[0] - dimension[0] - (rect.extent[0] / 2)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[2].color = color;
 		vertex[3].position = {
-			(float)(rect.center[0] - dimension[0] + (int)round(rect.extent[0] / 2.f)) / dimension[0],
-			(float)(dimension[1] - rect.center[1] + (int)round(rect.extent[1] / 2.f)) / dimension[1], 0.0f };
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
 		vertex[3].color = color;
 	}
 

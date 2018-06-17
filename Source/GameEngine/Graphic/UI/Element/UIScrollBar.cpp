@@ -315,13 +315,13 @@ void UIScrollBar::Draw()
 		// recalculate slider rectangle
 		if (mHorizontal)
 		{
-			mSliderRect.center[0] = (mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2)) + mDrawPos + mRelativeRect.extent[1];
-			mSliderRect.extent[0] = mDrawHeight;
+			mSliderRect.mCenter[0] = (mAbsoluteRect.mCenter[0] - (mAbsoluteRect.mExtent[0] / 2)) + mDrawPos + mRelativeRect.mExtent[1];
+			mSliderRect.mExtent[0] = mDrawHeight;
 		}
 		else
 		{
-			mSliderRect.center[1] = (mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2)) + mDrawPos + mRelativeRect.extent[0];
-			mSliderRect.extent[1] = mDrawHeight;
+			mSliderRect.mCenter[1] = (mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2)) + mDrawPos + mRelativeRect.mExtent[0];
+			mSliderRect.mExtent[1] = mDrawHeight;
 		}
 
 		skin->Draw3DButtonPaneStandard(shared_from_this(), mVisualSliderRect, mSliderRect, &mAbsoluteClippingRect);
@@ -347,13 +347,13 @@ int UIScrollBar::GetPosFromMousePos(const Vector2<int> &pos) const
 	float w, p;
 	if (mHorizontal)
 	{
-		w = mRelativeRect.extent[0] - (mRelativeRect.extent[1] * 3.0f);
-		p = pos[0] - (mAbsoluteRect.center[0] - (mAbsoluteRect.extent[0] / 2)) - (mRelativeRect.extent[1] * 1.5f);
+		w = mRelativeRect.mExtent[0] - (mRelativeRect.mExtent[1] * 3.0f);
+		p = pos[0] - (mAbsoluteRect.mCenter[0] - (mAbsoluteRect.mExtent[0] / 2)) - (mRelativeRect.mExtent[1] * 1.5f);
 	}
 	else
 	{
-		w = mRelativeRect.extent[1] - (mRelativeRect.extent[0] * 3.0f);
-		p = pos[1] - (mAbsoluteRect.center[1] - (mAbsoluteRect.extent[1] / 2)) - (mRelativeRect.extent[0] * 1.5f);
+		w = mRelativeRect.mExtent[1] - (mRelativeRect.mExtent[0] * 3.0f);
+		p = pos[1] - (mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2)) - (mRelativeRect.mExtent[0] * 1.5f);
 	}
 	return (int) ( p/w * range() ) + mMin;
 }
@@ -366,15 +366,15 @@ void UIScrollBar::SetPos(int pos)
 
 	if (mHorizontal)
 	{
-		float f = (mRelativeRect.extent[0] - (mRelativeRect.extent[1] * 3.0f)) / range();
-		mDrawPos = (int)(( ( mPos - mMin ) * f) + (mRelativeRect.extent[1] * 0.5f));
-		mDrawHeight = mRelativeRect.extent[1];
+		float f = (mRelativeRect.mExtent[0] - (mRelativeRect.mExtent[1] * 3.0f)) / range();
+		mDrawPos = (int)(( ( mPos - mMin ) * f) + (mRelativeRect.mExtent[1] * 0.5f));
+		mDrawHeight = mRelativeRect.mExtent[1];
 	}
 	else
 	{
-		float f = (mRelativeRect.extent[1] - (mRelativeRect.extent[0] * 3.0f)) / range();
-		mDrawPos = (int)(( ( mPos - mMin ) * f) + (mRelativeRect.extent[0] * 0.5f));
-		mDrawHeight = mRelativeRect.extent[0];
+		float f = (mRelativeRect.mExtent[1] - (mRelativeRect.mExtent[0] * 3.0f)) / range();
+		mDrawPos = (int)(( ( mPos - mMin ) * f) + (mRelativeRect.mExtent[0] * 0.5f));
+		mDrawHeight = mRelativeRect.mExtent[0];
 	}
 }
 
@@ -477,12 +477,12 @@ void UIScrollBar::RefreshControls()
 
 	if (mHorizontal)
 	{
-		int h = mRelativeRect.extent[1];
+		int h = mRelativeRect.mExtent[1];
 		RectangleShape<2, int> rectangle;
-		rectangle.center[0] = h / 2;
-		rectangle.center[1] = h / 2;
-		rectangle.extent[0] = h;
-		rectangle.extent[1] = h;
+		rectangle.mCenter[0] = h / 2;
+		rectangle.mCenter[1] = h / 2;
+		rectangle.mExtent[0] = h;
+		rectangle.mExtent[1] = h;
 
 		if (!mUpButton)
 		{
@@ -501,10 +501,10 @@ void UIScrollBar::RefreshControls()
 		mUpButton->SetRelativePosition(rectangle);
 		mUpButton->SetAlignment(UIA_UPPERLEFT, UIA_UPPERLEFT, UIA_UPPERLEFT, UIA_LOWERRIGHT);
 
-		rectangle.center[0] = mRelativeRect.extent[0] - ( h / 2 );
-		rectangle.center[1] = h / 2;
-		rectangle.extent[0] = h;
-		rectangle.extent[1] = h;
+		rectangle.mCenter[0] = mRelativeRect.mExtent[0] - ( h / 2 );
+		rectangle.mCenter[1] = h / 2;
+		rectangle.mExtent[0] = h;
+		rectangle.mExtent[1] = h;
 		if (!mDownButton)
 		{
 			mDownButton.reset(new UIButton(mUI, -1, rectangle));
@@ -524,12 +524,12 @@ void UIScrollBar::RefreshControls()
 	}
 	else
 	{
-		int w = mRelativeRect.extent[0];
+		int w = mRelativeRect.mExtent[0];
 		RectangleShape<2, int> rectangle;
-		rectangle.center[0] = w / 2;
-		rectangle.center[1] = w / 2;
-		rectangle.extent[0] = w;
-		rectangle.extent[1] = w;
+		rectangle.mCenter[0] = w / 2;
+		rectangle.mCenter[1] = w / 2;
+		rectangle.mExtent[0] = w;
+		rectangle.mExtent[1] = w;
 
 		if (!mUpButton)
 		{
@@ -548,10 +548,10 @@ void UIScrollBar::RefreshControls()
 		mUpButton->SetRelativePosition(rectangle);
 		mUpButton->SetAlignment(UIA_UPPERLEFT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
 
-		rectangle.center[0] = w / 2;
-		rectangle.center[1] = mRelativeRect.extent[1] - ( w / 2 );
-		rectangle.extent[0] = w;
-		rectangle.extent[1] = w;
+		rectangle.mCenter[0] = w / 2;
+		rectangle.mCenter[1] = mRelativeRect.mExtent[1] - ( w / 2 );
+		rectangle.mExtent[0] = w;
+		rectangle.mExtent[1] = w;
 		if (!mDownButton)
 		{
 			mDownButton.reset(new UIButton(mUI, -1, rectangle));

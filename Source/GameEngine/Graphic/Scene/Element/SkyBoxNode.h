@@ -19,21 +19,21 @@ public:
 		const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back);
 
 	//! Render events
-	bool PreRender(Scene *pScene);
-	bool Render(Scene *pScene);
+	virtual bool PreRender(Scene *pScene);
+	virtual bool Render(Scene *pScene);
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use getMaterialCount().
 	//! This function is needed for inserting the node into the scene hirachy on a
 	//! optimal position for minimizing renderstate changes, but can also be used
 	//! to directly modify the material of a scene node.
-	eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
 
 	//! returns amount of materials used by this scene node.
-	unsigned int GetMaterialCount() const;
+	virtual unsigned int GetMaterialCount() const;
 
 	//! Returns type of the scene node
-	NodeType GetType() const { return NT_SKY_BOX; }
+	virtual NodeType GetType() const { return NT_SKY_BOX; }
 
 private:
 

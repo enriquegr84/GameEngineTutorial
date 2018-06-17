@@ -88,7 +88,8 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(eastl::shared_ptr<BaseRenderComponent>(this));
+		WeakBaseRenderComponentPtr wbrcp(
+			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
@@ -128,7 +129,7 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 		}
 		else LogAssert(nullptr, "Unknown Renderer Implementation in MeshRenderComponent::CreateSceneNode");
 	}
-	return nullptr;
+	return eastl::shared_ptr<Node>();
 }
 
 void MeshRenderComponent::CreateInheritedXMLElements(
@@ -168,7 +169,8 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(eastl::shared_ptr<BaseRenderComponent>(this));
+		WeakBaseRenderComponentPtr wbrcp(
+			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
@@ -194,7 +196,7 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 		}
 		else LogAssert(nullptr, "Unknown Renderer Implementation in SphereRenderComponent::CreateSceneNode");
 	}
-	return nullptr;
+	return eastl::shared_ptr<Node>();
 }
 
 void SphereRenderComponent::CreateInheritedXMLElements(
@@ -220,7 +222,8 @@ eastl::shared_ptr<Node> TeapotRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(eastl::shared_ptr<BaseRenderComponent>(this));
+		WeakBaseRenderComponentPtr wbrcp(
+			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
@@ -247,7 +250,7 @@ eastl::shared_ptr<Node> TeapotRenderComponent::CreateSceneNode(void)
 		else LogError("Unknown Renderer Implementation in TeapotRenderComponent");
     }
 
-	return nullptr;
+	return eastl::shared_ptr<Node>();
 }
 
 
@@ -290,32 +293,29 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(eastl::shared_ptr<BaseRenderComponent>(this));
+		WeakBaseRenderComponentPtr wbrcp(
+			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
 			eastl::shared_ptr<ResHandle>& resHandle =
-				ResCache::Get()->GetHandle(&BaseResource(L""));
+				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
 			if (resHandle)
 			{
-				const eastl::shared_ptr<MeshResourceExtraData>& extra =
-					eastl::static_pointer_cast<MeshResourceExtraData>(resHandle->GetExtra());
-				// add this mesh scene node.
-				/*eastl::shared_ptr<BaseMesh> tangentMesh(
-				pScene->AddHillPlaneMesh("plane", Vector2<float>{40, 40},
-				Vector2<unsigned int>{sqrt((float)mSquares), sqrt((float)mSquares)});*/
-				eastl::shared_ptr<BaseAnimatedMesh> animatedMesh(extra->GetMesh());
+				const eastl::shared_ptr<ImageResourceExtraData>& extra =
+					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+				extra->GetImage()->AutogenerateMipmaps();
 
 				// create an animated mesh scene node with specified mesh.
 				eastl::shared_ptr<Node> planeNode =
-					pScene->AddMeshNode(wbrcp, 0, animatedMesh, mOwner->GetId());
+					pScene->AddRectangleNode(wbrcp, 0, extra->GetImage(), 16.0f, 16.0f, 2, 2, mOwner->GetId());
 
 				//To let the mesh look a little bit nicer, we change its material. We
 				//disable lighting because we do not have a dynamic light in here, and
 				//the mesh would be totally black otherwise. And last, we apply a
 				//texture to the mesh. Without it the mesh would be drawn using only a
 				//color.
-
+				/*
 				if (planeNode)
 				{
 					resHandle =
@@ -331,7 +331,7 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 						planeNode->GetAbsoluteTransform().SetTranslation(transform.GetTranslation());
 						//plane->GetAbsoluteTransform().SetRotation(Vector3(270,0,0));
 					}
-					/*
+
 					resHandle =
 						ResCache::Get()->GetHandle(&BaseResource(L"Art/t351sml.jpg"));
 					if (resHandle)
@@ -343,16 +343,16 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 						planeNode->SetMaterialFlag(MF_LIGHTING, false);
 						planeNode->SetMaterialFlag(MF_BACK_FACE_CULLING, true);
 					}
-					*/
-				}
 
+				}
+				*/
 				return planeNode;
 			}
 		}
 		else LogError("Unknown Renderer Implementation in GridRenderComponent");
     }
 
-	return nullptr;
+	return eastl::shared_ptr<Node>();
 }
 
 void GridRenderComponent::CreateInheritedXMLElements(
@@ -476,7 +476,8 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(eastl::shared_ptr<BaseRenderComponent>(this));
+		WeakBaseRenderComponentPtr wbrcp(
+			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
@@ -519,7 +520,7 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 		}
 		else LogError("Unknown Renderer Implementation in LightRenderComponent");
 	}
-	return nullptr;
+	return eastl::shared_ptr<Node>();
 }
 
 void LightRenderComponent::CreateInheritedXMLElements(
@@ -570,7 +571,8 @@ eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(eastl::shared_ptr<BaseRenderComponent>(this));
+		WeakBaseRenderComponentPtr wbrcp(
+			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
@@ -618,7 +620,7 @@ eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
 		}
 		else LogError("Unknown Renderer Implementation in ParticleSystemRenderComponent");
 	}
-	return nullptr;
+	return eastl::shared_ptr<Node>();
 }
 
 void ParticleSystemRenderComponent::CreateInheritedXMLElements(
@@ -654,7 +656,8 @@ eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(eastl::shared_ptr<BaseRenderComponent>(this));
+		WeakBaseRenderComponentPtr wbrcp(
+			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
@@ -851,7 +854,7 @@ eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 		else LogError("Unknown Renderer Implementation in GridRenderComponent");
 
 	}
-	return nullptr;
+	return eastl::shared_ptr<Node>();
 }
 
 void SkyRenderComponent::CreateInheritedXMLElements(

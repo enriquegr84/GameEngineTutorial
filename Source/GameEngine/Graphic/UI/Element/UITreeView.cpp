@@ -398,10 +398,10 @@ void UITreeView::OnInit(bool scrollBarVertical, bool scrollBarHorizontal)
 	if (scrollBarVertical)
 	{
 		RectangleShape<2, int> rectangle;
-		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
-		rectangle.center[1] = (mRelativeRect.extent[1] - scrollBarHorizontal ? s : 0) / 2;
-		rectangle.extent[0] = s;
-		rectangle.extent[1] = mRelativeRect.extent[1] - scrollBarHorizontal ? s : 0;
+		rectangle.mCenter[0] = (mRelativeRect.mExtent[0] - s) / 2;
+		rectangle.mCenter[1] = (mRelativeRect.mExtent[1] - scrollBarHorizontal ? s : 0) / 2;
+		rectangle.mExtent[0] = s;
+		rectangle.mExtent[1] = mRelativeRect.mExtent[1] - scrollBarHorizontal ? s : 0;
 
 		mScrollBarV.reset(new UIScrollBar(mUI, 0, rectangle, false));
 		mScrollBarV->OnInit(!mClip);
@@ -412,10 +412,10 @@ void UITreeView::OnInit(bool scrollBarVertical, bool scrollBarHorizontal)
 	if (scrollBarHorizontal)
 	{
 		RectangleShape<2, int> rectangle;
-		rectangle.center[0] = (mRelativeRect.extent[0] - s) / 2;
-		rectangle.center[1] = mRelativeRect.extent[1] - (s / 2);
-		rectangle.extent[0] = mRelativeRect.extent[0] - s;
-		rectangle.extent[1] = s;
+		rectangle.mCenter[0] = (mRelativeRect.mExtent[0] - s) / 2;
+		rectangle.mCenter[1] = mRelativeRect.mExtent[1] - (s / 2);
+		rectangle.mExtent[0] = mRelativeRect.mExtent[0] - s;
+		rectangle.mExtent[1] = s;
 
 		mScrollBarH.reset(new UIScrollBar(mUI, 0, rectangle, false));
 		mScrollBarH->OnInit(!mClip);
@@ -471,7 +471,7 @@ void UITreeView::RecalculateItemHeight()
 	}
 
 	mTotalItemHeight = 0;
-	mTotalItemWidth = mAbsoluteRect.extent[0] * 2;
+	mTotalItemWidth = mAbsoluteRect.mExtent[0] * 2;
 	node = mRoot->GetFrontChild();
 	while( node )
 	{
@@ -480,10 +480,10 @@ void UITreeView::RecalculateItemHeight()
 	}
 
 	if ( mScrollBarV )
-		mScrollBarV->SetMax( eastl::max(0,mTotalItemHeight - mAbsoluteRect.extent[1]));
+		mScrollBarV->SetMax( eastl::max(0,mTotalItemHeight - mAbsoluteRect.mExtent[1]));
 
 	if ( mScrollBarH )
-		mScrollBarH->SetMax( eastl::max(0, mTotalItemWidth - mAbsoluteRect.extent[0]));
+		mScrollBarH->SetMax( eastl::max(0, mTotalItemWidth - mAbsoluteRect.mExtent[0]));
 
 }
 
@@ -598,8 +598,8 @@ void UITreeView::MouseAction( int xpos, int ypos, bool onlyHover /*= false*/ )
 	event.mUIEvent.mCaller = this;
 	event.mUIEvent.mElement = 0;
 
-	xpos -= mAbsoluteRect.center[0] - mAbsoluteRect.extent[0] / 2;
-	ypos -= mAbsoluteRect.center[1] - mAbsoluteRect.extent[1] / 2;
+	xpos -= mAbsoluteRect.mCenter[0] - mAbsoluteRect.mExtent[0] / 2;
+	ypos -= mAbsoluteRect.mCenter[1] - mAbsoluteRect.mExtent[1] / 2;
 
 	// find new selected item.
 	if( mItemHeight != 0 && mScrollBarV )
@@ -702,41 +702,41 @@ void UITreeView::Draw()
 
 	if (mScrollBarV)
 	{
-		clientClip.center[0] -= skin->GetSize(DS_SCROLLBAR_SIZE) / 2;
-		clientClip.extent[0] -= skin->GetSize(DS_SCROLLBAR_SIZE);
+		clientClip.mCenter[0] -= skin->GetSize(DS_SCROLLBAR_SIZE) / 2;
+		clientClip.mExtent[0] -= skin->GetSize(DS_SCROLLBAR_SIZE);
 	}
 	if ( mScrollBarH )
 	{
-		clientClip.center[1] -= skin->GetSize(DS_SCROLLBAR_SIZE) / 2;
-		clientClip.extent[1] -= skin->GetSize(DS_SCROLLBAR_SIZE);
+		clientClip.mCenter[1] -= skin->GetSize(DS_SCROLLBAR_SIZE) / 2;
+		clientClip.mExtent[1] -= skin->GetSize(DS_SCROLLBAR_SIZE);
 	}
 
 	//if( clipRect )
 	//	clientClip.clipAgainst( *clipRect );
 
 	frameRect = mAbsoluteRect;
-	frameRect.extent[0] -= skin->GetSize( DS_SCROLLBAR_SIZE );
-	frameRect.extent[1] += mItemHeight;
+	frameRect.mExtent[0] -= skin->GetSize( DS_SCROLLBAR_SIZE );
+	frameRect.mExtent[1] += mItemHeight;
 
 	if ( mScrollBarV )
 	{
-		frameRect.extent[1] -= 2 * mScrollBarV->GetPos();
+		frameRect.mExtent[1] -= 2 * mScrollBarV->GetPos();
 	}
 
 	if ( mScrollBarH )
 	{
-		frameRect.extent[0] -= 2 * mScrollBarH->GetPos();
+		frameRect.mExtent[0] -= 2 * mScrollBarH->GetPos();
 	}
 
 	eastl::shared_ptr<BaseUITreeViewNode> node = mRoot->GetFrontChild();
 	while( node )
 	{
-		frameRect.extent[0] = mAbsoluteRect.extent[0] + 1 + node->GetLevel() * mIndentWidth;
+		frameRect.mExtent[0] = mAbsoluteRect.mExtent[0] + 1 + node->GetLevel() * mIndentWidth;
 
-		if (frameRect.center[1] + (int)round(frameRect.extent[1] / 2.f) >= 
-			mAbsoluteRect.center[1] - (mAbsoluteRect.center[1] / 2) && 
-			frameRect.center[1] - (frameRect.center[1] / 2) <= 
-			mAbsoluteRect.center[1] + (int)round(mAbsoluteRect.extent[1] / 2.f))
+		if (frameRect.mCenter[1] + (int)round(frameRect.mExtent[1] / 2.f) >= 
+			mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mCenter[1] / 2) && 
+			frameRect.mCenter[1] - (frameRect.mCenter[1] / 2) <= 
+			mAbsoluteRect.mCenter[1] + (int)round(mAbsoluteRect.mExtent[1] / 2.f))
 		{
 			if( node == mSelected )
 				skin->Draw2DRectangle( 
@@ -779,18 +779,18 @@ void UITreeView::Draw()
 					{
 						mIconFont->Draw( node->GetIcon(), textRect, skin->GetColor(textCol), false, true, &clientClip );
 						iconWidth += mIconFont->GetDimension(node->GetIcon())[0] + 3;
-						textRect.center[0] += (mIconFont->GetDimension(node->GetIcon())[0] + 3) / 2;
-						textRect.extent[0] -= mIconFont->GetDimension(node->GetIcon())[0] + 3;
+						textRect.mCenter[0] += (mIconFont->GetDimension(node->GetIcon())[0] + 3) / 2;
+						textRect.mExtent[0] -= mIconFont->GetDimension(node->GetIcon())[0] + 3;
 					}
 				}
 
 				mFont->Draw( node->GetText(), textRect, skin->GetColor(textCol), false, true, &clientClip );
 				
-				textRect.center[0] -= iconWidth / 2;
-				textRect.extent[0] += iconWidth;
+				textRect.mCenter[0] -= iconWidth / 2;
+				textRect.mExtent[0] += iconWidth;
 			}
 		}
-		frameRect.center[1] += mItemHeight;
+		frameRect.mCenter[1] += mItemHeight;
 
 		node = node->GetNextVisible();
 	}

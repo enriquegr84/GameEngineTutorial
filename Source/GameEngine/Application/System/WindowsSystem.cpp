@@ -1321,7 +1321,7 @@ void WindowsSystem::CursorControl::SetPosition(float x, float y)
 	if (!mUseReferenceRect)
 		SetPosition(round(x*mWindowSize[0]), round(y*mWindowSize[1]));
 	else
-		SetPosition(round(x*mReferenceRect.extent[0]), round(y*mReferenceRect.extent[1]));
+		SetPosition(round(x*mReferenceRect.mExtent[0]), round(y*mReferenceRect.mExtent[1]));
 }
 
 //! Sets the new position of the cursor.
@@ -1330,8 +1330,8 @@ void WindowsSystem::CursorControl::SetPosition(int x, int y)
 	if (mUseReferenceRect)
 	{
 		SetCursorPos(
-			mReferenceRect.center[0] - (mReferenceRect.extent[0] / 2) + x, 
-			mReferenceRect.center[1] - (mReferenceRect.extent[1] / 2) + y);
+			mReferenceRect.mCenter[0] - (mReferenceRect.mExtent[0] / 2) + x, 
+			mReferenceRect.mCenter[1] - (mReferenceRect.mExtent[1] / 2) + y);
 	}
 	else
 	{
@@ -1380,11 +1380,11 @@ void WindowsSystem::CursorControl::SetReferenceRect(const RectangleShape<2, int>
 		mUseReferenceRect = true;
 
 		// prevent division through zero and uneven sizes
-		if (!mReferenceRect.extent[1] || mReferenceRect.extent[1] % 2)
-			mReferenceRect.center[1] += 1;
+		if (!mReferenceRect.mExtent[1] || mReferenceRect.mExtent[1] % 2)
+			mReferenceRect.mCenter[1] += 1;
 
-		if (!mReferenceRect.extent[0] || mReferenceRect.extent[0] % 2)
-			mReferenceRect.center[0] += 1;
+		if (!mReferenceRect.mExtent[0] || mReferenceRect.mExtent[0] % 2)
+			mReferenceRect.mCenter[0] += 1;
 	}
 	else mUseReferenceRect = false;
 }
@@ -1439,8 +1439,8 @@ void WindowsSystem::CursorControl::UpdateInternalCursorPosition()
 
 	if (mUseReferenceRect)
 	{
-		mCursorPos[0] = p.x - mReferenceRect.center[0] - (mReferenceRect.extent[0] / 2);
-		mCursorPos[0] = p.y - mReferenceRect.center[1] - (mReferenceRect.extent[1] / 2);
+		mCursorPos[0] = p.x - mReferenceRect.mCenter[0] - (mReferenceRect.mExtent[0] / 2);
+		mCursorPos[0] = p.y - mReferenceRect.mCenter[1] - (mReferenceRect.mExtent[1] / 2);
 	}
 	else
 	{
@@ -1470,8 +1470,8 @@ HCURSOR WindowsSystem::CursorControl::TextureToCursor(HWND hwnd, Texture2 * tex,
 	HDC dc = GetDC(hwnd);
 	HDC andDc = CreateCompatibleDC(dc);
 	HDC xorDc = CreateCompatibleDC(dc);
-	HBITMAP andBitmap = CreateCompatibleBitmap(dc, sourceRect.extent[0], sourceRect.extent[1]);
-	HBITMAP xorBitmap = CreateCompatibleBitmap(dc, sourceRect.extent[0], sourceRect.extent[1]);
+	HBITMAP andBitmap = CreateCompatibleBitmap(dc, sourceRect.mExtent[0], sourceRect.mExtent[1]);
+	HBITMAP xorBitmap = CreateCompatibleBitmap(dc, sourceRect.mExtent[0], sourceRect.mExtent[1]);
 
 	HBITMAP oldAndBitmap = (HBITMAP)SelectObject(andDc, andBitmap);
 	HBITMAP oldXorBitmap = (HBITMAP)SelectObject(xorDc, xorBitmap);
@@ -1479,9 +1479,9 @@ HCURSOR WindowsSystem::CursorControl::TextureToCursor(HWND hwnd, Texture2 * tex,
 	DFType format = tex->GetFormat();
 	unsigned int bytesPerPixel = DataFormat::GetNumBytesPerStruct(format);
 	const char* data = (const char*)tex->GetData();
-	for (int y = 0; y < sourceRect.extent[1]; ++y)
+	for (int y = 0; y < sourceRect.mExtent[1]; ++y)
 	{
-		for (int x = 0; x < sourceRect.extent[0]; ++x)
+		for (int x = 0; x < sourceRect.mExtent[0]; ++x)
 		{
 			unsigned int color = *(unsigned int*)data;
 			data += bytesPerPixel;
