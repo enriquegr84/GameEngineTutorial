@@ -12,7 +12,7 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-VolumeLightNode::VolumeLightNode(const ActorId actorId, PVWUpdater& updater, 
+VolumeLightNode::VolumeLightNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, const unsigned int subdivU, 
 	const unsigned int subdivV, const eastl::array<float, 4> foot, const eastl::array<float, 4> tail)
 :	Node(actorId, renderComponent, RP_TRANSPARENT, NT_VOLUME_LIGHT), mMesh(0), 

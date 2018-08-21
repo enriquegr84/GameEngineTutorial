@@ -134,7 +134,7 @@ protected:
 
 	eastl::shared_ptr<GameDemoController> mGameDemoController;
 	eastl::shared_ptr<MovementController> mFreeCameraController;
-	eastl::shared_ptr<Node> mTeapot;
+	eastl::shared_ptr<Node> mPlayer;
 	eastl::shared_ptr<StandardHUD> mStandardHUD;
 
 public:
@@ -158,9 +158,9 @@ private:
     void RemoveAllDelegates(void);
 };
 
-class AITeapotView : public BaseGameView 
+class AIPlayerView : public BaseGameView 
 {
-	friend class AITeapotViewListener;
+	friend class AIPlayerViewListener;
 
 private:
 	eastl::shared_ptr<PathingGraph> mPathingGraph;
@@ -170,8 +170,8 @@ protected:
 	ActorId mPlayerActorId;
 
 public:
-	AITeapotView(eastl::shared_ptr<PathingGraph> pPathingGraph);
-	virtual ~AITeapotView();
+	AIPlayerView(eastl::shared_ptr<PathingGraph> pPathingGraph);
+	virtual ~AIPlayerView();
 
 	virtual bool OnRestore() { return true; }
 	virtual void OnRender(double time, float elapsedTime) {}

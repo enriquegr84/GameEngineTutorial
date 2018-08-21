@@ -50,7 +50,6 @@
 
 const char* MeshRenderComponent::Name = "MeshRenderComponent";
 const char* SphereRenderComponent::Name = "SphereRenderComponent";
-const char* TeapotRenderComponent::Name = "TeapotRenderComponent";
 const char* GridRenderComponent::Name = "GridRenderComponent";
 const char* LightRenderComponent::Name = "LightRenderComponent";
 const char* SkyRenderComponent::Name = "SkyRenderComponent";
@@ -68,8 +67,8 @@ bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 {
 	tinyxml2::XMLElement* pMesh = pData->FirstChildElement("Mesh");
 
-	mMeshTextureFile = pMesh->Attribute("texture_file");
 	mMeshModelFile = pMesh->Attribute("model_file");
+	mMeshTextureFile = pMesh->Attribute("texture_file");
     //pMesh->Attribute("position", &segments);
 	//pMesh->Attribute("rotation", &segments);
 	//pMesh->Attribute("scale", &segments);
@@ -208,63 +207,13 @@ void SphereRenderComponent::CreateInheritedXMLElements(
     pBaseElement->LinkEndChild(pBaseElement);
 }
 
-
-//---------------------------------------------------------------------------------------------------------------------
-// TeapotRenderComponent
-//---------------------------------------------------------------------------------------------------------------------
-eastl::shared_ptr<Node> TeapotRenderComponent::CreateSceneNode(void)
-{
-    // get the transform component
-    const eastl::shared_ptr<TransformComponent>& pTransformComponent(
-		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-    if (pTransformComponent)
-    {
-		GameApplication* gameApp = (GameApplication*)Application::App;
-		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
-		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
-
-		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
-		{
-			// create a sphere node with specified radius and poly count.
-			eastl::shared_ptr<Node> sphere =
-				pScene->AddSphereNode(wbrcp, nullptr, 5, 64, mOwner->GetId());
-			if (sphere)
-			{
-				eastl::shared_ptr<ResHandle>& resHandle =
-					ResCache::Get()->GetHandle(&BaseResource(L"Art/wall.bmp"));
-				if (resHandle)
-				{
-					const eastl::shared_ptr<ImageResourceExtraData>& extra =
-						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
-					sphere->GetAbsoluteTransform().SetTranslation(transform.GetTranslation());
-					sphere->SetMaterialTexture(0, extra->GetImage().get());
-					sphere->SetMaterialFlag(MF_LIGHTING, false);
-				}
-			}
-
-			return sphere;
-		}
-		else LogError("Unknown Renderer Implementation in TeapotRenderComponent");
-    }
-
-	return eastl::shared_ptr<Node>();
-}
-
-
-void TeapotRenderComponent::CreateInheritedXMLElements(tinyxml2::XMLDocument, tinyxml2::XMLElement *)
-{
-}
-
 //---------------------------------------------------------------------------------------------------------------------
 // GridRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
 GridRenderComponent::GridRenderComponent(void)
 {
     mTextureResource = "";
-    mSquares = 0;
+    mSegments = 0;
 }
 
 bool GridRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
@@ -275,10 +224,24 @@ bool GridRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 		mTextureResource = pTexture->FirstChild()->Value();
 	}
 
-	tinyxml2::XMLElement* pDivision = pData->FirstChildElement("Division");
-    if (pDivision)
+	tinyxml2::XMLElement* pSegment = pData->FirstChildElement("Segment");
+    if (pSegment)
 	{
-		mSquares = atoi(pDivision->FirstChild()->Value());
+		int x = 16;
+		int y = 16;
+		x = pSegment->IntAttribute("x", x);
+		y = pSegment->IntAttribute("y", y);
+		mSegments = Vector2<int>{ x, y };
+	}
+
+	tinyxml2::XMLElement* pExtent = pData->FirstChildElement("Extent");
+	if (pExtent)
+	{
+		float x = 16.f;
+		float y = 16.f;
+		x = pExtent->FloatAttribute("x", x);
+		y = pExtent->FloatAttribute("y", y);
+		mExtent = Vector2<float>{ x, y };
 	}
 
     return true;
@@ -307,8 +270,8 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 				extra->GetImage()->AutogenerateMipmaps();
 
 				// create an animated mesh scene node with specified mesh.
-				eastl::shared_ptr<Node> planeNode =
-					pScene->AddRectangleNode(wbrcp, 0, extra->GetImage(), 16.0f, 16.0f, 2, 2, mOwner->GetId());
+				eastl::shared_ptr<Node> planeNode = pScene->AddRectangleNode(
+					wbrcp, 0, extra->GetImage(), mExtent[0], mExtent[1], mSegments[0], mSegments[1], mOwner->GetId());
 
 				//To let the mesh look a little bit nicer, we change its material. We
 				//disable lighting because we do not have a dynamic light in here, and
@@ -363,10 +326,15 @@ void GridRenderComponent::CreateInheritedXMLElements(
     pTextureNode->LinkEndChild(pTextureText);
     pBaseElement->LinkEndChild(pTextureNode);
 
-	tinyxml2::XMLElement* pDivisionNode = doc.NewElement("Division");
-	tinyxml2::XMLText* pDivisionText = doc.NewText(eastl::to_string(mSquares).c_str());
-    pDivisionNode->LinkEndChild(pDivisionText);
-    pBaseElement->LinkEndChild(pDivisionNode);
+	tinyxml2::XMLElement* pSegment = doc.NewElement("Segment");
+	pSegment->SetAttribute("x", eastl::to_string(mSegments[0]).c_str());
+	pSegment->SetAttribute("y", eastl::to_string(mSegments[1]).c_str());
+	pBaseElement->LinkEndChild(pSegment);
+
+	tinyxml2::XMLElement* pExtent = doc.NewElement("Extent");
+	pExtent->SetAttribute("x", eastl::to_string(mExtent[0]).c_str());
+	pExtent->SetAttribute("y", eastl::to_string(mExtent[1]).c_str());
+	pBaseElement->LinkEndChild(pExtent);
 }
 
 //---------------------------------------------------------------------------------------------------------------------

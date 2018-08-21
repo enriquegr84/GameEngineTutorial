@@ -13,7 +13,7 @@
 
 //! constructor
 ParticleAnimatedMeshNodeEmitter::ParticleAnimatedMeshNodeEmitter(const ActorId actorId, 
-		PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent, 
+		PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<AnimatedMeshNode>& node, bool useNormalDirection, 
 		const Vector3<float>& direction, float normalDirectionModifier, int mbNumber, 
 		bool everyMeshVertex, unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond,

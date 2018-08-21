@@ -64,8 +64,6 @@ ActorFactory::ActorFactory(void)
 		ActorComponent::GetIdFromName(SphereRenderComponent::Name));
     mComponentFactory.Register<PhysicComponent>(
 		ActorComponent::GetIdFromName(PhysicComponent::Name));
-    mComponentFactory.Register<TeapotRenderComponent>(
-		ActorComponent::GetIdFromName(TeapotRenderComponent::Name));
     mComponentFactory.Register<GridRenderComponent>(
 		ActorComponent::GetIdFromName(GridRenderComponent::Name));
     mComponentFactory.Register<ParticleSystemRenderComponent>(

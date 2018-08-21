@@ -495,11 +495,6 @@ void GameLogic::RequestDestroyActorDelegate(BaseEventDataPtr pEventData)
     DestroyActor(pCastEventData->GetActorId());
 }
 
-
-// [mrmike] -	These were moved here after the chapter for GameLogic was written. 
-//				These were originally in TeapotWarsLogic class, but should really be 
-//				in the BaseLogic class.
-
 void GameLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 {
     eastl::shared_ptr<EventDataMoveActor> pCastEventData = 

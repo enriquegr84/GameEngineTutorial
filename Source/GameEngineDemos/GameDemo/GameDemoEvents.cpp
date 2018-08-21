@@ -39,10 +39,6 @@
 #include "GameDemoStd.h"
 #include "GameDemoEvents.h"
 
-
-// Note: these are game specific events, which really should be in TeapotEvents.cpp.
-// They aren't because of an annoying dependancy in Network.cpp, which creates events
-// from a bitstream. Once we get "real" streaming code in we can move these back to TeapotEvents.cpp.
 const BaseEventType EventDataFireWeapon::skEventType(0x1b15b6a7);
 const BaseEventType EventDataStartThrust::skEventType(0x1d62d48c);
 const BaseEventType EventDataEndThrust::skEventType(0xe60f88a4);

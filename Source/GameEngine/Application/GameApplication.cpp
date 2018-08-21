@@ -689,7 +689,7 @@ void GameApplication::CreateNetworkEventForwarder(void)
 {
     if (mNetworkEventForwarder != NULL)
     {
-        LogError("Overwriting network event forwarder in TeapotWarsApp!");
+        LogError("Overwriting network event forwarder in App!");
         //delete mNetworkEventForwarder;
     }
 

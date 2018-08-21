@@ -12,7 +12,7 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-LightNode::LightNode(const ActorId actorId, PVWUpdater& updater,
+LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
 	WeakBaseRenderComponentPtr renderComponent, eastl::array<float, 4> color, float radius)
 	:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true), mLightData(true, true)
 {

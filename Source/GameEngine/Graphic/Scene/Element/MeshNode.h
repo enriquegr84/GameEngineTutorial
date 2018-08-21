@@ -14,7 +14,7 @@ class MeshNode : public Node
 public:
 
 	//! constructor
-	MeshNode(const ActorId actorId, PVWUpdater& updater, 
+	MeshNode(const ActorId actorId, PVWUpdater* updater, 
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh);
 
 	//! destructor

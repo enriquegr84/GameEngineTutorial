@@ -9,7 +9,7 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-SphereNode::SphereNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
+SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
 		float radius, unsigned int polyCountX, unsigned int polyCountY)
 :	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mShadow(0),
 	mRadius(radius), mPolyCountX(polyCountX), mPolyCountY(polyCountY)
@@ -31,10 +31,10 @@ SphereNode::SphereNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRende
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
 	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
-		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, eastl::make_shared<Material>(), 
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, eastl::make_shared<Material>(), 
 		eastl::make_shared<Lighting>());
 	mVisual->SetEffect(effect);
-	mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 
 

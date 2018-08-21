@@ -14,7 +14,7 @@ class GRAPHIC_ITEM VolumeLightNode : public Node
 public:
 
 	//! constructor
-	VolumeLightNode(const ActorId actorId, PVWUpdater& updater, 
+	VolumeLightNode(const ActorId actorId, PVWUpdater* updater, 
 		WeakBaseRenderComponentPtr renderComponent,
 		const unsigned int subdivU = 32, const unsigned int subdivV = 32,
 		const eastl::array<float, 4> foot = eastl::array<float, 4>{51.f, 0.f, 230.f, 180.f},

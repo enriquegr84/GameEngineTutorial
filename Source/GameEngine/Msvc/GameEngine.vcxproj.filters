@@ -232,6 +232,9 @@
     <Filter Include="Assets\Effects">
       <UniqueIdentifier>{efebbfd2-1941-4511-b855-10189eba7c72}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Actors">
+      <UniqueIdentifier>{70ad2638-c795-4c06-b5c5-23b86c1cbd29}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -2540,5 +2543,31 @@
     <FxCompile Include="..\..\..\Assets\Effects\VertexColorEffect.hlsl">
       <Filter>Assets\Effects</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\..\Assets\Actors\afternoon_sky.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Actors\ai_player.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Actors\grid.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Actors\light.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Actors\music.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Actors\player.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Actors\remote_player.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Actors\sphere.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

@@ -491,7 +491,6 @@ void HumanView::PlaySoundDelegate(BaseEventDataPtr pEventData)
     eastl::shared_ptr<EventDataPlaySound> pCastEventData = 
 		eastl::static_pointer_cast<EventDataPlaySound>(pEventData);
 	/*
-    // play the sound a bullet makes when it hits a teapot
 	ResCache* resCache = ResCache::Get();
     BaseResource resource(pCastEventData->GetResource().c_str());
     eastl::shared_ptr<ResHandle> srh = 

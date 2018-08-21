@@ -26,7 +26,7 @@ RootNode::RootNode()
 //
 // RootNode::RootNode					- Chapter 16, page 545
 //
-RootNode::RootNode(const ActorId actorId, PVWUpdater& updater, 
+RootNode::RootNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent)
 	: Node(actorId, renderComponent, RP_NONE, NT_ROOT)
 {

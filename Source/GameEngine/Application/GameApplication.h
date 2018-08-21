@@ -63,7 +63,6 @@ public:
 
 	// Game Application Data
 	// You must define these in an inherited
-	// class - see TeapotWarsApp for an example
 	virtual eastl::wstring GetGameTitle() = 0;
 	virtual eastl::wstring GetGameAppDirectory() = 0;
 

@@ -15,7 +15,7 @@ class LightNode : public Node
 public:	
 
 	//! Constructor
-	LightNode(const ActorId actorId, PVWUpdater& updater, 
+	LightNode(const ActorId actorId, PVWUpdater* updater, 
 		WeakBaseRenderComponentPtr renderComponent, eastl::array<float, 4> color, float radius);
 
 	//! Renders event

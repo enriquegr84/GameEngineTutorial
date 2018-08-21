@@ -47,7 +47,7 @@ class AnimatedMeshNode : public Node
 public:
 
 	//! Constructor
-	AnimatedMeshNode(const ActorId actorId, PVWUpdater& updater,
+	AnimatedMeshNode(const ActorId actorId, PVWUpdater* updater,
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseAnimatedMesh>& aMesh);
 
 	//! Destructor

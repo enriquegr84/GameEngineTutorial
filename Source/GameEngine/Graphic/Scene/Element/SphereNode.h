@@ -14,7 +14,7 @@ class SphereNode : public Node
 public:
 
 	//! constructor
-	SphereNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
+	SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
 		float radius, unsigned int polyCountX, unsigned int polyCountY);
 
 	~SphereNode();

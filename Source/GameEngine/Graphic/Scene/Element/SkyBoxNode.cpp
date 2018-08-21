@@ -13,7 +13,7 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
+SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
 	const eastl::shared_ptr<Texture2>& top, const eastl::shared_ptr<Texture2>& bottom, const eastl::shared_ptr<Texture2>& left,
 	const eastl::shared_ptr<Texture2>& right, const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back)
 :	Node(actorId, renderComponent, RP_SKY_BOX, NT_SKY_BOX)
@@ -68,7 +68,7 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRende
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, mat, eastl::make_shared<Lighting>(),
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mat, eastl::make_shared<Lighting>(),
 		eastl::make_shared<LightCameraGeometry>(), tex, SamplerState::MIN_L_MAG_L_MIP_L,
 		SamplerState::WRAP, SamplerState::WRAP);
 
@@ -213,7 +213,7 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRende
 
 	mVisual = eastl::make_shared<Visual>(vertices, indices, effect);
 	mVisual->SetEffect(effect);
-	mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 
 //! pre render method

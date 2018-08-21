@@ -14,7 +14,7 @@ class CubeNode : public Node
 public:
 
 	//! constructor
-	CubeNode(const ActorId actorId, PVWUpdater& updater, 
+	CubeNode(const ActorId actorId, PVWUpdater* updater, 
 		WeakBaseRenderComponentPtr renderComponent, float size);
 
 	~CubeNode();

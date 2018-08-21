@@ -46,8 +46,6 @@
 
 //---------------------------------------------------------------------------------------------------------------------
 // class EventDataFireWeapon
-// Nasty game dependent events here. We'll move this back into game specific TeapotEvents.h when real streaming code 
-// gets written so Network.cpp doesn't have to know about all events.
 //---------------------------------------------------------------------------------------------------------------------
 class EventDataFireWeapon : public EventData
 {

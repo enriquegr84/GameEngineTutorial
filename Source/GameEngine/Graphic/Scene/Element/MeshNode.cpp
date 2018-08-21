@@ -11,7 +11,7 @@
 
 
 //! constructor
-MeshNode::MeshNode(const ActorId actorId, PVWUpdater& updater, 
+MeshNode::MeshNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh)
 :	Node(actorId, renderComponent, RP_NONE, NT_MESH), mMesh(0), mShadow(0), mPassCount(0)
 {
@@ -46,12 +46,12 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 
 			eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 			eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-				ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, meshBuffer->GetMaterial(), eastl::make_shared<Lighting>(),
+				ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, meshBuffer->GetMaterial(), eastl::make_shared<Lighting>(),
 				eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
 				SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 			visual->SetEffect(effect);
 			mVisuals.push_back(visual);
-			mPVWUpdater.Subscribe(visual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+			mPVWUpdater->Subscribe(visual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 		}
 	}
 }

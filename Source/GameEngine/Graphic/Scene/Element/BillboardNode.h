@@ -18,7 +18,7 @@ public:
     // The model space of the billboard has an up vector of (0,1,0) that is
     // chosen to be the billboard's axis of rotation.
 	//! Constructor
-	BillboardNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent, 
+	BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
 		const Vector2<float>& size,
 		eastl::array<float, 4> const colorTop = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f},
 		eastl::array<float, 4> const colorBottom = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});

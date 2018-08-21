@@ -72,7 +72,7 @@ protected:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
-// Spheres, which Teapot Wars uses as projectiles.
+// Spheres
 //---------------------------------------------------------------------------------------------------------------------
 class SphereRenderComponent : public BaseRenderComponent
 {
@@ -93,23 +93,6 @@ protected:
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
-//---------------------------------------------------------------------------------------------------------------------
-// Teapots, which are the main characters in the game.  DirectX actually has a function that generates a teapot Mesh
-// so we might as well use it.  We're game programmers, not artists.  ;)
-//---------------------------------------------------------------------------------------------------------------------
-class TeapotRenderComponent : public BaseRenderComponent
-{
-public:
-	static const char *Name;
-	virtual const char *GetName() const { return Name; }
-
-protected:
-	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
-
-    // editor stuff
-    virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
-};
-
 
 //---------------------------------------------------------------------------------------------------------------------
 // Grids, which represent the world
@@ -117,7 +100,8 @@ protected:
 class GridRenderComponent : public BaseRenderComponent
 {
     eastl::string mTextureResource;
-    int mSquares;
+    Vector2<int> mSegments;
+	Vector2<float> mExtent;
 
 public:
 	static const char *Name;
@@ -125,7 +109,8 @@ public:
 
     GridRenderComponent(void);
 	const char* GetTextureResource() { return mTextureResource.c_str(); }
-	const int GetDivision() { return mSquares; }
+	const Vector2<int> GetSegments() { return mSegments; }
+	const Vector2<float> GetExtent() { return mExtent; }
 
 protected:
     virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;

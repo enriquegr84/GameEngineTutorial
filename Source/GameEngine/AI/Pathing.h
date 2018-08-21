@@ -188,8 +188,7 @@ private:
 //--------------------------------------------------------------------------------------------------------
 // class PathingGraph					- Chapter 18, 636
 // This class is the main interface into the pathing system.  It holds the pathing graph itself and owns
-// all the PathingNode and Pathing Arc objects.  There is only one instance of PathingGraph, which lives
-// in TeapotWarsLogic.
+// all the PathingNode and Pathing Arc objects.
 //--------------------------------------------------------------------------------------------------------
 class PathingGraph
 {

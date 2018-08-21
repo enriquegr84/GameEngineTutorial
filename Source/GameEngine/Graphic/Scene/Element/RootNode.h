@@ -13,7 +13,7 @@ public:
 
 	//! constructor
 	RootNode();
-	RootNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent);
+	RootNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent);
 
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);

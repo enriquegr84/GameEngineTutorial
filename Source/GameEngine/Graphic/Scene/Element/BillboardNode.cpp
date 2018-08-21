@@ -16,7 +16,7 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
+BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
 	const Vector2<float>& size, eastl::array<float, 4> colorTop, eastl::array<float, 4> colorBottom)
 	: Node(actorId, renderComponent, RP_TRANSPARENT, NT_BILLBOARD)
 {
@@ -33,7 +33,7 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater& updater, WeakBas
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
 	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
-		ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, eastl::make_shared<Material>(),
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, eastl::make_shared<Material>(),
 		eastl::make_shared<Lighting>());
 
 	SetSize(size);
@@ -59,7 +59,7 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater& updater, WeakBas
 	vertex[3].color = colorBottom;
 
 	mVisual = eastl::make_shared<Visual>(vertices, indices, effect);
-	mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 
 void BillboardNode::UpdateWorldData(double applicationTime)
@@ -71,12 +71,12 @@ void BillboardNode::UpdateWorldData(double applicationTime)
     // aligned with the camera.
     Spatial::UpdateWorldData(applicationTime);
 
-    if (mPVWUpdater.GetCamera())
+    if (mPVWUpdater->GetCamera())
     {
         // Inverse-transform the camera to the model space of the billboard.
         Matrix4x4<float> const& inverse = mWorldTransform.GetHInverse();
 #if defined(GE_USE_MAT_VEC)
-        Vector4<float> modelPos = inverse * mPVWUpdater.GetCamera()->GetPosition();
+        Vector4<float> modelPos = inverse * mPVWUpdater->GetCamera()->GetPosition();
 #else
         Vector4<float> modelPos = mPVWUpdater.GetCamera()->GetPosition() * inverse;
 #endif

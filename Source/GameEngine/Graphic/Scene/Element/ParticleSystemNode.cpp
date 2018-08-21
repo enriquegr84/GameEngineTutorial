@@ -16,7 +16,7 @@
 //#include "Utilities/ViewFrustum.h"
 
 //! constructor
-ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater& updater,
+ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* updater,
 	WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter)
 :	Node(actorId, renderComponent, RP_TRANSPARENT, NT_PARTICLE_SYSTEM),
 	mEmitter(0), mParticleSize(Vector2<float>{5.f, 5.f}), mLastEmitTime(0),
@@ -31,11 +31,11 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater& update
 
 		eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 		eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-			ProgramFactory::Get(), mPVWUpdater.GetUpdater(), path, buffer->GetMaterial(), eastl::make_shared<Lighting>(),
+			ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, buffer->GetMaterial(), eastl::make_shared<Lighting>(),
 			eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
 			SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 		mVisual->SetEffect(effect);
-		mPVWUpdater.Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+		mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 	}
 
 	if (createDefaultEmitter)

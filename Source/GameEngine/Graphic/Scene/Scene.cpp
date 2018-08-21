@@ -269,7 +269,7 @@ or structuring the scene graph. */
 eastl::shared_ptr<Node> Scene::AddEmptyNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id)
 {
-	eastl::shared_ptr<Node> node(new EmptyNode(id, mPVWUpdater, renderComponent));
+	eastl::shared_ptr<Node> node(new EmptyNode(id, &mPVWUpdater, renderComponent));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -285,7 +285,7 @@ eastl::shared_ptr<Node> Scene::AddRectangleNode(
 	const eastl::shared_ptr<Texture2>& texture, float xSize, float ySize, int xPolyCount, int yPolyCount, int id)
 {
 	eastl::shared_ptr<Node> node(new RectangleNode(
-		id, mPVWUpdater, renderComponent, texture, xSize, ySize, xPolyCount, yPolyCount));
+		id, &mPVWUpdater, renderComponent, texture, xSize, ySize, xPolyCount, yPolyCount));
 	if (!parent)
 		AddSceneNode(id, node);
 	else
@@ -300,7 +300,7 @@ eastl::shared_ptr<Node> Scene::AddCubeNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
 	float size, int id)
 {
-	eastl::shared_ptr<Node> node(new CubeNode(id, mPVWUpdater, renderComponent, size));
+	eastl::shared_ptr<Node> node(new CubeNode(id, &mPVWUpdater, renderComponent, size));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -316,7 +316,7 @@ eastl::shared_ptr<Node> Scene::AddSphereNode(
 	float radius, int polyCount, int id)
 {
 	eastl::shared_ptr<Node> node(
-		new SphereNode(id, mPVWUpdater, renderComponent, radius, polyCount, polyCount));
+		new SphereNode(id, &mPVWUpdater, renderComponent, radius, polyCount, polyCount));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -333,7 +333,7 @@ eastl::shared_ptr<Node> Scene::AddVolumeLightNode(
 	eastl::array<float, 4> const tail)
 {
 	eastl::shared_ptr<Node> node(
-		new VolumeLightNode(id, mPVWUpdater, renderComponent, subdivU, subdivV, foot, tail));
+		new VolumeLightNode(id, &mPVWUpdater, renderComponent, subdivU, subdivV, foot, tail));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -369,7 +369,7 @@ eastl::shared_ptr<Node> Scene::AddBillboardNode(
 {
 
 	eastl::shared_ptr<Node> node(
-		new BillboardNode(id, mPVWUpdater, renderComponent, size, colorTop, colorBottom));
+		new BillboardNode(id, &mPVWUpdater, renderComponent, size, colorTop, colorBottom));
 	node->GetAbsoluteTransform().SetTranslation(position);
 
 	if (!parent) 
@@ -385,7 +385,7 @@ eastl::shared_ptr<Node> Scene::AddParticleSystemNode(
 	int id, bool withDefaultEmitter)
 {
 	eastl::shared_ptr<Node> node(
-		new ParticleSystemNode(id, mPVWUpdater, renderComponent, withDefaultEmitter));
+		new ParticleSystemNode(id, &mPVWUpdater, renderComponent, withDefaultEmitter));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -405,7 +405,7 @@ eastl::shared_ptr<Node> Scene::AddSkyBoxNode(
 {
 
 	eastl::shared_ptr<Node> node(
-		new SkyBoxNode(id, mPVWUpdater, renderComponent, top, bottom, left, right, front, back));
+		new SkyBoxNode(id, &mPVWUpdater, renderComponent, top, bottom, left, right, front, back));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -424,7 +424,7 @@ eastl::shared_ptr<Node> Scene::AddMeshNode(
 	if (!alsoAddIfMeshPointerZero && !mesh)
 		return nullptr;
 
-	eastl::shared_ptr<Node> node(new MeshNode(id, mPVWUpdater, renderComponent, mesh));
+	eastl::shared_ptr<Node> node(new MeshNode(id, &mPVWUpdater, renderComponent, mesh));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -444,7 +444,7 @@ eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
 		return nullptr;
 
 	eastl::shared_ptr<Node> node(
-		new AnimatedMeshNode(id, mPVWUpdater, renderComponent, mesh));
+		new AnimatedMeshNode(id, &mPVWUpdater, renderComponent, mesh));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -462,7 +462,7 @@ eastl::shared_ptr<Node> Scene::AddLightNode(
 	eastl::array<float, 4> const color, float radius)
 {
 	eastl::shared_ptr<Node> node(
-		new LightNode(INVALID_ACTOR_ID, mPVWUpdater, renderComponent, color, radius));
+		new LightNode(INVALID_ACTOR_ID, &mPVWUpdater, renderComponent, color, radius));
 
 	if (!parent) 
 		AddSceneNode(INVALID_ACTOR_ID, node);

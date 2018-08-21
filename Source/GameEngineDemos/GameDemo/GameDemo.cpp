@@ -113,7 +113,7 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 			// spawn all AI's views on the game
 			for (int i = 0; i < mExpectedAI; ++i)
 			{
-				eastl::shared_ptr<BaseGameView> aiView(new AITeapotView(eastl::shared_ptr<PathingGraph>()));
+				eastl::shared_ptr<BaseGameView> aiView(new AIPlayerView(eastl::shared_ptr<PathingGraph>()));
 				gameApp->AddView(aiView);
 			}
 
@@ -134,7 +134,7 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 				eastl::shared_ptr<BaseGameView> pView = *it;
 				if (pView->GetType() == GV_HUMAN)
 				{
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\player_teapot.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\player.xml", NULL);
 					if (pActor)
 					{
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
@@ -150,7 +150,7 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 				{
 					eastl::shared_ptr<NetworkGameView> pNetworkGameView =
 						eastl::static_pointer_cast<NetworkGameView, BaseGameView>(pView);
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\remote_teapot.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\remote_player.xml", NULL);
 					if (pActor)
 					{
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
@@ -160,9 +160,9 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 				}
 				else if (pView->GetType() == GV_AI)
 				{
-					eastl::shared_ptr<AITeapotView> pAiView = 
-						eastl::static_pointer_cast<AITeapotView, BaseGameView>(pView);
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\ai_teapot.xml", NULL);
+					eastl::shared_ptr<AIPlayerView> pAiView = 
+						eastl::static_pointer_cast<AIPlayerView, BaseGameView>(pView);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\ai_player.xml", NULL);
 					if (pActor)
 					{
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
@@ -359,7 +359,6 @@ void GameDemoLogic::RegisterAllDelegates(void)
 		MakeDelegate(this, &GameDemoLogic::EnvironmentLoadedDelegate), 
 		EventDataRemoteEnvironmentLoaded::skEventType);
 
-	// FUTURE WORK: Only these belong in Demos.
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &GameDemoLogic::StartThrustDelegate), 
 		EventDataStartThrust::skEventType);
@@ -403,7 +402,6 @@ void GameDemoLogic::RemoveAllDelegates(void)
 			EventDataRequestNewActor::skEventType);
 	}
 
-	// FUTURE WORK: These belong in teapot wars!
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &GameDemoLogic::StartThrustDelegate), 
 		EventDataStartThrust::skEventType);

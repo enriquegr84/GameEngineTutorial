@@ -474,7 +474,7 @@ protected:
 	NodeType mType;
 	Material mMaterial;
 	RenderPass mRenderPass;
-	PVWUpdater mPVWUpdater;
+	PVWUpdater* mPVWUpdater;
 
 	SceneNodeList mChildren;
 	SceneNodeAnimatorList mAnimators;

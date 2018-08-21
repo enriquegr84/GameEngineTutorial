@@ -13,7 +13,7 @@ class SkyBoxNode : public Node
 public:
 
 	//! constructor
-	SkyBoxNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRenderComponentPtr renderComponent,
+	SkyBoxNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
 		const eastl::shared_ptr<Texture2>& top, const eastl::shared_ptr<Texture2>& bottom, 
 		const eastl::shared_ptr<Texture2>& left, const eastl::shared_ptr<Texture2>& right, 
 		const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back);

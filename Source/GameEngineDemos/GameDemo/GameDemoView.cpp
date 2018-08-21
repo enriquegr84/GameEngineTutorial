@@ -150,8 +150,8 @@ bool MainMenuUI::OnInit()
 	screenRectangle.mExtent[1] = (int)screenSize[1];
 
 	eastl::shared_ptr<BaseUIWindow> window = AddWindow(
-		screenRectangle, false, L"Teapot Wars", 0, CID_DEMO_WINDOW);
-	window->GetCloseButton()->SetToolTipText(L"Quit Teapot Wars");
+		screenRectangle, false, L"Demo Wars", 0, CID_DEMO_WINDOW);
+	window->GetCloseButton()->SetToolTipText(L"Quit Demo Wars");
 
 	// add a options line
 	RectangleShape<2, int> playerOptionsRectangle;
@@ -509,7 +509,7 @@ bool MainMenuUI::OnRender(double time, float elapsedTime)
     //    PrintRenderStats();
 	/*
 	HRESULT hr;
-	DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"TeapotWarsHUD"); // These events are to help PIX identify what the code is doing
+	DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"DemoWarsHUD"); // These events are to help PIX identify what the code is doing
 	V(mSampleUI.OnRender(elapsedTime));
 	DXUT_EndPerfEvent();
 	return S_OK;
@@ -827,8 +827,8 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 					{
 						mKeyboardHandler = mGameDemoController;
 						mMouseHandler = mGameDemoController;
-						//mCamera->SetTarget(mTeapot);
-						//mTeapot->SetAlpha(0.8f);
+						//mCamera->SetTarget(mPlayer);
+						//mPlayer->SetAlpha(0.8f);
 						//ReleaseCapture();
 						return true;
 					}
@@ -838,7 +838,7 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 						//mKeyboardHandler = mFreeCameraController;
 						//mMouseHandler = mFreeCameraController;
 						//mCamera->ClearTarget();
-						//mTeapot->SetAlpha(fOPAQUE);
+						//mPlayer->SetAlpha(fOPAQUE);
 						//SetCapture((HWND)System::Get()->GetID());
 						return true;
 					}
@@ -914,20 +914,20 @@ bool GameDemoHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 
 void GameDemoHumanView::SetControlledActor(ActorId actorId)
 { 
-	mTeapot = mScene->GetSceneNode(actorId);
-    if (!mTeapot)
+	mPlayer = mScene->GetSceneNode(actorId);
+    if (!mPlayer)
     {
-        LogError("Invalid teapot");
+        LogError("Invalid player");
         return;
     }
 
 	HumanView::SetControlledActor(actorId);
 
-    mGameDemoController.reset(new GameDemoController(mTeapot));
+    mGameDemoController.reset(new GameDemoController(mPlayer));
     mKeyboardHandler = mGameDemoController;
     mMouseHandler = mGameDemoController;
-    //mCamera->SetTarget(mTeapot);
-    //mTeapot->SetAlpha(0.8f);
+    //mCamera->SetTarget(mPlayer);
+    //mPlayer->SetAlpha(0.8f);
 }
 
 void GameDemoHumanView::GameplayUiUpdateDelegate(BaseEventDataPtr pEventData)
@@ -978,18 +978,18 @@ void GameDemoHumanView::RemoveAllDelegates(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// AITeapotView::AITeapotView					- Chapter 19, page 737
+// AIPlayerView::AIPlayerView					- Chapter 19, page 737
 //
-AITeapotView::AITeapotView(eastl::shared_ptr<PathingGraph> pPathingGraph) 
+AIPlayerView::AIPlayerView(eastl::shared_ptr<PathingGraph> pPathingGraph) 
 	: BaseGameView(), mPathingGraph(pPathingGraph)
 {
     //
 }
 
 //
-// AITeapotView::~AITeapotView					- Chapter 19, page 737
+// AIPlayerView::~AIPlayerView					- Chapter 19, page 737
 //
-AITeapotView::~AITeapotView(void)
+AIPlayerView::~AIPlayerView(void)
 {
-    LogInformation("AI Destroying AITeapotView");
+    LogInformation("AI Destroying AIPlayerView");
 }

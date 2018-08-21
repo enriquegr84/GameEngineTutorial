@@ -1,4 +1,4 @@
-// DemoController.cpp - Controller class for the player teapots
+// DemoController.cpp - Controller class for the player 
 //
 // Part of the GameEngine Application
 //
@@ -72,7 +72,7 @@ bool GameDemoController::OnMouseButtonDown(const Vector2<int> &mousePos, const i
 	if (buttonName != "PointerLeft")
 		return false;
 	ActorId actorId = mObject->GetId();
-	LogAssert(actorId != INVALID_ACTOR_ID, "The teapot controller isn't attached to a valid actor!");
+	LogAssert(actorId != INVALID_ACTOR_ID, "The player controller isn't attached to a valid actor!");
     eastl::shared_ptr<EventDataFireWeapon> pFireEvent(new EventDataFireWeapon(actorId));
     BaseEventManager::Get()->QueueEvent(pFireEvent);
 	return true;
