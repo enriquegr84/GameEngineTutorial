@@ -65,18 +65,18 @@ public:
 
     // Member access.  The members are intended to be write-once before
     // you create an associated graphics state.
-    Filter filter;
-    Mode mode[3];
-    float mipLODBias;
-    unsigned int maxAnisotropy;
-    Comparison comparison;
-    Vector4<float> borderColor;
-    float minLOD;
-    float maxLOD;
+    Filter mFilter;
+    Mode mMode[3];
+    float mMipLODBias;
+    unsigned int mMaxAnisotropy;
+    Comparison mComparison;
+    Vector4<float> mBorderColor;
+    float mMinLOD;
+    float mMaxLOD;
 
 public:
     // For use by the Shader class for storing reflection information.
-    static int const shaderDataLookup = 6;
+    static int const mShaderDataLookup = 6;
 };
 
 #endif

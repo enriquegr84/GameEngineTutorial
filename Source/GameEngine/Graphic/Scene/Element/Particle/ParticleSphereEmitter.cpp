@@ -26,9 +26,7 @@ ParticleSphereEmitter::ParticleSphereEmitter(
 	mMinLifeTime(lifeTimeMin), mMaxLifeTime(lifeTimeMax),
 	mTime(0), mEmitted(0), mMaxAngleDegrees(maxAngleDegrees)
 {
-	#ifdef _DEBUG
-	//setDebugName("CParticleSphereEmitter");
-	#endif
+
 }
 
 //! Prepares an array with new particles to emitt into the system

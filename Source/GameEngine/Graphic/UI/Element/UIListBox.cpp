@@ -16,10 +16,6 @@ UIListBox::UIListBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle, bool 
 	mLastKeyTime(0), mSelecting(false), mDrawBack(drawBack), mMoveOverSelect(moveOverSelect), mAutoScroll(true), 
 	mHighlightWhenNotFocused(true)
 {
-	#ifdef _DEBUG
-	//setDebugName("UIListBox");
-	#endif
-
 	// Create a vertex buffer for a single triangle.
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);

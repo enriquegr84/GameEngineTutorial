@@ -50,112 +50,112 @@ Shader::Shader(GLSLReflection const& reflector, int type)
                 case GL_SAMPLER_1D:
                 case GL_INT_SAMPLER_1D:
                 case GL_UNSIGNED_INT_SAMPLER_1D:
-                    mData[TextureSingle::shaderDataLookup].push_back(
+                    mData[TextureSingle::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_SINGLE, uni.name, uni.location, 0, 1, false));
-                    mData[SamplerState::shaderDataLookup].push_back(
+                    mData[SamplerState::mShaderDataLookup].push_back(
                         Data(GE_SAMPLER_STATE, uni.name, uni.location, 0, GE_TEXTURE1, false));
                     break;
 
                 case GL_SAMPLER_2D:
                 case GL_INT_SAMPLER_2D:
                 case GL_UNSIGNED_INT_SAMPLER_2D:
-                    mData[TextureSingle::shaderDataLookup].push_back(
+                    mData[TextureSingle::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_SINGLE, uni.name, uni.location, 0, 2, false));
-                    mData[SamplerState::shaderDataLookup].push_back(
+                    mData[SamplerState::mShaderDataLookup].push_back(
                         Data(GE_SAMPLER_STATE, uni.name, uni.location, 0, GE_TEXTURE2, false));
                     break;
 
                 case GL_SAMPLER_3D:
                 case GL_INT_SAMPLER_3D:
                 case GL_UNSIGNED_INT_SAMPLER_3D:
-                    mData[TextureSingle::shaderDataLookup].push_back(
+                    mData[TextureSingle::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_SINGLE, uni.name, uni.location, 0, 3, false));
-                    mData[SamplerState::shaderDataLookup].push_back(
+                    mData[SamplerState::mShaderDataLookup].push_back(
                         Data(GE_SAMPLER_STATE, uni.name, uni.location, 0, GE_TEXTURE3, false));
                     break;
 
                 case GL_SAMPLER_1D_ARRAY:
                 case GL_INT_SAMPLER_1D_ARRAY:
                 case GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
-                    mData[TextureArray::shaderDataLookup].push_back(
+                    mData[TextureArray::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_ARRAY, uni.name, uni.location, 0, 1, false));
-                    mData[SamplerState::shaderDataLookup].push_back(
+                    mData[SamplerState::mShaderDataLookup].push_back(
                         Data(GE_SAMPLER_STATE, uni.name, uni.location, 0, GE_TEXTURE1_ARRAY, false));
                     break;
 
                 case GL_SAMPLER_2D_ARRAY:
                 case GL_INT_SAMPLER_2D_ARRAY:
                 case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
-                    mData[TextureArray::shaderDataLookup].push_back(
+                    mData[TextureArray::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_ARRAY, uni.name, uni.location, 0, 2, false));
-                    mData[SamplerState::shaderDataLookup].push_back(
+                    mData[SamplerState::mShaderDataLookup].push_back(
                         Data(GE_SAMPLER_STATE, uni.name, uni.location, 0, GE_TEXTURE2_ARRAY, false));
                     break;
 
                 case GL_SAMPLER_CUBE:
                 case GL_INT_SAMPLER_CUBE:
                 case GL_UNSIGNED_INT_SAMPLER_CUBE:
-                    mData[TextureArray::shaderDataLookup].push_back(
+                    mData[TextureArray::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_ARRAY, uni.name, uni.location, 0, 2, false));
-                    mData[SamplerState::shaderDataLookup].push_back(
+                    mData[SamplerState::mShaderDataLookup].push_back(
                         Data(GE_SAMPLER_STATE, uni.name, uni.location, 0, GE_TEXTURE_CUBE, false));
                     break;
 
                 case GL_SAMPLER_CUBE_MAP_ARRAY:
                 case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
                 case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
-                    mData[TextureArray::shaderDataLookup].push_back(
+                    mData[TextureArray::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_ARRAY, uni.name, uni.location, 0, 3, false));
-                    mData[SamplerState::shaderDataLookup].push_back(
+                    mData[SamplerState::mShaderDataLookup].push_back(
                         Data(GE_SAMPLER_STATE, uni.name, uni.location, 0, GE_TEXTURE_CUBE_ARRAY, false));
                     break;
 
                 case GL_IMAGE_1D:
                 case GL_INT_IMAGE_1D:
                 case GL_UNSIGNED_INT_IMAGE_1D:
-                    mData[TextureSingle::shaderDataLookup].push_back(
+                    mData[TextureSingle::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_SINGLE, uni.name, uni.location, 0, 1, true));
                     break;
 
                 case GL_IMAGE_2D:
                 case GL_INT_IMAGE_2D:
                 case GL_UNSIGNED_INT_IMAGE_2D:
-                    mData[TextureSingle::shaderDataLookup].push_back(
+                    mData[TextureSingle::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_SINGLE, uni.name, uni.location, 0, 2, true));
                     break;
 
                 case GL_IMAGE_3D:
                 case GL_INT_IMAGE_3D:
                 case GL_UNSIGNED_INT_IMAGE_3D:
-                    mData[TextureSingle::shaderDataLookup].push_back(
+                    mData[TextureSingle::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_SINGLE, uni.name, uni.location, 0, 3, true));
                     break;
 
                 case GL_IMAGE_1D_ARRAY:
                 case GL_INT_IMAGE_1D_ARRAY:
                 case GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
-                    mData[TextureArray::shaderDataLookup].push_back(
+                    mData[TextureArray::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_ARRAY, uni.name, uni.location, 0, 1, true));
                     break;
 
                 case GL_IMAGE_2D_ARRAY:
                 case GL_INT_IMAGE_2D_ARRAY:
                 case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
-                    mData[TextureArray::shaderDataLookup].push_back(
+                    mData[TextureArray::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_ARRAY, uni.name, uni.location, 0, 2, true));
                     break;
 
                 case GL_IMAGE_CUBE:
                 case GL_INT_IMAGE_CUBE:
                 case GL_UNSIGNED_INT_IMAGE_CUBE:
-                    mData[TextureArray::shaderDataLookup].push_back(
+                    mData[TextureArray::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_ARRAY, uni.name, uni.location, 0, 2, true));
                     break;
 
                 case GL_IMAGE_CUBE_MAP_ARRAY:
                 case GL_INT_IMAGE_CUBE_MAP_ARRAY:
                 case GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY:
-                    mData[TextureArray::shaderDataLookup].push_back(
+                    mData[TextureArray::mShaderDataLookup].push_back(
                         Data(GE_TEXTURE_ARRAY, uni.name, uni.location, 0, 3, true));
                     break;
             }
@@ -184,7 +184,7 @@ Shader::Shader(GLSLReflection const& reflector, int type)
         {
             if (block.referencedBy[type])
             {
-                mData[ConstantBuffer::shaderDataLookup].push_back(
+                mData[ConstantBuffer::mShaderDataLookup].push_back(
                     Data(GE_CONSTANT_BUFFER, block.name, block.bufferBinding,
                     block.bufferDataSize, 0, false));
 
@@ -339,7 +339,7 @@ Shader::Shader(GLSLReflection const& reflector, int type)
 
                 // Use the top level array stride as a better indication
                 // of the overall struct size.
-                mData[StructuredBuffer::shaderDataLookup].push_back(
+                mData[StructuredBuffer::mShaderDataLookup].push_back(
                     Data(GE_STRUCTURED_BUFFER, block.name, block.bufferBinding,
                     structSize, idAtomicCounter, hasAtomicCounter));
 
@@ -366,7 +366,7 @@ Shader::Shader(HLSLShader const& program)
 	int i = 0;
 	for (auto const& cb : program.GetCBuffers())
 	{
-		mData[ConstantBuffer::shaderDataLookup].push_back(
+		mData[ConstantBuffer::mShaderDataLookup].push_back(
 			Data(GE_CONSTANT_BUFFER, cb.GetName(), cb.GetBindPoint(), 
 			cb.GetNumBytes(), 0, false));
 
@@ -378,7 +378,7 @@ Shader::Shader(HLSLShader const& program)
 	i = 0;
 	for (auto const& tb : program.GetTBuffers())
 	{
-		mData[TextureBuffer::shaderDataLookup].push_back(
+		mData[TextureBuffer::mShaderDataLookup].push_back(
 			Data(GE_TEXTURE_BUFFER, tb.GetName(), tb.GetBindPoint(),
 			tb.GetNumBytes(), 0, false));
 
@@ -409,35 +409,35 @@ Shader::Shader(HLSLShader const& program)
 				eastl::to_string(static_cast<int>(sb.GetType())));
 		}
 
-		mData[StructuredBuffer::shaderDataLookup].push_back(
+		mData[StructuredBuffer::mShaderDataLookup].push_back(
 			Data(GE_STRUCTURED_BUFFER, sb.GetName(), sb.GetBindPoint(),
 			sb.GetNumBytes(), ctrtype, sb.IsGpuWritable()));
 	}
 
 	for (auto const& rb : program.GetRBuffers())
 	{
-		mData[RawBuffer::shaderDataLookup].push_back(
+		mData[RawBuffer::mShaderDataLookup].push_back(
 			Data(GE_RAW_BUFFER, rb.GetName(), rb.GetBindPoint(),
 			rb.GetNumBytes(), 0, rb.IsGpuWritable()));
 	}
 
 	for (auto const& tx : program.GetTextures())
 	{
-		mData[TextureSingle::shaderDataLookup].push_back(
+		mData[TextureSingle::mShaderDataLookup].push_back(
 			Data(GE_TEXTURE_SINGLE, tx.GetName(), tx.GetBindPoint(), 0,
 			tx.GetNumDimensions(), tx.IsGpuWritable()));
 	}
 
 	for (auto const& ta : program.GetTextureArrays())
 	{
-		mData[TextureArray::shaderDataLookup].push_back(
+		mData[TextureArray::mShaderDataLookup].push_back(
 			Data(GE_TEXTURE_ARRAY, ta.GetName(), ta.GetBindPoint(), 0,
 			ta.GetNumDimensions(), ta.IsGpuWritable()));
 	}
 
 	for (auto const& s : program.GetSamplerStates())
 	{
-		mData[SamplerState::shaderDataLookup].push_back(
+		mData[SamplerState::mShaderDataLookup].push_back(
 			Data(GE_SAMPLER_STATE, s.GetName(), s.GetBindPoint(), 0, 0, false));
 	}
 
@@ -467,7 +467,7 @@ int Shader::Get(eastl::string const& name) const
 
 unsigned int Shader::GetConstantBufferSize(int handle) const
 {
-    auto const& data = mData[ConstantBuffer::shaderDataLookup];
+    auto const& data = mData[ConstantBuffer::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         return data[handle].numBytes;
@@ -480,7 +480,7 @@ unsigned int Shader::GetConstantBufferSize(int handle) const
 unsigned int Shader::GetConstantBufferSize(eastl::string const& name) const
 {
     int handle = 0;
-    for (auto& data : mData[ConstantBuffer::shaderDataLookup])
+    for (auto& data : mData[ConstantBuffer::mShaderDataLookup])
     {
         if (name == data.name)
         {
@@ -495,7 +495,7 @@ unsigned int Shader::GetConstantBufferSize(eastl::string const& name) const
 
 unsigned int Shader::GetTextureBufferSize(int handle) const
 {
-    auto const& data = mData[TextureBuffer::shaderDataLookup];
+    auto const& data = mData[TextureBuffer::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         return data[handle].numBytes;
@@ -508,7 +508,7 @@ unsigned int Shader::GetTextureBufferSize(int handle) const
 unsigned int Shader::GetTextureBufferSize(eastl::string const& name) const
 {
     int handle = 0;
-    for (auto& data : mData[TextureBuffer::shaderDataLookup])
+    for (auto& data : mData[TextureBuffer::mShaderDataLookup])
     {
         if (name == data.name)
         {
@@ -523,7 +523,7 @@ unsigned int Shader::GetTextureBufferSize(eastl::string const& name) const
 
 unsigned int Shader::GetStructuredBufferSize(int handle) const
 {
-    auto const& data = mData[StructuredBuffer::shaderDataLookup];
+    auto const& data = mData[StructuredBuffer::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         return data[handle].numBytes;
@@ -536,7 +536,7 @@ unsigned int Shader::GetStructuredBufferSize(int handle) const
 unsigned int Shader::GetStructuredBufferSize(eastl::string const& name) const
 {
     int handle = 0;
-    for (auto& data : mData[StructuredBuffer::shaderDataLookup])
+    for (auto& data : mData[StructuredBuffer::mShaderDataLookup])
     {
         if (name == data.name)
         {
@@ -551,7 +551,7 @@ unsigned int Shader::GetStructuredBufferSize(eastl::string const& name) const
 
 bool Shader::GetConstantBufferLayout(int handle, BufferLayout& layout) const
 {
-    auto const& data = mData[ConstantBuffer::shaderDataLookup];
+    auto const& data = mData[ConstantBuffer::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         layout = mCBufferLayouts[handle];
@@ -565,7 +565,7 @@ bool Shader::GetConstantBufferLayout(int handle, BufferLayout& layout) const
 bool Shader::GetConstantBufferLayout(eastl::string const& name, BufferLayout& layout) const
 {
     int handle = 0;
-    for (auto& data : mData[ConstantBuffer::shaderDataLookup])
+    for (auto& data : mData[ConstantBuffer::mShaderDataLookup])
     {
         if (name == data.name)
         {
@@ -581,7 +581,7 @@ bool Shader::GetConstantBufferLayout(eastl::string const& name, BufferLayout& la
 
 bool Shader::GetTextureBufferLayout(int handle, BufferLayout& layout) const
 {
-    auto const& data = mData[TextureBuffer::shaderDataLookup];
+    auto const& data = mData[TextureBuffer::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         layout = mTBufferLayouts[handle];
@@ -595,7 +595,7 @@ bool Shader::GetTextureBufferLayout(int handle, BufferLayout& layout) const
 bool Shader::GetTextureBufferLayout(eastl::string const& name, BufferLayout& layout) const
 {
     int handle = 0;
-    for (auto& data : mData[TextureBuffer::shaderDataLookup])
+    for (auto& data : mData[TextureBuffer::mShaderDataLookup])
     {
         if (name == data.name)
         {
@@ -612,7 +612,7 @@ bool Shader::GetTextureBufferLayout(eastl::string const& name, BufferLayout& lay
 #if defined(_OPENGL_)
 bool Shader::GetStructuredBufferLayout(int handle, BufferLayout& layout) const
 {
-    auto const& data = mData[StructuredBuffer::shaderDataLookup];
+    auto const& data = mData[StructuredBuffer::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         layout = mSBufferLayouts[handle];
@@ -626,7 +626,7 @@ bool Shader::GetStructuredBufferLayout(int handle, BufferLayout& layout) const
 bool Shader::GetStructuredBufferLayout(eastl::string const& name, BufferLayout& layout) const
 {
     int handle = 0;
-    for (auto& data : mData[StructuredBuffer::shaderDataLookup])
+    for (auto& data : mData[StructuredBuffer::mShaderDataLookup])
     {
         if (name == data.name)
         {

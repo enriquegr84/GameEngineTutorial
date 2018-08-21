@@ -11,9 +11,6 @@
 
 UISpriteBank::UISpriteBank(BaseUI* ui) : mUI(ui)
 {
-	#ifdef _DEBUG
-	//setDebugName("UISpriteBank");
-	#endif
 
 }
 

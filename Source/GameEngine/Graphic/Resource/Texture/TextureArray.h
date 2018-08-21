@@ -29,7 +29,7 @@ public:
 
 public:
     // For use by the Shader class for storing reflection information.
-    static int const shaderDataLookup = 5;
+    static int const mShaderDataLookup = 5;
 
     // Used as face index in TextureCube and TextureCubeArray.
     static const unsigned int CubeFacePositiveX = 0;

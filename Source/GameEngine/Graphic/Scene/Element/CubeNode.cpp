@@ -28,9 +28,6 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater& updater,
 	WeakBaseRenderComponentPtr renderComponent, float size)
 	:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mSize(size), mShadow(0)
 {
-	#ifdef _DEBUG
-	//setDebugName("CubeSceneNode");
-	#endif
 	mPVWUpdater = updater;
 	SetSize();
 }

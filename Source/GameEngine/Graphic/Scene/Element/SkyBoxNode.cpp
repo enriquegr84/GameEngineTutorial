@@ -18,9 +18,6 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRende
 	const eastl::shared_ptr<Texture2>& right, const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back)
 :	Node(actorId, renderComponent, RP_SKY_BOX, NT_SKY_BOX)
 {
-	#ifdef _DEBUG
-	//setDebugName("SkyBoxSceneNode");
-	#endif
 	mPVWUpdater = updater;
 
 	//SetAutomaticCulling(AC_OFF);

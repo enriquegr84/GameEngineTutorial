@@ -158,6 +158,10 @@ void Dx11Renderer::Initialize(D3D_DRIVER_TYPE driverType,
 	mDriverType = driverType;
 	mSoftwareModule = softwareModule;
 	mFlags = flags;
+	#if defined(_DEBUG)
+		// If the project is in a debug build, enable the debug layer.
+		mFlags |= D3D11_CREATE_DEVICE_DEBUG;
+	#endif
 	mMinFeatureLevel = minFeatureLevel;
 	mDevice = nullptr;
 	mDeviceContext = nullptr;
@@ -738,10 +742,12 @@ void Dx11Renderer::Enable(Shader const* shader, DX11Shader* dxShader)
 	EnableRBuffers(shader, dxShader);
 	EnableTextures(shader, dxShader);
 	EnableTextureArrays(shader, dxShader);
+	EnableSamplers(shader, dxShader);
 }
 
 void Dx11Renderer::Disable(Shader const* shader, DX11Shader* dxShader)
 {
+	DisableSamplers(shader, dxShader);
 	DisableTextureArrays(shader, dxShader);
 	DisableTextures(shader, dxShader);
 	DisableRBuffers(shader, dxShader);
@@ -753,7 +759,7 @@ void Dx11Renderer::Disable(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::EnableCBuffers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = ConstantBuffer::shaderDataLookup;
+	int const index = ConstantBuffer::mShaderDataLookup;
 	for (auto const& cb : shader->GetData(index))
 	{
 		if (cb.object)
@@ -777,7 +783,7 @@ void Dx11Renderer::EnableCBuffers(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::DisableCBuffers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = ConstantBuffer::shaderDataLookup;
+	int const index = ConstantBuffer::mShaderDataLookup;
 	for (auto const& cb : shader->GetData(index))
 	{
 		dxShader->DisableCBuffer(mDeviceContext, cb.bindPoint);
@@ -786,7 +792,7 @@ void Dx11Renderer::DisableCBuffers(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::EnableTBuffers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = TextureBuffer::shaderDataLookup;
+	int const index = TextureBuffer::mShaderDataLookup;
 	for (auto const& tb : shader->GetData(index))
 	{
 		if (tb.object)
@@ -810,7 +816,7 @@ void Dx11Renderer::EnableTBuffers(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::DisableTBuffers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = TextureBuffer::shaderDataLookup;
+	int const index = TextureBuffer::mShaderDataLookup;
 	for (auto const& tb : shader->GetData(index))
 	{
 		dxShader->DisableSRView(mDeviceContext, tb.bindPoint);
@@ -819,7 +825,7 @@ void Dx11Renderer::DisableTBuffers(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::EnableSBuffers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = StructuredBuffer::shaderDataLookup;
+	int const index = StructuredBuffer::mShaderDataLookup;
 	for (auto const& sb : shader->GetData(index))
 	{
 		if (sb.object)
@@ -854,7 +860,7 @@ void Dx11Renderer::EnableSBuffers(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::DisableSBuffers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = StructuredBuffer::shaderDataLookup;
+	int const index = StructuredBuffer::mShaderDataLookup;
 	for (auto const& sb : shader->GetData(index))
 	{
 		if (sb.isGpuWritable)
@@ -870,7 +876,7 @@ void Dx11Renderer::DisableSBuffers(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::EnableRBuffers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = RawBuffer::shaderDataLookup;
+	int const index = RawBuffer::mShaderDataLookup;
 	for (auto const& rb : shader->GetData(index))
 	{
 		if (rb.object)
@@ -901,7 +907,7 @@ void Dx11Renderer::EnableRBuffers(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::DisableRBuffers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = RawBuffer::shaderDataLookup;
+	int const index = RawBuffer::mShaderDataLookup;
 	for (auto const& rb : shader->GetData(index))
 	{
 		if (rb.isGpuWritable)
@@ -917,7 +923,7 @@ void Dx11Renderer::DisableRBuffers(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::EnableTextures(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = TextureSingle::shaderDataLookup;
+	int const index = TextureSingle::mShaderDataLookup;
 	for (auto const& tx : shader->GetData(index))
 	{
 		if (tx.object)
@@ -948,7 +954,7 @@ void Dx11Renderer::EnableTextures(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::DisableTextures(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = TextureSingle::shaderDataLookup;
+	int const index = TextureSingle::mShaderDataLookup;
 	for (auto const& tx : shader->GetData(index))
 	{
 		if (tx.isGpuWritable)
@@ -964,7 +970,7 @@ void Dx11Renderer::DisableTextures(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::EnableTextureArrays(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = TextureArray::shaderDataLookup;
+	int const index = TextureArray::mShaderDataLookup;
 	for (auto const& ta : shader->GetData(index))
 	{
 		if (ta.object)
@@ -996,7 +1002,7 @@ void Dx11Renderer::EnableTextureArrays(Shader const* shader, DX11Shader* dxShade
 void Dx11Renderer::DisableTextureArrays(Shader const* shader,
 	DX11Shader* dxShader)
 {
-	int const index = TextureArray::shaderDataLookup;
+	int const index = TextureArray::mShaderDataLookup;
 	for (auto const& ta : shader->GetData(index))
 	{
 		if (ta.isGpuWritable)
@@ -1012,7 +1018,7 @@ void Dx11Renderer::DisableTextureArrays(Shader const* shader,
 
 void Dx11Renderer::EnableSamplers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = SamplerState::shaderDataLookup;
+	int const index = SamplerState::mShaderDataLookup;
 	for (auto const& ss : shader->GetData(index))
 	{
 		if (ss.object)
@@ -1036,7 +1042,7 @@ void Dx11Renderer::EnableSamplers(Shader const* shader, DX11Shader* dxShader)
 
 void Dx11Renderer::DisableSamplers(Shader const* shader, DX11Shader* dxShader)
 {
-	int const index = SamplerState::shaderDataLookup;
+	int const index = SamplerState::mShaderDataLookup;
 	for (auto const& ss : shader->GetData(index))
 	{
 		dxShader->DisableSampler(mDeviceContext, ss.bindPoint);

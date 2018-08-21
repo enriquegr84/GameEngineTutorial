@@ -15,9 +15,6 @@ MeshNode::MeshNode(const ActorId actorId, PVWUpdater& updater,
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh)
 :	Node(actorId, renderComponent, RP_NONE, NT_MESH), mMesh(0), mShadow(0), mPassCount(0)
 {
-	#ifdef _DEBUG
-	//setDebugName("CMeshSceneNode");
-	#endif
 	mPVWUpdater = updater;
 	SetMesh(mesh);
 }

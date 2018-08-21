@@ -22,9 +22,6 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater& update
 	mEmitter(0), mParticleSize(Vector2<float>{5.f, 5.f}), mLastEmitTime(0),
 	mMaxParticles(0xffff), mParticlesAreGlobal(true)
 {
-	#ifdef _DEBUG
-	//setDebugName("CParticleSystemSceneNode");
-	#endif
 	mPVWUpdater = updater;
 	eastl::shared_ptr<MeshBuffer> buffer = eastl::make_shared<MeshBuffer>(1,1,1,1);
 	if (buffer)

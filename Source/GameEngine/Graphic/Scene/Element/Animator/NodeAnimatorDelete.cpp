@@ -12,9 +12,7 @@
 NodeAnimatorDelete::NodeAnimatorDelete(unsigned int time)
 : mFinishTime(time), mHasFinished(false)
 {
-	#ifdef _DEBUG
-	//setDebugName("CSceneNodeAnimatorDelete");
-	#endif
+
 }
 
 

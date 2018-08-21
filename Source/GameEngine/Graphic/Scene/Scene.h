@@ -78,6 +78,7 @@ typedef eastl::vector<Node*> SceneNodeRenderList;
 class BaseMesh;
 class BaseAnimatedMesh;
 
+class RootNode;
 class CameraNode;
 class LightManager;
 
@@ -88,7 +89,7 @@ protected:
 	PVWUpdater mPVWUpdater;
 	BufferUpdater mBufferUpdater;
 
-	eastl::shared_ptr<Node> mRoot;
+	eastl::shared_ptr<RootNode> mRoot;
 	eastl::shared_ptr<CameraNode> mCamera;
 	eastl::shared_ptr<LightManager> mLightManager;
 
@@ -420,7 +421,7 @@ public:
 	be removed from the scene.
 	\return Pointer to the root scene node.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	virtual const eastl::shared_ptr<Node>& GetRootNode() { return mRoot; }
+	virtual const eastl::shared_ptr<RootNode>& GetRootNode() { return mRoot; }
 
 	bool RemoveSceneNode(ActorId id);
 

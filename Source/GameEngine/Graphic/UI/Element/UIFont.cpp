@@ -15,10 +15,6 @@
 UIFont::UIFont(BaseUI* ui, eastl::wstring fileName, const eastl::shared_ptr<Font> font)
 :	mUI(ui), mFont(font)
 {
-	#ifdef _DEBUG
-	//setDebugName("UIFont");
-	#endif
-
 	if (mUI)
 	{
 		mSpriteBank = mUI->GetSpriteBank(fileName);
@@ -31,10 +27,6 @@ UIFont::UIFont(BaseUI* ui, eastl::wstring fileName, const eastl::shared_ptr<Font
 UIFont::UIFont(BaseUI* ui, eastl::wstring fileName)
 	: mUI(ui), mFont(0)
 {
-	#ifdef _DEBUG
-		//setDebugName("UIFont");
-	#endif
-
 	if (mUI)
 	{
 		mSpriteBank = mUI->GetSpriteBank(fileName);

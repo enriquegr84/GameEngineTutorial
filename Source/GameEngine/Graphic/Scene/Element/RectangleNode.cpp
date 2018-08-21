@@ -18,19 +18,17 @@ RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater& updater,
 :	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mShadow(0),
 	mSizeX(xSize), mSizeY(ySize), mPolyCountX(xPolyCount), mPolyCountY(yPolyCount)
 {
-	#ifdef _DEBUG
-	//setDebugName("CubeSceneNode");
-	#endif
 	mPVWUpdater = updater;
 
 	struct Vertex
 	{
-		Vector3<float> position;
-		Vector4<float> color;
+		Vector3<float> position, normal;
+		Vector2<float> tcoord;
 	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);

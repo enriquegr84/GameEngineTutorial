@@ -13,10 +13,6 @@
 UICheckBox::UICheckBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle, bool checked)
 : BaseUICheckBox(ui, id, rectangle), mUI(ui), mCheckTime(0), mPressed(false), mChecked(checked)
 {
-	#ifdef _DEBUG
-	//setDebugName("CGUICheckBox");
-	#endif
-
 	eastl::shared_ptr<ResHandle>& resHandle =
 		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
 	if (resHandle)

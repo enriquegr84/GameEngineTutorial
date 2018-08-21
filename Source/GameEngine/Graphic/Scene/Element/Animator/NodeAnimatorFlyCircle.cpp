@@ -14,9 +14,6 @@ NodeAnimatorFlyCircle::NodeAnimatorFlyCircle(unsigned int time, const Vector3<fl
 :	mCenter(center), mDirection(direction),  mRadius(radius), 
 	mRadiusEllipsoid(radiusEllipsoid), mSpeed(speed), mStartTime(time)
 {
-	#ifdef _DEBUG
-	//setDebugName("SceneNodeAnimatorFlyCircle");
-	#endif
 	Init();
 }
 

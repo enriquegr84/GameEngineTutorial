@@ -15,10 +15,6 @@ UIButton::UIButton(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 	mImage(0), mPressedImage(0), mClickTime(0), mHoverTime(0), mFocusTime(0), mPushButton(false), 
 	mPressed(false), mUseAlphaChannel(false), mDrawBorder(true), mScaleImage(false)
 {
-	#ifdef _DEBUG
-	//setDebugName("UIButton");
-	#endif
-
 	eastl::shared_ptr<ResHandle>& resHandle =
 		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
 	if (resHandle)

@@ -15,10 +15,6 @@ UIComboBox::UIComboBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 	mUI(ui), mListButton(0), mSelectedText(0), mListBox(0), mLastFocus(0),
 	mSelected(-1), mHAlign(UIA_UPPERLEFT), mVAlign(UIA_CENTER), mMaxSelectionRows(5), mHasFocus(false)
 {
-	#ifdef _DEBUG
-	//setDebugName("CGUIComboBox");
-	#endif
-
 	eastl::shared_ptr<ResHandle>& resHandle =
 		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
 	if (resHandle)

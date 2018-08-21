@@ -11,10 +11,6 @@ NodeAnimatorTexture::NodeAnimatorTexture(
 	const eastl::vector<Texture2*>& textures, int timePerFrame, bool loop, unsigned int now)
 : mFinishTime(0), mHasFinished(false), mTimePerFrame(timePerFrame), mStartTime(now), mLoop(loop)
 {
-	#ifdef _DEBUG
-	//setDebugName("SceneNodeAnimatorTexture");
-	#endif
-
 	for (unsigned int i=0; i<textures.size(); ++i)
 		mTextures.push_back(textures[i]);
 

@@ -7,9 +7,7 @@
 ParticleScaleAffector::ParticleScaleAffector(const Vector2<float>& scaleTo)
 : mScaleTo(scaleTo)
 {
-	#ifdef _DEBUG
-	//setDebugName("ParticleScaleAffector");
-	#endif
+
 }
 
 void ParticleScaleAffector::Affect (unsigned int now, Particle *particlearray, unsigned int count)

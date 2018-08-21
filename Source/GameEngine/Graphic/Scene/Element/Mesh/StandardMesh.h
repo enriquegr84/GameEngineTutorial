@@ -17,9 +17,6 @@ public:
 	//! constructor
 	StandardMesh()
 	{
-#ifdef _DEBUG
-		//setDebugName("StandardMesh");
-#endif
 	}
 
 	//! destructor

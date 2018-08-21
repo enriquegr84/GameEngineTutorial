@@ -65,7 +65,7 @@ protected:
 
 public:
     // For use by the Shader class for storing reflection information.
-    static int const shaderDataLookup = 1;
+    static int const mShaderDataLookup = 1;
 };
 
 

@@ -20,9 +20,7 @@ ParticleBoxEmitter::ParticleBoxEmitter( const AlignedBox3<float>& box, const Vec
 	mMinStartColor(minStartColor), mMaxStartColor(maxStartColor), mMinLifeTime(lifeTimeMin), 
 	mMaxLifeTime(lifeTimeMax), mTime(0), mEmitted(0), mMaxAngleDegrees(maxAngleDegrees)
 {
-	#ifdef _DEBUG
-	//setDebugName("CParticleBoxEmitter");
-	#endif
+
 }
 
 

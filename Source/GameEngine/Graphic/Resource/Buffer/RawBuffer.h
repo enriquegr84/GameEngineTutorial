@@ -18,7 +18,7 @@ public:
 
 public:
     // For use by the Shader class for storing reflection information.
-    static int const shaderDataLookup = 3;
+    static int const mShaderDataLookup = 3;
 };
 
 #endif

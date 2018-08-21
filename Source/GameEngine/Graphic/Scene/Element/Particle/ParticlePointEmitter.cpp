@@ -26,9 +26,7 @@ ParticlePointEmitter::ParticlePointEmitter(
 	mMinLifeTime(lifeTimeMin), mMaxLifeTime(lifeTimeMax),
 	mMaxAngleDegrees(maxAngleDegrees), mTime(0), mEmitted(0)
 {
-	#ifdef _DEBUG
-	//setDebugName("ParticlePointEmitter");
-	#endif
+
 }
 
 //! Prepares an array with new particles to emitt into the system

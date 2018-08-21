@@ -20,9 +20,6 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater& updater, WeakBas
 	const Vector2<float>& size, eastl::array<float, 4> colorTop, eastl::array<float, 4> colorBottom)
 	: Node(actorId, renderComponent, RP_TRANSPARENT, NT_BILLBOARD)
 {
-#ifdef _DEBUG
-	//setDebugName("BillboardNode");
-#endif
 	mPVWUpdater = updater;
 
 	VertexFormat vformat;

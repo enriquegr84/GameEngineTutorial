@@ -19,10 +19,6 @@ UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, Recta
 	mPasswordBox(false), mPasswordChar(L'*'), mHAlign(UIA_UPPERLEFT), mVAlign(UIA_CENTER), 
 	mFrameRect(rectangle)
 {
-	#ifdef _DEBUG
-	//setDebugName("CGUIEditBox");
-	#endif
-
 	mText = text;
 
 	eastl::shared_ptr<ResHandle>& resHandle =

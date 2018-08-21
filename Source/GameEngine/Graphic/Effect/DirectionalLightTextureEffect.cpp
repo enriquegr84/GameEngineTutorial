@@ -17,9 +17,9 @@ DirectionalLightTextureEffect::DirectionalLightTextureEffect(eastl::shared_ptr<P
     mTexture(texture)
 {
     mSampler = eastl::make_shared<SamplerState>();
-    mSampler->filter = filter;
-    mSampler->mode[0] = mode0;
-    mSampler->mode[1] = mode1;
+    mSampler->mFilter = filter;
+    mSampler->mMode[0] = mode0;
+    mSampler->mMode[1] = mode1;
 
     mMaterialConstant = eastl::make_shared<ConstantBuffer>(sizeof(InternalMaterial), true);
     UpdateMaterialConstant();

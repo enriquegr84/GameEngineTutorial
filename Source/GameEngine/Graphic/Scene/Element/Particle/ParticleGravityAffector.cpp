@@ -11,9 +11,7 @@ ParticleGravityAffector::ParticleGravityAffector(
 	const Vector3<float>& gravity, unsigned int timeForceLost)
 	: BaseParticleAffector(), mTimeForceLost(static_cast<float>(timeForceLost)), mGravity(gravity)
 {
-	#ifdef _DEBUG
-	//setDebugName("ParticleGravityAffector");
-	#endif
+
 }
 
 

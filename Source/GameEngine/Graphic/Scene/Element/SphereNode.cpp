@@ -14,9 +14,6 @@ SphereNode::SphereNode(const ActorId actorId, PVWUpdater& updater, WeakBaseRende
 :	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mShadow(0),
 	mRadius(radius), mPolyCountX(polyCountX), mPolyCountY(polyCountY)
 {
-	#ifdef _DEBUG
-	//setDebugName("CSphereSceneNode");
-	#endif
 	mPVWUpdater = updater;
 
 	struct Vertex

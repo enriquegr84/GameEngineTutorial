@@ -10,10 +10,6 @@
 UISkin::UISkin(BaseUI* ui, UISkinThemeType type)
 	: mSpriteBank(0), mType(type), mUI(ui)
 {
-	#ifdef _DEBUG
-	//setDebugName("UISkin");
-	#endif
-
 	if ((mType == STT_WINDOWS_CLASSIC) || (mType == STT_WINDOWS_METALLIC))
 	{
 		mColors[DC_3D_DARK_SHADOW] = eastl::array<float, 4>{50 / 255.f, 50 / 255.f, 50 / 255.f, 101 / 255.f};

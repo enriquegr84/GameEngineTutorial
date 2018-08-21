@@ -12,9 +12,7 @@ NodeAnimatorFollowSpline::NodeAnimatorFollowSpline(unsigned int time, const east
 :	mFinishTime(0), mHasFinished(false), mPoints(points), mSpeed(speed), 
 	mTightness(tightness), mStartTime(time), mLoop(loop), mPingPong(pingpong)
 {
-	#ifdef _DEBUG
-	//setDebugName("SceneNodeAnimatorFollowSpline");
-	#endif
+
 }
 
 

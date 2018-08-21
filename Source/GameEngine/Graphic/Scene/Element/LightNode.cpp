@@ -16,10 +16,8 @@ LightNode::LightNode(const ActorId actorId, PVWUpdater& updater,
 	WeakBaseRenderComponentPtr renderComponent, eastl::array<float, 4> color, float radius)
 	:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true), mLightData(true, true)
 {
-	#ifdef _DEBUG
-	//setDebugName("LightNode");
-	#endif
 	mPVWUpdater = updater;
+	mLightData.mLighting = eastl::make_shared<Lighting>();
 	mLightData.mLighting->mDiffuse = color;
 	// set some useful specular color
 	//mLightData.mLighting->mSpecular = 

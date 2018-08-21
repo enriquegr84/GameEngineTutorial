@@ -375,7 +375,7 @@ void GridRenderComponent::CreateInheritedXMLElements(
 LightRenderComponent::LightRenderComponent(void)
 : mAnimatorType("none"), mAddBillboard(false), mLightData(true, true)
 {
-
+	mLightData.mLighting = eastl::make_shared<Lighting>();
 }
 
 bool LightRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)

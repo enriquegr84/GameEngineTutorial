@@ -224,7 +224,7 @@ template <typename T>
 int Shader::Set(eastl::string const& name, eastl::shared_ptr<T> const& object)
 {
     int handle = 0;
-    for (auto& data : mData[T::shaderDataLookup])
+    for (auto& data : mData[T::mShaderDataLookup])
     {
         if (name == data.name)
         {
@@ -245,7 +245,7 @@ int Shader::Set(eastl::string const& name, eastl::shared_ptr<T> const& object)
 template <typename T>
 eastl::shared_ptr<T> const Shader::Get(eastl::string const& name) const
 {
-    for (auto const& data : mData[T::shaderDataLookup])
+    for (auto const& data : mData[T::mShaderDataLookup])
     {
         if (name == data.name)
         {
@@ -258,7 +258,7 @@ eastl::shared_ptr<T> const Shader::Get(eastl::string const& name) const
 template <typename T>
 void Shader::Set(int handle, eastl::shared_ptr<T> const& object)
 {
-	eastl::vector<Data>& data = mData[T::shaderDataLookup];
+	eastl::vector<Data>& data = mData[T::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         auto& d = data[handle];
@@ -275,7 +275,7 @@ void Shader::Set(int handle, eastl::shared_ptr<T> const& object)
 template <typename T>
 eastl::shared_ptr<T> const Shader::Get(int handle) const
 {
-	eastl::vector<Data> const& data = mData[T::shaderDataLookup];
+	eastl::vector<Data> const& data = mData[T::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         return eastl::static_pointer_cast<T>(data[handle].object);
@@ -289,7 +289,7 @@ template <> inline
 int Shader::Set(eastl::string const& name, eastl::shared_ptr<ConstantBuffer> const& object)
 {
     int handle = 0;
-    for (auto& data : mData[ConstantBuffer::shaderDataLookup])
+    for (auto& data : mData[ConstantBuffer::mShaderDataLookup])
     {
         if (name == data.name)
         {
@@ -314,7 +314,7 @@ template <> inline
 int Shader::Set(eastl::string const& name, eastl::shared_ptr<TextureBuffer> const& object)
 {
     int handle = 0;
-    for (auto& data : mData[TextureBuffer::shaderDataLookup])
+    for (auto& data : mData[TextureBuffer::mShaderDataLookup])
     {
         if (name == data.name)
         {
@@ -338,7 +338,7 @@ int Shader::Set(eastl::string const& name, eastl::shared_ptr<TextureBuffer> cons
 template<> inline
 void Shader::Set(int handle, eastl::shared_ptr<ConstantBuffer> const& object)
 {
-	eastl::vector<Data>& data = mData[ConstantBuffer::shaderDataLookup];
+	eastl::vector<Data>& data = mData[ConstantBuffer::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         auto& d = data[handle];
@@ -358,7 +358,7 @@ void Shader::Set(int handle, eastl::shared_ptr<ConstantBuffer> const& object)
 template<> inline
 void Shader::Set(int handle, eastl::shared_ptr<TextureBuffer> const& object)
 {
-	eastl::vector<Data>& data = mData[TextureBuffer::shaderDataLookup];
+	eastl::vector<Data>& data = mData[TextureBuffer::mShaderDataLookup];
     if (0 <= handle && handle < static_cast<int>(data.size()))
     {
         auto& d = data[handle];

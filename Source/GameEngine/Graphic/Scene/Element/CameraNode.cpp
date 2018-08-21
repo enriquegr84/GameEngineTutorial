@@ -12,10 +12,6 @@ CameraNode::CameraNode(const ActorId actorid)
 	: Node(actorid, WeakBaseRenderComponentPtr(), RP_NONE, NT_CAMERA), 
 	mActive(true), mTarget(0), mCamera(eastl::make_shared<Camera>(true, true))
 {
-	#ifdef _DEBUG
-	//setDebugName("CameraNode");
-	#endif
-
 	mAffector = Matrix4x4<float>::Identity();
 
 	float aspectRatio = 4.0f / 3.0f;	// Aspect ratio.

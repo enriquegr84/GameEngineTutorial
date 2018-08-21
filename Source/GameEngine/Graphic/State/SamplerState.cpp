@@ -9,18 +9,18 @@
 
 SamplerState::SamplerState()
     :
-    filter(MIN_P_MAG_P_MIP_P),
-    mipLODBias(0.0f),
-    maxAnisotropy(1),
-    comparison(NEVER),
-    borderColor({ 1.0f, 1.0f, 1.0f, 1.0f }),
-    minLOD(-eastl::numeric_limits<float>::max()),
-    maxLOD(eastl::numeric_limits<float>::max())
+    mFilter(MIN_P_MAG_P_MIP_P),
+    mMipLODBias(0.0f),
+    mMaxAnisotropy(1),
+    mComparison(NEVER),
+    mBorderColor({ 1.0f, 1.0f, 1.0f, 1.0f }),
+    mMinLOD(-eastl::numeric_limits<float>::max()),
+    mMaxLOD(eastl::numeric_limits<float>::max())
 {
     mType = GE_SAMPLER_STATE;
 
-    mode[0] = CLAMP;
-    mode[1] = CLAMP;
-    mode[2] = CLAMP;
+    mMode[0] = CLAMP;
+    mMode[1] = CLAMP;
+    mMode[2] = CLAMP;
 }
 

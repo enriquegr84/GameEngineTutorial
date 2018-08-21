@@ -19,9 +19,6 @@ AnimatedMeshNode::AnimatedMeshNode(const ActorId actorId, PVWUpdater& updater,
 	mLastTime(0), mLooping(true), mReadOnlyMaterials(false), mRenderFromIdentity(false), 
 	mLoopCallBack(0), mPassCount(0), mShadow(0)
 {
-	#ifdef _DEBUG
-	//setDebugName("AnimatedMeshNode");
-	#endif
 	mPVWUpdater = updater;
 	SetMesh(mesh);
 }

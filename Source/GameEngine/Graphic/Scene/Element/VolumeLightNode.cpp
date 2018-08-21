@@ -19,10 +19,6 @@ VolumeLightNode::VolumeLightNode(const ActorId actorId, PVWUpdater& updater,
 	mLPDistance(8.0f), mSubdivideU(subdivU), mSubdivideV(subdivV), mFootColor(foot), 
 	mTailColor(tail), mLightDimensions(Vector3<float>{1.0f, 1.2f, 1.0f})
 {
-
-	#ifdef _DEBUG
-	//setDebugName("VolumeLightSceneNode");
-	#endif
 	mPVWUpdater = updater;
 	ConstructLight();
 }

@@ -16,10 +16,6 @@ UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text,
 	mBGColor(eastl::array<float, 4>{210 / 255.f, 210 / 255.f, 210 / 255.f, 101 / 255.f}),
 	mOverrideFont(0), mLastBreakFont(0)
 {
-	#ifdef _DEBUG
-	//setDebugName("GUIStaticText");
-	#endif
-
 	mText = text;
 	if (mUI && mUI->GetSkin())
 		mBGColor = mUI->GetSkin()->GetColor(DC_3D_FACE);

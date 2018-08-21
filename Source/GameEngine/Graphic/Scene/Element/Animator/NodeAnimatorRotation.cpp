@@ -10,9 +10,7 @@
 NodeAnimatorRotation::NodeAnimatorRotation(unsigned int time, const Vector3<float>& rotation)
 :	mRotation(rotation), mStartTime(time)
 {
-	#ifdef _DEBUG
-	//setDebugName("SceneNodeAnimatorRotation");
-	#endif
+
 }
 
 

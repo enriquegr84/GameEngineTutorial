@@ -14,9 +14,6 @@ struct AnimatedMesh : public BaseAnimatedMesh
 	AnimatedMesh(const eastl::shared_ptr<BaseMesh>& mesh=0, AnimatedMeshType type=AMT_UNKNOWN) : 
 		BaseAnimatedMesh(), mFramesPerSecond(25.f), mType(type)
 	{
-		#ifdef _DEBUG
-		//setDebugName("AnimatedMesh");
-		#endif
 		AddMesh(mesh);
 		RecalculateBoundingBox();
 	}

@@ -13,19 +13,19 @@ DX11SamplerState::DX11SamplerState(ID3D11Device* device, SamplerState const* sam
 {
     // Specify the sampler state description.
     D3D11_SAMPLER_DESC desc;
-    desc.Filter = msFilter[samplerState->filter];
-    desc.AddressU = msMode[samplerState->mode[0]];
-    desc.AddressV = msMode[samplerState->mode[1]];
-    desc.AddressW = msMode[samplerState->mode[2]];
-    desc.MipLODBias = samplerState->mipLODBias;
-    desc.MaxAnisotropy = samplerState->maxAnisotropy;
-    desc.ComparisonFunc = msComparison[samplerState->comparison];
-    desc.BorderColor[0] = samplerState->borderColor[0];
-    desc.BorderColor[1] = samplerState->borderColor[1];
-    desc.BorderColor[2] = samplerState->borderColor[2];
-    desc.BorderColor[3] = samplerState->borderColor[3];
-    desc.MinLOD = samplerState->minLOD;
-    desc.MaxLOD = samplerState->maxLOD;
+    desc.Filter = msFilter[samplerState->mFilter];
+    desc.AddressU = msMode[samplerState->mMode[0]];
+    desc.AddressV = msMode[samplerState->mMode[1]];
+    desc.AddressW = msMode[samplerState->mMode[2]];
+    desc.MipLODBias = samplerState->mMipLODBias;
+    desc.MaxAnisotropy = samplerState->mMaxAnisotropy;
+    desc.ComparisonFunc = msComparison[samplerState->mComparison];
+    desc.BorderColor[0] = samplerState->mBorderColor[0];
+    desc.BorderColor[1] = samplerState->mBorderColor[1];
+    desc.BorderColor[2] = samplerState->mBorderColor[2];
+    desc.BorderColor[3] = samplerState->mBorderColor[3];
+    desc.MinLOD = samplerState->mMinLOD;
+    desc.MaxLOD = samplerState->mMaxLOD;
 
     // Create the sampler state.
     ID3D11SamplerState* state = nullptr;

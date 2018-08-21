@@ -741,6 +741,34 @@
     <ClInclude Include="..\Physic\PhysicEventListener.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\Assets\Effects\AmbientLightEffectPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\AmbientLightEffectVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\ColorEffectPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\ColorEffectVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\ConstantColorEffectPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\ConstantColorEffectVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\DirectionalLightEffectPerPixelPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\DirectionalLightEffectPerPixelVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\DirectionalLightEffectPerVertexPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\DirectionalLightEffectPerVertexVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\DirectionalLightTextureEffectPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\DirectionalLightTextureEffectVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\PointLightEffectPerPixelPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\PointLightEffectPerPixelVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\PointLightEffectPerVertexPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\PointLightEffectPerVertexVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\PointLightTextureEffectPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\PointLightTextureEffectVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\SpotLightEffectPerPixelPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\SpotLightEffectPerPixelVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\SpotLightEffectPerVertexPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\SpotLightEffectPerVertexVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\TextEffectPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\TextEffectVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\Texture2EffectPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\Texture2EffectVS.glsl" />
+    <None Include="..\..\..\Assets\Effects\VertexColorEffectPS.glsl" />
+    <None Include="..\..\..\Assets\Effects\VertexColorEffectVS.glsl" />
     <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl" />
     <None Include="..\Graphic\3rdParty\assimp\include\color4.inl" />
     <None Include="..\Graphic\3rdParty\assimp\include\material.inl" />
@@ -750,12 +778,28 @@
     <None Include="..\Graphic\3rdParty\assimp\include\vector2.inl" />
     <None Include="..\Graphic\3rdParty\assimp\include\vector3.inl" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\..\Assets\Effects\AmbientLightEffect.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\ColorEffect.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\ConstantColorEffect.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightEffectPerPixel.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightEffectPerVertex.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightTextureEffect.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerPixel.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerVertex.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\PointLightTextureEffect.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\SpotLightEffectPerPixel.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\SpotLightEffectPerVertex.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\TextEffect.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2Effect.hlsl" />
+    <FxCompile Include="..\..\..\Assets\Effects\VertexColorEffect.hlsl" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5F8DE669-F90C-498F-891B-EE6ACE0CA1BD}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GameEngine</RootNamespace>
     <ProjectName>GameEngine</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

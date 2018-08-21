@@ -31,9 +31,6 @@ ParticleMeshEmitter::ParticleMeshEmitter(
 	mTime(0), mEmitted(0), mMaxAngleDegrees(maxAngleDegrees),
 	mEveryMeshVertex(everyMeshVertex), mUseNormalDirection(useNormalDirection)
 {
-	#ifdef _DEBUG
-	//setDebugName("ParticleMeshEmitter");
-	#endif
 	SetMesh(mesh);
 }
 

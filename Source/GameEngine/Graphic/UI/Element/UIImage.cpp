@@ -14,10 +14,6 @@ UIImage::UIImage(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 	: BaseUIImage(id, rectangle), mUI(ui), mTexture(0), mColor{ 1.f, 1.f, 1.f, 1.f },
 	mUseAlphaChannel(false), mScaleImage(false)
 {
-	#ifdef _DEBUG
-	//setDebugName("CGUIImage");
-	#endif
-
 	eastl::shared_ptr<ResHandle>& resHandle =
 		ResCache::Get()->GetHandle(&BaseResource(L"Art/UserControl/appbar.empty.png"));
 	if (resHandle)

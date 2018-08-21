@@ -11,10 +11,6 @@ NodeAnimatorFlyStraight::NodeAnimatorFlyStraight(const Vector3<float>& startPoin
 :	mFinishTime(now + timeForWay), mHasFinished(false), mStart(startPoint), mEnd(endPoint), 
 	mTimeFactor(0.0f), mStartTime(now), mTimeForWay(timeForWay), mLoop(loop), mPingPong(pingpong)
 {
-	#ifdef _DEBUG
-	//setDebugName("SceneNodeAnimatorFlyStraight");
-	#endif
-
 	RecalculateIntermediateValues();
 }
 

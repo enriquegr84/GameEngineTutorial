@@ -23,9 +23,9 @@ Texture2Effect::Texture2Effect(eastl::shared_ptr<ProgramFactory> const& factory,
         *mPVWMatrix = Matrix4x4<float>::Identity();
 
         mSampler = eastl::make_shared<SamplerState>();
-        mSampler->filter = filter;
-        mSampler->mode[0] = mode0;
-        mSampler->mode[1] = mode1;
+        mSampler->mFilter = filter;
+        mSampler->mMode[0] = mode0;
+        mSampler->mMode[1] = mode1;
 
         mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);
 #if defined(_OPENGL_)

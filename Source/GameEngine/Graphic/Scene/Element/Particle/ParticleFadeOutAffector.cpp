@@ -11,11 +11,6 @@ ParticleFadeOutAffector::ParticleFadeOutAffector(
 	const eastl::array<float, 4>& targetColor, unsigned int fadeOutTime)
 : BaseParticleAffector(), mTargetColor(targetColor)
 {
-
-	#ifdef _DEBUG
-	//setDebugName("CParticleFadeOutAffector");
-	#endif
-
 	mFadeOutTime = fadeOutTime ? static_cast<float>(fadeOutTime) : 1.0f;
 }
 

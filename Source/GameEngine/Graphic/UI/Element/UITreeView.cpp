@@ -10,9 +10,7 @@
 UITreeViewNode::UITreeViewNode(eastl::shared_ptr<BaseUIElement> owner, eastl::shared_ptr<BaseUITreeViewNode> parent )
 	: mOwner(owner), mParent(parent), mImageIndex(-1), mSelectedImageIndex(-1), mData(0), mData2(0), mExpanded(false)
 {
-	#ifdef _DEBUG
-	//setDebugName( "CGUITreeView" );
-	#endif
+
 }
 
 UITreeViewNode::~UITreeViewNode()
@@ -361,10 +359,6 @@ UITreeView::UITreeView(BaseUI* ui, int id, RectangleShape<2, int> rectangle, boo
 	mTotalItemHeight( 0 ), mTotalItemWidth ( 0 ), mFont( 0 ), mIconFont( 0 ), mScrollBarH( 0 ), mScrollBarV( 0 ), 
 	mLastEventNode( 0 ), mLinesVisible( true ), mSelecting( false ), mClip( clip ), mDrawBack( drawBack ), mImageLeftOfIcon( true )
 {
-	#ifdef _DEBUG
-	//setDebugName( "UITreeView" );
-	#endif
-
 	// Create a vertex buffer for a single triangle.
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);

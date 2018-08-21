@@ -16,10 +16,6 @@ UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleShape<2, int> rectangle, b
 	mDraggedBySlider(false), mTrayClick(false), mPos(0), mDrawPos(0), mDrawHeight(0), mMin(0), mMax(100), 
 	mSmallStep(10), mLargeStep(50), mDesiredPos(0), mLastChange(0)
 {
-	#ifdef _DEBUG
-	//setDebugName("UIScrollBar");
-	#endif
-
 	// Create a vertex buffer for a single triangle.
 	struct Vertex
 	{

@@ -15,9 +15,7 @@
 ParticleRotationAffector::ParticleRotationAffector( const Vector3<float>& speed, const Vector3<float>& pivotPoint )
 : mPivotPoint(pivotPoint), mSpeed(speed), mLastTime(0)
 {
-	#ifdef _DEBUG
-	//setDebugName("CParticleRotationAffector");
-	#endif
+
 }
 
 

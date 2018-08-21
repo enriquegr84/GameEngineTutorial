@@ -10,9 +10,7 @@ ParticleAttractionAffector::ParticleAttractionAffector( const Vector3<float>& po
 :	mPoint(point), mSpeed(speed), mAffectX(affectX), mAffectY(affectY),
 	mAffectZ(affectZ), mAttract(attract), mLastTime(0)
 {
-	#ifdef _DEBUG
-	//setDebugName("ParticleAttractionAffector");
-	#endif
+
 }
 
 

@@ -31,9 +31,7 @@ ParticleCylinderEmitter::ParticleCylinderEmitter(
 	mRadius(radius), mLength(length), mTime(0), mEmitted(0),
 	mMaxAngleDegrees(maxAngleDegrees), mOutlineOnly(outlineOnly)
 {
-	#ifdef _DEBUG
-	//setDebugName("ParticleCylinderEmitter");
-	#endif
+
 }
 
 
