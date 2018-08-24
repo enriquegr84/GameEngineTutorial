@@ -23,10 +23,13 @@ CameraNode::CameraNode(const ActorId actorid)
 	}
 	mCamera->SetFrustum(60.0f, aspectRatio, 0.1f, 100.0f);
 	Vector4<float> camPosition{ 0.0f, -1.0f, 0.25f, 1.0f };
+	/*
 	Vector4<float> camDVector{ 0.0f, 1.0f, 0.0f, 0.0f };
 	Vector4<float> camUVector{ 0.0f, 0.0f, 1.0f, 0.0f };
 	Vector4<float> camRVector = Cross(camDVector, camUVector);
 	mCamera->SetFrame(camPosition, camDVector, camUVector, camRVector);
+	*/
+	mLocalTransform.SetTranslation(camPosition);
 }
 
 
@@ -74,7 +77,7 @@ bool CameraNode::OnEvent(const Event& event)
 //! update
 void CameraNode::UpdateMatrices()
 {
-	Vector4<float> pos = mCamera->GetPosition(); //mWorldTransform.GetTranslationW0();
+	Vector4<float> pos = mWorldTransform.GetTranslationW0();
 	//Quaternion<float> rotation;
 	//mWorldTransform.GetRotation(rotation);
 	Vector4<float> direction = mCamera->GetDVector(); //Rotate(rotation, pos);
