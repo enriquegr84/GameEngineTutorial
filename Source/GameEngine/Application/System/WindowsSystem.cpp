@@ -1319,9 +1319,9 @@ void WindowsSystem::CursorControl::SetPosition(const Vector2<int> &pos)
 void WindowsSystem::CursorControl::SetPosition(float x, float y)
 {
 	if (!mUseReferenceRect)
-		SetPosition(round(x*mWindowSize[0]), round(y*mWindowSize[1]));
+		SetPosition((int)round(x*mWindowSize[0]), (int)round(y*mWindowSize[1]));
 	else
-		SetPosition(round(x*mReferenceRect.mExtent[0]), round(y*mReferenceRect.mExtent[1]));
+		SetPosition((int)round(x*mReferenceRect.mExtent[0]), (int)round(y*mReferenceRect.mExtent[1]));
 }
 
 //! Sets the new position of the cursor.

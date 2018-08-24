@@ -529,8 +529,8 @@ bool UITreeView::OnEvent( const Event &event )
 							}
 
 							if( mUI->HasFocus(shared_from_this()) &&
-								((mScrollBarV && IsPointInside(mScrollBarV->GetAbsolutePosition(), p) && mScrollBarV->OnEvent( event ) ) ||
-								(mScrollBarH && IsPointInside(mScrollBarH->GetAbsolutePosition(),  p) && mScrollBarH->OnEvent( event ) )))
+								((mScrollBarV && mScrollBarV->GetAbsolutePosition().IsPointInside(p) && mScrollBarV->OnEvent( event ) ) ||
+								(mScrollBarH && mScrollBarH->GetAbsolutePosition().IsPointInside(p) && mScrollBarH->OnEvent( event ) )))
 							{
 								return true;
 							}
@@ -542,8 +542,8 @@ bool UITreeView::OnEvent( const Event &event )
 
 						case MIE_LMOUSE_LEFT_UP:
 							if( mUI->HasFocus(shared_from_this()) &&
-								((mScrollBarV && IsPointInside(mScrollBarV->GetAbsolutePosition(), p) && mScrollBarV->OnEvent( event ) ) ||
-								(mScrollBarH && IsPointInside(mScrollBarH->GetAbsolutePosition(), p) && mScrollBarH->OnEvent( event ) )))
+								((mScrollBarV && mScrollBarV->GetAbsolutePosition().IsPointInside(p) && mScrollBarV->OnEvent( event ) ) ||
+								(mScrollBarH && mScrollBarH->GetAbsolutePosition().IsPointInside(p) && mScrollBarH->OnEvent( event ) )))
 							{
 								return true;
 							}
@@ -557,7 +557,7 @@ bool UITreeView::OnEvent( const Event &event )
 						case MIE_MOUSE_MOVED:
 							if( mSelecting )
 							{
-								if( IsPointInside(GetAbsolutePosition(), p) )
+								if(GetAbsolutePosition().IsPointInside(p) )
 								{
 									MouseAction( event.mMouseInput.X, event.mMouseInput.Y, true );
 									return true;

@@ -173,7 +173,7 @@ bool UIScrollBar::OnEvent(const Event& event)
 							if (isInside)
 							{
 								mDragging = true;
-								mDraggedBySlider = IsPointInside(mSliderRect, p);
+								mDraggedBySlider = mSliderRect.IsPointInside(p);
 								mTrayClick = !mDraggedBySlider;
 								mDesiredPos = GetPosFromMousePos(p);
 								mUI->SetFocus ( shared_from_this() );
@@ -204,7 +204,7 @@ bool UIScrollBar::OnEvent(const Event& event)
 							{
 								if ( isInside )
 								{
-									mDraggedBySlider = IsPointInside(mSliderRect, p);
+									mDraggedBySlider = mSliderRect.IsPointInside(p);
 									mTrayClick = !mDraggedBySlider;
 								}
 

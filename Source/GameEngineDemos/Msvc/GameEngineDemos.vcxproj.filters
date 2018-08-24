@@ -3,9 +3,6 @@
   <ItemGroup>
     <ClInclude Include="..\CameraRig.h" />
     <ClInclude Include="..\TriangleDemoApp.h" />
-    <ClInclude Include="..\GameDemo\GameDemoController.h">
-      <Filter>Demo</Filter>
-    </ClInclude>
     <ClInclude Include="..\GameDemo\GameDemoEvents.h">
       <Filter>Demo</Filter>
     </ClInclude>
@@ -30,13 +27,16 @@
     <ClInclude Include="..\GameDemo\GameDemo.h">
       <Filter>Demo</Filter>
     </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoCameraController.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoPlayerController.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\CameraRig.cpp" />
     <ClCompile Include="..\TriangleDemoApp.cpp" />
-    <ClCompile Include="..\GameDemo\GameDemoController.cpp">
-      <Filter>Demo</Filter>
-    </ClCompile>
     <ClCompile Include="..\GameDemo\GameDemoEvents.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
@@ -53,6 +53,12 @@
       <Filter>Demo</Filter>
     </ClCompile>
     <ClCompile Include="..\GameDemo\GameDemo.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameDemo\GameDemoCameraController.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameDemo\GameDemoPlayerController.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
   </ItemGroup>

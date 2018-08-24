@@ -349,7 +349,7 @@ bool UIComboBox::OnEvent(const Event& event)
 
 							// send to list box
 							if (!(mListBox && mListBox->IsEnabled() &&
-								IsPointInside(mListBox->GetAbsolutePosition(), p) &&
+								mListBox->GetAbsolutePosition().IsPointInside(p) &&
 								mListBox->OnEvent(event)))
 							{
 								OpenCloseMenu();

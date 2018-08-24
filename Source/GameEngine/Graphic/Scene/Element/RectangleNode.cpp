@@ -14,7 +14,7 @@
 //! constructor
 RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Texture2>& texture,
-	float xSize, float ySize, int xPolyCount, int yPolyCount)
+	float texxScale, float texyScale, float xSize, float ySize, int xPolyCount, int yPolyCount)
 :	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mShadow(0),
 	mSizeX(xSize), mSizeY(ySize), mPolyCountX(xPolyCount), mPolyCountY(yPolyCount)
 {
@@ -34,11 +34,36 @@ RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater,
 	mf.SetVertexFormat(vformat);
 	mVisual = mf.CreateRectangle(mPolyCountX, mPolyCountY, mSizeX, mSizeY);
 
+	// Multiply the texture coordinates by a factor to enhance the wrap-around.
+	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
+	unsigned int numVertices = vbuffer->GetNumElements();
+	Vertex* vertex = vbuffer->Get<Vertex>();
+	for (unsigned int i = 0; i < numVertices; ++i)
+	{
+		vertex[i].tcoord[0] *= texxScale;
+		vertex[i].tcoord[1] *= texyScale;
+	}
+
+	// Create the visual effect.  The world up-direction is (0,0,1).  Choose
+	// the light to point down.
+	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
+	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+	material->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
+	material->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
+	material->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+
+	eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
+	lighting->mAmbient = Renderer::Get()->GetClearColor();
+	lighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
+
+	eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
+
 	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, eastl::make_shared<Material>(), eastl::make_shared<Lighting>(),
-		eastl::make_shared<LightCameraGeometry>(), texture, SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, material, lighting, geometry, 
+		texture, SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 	mVisual->SetEffect(effect);
+	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 

@@ -108,8 +108,8 @@ public:
 
 class BaseEventManager;
 class SoundProcess;
-class GameDemoController;
-class MovementController;
+class GameDemoPlayerController;
+class GameDemoCameraController;
 class Node;
 
 class MainMenuView : public HumanView
@@ -132,8 +132,8 @@ protected:
 	bool  mShowUI;					// If true, it renders the UI control text
     eastl::string mGameplayText;
 
-	eastl::shared_ptr<GameDemoController> mGameDemoController;
-	eastl::shared_ptr<MovementController> mFreeCameraController;
+	eastl::shared_ptr<GameDemoPlayerController> mGamePlayerController;
+	eastl::shared_ptr<GameDemoCameraController> mGameCameraController;
 	eastl::shared_ptr<Node> mPlayer;
 	eastl::shared_ptr<StandardHUD> mStandardHUD;
 

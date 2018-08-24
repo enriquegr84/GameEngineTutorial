@@ -41,7 +41,7 @@
 
 #include "GameEngineStd.h"
 
-#include "Mathematic/Algebra/EulerAngles.h"
+#include "Mathematic/Algebra/AxisAngle.h"
 #include "Mathematic/Algebra/Transform.h"
 #include "Mathematic/Algebra/Vector3.h"
 

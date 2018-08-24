@@ -151,7 +151,8 @@ public:
 	eastl::shared_ptr<Node> AddRectangleNode(
 		WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& texture, 
-		float xSize = 5.f, float ySize = 5.f, int xPolyCount = 16, int yPolyCount = 16, int id = -1);
+		float texxScale = 1.f, float texyScale = 1.f, float xSize = 5.f, float ySize = 5.f, 
+		int xPolyCount = 16, int yPolyCount = 16, int id = -1);
 
 	//! Adds a cube scene node
 	/** \param size: Size of the cube, uniformly in each dimension.

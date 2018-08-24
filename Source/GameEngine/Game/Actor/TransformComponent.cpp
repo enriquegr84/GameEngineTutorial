@@ -46,8 +46,8 @@ bool TransformComponent::Init(tinyxml2::XMLElement* pData)
 
 	// [mrmike] - this was changed post-press - because changes to the TransformComponents can come in partial definitions,
 	//            such as from the editor, its better to grab the current values rather than clear them out.
-	EulerAngles<float> yawPitchRoll;
-	mTransform.GetRotation(yawPitchRoll);
+	Vector4<float> yawPitchRoll;
+	yawPitchRoll = yawPitchRoll * mTransform;
 	//yawPitchRoll.x = RADIANS_TO_DEGREES(yawPitchRoll.x);
 	//yawPitchRoll.y = RADIANS_TO_DEGREES(yawPitchRoll.y);
 	//yawPitchRoll.z = RADIANS_TO_DEGREES(yawPitchRoll.z);
@@ -77,9 +77,9 @@ bool TransformComponent::Init(tinyxml2::XMLElement* pData)
         pitch = pOrientationElement->FloatAttribute("y", pitch);
         roll = pOrientationElement->FloatAttribute("z", roll);
 
-		yawPitchRoll.mAngle[0] = yaw;
-		yawPitchRoll.mAngle[1] = pitch;
-		yawPitchRoll.mAngle[2] = roll;
+		yawPitchRoll[0] = yaw;
+		yawPitchRoll[1] = pitch;
+		yawPitchRoll[2] = roll;
 	};
 
 	Transform translation;
@@ -137,11 +137,12 @@ tinyxml2::XMLElement* TransformComponent::GenerateXml(void)
 
     // initial transform -> LookAt
 	tinyxml2::XMLElement* pDirection = doc.NewElement("YawPitchRoll");
-	EulerAngles<float> yawPitchRoll;
-	mTransform.GetRotation(yawPitchRoll);
-    pDirection->SetAttribute("x", eastl::to_string(yawPitchRoll.mAngle[0]).c_str());
-    pDirection->SetAttribute("y", eastl::to_string(yawPitchRoll.mAngle[1]).c_str());
-    pDirection->SetAttribute("z", eastl::to_string(yawPitchRoll.mAngle[2]).c_str());
+
+	Vector4<float> yawPitchRoll;
+	yawPitchRoll = yawPitchRoll * mTransform;
+    pDirection->SetAttribute("x", eastl::to_string(yawPitchRoll[0]).c_str());
+    pDirection->SetAttribute("y", eastl::to_string(yawPitchRoll[1]).c_str());
+    pDirection->SetAttribute("z", eastl::to_string(yawPitchRoll[2]).c_str());
     pBaseElement->LinkEndChild(pDirection);
 
 	// This is not supported yet

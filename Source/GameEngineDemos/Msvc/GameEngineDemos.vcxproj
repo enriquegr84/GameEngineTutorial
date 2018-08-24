@@ -107,7 +107,8 @@
     <ClInclude Include="..\CameraRig.h" />
     <ClInclude Include="..\GameDemo\GameDemo.h" />
     <ClInclude Include="..\GameDemo\GameDemoApp.h" />
-    <ClInclude Include="..\GameDemo\GameDemoController.h" />
+    <ClInclude Include="..\GameDemo\GameDemoCameraController.h" />
+    <ClInclude Include="..\GameDemo\GameDemoPlayerController.h" />
     <ClInclude Include="..\GameDemo\GameDemoEvents.h" />
     <ClInclude Include="..\GameDemo\GameDemoManager.h" />
     <ClInclude Include="..\GameDemo\GameDemoNetwork.h" />
@@ -120,7 +121,8 @@
     <ClCompile Include="..\CameraRig.cpp" />
     <ClCompile Include="..\GameDemo\GameDemo.cpp" />
     <ClCompile Include="..\GameDemo\GameDemoApp.cpp" />
-    <ClCompile Include="..\GameDemo\GameDemoController.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoCameraController.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoPlayerController.cpp" />
     <ClCompile Include="..\GameDemo\GameDemoEvents.cpp" />
     <ClCompile Include="..\GameDemo\GameDemoManager.cpp" />
     <ClCompile Include="..\GameDemo\GameDemoStd.cpp" />

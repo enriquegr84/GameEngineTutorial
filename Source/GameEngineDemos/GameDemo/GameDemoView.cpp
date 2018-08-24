@@ -49,7 +49,6 @@
 /*
 #include "Graphic/Scene/Hierarchy/Node.h"
 #include "Graphic/Scene/Hierarchy/Camera.h"
-#include "Graphic/Scene/Controller/MovementController.h"
 */
 #include "Core/Event/Event.h"
 #include "Core/Event/EventManager.h"
@@ -67,7 +66,8 @@
 #include "GameDemoEvents.h"
 #include "GameDemoManager.h"
 #include "GameDemoNetwork.h"
-#include "GameDemoController.h"
+#include "GameDemoPlayerController.h"
+#include "GameDemoCameraController.h"
 
 //========================================================================
 //
@@ -825,9 +825,9 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 
 					case KEY_KEY_8:
 					{
-						mKeyboardHandler = mGameDemoController;
-						mMouseHandler = mGameDemoController;
-						//mCamera->SetTarget(mPlayer);
+						mKeyboardHandler = mGamePlayerController;
+						mMouseHandler = mGamePlayerController;
+						mCamera->SetTarget(mPlayer);
 						//mPlayer->SetAlpha(0.8f);
 						//ReleaseCapture();
 						return true;
@@ -835,9 +835,9 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 
 					case KEY_KEY_9:
 					{
-						//mKeyboardHandler = mFreeCameraController;
-						//mMouseHandler = mFreeCameraController;
-						//mCamera->ClearTarget();
+						mKeyboardHandler = mGameCameraController;
+						mMouseHandler = mGameCameraController;
+						mCamera->ClearTarget();
 						//mPlayer->SetAlpha(fOPAQUE);
 						//SetCapture((HWND)System::Get()->GetID());
 						return true;
@@ -870,15 +870,15 @@ void GameDemoHumanView::RenderText()
 void GameDemoHumanView::OnUpdate(unsigned long deltaTime)
 {
 	HumanView::OnUpdate( deltaTime );
-	/*
-	if (mFreeCameraController)
+
+	if (mGameCameraController)
 	{
-		mFreeCameraController->OnUpdate(deltaMs);
+		mGameCameraController->OnUpdate(deltaTime);
 	}
-	*/
-	if (mGameDemoController)
+
+	if (mGamePlayerController)
 	{
-		mGameDemoController->OnUpdate(deltaTime);
+		mGamePlayerController->OnUpdate(deltaTime);
 	}
 
 	//Send out a tick to listeners.
@@ -906,7 +906,10 @@ bool GameDemoHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
     // A movement controller is going to control the camera, 
     // but it could be constructed with any of the objects you see in this
     // function. You can have your very own remote controlled sphere. What fun...
-    //mFreeCameraController.reset(new MovementController(mCamera, 0, 0, false));
+    mGameCameraController.reset(new GameDemoCameraController(mCamera, 0, 0, false));
+	mKeyboardHandler = mGameCameraController;
+	mMouseHandler = mGameCameraController;
+	mCamera->ClearTarget();
 
     mScene->OnRestore();
     return true;
@@ -923,9 +926,9 @@ void GameDemoHumanView::SetControlledActor(ActorId actorId)
 
 	HumanView::SetControlledActor(actorId);
 
-    mGameDemoController.reset(new GameDemoController(mPlayer));
-    mKeyboardHandler = mGameDemoController;
-    mMouseHandler = mGameDemoController;
+    mGamePlayerController.reset(new GameDemoPlayerController(mPlayer));
+    mKeyboardHandler = mGamePlayerController;
+    mMouseHandler = mGamePlayerController;
     //mCamera->SetTarget(mPlayer);
     //mPlayer->SetAlpha(0.8f);
 }
@@ -944,11 +947,11 @@ void GameDemoHumanView::SetControlledActorDelegate(BaseEventDataPtr pEventData)
 {
     eastl::shared_ptr<EventDataSetControlledActor> pCastEventData = 
 		eastl::static_pointer_cast<EventDataSetControlledActor>(pEventData);
-    SetControlledActor(pCastEventData->GetActorId());
+    //SetControlledActor(pCastEventData->GetActorId());
 
-	//HumanView::SetControlledActor(mFreeCameraController->GetTarget()->Get()->ActorId());
-	//mKeyboardHandler = mFreeCameraController;
-	//mMouseHandler = mFreeCameraController;
+	HumanView::SetControlledActor(mGameCameraController->GetTarget()->GetId());
+	mKeyboardHandler = mGameCameraController;
+	mMouseHandler = mGameCameraController;
 
 }
 

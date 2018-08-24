@@ -476,7 +476,7 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
     Real trace = r(0, 0) + r(1, 1) + r(2, 2);
     Real half = (Real)0.5;
     Real cs = half*(trace - (Real)1);
-    cs = std::max(std::min(cs, (Real)1), (Real)-1);
+    cs = eastl::max(eastl::min(cs, (Real)1), (Real)-1);
     a.mAngle = acos(cs);  // The angle is in [0,pi].
     a.mAxis.MakeZero();
 
@@ -815,7 +815,7 @@ void Rotation<N, Real>::Convert(Quaternion<Real> const& q,
         a.mAxis[0] = q[0] * adjust;
         a.mAxis[1] = q[1] * adjust;
         a.mAxis[2] = q[2] * adjust;
-        Real cs = std::max(std::min(q[3], (Real)1), (Real)-1);
+        Real cs = eastl::max(eastl::min(q[3], (Real)1), (Real)-1);
         a.mAngle = ((Real)2)*acos(cs);
     }
     else

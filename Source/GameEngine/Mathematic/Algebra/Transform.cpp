@@ -211,7 +211,7 @@ float Transform::GetNorm() const
 #endif
     }
 
-    return std::max(std::max(r0, r1), r2);
+    return eastl::max(eastl::max(r0, r1), r2);
 }
 
 Matrix4x4<float> const& Transform::GetHInverse() const

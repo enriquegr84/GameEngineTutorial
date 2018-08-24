@@ -1070,7 +1070,8 @@ bool UIEditBox::ProcessMouse(const Event& event)
 			}
 			else
 			{
-				if (!IsPointInside(mAbsoluteClippingRect, Vector2<int>{event.mMouseInput.X, event.mMouseInput.Y}))
+				if (!mAbsoluteClippingRect.IsPointInside(
+					Vector2<int>{event.mMouseInput.X, event.mMouseInput.Y}))
 				{
 					return false;
 				}

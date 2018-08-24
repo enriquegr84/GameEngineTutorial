@@ -201,13 +201,12 @@ void PhysicComponent::Update(int deltaMs)
         Vector3<float> velocity(gamePhysics->GetVelocity(mOwner->GetId()));
         float velocityScalar = Length(velocity);
 
-		EulerAngles<float> rotation;
+		Vector4<float> direction;
 		// get the direction the object is facing
 		Transform transform = pTransformComponent->GetTransform();
-		transform.GetRotation(rotation);
+		direction = direction * transform;
 
-		Vector3<float> direction{ rotation.mAngle[0], rotation.mAngle[1], rotation.mAngle[2] };
-		gamePhysics->ApplyForce(direction, accelerationPerFrame, mOwner->GetId());
+		gamePhysics->ApplyForce(HProject(direction), accelerationPerFrame, mOwner->GetId());
 
         // logging
         // [rez] Comment this back in if you want to debug the physics thrust & rotation stuff. It spams quite 
@@ -336,7 +335,7 @@ void PhysicComponent::RotateY(float angleRadians)
         Vector3<float> position = transform.GetTranslation();
 
 		Transform rotateY;
-		EulerAngles<float> rotation(0, 1, 0, 0, angleRadians, 0);
+		AxisAngle<4, float> rotation(Vector4<float>::Unit(1), angleRadians);
         rotateY.SetRotation(rotation);
         rotateY.SetTranslation(position);
 

@@ -26,6 +26,8 @@ public:
         eastl::array<Vector<N, Real>, 2> const& inAxis,
         Vector<2, Real> const& inExtent);
 
+	bool IsPointInside(const Vector2<Real>& point) const;
+
     // Compute the vertices of the rectangle.  If index i has the bit pattern
     // i = b[1]b[0], then
     //   vertex[i] = center + sum_{d=0}^{1} sign[d] * extent[d] * axis[d]
@@ -71,6 +73,16 @@ RectangleShape<N, Real>::RectangleShape(Vector<N, Real> const& inCenter,
     mAxis(inAxis),
     mExtent(inExtent)
 {
+}
+
+template <int N, typename Real>
+bool RectangleShape<N, Real>::IsPointInside(const Vector2<Real>& point) const
+{
+	return (
+		mCenter[0] - (mExtent[0] / 2) <= point[0] &&
+		mCenter[1] - (mExtent[1] / 2) <= point[1] &&
+		mCenter[0] + (int)round(mExtent[0] / 2.f) >= point[0] &&
+		mCenter[1] + (int)round(mExtent[1] / 2.f) >= point[1]);
 }
 
 template <int N, typename Real>

@@ -21,7 +21,12 @@ CameraNode::CameraNode(const ActorId actorid)
 			(float)Renderer::Get()->GetScreenSize()[0] /
 			(float)Renderer::Get()->GetScreenSize()[1];
 	}
-	mCamera->SetFrustum((float)GE_C_PI, aspectRatio, 1.0f, 3000.0f);
+	mCamera->SetFrustum(60.0f, aspectRatio, 0.1f, 100.0f);
+	Vector4<float> camPosition{ 0.0f, -1.0f, 0.25f, 1.0f };
+	Vector4<float> camDVector{ 0.0f, 1.0f, 0.0f, 0.0f };
+	Vector4<float> camUVector{ 0.0f, 0.0f, 1.0f, 0.0f };
+	Vector4<float> camRVector = Cross(camDVector, camUVector);
+	mCamera->SetFrame(camPosition, camDVector, camUVector, camRVector);
 }
 
 
@@ -69,15 +74,18 @@ bool CameraNode::OnEvent(const Event& event)
 //! update
 void CameraNode::UpdateMatrices()
 {
-	Vector4<float> pos = mWorldTransform.GetTranslationW1();
-	Vector4<float> target = mCamera->GetPosition() + mCamera->GetDVector();
+	Vector4<float> pos = mCamera->GetPosition(); //mWorldTransform.GetTranslationW0();
+	//Quaternion<float> rotation;
+	//mWorldTransform.GetRotation(rotation);
+	Vector4<float> direction = mCamera->GetDVector(); //Rotate(rotation, pos);
 	if (mTarget)
-		target = mTarget->GetAbsoluteTransform().GetTranslationW1();
-
-	Vector4<float> direction = target - pos;
+	{
+		Vector4<float> target = mTarget->GetAbsoluteTransform().GetTranslationW1();
+		direction = target - pos;
+	}
 	Normalize(direction);
 
-	Vector4<float> up = mCamera->GetUVector();
+	Vector4<float> up = Vector4<float>::Unit(2); //up vector
 	Normalize(up);
 
 	float dp = Dot(direction, up);
@@ -87,14 +95,14 @@ void CameraNode::UpdateMatrices()
 	Vector4<float> right = Cross(direction, up);
 
 #if defined(GE_USE_MAT_VEC)
-	mCamera->SetPosition( mAffector * pos );
-	mCamera->SetAxes(
+	mCamera->SetFrame(
+		mAffector * pos,
 		mAffector * direction,
 		mAffector * up,
 		mAffector * right);
 #else
-	mCamera->SetPosition(pos * mAffector);
-	mCamera->SetAxes(
+	mCamera->SetFrame(
+		pos * mAffector,
 		direction * mAffector,
 		up * mAffector,
 		right * mAffector);

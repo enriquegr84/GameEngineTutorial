@@ -42,14 +42,23 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 		const eastl::shared_ptr<MeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
 		if (meshBuffer)
 		{
-			eastl::shared_ptr<Visual> visual = mf.CreateMesh(meshBuffer->mMesh.get());
+			// Create the visual effect.  The world up-direction is (0,0,1).  Choose
+			// the light to point down.
+			eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
+			lighting->mAmbient = Renderer::Get()->GetClearColor();
+			lighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
+
+			eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
 
 			eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 			eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-				ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, meshBuffer->GetMaterial(), eastl::make_shared<Lighting>(),
-				eastl::make_shared<LightCameraGeometry>(), eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
+				ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, meshBuffer->GetMaterial(), lighting,
+				geometry, eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
 				SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
+
+			eastl::shared_ptr<Visual> visual = mf.CreateMesh(meshBuffer->mMesh.get());
 			visual->SetEffect(effect);
+			visual->UpdateModelNormals();
 			mVisuals.push_back(visual);
 			mPVWUpdater->Subscribe(visual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 		}

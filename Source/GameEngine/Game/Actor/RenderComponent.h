@@ -76,6 +76,8 @@ protected:
 //---------------------------------------------------------------------------------------------------------------------
 class SphereRenderComponent : public BaseRenderComponent
 {
+	eastl::string mTextureResource;
+	Vector2<float> mTextureScale;
     unsigned int mSegments;
 	float mRadius;
 
@@ -100,6 +102,7 @@ protected:
 class GridRenderComponent : public BaseRenderComponent
 {
     eastl::string mTextureResource;
+	Vector2<float> mTextureScale;
     Vector2<int> mSegments;
 	Vector2<float> mExtent;
 
@@ -109,6 +112,7 @@ public:
 
     GridRenderComponent(void);
 	const char* GetTextureResource() { return mTextureResource.c_str(); }
+	const Vector2<float> GetTextureScale() { return mTextureScale; }
 	const Vector2<int> GetSegments() { return mSegments; }
 	const Vector2<float> GetExtent() { return mExtent; }
 
@@ -179,6 +183,7 @@ protected:
 class SkyRenderComponent : public BaseRenderComponent
 {
 	eastl::string mTextureResource;
+	Vector2<float> mTextureScale;
 
 public:
 	static const char *Name;

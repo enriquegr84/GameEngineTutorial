@@ -34,6 +34,7 @@ SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, eastl::make_shared<Material>(), 
 		eastl::make_shared<Lighting>());
 	mVisual->SetEffect(effect);
+	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 

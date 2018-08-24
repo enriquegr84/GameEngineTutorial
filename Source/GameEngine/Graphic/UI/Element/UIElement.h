@@ -415,17 +415,6 @@ public:
 			mAbsoluteRect.mCenter[1] + (int)round(mAbsoluteRect.mExtent[1] / 2.f) >= point[1] );
 	}
 
-
-	virtual bool IsPointInside(const RectangleShape<2, int>& rectangle, const Vector2<int>& point) const
-	{
-		return (
-			rectangle.mCenter[0] - (rectangle.mExtent[0] / 2) <= point[0] &&
-			rectangle.mCenter[1] - (rectangle.mExtent[1] / 2) <= point[1] &&
-			rectangle.mCenter[0] + (int)round(rectangle.mExtent[0] / 2.f) >= point[0] &&
-			rectangle.mCenter[1] + (int)round(rectangle.mExtent[1] / 2.f) >= point[1]);
-	}
-
-
 	//! Adds a UI element as new child of this element.
 	virtual void AddChild(const eastl::shared_ptr<BaseUIElement>& child)
 	{

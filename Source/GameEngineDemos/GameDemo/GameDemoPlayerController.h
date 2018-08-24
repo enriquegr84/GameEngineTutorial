@@ -1,5 +1,5 @@
 //========================================================================
-// File: DemoController.h
+// File: PlayerController.h
 //
 // Part of the GameEngine Application
 //
@@ -45,19 +45,18 @@
 
 class Node;
 
-class GameDemoController : public BaseMouseHandler, public BaseKeyboardHandler
+class GameDemoPlayerController : public BaseMouseHandler, public BaseKeyboardHandler
 {
 protected:
 	BYTE mKey[256];			// Which keys are up and down
 	eastl::shared_ptr<Node> mObject;
 
 public:
-	GameDemoController(const eastl::shared_ptr<Node>& object);
+	GameDemoPlayerController(const eastl::shared_ptr<Node>& object);
 	//void SetObject(const eastl::shared_ptr<SceneNode>& newObject);
 
 	void OnUpdate(unsigned long const elapsedTime);
 
-public:
 	bool OnMouseMove(const Vector2<int> &mousePos, const int radius) { return true; }
 	bool OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
 	bool OnMouseButtonUp(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)

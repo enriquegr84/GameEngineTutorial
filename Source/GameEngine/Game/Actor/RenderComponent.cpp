@@ -60,7 +60,7 @@ const char* ParticleSystemRenderComponent::Name = "ParticleSystemRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
 MeshRenderComponent::MeshRenderComponent(void)
 {
-    //mSegments = 50;
+
 }
 
 bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
@@ -142,18 +142,33 @@ void MeshRenderComponent::CreateInheritedXMLElements(
 //---------------------------------------------------------------------------------------------------------------------
 SphereRenderComponent::SphereRenderComponent(void)
 {
-    mSegments = 50;
+    mSegments = 0;
+	mTextureResource = "";
 }
 
 bool SphereRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 {
-	tinyxml2::XMLElement* pMesh = pData->FirstChildElement("Sphere");
-    int segments = 50;
-	float radius = 1.0;
-	radius = pMesh->FloatAttribute("radius", radius);
-    segments = pMesh->IntAttribute("segments", segments);
-	mRadius = (float)radius;
-    mSegments = (unsigned int)segments;
+	tinyxml2::XMLElement* pSphere = pData->FirstChildElement("Sphere");
+	if (pSphere)
+	{
+		int segments = 50;
+		float radius = 1.0;
+		radius = pSphere->FloatAttribute("radius", radius);
+		segments = pSphere->IntAttribute("segments", segments);
+		mRadius = (float)radius;
+		mSegments = (unsigned int)segments;
+	}
+
+	tinyxml2::XMLElement* pTexture = pData->FirstChildElement("Texture");
+	if (pTexture)
+	{
+		float x = 1.f;
+		float y = 1.f;
+		x = pTexture->FloatAttribute("x", x);
+		y = pTexture->FloatAttribute("y", y);
+		mTextureScale = Vector2<float>{ x, y };
+		mTextureResource = pTexture->Attribute("file");
+	}
 
     return true;
 }
@@ -179,7 +194,7 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 			if (sphere)
 			{
 				eastl::shared_ptr<ResHandle>& resHandle =
-					ResCache::Get()->GetHandle(&BaseResource(L"Art/wall.bmp"));
+					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
 				if (resHandle)
 				{
 					const eastl::shared_ptr<ImageResourceExtraData>& extra =
@@ -205,6 +220,12 @@ void SphereRenderComponent::CreateInheritedXMLElements(
 	pMesh->SetAttribute("radius", eastl::to_string(mRadius).c_str());
     pMesh->SetAttribute("segments", eastl::to_string(mSegments).c_str());
     pBaseElement->LinkEndChild(pBaseElement);
+
+	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
+	pTexture->SetAttribute("file", mTextureResource.c_str());
+	pTexture->SetAttribute("x", eastl::to_string(mTextureScale[0]).c_str());
+	pTexture->SetAttribute("y", eastl::to_string(mTextureScale[1]).c_str());
+	pBaseElement->LinkEndChild(pTexture);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -213,7 +234,6 @@ void SphereRenderComponent::CreateInheritedXMLElements(
 GridRenderComponent::GridRenderComponent(void)
 {
     mTextureResource = "";
-    mSegments = 0;
 }
 
 bool GridRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
@@ -221,7 +241,12 @@ bool GridRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 	tinyxml2::XMLElement* pTexture = pData->FirstChildElement("Texture");
     if (pTexture)
 	{
-		mTextureResource = pTexture->FirstChild()->Value();
+		float x = 1.f;
+		float y = 1.f;
+		x = pTexture->FloatAttribute("x", x);
+		y = pTexture->FloatAttribute("y", y);
+		mTextureScale = Vector2<float>{ x, y };
+		mTextureResource = pTexture->Attribute("file");
 	}
 
 	tinyxml2::XMLElement* pSegment = pData->FirstChildElement("Segment");
@@ -270,8 +295,9 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 				extra->GetImage()->AutogenerateMipmaps();
 
 				// create an animated mesh scene node with specified mesh.
-				eastl::shared_ptr<Node> planeNode = pScene->AddRectangleNode(
-					wbrcp, 0, extra->GetImage(), mExtent[0], mExtent[1], mSegments[0], mSegments[1], mOwner->GetId());
+				eastl::shared_ptr<Node> gridNode = pScene->AddRectangleNode(
+					wbrcp, 0, extra->GetImage(), mTextureScale[0], mTextureScale[1],
+					mExtent[0], mExtent[1], mSegments[0], mSegments[1], mOwner->GetId());
 
 				//To let the mesh look a little bit nicer, we change its material. We
 				//disable lighting because we do not have a dynamic light in here, and
@@ -279,7 +305,7 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 				//texture to the mesh. Without it the mesh would be drawn using only a
 				//color.
 				/*
-				if (planeNode)
+				if (gridNode)
 				{
 					resHandle =
 						ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
@@ -309,7 +335,7 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 
 				}
 				*/
-				return planeNode;
+				return gridNode;
 			}
 		}
 		else LogError("Unknown Renderer Implementation in GridRenderComponent");
@@ -321,10 +347,11 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 void GridRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLDocument doc, tinyxml2::XMLElement *pBaseElement)
 {
-	tinyxml2::XMLElement* pTextureNode = doc.NewElement("Texture");
-	tinyxml2::XMLText* pTextureText = doc.NewText(mTextureResource.c_str());
-    pTextureNode->LinkEndChild(pTextureText);
-    pBaseElement->LinkEndChild(pTextureNode);
+	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
+	pTexture->SetAttribute("file", mTextureResource.c_str());
+	pTexture->SetAttribute("x", eastl::to_string(mTextureScale[0]).c_str());
+	pTexture->SetAttribute("y", eastl::to_string(mTextureScale[1]).c_str());
+    pBaseElement->LinkEndChild(pTexture);
 
 	tinyxml2::XMLElement* pSegment = doc.NewElement("Segment");
 	pSegment->SetAttribute("x", eastl::to_string(mSegments[0]).c_str());
@@ -603,14 +630,20 @@ void ParticleSystemRenderComponent::CreateInheritedXMLElements(
 //---------------------------------------------------------------------------------------------------------------------
 SkyRenderComponent::SkyRenderComponent(void)
 {
+	mTextureResource = "";
 }
 
 bool SkyRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 {
 	tinyxml2::XMLElement* pTexture = pData->FirstChildElement("Texture");
-    if (pTexture)
+	if (pTexture)
 	{
-		mTextureResource = pTexture->FirstChild()->Value();
+		float x = 16.f;
+		float y = 16.f;
+		x = pTexture->FloatAttribute("x", x);
+		y = pTexture->FloatAttribute("y", y);
+		mTextureScale = Vector2<float>{ x, y };
+		mTextureResource = pTexture->Attribute("file");
 	}
 	return true;
 }
@@ -828,8 +861,9 @@ eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 void SkyRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLDocument doc, tinyxml2::XMLElement *pBaseElement)
 {
-	tinyxml2::XMLElement* pTextureNode = doc.NewElement("Texture");
-	tinyxml2::XMLText* pTextureText = doc.NewText(mTextureResource.c_str());
-    pTextureNode->LinkEndChild(pTextureText);
-    pBaseElement->LinkEndChild(pTextureNode);
+	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
+	pTexture->SetAttribute("file", mTextureResource.c_str());
+	pTexture->SetAttribute("x", eastl::to_string(mTextureScale[0]).c_str());
+	pTexture->SetAttribute("y", eastl::to_string(mTextureScale[1]).c_str());
+	pBaseElement->LinkEndChild(pTexture);
 }

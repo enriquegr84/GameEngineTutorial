@@ -10,15 +10,15 @@
         <Density>Infinite</Density>
         <PhysicsMaterial>Normal</PhysicsMaterial>
         <RigidBodyTransform>
-			    <Scale x="50" y="0.01" z="50" />  
-		    </RigidBodyTransform>
+			<Scale x="16" y="0.01" z="16" />  
+		</RigidBodyTransform>
     </PhysicsComponent>
 	
     <GridRenderComponent>
       <Color r="0.4" g="0.4" b="0.4" a="1.0"/>
-      <Texture>art\wall.bmp</Texture>
-		  <Extent x="50" y="50"/>
-		  <Segment x="50" y="50" />
+      <Texture file="art\wall.bmp" x="128.0" y="128.0" />
+	  <Extent x="16.0" y="16.0"/>
+	  <Segment x="2" y="2" />
     </GridRenderComponent>
 
 </Actor>

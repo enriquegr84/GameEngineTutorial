@@ -16,7 +16,7 @@ public:
 	//! constructor
 	RectangleNode(const ActorId actorId, PVWUpdater* updater, 
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Texture2>& texture,
-		float xSize, float ySize, int xPolyCount, int yPolyCount);
+		float texsScale, float texyScale, float xSize, float ySize, int xPolyCount, int yPolyCount);
 
 	~RectangleNode();
 

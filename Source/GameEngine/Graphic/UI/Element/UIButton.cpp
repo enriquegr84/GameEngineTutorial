@@ -180,7 +180,7 @@ bool UIButton::OnEvent(const Event& ev)
 		if (ev.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
 		{
 			if (mUI->HasFocus(shared_from_this()) &&
-				!IsPointInside(mAbsoluteRect, Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y}))
+				!mAbsoluteRect.IsPointInside(Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y}))
 			{
 				mUI->RemoveFocus(shared_from_this());
 				return false;
@@ -197,7 +197,7 @@ bool UIButton::OnEvent(const Event& ev)
 		{
 			bool wasPressed = mPressed;
 
-			if (!IsPointInside(mAbsoluteRect, Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y }))
+			if (!mAbsoluteRect.IsPointInside(Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y }))
 			{
 				if (!mPushButton)
 					SetPressed(false);

@@ -1,4 +1,4 @@
-// DemoController.cpp - Controller class for the player 
+// PlayerController.cpp - Controller class for the player 
 //
 // Part of the GameEngine Application
 //
@@ -43,7 +43,7 @@
 
 #include "Physic/PhysicEventListener.h"
 
-#include "GameDemoController.h"
+#include "GameDemoPlayerController.h"
 #include "GameDemoEvents.h"
 
 const float ACTOR_ACCELERATION = 6.5f * 8.0f;
@@ -51,23 +51,23 @@ const float ACTOR_ANGULAR_ACCELERATION = 22.0f;
 
 
 ////////////////////////////////////////////////////
-// GameDemoController Implementation
+// GameDemoPlayerController Implementation
 ////////////////////////////////////////////////////
 
 
 //
-// GameDemoController::GameDemoController
+// GameDemoPlayerController::GameDemoPlayerController
 //
-GameDemoController::GameDemoController(const eastl::shared_ptr<Node>& object)
+GameDemoPlayerController::GameDemoPlayerController(const eastl::shared_ptr<Node>& object)
 : mObject(object)
 {
 	memset(mKey, 0x00, sizeof(mKey));
 }
 
 //
-// DemoController::OnMouseButtonDown				- Chapter 19, page 735
+// GameDemoPlayerController::OnMouseButtonDown				- Chapter 19, page 735
 //
-bool GameDemoController::OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
+bool GameDemoPlayerController::OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
 {
 	if (buttonName != "PointerLeft")
 		return false;
@@ -79,14 +79,14 @@ bool GameDemoController::OnMouseButtonDown(const Vector2<int> &mousePos, const i
 }
 
 //
-// DemoController::OnUpdate				- Chapter 19, page 736
+// GameDemoPlayerController::OnUpdate				- Chapter 19, page 736
 //
-void GameDemoController::OnUpdate(unsigned long const deltaTime)  
+void GameDemoPlayerController::OnUpdate(unsigned long const deltaTime)  
 {
     //
 }
 
-bool GameDemoController::OnKeyDown(const KeyCode c)
+bool GameDemoPlayerController::OnKeyDown(const KeyCode c)
 {
     // update the key table
     mKey[c] = true;
@@ -112,7 +112,7 @@ bool GameDemoController::OnKeyDown(const KeyCode c)
     return true;
 }
 
-bool GameDemoController::OnKeyUp(const KeyCode c)
+bool GameDemoPlayerController::OnKeyUp(const KeyCode c)
 {
     // update the key table
     mKey[c] = false;

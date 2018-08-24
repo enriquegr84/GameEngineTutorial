@@ -56,17 +56,14 @@ int ParticleSphereEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCal
 			// Random direction from center
 			particle.mPos = Vector3<float>{ mCenter[0] + distance, mCenter[1], mCenter[2] + distance };
 			Quaternion<float> tgt = Rotation<3, float>(
-				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360));
-			particle.mPos = HProject(Rotate(tgt, Vector4<float> { 0.0f, 0.0f, 1.0f, 0.0f }));
+				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360 * GE_C_DEG_TO_RAD));
+			particle.mPos = HProject(Rotate(tgt, Vector4<float>::Unit(1)));
 			tgt = Rotation<3, float>(
-				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360));
-			particle.mPos = HProject(Rotate(tgt, Vector4<float> { 1.0f, 0.0f, 0.0f, 0.0f }));
+				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360 * GE_C_DEG_TO_RAD));
+			particle.mPos = HProject(Rotate(tgt, Vector4<float>::Unit(0)));
 			tgt = Rotation<3, float>(
-				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360));
-			particle.mPos = HProject(Rotate(tgt, Vector4<float> { 0.0f, 1.0f, 0.0f, 0.0f }));
-			//particle.mPos.RotateXYBy(Randomizer::FRand() * 360.f, mCenter );
-			//particle.mPos.RotateYZBy(Randomizer::FRand() * 360.f, mCenter );
-			//particle.mPos.RotateXZBy(Randomizer::FRand() * 360.f, mCenter );
+				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360 * GE_C_DEG_TO_RAD));
+			particle.mPos = HProject(Rotate(tgt, Vector4<float>::Unit(2)));
 
 			particle.mStartTime = now;
 			particle.mVector = mDirection;
@@ -77,13 +74,13 @@ int ParticleSphereEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCal
 
 				Quaternion<float> tgt = Rotation<3, float>(
 					AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
-				particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 0.0f, 1.0f, 0.0f }));
+				particle.mVector = HProject(Rotate(tgt, Vector4<float>::Unit(1)));
 				tgt = Rotation<3, float>(
 					AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
-				particle.mVector = HProject(Rotate(tgt, Vector4<float> { 1.0f, 0.0f, 0.0f, 0.0f }));
+				particle.mVector = HProject(Rotate(tgt, Vector4<float>::Unit(0)));
 				tgt = Rotation<3, float>(
 					AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees));
-				particle.mVector = HProject(Rotate(tgt, Vector4<float> { 0.0f, 1.0f, 0.0f, 0.0f }));
+				particle.mVector = HProject(Rotate(tgt, Vector4<float>::Unit(2)));
 			}
 
 			particle.mEndTime = now + mMinLifeTime;

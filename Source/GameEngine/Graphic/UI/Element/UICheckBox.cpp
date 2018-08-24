@@ -113,7 +113,7 @@ bool UICheckBox::OnEvent(const Event& event)
 
 				if (wasPressed && mParent)
 				{
-					if (!IsPointInside(mAbsoluteRect, Vector2<int>{event.mMouseInput.X, event.mMouseInput.Y}))
+					if (!mAbsoluteRect.IsPointInside(Vector2<int>{event.mMouseInput.X, event.mMouseInput.Y}))
 					{
 						mPressed = false;
 						return true;

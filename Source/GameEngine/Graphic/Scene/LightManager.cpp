@@ -9,6 +9,13 @@
 
 #include "Application/GameApplication.h"
 
+// When exposed, turns off lighting so that the scene is unlit (texturing only).
+//#define DISABLE_LIGHTING
+
+// When exposed, use a directional light to modulate the textures.  When not
+// exposed, use a point light to modulate the textures.
+//#define USE_DIRECTIONAL_LIGHT_TEXTURE
+
 //----------------------------------------------------------------------------
 
 LightManager::LightManager()
@@ -333,7 +340,7 @@ bool LightManager::OnCharPress(unsigned char key, int x, int y)
 					auto effect = mEffect[lt][gt][st];
 					auto lighting = effect->GetLighting();
 					lighting->attenuation[3] -= 0.125f;
-					lighting->attenuation[3] = std::max(lighting->attenuation[3], 0.0f);
+					lighting->attenuation[3] = eastl::max(lighting->attenuation[3], 0.0f);
 					effect->UpdateLightingConstant();
 				}
 			}
@@ -365,7 +372,7 @@ bool LightManager::OnCharPress(unsigned char key, int x, int y)
 				auto effect = mEffect[LSPT][gt][st];
 				auto lighting = effect->GetLighting();
 				lighting->spotCutoff[0] -= 0.1f;
-				lighting->spotCutoff[0] = std::max(lighting->spotCutoff[0], 0.0f);
+				lighting->spotCutoff[0] = eastl::max(lighting->spotCutoff[0], 0.0f);
 				lighting->spotCutoff[1] = cos(lighting->spotCutoff[0]);
 				lighting->spotCutoff[2] = sin(lighting->spotCutoff[0]);
 				effect->UpdateLightingConstant();

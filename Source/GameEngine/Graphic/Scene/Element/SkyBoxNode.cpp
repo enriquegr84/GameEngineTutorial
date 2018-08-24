@@ -24,17 +24,6 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 	//mBBox.MaxEdge.set(0,0,0);
 	//mBBox.MinEdge.set(0,0,0);
 
-	// create material
-	eastl::shared_ptr<Material> mat = eastl::make_shared<Material>();
-	/*
-	Material mat[6];
-	mat.mLighting = false;
-	mat.mZBuffer = CFN_DISABLED;
-	mat.mZWriteEnable = false;
-	mat.mAntiAliasing=0;
-	mat.mTextureLayer[0].TextureWrapU = TC_CLAMP_TO_EDGE;
-	mat.mTextureLayer[0].TextureWrapV = TC_CLAMP_TO_EDGE;
-	*/
 	/*
 
        -111         111
@@ -66,10 +55,33 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 	eastl::shared_ptr<VertexBuffer> vertices = eastl::make_shared<VertexBuffer>(vformat, 24);
 	eastl::shared_ptr<IndexBuffer> indices = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 4);
 
+	// Create the visual effect. The world up-direction is (0,0,1).  Choose
+	// the light to point down.
+	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
+	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+	material->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
+	material->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
+	material->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+	/*
+	Material mat[6];
+	mat.mLighting = false;
+	mat.mZBuffer = CFN_DISABLED;
+	mat.mZWriteEnable = false;
+	mat.mAntiAliasing=0;
+	mat.mTextureLayer[0].TextureWrapU = TC_CLAMP_TO_EDGE;
+	mat.mTextureLayer[0].TextureWrapV = TC_CLAMP_TO_EDGE;
+	*/
+
+	eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
+	lighting->mAmbient = Renderer::Get()->GetClearColor();
+	lighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
+
+	eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
+
 	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mat, eastl::make_shared<Lighting>(),
-		eastl::make_shared<LightCameraGeometry>(), tex, SamplerState::MIN_L_MAG_L_MIP_L,
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, material, lighting,
+		geometry, tex, SamplerState::MIN_L_MAG_L_MIP_L,
 		SamplerState::WRAP, SamplerState::WRAP);
 
 	const float onepixel = tex?(1.0f / (tex->GetDimension(0) * 1.5f)) : 0.0f;
@@ -213,6 +225,7 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 
 	mVisual = eastl::make_shared<Visual>(vertices, indices, effect);
 	mVisual->SetEffect(effect);
+	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 

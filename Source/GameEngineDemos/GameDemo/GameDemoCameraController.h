@@ -1,5 +1,5 @@
 //========================================================================
-// TransformComponent.h - Component for managing transforms on actors
+// File: DemoCameraController.h
 //
 // Part of the GameEngine Application
 //
@@ -36,40 +36,62 @@
 //
 //========================================================================
 
-#ifndef TRANSFORMCOMPONENT_H
-#define TRANSFORMCOMPONENT_H
+#ifndef GAMEDEMOCAMERACONTROLLER_H
+#define GAMEDEMOCAMERACONTROLLER_H
 
-#include "ActorComponent.h"
+#include "GameEngineStd.h"
+
+#include "Application/System/EventSystem.h"
 
 #include "Mathematic/Algebra/Transform.h"
 
-//---------------------------------------------------------------------------------------------------
-// This component implementation is a very simple representation of the physical aspect of an actor.
-// It just defines the transform and doesn't register with the physics system at all.
-//---------------------------------------------------------------------------------------------------
-class TransformComponent : public ActorComponent
+class CameraNode;
+
+class GameDemoCameraController : public BaseMouseHandler, public BaseKeyboardHandler
 {
-    Transform mTransform;
+protected:
+	BYTE mKey[256];			// Which keys are up and down
+
+	Transform		mAbsoluteTransform;
+	Vector2<int>	mLastMousePos;
+
+	// Orientation Controls
+	float		mTargetYaw;
+	float		mTargetPitch;
+	float		mYaw;
+	float		mPitch;
+	float		mPitchOnDown;
+	float		mYawOnDown;
+	float		mMaxSpeed;
+	float		mCurrentSpeed;
+	float		mRotateSpeed;
+
+	// Added for Ch19/20 refactor
+	bool		mWheelRollDown;
+	bool		mMouseLButtonDown;
+	bool		mRotateWhenLButtonDown;
+
+	eastl::shared_ptr<CameraNode> mTarget;
 
 public:
-	static const char* Name;
-	virtual const char* GetName() const { return Name; }
+	GameDemoCameraController(const eastl::shared_ptr<CameraNode>& target,
+		float initialYaw, float initialPitch, bool rotateWhenLButtonDown);
 
-	TransformComponent(void) { mTransform.MakeIdentity(); }
-    virtual bool Init(tinyxml2::XMLElement* pData) override;
-    virtual tinyxml2::XMLElement* GenerateXml(void) override;
+	void OnUpdate(unsigned long const elapsedTime);
 
-    // transform functions
-	Transform GetTransform(void) const { return mTransform; }
-    void SetTransform(const Transform& newTransform) { mTransform = newTransform; }
-    Vector3<float> GetPosition(void) const { return mTransform.GetTranslation(); }
-    void SetPosition(const Vector3<float>& pos) { mTransform.SetTranslation(pos); }
-	AxisAngle<4, float> GetLookAt(void) const
-	{ 
-		AxisAngle<4, float> axisAngles;
-		mTransform.GetRotation(axisAngles);
-		return axisAngles;
-	}
+	const eastl::shared_ptr<CameraNode>& GetTarget() { return mTarget; }
+	void SetTarget(const eastl::shared_ptr<CameraNode>& newTarget) { mTarget = newTarget; }
+
+	bool OnMouseMove(const Vector2<int> &mousePos, const int radius);
+	bool OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
+	bool OnMouseButtonUp(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
+
+	bool OnKeyDown(const KeyCode c) { mKey[c] = true; return true; }
+	bool OnKeyUp(const KeyCode c) { mKey[c] = false; return true; }
+
+	bool OnWheelRollDown() { mWheelRollDown = true; return true; }
+	bool OnWheelRollUp() { mWheelRollDown = false; return true; }
+
 };
 
 #endif

@@ -88,8 +88,8 @@ void BillboardNode::UpdateWorldData(double applicationTime)
         // (rather than NaN), so there is no need to trap this degenerate
         // case and handle it separately.
         float angle = Function<float>::ATan2(modelPos[0], modelPos[2]);
-        Matrix4x4<float> orient = Rotation<4, float>(AxisAngle<4, float>(
-            Vector4<float>::Unit(1), angle));
+        Matrix4x4<float> orient = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(2), angle));
 #if defined(GE_USE_MAT_VEC)
         mWorldTransform.SetRotation(mWorldTransform.GetRotation() * orient);
 #else
