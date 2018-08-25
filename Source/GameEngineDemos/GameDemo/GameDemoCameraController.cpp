@@ -61,8 +61,8 @@ GameDemoCameraController::GameDemoCameraController(const eastl::shared_ptr<Camer
 	float initialYaw, float initialPitch, bool rotateWhenLButtonDown)
 	: mTarget(target)
 {
-	mTargetYaw = mYaw = GE_C_RAD_TO_DEG * -initialYaw;
-	mTargetPitch = mPitch = GE_C_RAD_TO_DEG * initialPitch;
+	mTargetYaw = mYaw = (float)GE_C_RAD_TO_DEG * -initialYaw;
+	mTargetPitch = mPitch = (float)GE_C_RAD_TO_DEG * initialPitch;
 
 	mMaxSpeed = 1.0f;			// 30 meters per second
 	mCurrentSpeed = 0.0f;
@@ -180,9 +180,9 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 		// Calculate the new rotation matrix from the camera
 		// yaw and pitch.
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), -mYaw * GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(1), -mYaw * (float)GE_C_DEG_TO_RAD));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(0), mPitch * GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(0), mPitch * (float)GE_C_DEG_TO_RAD));
 
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
 		mAbsoluteTransform.SetTranslation(mTarget->GetAbsoluteTransform().GetTranslation());
@@ -255,5 +255,5 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 	else mCurrentSpeed = 0.0f;
 
 	// update transform matrix
-	mTarget->GetAbsoluteTransform() = mAbsoluteTransform;
+	mTarget->GetRelativeTransform() = mAbsoluteTransform;
 }

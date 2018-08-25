@@ -48,13 +48,13 @@ int ParticlePointEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall
 		if (mMaxAngleDegrees)
 		{
 			Quaternion<float> tgt = Rotation<3, float>(
-				AxisAngle<3, float>(mParticle.mVector, Randomizer::FRand() * mMaxAngleDegrees * GE_C_DEG_TO_RAD));
+				AxisAngle<3, float>(mParticle.mVector, Randomizer::FRand() * mMaxAngleDegrees * (float)GE_C_DEG_TO_RAD));
 			mParticle.mVector = HProject(Rotate(tgt, Vector4<float>::Unit(1)));
 			tgt = Rotation<3, float>(
-				AxisAngle<3, float>(mParticle.mVector, Randomizer::FRand() * mMaxAngleDegrees * GE_C_DEG_TO_RAD));
+				AxisAngle<3, float>(mParticle.mVector, Randomizer::FRand() * mMaxAngleDegrees * (float)GE_C_DEG_TO_RAD));
 			mParticle.mVector = HProject(Rotate(tgt, Vector4<float>::Unit(0)));
 			tgt = Rotation<3, float>(
-				AxisAngle<3, float>(mParticle.mVector, Randomizer::FRand() * mMaxAngleDegrees * GE_C_DEG_TO_RAD));
+				AxisAngle<3, float>(mParticle.mVector, Randomizer::FRand() * mMaxAngleDegrees * (float)GE_C_DEG_TO_RAD));
 			mParticle.mVector = HProject(Rotate(tgt, Vector4<float>::Unit(2)));
 		}
 

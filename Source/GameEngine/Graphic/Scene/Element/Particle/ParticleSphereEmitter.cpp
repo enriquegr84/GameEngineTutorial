@@ -56,13 +56,13 @@ int ParticleSphereEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCal
 			// Random direction from center
 			particle.mPos = Vector3<float>{ mCenter[0] + distance, mCenter[1], mCenter[2] + distance };
 			Quaternion<float> tgt = Rotation<3, float>(
-				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360 * GE_C_DEG_TO_RAD));
+				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360 * (float)GE_C_DEG_TO_RAD));
 			particle.mPos = HProject(Rotate(tgt, Vector4<float>::Unit(1)));
 			tgt = Rotation<3, float>(
-				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360 * GE_C_DEG_TO_RAD));
+				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360 * (float)GE_C_DEG_TO_RAD));
 			particle.mPos = HProject(Rotate(tgt, Vector4<float>::Unit(0)));
 			tgt = Rotation<3, float>(
-				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360 * GE_C_DEG_TO_RAD));
+				AxisAngle<3, float>(particle.mPos, Randomizer::FRand() * 360 * (float)GE_C_DEG_TO_RAD));
 			particle.mPos = HProject(Rotate(tgt, Vector4<float>::Unit(2)));
 
 			particle.mStartTime = now;

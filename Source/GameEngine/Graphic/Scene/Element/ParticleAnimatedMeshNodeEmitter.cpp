@@ -79,13 +79,13 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 						if( mMaxAngleDegrees )
 						{
 							Quaternion<float> tgt = Rotation<3, float>(
-								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees * GE_C_DEG_TO_RAD));
+								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees * (float)GE_C_DEG_TO_RAD));
 							particle.mVector = HProject(Rotate(tgt, Vector4<float>::Unit(1)));
 							tgt = Rotation<3, float>(
-								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees * GE_C_DEG_TO_RAD));
+								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees * (float)GE_C_DEG_TO_RAD));
 							particle.mVector = HProject(Rotate(tgt, Vector4<float>::Unit(0)));
 							tgt = Rotation<3, float>(
-								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees * GE_C_DEG_TO_RAD));
+								AxisAngle<3, float>(particle.mVector, Randomizer::FRand() * mMaxAngleDegrees * (float)GE_C_DEG_TO_RAD));
 							particle.mVector = HProject(Rotate(tgt, Vector4<float>::Unit(2)));
 						}
 
@@ -136,13 +136,13 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 				if( mMaxAngleDegrees )
 				{
 					Quaternion<float> tgt = Rotation<3, float>(
-						AxisAngle<3, float>(mDirection, Randomizer::FRand() * mMaxAngleDegrees * GE_C_DEG_TO_RAD));
+						AxisAngle<3, float>(mDirection, Randomizer::FRand() * mMaxAngleDegrees * (float)GE_C_DEG_TO_RAD));
 					mDirection = HProject(Rotate(tgt, Vector4<float>::Unit(1)));
 					tgt = Rotation<3, float>(
-						AxisAngle<3, float>(mDirection, Randomizer::FRand() * mMaxAngleDegrees * GE_C_DEG_TO_RAD));
+						AxisAngle<3, float>(mDirection, Randomizer::FRand() * mMaxAngleDegrees * (float)GE_C_DEG_TO_RAD));
 					mDirection = HProject(Rotate(tgt, Vector4<float>::Unit(0)));
 					tgt = Rotation<3, float>(
-						AxisAngle<3, float>(mDirection, Randomizer::FRand() * mMaxAngleDegrees * GE_C_DEG_TO_RAD));
+						AxisAngle<3, float>(mDirection, Randomizer::FRand() * mMaxAngleDegrees * (float)GE_C_DEG_TO_RAD));
 					mDirection = HProject(Rotate(tgt, Vector4<float>::Unit(2)));
 					particle.mVector = mDirection;
 				}

@@ -39,7 +39,7 @@ void ParticleRotationAffector::Affect(unsigned int now, Particle* particlearray,
 		if (mSpeed[0] != 0.0f)
 		{
 			Quaternion<float> tgt = Rotation<3, float>(
-				AxisAngle<3, float>(particlearray[i].mPos, timeDelta * mSpeed[0] * GE_C_DEG_TO_RAD));
+				AxisAngle<3, float>(particlearray[i].mPos, timeDelta * mSpeed[0] * (float)GE_C_DEG_TO_RAD));
 			particlearray[i].mPos = HProject(Rotate(tgt, Vector4<float>::Unit(0)));
 			//particlearray[i].mPos.RotateYZBy(timeDelta * mSpeed.X, mPivotPoint);
 		}
@@ -47,7 +47,7 @@ void ParticleRotationAffector::Affect(unsigned int now, Particle* particlearray,
 		if (mSpeed[1] != 0.0f)
 		{
 			Quaternion<float> tgt = Rotation<3, float>(
-				AxisAngle<3, float>(particlearray[i].mPos, timeDelta * mSpeed[2] * GE_C_DEG_TO_RAD));
+				AxisAngle<3, float>(particlearray[i].mPos, timeDelta * mSpeed[2] * (float)GE_C_DEG_TO_RAD));
 			particlearray[i].mPos = HProject(Rotate(tgt, Vector4<float>::Unit(2)));
 			//particlearray[i].mPos.RotateXZBy(timeDelta * mSpeed.Y, mPivotPoint);
 		}
@@ -55,7 +55,7 @@ void ParticleRotationAffector::Affect(unsigned int now, Particle* particlearray,
 		if (mSpeed[2] != 0.0f)
 		{
 			Quaternion<float> tgt = Rotation<3, float>(
-				AxisAngle<3, float>(particlearray[i].mPos, timeDelta * mSpeed[1] * GE_C_DEG_TO_RAD));
+				AxisAngle<3, float>(particlearray[i].mPos, timeDelta * mSpeed[1] * (float)GE_C_DEG_TO_RAD));
 			particlearray[i].mPos = HProject(Rotate(tgt, Vector4<float>::Unit(1)));
 			//particlearray[i].mPos.RotateXYBy(timeDelta * mSpeed.Z, mPivotPoint);
 		}
