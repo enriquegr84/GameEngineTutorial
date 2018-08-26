@@ -21,8 +21,8 @@ protected:
 public:
     virtual ~Controller();
 
-    // The animation update.  The application time is in milliseconds.
-    virtual bool Update(double applicationTime);
+    // The animation update.
+    virtual bool Update();
 
     // The class ControlledObject needs to set the object during a call to
     // AttachController.  Derived classes that manage a set of controllers
@@ -59,9 +59,6 @@ protected:
     // to avoid the cycle because we do not know the shared_ptr object
     // that owns mObject.
     ControlledObject* mObject;
-
-    // The application time in milliseconds.
-    double mApplicationTime;
 };
 
 #endif

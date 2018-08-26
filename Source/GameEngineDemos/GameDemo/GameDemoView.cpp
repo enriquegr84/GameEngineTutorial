@@ -906,7 +906,7 @@ bool GameDemoHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
     // A movement controller is going to control the camera, 
     // but it could be constructed with any of the objects you see in this
     // function. You can have your very own remote controlled sphere. What fun...
-    mGameCameraController.reset(new GameDemoCameraController(mCamera, 0, 0, false));
+    mGameCameraController.reset(new GameDemoCameraController(mCamera, 0, 0, true));
 	mKeyboardHandler = mGameCameraController;
 	mMouseHandler = mGameCameraController;
 	mCamera->ClearTarget();

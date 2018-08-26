@@ -29,9 +29,9 @@ SkinController::SkinController(int numVertices, int numBones, Updater const& pos
 {
 }
 
-bool SkinController::Update(double applicationTime)
+bool SkinController::Update()
 {
-    if (!Controller::Update(applicationTime))
+    if (!Controller::Update())
     {
         return false;
     }

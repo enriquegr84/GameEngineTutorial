@@ -43,8 +43,8 @@ public:
     inline void SetWeight(float weight);
     inline float GetWeight() const;
 
-    // The animation update.  The application time is in milliseconds.
-    virtual bool Update(double applicationTime);
+    // The animation update.
+    virtual bool Update();
 
 protected:
     // Set the object for 'this' and for the managed controllers.

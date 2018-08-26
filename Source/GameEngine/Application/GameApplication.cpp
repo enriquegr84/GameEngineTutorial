@@ -445,11 +445,11 @@ void GameApplication::OnRun()
 			// game logic execution
 			OnUpdateGame(elapsedTime);
 
-			// animate all game views
-			OnAnimateView(Timer::GetTime());
-
 			// update all game views
 			OnUpdateView(elapsedTime);
+
+			// animate all game views
+			OnAnimateView(Timer::GetTime());
 
 			// Render the scene
 			OnRender(elapsedTime);
@@ -482,7 +482,6 @@ void GameApplication::OnUpdateView(unsigned int elapsedTime)
 }
 
 /*
-	
 	Render function retrieves and calls the application's frame render, which will call
 	the OnRender() methods of the views attached to the game every frame to perform 
 	all the rendering calls for the scene, and it will also be called if the window needs 

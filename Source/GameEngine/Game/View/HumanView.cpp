@@ -427,7 +427,6 @@ void HumanView::OnUpdate(const int deltaMilliseconds)
 //
 void HumanView::OnAnimate(unsigned int uTime)
 {
-
 	// This section of code was added post-press. It runs through the screenlist
 	// and calls OnAnimate. Some screen elements need to update every frame, one 
 	// example of this is a 3D scene attached to the human view.

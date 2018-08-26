@@ -15,9 +15,9 @@ TransformController::TransformController(Transform const& localTransform)
 {
 }
 
-bool TransformController::Update(double applicationTime)
+bool TransformController::Update()
 {
-    if (!Controller::Update(applicationTime))
+    if (!Controller::Update())
     {
         return false;
     }

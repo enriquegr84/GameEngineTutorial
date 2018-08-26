@@ -62,14 +62,14 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBas
 	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
 }
 
-void BillboardNode::UpdateWorldData(double applicationTime)
+void BillboardNode::UpdateWorldData()
 {
     // Compute the billboard's world transforms based on its parent's world
     // transform and its local transforms.  Notice that you should not call
     // Node::UpdateWorldData since that function updates its children.  The
     // children of a BillboardNode cannot be updated until the billboard is
     // aligned with the camera.
-    Spatial::UpdateWorldData(applicationTime);
+    Spatial::UpdateWorldData();
 
     if (mPVWUpdater->GetCamera())
     {
@@ -102,7 +102,7 @@ void BillboardNode::UpdateWorldData(double applicationTime)
     {
         if (child)
         {
-            child->Update(applicationTime, false);
+            child->Update(false);
         }
     }
 }

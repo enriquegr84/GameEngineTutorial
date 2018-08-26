@@ -50,8 +50,8 @@ public:
     inline float* GetScaleTimes();
     inline float* GetScales();
 
-    // The animation update.  The application time is in milliseconds.
-    virtual bool Update(double applicationTime);
+    // The animation update.
+    virtual bool Update();
 
 protected:
     // Support for looking up keyframes given the specified time.

@@ -38,8 +38,8 @@ public:
     inline Array2<float>& GetWeights();
     inline Array2<Vector4<float>>& GetOffsets();
 
-    // The animation update.  The application time is in milliseconds.
-    virtual bool Update(double applicationTime);
+    // The animation update.
+    virtual bool Update();
 
 protected:
     // On the first call to Update(...), the position channel and stride

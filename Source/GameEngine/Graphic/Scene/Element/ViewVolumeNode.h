@@ -50,7 +50,7 @@ public:
 
 protected:
     // Geometric updates.
-    virtual void UpdateWorldData(double applicationTime);
+    virtual void UpdateWorldData();
 
 	eastl::shared_ptr<ViewVolume> mViewVolume;
 	eastl::function<void(ViewVolumeNode*)> mOnUpdate;

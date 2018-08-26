@@ -47,12 +47,12 @@ bool RootNode::PreRender(Scene *pScene)
 	for (unsigned int i = TS_COUNT - 1; i >= TS_TEXTURE_0; --i)
 		renderer->SetTransform((TRANSFORMATION_STATE)i, Matrix4x4<float>::Identity());
 	Renderer::Get()->SetAllowZWriteOnTransparent(true);
-	*/
+
 	// first scene node for prerendering should be the active camera
 	// consistent Camera is needed for culling
 	if (pScene->GetActiveCamera())
 		pScene->GetActiveCamera()->Render(pScene);
-
+	*/
 	bool success = Node::PreRender(pScene);
 
 	if (success)

@@ -63,8 +63,8 @@ public:
     // on the downward pass of the scene graph traversal and world bounding
     // volumes on the upward pass of the traversal.  The object that calls the
     // update is the initiator.  Other objects visited during the update are
-    // not initiators.  The application time is in milliseconds.
-    void Update(double applicationTime = 0.0, bool initiator = true);
+    // not initiators.
+    void Update(bool initiator = true);
 
     // Access to the parent object, which is null for the root of the
     // hierarchy.
@@ -122,7 +122,7 @@ protected:
     Spatial();
 
     // Support for geometric updates.
-    virtual void UpdateWorldData(double applicationTime);
+    virtual void UpdateWorldData();
     virtual void UpdateWorldBound() = 0;
     void PropagateBoundToRoot();
 

@@ -461,7 +461,7 @@ protected:
 protected:
 
     // Support for geometric updates.
-    virtual void UpdateWorldData(double applicationTime);
+    virtual void UpdateWorldData();
     virtual void UpdateWorldBound();
 
     // Support for hierarchical culling.

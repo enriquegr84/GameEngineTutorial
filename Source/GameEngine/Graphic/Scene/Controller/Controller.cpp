@@ -8,8 +8,8 @@
 #include "Controller.h"
 
 Controller::Controller() : 
-	mRepeat(RT_CLAMP), mMinTime(0.0), mMaxTime(0.0), mPhase(0.0), mFrequency(1.0), 
-	mActive(true), mObject(nullptr), mApplicationTime(-eastl::numeric_limits<double>::max())
+	mRepeat(RT_CLAMP), mMinTime(0.0), mMaxTime(0.0), mPhase(0.0), 
+	mFrequency(1.0), mActive(true), mObject(nullptr)
 {
 }
 
@@ -17,13 +17,11 @@ Controller::~Controller()
 {
 }
 
-bool Controller::Update(double applicationTime)
+bool Controller::Update()
 {
     if (mActive)
-    {
-        mApplicationTime = applicationTime;
         return true;
-    }
+
     return false;
 }
 

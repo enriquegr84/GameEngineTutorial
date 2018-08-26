@@ -281,15 +281,15 @@ void Node::UpdateVisualModelSpace(eastl::shared_ptr<Node> node)
 }
 
 
-void Node::UpdateWorldData(double applicationTime)
+void Node::UpdateWorldData()
 {
-    Spatial::UpdateWorldData(applicationTime);
+    Spatial::UpdateWorldData();
 
     for (auto& child : mChildren)
     {
         if (child)
         {
-            child->Update(applicationTime, false);
+            child->Update(false);
         }
     }
 }
@@ -379,6 +379,19 @@ bool Node::OnLostDevice(Scene *pScene)
 //
 bool Node::OnUpdate(Scene *pScene, unsigned long const elapsedMs)
 {
+	// This was added post press! Is is always ok to read directly from the game logic.
+	eastl::shared_ptr<Actor> pActor = GameLogic::Get()->GetActor(mId).lock();
+	if (pActor)
+	{
+		const eastl::shared_ptr<TransformComponent>& pTc =
+			pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+
+		if (pTc) mWorldTransform = pTc->GetTransform();
+	}
+
+	// update node
+	Update();
+
 	// This is meant to be called from any class
 	// that inherits from SceneNode and overloads
 	// do animations and other stuff.
@@ -417,9 +430,6 @@ bool Node::OnAnimate(Scene* pScene, unsigned int timeMs)
 			anim->AnimateNode(pScene, this, timeMs);
 		}
 
-		// update node
-		Update(timeMs);
-
 		// perform the post render process on all children
 		SceneNodeList::iterator it = mChildren.begin();
 		for (; it != mChildren.end(); ++it)
@@ -434,16 +444,6 @@ bool Node::OnAnimate(Scene* pScene, unsigned int timeMs)
 //
 bool Node::PreRender(Scene *pScene)
 {
-	// This was added post press! Is is always ok to read directly from the game logic.
-	eastl::shared_ptr<Actor> pActor = GameLogic::Get()->GetActor(mId).lock();
-	if (pActor)
-	{
-		const eastl::shared_ptr<TransformComponent>& pTc =
-			pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-
-		if (pTc) mWorldTransform = pTc->GetTransform();
-	}
-
 	// This is meant to be called from any class
 	// that inherits from SceneNode and overloads
 	// PreRender()

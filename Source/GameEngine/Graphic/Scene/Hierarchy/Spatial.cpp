@@ -20,9 +20,9 @@ Spatial::~Spatial()
 	// release it here.
 }
 
-void Spatial::Update(double applicationTime, bool initiator)
+void Spatial::Update(bool initiator)
 {
-    UpdateWorldData(applicationTime);
+    UpdateWorldData();
     UpdateWorldBound();
     if (initiator)
     {
@@ -51,10 +51,10 @@ void Spatial::OnGetVisibleSet(Culler& culler,
     culler.SetPlaneState(savePlaneState);
 }
 
-void Spatial::UpdateWorldData(double applicationTime)
+void Spatial::UpdateWorldData()
 {
     // Update any controllers associated with this object.
-    UpdateControllers(applicationTime);
+    UpdateControllers();
 
     // Update world transforms.
     if (!mWorldTransformIsCurrent)

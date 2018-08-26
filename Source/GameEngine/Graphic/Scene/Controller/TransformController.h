@@ -22,11 +22,11 @@ public:
     inline void SetTransform(Transform const& localTransform);
     inline Transform const& GetTransform() const;
 
-    // The animation update.  The application time is in milliseconds.
+    // The animation update.
     // The update simply copies mLocalTransform to the Spatial mObject's
     // LocalTransform.  In this sense, TransformController represents a
     // transform that is constant for all time.
-    virtual bool Update(double applicationTime);
+    virtual bool Update();
 
 protected:
 
