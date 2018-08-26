@@ -25,7 +25,7 @@ public:
     void AttachController(eastl::shared_ptr<Controller> const& controller);
     void DetachController(eastl::shared_ptr<Controller> const& controller);
     void DetachAllControllers();
-    bool UpdateControllers();
+    bool UpdateControllers(double applicationTime);
 
 private:
 	ControllerList mControllers;

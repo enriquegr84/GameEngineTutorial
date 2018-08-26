@@ -66,12 +66,13 @@ void ControlledObject::DetachAllControllers()
     mControllers.clear();
 }
 
-bool ControlledObject::UpdateControllers()
+bool ControlledObject::UpdateControllers(double applicationTime)
 {
     bool someoneUpdated = false;
+
     for (auto& element : mControllers)
     {
-        if (element->Update())
+        if (element->Update(applicationTime))
         {
             someoneUpdated = true;
         }

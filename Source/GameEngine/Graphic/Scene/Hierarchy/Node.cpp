@@ -281,9 +281,9 @@ void Node::UpdateVisualModelSpace(eastl::shared_ptr<Node> node)
 }
 
 
-void Node::UpdateWorldData()
+void Node::UpdateWorldData(double applicationTIme)
 {
-    Spatial::UpdateWorldData();
+    Spatial::UpdateWorldData(applicationTIme);
 
     for (auto& child : mChildren)
     {
@@ -389,9 +389,6 @@ bool Node::OnUpdate(Scene *pScene, unsigned long const elapsedMs)
 		if (pTc) mWorldTransform = pTc->GetTransform();
 	}
 
-	// update node
-	Update();
-
 	// This is meant to be called from any class
 	// that inherits from SceneNode and overloads
 	// do animations and other stuff.
@@ -403,6 +400,10 @@ bool Node::OnUpdate(Scene *pScene, unsigned long const elapsedMs)
 		(*i)->OnUpdate(pScene, elapsedMs);
 		++i;
 	}
+
+	// update spatial data
+	Update();
+
 	return true;
 }
 

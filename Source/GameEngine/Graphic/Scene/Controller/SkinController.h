@@ -39,7 +39,7 @@ public:
     inline Array2<Vector4<float>>& GetOffsets();
 
     // The animation update.
-    virtual bool Update();
+    virtual bool Update(double applicationTime);
 
 protected:
     // On the first call to Update(...), the position channel and stride

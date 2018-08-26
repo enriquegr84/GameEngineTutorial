@@ -44,7 +44,7 @@ public:
     inline float GetWeight() const;
 
     // The animation update.
-    virtual bool Update();
+    virtual bool Update(double applicationTime);
 
 protected:
     // Set the object for 'this' and for the managed controllers.

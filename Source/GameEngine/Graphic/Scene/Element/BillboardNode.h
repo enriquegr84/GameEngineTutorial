@@ -63,7 +63,7 @@ public:
 
 protected:
     // Support for the geometric update.
-    virtual void UpdateWorldData();
+    virtual void UpdateWorldData(double applicationTIme);
 
 private:
 

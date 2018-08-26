@@ -22,7 +22,7 @@ public:
     virtual ~Controller();
 
     // The animation update.
-    virtual bool Update();
+    virtual bool Update(double applicationTime);
 
     // The class ControlledObject needs to set the object during a call to
     // AttachController.  Derived classes that manage a set of controllers

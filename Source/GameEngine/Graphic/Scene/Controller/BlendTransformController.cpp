@@ -24,15 +24,15 @@ BlendTransformController::BlendTransformController(
 {
 }
 
-bool BlendTransformController::Update()
+bool BlendTransformController::Update(double applicationTime)
 {
-    if (!Controller::Update())
+    if (!Controller::Update(applicationTime))
     {
         return false;
     }
 
-    mController0->Update();
-    mController1->Update();
+    mController0->Update(applicationTime);
+    mController1->Update(applicationTime);
 
     Transform const& xfrm0 = mController0->GetTransform();
     Transform const& xfrm1 = mController1->GetTransform();

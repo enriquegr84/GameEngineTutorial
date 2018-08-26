@@ -26,7 +26,7 @@ public:
     // The update simply copies mLocalTransform to the Spatial mObject's
     // LocalTransform.  In this sense, TransformController represents a
     // transform that is constant for all time.
-    virtual bool Update();
+    virtual bool Update(double applicationTime);
 
 protected:
 

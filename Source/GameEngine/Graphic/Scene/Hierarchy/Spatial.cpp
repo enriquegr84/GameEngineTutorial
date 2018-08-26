@@ -7,6 +7,8 @@
 
 #include "Spatial.h"
 
+#include "Core/OS/OS.h"
+
 Spatial::Spatial()
     : mParent(nullptr), mWorldTransformIsCurrent(false), mWorldBoundIsCurrent(false),
     mCulling(CULL_DYNAMIC), mAutomaticCullingState(AC_OFF), mDebugDataVisible(DS_OFF)
@@ -22,7 +24,10 @@ Spatial::~Spatial()
 
 void Spatial::Update(bool initiator)
 {
-    UpdateWorldData();
+	// Update any controllers associated with this object.
+	double applicationTIme = (double)Timer::GetTime();
+
+    UpdateWorldData(applicationTIme);
     UpdateWorldBound();
     if (initiator)
     {
@@ -51,10 +56,9 @@ void Spatial::OnGetVisibleSet(Culler& culler,
     culler.SetPlaneState(savePlaneState);
 }
 
-void Spatial::UpdateWorldData()
+void Spatial::UpdateWorldData(double applicationTIme)
 {
-    // Update any controllers associated with this object.
-    UpdateControllers();
+    UpdateControllers(applicationTIme);
 
     // Update world transforms.
     if (!mWorldTransformIsCurrent)

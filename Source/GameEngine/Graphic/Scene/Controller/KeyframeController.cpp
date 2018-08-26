@@ -10,8 +10,6 @@
 #include "Mathematic/Algebra/Rotation.h"
 #include "Graphic/Scene/Hierarchy/Spatial.h"
 
-#include "Core/OS/OS.h"
-
 KeyframeController::~KeyframeController()
 {
 }
@@ -80,14 +78,14 @@ KeyframeController::KeyframeController(int numCommonTimes, int numTranslations,
     }
 }
 
-bool KeyframeController::Update()
+bool KeyframeController::Update(double applicationTime)
 {
-    if (!Controller::Update())
+    if (!Controller::Update(applicationTime))
     {
         return false;
     }
 
-    float ctrlTime = static_cast<float>(GetControlTime((double)Timer::GetTime()));
+    float ctrlTime = static_cast<float>(GetControlTime(applicationTime));
     float normTime = 0.0f;
     int i0 = 0, i1 = 0;
     Vector4<float> trn;

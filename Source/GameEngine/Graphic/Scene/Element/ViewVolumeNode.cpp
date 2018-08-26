@@ -80,9 +80,9 @@ void ViewVolumeNode::SetViewVolume(eastl::shared_ptr<ViewVolume> const& viewVolu
     }
 }
 
-void ViewVolumeNode::UpdateWorldData()
+void ViewVolumeNode::UpdateWorldData(double applicationTIme)
 {
-    Node::UpdateWorldData();
+    Node::UpdateWorldData(applicationTIme);
 
     if (mViewVolume)
     {

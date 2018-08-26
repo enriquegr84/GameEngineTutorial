@@ -17,7 +17,7 @@ Controller::~Controller()
 {
 }
 
-bool Controller::Update()
+bool Controller::Update(double applicationTime)
 {
     if (mActive)
         return true;

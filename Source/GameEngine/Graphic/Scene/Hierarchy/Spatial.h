@@ -122,7 +122,7 @@ protected:
     Spatial();
 
     // Support for geometric updates.
-    virtual void UpdateWorldData();
+    virtual void UpdateWorldData(double applicationTIme);
     virtual void UpdateWorldBound() = 0;
     void PropagateBoundToRoot();
 

@@ -51,7 +51,7 @@ public:
     inline float* GetScales();
 
     // The animation update.
-    virtual bool Update();
+    virtual bool Update(double applicationTime);
 
 protected:
     // Support for looking up keyframes given the specified time.
