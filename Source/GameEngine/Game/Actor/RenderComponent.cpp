@@ -111,6 +111,8 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 
 				if (animatedMeshNode)
 				{
+					animatedMeshNode->GetRelativeTransform() = transform;
+
 					resHandle =
 						ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshTextureFile.c_str())));
 					if (resHandle)
@@ -193,6 +195,8 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 				pScene->AddSphereNode(wbrcp, nullptr, mRadius, mSegments, mOwner->GetId());
 			if (sphere)
 			{
+				sphere->GetRelativeTransform() = transform;
+
 				eastl::shared_ptr<ResHandle>& resHandle =
 					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
 				if (resHandle)
@@ -304,9 +308,10 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 				//the mesh would be totally black otherwise. And last, we apply a
 				//texture to the mesh. Without it the mesh would be drawn using only a
 				//color.
-				/*
 				if (gridNode)
 				{
+					gridNode->GetRelativeTransform() = transform;
+
 					resHandle =
 						ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
 					if (resHandle)
@@ -314,11 +319,8 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 						const eastl::shared_ptr<ImageResourceExtraData>& extra =
 							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
-						planeNode->SetMaterialFlag(MF_LIGHTING, false);
-						planeNode->SetMaterialTexture(0, extra->GetImage().get());
-
-						planeNode->GetAbsoluteTransform().SetTranslation(transform.GetTranslation());
-						//plane->GetAbsoluteTransform().SetRotation(Vector3(270,0,0));
+						gridNode->SetMaterialFlag(MF_LIGHTING, false);
+						gridNode->SetMaterialTexture(0, extra->GetImage().get());
 					}
 
 					resHandle =
@@ -328,13 +330,12 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 						const eastl::shared_ptr<ImageResourceExtraData>& extra =
 							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
-						planeNode->SetMaterialTexture(0, extra->GetImage().get());
-						planeNode->SetMaterialFlag(MF_LIGHTING, false);
-						planeNode->SetMaterialFlag(MF_BACK_FACE_CULLING, true);
+						gridNode->SetMaterialTexture(0, extra->GetImage().get());
+						gridNode->SetMaterialFlag(MF_LIGHTING, false);
+						gridNode->SetMaterialFlag(MF_BACK_FACE_CULLING, true);
 					}
 
 				}
-				*/
 				return gridNode;
 			}
 		}
@@ -497,17 +498,21 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 			{
 				eastl::shared_ptr<Node> bill = pScene->AddBillboardNode(
 					eastl::weak_ptr<BaseRenderComponent>(), light, GameLogic::Get()->GetNewActorID(), mBillboardSize);
-
-				eastl::shared_ptr<ResHandle>& resHandle =
-					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mBillboardTexture.c_str())));
-				if (resHandle)
+				if (bill)
 				{
-					const eastl::shared_ptr<ImageResourceExtraData>& extra =
-						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+					bill->GetRelativeTransform() = transform;
 
-					bill->SetMaterialFlag(MF_LIGHTING, false);
-					bill->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
-					bill->SetMaterialTexture(0, extra->GetImage().get());
+					eastl::shared_ptr<ResHandle>& resHandle =
+						ResCache::Get()->GetHandle(&BaseResource(ToWideString(mBillboardTexture.c_str())));
+					if (resHandle)
+					{
+						const eastl::shared_ptr<ImageResourceExtraData>& extra =
+							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+						bill->SetMaterialFlag(MF_LIGHTING, false);
+						bill->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
+						bill->SetMaterialTexture(0, extra->GetImage().get());
+					}
 				}
 			}
 
@@ -579,6 +584,8 @@ eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
 			{
 				eastl::shared_ptr<ParticleSystemNode> particleSystem = 
 					eastl::dynamic_shared_pointer_cast<ParticleSystemNode>(node);
+				particleSystem->GetRelativeTransform() = transform;
+
 				eastl::shared_ptr<BaseParticleEmitter> em(
 					particleSystem->CreateBoxEmitter(
 						AlignedBox3<float>(),//{-7, 0, -7, 7, 1, 7}, // emitter size
@@ -595,8 +602,6 @@ eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
 				eastl::shared_ptr<BaseParticleAffector> particleAffector(
 					particleSystem->CreateFadeOutParticleAffector());
 				particleSystem->AddAffector(particleAffector); // same goes for the affector
-				particleSystem->GetAbsoluteTransform().SetTranslation(Vector3<float>());
-				particleSystem->GetAbsoluteTransform().SetScale(Vector3<float>{2, 2, 2});
 
 				eastl::shared_ptr<ResHandle>& resHandle =
 					ResCache::Get()->GetHandle(&BaseResource(L"Art/fire.bmp"));
@@ -715,6 +720,8 @@ eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 			// add skybox
 			eastl::shared_ptr<Node> sky = pScene->AddSkyBoxNode(wbrcp, 0,
 				skyTop, skyBack, skyEast, skyWest, skyNorth, skySouth, mOwner->GetId());
+			if (sky)
+				sky->GetRelativeTransform() = transform;
 
 			/*
 			// Create the walls of the cube room.  Each of the six texture images is

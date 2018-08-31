@@ -58,7 +58,7 @@ void LightManager::UpdateCameraLightModelPositions(
 #endif
 		if (ltEffect)
 		{
-			Matrix4x4<float> invWMatrix = visual->GetAbsoluteTransform().GetHInverse();
+			Matrix4x4<float> invWMatrix = node->GetAbsoluteTransform().GetHInverse();
 			auto geometry = ltEffect->GetGeometry();
 #if defined(GE_USE_MAT_VEC)
 			geometry->lightModelPosition = invWMatrix * mDLight->GetPosition();

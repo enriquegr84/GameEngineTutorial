@@ -59,7 +59,7 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBas
 	vertex[3].color = colorBottom;
 
 	mVisual = eastl::make_shared<Visual>(vertices, indices, effect);
-	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 }
 
 void BillboardNode::UpdateWorldData(double applicationTIme)

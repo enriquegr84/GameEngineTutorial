@@ -60,7 +60,7 @@ void CubeNode::SetSize()
 		eastl::make_shared<Lighting>());
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelNormals();
-	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 }
 
 

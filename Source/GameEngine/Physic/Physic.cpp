@@ -139,16 +139,17 @@ static Vector3<float> btVector3_to_Vector3( btVector3 const & btvec )
 	return Vector3<float>{ btvec.x(), btvec.y(), btvec.z() };
 }
 
-static btTransform Transform_to_btTransform( Matrix4x4<float> const & mat )
+static btTransform Transform_to_btTransform( Transform const & transform)
 {
 	// convert from matrix4 (GameEngine) to btTransform (Bullet)
 	btMatrix3x3 bulletRotation;
 	btVector3 bulletPosition;
 	
 	// copy rotation matrix
+	Matrix4x4<float> transformMatrix = transform.GetMatrix();
 	for ( int row=0; row<3; ++row )
 		for ( int column=0; column<3; ++column )
-			bulletRotation[row][column] = mat(column,row); 
+			bulletRotation[row][column] = transformMatrix(row, column);
 			// note the reversed indexing (row/column vs. column/row)
 			//  this is because matrix4s are row-major matrices and
 			//  btMatrix3x3 are column-major.  This reversed indexing
@@ -156,15 +157,16 @@ static btTransform Transform_to_btTransform( Matrix4x4<float> const & mat )
 			//  the matrix when it is copied.
 	
 	// copy position
+	Vector3<float> translation = transform.GetTranslation();
 	for ( int column=0; column<3; ++column )
-		bulletPosition[column] = mat(3,column);
+		bulletPosition[column] = translation[column];
 		
 	return btTransform( bulletRotation, bulletPosition );
 }
 
 static Transform btTransform_to_Transform( btTransform const & trans )
 {
-	Transform returnValue;
+	Transform returnTransform;
 
 	// convert from btTransform (Bullet) to matrix4 (GameEngine)
 	btMatrix3x3 const & bulletRotation = trans.getBasis();
@@ -174,7 +176,7 @@ static Transform btTransform_to_Transform( btTransform const & trans )
 	Matrix4x4<float> transformMatrix;
 	for ( int row=0; row<3; ++row )
 		for ( int column=0; column<3; ++column )
-			transformMatrix(row,column) = bulletRotation[column][row];
+			transformMatrix(row,column) = bulletRotation[row][column];
 			// note the reversed indexing (row/column vs. column/row)
 			//  this is because matrix4s are row-major matrices and
 			//  btMatrix3x3 are column-major.  This reversed indexing
@@ -182,11 +184,13 @@ static Transform btTransform_to_Transform( btTransform const & trans )
 			//  the matrix when it is copied.
 	
 	// copy position
-	for ( int column=0; column<3; ++column )
-		transformMatrix(3,column) = bulletPosition[column];
-		
-	returnValue.SetMatrix(transformMatrix);
-	return returnValue;
+	Vector3<float> translationVector;
+	for (int column = 0; column<3; ++column)
+		translationVector[column] = bulletPosition[column];
+
+	returnTransform.SetMatrix(transformMatrix);
+	returnTransform.SetTranslation(translationVector);
+	return returnTransform;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -200,17 +204,17 @@ static Transform btTransform_to_Transform( btTransform const & trans )
 //
 struct ActorMotionState : public btMotionState
 {
-	Transform m_worldToPositionTransform;
+	Transform mWorldToPositionTransform;
 	
 	ActorMotionState(Transform const & startingTransform )
-	  : m_worldToPositionTransform( startingTransform ) { }
+	  : mWorldToPositionTransform( startingTransform ) { }
 	
 	// btMotionState interface:  Bullet calls these
 	virtual void getWorldTransform( btTransform& worldTrans ) const
-	   { worldTrans = Transform_to_btTransform( m_worldToPositionTransform ); }
+	   { worldTrans = Transform_to_btTransform( mWorldToPositionTransform ); }
 
 	virtual void setWorldTransform( const btTransform& worldTrans )
-	   { m_worldToPositionTransform = btTransform_to_Transform( worldTrans ); }
+	   { mWorldToPositionTransform = btTransform_to_Transform( worldTrans ); }
 };
 
 
@@ -421,7 +425,7 @@ bool BulletPhysics::Initialize()
 	if(!mCollisionConfiguration || !mDispatcher || !mBroadphase ||
 			  !mSolver || !mDynamicsWorld || !mDebugDrawer)
 	{
-		LogError("BulletPhysics::VInitialize failed!");
+		LogError("BulletPhysics::Initialize failed!");
 		return false;
 	}
 
@@ -475,13 +479,13 @@ void BulletPhysics::SyncVisibleScene()
             if (pTransformComponent)
             {
 			    if (pTransformComponent->GetTransform().GetMatrix() != 
-					actorMotionState->m_worldToPositionTransform.GetMatrix())
+					actorMotionState->mWorldToPositionTransform.GetMatrix())
                 {
                     //	Bullet has moved the actor's physics object.  Sync the transform and inform 
 					//	the game an actor has moved
-					pTransformComponent->SetTransform(actorMotionState->m_worldToPositionTransform);
+					pTransformComponent->SetTransform(actorMotionState->mWorldToPositionTransform);
                     eastl::shared_ptr<EventDataMoveActor> pEvent(
-						new EventDataMoveActor(id, actorMotionState->m_worldToPositionTransform));
+						new EventDataMoveActor(id, actorMotionState->mWorldToPositionTransform));
                     BaseEventManager::Get()->QueueEvent(pEvent);
 			    }
             }

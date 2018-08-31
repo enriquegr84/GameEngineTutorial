@@ -61,12 +61,12 @@ GameDemoCameraController::GameDemoCameraController(const eastl::shared_ptr<Camer
 	float initialYaw, float initialPitch, bool rotateWhenLButtonDown)
 	: mTarget(target)
 {
-	mTargetYaw = mYaw = (float)GE_C_RAD_TO_DEG * -initialYaw;
-	mTargetPitch = mPitch = (float)GE_C_RAD_TO_DEG * initialPitch;
+	mTargetYaw = mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
+	mTargetPitch = mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
-	mMaxSpeed = 1.0f;			// 30 meters per second
+	mMaxSpeed = 0.002f;			// meters per second
 	mCurrentSpeed = 0.0f;
-	mRotateSpeed = 0.02f;
+	mRotateSpeed = 0.005f;
 
 	//Point cursor;
 	System* system = System::Get();
@@ -178,11 +178,11 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 		mPitch += (mTargetPitch - mPitch) * mRotateSpeed;
 
 		// Calculate the new rotation matrix from the camera
-		// yaw and pitch.
+		// yaw and pitch (zrotate and xrotate).
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), -mYaw * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(0), mPitch * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(0), -mPitch * (float)GE_C_DEG_TO_RAD));
 
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
 		mAbsoluteTransform.SetTranslation(mTarget->GetAbsoluteTransform().GetTranslation());
@@ -199,7 +199,11 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 		// in world space - we'll use that to move
 		// the camera.
 		atWorld = Vector4<float>::Unit(1); // forward vector
+#if defined(GE_USE_MAT_VEC)
+		atWorld = mAbsoluteTransform * atWorld;
+#else
 		atWorld = atWorld * mAbsoluteTransform;
+#endif
 
 		if (mKey[KEY_KEY_S])
 			atWorld *= -1.f;
@@ -213,7 +217,11 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 		// in world space - we'll use that to move
 		// the camera.
 		rightWorld = Vector4<float>::Unit(0); // right vector
+#if defined(GE_USE_MAT_VEC)
+		rightWorld = mAbsoluteTransform * rightWorld;
+#else
 		rightWorld = rightWorld * mAbsoluteTransform;
+#endif
 
 		if (mKey[KEY_KEY_A])
 			rightWorld *= -1.f;
@@ -227,7 +235,11 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 		//Unlike strafing, Up is always up no matter
 		//which way you are looking
 		upWorld = Vector4<float>::Unit(2); // up vector
+#if defined(GE_USE_MAT_VEC)
+		upWorld = mAbsoluteTransform * upWorld;
+#else
 		upWorld = upWorld * mAbsoluteTransform;
+#endif
 
 		if (!mKey[KEY_SPACE])
 			upWorld *= -1.f;
@@ -243,8 +255,7 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 		Normalize(direction);
 
 		// Ramp the acceleration by the elapsed time.
-		float numberOfSeconds = 1.0f;
-		mCurrentSpeed += mMaxSpeed * (elapsedTime / numberOfSeconds);
+		mCurrentSpeed += mMaxSpeed * elapsedTime;
 		if (mCurrentSpeed > mMaxSpeed)
 			mCurrentSpeed = mMaxSpeed;
 

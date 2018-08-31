@@ -41,6 +41,8 @@
 
 #include "GameEngineStd.h"
 
+#include "Graphic/Scene/Hierarchy/PVWUpdater.h"
+
 #include "Mathematic/Algebra/AxisAngle.h"
 #include "Mathematic/Algebra/Transform.h"
 #include "Mathematic/Algebra/Vector3.h"

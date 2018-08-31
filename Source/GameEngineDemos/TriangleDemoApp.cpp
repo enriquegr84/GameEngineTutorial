@@ -142,7 +142,7 @@ bool TriangleDemoApplication::CreateScene()
 	//mRectangle[i]->worldTransform, mVCEffect[i]->GetPVWMatrixConstant());
 
 	//mScene->AttachChild(mTriangle);
-	mTriangle->Update();
+	//mTriangle->Update();
 
 	return true;
 }

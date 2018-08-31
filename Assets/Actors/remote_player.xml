@@ -1,7 +1,7 @@
 <Actor type="Player" resource="actors\remote_player.xml">
 
 	<TransformComponent>
-		<Position x="0" y="5" z="0"/>
+		<Position x="0" y="0" z="5"/>
 		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
 		
@@ -12,7 +12,6 @@
 	</PhysicsComponent>
 
 	<MeshRenderComponent>
-		<Color r="0" g="1.0" b="0" a="1.0"/>
 		<Mesh model_file="art\dwarf.x" texture_file="art\dwarf.jpg"/>
 	</MeshRenderComponent>
 

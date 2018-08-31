@@ -53,8 +53,6 @@
 */
 class ActorFactory
 {
-    ActorId mLastActorId;
-
 protected:
     GenericObjectFactory<ActorComponent, ComponentId> mComponentFactory;
 
@@ -71,9 +69,6 @@ public:
 	// C++ components. If you do this, make sure you call the base-class version first.  
 	// If it returns NULL, you know it's not an engine component.
     virtual eastl::shared_ptr<ActorComponent> CreateComponent(tinyxml2::XMLElement* pData);
-
-private:
-    ActorId GetNextActorId(void) { ++mLastActorId; return mLastActorId; }
 };
 
 

@@ -262,6 +262,7 @@ eastl::shared_ptr<NodeAnimator> Node::GetAnimator(int i)
 	return nullptr;
 }
 
+
 void Node::UpdateVisualModelSpace(eastl::shared_ptr<Node> node)
 {
 	Visual* visual = dynamic_cast<Visual*>(node.get());
@@ -279,7 +280,6 @@ void Node::UpdateVisualModelSpace(eastl::shared_ptr<Node> node)
 				UpdateVisualModelSpace(node->GetChild(i));
 	}
 }
-
 
 void Node::UpdateWorldData(double applicationTIme)
 {
@@ -386,7 +386,7 @@ bool Node::OnUpdate(Scene *pScene, unsigned long const elapsedMs)
 		const eastl::shared_ptr<TransformComponent>& pTc =
 			pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 
-		if (pTc) mWorldTransform = pTc->GetTransform();
+		if (pTc) mLocalTransform = pTc->GetTransform();
 	}
 
 	// This is meant to be called from any class

@@ -44,7 +44,7 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* update
 		mVisual = mf.CreateMesh(buffer->mMesh.get());
 		mVisual->SetEffect(effect);
 		mVisual->UpdateModelNormals();
-		mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+		mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 	}
 
 	if (createDefaultEmitter)

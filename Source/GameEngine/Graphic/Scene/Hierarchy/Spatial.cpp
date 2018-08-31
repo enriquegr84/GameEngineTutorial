@@ -68,7 +68,7 @@ void Spatial::UpdateWorldData(double applicationTIme)
 #if defined(GE_USE_MAT_VEC)
             mWorldTransform = mParent->mWorldTransform*mLocalTransform;
 #else
-            worldTransform = localTransform*mParent->worldTransform;
+			mWorldTransform = localTransform*mParent->mWorldTransform;
 #endif
         }
         else

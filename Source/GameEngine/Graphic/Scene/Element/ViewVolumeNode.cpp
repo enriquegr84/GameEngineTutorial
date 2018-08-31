@@ -88,7 +88,7 @@ void ViewVolumeNode::UpdateWorldData(double applicationTIme)
     {
         Vector4<float> position = GetAbsoluteTransform().GetTranslationW1();
 
-        Matrix4x4<float> const& rotate = GetAbsoluteTransform().GetHMatrix();
+        Matrix4x4<float> const& rotate = GetAbsoluteTransform().GetMatrix();
 #if defined(GE_USE_MAT_VEC)
         Vector4<float> dVector = rotate.GetCol(0);
         Vector4<float> uVector = rotate.GetCol(1);

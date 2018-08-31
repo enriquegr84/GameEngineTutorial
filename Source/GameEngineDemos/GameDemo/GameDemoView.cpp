@@ -744,8 +744,7 @@ GameDemoHumanView::~GameDemoHumanView()
 //
 bool GameDemoHumanView::OnMsgProc( const Event& evt )
 {
-	if (HumanView::OnMsgProc(evt))
-		return 1;
+	HumanView::OnMsgProc(evt);
 
 	switch(evt.mEventType)
 	{

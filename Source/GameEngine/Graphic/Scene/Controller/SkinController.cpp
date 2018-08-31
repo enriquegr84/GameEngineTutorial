@@ -46,9 +46,9 @@ bool SkinController::Update(double applicationTime)
     {
         // The skin vertices are calculated in the bone world coordinate system,
         // so the visual's world transform must be the identity.
-        Visual* visual = reinterpret_cast<Visual*>(mObject);
-		visual->GetAbsoluteTransform().MakeIdentity();
-		visual->SetCurrentAbsoluteTransform(true);
+        Node* node = reinterpret_cast<Node*>(mObject);
+		node->GetAbsoluteTransform().MakeIdentity();
+		node->SetCurrentAbsoluteTransform(true);
 
         // Compute the skin vertex locations.
         char* current = mPosition;
@@ -79,9 +79,9 @@ bool SkinController::Update(double applicationTime)
             current += mStride;
         }
 
-        visual->UpdateModelBound();
-        visual->UpdateModelNormals();
-        mPostUpdate(visual->GetVertexBuffer());
+        mVisual->UpdateModelBound();
+		mVisual->UpdateModelNormals();
+        mPostUpdate(mVisual->GetVertexBuffer());
         return true;
     }
 
@@ -91,8 +91,7 @@ bool SkinController::Update(double applicationTime)
 void SkinController::OnFirstUpdate()
 {
     // Get access to the vertex buffer positions to store the blended targets.
-    Visual* visual = reinterpret_cast<Visual*>(mObject);
-    VertexBuffer* vbuffer = visual->GetVertexBuffer().get();
+    VertexBuffer* vbuffer = mVisual->GetVertexBuffer().get();
     if (mNumVertices == static_cast<int>(vbuffer->GetNumElements()))
     {
         // Get the position data.

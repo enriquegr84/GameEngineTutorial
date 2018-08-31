@@ -226,7 +226,7 @@ SkyBoxNode::SkyBoxNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 	mVisual = eastl::make_shared<Visual>(vertices, indices, effect);
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelNormals();
-	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 }
 
 //! pre render method

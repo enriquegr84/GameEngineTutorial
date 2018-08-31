@@ -41,6 +41,9 @@
 
 #include "GameEngineStd.h"
 
+#include "Graphic/Effect/ColorEffect.h"
+#include "Graphic/Scene/Hierarchy/Visual.h"
+
 #include "btBulletDynamicsCommon.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -53,7 +56,11 @@
 class BulletDebugDrawer : public btIDebugDraw
 {
 	DebugDrawModes mDebugModes;
+
 public:
+
+	BulletDebugDrawer();
+
 	// btIDebugDraw interface
 	virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB, 
 		btScalar distance,int lifeTime,const btVector3& color) override;
@@ -65,6 +72,11 @@ public:
 
 	// [mrmike] Added post press to read PlayerOptions.xml to turn on physics debug options.
 	void ReadOptions(tinyxml2::XMLElement *pRoot);
+
+public:
+
+	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<ColorEffect> mEffect;
 };
 
 #endif

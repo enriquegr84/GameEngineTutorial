@@ -38,8 +38,32 @@
 
 #include "PhysicDebugDrawer.h"
 
+#include "Application/GameApplication.h"
+
 #include "Graphic/Renderer/Renderer.h"
 #include "Core/Logger/Logger.h"
+
+BulletDebugDrawer::BulletDebugDrawer()
+{
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+	eastl::shared_ptr<VertexBuffer> vbuffer =
+		eastl::make_shared<VertexBuffer>(vformat, 2);
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
+
+	eastl::shared_ptr<IndexBuffer> ibuffer =
+		eastl::make_shared<IndexBuffer>(IP_POLYSEGMENT_DISJOINT, 2);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl");
+	mEffect = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+}
 
 void BulletDebugDrawer::drawContactPoint(
 	const btVector3& PointOnB, const btVector3& normalOnB, 
@@ -184,7 +208,33 @@ void BulletDebugDrawer::drawLine(
 	vTo[1] = to.y();
 	vTo[2] = to.z();
 
-	eastl::array<float, 4> color{ 255 * lineColor.x(), 255 * lineColor.y(), 255 * lineColor.z(), 0 };
+	Vector4<float> color{ lineColor.x(), lineColor.y(), lineColor.z(), 1.f };
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
+	Vertex* vertex = vbuffer->Get<Vertex>();
+	vertex[0].position = vFrom;
+	vertex[0].color = color;
+	vertex[1].position = vTo;
+	vertex[1].color = color;
+
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
+	Matrix4x4<float> pvwMatrix = pScene->GetActiveCamera()->Get()->GetProjectionViewMatrix();
+
+	eastl::shared_ptr<ConstantBuffer> cbuffer;
+	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
+ 	*cbuffer->Get<Matrix4x4<float>>() = pvwMatrix;
+
 	Renderer* renderer = Renderer::Get();
-	//renderer->Draw3DLine(vFrom, vTo, color);
+	renderer->Update(cbuffer);
+	renderer->Update(vbuffer);
+	renderer->Draw(mVisual);
 }

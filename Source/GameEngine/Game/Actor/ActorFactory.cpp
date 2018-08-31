@@ -45,6 +45,8 @@
 #include "RenderComponent.h"
 #include "PhysicComponent.h"
 
+#include "Game/GameLogic.h"
+
 #include "Core/IO/XmlResource.h"
 
 
@@ -54,8 +56,6 @@
 //---------------------------------------------------------------------------------------------------------------------
 ActorFactory::ActorFactory(void)
 {
-    mLastActorId = INVALID_ACTOR_ID;
-
     mComponentFactory.Register<TransformComponent>(
 		ActorComponent::GetIdFromName(TransformComponent::Name));
 	mComponentFactory.Register<MeshRenderComponent>(
@@ -91,7 +91,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
 	ActorId nextActorId = serversActorId;
 	if (nextActorId == INVALID_ACTOR_ID)
 	{
-		nextActorId = GetNextActorId();
+		nextActorId = GameLogic::Get()->GetNewActorID();
 	}
     eastl::shared_ptr<Actor> pActor(new Actor(nextActorId));
     if (!pActor->Init(pRoot))

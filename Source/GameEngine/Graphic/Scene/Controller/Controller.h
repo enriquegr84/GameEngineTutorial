@@ -11,6 +11,7 @@
 #include "Graphic/GraphicStd.h"
 #include "Core/CoreStd.h"
 
+class Visual;
 class ControlledObject;
 
 class GRAPHIC_ITEM Controller
@@ -28,6 +29,11 @@ public:
     // AttachController.  Derived classes that manage a set of controllers
     // also need to set the objects during a call to AttachController.
     virtual void SetObject(ControlledObject* object);
+
+	// The class ControlledObject needs to set the visual during a call to
+	// AttachController.  Derived classes that manage a set of controllers
+	// also need to set the visuals during a call to AttachController.
+	virtual void SetVisual(Visual* visual);
 
 protected:
 
@@ -54,11 +60,14 @@ protected:
 
     // The controlled object.  This is a regular pointer rather than a
     // shared pointer to avoid the reference-count cycle between mObject
-    // and 'this'.  Because the pointer links are set internally rather
-    // than by an external manager, it is not possible to use std::weak_ptr
+    // and 'this'. Because the pointer links are set internally rather
+    // than by an external manager, it is not possible to use eastl::weak_ptr
     // to avoid the cycle because we do not know the shared_ptr object
     // that owns mObject.
     ControlledObject* mObject;
+
+	// The visual object.
+	Visual* mVisual;
 };
 
 #endif

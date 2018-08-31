@@ -480,12 +480,12 @@ void Transform::Invert3x3(Matrix4x4<float> const& mat,
 
 Vector4<float> operator*(Transform const& M, Vector4<float> const& V)
 {
-    return M.GetHMatrix() * V;
+    return M.GetMatrix() * V;
 }
 
 Vector4<float> operator*(Vector4<float> const& V, Transform const& M)
 {
-    return V * M.GetHMatrix();
+    return V * M.GetMatrix();
 }
 
 Transform operator*(Transform const& A, Transform const& B)

@@ -64,7 +64,7 @@ RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater,
 		texture, SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelNormals();
-	mPVWUpdater->Subscribe(mVisual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 }
 
 

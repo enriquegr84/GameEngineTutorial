@@ -335,7 +335,7 @@ void PhysicComponent::RotateY(float angleRadians)
         Vector3<float> position = transform.GetTranslation();
 
 		Transform rotateY;
-		AxisAngle<4, float> rotation(Vector4<float>::Unit(1), angleRadians);
+		AxisAngle<4, float> rotation(Vector4<float>::Unit(2), angleRadians);
         rotateY.SetRotation(rotation);
         rotateY.SetTranslation(position);
 

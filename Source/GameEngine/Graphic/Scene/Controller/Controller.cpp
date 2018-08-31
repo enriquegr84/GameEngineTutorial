@@ -30,6 +30,11 @@ void Controller::SetObject(ControlledObject* object)
     mObject = object;
 }
 
+void Controller::SetVisual(Visual* visual)
+{
+	mVisual = visual;
+}
+
 double Controller::GetControlTime(double applicationTime)
 {
     double controlTime = mFrequency * applicationTime + mPhase;

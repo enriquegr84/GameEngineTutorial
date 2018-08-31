@@ -30,8 +30,11 @@ struct VS_OUTPUT
 VS_OUTPUT VSMain(VS_INPUT input)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
-    
-    output.position = mul(input.modelPosition, pvwMatrix);
+#if GE_USE_MAT_VEC
+	output.position = mul(pvwMatrix, input.modelPosition);
+#else
+	output.position = mul(input.modelPosition, pvwMatrix);
+#endif
     output.color = input.color;
     
     return output;

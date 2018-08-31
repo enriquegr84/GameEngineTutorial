@@ -499,52 +499,52 @@ bool BaseUI::OnMsgProc(const Event& ev)
 {
 	switch(ev.mEventType)
 	{
-	case ET_UI_EVENT:
-		// hey, why is the user sending gui events..?
-		break;
-	case ET_MOUSE_INPUT_EVENT:
+		case ET_UI_EVENT:
+			// hey, why is the user sending gui events..?
+			break;
+		case ET_MOUSE_INPUT_EVENT:
 
-		UpdateHoveredElement(Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y});
+			UpdateHoveredElement(Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y});
 
-		if (ev.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
-			if ( (mHovered && mHovered != mFocus) || !mFocus )
-		{
-			SetFocus(mHovered);
-		}
+			if (ev.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
+				if ( (mHovered && mHovered != mFocus) || !mFocus )
+			{
+				SetFocus(mHovered);
+			}
 
-		// sending input to focus
-		if (mFocus && mFocus->OnEvent(ev))
-			return true;
-
-		// focus could have died in last call
-		if (!mFocus && mHovered)
-			return mHovered->OnEvent(ev);
-
-		break;
-	case ET_KEY_INPUT_EVENT:
-		{
+			// sending input to focus
 			if (mFocus && mFocus->OnEvent(ev))
 				return true;
 
-			// For keys we handle the event before changing focus to give elements 
-			// the chance for catching the TAB. Send focus changing event
-			if (ev.mEventType == ET_KEY_INPUT_EVENT &&
-				ev.mKeyInput.mPressedDown &&
-				ev.mKeyInput.mKey == KEY_TAB)
-			{
-				const eastl::shared_ptr<BaseUIElement>& next =
-					GetNextElement(ev.mKeyInput.mShift, ev.mKeyInput.mControl);
-				if (next && next != mFocus)
-				{
-					if (SetFocus(next))
-						return true;
-				}
-			}
+			// focus could have died in last call
+			if (!mFocus && mHovered)
+				return mHovered->OnEvent(ev);
 
-		}
-		break;
-	default:
-		break;
+			break;
+		case ET_KEY_INPUT_EVENT:
+			{
+				if (mFocus && mFocus->OnEvent(ev))
+					return true;
+
+				// For keys we handle the event before changing focus to give elements 
+				// the chance for catching the TAB. Send focus changing event
+				if (ev.mEventType == ET_KEY_INPUT_EVENT &&
+					ev.mKeyInput.mPressedDown &&
+					ev.mKeyInput.mKey == KEY_TAB)
+				{
+					const eastl::shared_ptr<BaseUIElement>& next =
+						GetNextElement(ev.mKeyInput.mShift, ev.mKeyInput.mControl);
+					if (next && next != mFocus)
+					{
+						if (SetFocus(next))
+							return true;
+					}
+				}
+
+			}
+			break;
+		default:
+			break;
 	} // end switch
 
 	return false;

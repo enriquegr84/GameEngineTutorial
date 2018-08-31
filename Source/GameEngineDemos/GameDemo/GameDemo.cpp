@@ -192,7 +192,7 @@ void GameDemoLogic::MoveActor(const ActorId id, Transform const &transform)
 	{
 		eastl::shared_ptr<TransformComponent> pTransformComponent = 
 			pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-		if (pTransformComponent && pTransformComponent->GetPosition()[1] < -25)
+		if (pTransformComponent)
 		{
 			eastl::shared_ptr<EventDataDestroyActor> pDestroyActorEvent(new EventDataDestroyActor(id));
 			BaseEventManager::Get()->QueueEvent(pDestroyActorEvent);

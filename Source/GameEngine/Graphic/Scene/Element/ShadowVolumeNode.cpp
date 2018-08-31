@@ -62,7 +62,7 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 				visual->SetEffect(effect);
 				visual->UpdateModelNormals();
 				mVisuals.push_back(visual);
-				mPVWUpdater->Subscribe(visual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 			}
 		}
 	}

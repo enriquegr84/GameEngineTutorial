@@ -46,13 +46,9 @@ bool TransformComponent::Init(tinyxml2::XMLElement* pData)
 
 	// [mrmike] - this was changed post-press - because changes to the TransformComponents can come in partial definitions,
 	//            such as from the editor, its better to grab the current values rather than clear them out.
-	Vector4<float> yawPitchRoll;
-	yawPitchRoll = yawPitchRoll * mTransform;
-	//yawPitchRoll.x = RADIANS_TO_DEGREES(yawPitchRoll.x);
-	//yawPitchRoll.y = RADIANS_TO_DEGREES(yawPitchRoll.y);
-	//yawPitchRoll.z = RADIANS_TO_DEGREES(yawPitchRoll.z);
-
+	Vector3<float> scale = mTransform.GetScale();
 	Vector3<float> position = mTransform.GetTranslation();	
+	Matrix4x4<float> rotation = mTransform.GetRotation();
 
 	tinyxml2::XMLElement* pPositionElement = pData->FirstChildElement("Position");
     if (pPositionElement)
@@ -77,46 +73,33 @@ bool TransformComponent::Init(tinyxml2::XMLElement* pData)
         pitch = pOrientationElement->FloatAttribute("y", pitch);
         roll = pOrientationElement->FloatAttribute("z", roll);
 
-		yawPitchRoll[0] = yaw;
-		yawPitchRoll[1] = pitch;
-		yawPitchRoll[2] = roll;
+		Matrix4x4<float> yawRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(2), yaw * (float)GE_C_DEG_TO_RAD));
+		Matrix4x4<float> pitchRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(0), pitch * (float)GE_C_DEG_TO_RAD));
+		Matrix4x4<float> rollRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(1), roll * (float)GE_C_DEG_TO_RAD));
+
+		rotation = yawRotation * pitchRotation * rollRotation;
 	};
 
-	Transform translation;
-	translation.SetTranslation(position);
-
-	Transform rotation;
-	rotation.SetRotation(yawPitchRoll);
-
-	// This is not supported yet.
-	tinyxml2::XMLElement* pLookAtElement = pData->FirstChildElement("LookAt");
-    if (pLookAtElement)
-    {
-		float x = 0;
-		float y = 0;
-		float z = 0;
-        x = pLookAtElement->FloatAttribute("x", x);
-        y = pLookAtElement->FloatAttribute("y", y);
-        z = pLookAtElement->FloatAttribute("z", z);
-
-		Vector3<float> lookAt{ x, y, z };
-		//rotation.buildCameraLookAtMatrixLH(translation.getTranslation(), lookAt, g_Up);
-    }
-
 	tinyxml2::XMLElement* pScaleElement = pData->FirstChildElement("Scale");
-    if (pScaleElement)
-    {
+	if (pScaleElement)
+	{
 		float x = 0;
 		float y = 0;
 		float z = 0;
-        x = pScaleElement->FloatAttribute("x", x);
-        y = pScaleElement->FloatAttribute("y", y);
-        z = pScaleElement->FloatAttribute("z", z);
-        //scale = Vector3(x, y, z);
-    }
+		x = pScaleElement->FloatAttribute("x", x);
+		y = pScaleElement->FloatAttribute("y", y);
+		z = pScaleElement->FloatAttribute("z", z);
 
-    mTransform = rotation * translation;
-    
+		scale = Vector3<float>{ x, y, z };
+	}
+
+	mTransform.SetScale(scale);
+	mTransform.SetTranslation(position);
+	mTransform.SetRotation(rotation);
+
     return true;
 }
 
@@ -138,11 +121,11 @@ tinyxml2::XMLElement* TransformComponent::GenerateXml(void)
     // initial transform -> LookAt
 	tinyxml2::XMLElement* pDirection = doc.NewElement("YawPitchRoll");
 
-	Vector4<float> yawPitchRoll;
-	yawPitchRoll = yawPitchRoll * mTransform;
-    pDirection->SetAttribute("x", eastl::to_string(yawPitchRoll[0]).c_str());
-    pDirection->SetAttribute("y", eastl::to_string(yawPitchRoll[1]).c_str());
-    pDirection->SetAttribute("z", eastl::to_string(yawPitchRoll[2]).c_str());
+	EulerAngles<float> yawPitchRoll;
+	mTransform.GetRotation(yawPitchRoll);
+    pDirection->SetAttribute("x", eastl::to_string(yawPitchRoll.mAngle[0]).c_str());
+    pDirection->SetAttribute("y", eastl::to_string(yawPitchRoll.mAngle[1]).c_str());
+    pDirection->SetAttribute("z", eastl::to_string(yawPitchRoll.mAngle[2]).c_str());
     pBaseElement->LinkEndChild(pDirection);
 
 	// This is not supported yet

@@ -22,7 +22,7 @@ CameraNode::CameraNode(const ActorId actorid)
 			(float)Renderer::Get()->GetScreenSize()[1];
 	}
 	mCamera->SetFrustum(60.0f, aspectRatio, 0.1f, 100.0f);
-	Vector4<float> camPosition{ 0.0f, -1.0f, 0.25f, 1.0f };
+	Vector4<float> camPosition{ 0.0f, 0.0f, 0.0f, 1.0f };
 	Vector4<float> camDVector{ 0.0f, 1.0f, 0.0f, 0.0f };
 	Vector4<float> camUVector{ 0.0f, 0.0f, 1.0f, 0.0f };
 	Vector4<float> camRVector = Cross(camDVector, camUVector);
@@ -77,39 +77,61 @@ bool CameraNode::OnEvent(const Event& event)
 //! update
 void CameraNode::UpdateMatrices()
 {
-	Vector4<float> pos = mWorldTransform.GetTranslationW0();
-	//Quaternion<float> rotation;
-	//mWorldTransform.GetRotation(rotation);
-	Vector4<float> direction = mCamera->GetDVector(); //Rotate(rotation, pos);
+	Matrix4x4<float> rotation = mWorldTransform.GetRotation();
+	Vector4<float> position = mWorldTransform.GetTranslationW1();
+	Vector4<float> direction;
+#if defined(GE_USE_MAT_VEC)
+	direction = rotation.GetCol(1);
+#else
+	direction = rotation.GetRow(1);
+#endif
 	if (mTarget)
 	{
-		Vector4<float> target = mTarget->GetAbsoluteTransform().GetTranslationW1();
-		direction = target - pos;
+		direction = mTarget->GetAbsoluteTransform().GetTranslationW1() - position;
+		position = mTarget->GetAbsoluteTransform().GetTranslationW1();
+		Normalize(direction);
 	}
-	Normalize(direction);
 
-	Vector4<float> up = Vector4<float>::Unit(2); //up vector
-	Normalize(up);
-
-	float dp = Dot(direction, up);
-	if ( Function<float>::Equals(fabs(dp), 1.f) )
+	Vector4<float> up;
+#if defined(GE_USE_MAT_VEC)
+	up = rotation.GetCol(2);
+#else
+	up = rotation.GetRow(2);
+#endif
+	/*
+	float dp = Dot(direction, Vector4<float>::Unit(2)); // up vector
+	if (Function<float>::Equals(fabs(dp), 1.f))
 		up[0] += 0.5f;
-
+	*/
 	Vector4<float> right = Cross(direction, up);
 
 #if defined(GE_USE_MAT_VEC)
 	mCamera->SetFrame(
-		mAffector * pos,
+		mAffector * position,
 		mAffector * direction,
 		mAffector * up,
 		mAffector * right);
 #else
 	mCamera->SetFrame(
-		pos * mAffector,
+		position * mAffector,
 		direction * mAffector,
 		up * mAffector,
 		right * mAffector);
 #endif
+/*
+#if defined(GE_USE_MAT_VEC)
+	mCamera->SetFrame(
+		mAffector * mWorldTransform.GetTranslationW0(),
+		mAffector * mWorldTransform * Vector4<float>::Unit(1), // direction vector
+		mAffector * mWorldTransform * Vector4<float>::Unit(2), // up vector
+		mAffector * mWorldTransform * Vector4<float>::Unit(0)); // right vector
+#else
+	mCamera->SetFrame(
+		mAffector * mWorldTransform.GetTranslationW0(),
+		Vector4<float>::Unit(1) * mAffector * mWorldTransform, // direction vector
+		Vector4<float>::Unit(2) * mAffector * mWorldTransform, // up vector
+		Vector4<float>::Unit(0) * mAffector * mWorldTransform); // right vector
+#endif*/
 }
 
 //! prerender

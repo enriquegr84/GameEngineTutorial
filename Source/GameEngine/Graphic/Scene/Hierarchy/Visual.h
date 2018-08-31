@@ -12,9 +12,9 @@
 #include "Graphic/Resource/Buffer/VertexBuffer.h"
 #include "Graphic/Effect/VisualEffect.h"
 
-#include "Spatial.h"
+#include "BoundingSphere.h"
 
-class GRAPHIC_ITEM Visual : public Spatial
+class GRAPHIC_ITEM Visual
 {
 public:
     // Construction and destruction.
@@ -40,12 +40,6 @@ public:
     BoundingSphere mModelBound;
 
 protected:
-    // Support for geometric updates.
-    inline virtual void UpdateWorldBound();
-
-    // Support for hierarchical culling.
-    inline virtual void GetVisibleSet(Culler& culler,
-		eastl::shared_ptr<Camera> const& camera, bool noCull);
 
 	eastl::shared_ptr<VertexBuffer> mVBuffer;
 	eastl::shared_ptr<IndexBuffer> mIBuffer;
@@ -81,16 +75,6 @@ inline eastl::shared_ptr<IndexBuffer> const& Visual::GetIndexBuffer() const
 inline eastl::shared_ptr<VisualEffect> const& Visual::GetEffect() const
 {
     return mEffect;
-}
-
-inline void Visual::UpdateWorldBound()
-{
-    mModelBound.TransformBy(mWorldTransform, mWorldBound);
-}
-
-inline void Visual::GetVisibleSet(Culler& culler, eastl::shared_ptr<Camera> const&, bool)
-{
-    culler.Insert(this);
 }
 
 

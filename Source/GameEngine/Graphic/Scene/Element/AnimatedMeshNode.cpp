@@ -61,7 +61,7 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 				visual->SetEffect(effect);
 				visual->UpdateModelNormals();
 				mVisuals.push_back(visual);
-				mPVWUpdater->Subscribe(visual->GetAbsoluteTransform(), effect->GetPVWMatrixConstant());
+				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 			}
 		}
 	}
