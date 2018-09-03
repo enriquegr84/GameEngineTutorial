@@ -710,6 +710,9 @@ void BulletPhysics::RemoveActor(ActorId id)
 void BulletPhysics::RenderDiagnostics()
 {
 	mDynamicsWorld->debugDrawWorld();
+
+	mDebugDrawer->Render();
+	mDebugDrawer->Clear();
 }
 
 /////////////////////////////////////////////////////////////////////////////

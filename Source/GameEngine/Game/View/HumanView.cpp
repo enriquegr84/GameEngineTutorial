@@ -183,8 +183,6 @@ void HumanView::OnRender(double time, float elapsedTime )
 
 			// Let the console render.
 			mConsole.OnRender(time, elapsedTime);
-
-			GameLogic::Get()->RenderDiagnostics();
 		}
     }
 	//renderer->PostRender();

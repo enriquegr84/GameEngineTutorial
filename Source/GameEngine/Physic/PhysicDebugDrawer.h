@@ -73,9 +73,17 @@ public:
 	// [mrmike] Added post press to read PlayerOptions.xml to turn on physics debug options.
 	void ReadOptions(tinyxml2::XMLElement *pRoot);
 
-public:
+	void Render();
+	void Clear();
 
-	eastl::shared_ptr<Visual> mVisual;
+private:
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	eastl::map<Vertex*, Vertex*> mVertices;
 	eastl::shared_ptr<ColorEffect> mEffect;
 };
 

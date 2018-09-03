@@ -45,24 +45,8 @@
 
 BulletDebugDrawer::BulletDebugDrawer()
 {
-	struct Vertex
-	{
-		Vector3<float> position;
-		Vector4<float> color;
-	};
-	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
-	eastl::shared_ptr<VertexBuffer> vbuffer =
-		eastl::make_shared<VertexBuffer>(vformat, 2);
-	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
-
-	eastl::shared_ptr<IndexBuffer> ibuffer =
-		eastl::make_shared<IndexBuffer>(IP_POLYSEGMENT_DISJOINT, 2);
-
 	eastl::string path = FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl");
 	mEffect = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
-	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
 }
 
 void BulletDebugDrawer::drawContactPoint(
@@ -209,21 +193,40 @@ void BulletDebugDrawer::drawLine(
 	vTo[2] = to.z();
 
 	Vector4<float> color{ lineColor.x(), lineColor.y(), lineColor.z(), 1.f };
+	
+	Vertex* vertexFrom = new Vertex();
+	vertexFrom->position = vFrom;
+	vertexFrom->color = color;
 
-	struct Vertex
-	{
-		Vector3<float> position;
-		Vector4<float> color;
-	};
+	Vertex* vertexTo = new Vertex();
+	vertexTo->position = vTo;
+	vertexTo->color = color;
+	mVertices[vertexFrom] = vertexTo;
+}
+
+void BulletDebugDrawer::Render()
+{
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
-	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
+	eastl::shared_ptr<VertexBuffer> vbuffer =
+		eastl::make_shared<VertexBuffer>(vformat, mVertices.size()*2);
+
+	eastl::shared_ptr<IndexBuffer> ibuffer =
+		eastl::make_shared<IndexBuffer>(IP_POLYSEGMENT_DISJOINT, mVertices.size());
+	eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
+
+	int vertexCount = 0;
 	Vertex* vertex = vbuffer->Get<Vertex>();
-	vertex[0].position = vFrom;
-	vertex[0].color = color;
-	vertex[1].position = vTo;
-	vertex[1].color = color;
+	eastl::map<Vertex*, Vertex*>::iterator itVertex = mVertices.begin();
+	for (; itVertex != mVertices.end(); ++itVertex)
+	{
+		vertex[vertexCount].position = (*itVertex).first->position;
+		vertex[vertexCount].color = (*itVertex).first->color;
+		vertex[vertexCount+1].position = (*itVertex).second->position;
+		vertex[vertexCount+1].color = (*itVertex).second->color;
+		vertexCount += 2;
+	}
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
@@ -231,10 +234,21 @@ void BulletDebugDrawer::drawLine(
 
 	eastl::shared_ptr<ConstantBuffer> cbuffer;
 	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
- 	*cbuffer->Get<Matrix4x4<float>>() = pvwMatrix;
+	*cbuffer->Get<Matrix4x4<float>>() = pvwMatrix;
 
 	Renderer* renderer = Renderer::Get();
 	renderer->Update(cbuffer);
 	renderer->Update(vbuffer);
-	renderer->Draw(mVisual);
+	renderer->Draw(visual);
+}
+
+void BulletDebugDrawer::Clear()
+{
+	eastl::map<Vertex*, Vertex*>::iterator itVertex = mVertices.begin();
+	for (; itVertex != mVertices.end(); ++itVertex)
+	{
+		delete (*itVertex).first;
+		delete (*itVertex).second;
+	}
+	mVertices.clear();
 }

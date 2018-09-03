@@ -500,7 +500,7 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 	}
 
 	//Rendering for debug purpose
-	GameLogic::mGame->RenderDiagnostics();
+	GameLogic::Get()->RenderDiagnostics();
 
 	mRenderer->DisplayColorBuffer(0);
 }
