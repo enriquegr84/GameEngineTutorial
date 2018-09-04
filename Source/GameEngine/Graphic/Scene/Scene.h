@@ -271,25 +271,28 @@ public:
 		WeakBaseRenderComponentPtr renderComponent,
 		const eastl::shared_ptr<Node>& parent, int id = -1, bool withDefaultEmitter = true);
 
-	//! Adds a skybox scene node to the scene graph.
-	/** A skybox is a big cube with 6 textures on it and
-	is drawn around the camera position.
-	\param top: Texture for the top plane of the box.
-	\param bottom: Texture for the bottom plane of the box.
-	\param left: Texture for the left plane of the box.
-	\param right: Texture for the right plane of the box.
-	\param front: Texture for the front plane of the box.
-	\param back: Texture for the back plane of the box.
-	\param parent: Parent scene node of the skybox. A skybox usually has no parent,
-	so this should be null. Note: If a parent is set to the skybox, the box will not
+	//! Adds a skydome scene node to the scene graph.
+	/** A skydome is a large (half-) sphere with a panoramic texture
+	on the inside and is drawn around the camera position.
+	\param texture: Texture for the dome.
+	\param horiRes: Number of vertices of a horizontal layer of the sphere.
+	\param vertRes: Number of vertices of a vertical layer of the sphere.
+	\param texturePercentage: How much of the height of the
+	texture is used. Should be between 0 and 1.
+	\param spherePercentage: How much of the sphere is drawn.
+	Value should be between 0 and 2, where 1 is an exact
+	half-sphere and 2 is a full sphere.
+	\param radius The Radius of the sphere
+	\param parent: Parent scene node of the dome. A dome usually has no parent,
+	so this should be null. Note: If a parent is set, the dome will not
 	change how it is drawn.
 	\param id: An id of the node. This id can be used to identify the node.
-	\return Pointer to the sky box if successful, otherwise NULL.
+	\return Pointer to the sky dome if successful, otherwise NULL.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddSkyBoxNode(
+	eastl::shared_ptr<Node> AddSkyDomeNode(
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-		const eastl::shared_ptr<Texture2>& top, const eastl::shared_ptr<Texture2>& bottom, const eastl::shared_ptr<Texture2>& left,
-		const eastl::shared_ptr<Texture2>& right, const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back, int id = -1);
+		const eastl::shared_ptr<Texture2>& sky, unsigned int horiRes, unsigned int vertRes,
+		float texturePercentage, float spherePercentage, float radius, int id = -1);
 
 	//! Adds a scene node for rendering a static mesh.
 	/** \param mesh: Pointer to the loaded static mesh to be displayed.
@@ -335,7 +338,7 @@ public:
 	\return Pointer to the interface of the light if successful, otherwise NULL.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 	eastl::shared_ptr<Node> AddLightNode(
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id = -1,
 		eastl::array<float, 4> const color = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f}, float radius = 100.f);
 
 	//! Creates a rotation animator, which rotates the attached scene node around itself.

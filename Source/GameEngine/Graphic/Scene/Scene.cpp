@@ -396,17 +396,16 @@ eastl::shared_ptr<Node> Scene::AddParticleSystemNode(
 	return node;
 }
 
-//! Adds a skybox scene node. A skybox is a big cube with 6 textures on it and
-//! is drawn around the camera position.
-eastl::shared_ptr<Node> Scene::AddSkyBoxNode(
+//! Adds a skydome scene node. A skydome is a large (half-) sphere with a
+//! panoramic texture on it and is drawn around the camera position.
+eastl::shared_ptr<Node> Scene::AddSkyDomeNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-	const eastl::shared_ptr<Texture2>& top, const eastl::shared_ptr<Texture2>& bottom,
-	const eastl::shared_ptr<Texture2>& left, const eastl::shared_ptr<Texture2>& right,
-	const eastl::shared_ptr<Texture2>& front, const eastl::shared_ptr<Texture2>& back, int id)
+	const eastl::shared_ptr<Texture2>& sky, unsigned int horiRes, unsigned int vertRes,
+	float texturePercentage, float spherePercentage, float radius, int id)
 {
 
-	eastl::shared_ptr<Node> node(
-		new SkyBoxNode(id, &mPVWUpdater, renderComponent, top, bottom, left, right, front, back));
+	eastl::shared_ptr<Node> node(new SkyDomeNode(id, &mPVWUpdater, renderComponent, 
+		sky, horiRes, vertRes, texturePercentage, spherePercentage, radius));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -460,13 +459,13 @@ eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
 //! turned on. (This is the default setting in most scene nodes).
 eastl::shared_ptr<Node> Scene::AddLightNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-	eastl::array<float, 4> const color, float radius)
+	int id, eastl::array<float, 4> const color, float radius)
 {
 	eastl::shared_ptr<Node> node(
-		new LightNode(INVALID_ACTOR_ID, &mPVWUpdater, renderComponent, color, radius));
+		new LightNode(id, &mPVWUpdater, renderComponent, color, radius));
 
 	if (!parent) 
-		AddSceneNode(INVALID_ACTOR_ID, node);
+		AddSceneNode(id, node);
 	else 
 		parent->AttachChild(node);
 
@@ -683,7 +682,6 @@ void Scene::NewRenderComponentDelegate(BaseEventDataPtr pEventData)
         LogError(eastl::string("Failed to restore scene node to the scene for actorid ") + eastl::to_string(actorId));
         return;
     }
-    AddSceneNode(actorId, pSceneNode);
 }
 
 void Scene::ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData)

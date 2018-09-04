@@ -121,7 +121,7 @@
 #include "Scene/Element/ParticleSystemNode.h"
 #include "Scene/Element/RootNode.h"
 #include "Scene/Element/ShadowVolumeNode.h"
-#include "Scene/Element/SkyBoxNode.h"
+#include "Scene/Element/SkyDomeNode.h"
 #include "Scene/Element/SphereNode.h"
 #include "Scene/Element/VolumeLightNode.h"
 #include "Scene/Element/ViewVolumeNode.h"

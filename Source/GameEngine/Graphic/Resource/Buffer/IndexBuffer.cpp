@@ -34,6 +34,14 @@ IndexBuffer::IndexBuffer(IPType type, uint32_t numPrimitives)
     LogAssert(mNumPrimitives > 0, "Invalid number of primitives.");
 }
 
+void IndexBuffer::Reallocate(unsigned int numElements)
+{
+	mNumPrimitives = numElements;
+	mNumActivePrimitives = numElements;
+	mFirstPrimitive = 0;
+	Resource::Reallocate(msIndexCounter[Log2OfPowerOfTwo(mPrimitiveType)](mNumPrimitives));
+}
+
 void IndexBuffer::SetNumActivePrimitives(uint32_t numActive)
 {
     if (numActive <= mNumPrimitives)

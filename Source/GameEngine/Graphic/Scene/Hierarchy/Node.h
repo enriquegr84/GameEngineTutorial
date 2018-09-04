@@ -75,11 +75,8 @@ enum GRAPHIC_ITEM NodeType
 	//! Terrain Scene Node
 	NT_TERRAIN,
 
-	//! Sky Box Scene Node
-	NT_SKY_BOX,
-
-	//! Sky Dome Scene Node
-	NT_SKY_DOME,
+	//! Sky Scene Node
+	NT_SKY,
 
 	//! Shadow Volume Scene Node
 	NT_SHADOW_VOLUME,
@@ -166,8 +163,8 @@ enum GRAPHIC_ITEM RenderPass
 	//! In this pass, lights are transformed into camera space and added to the driver
 	RP_LIGHT,
 
-	//! This is used for sky boxes.
-	RP_SKY_BOX,
+	//! This is used for skies.
+	RP_SKY,
 
 	//! Solid scene nodes or special scene nodes without materials.
 	RP_SOLID,

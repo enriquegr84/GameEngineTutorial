@@ -835,12 +835,6 @@
     <ClCompile Include="..\Graphic\Scene\Element\ParticleSystemNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\SkyBoxNode.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\SkyNode.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Element\SphereNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
@@ -983,6 +977,9 @@
       <Filter>Graphic\UI</Filter>
     </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Element\RectangleNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\SkyDomeNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2185,12 +2182,6 @@
     <ClInclude Include="..\Graphic\Scene\Element\ParticleSystemNode.h">
       <Filter>Graphic\Scene\Element</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\SkyBoxNode.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\SkyNode.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\SphereNode.h">
       <Filter>Graphic\Scene\Element</Filter>
     </ClInclude>
@@ -2389,6 +2380,9 @@
     <ClInclude Include="..\Graphic\Scene\Element\RectangleNode.h">
       <Filter>Graphic\Scene\Element</Filter>
     </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\SkyDomeNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl">
@@ -2567,6 +2561,9 @@
       <Filter>Assets\Actors</Filter>
     </Xml>
     <Xml Include="..\..\..\Assets\Actors\sphere.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Actors\cloudy_sky.xml">
       <Filter>Assets\Actors</Filter>
     </Xml>
   </ItemGroup>

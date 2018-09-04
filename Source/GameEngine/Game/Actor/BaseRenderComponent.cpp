@@ -1,7 +1,7 @@
  
 //========================================================================
 //	BaseRenderComponent.cpp : classes that define renderable components of actors 
-//	like Meshes, Skyboxes, Lights, etc.
+//	like Meshes, Skies, Lights, etc.
 // Author: David "Rez" Graham
 //
 // Part of the GameEngine Application

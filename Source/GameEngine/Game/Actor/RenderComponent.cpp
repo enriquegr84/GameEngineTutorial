@@ -1,6 +1,6 @@
  
 //========================================================================
-// RenderComponent.cpp : classes that define renderable components of actors like Meshes, Skyboxes, Lights, etc.
+// RenderComponent.cpp : classes that define renderable components of actors like Meshes, Skies, Lights, etc.
 // Author: David "Rez" Graham
 //
 // Part of the GameEngine Application
@@ -484,7 +484,7 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 				mLightData.mLighting->mDiffuse[2], 
 				mLightData.mLighting->mDiffuse[3] };
 			eastl::shared_ptr<Node> light = 
-				pScene->AddLightNode(wbrcp, 0, color, mLightData.mLighting->mRadius);
+				pScene->AddLightNode(wbrcp, 0, mOwner->GetId(), color, mLightData.mLighting->mRadius);
 
 			if (mAnimatorType == "flycircle")
 			{
@@ -635,6 +635,11 @@ void ParticleSystemRenderComponent::CreateInheritedXMLElements(
 //---------------------------------------------------------------------------------------------------------------------
 SkyRenderComponent::SkyRenderComponent(void)
 {
+	mHoriRes = 16;
+	mVertRes = 8;
+	mTexturePercentage = 0.9f;
+	mSpherePercentage = 2.0f;
+	mRadius = 1000.f;
 	mTextureResource = "";
 }
 
@@ -643,11 +648,22 @@ bool SkyRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 	tinyxml2::XMLElement* pTexture = pData->FirstChildElement("Texture");
 	if (pTexture)
 	{
-		float x = 16.f;
-		float y = 16.f;
-		x = pTexture->FloatAttribute("x", x);
-		y = pTexture->FloatAttribute("y", y);
-		mTextureScale = Vector2<float>{ x, y };
+		unsigned int horiRes = 16;
+		unsigned int vertRes = 8;
+		float texturePercentage = 0.9f;
+		float spherePercentage = 2.0f;
+		float radius = 1000.f;
+		horiRes = pTexture->UnsignedAttribute("horiRes", horiRes);
+		vertRes = pTexture->UnsignedAttribute("vertRes", vertRes);
+		texturePercentage = pTexture->FloatAttribute("texturePercentage", texturePercentage);
+		spherePercentage = pTexture->FloatAttribute("spherePercentage", spherePercentage);
+		radius = pTexture->FloatAttribute("radius", radius);
+
+		mHoriRes = horiRes;
+		mVertRes = vertRes;
+		mTexturePercentage = texturePercentage;
+		mSpherePercentage = spherePercentage;
+		mRadius = radius;
 		mTextureResource = pTexture->Attribute("file");
 	}
 	return true;
@@ -655,213 +671,30 @@ bool SkyRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 
 eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 {
-	const eastl::shared_ptr<TransformComponent>& pTransformComponent(
-		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-	if (pTransformComponent)
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
+	WeakBaseRenderComponentPtr wbrcp(
+		eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
+
+	if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 	{
-		GameApplication* gameApp = (GameApplication*)Application::App;
-		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
-		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
-
-		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
+		eastl::shared_ptr<Texture2> skyDome;
+		eastl::shared_ptr<ResHandle>& resHandle = ResCache::Get()->GetHandle(
+			&BaseResource(ToWideString(eastl::string(mTextureResource).c_str())));
+		if (resHandle)
 		{
-			eastl::shared_ptr<Texture2> skyTop, skyBack, skyEast, skyWest, skyNorth, skySouth;
-			eastl::shared_ptr<ResHandle>& resHandle = ResCache::Get()->GetHandle(
-				&BaseResource(ToWideString(eastl::string(mTextureResource + "t.jpg").c_str())));
-			if (resHandle)
-			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				skyTop = extra->GetImage();
-			}
-			resHandle = ResCache::Get()->GetHandle(
-				&BaseResource(ToWideString(eastl::string(mTextureResource + "b.jpg").c_str())));
-			if (resHandle)
-			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				skyBack = extra->GetImage();
-			}
-			resHandle = ResCache::Get()->GetHandle(
-				&BaseResource(ToWideString(eastl::string(mTextureResource + "e.jpg").c_str())));
-			if (resHandle)
-			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				skyEast = extra->GetImage();
-			}
-			resHandle = ResCache::Get()->GetHandle(
-				&BaseResource(ToWideString(eastl::string(mTextureResource + "w.jpg").c_str())));
-			if (resHandle)
-			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				skyWest = extra->GetImage();
-			}
-			resHandle = ResCache::Get()->GetHandle(
-				&BaseResource(ToWideString(eastl::string(mTextureResource + "n.jpg").c_str())));
-			if (resHandle)
-			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				skyNorth = extra->GetImage();
-			}
-			resHandle = ResCache::Get()->GetHandle(
-				&BaseResource(ToWideString(eastl::string(mTextureResource + "s.jpg").c_str())));
-			if (resHandle)
-			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				skySouth = extra->GetImage();
-			}
-
-			// add skybox
-			eastl::shared_ptr<Node> sky = pScene->AddSkyBoxNode(wbrcp, 0,
-				skyTop, skyBack, skyEast, skyWest, skyNorth, skySouth, mOwner->GetId());
-			if (sky)
-				sky->GetRelativeTransform() = transform;
-
-			/*
-			// Create the walls of the cube room.  Each of the six texture images is
-			// RGBA 64-by-64.
-			eastl::shared_ptr<Node> room = eastl::make_shared<Node>();
-			sky->AttachChild(room);
-
-			// The vertex format shared by the room walls.
-			struct Vertex
-			{
-				Vector3<float> position;
-				Vector2<float> tcoord;
-			};
-			VertexFormat vformat;
-			vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-			vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
-
-			// The index buffer shared by the room walls.
-			eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRIMESH,
-				2, sizeof(unsigned int));
-			unsigned int* indices = ibuffer->Get<unsigned int>();
-			indices[0] = 0;  indices[1] = 1;  indices[2] = 3;
-			indices[3] = 0;  indices[4] = 3;  indices[5] = 2;
-
-			std::shared_ptr<VertexBuffer> vbuffer;
-			Vertex* vertex;
-			eastl::shared_ptr<Texture2> texture;
-			eastl::shared_ptr<Texture2Effect> effect;
-			eastl::shared_ptr<Visual> wall;
-			SamplerState::Filter filter = SamplerState::MIN_L_MAG_L_MIP_L;
-			SamplerState::Mode mode = SamplerState::WRAP;
-
-			// +x wall
-			vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
-			vertex = vbuffer->Get<Vertex>();
-			vertex[0] = { { +1.0f, -1.0f, -1.0f },{ 1.0f, 1.0f } };
-			vertex[1] = { { +1.0f, -1.0f, +1.0f },{ 0.0f, 1.0f } };
-			vertex[2] = { { +1.0f, +1.0f, -1.0f },{ 1.0f, 0.0f } };
-			vertex[3] = { { +1.0f, +1.0f, +1.0f },{ 0.0f, 0.0f } };
-
-			BaseResource resource(L"Art/irrlichtlogo3.png");
-			const eastl::shared_ptr<ResHandle>& resHandle = gameApp->mResCache->GetHandle(&resource);
-			if (resHandle)
-			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				extra->GetImage()->AutogenerateMipmaps();
-
-				extra->GetImage();
-			}
-
-			texture = FileIO::Load(mEnvironment.GetPath("XpFace.png"), true);
-			effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
-			wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
-			wall->UpdateModelBound();
-			room->AttachChild(wall);
-			mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
-			wall->name = "+x wall";
-
-			// -x wall
-			vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
-			vertex = vbuffer->Get<Vertex>();
-			vertex[0] = { { -1.0f, -1.0f, +1.0f },{ 1.0f, 1.0f } };
-			vertex[1] = { { -1.0f, -1.0f, -1.0f },{ 0.0f, 1.0f } };
-			vertex[2] = { { -1.0f, +1.0f, +1.0f },{ 1.0f, 0.0f } };
-			vertex[3] = { { -1.0f, +1.0f, -1.0f },{ 0.0f, 0.0f } };
-			texture = WICFileIO::Load(mEnvironment.GetPath("XmFace.png"), true);
-			effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
-			wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
-			wall->UpdateModelBound();
-			room->AttachChild(wall);
-			mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
-			wall->name = "-x wall";
-
-			// +y wall
-			vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
-			vertex = vbuffer->Get<Vertex>();
-			vertex[0] = { { +1.0f, +1.0f, +1.0f },{ 1.0f, 1.0f } };
-			vertex[1] = { { -1.0f, +1.0f, +1.0f },{ 0.0f, 1.0f } };
-			vertex[2] = { { +1.0f, +1.0f, -1.0f },{ 1.0f, 0.0f } };
-			vertex[3] = { { -1.0f, +1.0f, -1.0f },{ 0.0f, 0.0f } };
-			texture = WICFileIO::Load(mEnvironment.GetPath("YpFace.png"), true);
-			effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
-			wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
-			wall->UpdateModelBound();
-			room->AttachChild(wall);
-			mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
-			wall->name = "+y wall";
-
-			// -y wall
-			vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
-			vertex = vbuffer->Get<Vertex>();
-			vertex[0] = { { +1.0f, -1.0f, -1.0f },{ 1.0f, 1.0f } };
-			vertex[1] = { { -1.0f, -1.0f, -1.0f },{ 0.0f, 1.0f } };
-			vertex[2] = { { +1.0f, -1.0f, +1.0f },{ 1.0f, 0.0f } };
-			vertex[3] = { { -1.0f, -1.0f, +1.0f },{ 0.0f, 0.0f } };
-			texture = WICFileIO::Load(mEnvironment.GetPath("YmFace.png"), true);
-			effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
-			wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
-			wall->UpdateModelBound();
-			room->AttachChild(wall);
-			mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
-			wall->name = "-y wall";
-
-			// +z wall
-			vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
-			vertex = vbuffer->Get<Vertex>();
-			vertex[0] = { { +1.0f, -1.0f, +1.0f },{ 1.0f, 1.0f } };
-			vertex[1] = { { -1.0f, -1.0f, +1.0f },{ 0.0f, 1.0f } };
-			vertex[2] = { { +1.0f, +1.0f, +1.0f },{ 1.0f, 0.0f } };
-			vertex[3] = { { -1.0f, +1.0f, +1.0f },{ 0.0f, 0.0f } };
-			texture = WICFileIO::Load(mEnvironment.GetPath("ZpFace.png"), true);
-			effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
-			wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
-			wall->UpdateModelBound();
-			room->AttachChild(wall);
-			mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
-			wall->name = "+z wall";
-
-			// -z wall
-			vbuffer = std::make_shared<VertexBuffer>(vformat, 4);
-			vertex = vbuffer->Get<Vertex>();
-			vertex[0] = { { -1.0f, -1.0f, -1.0f },{ 1.0f, 1.0f } };
-			vertex[1] = { { +1.0f, -1.0f, -1.0f },{ 0.0f, 1.0f } };
-			vertex[2] = { { -1.0f, +1.0f, -1.0f },{ 1.0f, 0.0f } };
-			vertex[3] = { { +1.0f, +1.0f, -1.0f },{ 0.0f, 0.0f } };
-			texture = WICFileIO::Load(mEnvironment.GetPath("ZmFace.png"), true);
-			effect = std::make_shared<Texture2Effect>(mProgramFactory, texture, filter, mode, mode);
-			wall = std::make_shared<Visual>(vbuffer, ibuffer, effect);
-			wall->UpdateModelBound();
-			room->AttachChild(wall);
-			mPVWMatrices.Subscribe(wall->worldTransform, effect->GetPVWMatrixConstant());
-			wall->name = "-z wall";
-			*/
-
-			return sky;
+			const eastl::shared_ptr<ImageResourceExtraData>& extra =
+				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			skyDome = extra->GetImage();
 		}
-		else LogError("Unknown Renderer Implementation in GridRenderComponent");
 
+		// add skydome
+		eastl::shared_ptr<Node> sky = pScene->AddSkyDomeNode(wbrcp, 0,
+			skyDome, mHoriRes, mVertRes, mTexturePercentage, mSpherePercentage, mRadius, mOwner->GetId());
+		return sky;
 	}
+	else LogError("Unknown Renderer Implementation in SkyRenderComponent");
+
 	return eastl::shared_ptr<Node>();
 }
 
@@ -870,7 +703,10 @@ void SkyRenderComponent::CreateInheritedXMLElements(
 {
 	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
 	pTexture->SetAttribute("file", mTextureResource.c_str());
-	pTexture->SetAttribute("x", eastl::to_string(mTextureScale[0]).c_str());
-	pTexture->SetAttribute("y", eastl::to_string(mTextureScale[1]).c_str());
+	pTexture->SetAttribute("horiRes", eastl::to_string(mHoriRes).c_str());
+	pTexture->SetAttribute("vertRes", eastl::to_string(mVertRes).c_str());
+	pTexture->SetAttribute("texturePercentage", eastl::to_string(mTexturePercentage).c_str());
+	pTexture->SetAttribute("spherePercentage", eastl::to_string(mSpherePercentage).c_str());
+	pTexture->SetAttribute("radius", eastl::to_string(mRadius).c_str());
 	pBaseElement->LinkEndChild(pTexture);
 }

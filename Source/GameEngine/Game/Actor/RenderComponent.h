@@ -1,5 +1,5 @@
 //========================================================================
-// RenderComponent.h : classes that define renderable components of actors like Meshes, Skyboxes, Lights, etc.
+// RenderComponent.h : classes that define renderable components of actors like Meshes, Skies, Lights, etc.
 // Author: David "Rez" Graham
 //
 // Part of the GameEngine Application
@@ -183,7 +183,8 @@ protected:
 class SkyRenderComponent : public BaseRenderComponent
 {
 	eastl::string mTextureResource;
-	Vector2<float> mTextureScale;
+	unsigned int mHoriRes, mVertRes;
+	float mTexturePercentage, mSpherePercentage, mRadius;
 
 public:
 	static const char *Name;

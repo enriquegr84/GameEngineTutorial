@@ -212,8 +212,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\RectangleNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\RootNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ShadowVolumeNode.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Element\SkyBoxNode.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Element\SkyNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\SkyDomeNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\SphereNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ViewVolumeNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\VolumeLightNode.cpp" />
@@ -649,8 +648,7 @@
     <ClInclude Include="..\Graphic\Scene\Element\RectangleNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\RootNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ShadowVolumeNode.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\SkyBoxNode.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\SkyNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\SkyDomeNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\SphereNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ViewVolumeNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\VolumeLightNode.h" />
@@ -1012,6 +1010,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </Xml>
     <Xml Include="..\..\..\Assets\Actors\ai_player.xml">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Actors\cloudy_sky.xml">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
