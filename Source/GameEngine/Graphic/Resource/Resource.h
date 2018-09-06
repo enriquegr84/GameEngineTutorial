@@ -29,8 +29,6 @@ public:
     void CreateStorage();
     void DestroyStorage();
 
-	virtual void Reallocate(unsigned int numElements);
-
     // Basic member access.
     inline unsigned int GetNumElements() const;
     inline unsigned int GetElementSize() const;

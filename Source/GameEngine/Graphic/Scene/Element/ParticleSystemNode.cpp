@@ -108,9 +108,6 @@ bool ParticleSystemNode::Render(Scene *pScene)
 	const Matrix4x4<float> &m = cameraNode->Get()->GetViewMatrix();
 	const Vector3<float> view{ -m[2], -m[6] , -m[10] };
 
-	// reallocate arrays, if they are too small
-	ReallocateBuffers();
-
 	// create particle vertex data
 	int idx = 0;
 	for (unsigned int i=0; i<mParticles.size(); ++i)
@@ -288,44 +285,6 @@ void ParticleSystemNode::SetParticlesAreGlobal(bool global)
 void ParticleSystemNode::ClearParticles()
 {
 	mParticles.clear();
-}
-
-void ParticleSystemNode::ReallocateBuffers()
-{
-	if (mParticles.size() * 4 > mVisual->GetVertexBuffer()->GetNumElements() ||
-		mParticles.size() * 6 > mVisual->GetIndexBuffer()->GetNumElements())
-	{
-		unsigned int oldSize = mVisual->GetVertexBuffer()->GetNumElements();
-		mVisual->GetVertexBuffer()->Reallocate(mParticles.size() * 4);
-		/*
-		unsigned int i;
-
-		// fill remaining vertices
-		for (i=oldSize; i<mBuffer->mVertices.size(); i+=4)
-		{
-			mBuffer->mVertices[0+i].mTCoords.set(0.0f, 0.0f);
-			mBuffer->mVertices[1+i].mTCoords.set(0.0f, 1.0f);
-			mBuffer->mVertices[2+i].mTCoords.set(1.0f, 1.0f);
-			mBuffer->mVertices[3+i].mTCoords.set(1.0f, 0.0f);
-		}
-		*/
-		// fill remaining indices
-		unsigned int oldIdxSize = mVisual->GetIndexBuffer()->GetNumElements();
-		unsigned int oldvertices = oldSize;
-		mVisual->GetIndexBuffer()->Reallocate(mParticles.size() * 6);
-		/*
-		for (i=oldIdxSize; i<mBuffer->mIndices.size(); i+=6)
-		{
-			mBuffer->mIndices[0+i] = (unsigned int)0+oldvertices;
-			mBuffer->mIndices[1+i] = (unsigned int)2+oldvertices;
-			mBuffer->mIndices[2+i] = (unsigned int)1+oldvertices;
-			mBuffer->mIndices[3+i] = (unsigned int)0+oldvertices;
-			mBuffer->mIndices[4+i] = (unsigned int)3+oldvertices;
-			mBuffer->mIndices[5+i] = (unsigned int)2+oldvertices;
-			oldvertices += 4;
-		}
-		*/
-	}
 }
 
 //! Gets the particle emitter, which creates the particles.

@@ -22,13 +22,14 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	mPVWUpdater = updater;
 
 	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32A32_FLOAT, 0);
-	vformat.Bind(VA_NORMAL, DF_R32G32B32A32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	eastl::shared_ptr<VertexBuffer> vertices = eastl::make_shared<VertexBuffer>(vformat, 24);
-	eastl::shared_ptr<IndexBuffer> indices = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 4, sizeof(unsigned int));
+	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(
+		vformat, (mHorizontalResolution + 1) * (mVerticalResolution + 1));
+	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(
+		IP_TRIMESH, (2 * mVerticalResolution - 1) * mHorizontalResolution, sizeof(unsigned int));
 
 	// Create the visual effect. The world up-direction is (0,0,1).  Choose
 	// the light to point down.
@@ -58,10 +59,10 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, material, lighting, geometry, sky, 
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, material, lighting, geometry, sky,
 		SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 
-	mVisual = eastl::make_shared<Visual>(vertices, indices, effect);
+	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, effect);
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
@@ -88,19 +89,14 @@ void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
 	{
 		Vector3<float> position;
 		Vector3<float> normal;
-		Vector4<float> color;
 		Vector2<float> tcoord;
 	};
 	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
-	vbuffer->Reallocate((mHorizontalResolution + 1) * (mVerticalResolution + 1));
 	unsigned int numVertices = vbuffer->GetNumElements();
 	Vertex* vertex = vbuffer->Get<Vertex>();
 
-	Vertex vtx;
-	vtx.color = Vector4<float>{ 1.f, 1.f, 1.f, 1.f };
-	vtx.normal = Vector3<float>{ 0.0f, -1.f, 0.0f };
-
 	const float tcV = mTexturePercentage / mVerticalResolution;
+	int vtx = 0;
 	for (unsigned int k = 0; k <= mHorizontalResolution; ++k)
 	{
 		float elevation = (float)GE_C_HALF_PI;
@@ -109,24 +105,21 @@ void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
 		const float cosA = Function<float>::Cos(azimuth);
 		for (unsigned int j = 0; j <= mVerticalResolution; ++j)
 		{
+			Vertex vertice;
+
 			const float cosEr = mRadius * Function<float>::Cos(elevation);
-			vtx.position = Vector3<float>{ cosEr*sinA, mRadius*Function<float>::Sin(elevation), cosEr*cosA };
-			vtx.tcoord = Vector2<float>{ tcU, j*tcV };
+			vertice.position = Vector3<float>{ cosEr*sinA, cosEr*cosA, mRadius*Function<float>::Sin(elevation) };
+			vertice.tcoord = Vector2<float>{ tcU, j*tcV };
+			vertice.normal = -vertice.position;
+			Normalize(vertice.normal);
 
-			vtx.normal = -vtx.position;
-			Normalize(vtx.normal);
-
-			vertex[k].position = vtx.position;
-			vertex[k].normal = vtx.normal;
-			vertex[k].color = vtx.color;
-			vertex[k].tcoord = vtx.tcoord;
+			vertex[vtx++] = vertice;
 			elevation -= elevationStep;
 		}
 		azimuth += azimuthStep;
 	}
 
 	eastl::shared_ptr<IndexBuffer> ibuffer = mVisual->GetIndexBuffer();
-	ibuffer->Reallocate(3 * (2 * mVerticalResolution - 1) * mHorizontalResolution);
 	unsigned int numIndices = ibuffer->GetNumElements();
 	unsigned int* indices = ibuffer->Get<unsigned int>();
 
@@ -148,8 +141,8 @@ void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
 			indices[idx++] = 0 + (mVerticalResolution + 1) * k + j;
 		}
 	}
-
-	//Buffer->setHardwareMappingHint(scene::EHM_STATIC);
+	//mVisual->UpdateModelNormals();
+	//Buffer->SetHardwareMappingHint(scene::EHM_STATIC);
 }
 
 //! pre render method
@@ -173,7 +166,7 @@ bool SkyDomeNode::Render(Scene* pScene)
 	{
 		// draw perspective skydome
 		//Matrix4x4<float> translate(toWorld);
-		GetAbsoluteTransform().SetTranslation(camera->GetAbsoluteTransform().GetTranslation());
+		GetRelativeTransform().SetTranslation(camera->GetAbsoluteTransform().GetTranslation());
 
 		Renderer::Get()->Draw(mVisual);
 	}

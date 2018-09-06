@@ -9,23 +9,23 @@
 
 DepthStencilState::DepthStencilState()
     :
-    depthEnable(true),
-    writeMask(MASK_ALL),
-    comparison(LESS_EQUAL),
-    stencilEnable(false),
-    stencilReadMask(0xFF),
-    stencilWriteMask(0xFF),
-    reference(0)
+    mDepthEnable(true),
+    mWriteMask(MASK_ALL),
+    mComparison(LESS_EQUAL),
+    mStencilEnable(false),
+    mStencilReadMask(0xFF),
+    mStencilWriteMask(0xFF),
+    mReference(0)
 {
     mType = GE_DEPTH_STENCIL_STATE;
 
-    frontFace.fail = OP_KEEP;
-    frontFace.depthFail = OP_KEEP;
-    frontFace.pass = OP_KEEP;
-    frontFace.comparison = ALWAYS;
-    backFace.fail = OP_KEEP;
-    backFace.depthFail = OP_KEEP;
-    backFace.pass = OP_KEEP;
-    backFace.comparison = ALWAYS;
+    mFrontFace.fail = OP_KEEP;
+    mFrontFace.depthFail = OP_KEEP;
+    mFrontFace.pass = OP_KEEP;
+    mFrontFace.comparison = ALWAYS;
+    mBackFace.fail = OP_KEEP;
+    mBackFace.depthFail = OP_KEEP;
+    mBackFace.pass = OP_KEEP;
+    mBackFace.comparison = ALWAYS;
 }
 

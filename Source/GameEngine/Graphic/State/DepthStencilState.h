@@ -56,15 +56,15 @@ public:
 
     // Member access.  The members are intended to be write-once before
     // you create an associated graphics state.
-    bool depthEnable;                   // default: true
-    WriteMask writeMask;                // default: MASK_ALL
-    Comparison comparison;              // default: LESS_EQUAL
-    bool stencilEnable;                 // default: false
-    unsigned char stencilReadMask;      // default: 0xFF
-    unsigned char stencilWriteMask;     // default: 0xFF
-    Face frontFace;                     // default: (KEEP,KEEP,KEEP,ALWAYS)
-    Face backFace;                      // default: (KEEP,KEEP,KEEP,ALWAYS)
-    unsigned int reference;             // default: 0
+    bool mDepthEnable;                   // default: true
+    WriteMask mWriteMask;                // default: MASK_ALL
+    Comparison mComparison;              // default: LESS_EQUAL
+    bool mStencilEnable;                 // default: false
+    unsigned char mStencilReadMask;      // default: 0xFF
+    unsigned char mStencilWriteMask;     // default: 0xFF
+    Face mFrontFace;                     // default: (KEEP,KEEP,KEEP,ALWAYS)
+    Face mBackFace;                      // default: (KEEP,KEEP,KEEP,ALWAYS)
+    unsigned int mReference;             // default: 0
 };
 
 #endif

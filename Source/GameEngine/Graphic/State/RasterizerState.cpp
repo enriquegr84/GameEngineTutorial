@@ -9,16 +9,16 @@
 
 RasterizerState::RasterizerState()
     :
-    fillMode(FILL_SOLID),
-    cullMode(CULL_BACK),
-    frontCCW(true),
-    depthBias(0),
-    depthBiasClamp(0.0f),
-    slopeScaledDepthBias(0.0f),
-    enableDepthClip(true),
-    enableScissor(false),
-    enableMultisample(false),
-    enableAntialiasedLine(false)
+    mFillMode(FILL_SOLID),
+    mCullMode(CULL_NONE),
+    mFrontCCW(true),
+    mDepthBias(0),
+    mDepthBiasClamp(0.0f),
+    mSlopeScaledDepthBias(0.0f),
+    mEnableDepthClip(true),
+    mEnableScissor(false),
+    mEnableMultisample(false),
+    mEnableAntialiasedLine(false)
 {
     mType = GE_RASTERIZER_STATE;
 }

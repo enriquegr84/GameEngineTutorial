@@ -9,16 +9,16 @@
 
 BlendState::BlendState()
     :
-    enableAlphaToCoverage(false),
-    enableIndependentBlend(false),
-    blendColor({ 0.0f, 0.0f, 0.0f, 0.0f }),
-    sampleMask(0xFFFFFFFFu)
+    mEnableAlphaToCoverage(false),
+    mEnableIndependentBlend(false),
+    mBlendColor({ 0.0f, 0.0f, 0.0f, 0.0f }),
+    mSampleMask(0xFFFFFFFFu)
 {
     mType = GE_BLEND_STATE;
 
     for (int i = 0; i < NUM_TARGETS; ++i)
     {
-        Target& trg = target[i];
+        Target& trg = mTarget[i];
         trg.enable = false;
         trg.srcColor = BM_ONE;
         trg.dstColor = BM_ZERO;

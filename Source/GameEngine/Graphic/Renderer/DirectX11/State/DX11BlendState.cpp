@@ -13,12 +13,12 @@ DX11BlendState::DX11BlendState (ID3D11Device* device, BlendState const* blendSta
 {
     // Specify the blend state description.
     D3D11_BLEND_DESC desc;
-    desc.AlphaToCoverageEnable = (blendState->enableAlphaToCoverage ? TRUE : FALSE);
-    desc.IndependentBlendEnable = (blendState->enableIndependentBlend ? TRUE : FALSE);
+    desc.AlphaToCoverageEnable = (blendState->mEnableAlphaToCoverage ? TRUE : FALSE);
+    desc.IndependentBlendEnable = (blendState->mEnableIndependentBlend ? TRUE : FALSE);
     for (unsigned int i = 0; i < BlendState::NUM_TARGETS; ++i)
     {
         D3D11_RENDER_TARGET_BLEND_DESC& out = desc.RenderTarget[i];
-        BlendState::Target const& in = blendState->target[i];
+        BlendState::Target const& in = blendState->mTarget[i];
         out.BlendEnable = (in.enable ? TRUE : FALSE);
         out.SrcBlend = msMode[in.srcColor];
         out.DestBlend = msMode[in.dstColor];
@@ -56,7 +56,7 @@ eastl::shared_ptr<GraphicObject> DX11BlendState::Create(
 void DX11BlendState::Enable(ID3D11DeviceContext* context)
 {
     BlendState* bState = GetBlendState();
-    context->OMSetBlendState(GetDXBlendState(), &bState->blendColor[0], bState->sampleMask);
+    context->OMSetBlendState(GetDXBlendState(), &bState->mBlendColor[0], bState->mSampleMask);
 }
 
 

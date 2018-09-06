@@ -324,7 +324,7 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 					}
 
 					resHandle =
-						ResCache::Get()->GetHandle(&BaseResource(L"Art/t351sml.jpg"));
+						ResCache::Get()->GetHandle(&BaseResource(L"Art/t351sml.bmp"));
 					if (resHandle)
 					{
 						const eastl::shared_ptr<ImageResourceExtraData>& extra =

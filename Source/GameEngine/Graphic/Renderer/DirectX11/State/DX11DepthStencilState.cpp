@@ -13,18 +13,18 @@ DX11DepthStencilState::DX11DepthStencilState(ID3D11Device* device, DepthStencilS
 {
     // Specify the rasterizer state description.
     D3D11_DEPTH_STENCIL_DESC desc;
-    desc.DepthEnable = (depthStencilState->depthEnable ? TRUE : FALSE);
-    desc.DepthWriteMask = msWriteMask[depthStencilState->writeMask];
-    desc.DepthFunc = msComparison[depthStencilState->comparison];
-    desc.StencilEnable = (depthStencilState->stencilEnable ? TRUE : FALSE);
-    desc.StencilReadMask = depthStencilState->stencilReadMask;
-    desc.StencilWriteMask = depthStencilState->stencilWriteMask;
-    DepthStencilState::Face front = depthStencilState->frontFace;
+    desc.DepthEnable = (depthStencilState->mDepthEnable ? TRUE : FALSE);
+    desc.DepthWriteMask = msWriteMask[depthStencilState->mWriteMask];
+    desc.DepthFunc = msComparison[depthStencilState->mComparison];
+    desc.StencilEnable = (depthStencilState->mStencilEnable ? TRUE : FALSE);
+    desc.StencilReadMask = depthStencilState->mStencilReadMask;
+    desc.StencilWriteMask = depthStencilState->mStencilWriteMask;
+    DepthStencilState::Face front = depthStencilState->mFrontFace;
     desc.FrontFace.StencilFailOp = msOperation[front.fail];
     desc.FrontFace.StencilDepthFailOp = msOperation[front.depthFail];
     desc.FrontFace.StencilPassOp = msOperation[front.pass];
     desc.FrontFace.StencilFunc = msComparison[front.comparison];
-    DepthStencilState::Face back = depthStencilState->backFace;
+    DepthStencilState::Face back = depthStencilState->mBackFace;
     desc.BackFace.StencilFailOp = msOperation[back.fail];
     desc.BackFace.StencilDepthFailOp = msOperation[back.depthFail];
     desc.BackFace.StencilPassOp = msOperation[back.pass];
@@ -57,7 +57,7 @@ eastl::shared_ptr<GraphicObject> DX11DepthStencilState::Create(
 void DX11DepthStencilState::Enable(ID3D11DeviceContext* context)
 {
     DepthStencilState* dsState = GetDepthStencilState();
-    context->OMSetDepthStencilState(GetDXDepthStencilState(), dsState->reference);
+    context->OMSetDepthStencilState(GetDXDepthStencilState(), dsState->mReference);
 }
 
 

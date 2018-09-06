@@ -57,46 +57,6 @@ Resource::Resource(unsigned int numElements, size_t elementSize, bool createStor
     }
 }
 
-void Resource::Reallocate(unsigned int numElements)
-{
-	mNumElements = numElements;
-
-	if (mNumElements > 0)
-	{
-		if (mElementSize > 0)
-		{
-			mNumBytes = mNumElements * mElementSize;
-			mNumActiveElements = mNumElements;
-			if (mStorage.size() > 0 && mData == mStorage.data())
-			{
-				mStorage.resize(mNumBytes);
-				if (!mData)
-				{
-					mData = mStorage.data();
-				}
-			}
-		}
-		else
-		{
-			// The VertexBuffer constructor that takes only the number of
-			// vertices has been called.  The vertex shader code is maintained
-			// completely in the HLSL.
-			mNumBytes = 0;
-			mNumActiveElements = mNumElements;
-		}
-	}
-	else
-	{
-		// No assertion may occur here.  The VertexBuffer constructor with
-		// a VertexFormat of zero attributes (used for SV_VertexID-based
-		// drawing) and the IndexBuffer constructor for which no indices are
-		// provided will lead to this path.
-		mNumBytes = 0;
-		mElementSize = 0;
-		mNumActiveElements = 0;
-	}
-}
-
 void Resource::CreateStorage()
 {
     if (mStorage.size() == 0)

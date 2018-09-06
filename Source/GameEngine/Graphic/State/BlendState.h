@@ -75,11 +75,11 @@ public:
 
     // Member access.  The members are intended to be write-once before
     // you create an associated graphics state.
-    bool enableAlphaToCoverage;     // default: false
-    bool enableIndependentBlend;    // default: false
-    Target target[NUM_TARGETS];
-    Vector4<float> blendColor;      // default: (0,0,0,0)
-    unsigned int sampleMask;        // default: 0xFFFFFFFF
+    bool mEnableAlphaToCoverage;     // default: false
+    bool mEnableIndependentBlend;    // default: false
+    Target mTarget[NUM_TARGETS];
+    Vector4<float> mBlendColor;      // default: (0,0,0,0)
+    unsigned int mSampleMask;        // default: 0xFFFFFFFF
 };
 
 #endif

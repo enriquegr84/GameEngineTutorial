@@ -13,16 +13,16 @@ DX11RasterizerState::DX11RasterizerState(ID3D11Device* device, RasterizerState c
 {
     // Specify the rasterizer state description.
     D3D11_RASTERIZER_DESC desc;
-    desc.FillMode = msFillMode[rasterizerState->fillMode];
-    desc.CullMode = msCullMode[rasterizerState->cullMode];
-    desc.FrontCounterClockwise = (rasterizerState->frontCCW ? TRUE : FALSE);
-    desc.DepthBias = rasterizerState->depthBias;
-    desc.DepthBiasClamp = rasterizerState->depthBiasClamp;
-    desc.SlopeScaledDepthBias = rasterizerState->slopeScaledDepthBias;
-    desc.DepthClipEnable = (rasterizerState->enableDepthClip ? TRUE : FALSE);
-    desc.ScissorEnable = (rasterizerState->enableScissor ? TRUE : FALSE);
-    desc.MultisampleEnable = (rasterizerState->enableMultisample ? TRUE : FALSE);
-    desc.AntialiasedLineEnable = (rasterizerState->enableAntialiasedLine ? TRUE : FALSE);
+    desc.FillMode = msFillMode[rasterizerState->mFillMode];
+    desc.CullMode = msCullMode[rasterizerState->mCullMode];
+    desc.FrontCounterClockwise = (rasterizerState->mFrontCCW ? TRUE : FALSE);
+    desc.DepthBias = rasterizerState->mDepthBias;
+    desc.DepthBiasClamp = rasterizerState->mDepthBiasClamp;
+    desc.SlopeScaledDepthBias = rasterizerState->mSlopeScaledDepthBias;
+    desc.DepthClipEnable = (rasterizerState->mEnableDepthClip ? TRUE : FALSE);
+    desc.ScissorEnable = (rasterizerState->mEnableScissor ? TRUE : FALSE);
+    desc.MultisampleEnable = (rasterizerState->mEnableMultisample ? TRUE : FALSE);
+    desc.AntialiasedLineEnable = (rasterizerState->mEnableAntialiasedLine ? TRUE : FALSE);
 
     // Create the rasterizer state.
     ID3D11RasterizerState* state = nullptr;

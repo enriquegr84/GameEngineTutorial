@@ -190,8 +190,6 @@ public:
 
 private:
 
-	void ReallocateBuffers();
-
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::list<eastl::shared_ptr<BaseParticleAffector>> mAffectorList;
 	eastl::shared_ptr<BaseParticleEmitter> mEmitter;

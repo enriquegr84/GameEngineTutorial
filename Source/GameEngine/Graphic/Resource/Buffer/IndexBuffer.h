@@ -31,8 +31,6 @@ public:
     // not applicable, because there is no system-memory resource data.
     IndexBuffer(IPType type, uint32_t numPrimitives);
 
-	virtual void Reallocate(unsigned int numElements);
-
     // Member access.
     inline IPType GetPrimitiveType() const;
     inline uint32_t GetNumPrimitives() const;

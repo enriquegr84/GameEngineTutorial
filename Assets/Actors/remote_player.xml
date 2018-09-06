@@ -12,7 +12,7 @@
 	</PhysicsComponent>
 
 	<MeshRenderComponent>
-		<Mesh model_file="art\dwarf.x" texture_file="art\dwarf.jpg"/>
+		<Mesh model_file="art\dwarf.x" texture_file="art\dwarf.bmp"/>
 	</MeshRenderComponent>
 
 </Actor>
