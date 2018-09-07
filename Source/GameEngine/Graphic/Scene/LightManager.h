@@ -19,6 +19,37 @@ class Scene;
 
 typedef eastl::list<eastl::shared_ptr<Light> > Lights;
 
+/*
+	Normally, you are limited to 8 dynamic lights per scene: this is a hardware limit.  If you
+	want to use more dynamic lights in your scene, then you can register an optional light
+	manager that allows you to to turn lights on and off at specific point during rendering.
+	You are still limited to 8 lights, but the limit is per scene node.
+
+	This is completely optional: if you do not register a light manager, then a default
+	distance-based scheme will be used to prioritise hardware lights based on their distance
+	from the active camera.
+
+	NO_MANAGEMENT disables the light manager and shows Irrlicht's default light behaviour.
+	The 8 lights nearest to the camera will be turned on, and other lights will be turned off.
+	In this example, this produces a funky looking but incoherent light display.
+
+	LIGHTS_NEAREST_NODE shows an implementation that turns on a limited number of lights
+	per mesh scene node.  If finds the 3 lights that are nearest to the node being rendered,
+	and turns them on, turning all other lights off.  This works, but as it operates on every
+	light for every node, it does not scale well with many lights.  The flickering you can see
+	in this demo is due to the lights swapping their relative positions from the cubes
+	(a deliberate demonstration of the limitations of this technique).
+
+	LIGHTS_IN_ZONE shows a technique for turning on lights based on a 'zone'. Each empty scene
+	node is considered to be the parent of a zone.  When nodes are rendered, they turn off all
+	lights, then find their parent 'zone' and turn on all lights that are inside that zone, i.e.
+	are  descendents of it in the scene graph.  This produces true 'local' lighting for each cube
+	in this example.  You could use a similar technique to locally light all meshes in (e.g.)
+	a room, without the lights spilling out to other rooms.
+
+	This light manager is also an event receiver; this is purely for simplicity in this example,
+	it's neither necessary nor recommended for a real application.
+*/
 class LightManager
 {
 	friend class Scene;

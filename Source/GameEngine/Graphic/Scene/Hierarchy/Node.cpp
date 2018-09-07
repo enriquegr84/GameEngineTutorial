@@ -262,25 +262,6 @@ eastl::shared_ptr<NodeAnimator> Node::GetAnimator(int i)
 	return nullptr;
 }
 
-
-void Node::UpdateVisualModelSpace(eastl::shared_ptr<Node> node)
-{
-	Visual* visual = dynamic_cast<Visual*>(node.get());
-	if (visual)
-	{
-		visual->UpdateModelBound();
-		visual->UpdateModelNormals();
-		return;
-	}
-
-	if (node)
-	{
-		for (int i = 0; i < node->GetNumChildren(); ++i)
-			if (node->GetChild(i))
-				UpdateVisualModelSpace(node->GetChild(i));
-	}
-}
-
 void Node::UpdateWorldData(double applicationTIme)
 {
     Spatial::UpdateWorldData(applicationTIme);

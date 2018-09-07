@@ -83,7 +83,6 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 	if (pTransformComponent)
 	{
-
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
@@ -92,6 +91,7 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
+			/*
 			eastl::shared_ptr<ResHandle>& resHandle =
 				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshModelFile.c_str())));
 			if (resHandle)
@@ -126,6 +126,25 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 				}
 
 				return animatedMeshNode;
+			}
+			*/
+			eastl::shared_ptr<ResHandle>& resHandle =
+				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshTextureFile.c_str())));
+			if (resHandle)
+			{
+				const eastl::shared_ptr<ImageResourceExtraData>& extra =
+					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+				eastl::shared_ptr<Node> bill = pScene->AddBillboardNode(eastl::weak_ptr<BaseRenderComponent>(),
+					0, extra->GetImage(), Vector2<float>{ 1.0f, 1.0f }, GameLogic::Get()->GetNewActorID());
+				if (bill)
+				{
+					bill->GetRelativeTransform() = transform;
+
+					bill->SetMaterialFlag(MF_LIGHTING, false);
+					bill->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
+					bill->SetMaterialTexture(0, extra->GetImage().get());
+				}
 			}
 		}
 		else LogAssert(nullptr, "Unknown Renderer Implementation in MeshRenderComponent::CreateSceneNode");
@@ -204,7 +223,6 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 					const eastl::shared_ptr<ImageResourceExtraData>& extra =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
-					sphere->GetAbsoluteTransform().SetTranslation(transform.GetTranslation());
 					sphere->SetMaterialTexture(0, extra->GetImage().get());
 					sphere->SetMaterialFlag(MF_LIGHTING, false);
 				}
@@ -496,18 +514,18 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 			// attach billboard to light
 			if (mAddBillboard)
 			{
-				eastl::shared_ptr<Node> bill = pScene->AddBillboardNode(
-					eastl::weak_ptr<BaseRenderComponent>(), light, GameLogic::Get()->GetNewActorID(), mBillboardSize);
-				if (bill)
+				eastl::shared_ptr<ResHandle>& resHandle =
+					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mBillboardTexture.c_str())));
+				if (resHandle)
 				{
-					bill->GetRelativeTransform() = transform;
+					const eastl::shared_ptr<ImageResourceExtraData>& extra =
+						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
-					eastl::shared_ptr<ResHandle>& resHandle =
-						ResCache::Get()->GetHandle(&BaseResource(ToWideString(mBillboardTexture.c_str())));
-					if (resHandle)
+					eastl::shared_ptr<Node> bill = pScene->AddBillboardNode(eastl::weak_ptr<BaseRenderComponent>(), 
+						light, extra->GetImage(), mBillboardSize, GameLogic::Get()->GetNewActorID());
+					if (bill)
 					{
-						const eastl::shared_ptr<ImageResourceExtraData>& extra =
-							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+						bill->GetRelativeTransform() = transform;
 
 						bill->SetMaterialFlag(MF_LIGHTING, false);
 						bill->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);

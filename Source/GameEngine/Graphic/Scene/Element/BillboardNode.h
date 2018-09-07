@@ -18,10 +18,9 @@ public:
     // The model space of the billboard has an up vector of (0,1,0) that is
     // chosen to be the billboard's axis of rotation.
 	//! Constructor
-	BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
-		const Vector2<float>& size,
-		eastl::array<float, 4> const colorTop = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f},
-		eastl::array<float, 4> const colorBottom = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});
+	BillboardNode(const ActorId actorId, 
+		PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Texture2>& texture, const Vector2<float>& size);
 
 	//! Returns type of the scene node
 	virtual NodeType GetType() const { return NT_BILLBOARD; }
@@ -46,20 +45,6 @@ public:
 
 	//! returns amount of materials used by this scene node.
 	virtual unsigned int GetMaterialCount() const;
-
-	//! Set the color of all vertices of the billboard
-	//! \param overallColor: the color to set
-	void SetColor(const eastl::array<float, 4>& overallColor);
-
-	//! Set the color of the top and bottom vertices of the billboard
-	//! \param topColor: the color to set the top vertices
-	//! \param bottomColor: the color to set the bottom vertices
-	void SetColor(const eastl::array<float, 4>& topColor, const eastl::array<float, 4>& bottomColor);
-
-	//! Gets the color of the top and bottom vertices of the billboard
-	//! \param[out] topColor: stores the color of the top vertices
-	//! \param[out] bottomColor: stores the color of the bottom vertices
-	void GetColor(eastl::array<float, 4>& topColor, eastl::array<float, 4>& bottomColor) const;
 
 protected:
     // Support for the geometric update.

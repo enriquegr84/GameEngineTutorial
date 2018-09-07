@@ -231,9 +231,6 @@ public:
 	bool OnRestore(Scene *pScene);
 	bool OnLostDevice(Scene *pScene);
 
-	// Support for geometric updates.
-	void UpdateVisualModelSpace(eastl::shared_ptr<Node> node);
-
 	bool OnUpdate(Scene *, unsigned long const elapsedMs);
 	virtual bool OnAnimate(Scene* pScene, unsigned int timeMs);
 

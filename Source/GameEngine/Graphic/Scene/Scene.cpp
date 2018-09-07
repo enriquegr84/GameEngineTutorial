@@ -364,14 +364,11 @@ eastl::shared_ptr<Node> Scene::AddCameraNode(int id, bool makeActive)
 //! which always looks to the camera. It is usually used for things like explosions, fire,
 //! lensflares and things like that.
 eastl::shared_ptr<Node> Scene::AddBillboardNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id,
-	const Vector2<float>& size, const Vector3<float>& position, eastl::array<float, 4> const colorTop, 
-	eastl::array<float, 4> const colorBottom)
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+	const eastl::shared_ptr<Texture2>& texture, const Vector2<float>& size, int id)
 {
-
 	eastl::shared_ptr<Node> node(
-		new BillboardNode(id, &mPVWUpdater, renderComponent, size, colorTop, colorBottom));
-	node->GetAbsoluteTransform().SetTranslation(position);
+		new BillboardNode(id, &mPVWUpdater, renderComponent, texture, size));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -724,6 +721,6 @@ void Scene::MoveActorDelegate(BaseEventDataPtr pEventData)
 
     eastl::shared_ptr<Node> pNode = GetSceneNode(id);
     if (pNode)
-		pNode->GetAbsoluteTransform() = transform;
+		pNode->GetRelativeTransform() = transform;
 
 }

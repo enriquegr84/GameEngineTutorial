@@ -1,7 +1,7 @@
 <Actor type="Player" resource="actors\player.xml">
 
 <TransformComponent>
-	<Position x="0" y="0" z="5"/>
+	<Position x="-5" y="-5" z="0.1"/>
 	<YawPitchRoll x="0" y="0" z="0"/>
 </TransformComponent>
 
@@ -9,10 +9,13 @@
 	<Shape>Box</Shape>
 	<Density>glass</Density>
 	<PhysicsMaterial>Normal</PhysicsMaterial>
+	<RigidBodyTransform>
+		<Scale x="5" y="0.1" z="5" />  
+	</RigidBodyTransform>
 </PhysicsComponent>
 
 <MeshRenderComponent>
-	<Mesh model_file="art\dwarf.x" texture_file="art\dwarf.bmp"/>
+	<Mesh model_file="art\dwarf.x" texture_file="art\particle.bmp"/>
 </MeshRenderComponent>
 	
 </Actor>

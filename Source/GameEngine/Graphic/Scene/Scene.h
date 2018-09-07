@@ -248,11 +248,9 @@ public:
 	IReferenceCounted::drop() for more information. */
 	eastl::shared_ptr<Node> AddBillboardNode(
 		WeakBaseRenderComponentPtr renderComponent, 
-		const eastl::shared_ptr<Node>& parent, int id = -1, 
-		const Vector2<float>& size = Vector2<float>{ 10.0f, 10.0f }, 
-		const Vector3<float>& position = Vector3<float>{ 0, 0, 0 }, 
-		eastl::array<float, 4> const colorTop = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f},
-		eastl::array<float, 4> const colorBottom = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});
+		const eastl::shared_ptr<Node>& parent, 
+		const eastl::shared_ptr<Texture2>& texture,
+		const Vector2<float>& size = Vector2<float>{ 10.0f, 10.0f }, int id = -1);
 
 	//! Adds a particle system scene node to the scene graph.
 	/** \param withDefaultEmitter: Creates a default working point emitter

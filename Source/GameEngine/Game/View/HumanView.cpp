@@ -112,9 +112,6 @@ HumanView::HumanView()
 		//InitializeFixedHeightRig();
 		//mFixedHeightRig.SetPicker(mScene, mPicker);
 
-		// The model bounds must be updated first before the scene update.  The
-		// latter update uses the model bounds to compute world bounds.
-		mScene->GetRootNode()->UpdateVisualModelSpace(mScene->GetRootNode());
 		mScene->GetRootNode()->Update();
 	}
 }
