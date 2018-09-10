@@ -1,0 +1,7 @@
+<PlayerOptions>
+  <Graphics Renderer="Direct3D 11" Width="800" Height="600" Runfullspeed="no" />
+  <Sound SFXVolume="100" MusicVolume="100"/>
+  <Multiplayer ExpectedPlayers="1" NumAIs="1" MaxAIs="4" MaxPlayers="4" ListenPort="57" GameHost="127.0.0.1" />
+  <ResCache UseDevelopmentDirectories="no" /> 
+  <PhysicsDebug DrawWireFrame="yes" DrawContactPoints="yes" />
+</PlayerOptions>
