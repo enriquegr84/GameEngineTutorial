@@ -286,23 +286,64 @@ public:
 
 	bool IsTransparent() const;
 
-	// material type
+	//! Type of the material. Specifies how everything is blended together
 	MaterialType mType;
 
 	// material flag
 	MaterialFlag mFlag;
 
-    // (r,g,b,*): default (0,0,0,1)
+	//! Light emitted by this material. Default is to emit no light.
     Vector4<float> mEmissive;
 
-    // (r,g,b,*): default (0,0,0,1)
+	//! How much ambient light (a global light) is reflected by this material.
+	/** The default is full white, meaning objects are completely
+	globally illuminated. Reduce this if you want to see diffuse
+	or specular light effects. */
     Vector4<float> mAmbient;
 
-    // (r,g,b,a): default (0,0,0,1)
+	//! How much diffuse light coming from a light source is reflected by this material.
+	/** The default is full white. */
     Vector4<float> mDiffuse;
 
-    // (r,g,b,specularPower): default (0,0,0,1)
+	//! How much specular light (highlights from a light) is reflected.
+	/** The default is to reflect white specular light. See
+	SMaterial::Shininess on how to enable specular lights. */
     Vector4<float> mSpecular;
+
+	//! Value affecting the size of specular highlights.
+	/** A value of 20 is common. If set to 0, no specular
+	highlights are being used. To activate, simply set the
+	shininess of a material to a value in the range [0.5;128]:
+	\code
+	sceneNode->getMaterial(0).Shininess = 20.0f;
+	\endcode
+
+	You can change the color of the highlights using
+	\code
+	sceneNode->getMaterial(0).SpecularColor.set(255,255,255,255);
+	\endcode
+
+	The specular color of the dynamic lights
+	(SLight::SpecularColor) will influence the the highlight color
+	too, but they are set to a useful value by default when
+	creating the light scene node. Here is a simple example on how
+	to use specular highlights:
+	\code
+	// load and display mesh
+	scene::IAnimatedMeshSceneNode* node = smgr->addAnimatedMeshSceneNode(
+	smgr->getMesh("data/faerie.md2"));
+	node->setMaterialTexture(0, driver->getTexture("data/Faerie2.pcx")); // set diffuse texture
+	node->setMaterialFlag(video::EMF_LIGHTING, true); // enable dynamic lighting
+	node->getMaterial(0).Shininess = 20.0f; // set size of specular highlights
+
+	// add white light
+	scene::ILightSceneNode* light = smgr->addLightSceneNode(0,
+	core::vector3df(5,5,5), video::SColorf(1.0f, 1.0f, 1.0f));
+	\endcode */
+	float mShininess;
+
+	//! Thickness of non-3dimensional elements such as lines and points.
+	float mThickness;
 };
 
 #endif

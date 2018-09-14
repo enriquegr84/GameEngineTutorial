@@ -18,7 +18,7 @@ public:
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh);
 
 	//! destructor
-	~MeshNode();
+	virtual ~MeshNode();
 
 	//! Render events
 	virtual bool PreRender(Scene *pScene);

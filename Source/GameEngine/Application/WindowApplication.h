@@ -46,12 +46,11 @@ protected:
 
 	//Time
 	void InitTime();
-	void UpdateTime();
-	void UpdateFrameCount();
+	unsigned int UpdateTime();
 	float GetLimitedDt();
 
 	double mLastTime, mAccumulatedTime, mFrameRate;
-	int mFrameCount, mFramesPerSecond, mTimer, mMaxTimer;
+	int mFramesPerSecond, mTimer, mMaxTimer;
 
     // Window parameters (from the constructor).
     eastl::wstring mTitle;

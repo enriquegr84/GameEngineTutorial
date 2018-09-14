@@ -9,7 +9,7 @@
 #include "StructuredBuffer.h"
 
 VertexBuffer::VertexBuffer(VertexFormat const& vformat,
-    unsigned int numVertices, bool createStorage)
+	uint32_t numVertices, bool createStorage)
     :
     Buffer(numVertices, vformat.GetVertexSize(), createStorage),
     mVFormat(vformat)
@@ -28,14 +28,14 @@ VertexBuffer::VertexBuffer(VertexFormat const& vformat,
     SetNumActiveElements(sbuffer->GetNumElements());
 }
 
-VertexBuffer::VertexBuffer(unsigned int numVertices)
+VertexBuffer::VertexBuffer(uint32_t numVertices)
     :
     Buffer(numVertices, 0, false)
 {
     mType = GE_VERTEX_BUFFER;
 }
 
-char* VertexBuffer::GetChannel(VASemantic semantic, unsigned int unit,
+char* VertexBuffer::GetChannel(VASemantic semantic, uint32_t unit,
 	eastl::set<DFType> const& requiredTypes)
 {
     char* data = (mSBuffer == nullptr ? mData : mSBuffer->GetData());

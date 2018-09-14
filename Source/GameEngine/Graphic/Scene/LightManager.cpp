@@ -22,11 +22,16 @@ LightManager::LightManager()
 	: mMode(NO_MANAGEMENT), mRequestedMode(NO_MANAGEMENT),
 	mSceneLightList(0), mCurrentRenderPass(RP_NONE), mCurrentSceneNode(0)
 { 
+#if defined(GE_DEV_OPENGL)
+	mDLight = eastl::make_shared<Light>(true, false);
+#else
 	mDLight = eastl::make_shared<Light>(true, true);
+#endif
 	mDLight->mLighting = eastl::make_shared<Lighting>();
+
 	/*
 	eastl::shared_ptr<ViewVolumeNode> lightNode = 
-		eastl::make_shared<ViewVolumeNode>(GameLogic::Get()->GetNewActorID(), mDLight);
+		eastl::make_shared<ViewVolumeNode>(INVALID_ACTOR_ID, mDLight);
 
 	lightNode->GetRelativeTransform().SetTranslation(1628.448730f, -51.877197f, 0.0f);
 	lightNode->GetRelativeTransform().SetRotation(
@@ -258,8 +263,7 @@ void LightManager::OnNodePreRender(Node* node)
 				continue;
 			LightNode* lightNode = static_cast<LightNode*>((*mSceneLightList)[i]);
 
-			Light & lightData = lightNode->GetLightData();
-			if (LT_DIRECTIONAL != lightData.mLighting->mType)
+			if (LT_DIRECTIONAL != lightNode->GetLightData()->mType)
 				lightNode->SetVisible(false);
 		}
 

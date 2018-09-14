@@ -18,7 +18,7 @@ public:
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Texture2>& texture,
 		float texsScale, float texyScale, float xSize, float ySize, int xPolyCount, int yPolyCount);
 
-	~RectangleNode();
+	virtual ~RectangleNode();
 
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);

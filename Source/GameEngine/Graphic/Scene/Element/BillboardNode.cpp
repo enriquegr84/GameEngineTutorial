@@ -20,6 +20,8 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBas
 	const eastl::shared_ptr<Texture2>& texture, const Vector2<float>& size)
 	: Node(actorId, renderComponent, RP_TRANSPARENT, NT_BILLBOARD)
 {
+	SetSize(size);
+
 	mPVWUpdater = updater;
 
 	VertexFormat vformat;
@@ -27,9 +29,11 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBas
 	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	eastl::shared_ptr<VertexBuffer> vertices = eastl::make_shared<VertexBuffer>(vformat, 4);
-	vertices->SetUsage(Resource::DYNAMIC_UPDATE);
-	eastl::shared_ptr<IndexBuffer> indices = eastl::make_shared<IndexBuffer>(IP_TRIMESH, 2, sizeof(unsigned int));
+	MeshFactory mf;
+	mf.SetVertexFormat(vformat);
+	mVisual = mf.CreateBox(size[0], 0.f, size[1]);
+	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
 	// Create the visual effect. The world up-direction is (0,0,1).  Choose
 	// the light to point down.
@@ -49,30 +53,8 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBas
 	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
 		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, material, lighting, geometry, texture,
 		SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
-
-	SetSize(size);
-
-	struct Vertex
-	{
-		Vector3<float> position;
-		Vector3<float> normal;
-		Vector2<float> tcoord;
-	};
-	Vertex* vertex = vertices->Get<Vertex>();
-	vertex[0].tcoord = { 1.0f, 1.0f };
-	vertex[1].tcoord = { 1.0f, 0.0f };
-	vertex[2].tcoord = { 0.0f, 0.0f };
-	vertex[3].tcoord = { 0.0f, 1.0f };
-
-	unsigned int* index = indices->Get<unsigned int>();
-	index[0] = 0;
-	index[1] = 2;
-	index[2] = 1;
-	index[3] = 0;
-	index[4] = 3;
-	index[5] = 2;
-
-	mVisual = eastl::make_shared<Visual>(vertices, indices, effect);
+	mVisual->SetEffect(effect);
+	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 }
 
@@ -164,7 +146,7 @@ bool BillboardNode::PreRender(Scene *pScene)
 // BillboardNode::Render
 //
 bool BillboardNode::Render(Scene *pScene)
-{
+{/*
 	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
 
 	if (!cameraNode || !Renderer::Get())
@@ -214,12 +196,6 @@ bool BillboardNode::Render(Scene *pScene)
 	for (int i = 0; i<4; ++i)
 		vertex[i].normal = { direction[0], direction[1], direction[2] };
 
-	/* Vertices are:
-	2--1
-	|\ |
-	| \|
-	3--0
-	*/
 	Vector4<float> vertexPos = position + horizontal + vertical;
 	vertex[0].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
 	vertexPos = position + topHorizontal - vertical;
@@ -228,6 +204,13 @@ bool BillboardNode::Render(Scene *pScene)
 	vertex[2].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
 	vertexPos = position - horizontal + vertical;
 	vertex[3].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
+	/* Vertices are:
+	2--1
+	|\ |
+	| \|
+	3--0
+	*/
+
 
 	// draw
 	/*

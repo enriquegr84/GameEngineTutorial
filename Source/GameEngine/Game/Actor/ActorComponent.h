@@ -66,7 +66,7 @@ public:
     // These functions are meant to be overridden by the implementation classes of the components.
 	virtual bool Init(tinyxml2::XMLElement* pData) = 0;
 	virtual void PostInit(void) { }
-	virtual void Update(int deltaMs) { }
+	virtual void Update(float deltaMs) { }
 	virtual void OnChanged(void) { }				// [mrmike] - added post-press
 
     // for the editor

@@ -216,7 +216,7 @@ public:
 
 	Node(int id, WeakBaseRenderComponentPtr renderComponent, RenderPass renderPass, NodeType nodeType);
 
-	~Node();
+	virtual ~Node();
 
 	//! Returns type of the scene node
 	int GetId() const { return mId; }

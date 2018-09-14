@@ -14,14 +14,14 @@ cbuffer PVWMatrix
 
 struct VS_INPUT
 {
-    float4 modelPosition: POSITION;
-    float4 color : COLOR;
+    float3 modelPosition : POSITION;
+    float4 color : COLOR0;
 };
 
 struct VS_OUTPUT 
 {
     float4 position: SV_Position;
-    float4 color : COLOR;
+    float4 color : COLOR0;
 };
 
 
@@ -31,9 +31,9 @@ VS_OUTPUT VSMain(VS_INPUT input)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
 #if GE_USE_MAT_VEC
-	output.position = mul(pvwMatrix, input.modelPosition);
+	output.position = mul(pvwMatrix, float4(input.modelPosition, 1.0f));
 #else
-	output.position = mul(input.modelPosition, pvwMatrix);
+	output.position = mul(float4(input.modelPosition, 1.0f), pvwMatrix);
 #endif
     output.color = input.color;
     

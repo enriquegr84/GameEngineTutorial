@@ -41,7 +41,7 @@ public:
 		WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter);
 
 	//! destructor
-	~ParticleSystemNode();
+	virtual ~ParticleSystemNode();
 
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);

@@ -24,8 +24,7 @@ class GRAPHIC_ITEM VertexBuffer : public Buffer
 public:
     // This constructor is for standard usage where the vertex buffer is
     // used by the rasterizer to provide vertices to the vertex shader.
-    VertexBuffer(VertexFormat const& vformat, unsigned int numVertices,
-        bool createStorage = true);
+    VertexBuffer(VertexFormat const& vformat, uint32_t numVertices, bool createStorage = true);
 
     // This constructor is used for vertex-id-based drawing where the vertices
     // are read from a structured buffer resource in the vertex shader.  The
@@ -37,7 +36,7 @@ public:
     // This constructor is used for vertex-id-based drawing that does not
     // require vertices; for example, the shader itself can generate the
     // positions from the identifiers.
-    VertexBuffer(unsigned int numVertices);
+    VertexBuffer(uint32_t numVertices);
 
     // Member access.  The function StandardUsage() returns 'true' when the
     // first constructor is used or 'false' when the second constructor is
@@ -51,7 +50,7 @@ public:
     // required types (OR-ed bit flags).  If you do not care about the type,
     // pass DF_UNKNOWN for the required input.  If the request fails, a null
     // pointer is returned.
-    char* GetChannel(VASemantic semantic, unsigned int unit, 
+    char* GetChannel(VASemantic semantic, uint32_t unit,
 		eastl::set<DFType> const& requiredTypes);
 
 protected:

@@ -11,19 +11,83 @@
 
 #include "Graphic/Scene/Scene.h"
 
+#include "Application/GameApplication.h"
+
 //! constructor
 LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
-	WeakBaseRenderComponentPtr renderComponent, eastl::array<float, 4> color, float radius)
-	:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true), mLightData(true, true)
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Light>& light)
+	:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true)
 {
 	mPVWUpdater = updater;
-	mLightData.mLighting = eastl::make_shared<Lighting>();
-	mLightData.mLighting->mDiffuse = color;
-	// set some useful specular color
-	//mLightData.mLighting->mSpecular = 
-	//	color.GetInterpolated(eastl::array<float, 4>{1.0f, 1.0f, 1.0f, 1.0f}, 0.7f);
-	
-	SetRadius(radius);
+
+	// A point light illuminates the target.  Create a semitransparent
+	// material for the patch.
+	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
+	eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
+
+	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+	material->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
+	material->mDiffuse = { 1.0f, 0.85f, 0.75f, 0.5f };
+	material->mSpecular = { 0.8f, 0.8f, 0.8f, 1.0f };
+
+	// Create a parabolic rectangle patch that is illuminated by the light.
+	// To hide the artifacts of vertex normal lighting on a grid, the patch
+	// is slightly bent so that the intersection with a plane is nearly
+	// circular.  The patch is translated slightly below the plane of the
+	// ground to hide the corners and the jaggies.
+	struct Vertex
+	{
+		Vector3<float> position, normal;
+	};
+
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+
+	// Create a flat surface.
+	MeshFactory mf;
+	mf.SetVertexFormat(vformat);
+	mVisual = mf.CreateRectangle(64, 64, light->mLighting->mRadius, light->mLighting->mRadius);
+
+	// Adjust the heights to form a paraboloid.
+	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
+	unsigned int const numVertices = vbuffer->GetNumActiveElements();
+	Vertex* vertex = vbuffer->Get<Vertex>();
+	for (unsigned int i = 0; i < numVertices; ++i)
+	{
+		Vector3<float>& pos = vertex[i].position;
+		pos[2] = 1.0f - (pos[0] * pos[0] + pos[1] * pos[1]) / 128.0f;
+	}
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightEffectPerVertex.hlsl");
+	eastl::shared_ptr<PointLightEffect> effect = eastl::make_shared<PointLightEffect>(
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, 0, material, light->mLighting, geometry);
+	mVisual->SetEffect(effect);
+	mVisual->UpdateModelNormals();
+	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+
+	// Encapsulate the light in a light node.  Rotate the light node so the
+	// light points downward.
+	mLightVolume = eastl::make_shared<ViewVolumeNode>(INVALID_ACTOR_ID, light);
+	mLightVolume->SetOnUpdate([this](ViewVolumeNode*)
+	{
+		// The camera model position must be updated for the light targets to
+		// move.  The light model position is not updated because the point
+		// lights must move with their corresponding light targets.
+		eastl::shared_ptr<PointLightEffect> effect =
+			eastl::static_pointer_cast<PointLightEffect>(mVisual->GetEffect());
+		auto geometry = effect->GetGeometry();
+
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
+		geometry->cameraModelPosition = 
+			pScene->GetActiveCamera()->GetAbsoluteTransform().GetTranslationW1();
+		effect->UpdateGeometryConstant();
+	});
+
+	AttachChild(mLightVolume);
+
+	DoLightRecalc();
 }
 
 //! prerender
@@ -76,25 +140,11 @@ bool LightNode::Render(Scene *pScene)
 	return true;
 }
 
-
-//! sets the light data
-void LightNode::SetLightData(const Light& light)
+const eastl::shared_ptr<Lighting>& LightNode::GetLightData() const
 {
-	mLightData = light;
-}
-
-
-//! \return Returns the light data.
-const Light& LightNode::GetLightData() const
-{
-	return mLightData;
-}
-
-
-//! \return Returns the light data.
-Light& LightNode::GetLightData()
-{
-	return mLightData;
+	eastl::shared_ptr<PointLightEffect> effect =
+		eastl::static_pointer_cast<PointLightEffect>(mVisual->GetEffect());
+	return effect->GetLighting();
 }
 
 void LightNode::SetVisible(bool isVisible)
@@ -111,86 +161,29 @@ void LightNode::SetVisible(bool isVisible)
 	//Renderer::Get()->TurnLightOn((unsigned int)mDriverLightIndex, mLightIsOn);
 }
 
-//! Sets the light's radius of influence.
-/** Outside this radius the light won't lighten geometry and cast no
-shadows. Setting the radius will also influence the attenuation, setting
-it to (0,1/radius,0). If you want to override this behavior, set the
-attenuation after the radius.
-\param radius The new radius. */
-void LightNode::SetRadius(float radius)
-{
-	mLightData.mLighting->mRadius=radius;
-	mLightData.mLighting->mAttenuation = Vector4<float>{ 0.f, 1.f / radius, 0.f, 0.f };
-	DoLightRecalc();
-}
-
-
-//! Gets the light's radius of influence.
-/** \return The current radius. */
-float LightNode::GetRadius() const
-{
-	return mLightData.mLighting->mRadius;
-}
-
-
-//! Sets the light type.
-/** \param type The new type. */
-void LightNode::SetLightType(LightType type)
-{
-	mLightData.mLighting->mType=type;
-}
-
-
-//! Gets the light type.
-/** \return The current light type. */
-LightType LightNode::GetLightType() const
-{
-	return mLightData.mLighting->mType;
-}
-
-
-//! Sets whether this light casts shadows.
-/** Enabling this flag won't automatically cast shadows, the meshes
-will still need shadow scene nodes attached. But one can enable or
-disable distinct lights for shadow casting for performance reasons.
-\param shadow True if this light shall cast shadows. */
-void LightNode::EnableCastShadow(bool shadow)
-{
-	mLightData.mLighting->mCastShadows=shadow;
-}
-
-
-//! Check whether this light casts shadows.
-/** \return True if light would cast shadows, else false. */
-bool LightNode::GetCastShadow() const
-{
-	return mLightData.mLighting->mCastShadows;
-}
-
-
 void LightNode::DoLightRecalc()
 {
-	Matrix4x4<float> toWorld, fromWorld;
-	//Transform(&toWorld, &fromWorld);
+	eastl::shared_ptr<PointLightEffect> effect =
+		eastl::static_pointer_cast<PointLightEffect>(mVisual->GetEffect());
 
-	if ((mLightData.mLighting->mType == LT_SPOT) || 
-		(mLightData.mLighting->mType == LT_DIRECTIONAL))
+	if ((effect->GetLighting()->mType == LT_SPOT) ||
+		(effect->GetLighting()->mType == LT_DIRECTIONAL))
 	{
-		mLightData.mLighting->mDirection = Vector3<float>{ 0.f, 0.f, 1.f };
+		effect->GetLighting()->mDirection = Vector3<float>{ 0.f, 0.f, 1.f };
 		//toWorld.RotateVect(mLightData.mLighting->mDirection);
 		//mLightData.mLighting->mDirection.Normalize();
 	}
-	if ((mLightData.mLighting->mType == LT_SPOT) || 
-		(mLightData.mLighting->mType == LT_POINT))
+	if ((effect->GetLighting()->mType == LT_SPOT) ||
+		(effect->GetLighting()->mType == LT_POINT))
 	{
-		const float r = mLightData.mLighting->mRadius * mLightData.mLighting->mRadius * 0.5f;
+		const float r = effect->GetLighting()->mRadius * effect->GetLighting()->mRadius * 0.5f;
 		//mBBox.MaxEdge.set( r, r, r );
 		//mBBox.MinEdge.set( -r, -r, -r );
 		//Get()->SetAutomaticCulling( AC_BOX );
 		//Get()->SetAutomaticCulling( AC_OFF );
 		//mLightData.mLighting->mPosition = toWorld.GetTranslation();
 	}
-	if (mLightData.mLighting->mType == LT_DIRECTIONAL)
+	if (effect->GetLighting()->mType == LT_DIRECTIONAL)
 	{
 		//mBBox.Reset( 0, 0, 0 );
 		//Get()->SetAutomaticCulling( AC_OFF );

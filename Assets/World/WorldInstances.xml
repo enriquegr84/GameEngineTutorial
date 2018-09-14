@@ -6,21 +6,24 @@
     <StaticActors>
       <Actor resource="actors\grid.xml">
 		<TransformComponent>
-			<Position x="-10" y="-10" z="0"/>
+			<Position x="0" y="0" z="0"/>
 			<YawPitchRoll x="0" y="0" z="0"/>
 		</TransformComponent>
 		<GridRenderComponent>
 			<Extent x="5.0" y="5.0"/>
 			<Segment x="2" y="2" />
 		</GridRenderComponent>
+
 		<PhysicsComponent>
 			<RigidBodyTransform>
 				<Scale x="5" y="5" z="0.01" />  
 			</RigidBodyTransform>
-		</PhysicsComponent>		
+		</PhysicsComponent>	
+
 	  </Actor>
 	  
       <Actor resource="actors\light.xml" />
+	  <Actor resource="actors\afternoon_sky.xml" />
 <!--
         <Actor resource="actors\player_spawner.xml" />
         <Actor resource="actors\ai_spawner_0.xml" />
@@ -29,7 +32,6 @@
         <Actor resource="actors\ai_spawner_3.xml" />
 -->
 
-	  <Actor resource="actors\afternoon_sky.xml" />
       <Actor resource="actors\music.xml" />
 
 

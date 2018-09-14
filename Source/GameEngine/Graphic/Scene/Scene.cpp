@@ -456,10 +456,10 @@ eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
 //! turned on. (This is the default setting in most scene nodes).
 eastl::shared_ptr<Node> Scene::AddLightNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-	int id, eastl::array<float, 4> const color, float radius)
+	const eastl::shared_ptr<Light>& light, int id)
 {
 	eastl::shared_ptr<Node> node(
-		new LightNode(id, &mPVWUpdater, renderComponent, color, radius));
+		new LightNode(id, &mPVWUpdater, renderComponent, light));
 
 	if (!parent) 
 		AddSceneNode(id, node);

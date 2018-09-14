@@ -87,7 +87,7 @@ void Actor::Destroy(void)
     mComponents.clear();
 }
 
-void Actor::Update(int deltaMs)
+void Actor::Update(float deltaMs)
 {
 	ActorComponents::iterator it = mComponents.begin();
     for (; it != mComponents.end(); ++it)

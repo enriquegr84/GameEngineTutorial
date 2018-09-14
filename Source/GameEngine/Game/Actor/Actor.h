@@ -75,7 +75,7 @@ public:
     bool Init(tinyxml2::XMLElement* pData);
     void PostInit(void);
     void Destroy(void);
-    void Update(int deltaMs);
+    void Update(float deltaMs);
 
     // editor functions
 	//[mrmike] - we can delete this.

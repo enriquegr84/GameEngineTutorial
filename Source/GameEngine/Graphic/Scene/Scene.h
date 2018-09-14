@@ -336,8 +336,8 @@ public:
 	\return Pointer to the interface of the light if successful, otherwise NULL.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 	eastl::shared_ptr<Node> AddLightNode(
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id = -1,
-		eastl::array<float, 4> const color = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f}, float radius = 100.f);
+		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
+		const eastl::shared_ptr<Light>& light, int id = -1);
 
 	//! Creates a rotation animator, which rotates the attached scene node around itself.
 	/** \param rotationSpeed Specifies the speed of the animation in degree per 10 milliseconds.

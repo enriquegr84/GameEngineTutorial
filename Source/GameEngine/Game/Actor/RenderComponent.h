@@ -130,8 +130,6 @@ protected:
 //---------------------------------------------------------------------------------------------------------------------
 class LightRenderComponent : public BaseRenderComponent
 {
-	Light mLightData; 
-
 	float mAnimatorSpeed;
 	eastl::string mAnimatorType;
 	Vector3<float> mAnimatorCenter;
@@ -140,6 +138,8 @@ class LightRenderComponent : public BaseRenderComponent
 	eastl::string mBillboardMaterial;
 	eastl::string mBillboardTexture;
 	Vector2<float> mBillboardSize;
+
+	eastl::shared_ptr<Light> mLightData;
 
 public:
 	static const char *Name;

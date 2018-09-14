@@ -186,7 +186,7 @@ void GameDemoLogic::MoveActor(const ActorId id, Transform const &transform)
 
 	// FUTURE WORK - This would make a great basis for a Trigger actor that ran a LUA script when other
 	//               actors entered or left it!
-
+	/*
 	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(GetActor(id).lock());
 	if (pActor)
 	{
@@ -194,10 +194,11 @@ void GameDemoLogic::MoveActor(const ActorId id, Transform const &transform)
 			pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 		if (pTransformComponent)
 		{
-			eastl::shared_ptr<EventDataDestroyActor> pDestroyActorEvent(new EventDataDestroyActor(id));
+			eastl::shared_ptr<EventDataRequestDestroyActor> pDestroyActorEvent(new EventDataRequestDestroyActor(id));
 			BaseEventManager::Get()->QueueEvent(pDestroyActorEvent);
 		}
 	}
+	*/
 }
 
 void GameDemoLogic::RequestStartGameDelegate(BaseEventDataPtr pEventData)
@@ -342,7 +343,7 @@ void GameDemoLogic::RegisterAllDelegates(void)
 	BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &GameDemoLogic::RemoteClientDelegate), 
-		EventDataRemoteClient::skEventType);
+EventDataRemoteClient::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &GameDemoLogic::MoveActorDelegate), 
 		EventDataMoveActor::skEventType);

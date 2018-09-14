@@ -135,8 +135,7 @@ protected:
 	updateTime has been called last time, and time has the live time of the 
 	application.
 	*/
-	void UpdateTime();
-	void UpdateFrameCount();
+	unsigned int UpdateTime();
 	float GetLimitedDt();
 
 	// Event callbacks.
@@ -163,7 +162,7 @@ protected:
 	virtual void DestroyNetworkEventForwarder(void);
 
 	double mLastTime, mAccumulatedTime, mFrameRate;
-	int mFrameCount, mFramesPerSecond, mTimer, mMaxTimer;
+	int mFramesPerSecond, mTimer, mMaxTimer;
 
     // Window parameters (from the constructor).
     eastl::wstring mTitle;

@@ -177,7 +177,7 @@ void PhysicComponent::PostInit(void)
 	}
 }
 
-void PhysicComponent::Update(int deltaMs)
+void PhysicComponent::Update(float deltaMs)
 {
     // get the transform component
     eastl::shared_ptr<TransformComponent> pTransformComponent(

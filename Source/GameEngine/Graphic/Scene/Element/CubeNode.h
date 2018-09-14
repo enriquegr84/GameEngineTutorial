@@ -17,7 +17,7 @@ public:
 	CubeNode(const ActorId actorId, PVWUpdater* updater, 
 		WeakBaseRenderComponentPtr renderComponent, float size);
 
-	~CubeNode();
+	virtual ~CubeNode();
 
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);
@@ -55,7 +55,6 @@ public:
 	virtual int DetachChild(eastl::shared_ptr<Node> const& child);
 
 private:
-	void SetSize();
 
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;

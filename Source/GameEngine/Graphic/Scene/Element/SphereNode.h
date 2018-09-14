@@ -17,7 +17,7 @@ public:
 	SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
 		float radius, unsigned int polyCountX, unsigned int polyCountY);
 
-	~SphereNode();
+	virtual ~SphereNode();
 
 	//! Returns type of the scene node
 	virtual NodeType GetType() const { return NT_SPHERE; }

@@ -42,8 +42,8 @@ GameApplication::GameApplication(const char* windowTitle, int xPosition,
     int yPosition, int width, int height, const eastl::array<float, 4>& clearColor)
 :	mTitle(windowTitle), mXOrigin(xPosition), mYOrigin(yPosition), mWidth(width), 
 	mHeight(height), mClearColor(clearColor), mAllowResize(true), mWindowID(0), 
-	mLastTime(-1000.0), mAccumulatedTime(0.0), mFrameRate(0.0), mFrameCount(0), 
-	mFramesPerSecond(0), mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
+	mLastTime(-1000.0), mAccumulatedTime(0.0), mFrameRate(0.0), mFramesPerSecond(0), 
+	mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
 {
 	ProjectApplicationPath = Environment::GetAbsolutePath("") + '/';
 
@@ -85,25 +85,24 @@ void GameApplication::InitTime()
 	is known as game's frame rate. An iteration of the game loop counts as one frame,
 	and the frame rate is the number of frames executed in a second
 */
-void GameApplication::UpdateTime()
+unsigned int GameApplication::UpdateTime()
 {
 	const unsigned int currentTime = Timer::GetRealTime();
 	const unsigned int elapsedTime = currentTime - mTimer;
+	mTimer = currentTime;
 
-	if (elapsedTime >= 250 )
+	// note: max frame time to avoid spiral of death
+	if (elapsedTime > 250)
 	{
-		mFramesPerSecond = (int)( ( 1000 * mFrameCount ) / elapsedTime);
-		mTimer = currentTime;
-		mFrameCount = 0;
+		mFramesPerSecond = 1000 / 250;
+		return 250;
 	}
+	else if (elapsedTime > 0)
+		mFramesPerSecond = 1000 / elapsedTime;
 
-	++mFrameCount;
+	return elapsedTime;
 }
-//----------------------------------------------------------------------------
-void GameApplication::UpdateFrameCount()
-{
-    ++mFrameCount;
-}
+
 //----------------------------------------------------------------------------
 
 
@@ -143,7 +142,6 @@ float GameApplication::GetLimitedDt()
 		}
 		else break;
 	}
-	dt *= 0.001f;
 	return dt;
 }   // GetLimitedDt
 
@@ -428,8 +426,6 @@ void GameApplication::OnRun()
 		// performs the main loop
 		while (IsRunning())
 		{
-			UpdateTime();
-
 			/*
 			Handles the low level operations of the platform, process system events
 			such as keyboard and mouse input
@@ -439,8 +435,7 @@ void GameApplication::OnRun()
 
 			mSystem->OnRun();
 
-			const unsigned int currentTime = Timer::GetRealTime();
-			const unsigned int elapsedTime = currentTime - mTimer;
+			const unsigned int elapsedTime = UpdateTime();
 
 			// game logic execution
 			OnUpdateGame(elapsedTime);

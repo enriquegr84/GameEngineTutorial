@@ -29,18 +29,7 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
 	:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mSize(size), mShadow(0)
 {
 	mPVWUpdater = updater;
-	SetSize();
-}
 
-
-CubeNode::~CubeNode()
-{
-
-}
-
-
-void CubeNode::SetSize()
-{
 	struct Vertex
 	{
 		Vector3<float> position;
@@ -63,6 +52,11 @@ void CubeNode::SetSize()
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 }
 
+
+CubeNode::~CubeNode()
+{
+
+}
 
 //! prerender
 bool CubeNode::PreRender(Scene *pScene)

@@ -17,7 +17,7 @@ public:
 		const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod=true, float infinity=10000.0f );
 
 	//! destructor
-	~ShadowVolumeNode(){ }
+	virtual ~ShadowVolumeNode(){ }
 
 	//! Sets the mesh from which the shadow volume should be generated.
 	/** To optimize shadow rendering, use a simpler mesh for shadows.

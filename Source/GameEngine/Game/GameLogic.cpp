@@ -331,7 +331,6 @@ void GameLogic::ModifyActor(const ActorId actorId, tinyxml2::XMLElement* overrid
 
 void GameLogic::OnUpdate(float time, float elapsedTime)
 {
-	int deltaTime = int(elapsedTime * 1000.0f);
 	mLifetime += elapsedTime;
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
@@ -382,11 +381,11 @@ void GameLogic::OnUpdate(float time, float elapsedTime)
 			break;
 
 		case BGS_RUNNING:
-			mProcessManager->UpdateProcesses(deltaTime);
+			mProcessManager->UpdateProcesses((unsigned int)elapsedTime);
 
             if(mPhysics && !mIsProxy)
             {
-                mPhysics->OnUpdate(elapsedTime);
+                mPhysics->OnUpdate(elapsedTime / 1000.f);
                 mPhysics->SyncVisibleScene();
             }
 
@@ -399,7 +398,7 @@ void GameLogic::OnUpdate(float time, float elapsedTime)
     // update game actors
     for (ActorMap::const_iterator it = mActors.begin(); it != mActors.end(); ++it)
     {
-        it->second->Update(deltaTime);
+        it->second->Update(elapsedTime);
     }
 
 }

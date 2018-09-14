@@ -88,16 +88,16 @@ int Node::DetachChild(eastl::shared_ptr<Node> const& child)
     if (child)
     {
         int i = 0;
-        for (auto& current : mChildren)
-        {
-            if (current == child)
-            {
-                current->SetParent(nullptr);
-				current = nullptr;
-                return i;
-            }
-            ++i;
-        }
+		for (SceneNodeList::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+		{
+			if ((*it) == child)
+			{
+				(*it)->SetParent(nullptr);
+				mChildren.erase(it);
+				return i;
+			}
+			++i;
+		}
     }
     return -1;
 }
@@ -106,23 +106,22 @@ eastl::shared_ptr<Node> Node::DetachChildAt(int i)
 {
 	if (0 <= i && i < static_cast<int>(mChildren.size()))
 	{
-		eastl::shared_ptr<Node> child = mChildren[i];
-		if (child)
+		SceneNodeList::iterator itChild = mChildren.begin() + i;
+		if (itChild != mChildren.end())
 		{
-			child->SetParent(nullptr);
-			mChildren[i] = nullptr;
+			(*itChild)->SetParent(nullptr);
+			mChildren.erase(itChild);
 		}
-		return child;
+		return (*itChild);
 	}
 	return nullptr;
 }
 
 void Node::DetachAllChildren()
 {
-    for (auto& current : mChildren)
-    {
-        DetachChild(current);
-    }
+	for (SceneNodeList::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+		(*it)->SetParent(nullptr);
+	mChildren.clear();
 }
 
 eastl::shared_ptr<Node> Node::SetChild(int i, eastl::shared_ptr<Node> const& child)
@@ -202,11 +201,11 @@ int Node::DetachAnimator(eastl::shared_ptr<NodeAnimator> const& animator)
 	if (animator)
 	{
 		int i = 0;
-		for (auto& current : mAnimators)
+		for (SceneNodeAnimatorList::iterator it = mAnimators.begin(); it != mAnimators.end(); ++it)
 		{
-			if (current == animator)
+			if ((*it) == animator)
 			{
-				current = nullptr;
+				mAnimators.erase(it);
 				return i;
 			}
 			++i;
@@ -219,21 +218,17 @@ eastl::shared_ptr<NodeAnimator> Node::DetachAnimatorAt(int i)
 {
 	if (0 <= i && i < static_cast<int>(mAnimators.size()))
 	{
-		eastl::shared_ptr<NodeAnimator> animator = mAnimators[i];
-		if (animator)
-			mChildren[i] = nullptr;
-
-		return animator;
+		SceneNodeAnimatorList::iterator itAnimator = mAnimators.begin() + i;
+		if (itAnimator != mAnimators.end())
+			mAnimators.erase(itAnimator);
+		return (*itAnimator);
 	}
 	return nullptr;
 }
 
 void Node::DetachAllAnimators()
 {
-	for (auto& current : mAnimators)
-	{
-		DetachAnimator(current);
-	}
+	mAnimators.clear();
 }
 
 eastl::shared_ptr<NodeAnimator> Node::SetAnimator(int i, eastl::shared_ptr<NodeAnimator> const& animator)

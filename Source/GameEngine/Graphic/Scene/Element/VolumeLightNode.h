@@ -20,7 +20,7 @@ public:
 		const eastl::array<float, 4> foot = eastl::array<float, 4>{51.f, 0.f, 230.f, 180.f},
 		const eastl::array<float, 4> tail = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f});
 
-	~VolumeLightNode();
+	virtual ~VolumeLightNode();
 
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);

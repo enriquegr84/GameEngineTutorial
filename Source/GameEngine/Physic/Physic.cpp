@@ -232,12 +232,12 @@ class BulletPhysics : public BaseGamePhysic
 	
 	// these are all of the objects that Bullet uses to do its work.
 	//   see BulletPhysics::VInitialize() for some more info.
-	btDynamicsWorld*                 mDynamicsWorld;
-	btBroadphaseInterface*           mBroadphase;
-	btCollisionDispatcher*           mDispatcher;
-	btConstraintSolver*              mSolver;
-	btDefaultCollisionConfiguration* mCollisionConfiguration;
-	BulletDebugDrawer*               mDebugDrawer;
+	btDiscreteDynamicsWorld*			mDynamicsWorld;
+	btBroadphaseInterface*				mBroadphase;
+	btCollisionDispatcher*				mDispatcher;
+	btConstraintSolver*					mSolver;
+	btDefaultCollisionConfiguration*	mCollisionConfiguration;
+	BulletDebugDrawer*					mDebugDrawer;
 
     // tables read from the XML
     typedef eastl::map<eastl::string, float> DensityTable;
@@ -417,6 +417,7 @@ bool BulletPhysics::Initialize()
 	// This is the main Bullet interface point.  Pass in all these components to customize its behavior.
 	mDynamicsWorld = new btDiscreteDynamicsWorld( 
 		mDispatcher, mBroadphase, mSolver, mCollisionConfiguration );
+	mDynamicsWorld->setGravity(btVector3(0, 0, -1));
 
 	mDebugDrawer = new BulletDebugDrawer();
 	GameApplication* gameApp = (GameApplication*)Application::App;
@@ -447,7 +448,7 @@ void BulletPhysics::OnUpdate( float const deltaSeconds )
 	//   We pass in 4 as a max number of sub steps.  Bullet will run the simulation
 	//   in increments of the fixed timestep until "deltaSeconds" amount of time has
 	//   passed, but will only run a maximum of 4 steps this way.
-	mDynamicsWorld->stepSimulation( deltaSeconds, 4 );
+	mDynamicsWorld->stepSimulation(deltaSeconds, 4 );
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -456,7 +457,7 @@ void BulletPhysics::OnUpdate( float const deltaSeconds )
 void BulletPhysics::SyncVisibleScene()
 {
 	// Keep physics & graphics in sync
-	
+
 	// check all the existing actor's bodies for changes. 
 	//  If there is a change, send the appropriate event for the game system.
 	for (	ActorIDToBulletRigidBodyMap::const_iterator it = mActorIdToRigidBody.begin();
@@ -479,11 +480,18 @@ void BulletPhysics::SyncVisibleScene()
             if (pTransformComponent)
             {
 			    if (pTransformComponent->GetTransform().GetMatrix() != 
-					actorMotionState->mWorldToPositionTransform.GetMatrix())
+					actorMotionState->mWorldToPositionTransform.GetMatrix() ||
+					pTransformComponent->GetTransform().GetTranslation() !=
+					actorMotionState->mWorldToPositionTransform.GetTranslation())
                 {
                     //	Bullet has moved the actor's physics object.  Sync the transform and inform 
 					//	the game an actor has moved
 					pTransformComponent->SetTransform(actorMotionState->mWorldToPositionTransform);
+/*
+					LogInformation("x = " + eastl::to_string(actorMotionState->mWorldToPositionTransform.GetTranslation()[0]) +
+									" y = " + eastl::to_string(actorMotionState->mWorldToPositionTransform.GetTranslation()[1]) +
+									" z = " + eastl::to_string(actorMotionState->mWorldToPositionTransform.GetTranslation()[2]));
+*/
                     eastl::shared_ptr<EventDataMoveActor> pEvent(
 						new EventDataMoveActor(id, actorMotionState->mWorldToPositionTransform));
                     BaseEventManager::Get()->QueueEvent(pEvent);

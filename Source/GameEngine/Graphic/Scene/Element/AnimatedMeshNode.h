@@ -51,7 +51,7 @@ public:
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseAnimatedMesh>& aMesh);
 
 	//! Destructor
-	~AnimatedMeshNode() {}
+	virtual ~AnimatedMeshNode() {}
 
 	//! Sets the current frame number.
 	/** From now on the animation is played from this frame.

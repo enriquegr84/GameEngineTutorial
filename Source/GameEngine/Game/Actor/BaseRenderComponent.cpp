@@ -64,9 +64,8 @@ bool BaseRenderComponent::Init(tinyxml2::XMLElement* pData)
 
 void BaseRenderComponent::PostInit(void)
 {
-	eastl::shared_ptr<Node> pSceneNode(GetSceneNode());
 	eastl::shared_ptr<EventDataNewRenderComponent> pEvent(
-		new EventDataNewRenderComponent(mOwner->GetId(), pSceneNode));
+		new EventDataNewRenderComponent(mOwner->GetId(), GetSceneNode()));
     BaseEventManager::Get()->TriggerEvent(pEvent);
 }
 

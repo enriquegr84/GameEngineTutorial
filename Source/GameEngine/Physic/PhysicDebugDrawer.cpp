@@ -211,7 +211,7 @@ void BulletDebugDrawer::Render()
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 	eastl::shared_ptr<VertexBuffer> vbuffer =
 		eastl::make_shared<VertexBuffer>(vformat, mVertices.size()*2);
-
+	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 	eastl::shared_ptr<IndexBuffer> ibuffer =
 		eastl::make_shared<IndexBuffer>(IP_POLYSEGMENT_DISJOINT, mVertices.size());
 	eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);

@@ -235,6 +235,12 @@
     <Filter Include="Assets\Actors">
       <UniqueIdentifier>{70ad2638-c795-4c06-b5c5-23b86c1cbd29}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Config">
+      <UniqueIdentifier>{34787458-8ea3-42a7-905a-906392ec67ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\World">
+      <UniqueIdentifier>{21ad7b9a-aab3-4745-9602-4959288a839f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -2565,6 +2571,30 @@
     </Xml>
     <Xml Include="..\..\..\Assets\Actors\cloudy_sky.xml">
       <Filter>Assets\Actors</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Config\config.xml">
+      <Filter>Assets\Config</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Config\DebugOptions.xml">
+      <Filter>Assets\Config</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Config\EditorOptions.xml">
+      <Filter>Assets\Config</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Config\Logging.xml">
+      <Filter>Assets\Config</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Config\physics.xml">
+      <Filter>Assets\Config</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\Config\PlayerOptions.xml">
+      <Filter>Assets\Config</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\World\World.xml">
+      <Filter>Assets\World</Filter>
+    </Xml>
+    <Xml Include="..\..\..\Assets\World\WorldInstances.xml">
+      <Filter>Assets\World</Filter>
     </Xml>
   </ItemGroup>
 </Project>

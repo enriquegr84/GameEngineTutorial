@@ -10,9 +10,10 @@
 Material::Material()
     : mType(MT_SOLID), mFlag(MF_COLOR_MATERIAL),
     mEmissive({ 0.0f, 0.0f, 0.0f, 1.0f }),
-    mAmbient({ 0.0f, 0.0f, 0.0f, 1.0f }),
-    mDiffuse({ 0.0f, 0.0f, 0.0f, 1.0f }),
-    mSpecular({ 0.0f, 0.0f, 0.0f, 1.0f })
+    mAmbient({ 1.0f, 1.0f, 1.0f, 1.0f }),
+    mDiffuse({ 1.0f, 1.0f, 1.0f, 1.0f }),
+    mSpecular({ 1.0f, 1.0f, 1.0f, 1.0f }), 
+	mThickness(1.0f), mShininess(0.0f)
 {
 
 }

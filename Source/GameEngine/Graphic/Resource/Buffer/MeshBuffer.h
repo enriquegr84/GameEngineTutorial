@@ -36,9 +36,23 @@ class GRAPHIC_ITEM MeshBuffer : public Buffer
 {
 public:
 
-	MeshBuffer(unsigned int numVertices, unsigned int numIndices, 
-		uint32_t numPrimitives, size_t meshSize, bool createStorage = false);
+	MeshBuffer(VertexFormat const& vformat, uint32_t numVertices,
+		uint32_t numPrimitives, size_t indexSize);
 	~MeshBuffer();
+
+	//! Get vertices of this meshbuffer
+	/** \return Vertice of this buffer. */
+	const eastl::shared_ptr<VertexBuffer>& GetVertice() const
+	{
+		return mVertice;
+	}
+
+	//! Get indices of this meshbuffer
+	/** \return Indice of this buffer. */
+	const eastl::shared_ptr<IndexBuffer>& GetIndice() const
+	{
+		return mIndice;
+	}
 
 	//! Get the material of this meshbuffer
 	/** \return Material of this buffer. */
@@ -54,12 +68,88 @@ public:
 		return mMaterial;
 	}
 
+	inline Vector3<float>& Position(unsigned int i);
+	inline Vector3<float>& Normal(unsigned int i);
+	inline Vector3<float>& Tangent(unsigned int i);
+	inline Vector3<float>& Bitangent(unsigned int i);
+	inline Vector4<float>& Color(unsigned int unit, unsigned int i);
+	inline Vector2<float>& TCoord(unsigned int unit, unsigned int i);
+
+protected:
+	//! indices for this meshbuffer.
+	eastl::shared_ptr<IndexBuffer> mIndice;
+
+	//! vertices for this meshbuffer.
+	eastl::shared_ptr<VertexBuffer> mVertice;
 
 	//! Material for this meshbuffer.
 	eastl::shared_ptr<Material> mMaterial;
 
-	//! mesh of this meshbuffer.
-	eastl::shared_ptr<Mesh<float>> mMesh;
+	// Support for creating vertex and index buffers.
+	eastl::shared_ptr<VertexBuffer> CreateVBuffer(unsigned int numVertices);
+	eastl::shared_ptr<IndexBuffer> CreateIBuffer(unsigned int numTriangles, size_t indexSize);
+
+	// Support for vertex buffers.
+	char* GetGeometricChannel(eastl::shared_ptr<VertexBuffer> const& vbuffer,
+		VASemantic semantic, float w);
+
+	void SetPosition(unsigned int i, Vector3<float> const& pos);
+	void SetNormal(unsigned int i, Vector3<float> const& nor);
+	void SetTangent(unsigned int i, Vector3<float> const& tan);
+	void SetBinormal(unsigned int i, Vector3<float> const& bin);
+	void SetColor(unsigned int i, Vector4<float> const& cl);
+	void SetTCoord(unsigned int i, Vector2<float> const& tcd);
+
+	// Support for index buffers.
+	void ReverseTriangleOrder(IndexBuffer* ibuffer);
+
+	VertexFormat mVFormat;
+	bool mAssignTCoords[VA_MAX_TCOORD_UNITS];
+	bool mAssignColors[VA_MAX_COLOR_UNITS];
+
+	char* mPositions;
+	char* mNormals;
+	char* mTangents;
+	char* mBitangents;
+	char* mColors[VA_MAX_COLOR_UNITS];
+	char* mTCoords[VA_MAX_TCOORD_UNITS];
 };
+
+
+inline Vector3<float>& MeshBuffer::Position(unsigned int i)
+{
+	return *reinterpret_cast<Vector3<float>*>(
+		mPositions + i * mVFormat.GetVertexSize());
+}
+
+inline Vector3<float>& MeshBuffer::Normal(unsigned int i)
+{
+	return *reinterpret_cast<Vector3<float>*>(
+		mNormals + i * mVFormat.GetVertexSize());
+}
+
+inline Vector3<float>& MeshBuffer::Tangent(unsigned int i)
+{
+	return *reinterpret_cast<Vector3<float>*>(
+		mTangents + i * mVFormat.GetVertexSize());
+}
+
+inline Vector3<float>& MeshBuffer::Bitangent(unsigned int i)
+{
+	return *reinterpret_cast<Vector3<float>*>(
+		mBitangents + i * mVFormat.GetVertexSize());
+}
+
+inline Vector4<float>& MeshBuffer::Color(unsigned int unit, unsigned int i)
+{
+	return *reinterpret_cast<Vector4<float>*>(
+		mColors[unit] + i * mVFormat.GetVertexSize());
+}
+
+inline Vector2<float>& MeshBuffer::TCoord(unsigned int unit, unsigned int i)
+{
+	return *reinterpret_cast<Vector2<float>*>(
+		mTCoords[unit] + i * mVFormat.GetVertexSize());
+}
 
 #endif

@@ -31,125 +31,6 @@ MeshFactory::MeshFactory()
     }
 }
 
-eastl::shared_ptr<Visual> MeshFactory::CreateMesh(const Mesh<float>* mesh)
-{
-	if (!mesh->GetDescription().mConstructed)
-	{
-		// The logger system will report these errors in the Mesh constructor.
-		return nullptr;
-	}
-
-	if (!mesh->GetDescription().mIndexAttribute.mSource)
-	{
-		LogError("The mesh needs triangles/indices.");
-		return nullptr;
-	}
-
-	//we need to set the vertexformat
-	mVFormat = VertexFormat();
-	for (auto const& attribute : mesh->GetDescription().mVertexAttributes)
-	{
-		if (attribute.mSource != nullptr && attribute.mStride > 0)
-		{
-			if (attribute.mSemantic == "position")
-			{
-				mVFormat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-				continue;
-			}
-
-			if (attribute.mSemantic == "normal")
-			{
-				mVFormat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
-				continue;
-			}
-
-			if (attribute.mSemantic == "tangent")
-			{
-				mVFormat.Bind(VA_TANGENT, DF_R32G32B32_FLOAT, 0);
-				continue;
-			}
-
-			if (attribute.mSemantic == "bitangent")
-			{
-				mVFormat.Bind(VA_BINORMAL, DF_R32G32B32_FLOAT, 0);
-				continue;
-			}
-
-			if (attribute.mSemantic == "tcoord")
-			{
-				mVFormat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
-				continue;
-			}
-		}
-	}
-
-	// Determine the number of vertices and triangles.
-	auto vbuffer = CreateVBuffer(mesh->GetDescription().mNumVertices);
-	if (!vbuffer)
-	{
-		return nullptr;
-	}
-
-	auto ibuffer = CreateIBuffer(mesh->GetDescription().mNumTriangles);
-	if (!vbuffer)
-	{
-		return nullptr;
-	}
-
-	// Set sources for the requested vertex attributes.
-	unsigned int unit = 0;
-	for (auto const& attribute : mesh->GetDescription().mVertexAttributes)
-	{
-		if (attribute.mSource != nullptr && attribute.mStride > 0)
-		{
-			if (attribute.mSemantic == "position")
-			{
-				mPositions = reinterpret_cast<char*>(attribute.mSource);
-				continue;
-			}
-
-			if (attribute.mSemantic == "normal")
-			{
-				mNormals = reinterpret_cast<char*>(attribute.mSource);
-				continue;
-			}
-
-			if (attribute.mSemantic == "tangent")
-			{
-				mTangents = reinterpret_cast<char*>(attribute.mSource);
-				continue;
-			}
-
-			if (attribute.mSemantic == "bitangent")
-			{
-				mBitangents = reinterpret_cast<char*>(attribute.mSource);
-				continue;
-			}
-
-			if (attribute.mSemantic == "tcoord")
-			{
-				mTCoords[unit] = reinterpret_cast<char*>(attribute.mSource);
-				unit++;
-				continue;
-			}
-		}
-	}
-
-	if (!mPositions)
-	{
-		LogError("The mesh needs positions.");
-		return nullptr;
-	}
-
-	auto visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
-	if (visual)
-	{
-		visual->UpdateModelBound();
-	}
-	return visual;
-}
-
-
 eastl::shared_ptr<Visual> MeshFactory::CreateRectangle(unsigned int numXSamples,
 	unsigned int numYSamples, float xExtent, float yExtent)
 {
@@ -163,7 +44,7 @@ eastl::shared_ptr<Visual> MeshFactory::CreateRectangle(unsigned int numXSamples,
 	}
 
 	auto ibuffer = CreateIBuffer(desc.mNumTriangles);
-	if (!vbuffer)
+	if (!ibuffer)
 	{
 		return nullptr;
 	}

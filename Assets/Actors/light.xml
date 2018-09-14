@@ -6,10 +6,12 @@
 	</TransformComponent>
 
 	<LightRenderComponent>
-		<Color r="0.5" g="1.0" b="0.5" a="1.0"/>
 		<Light>
+			<Ambient r="1.0" g="1.0" b="0.5" a="1.0"/>
+			<Diffuse r="1.0" g="1.0" b="0.5" a="1.0"/>
+			<Specular r="1.0" g="1.0" b="0.5" a="1.0"/>
 			<Attenuation const="0.1" linear="0.0" exp="0.0" />
-			<Shape range="100.0" falloff="1.0" theta="0.0" phi="0.0"/>
+			<Shape type="0" range="100.0" falloff="1.0" outercone="0.0" innercone="0.0"/>
 		</Light>
 	</LightRenderComponent>
 

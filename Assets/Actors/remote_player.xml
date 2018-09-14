@@ -1,16 +1,17 @@
 <Actor type="Player" resource="actors\remote_player.xml">
 
 	<TransformComponent>
-		<Position x="-5" y="-5" z="0.1"/>
+		<Position x="-1" y="-1" z="2"/>
 		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
-		
+
 	<PhysicsComponent>
 		<Shape>Box</Shape>
 		<Density>glass</Density>
 		<PhysicsMaterial>Normal</PhysicsMaterial>
+		
 		<RigidBodyTransform>
-			<Scale x="1" y="0.01" z="1" />  
+			<Scale x="0.1" y="0.1" z="0.1" />  
 		</RigidBodyTransform>
 	</PhysicsComponent>
 
