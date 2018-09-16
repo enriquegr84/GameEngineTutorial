@@ -15,7 +15,6 @@ struct AnimatedMesh : public BaseAnimatedMesh
 		BaseAnimatedMesh(), mFramesPerSecond(25.f), mType(type)
 	{
 		AddMesh(mesh);
-		RecalculateBoundingBox();
 	}
 
 	//! destructor
@@ -69,35 +68,6 @@ struct AnimatedMesh : public BaseAnimatedMesh
 			mMeshes.push_back(mesh);
 	}
 
-	//! Returns an axis aligned bounding box of the mesh.
-	/** \return A bounding box of this mesh is returned. */
-	virtual const AlignedBox3<float>& GetBoundingBox() const
-	{
-		return mBox;
-	}
-
-	//! set user axis aligned bounding box
-	virtual void SetBoundingBox(const AlignedBox3<float>& box)
-	{
-		mBox = box;
-	}
-
-	//! Recalculates the bounding box.
-	void RecalculateBoundingBox()
-	{
-		/*
-		mBox.Reset(0,0,0);
-
-		if (mMeshes.empty())
-			return;
-
-		mBox = mMeshes[0]->GetBoundingBox();
-
-		for (unsigned int i=1; i<mMeshes.size(); ++i)
-			mBox.AddInternalBox(mMeshes[i]->GetBoundingBox());
-		*/
-	}
-
 	//! Returns the type of the animated mesh.
 	virtual AnimatedMeshType GetMeshType() const
 	{
@@ -110,7 +80,7 @@ struct AnimatedMesh : public BaseAnimatedMesh
 		if (mMeshes.empty())
 			return 0;
 
-		return mMeshes[0]->GetMeshBufferCount();
+		return mMeshes.size();
 	}
 
 	//! returns pointer to a mesh buffer
@@ -119,7 +89,10 @@ struct AnimatedMesh : public BaseAnimatedMesh
 		if (mMeshes.empty())
 			return nullptr;
 
-		return mMeshes[0]->GetMeshBuffer(nr);
+		if (nr < 0 || nr >= mMeshes.size())
+			return nullptr;
+
+		return mMeshes[nr]->GetMeshBuffer(0);
 	}
 
 	//! Returns pointer to a mesh buffer which fits a material
@@ -128,17 +101,17 @@ struct AnimatedMesh : public BaseAnimatedMesh
 	NULL if there is no such mesh buffer. */
 	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer( const Material &material) const
 	{
-		if (mMeshes.empty())
-			return nullptr;
+		for (auto mesh : mMeshes)
+		{
+			if (mesh->GetMeshBuffer(material) != nullptr)
+				return mesh->GetMeshBuffer(material);
+		}
 
-		return mMeshes[0]->GetMeshBuffer(material);
+		return nullptr;
 	}
 
 	//! All meshes defining the animated mesh
 	eastl::vector<eastl::shared_ptr<BaseMesh>> mMeshes;
-
-	//! The bounding box of this mesh
-	AlignedBox3<float> mBox;
 
 	//! Default animation speed of this mesh.
 	float mFramesPerSecond;

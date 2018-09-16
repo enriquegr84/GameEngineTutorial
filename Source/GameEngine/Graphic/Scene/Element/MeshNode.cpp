@@ -56,9 +56,10 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 				geometry, eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
 				SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 
-			eastl::shared_ptr<Visual> visual = mf.CreateMesh(meshBuffer->mMesh.get());
-			visual->SetEffect(effect);
+			eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
+				meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
 			visual->UpdateModelNormals();
+			visual->UpdateModelBound();
 			mVisuals.push_back(visual);
 			mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 		}
@@ -81,12 +82,9 @@ bool MeshNode::PreRender(Scene *pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		for (auto const& visual : mVisuals)
+		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		{
-			eastl::shared_ptr<PointLightTextureEffect> effect =
-				eastl::static_pointer_cast<PointLightTextureEffect>(visual->GetEffect());
-
-			if (effect->GetMaterial()->IsTransparent())
+			if (GetMaterial(i)->IsTransparent())
 				++transparentCount;
 			else
 				++solidCount;
@@ -248,29 +246,6 @@ int MeshNode::DetachChild(eastl::shared_ptr<Node> const& child)
 }
 
 
-//! returns the material based on the zero based index i. To get the amount
-//! of materials used by this scene node, use GetMaterialCount().
-//! This function is needed for inserting the node into the scene hierarchy on a
-//! optimal position for minimizing renderstate changes, but can also be used
-//! to directly modify the material of a scene node.
-eastl::shared_ptr<Material> const& MeshNode::GetMaterial(unsigned int i)
-{
-	if (i >= mVisuals.size())
-		return nullptr;
-
-	eastl::shared_ptr<PointLightTextureEffect> effect =
-		eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
-	return effect->GetMaterial();
-}
-
-
-//! returns amount of materials used by this scene node.
-unsigned int MeshNode::GetMaterialCount() const
-{
-	return mVisuals.size();
-}
-
-
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
 eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId actorId,
@@ -286,6 +261,55 @@ eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId 
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;
+}
+
+//! returns the material based on the zero based index i. To get the amount
+//! of materials used by this scene node, use GetMaterialCount().
+//! This function is needed for inserting the node into the scene hirachy on a
+//! optimal position for minimizing renderstate changes, but can also be used
+//! to directly modify the material of a scene node.
+eastl::shared_ptr<Material> const& AnimatedMeshNode::GetMaterial(unsigned int i)
+{
+	if (i >= mMesh->GetMeshBufferCount())
+		return nullptr;
+
+	return mMesh->GetMeshBuffer(i)->GetMaterial();
+}
+
+//! returns amount of materials used by this scene node.
+unsigned int AnimatedMeshNode::GetMaterialCount() const
+{
+	return mMesh->GetMeshBufferCount();
+}
+
+//! Sets all material flags at once to a new value.
+/** Useful, for example, if you want the whole mesh to be affected by light.
+\param flag Which flag of all materials to be set.
+\param newvalue New value of that flag. */
+void AnimatedMeshNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetFlag(flag, newvalue);
+}
+
+//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
+/** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
+\param texture New texture to be used. */
+void AnimatedMeshNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+{
+	if (textureLayer >= MATERIAL_MAX_TEXTURES)
+		return;
+
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetTexture(textureLayer, texture);
+}
+
+//! Sets the material type of all materials in this scene node to a new material type.
+/** \param newType New type of material to be set. */
+void AnimatedMeshNode::SetMaterialType(MaterialType newType)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i)->mType = newType;
 }
 
 //! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.

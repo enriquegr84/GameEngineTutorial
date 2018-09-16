@@ -80,13 +80,6 @@ public:
 	mesh buffer. */
 	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(const Material &material) const = 0;
 
-	//! Get an axis aligned bounding box of the mesh.
-	/** \return Bounding box of this mesh. */
-	virtual const AlignedBox3<float>& GetBoundingBox() const = 0;
-
-	//! Set user-defined axis aligned bounding box
-	/** \param box New bounding box to use for the mesh. */
-	virtual void SetBoundingBox(const AlignedBox3<float>& box) = 0;
 };
 
 //! Interface for an animated mesh.

@@ -23,8 +23,8 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* update
 	mMaxParticles(0xffff), mParticlesAreGlobal(true)
 {
 	mPVWUpdater = updater;
-	eastl::shared_ptr<MeshBuffer> buffer = eastl::make_shared<MeshBuffer>(1,1,1,1);
-	if (buffer)
+	mMeshBuffer = eastl::make_shared<MeshBuffer>();
+	if (mMeshBuffer)
 	{
 		// Create the visual effect.  The world up-direction is (0,0,1).  Choose
 		// the light to point down.
@@ -36,14 +36,13 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* update
 
 		eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 		eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-			ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, buffer->GetMaterial(), lighting,
+			ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMeshBuffer->GetMaterial(), lighting,
 			geometry, eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
 			SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 
-		MeshFactory mf;
-		mVisual = mf.CreateMesh(buffer->mMesh.get());
-		mVisual->SetEffect(effect);
+		mVisual = eastl::make_shared<Visual>(mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), effect);
 		mVisual->UpdateModelNormals();
+		mVisual->UpdateModelBound();
 		mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 	}
 
@@ -107,6 +106,9 @@ bool ParticleSystemNode::Render(Scene *pScene)
 
 	const Matrix4x4<float> &m = cameraNode->Get()->GetViewMatrix();
 	const Vector3<float> view{ -m[2], -m[6] , -m[10] };
+
+	// reallocate arrays, if they are too small
+	ReallocateBuffers();
 
 	// create particle vertex data
 	int idx = 0;
@@ -273,6 +275,38 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 	*/
 }
 
+void ParticleSystemNode::ReallocateBuffers()
+{
+	if (mParticles.size() * 4 > mMeshBuffer->GetVertice()->GetNumElements() ||
+		mParticles.size() * 6 > mMeshBuffer->GetIndice()->GetNumElements())
+	{
+		unsigned int oldSize = mMeshBuffer->GetVertice()->GetNumElements();
+		unsigned int oldIdxSize = mMeshBuffer->GetIndice()->GetNumElements();
+		unsigned int oldvertices = oldSize;
+		mMeshBuffer.reset(new MeshBuffer(
+			VertexFormat(), mParticles.size() * 4, mParticles.size(), sizeof(unsigned int)));
+
+		// fill remaining vertices
+		for (unsigned int i = oldSize; i<mMeshBuffer->GetVertice()->GetNumElements(); i += 4)
+		{
+			mMeshBuffer->TCoord(0, 0 + i) = Vector2<float>{ 0.0f, 0.0f };
+			mMeshBuffer->TCoord(0, 1 + i) = Vector2<float>{ 0.0f, 1.0f };
+			mMeshBuffer->TCoord(0, 2 + i) = Vector2<float>{ 1.0f, 1.0f };
+			mMeshBuffer->TCoord(0, 3 + i) = Vector2<float>{ 1.0f, 0.0f };
+		}
+
+		// fill remaining indices
+		for (unsigned int i = oldIdxSize; i<mMeshBuffer->GetIndice()->GetNumElements(); i += 6)
+		{
+			mMeshBuffer->GetIndice()->SetTriangle(i, 
+				(unsigned int)0 + oldvertices, (unsigned int)2 + oldvertices, (unsigned int)1 + oldvertices);
+			mMeshBuffer->GetIndice()->SetTriangle(i + 3,
+				(unsigned int)0 + oldvertices, (unsigned int)3 + oldvertices, (unsigned int)2 + oldvertices);
+			oldvertices += 4;
+		}
+	}
+}
+
 //! Sets if the particles should be global. If it is, the particles are affected by
 //! the movement of the particle system scene node too, otherwise they completely
 //! ignore it. Default is true.
@@ -321,22 +355,51 @@ void ParticleSystemNode::RemoveAllAffectors()
 		it = mAffectorList.erase(it);
 }
 
-
-//! Returns the material based on the zero based index i.
+//! returns the material based on the zero based index i. To get the amount
+//! of materials used by this scene node, use GetMaterialCount().
+//! This function is needed for inserting the node into the scene hirachy on a
+//! optimal position for minimizing renderstate changes, but can also be used
+//! to directly modify the material of a scene node.
 eastl::shared_ptr<Material> const& ParticleSystemNode::GetMaterial(unsigned int i)
 {
-	eastl::shared_ptr<PointLightTextureEffect> effect =
-		eastl::static_pointer_cast<PointLightTextureEffect>(mVisual->GetEffect());
-	return effect->GetMaterial();
+	return mMeshBuffer->GetMaterial();
 }
 
-
-//! Returns amount of materials used by this scene node.
+//! returns amount of materials used by this scene node.
 unsigned int ParticleSystemNode::GetMaterialCount() const
 {
 	return 1;
 }
 
+//! Sets all material flags at once to a new value.
+/** Useful, for example, if you want the whole mesh to be affected by light.
+\param flag Which flag of all materials to be set.
+\param newvalue New value of that flag. */
+void ParticleSystemNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetFlag(flag, newvalue);
+}
+
+//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
+/** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
+\param texture New texture to be used. */
+void ParticleSystemNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+{
+	if (textureLayer >= MATERIAL_MAX_TEXTURES)
+		return;
+
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetTexture(textureLayer, texture);
+}
+
+//! Sets the material type of all materials in this scene node to a new material type.
+/** \param newType New type of material to be set. */
+void ParticleSystemNode::SetMaterialType(MaterialType newType)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i)->mType = newType;
+}
 
 //! Creates a particle emitter for an animated mesh scene node
 ParticleAnimatedMeshNodeEmitter* ParticleSystemNode::CreateAnimatedMeshNodeEmitter(const ActorId actorId,

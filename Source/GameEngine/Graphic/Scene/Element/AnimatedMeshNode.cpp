@@ -35,7 +35,6 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 	const eastl::shared_ptr<BaseMesh>& baseMesh = mMesh->GetMesh(0, 0);
 	if (baseMesh)
 	{
-		MeshFactory mf;
 
 		mVisuals.clear();
 		for (unsigned int i = 0; i<baseMesh->GetMeshBufferCount(); ++i)
@@ -57,9 +56,10 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 					geometry, eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true),
 					SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 
-				eastl::shared_ptr<Visual> visual = mf.CreateMesh(meshBuffer->mMesh.get());
-				visual->SetEffect(effect);
+				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
+					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
 				visual->UpdateModelNormals();
+				visual->UpdateModelBound();
 				mVisuals.push_back(visual);
 				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 			}
@@ -165,10 +165,6 @@ bool AnimatedMeshNode::OnAnimate(Scene* pScene, unsigned int time)
 	if (mMesh)
 	{
 		BaseMesh * mesh = GetMeshForCurrentFrame().get();
-		/*
-		if (mesh)
-			mBBox = mesh->GetBoundingBox();
-		*/
 	}
 	mLastTime = time;
 
@@ -189,12 +185,9 @@ bool AnimatedMeshNode::PreRender(Scene* pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
-		for (auto const& visual : mVisuals)
+		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		{
-			eastl::shared_ptr<PointLightTextureEffect> effect =
-				eastl::static_pointer_cast<PointLightTextureEffect>(visual->GetEffect());
-
-			if (effect->GetMaterial()->IsTransparent())
+			if (GetMaterial(i)->IsTransparent())
 				++transparentCount;
 			else
 				++solidCount;
@@ -225,11 +218,7 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 	++mPassCount;
 
 	const eastl::shared_ptr<BaseMesh>& mesh = GetMeshForCurrentFrame();
-	if(mesh)
-	{
-		//mBBox = mesh->GetBoundingBox();
-	}
-	else
+	if(!mesh)
 	{
 		#ifdef _DEBUG
 			LogWarning("Animated Mesh returned no mesh to render.");
@@ -411,31 +400,6 @@ float AnimatedMeshNode::GetAnimationSpeed() const
 	return mFramesPerSecond * 1000.f;
 }
 
-
-//! returns the material based on the zero based index i. To get the amount
-//! of materials used by this scene node, use GetMaterialCount().
-//! This function is needed for inserting the node into the scene hirachy on a
-//! optimal position for minimizing renderstate changes, but can also be used
-//! to directly modify the material of a scene node.
-eastl::shared_ptr<Material> const& AnimatedMeshNode::GetMaterial(unsigned int i)
-{
-	if (i >= mVisuals.size())
-		return nullptr;
-
-	eastl::shared_ptr<PointLightTextureEffect> effect =
-		eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
-	return effect->GetMaterial();
-}
-
-
-
-//! returns amount of materials used by this scene node.
-unsigned int AnimatedMeshNode::GetMaterialCount() const
-{
-	return mVisuals.size();
-}
-
-
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
 eastl::shared_ptr<ShadowVolumeNode> AnimatedMeshNode::AddShadowVolumeNode(const ActorId actorId,
@@ -453,7 +417,6 @@ eastl::shared_ptr<ShadowVolumeNode> AnimatedMeshNode::AddShadowVolumeNode(const 
 	return mShadow;
 }
 
-
 //! Removes a child from this scene node.
 //! Implemented here, to be able to remove the shadow properly, if there is one,
 //! or to remove attached childs.
@@ -468,7 +431,6 @@ int AnimatedMeshNode::DetachChild(eastl::shared_ptr<Node> const& child)
 	return false;
 }
 
-
 //! Sets looping mode which is on by default. If set to false,
 //! animations will not be looped.
 void AnimatedMeshNode::SetLoopMode(bool playAnimationLooped)
@@ -482,7 +444,6 @@ bool AnimatedMeshNode::GetLoopMode() const
 	return mLooping;
 }
 
-
 //! Sets a callback interface which will be called if an animation
 //! playback has ended. Set this to 0 to disable the callback again.
 void AnimatedMeshNode::SetAnimationEndCallback(AnimationEndCallBack* callback)
@@ -493,13 +454,60 @@ void AnimatedMeshNode::SetAnimationEndCallback(AnimationEndCallBack* callback)
 	mLoopCallBack.reset(callback);
 }
 
+//! returns the material based on the zero based index i. To get the amount
+//! of materials used by this scene node, use GetMaterialCount().
+//! This function is needed for inserting the node into the scene hirachy on a
+//! optimal position for minimizing renderstate changes, but can also be used
+//! to directly modify the material of a scene node.
+eastl::shared_ptr<Material> const& AnimatedMeshNode::GetMaterial(unsigned int i)
+{
+	if (i >= mMesh->GetMeshBufferCount())
+		return nullptr;
+
+	return mMesh->GetMeshBuffer(i)->GetMaterial();
+}
+
+//! returns amount of materials used by this scene node.
+unsigned int AnimatedMeshNode::GetMaterialCount() const
+{
+	return mMesh->GetMeshBufferCount();
+}
+
+//! Sets all material flags at once to a new value.
+/** Useful, for example, if you want the whole mesh to be affected by light.
+\param flag Which flag of all materials to be set.
+\param newvalue New value of that flag. */
+void AnimatedMeshNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetFlag(flag, newvalue);
+}
+
+//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
+/** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
+\param texture New texture to be used. */
+void AnimatedMeshNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+{
+	if (textureLayer >= MATERIAL_MAX_TEXTURES)
+		return;
+
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetTexture(textureLayer, texture);
+}
+
+//! Sets the material type of all materials in this scene node to a new material type.
+/** \param newType New type of material to be set. */
+void AnimatedMeshNode::SetMaterialType(MaterialType newType)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i)->mType = newType;
+}
 
 //! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
 void AnimatedMeshNode::SetReadOnlyMaterials(bool readonly)
 {
 	mReadOnlyMaterials = readonly;
 }
-
 
 //! Returns if the scene node should not copy the materials of the mesh but use them in a read only style
 bool AnimatedMeshNode::IsReadOnlyMaterials() const

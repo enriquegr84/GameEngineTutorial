@@ -86,16 +86,6 @@ public:
 	//! OnAnimate() is called just before rendering the whole scene.
 	virtual bool OnAnimate(Scene* pScene, unsigned int timeMs);
 
-	//! returns the material based on the zero based index i. To get the amount
-	//! of materials used by this scene node, use GetMaterialCount().
-	//! This function is needed for inserting the node into the scene hirachy on a
-	//! optimal position for minimizing renderstate changes, but can also be used
-	//! to directly modify the material of a scene node.
-	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
-
-	//! returns amount of materials used by this scene node.
-	virtual unsigned int GetMaterialCount() const;
-
 	//! Creates shadow volume scene node as child of this node.
 	/** The shadow can be rendered using the ZPass or the zfail
 	method. ZPass is a little bit faster because the shadow volume
@@ -141,14 +131,6 @@ public:
 	mode, see AnimatedMeshNode::SetLoopMode(). */
 	void SetAnimationEndCallback(AnimationEndCallBack* callback=0);
 
-	//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
-	/** In this way it is possible to change the materials a mesh
-	causing all mesh scene nodes referencing this mesh to change too. */
-	void SetReadOnlyMaterials(bool readonly);
-
-	//! Returns if the scene node should not copy the materials of the mesh but use them in a read only style
-	bool IsReadOnlyMaterials() const;
-
 	//! Sets a new mesh
 	void SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh);
 
@@ -157,6 +139,41 @@ public:
 
 	//! render mesh ignoring its transformation.
 	void SetRenderFromIdentity( bool On );
+
+	//! returns the material based on the zero based index i. To get the amount
+	//! of materials used by this scene node, use GetMaterialCount().
+	//! This function is needed for inserting the node into the scene hirachy on a
+	//! optimal position for minimizing renderstate changes, but can also be used
+	//! to directly modify the material of a scene node.
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
+
+	//! returns amount of materials used by this scene node.
+	virtual unsigned int GetMaterialCount() const;
+
+	//! Sets all material flags at once to a new value.
+	/** Useful, for example, if you want the whole mesh to be
+	affected by light.
+	\param flag Which flag of all materials to be set.
+	\param newvalue New value of that flag. */
+	virtual void SetMaterialFlag(MaterialFlag flag, bool newvalue);
+
+	//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
+	/** \param textureLayer Layer of texture to be set. Must be a
+	value smaller than MATERIAL_MAX_TEXTURES.
+	\param texture New texture to be used. */
+	virtual void SetMaterialTexture(unsigned int textureLayer, Texture2* texture);
+
+	//! Sets the material type of all materials in this scene node to a new material type.
+	/** \param newType New type of material to be set. */
+	virtual void SetMaterialType(MaterialType newType);
+
+	//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
+	/** In this way it is possible to change the materials a mesh
+	causing all mesh scene nodes referencing this mesh to change too. */
+	void SetReadOnlyMaterials(bool readonly);
+
+	//! Returns if the scene node should not copy the materials of the mesh but use them in a read only style
+	bool IsReadOnlyMaterials() const;
 
 private:
 

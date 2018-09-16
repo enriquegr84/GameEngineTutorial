@@ -36,8 +36,10 @@ class GRAPHIC_ITEM MeshBuffer : public Buffer
 {
 public:
 
+	MeshBuffer();
 	MeshBuffer(VertexFormat const& vformat, uint32_t numVertices,
 		uint32_t numPrimitives, size_t indexSize);
+
 	~MeshBuffer();
 
 	//! Get vertices of this meshbuffer

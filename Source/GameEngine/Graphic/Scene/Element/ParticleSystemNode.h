@@ -62,12 +62,6 @@ public:
 	//! Removes all particle affectors in the particle system.
 	void RemoveAllAffectors();
 
-	//! Returns the material based on the zero based index i.
-	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
-
-	//! Returns amount of materials used by this scene node.
-	virtual unsigned int GetMaterialCount() const;
-
 	//! Sets if the particles should be global. If they are, the particles are affected by
 	//! the movement of the particle system scene node too, otherwise they completely
 	//! ignore it. Default is true.
@@ -83,6 +77,33 @@ public:
 
 	//! Returns type of the scene node
 	virtual NodeType GetType() const { return NT_PARTICLE_SYSTEM; }
+
+	//! returns the material based on the zero based index i. To get the amount
+	//! of materials used by this scene node, use GetMaterialCount().
+	//! This function is needed for inserting the node into the scene hirachy on a
+	//! optimal position for minimizing renderstate changes, but can also be used
+	//! to directly modify the material of a scene node.
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
+
+	//! returns amount of materials used by this scene node.
+	virtual unsigned int GetMaterialCount() const;
+
+	//! Sets all material flags at once to a new value.
+	/** Useful, for example, if you want the whole mesh to be
+	affected by light.
+	\param flag Which flag of all materials to be set.
+	\param newvalue New value of that flag. */
+	virtual void SetMaterialFlag(MaterialFlag flag, bool newvalue);
+
+	//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
+	/** \param textureLayer Layer of texture to be set. Must be a
+	value smaller than MATERIAL_MAX_TEXTURES.
+	\param texture New texture to be used. */
+	virtual void SetMaterialTexture(unsigned int textureLayer, Texture2* texture);
+
+	//! Sets the material type of all materials in this scene node to a new material type.
+	/** \param newType New type of material to be set. */
+	virtual void SetMaterialType(MaterialType newType);
 
 	//! Creates a particle emitter for an animated mesh scene node
 	ParticleAnimatedMeshNodeEmitter* CreateAnimatedMeshNodeEmitter(
@@ -190,7 +211,10 @@ public:
 
 private:
 
+	void ReallocateBuffers();
+
 	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<MeshBuffer> mMeshBuffer;
 	eastl::list<eastl::shared_ptr<BaseParticleAffector>> mAffectorList;
 	eastl::shared_ptr<BaseParticleEmitter> mEmitter;
 	eastl::vector<Particle> mParticles;

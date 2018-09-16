@@ -329,51 +329,28 @@ public:
 	directly modify the material of a scene node.
 	\param num Zero based index. The maximal value is getMaterialCount() - 1.
 	\return The material at that index. */
-	virtual Material& GetMaterial() { return mMaterial; }
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i) { return nullptr; }
 
 	//! Get amount of materials used by this scene node.
 	/** \return Current amount of materials of this scene node. */
-	virtual unsigned int GetMaterialCount() const { return 1; }
-
-	void SetMaterial(const Material &mat) { mMaterial = mat; }
+	virtual unsigned int GetMaterialCount() const { return 0; }
 
 	//! Sets all material flags at once to a new value.
 	/** Useful, for example, if you want the whole mesh to be
 	affected by light.
 	\param flag Which flag of all materials to be set.
 	\param newvalue New value of that flag. */
-	void SetMaterialFlag(MaterialFlag flag, bool newvalue)
-	{
-		/*
-		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-			GetMaterial(i).SetFlag(flag, newvalue);
-		*/
-	}
+	virtual void SetMaterialFlag(MaterialFlag flag, bool newvalue) { }
 
 	//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 	/** \param textureLayer Layer of texture to be set. Must be a
 	value smaller than MATERIAL_MAX_TEXTURES.
 	\param texture New texture to be used. */
-	void SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
-	{
-		/*
-		if (textureLayer >= MATERIAL_MAX_TEXTURES)
-			return;
-
-		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-			GetMaterial(i).SetTexture(textureLayer, texture);
-		*/
-	}
+	virtual void SetMaterialTexture(unsigned int textureLayer, Texture2* texture) { }
 
 	//! Sets the material type of all materials in this scene node to a new material type.
 	/** \param newType New type of material to be set. */
-	void SetMaterialType(MaterialType newType)
-	{
-		/*
-		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-			GetMaterial(i).mMaterialType = newType;
-		*/
-	}
+	virtual void SetMaterialType(MaterialType newType) { }
 
 protected:
 
@@ -466,7 +443,6 @@ protected:
 	eastl::string mName;
 
 	NodeType mType;
-	Material mMaterial;
 	RenderPass mRenderPass;
 	PVWUpdater* mPVWUpdater;
 

@@ -91,7 +91,6 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
-			/*
 			eastl::shared_ptr<ResHandle>& resHandle =
 				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshModelFile.c_str())));
 			if (resHandle)
@@ -126,27 +125,6 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 				}
 
 				return animatedMeshNode;
-			}
-			*/
-			eastl::shared_ptr<ResHandle>& resHandle =
-				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshTextureFile.c_str())));
-			if (resHandle)
-			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
-				eastl::shared_ptr<Node> bill = pScene->AddBillboardNode(eastl::weak_ptr<BaseRenderComponent>(),
-					0, extra->GetImage(), Vector2<float>{ 0.1f, 0.1f }, mOwner->GetId());
-				if (bill)
-				{
-					bill->GetRelativeTransform() = transform;
-
-					bill->SetMaterialFlag(MF_LIGHTING, false);
-					bill->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
-					bill->SetMaterialTexture(0, extra->GetImage().get());
-				}
-
-				return bill;
 			}
 		}
 		else LogAssert(nullptr, "Unknown Renderer Implementation in MeshRenderComponent::CreateSceneNode");

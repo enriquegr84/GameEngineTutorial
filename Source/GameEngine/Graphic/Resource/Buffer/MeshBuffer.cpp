@@ -4,6 +4,12 @@
 
 #include "MeshBuffer.h"
 
+MeshBuffer::MeshBuffer()
+	: Buffer(0, 0)
+{
+	mMaterial = eastl::make_shared<Material>();
+}
+
 MeshBuffer::MeshBuffer(VertexFormat const& vformat, uint32_t numVertices,
 	uint32_t numPrimitives, size_t indexSize)
 	: Buffer(numPrimitives, 0)
@@ -17,7 +23,7 @@ MeshBuffer::MeshBuffer(VertexFormat const& vformat, uint32_t numVertices,
 	if (!mVertice)
 		LogError("Error creating vertex buffer");
 
-	mMaterial = eastl::make_shared<Material>(new Material());
+	mMaterial = eastl::make_shared<Material>();
 }
 
 MeshBuffer::~MeshBuffer()

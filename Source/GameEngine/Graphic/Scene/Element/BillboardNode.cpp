@@ -37,11 +37,11 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBas
 
 	// Create the visual effect. The world up-direction is (0,0,1).  Choose
 	// the light to point down.
-	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
-	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
-	material->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
-	material->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
-	material->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+	mMaterial = eastl::make_shared<Material>();
+	mMaterial->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+	mMaterial->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
+	mMaterial->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
+	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
 
 	eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
 	lighting->mAmbient = Renderer::Get()->GetClearColor();
@@ -51,7 +51,7 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBas
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, material, lighting, geometry, texture,
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, lighting, geometry, texture,
 		SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelNormals();
@@ -118,14 +118,15 @@ bool BillboardNode::PreRender(Scene *pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
+		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		{
-			eastl::shared_ptr<AmbientLightEffect> effect =
-				eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
-
-			if (effect->GetMaterial()->IsTransparent())
+			if (GetMaterial(i)->IsTransparent())
 				++transparentCount;
 			else
 				++solidCount;
+
+			if (solidCount && transparentCount)
+				break;
 		}
 
 		// register according to material types counted
@@ -237,22 +238,6 @@ bool BillboardNode::Render(Scene *pScene)
 	return Node::Render(pScene);
 }
 
-
-eastl::shared_ptr<Material> const& BillboardNode::GetMaterial(unsigned int i)
-{
-	eastl::shared_ptr<AmbientLightEffect> effect =
-		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
-	return effect->GetMaterial();
-}
-
-
-//! returns amount of materials used by this scene node.
-unsigned int BillboardNode::GetMaterialCount() const
-{
-	return 1;
-}
-
-
 //! sets the size of the billboard
 void BillboardNode::SetSize(const Vector2<float>& size)
 {
@@ -305,4 +290,63 @@ void BillboardNode::GetSize(float& height, float& bottomEdgeWidth, float& topEdg
 	height = mSize[1];
 	bottomEdgeWidth = mSize[0];
 	topEdgeWidth = mTopEdgeWidth;
+}
+
+
+eastl::shared_ptr<Material> const& BillboardNode::GetMaterial(unsigned int i)
+{
+	return mMaterial;
+}
+
+
+//! returns amount of materials used by this scene node.
+unsigned int BillboardNode::GetMaterialCount() const
+{
+	return 1;
+}
+
+//! returns the material based on the zero based index i. To get the amount
+//! of materials used by this scene node, use GetMaterialCount().
+//! This function is needed for inserting the node into the scene hirachy on a
+//! optimal position for minimizing renderstate changes, but can also be used
+//! to directly modify the material of a scene node.
+eastl::shared_ptr<Material> const& BillboardNode::GetMaterial(unsigned int i)
+{
+	return mMaterial;
+}
+
+//! returns amount of materials used by this scene node.
+unsigned int BillboardNode::GetMaterialCount() const
+{
+	return 1;
+}
+
+//! Sets all material flags at once to a new value.
+/** Useful, for example, if you want the whole mesh to be affected by light.
+\param flag Which flag of all materials to be set.
+\param newvalue New value of that flag. */
+void BillboardNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetFlag(flag, newvalue);
+}
+
+//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
+/** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
+\param texture New texture to be used. */
+void BillboardNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+{
+	if (textureLayer >= MATERIAL_MAX_TEXTURES)
+		return;
+
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetTexture(textureLayer, texture);
+}
+
+//! Sets the material type of all materials in this scene node to a new material type.
+/** \param newType New type of material to be set. */
+void BillboardNode::SetMaterialType(MaterialType newType)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i)->mType = newType;
 }

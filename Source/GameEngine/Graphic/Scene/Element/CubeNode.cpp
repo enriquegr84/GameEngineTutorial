@@ -43,6 +43,14 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
 	mf.SetVertexFormat(vformat);
 	mVisual = mf.CreateBox(mSize, mSize, mSize);
 
+	// Create the visual effect. The world up-direction is (0,0,1).  Choose
+	// the light to point down.
+	mMaterial = eastl::make_shared<Material>();
+	mMaterial->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+	mMaterial->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
+	mMaterial->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
+	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+
 	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
 	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
 		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, eastl::make_shared<Material>(),
@@ -72,14 +80,15 @@ bool CubeNode::PreRender(Scene *pScene)
 		int solidCount = 0;
 
 		// count transparent and solid materials in this scene node
+		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		{
-			eastl::shared_ptr<AmbientLightEffect> effect =
-				eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
-
-			if (effect->GetMaterial()->IsTransparent())
+			if (GetMaterial(i)->IsTransparent())
 				++transparentCount;
 			else
 				++solidCount;
+
+			if (solidCount && transparentCount)
+				break;
 		}
 
 		// register according to material types counted
@@ -107,14 +116,9 @@ bool CubeNode::Render(Scene *pScene)
 	if (mShadow)
 		mShadow->UpdateShadowVolumes(pScene);
 
-	// for debug purposes only:
-	eastl::shared_ptr<AmbientLightEffect> effect =
-		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
-	eastl::shared_ptr<Material> material = effect->GetMaterial();
-
 	// overwrite half transparency
 	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
-		material->mType = MT_TRANSPARENT_ADD_COLOR;
+		mMaterial->mType = MT_TRANSPARENT_ADD_COLOR;
 	//effect->SetMaterial(material);
 	Renderer::Get()->Draw(mVisual);
 
@@ -200,12 +204,9 @@ eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId 
 }
 
 
-//! returns the material based on the zero based index i.
 eastl::shared_ptr<Material> const& CubeNode::GetMaterial(unsigned int i)
 {
-	eastl::shared_ptr<AmbientLightEffect> effect =
-		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
-	return effect->GetMaterial();
+	return mMaterial;
 }
 
 
@@ -213,4 +214,62 @@ eastl::shared_ptr<Material> const& CubeNode::GetMaterial(unsigned int i)
 unsigned int CubeNode::GetMaterialCount() const
 {
 	return 1;
+}
+
+//! returns the material based on the zero based index i. To get the amount
+//! of materials used by this scene node, use GetMaterialCount().
+//! This function is needed for inserting the node into the scene hirachy on a
+//! optimal position for minimizing renderstate changes, but can also be used
+//! to directly modify the material of a scene node.
+eastl::shared_ptr<Material> const& CubeNode::GetMaterial(unsigned int i)
+{
+	return mMaterial;
+}
+
+//! returns amount of materials used by this scene node.
+unsigned int CubeNode::GetMaterialCount() const
+{
+	return 1;
+}
+
+//! Sets all material flags at once to a new value.
+/** Useful, for example, if you want the whole mesh to be affected by light.
+\param flag Which flag of all materials to be set.
+\param newvalue New value of that flag. */
+void CubeNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetFlag(flag, newvalue);
+}
+
+//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
+/** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
+\param texture New texture to be used. */
+void CubeNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+{
+	if (textureLayer >= MATERIAL_MAX_TEXTURES)
+		return;
+
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i).SetTexture(textureLayer, texture);
+}
+
+//! Sets the material type of all materials in this scene node to a new material type.
+/** \param newType New type of material to be set. */
+void CubeNode::SetMaterialType(MaterialType newType)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i)->mType = newType;
+}
+
+//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
+void CubeNode::SetReadOnlyMaterials(bool readonly)
+{
+	mReadOnlyMaterials = readonly;
+}
+
+//! Returns if the scene node should not copy the materials of the mesh but use them in a read only style
+bool CubeNode::IsReadOnlyMaterials() const
+{
+	return mReadOnlyMaterials;
 }

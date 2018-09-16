@@ -64,13 +64,12 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 			{
 				for(unsigned int j=0; j<frameMesh->GetMeshBufferCount(); ++j )
 				{
-					const MeshDescription& md = frameMesh->GetMeshBuffer(j)->mMesh->GetDescription();
-					for(unsigned int k=0; k<md.mNumVertices; ++k )
+					for(unsigned int k=0; k<frameMesh->GetMeshBuffer(j)->GetVertice()->GetNumElements(); ++k )
 					{
-						particle.mPos = frameMesh->GetMeshBuffer(j)->mMesh->Position(k);
+						particle.mPos = frameMesh->GetMeshBuffer(j)->Position(k);
 						if( mUseNormalDirection )
 							particle.mVector = 
-								frameMesh->GetMeshBuffer(j)->mMesh->Normal(k) / mNormalDirectionModifier;
+								frameMesh->GetMeshBuffer(j)->Normal(k) / mNormalDirectionModifier;
 						else
 							particle.mVector = mDirection;
 
@@ -119,15 +118,14 @@ int ParticleAnimatedMeshNodeEmitter::Emitt(unsigned int now, unsigned int timeSi
 				else
 					randomMB = mMBNumber;
 
-				const MeshDescription& md = frameMesh->GetMeshBuffer(randomMB)->mMesh->GetDescription();
-				unsigned int vertexNumber = md.mNumVertices;
+				unsigned int vertexNumber = frameMesh->GetMeshBuffer(randomMB)->GetVertice()->GetNumElements();
 				if (!vertexNumber)
 					continue;
 				vertexNumber = Randomizer::Rand() % vertexNumber;
 
-				particle.mPos = frameMesh->GetMeshBuffer(randomMB)->mMesh->Position(vertexNumber);
+				particle.mPos = frameMesh->GetMeshBuffer(randomMB)->Position(vertexNumber);
 				if( mUseNormalDirection )
-					particle.mVector = frameMesh->GetMeshBuffer(randomMB)->mMesh->Normal(vertexNumber) / mNormalDirectionModifier;
+					particle.mVector = frameMesh->GetMeshBuffer(randomMB)->Normal(vertexNumber) / mNormalDirectionModifier;
 				else
 					particle.mVector = mDirection;
 
@@ -194,8 +192,8 @@ void ParticleAnimatedMeshNodeEmitter::SetAnimatedMeshNode( const eastl::shared_p
 	mMBCount = mBaseMesh->GetMeshBufferCount();
 	for( unsigned int i = 0; i < mMBCount; ++i )
 	{
-		const MeshDescription& md = mBaseMesh->GetMeshBuffer(i)->mMesh->GetDescription();
-		mVertexPerMeshBufferList.push_back(md.mNumVertices);
-		mTotalVertices += md.mNumVertices;
+		mVertexPerMeshBufferList.push_back(
+			mBaseMesh->GetMeshBuffer(i)->GetVertice()->GetNumElements());
+		mTotalVertices += mBaseMesh->GetMeshBuffer(i)->GetVertice()->GetNumElements();
 	}
 }

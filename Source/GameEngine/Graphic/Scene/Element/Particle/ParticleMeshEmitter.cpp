@@ -61,13 +61,11 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 				for( unsigned int j=0; j<mParticleMesh->GetMeshBufferCount(); ++j )
 				{
 					const eastl::shared_ptr<MeshBuffer>& meshBuffer = mParticleMesh->GetMeshBuffer(j);
-					const MeshDescription& meshDescription = meshBuffer->mMesh->GetDescription();
-					
-					for( unsigned int k=0; k<meshDescription.mNumVertices; ++k )
+					for( unsigned int k=0; k<meshBuffer->GetVertice()->GetNumElements(); ++k )
 					{
-						particle.mPos = meshBuffer->mMesh->Position(k);
+						particle.mPos = meshBuffer->Position(k);
 						if( mUseNormalDirection )
-							particle.mVector = meshBuffer->mMesh->Normal(k) / mNormalDirectionModifier;
+							particle.mVector = meshBuffer->Normal(k) / mNormalDirectionModifier;
 						else
 							particle.mVector = mDirection;
 
@@ -113,16 +111,14 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 				const int randomMB = (mMBNumber < 0) ? (Randomizer::Rand() % mMBCount) : mMBNumber;
 
 				const eastl::shared_ptr<MeshBuffer>& meshBuffer = mParticleMesh->GetMeshBuffer(randomMB);
-				const MeshDescription& meshDescription = meshBuffer->mMesh->GetDescription();
-
-				if (!meshDescription.mNumVertices)
+				if (!meshBuffer->GetVertice()->GetNumElements())
 					continue;
 				
-				unsigned int vertexNumber = Randomizer::Rand() % meshDescription.mNumVertices;
+				unsigned int vertexNumber = Randomizer::Rand() % meshBuffer->GetVertice()->GetNumElements();
 
-				particle.mPos = meshBuffer->mMesh->Position(vertexNumber);
+				particle.mPos = meshBuffer->Position(vertexNumber);
 				if( mUseNormalDirection )
-					particle.mVector = meshBuffer->mMesh->Normal(vertexNumber) /mNormalDirectionModifier;
+					particle.mVector = meshBuffer->Normal(vertexNumber) /mNormalDirectionModifier;
 				else
 					particle.mVector = mDirection;
 
@@ -190,9 +186,7 @@ void ParticleMeshEmitter::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 	for( unsigned int i = 0; i < mMBCount; ++i )
 	{
 		const eastl::shared_ptr<MeshBuffer>& meshBuffer = mParticleMesh->GetMeshBuffer(i);
-		const MeshDescription& meshDescription = meshBuffer->mMesh->GetDescription();
-
-		mVertexPerMeshBufferList.push_back( meshDescription.mNumVertices );
-		mTotalVertices += meshDescription.mNumVertices;
+		mVertexPerMeshBufferList.push_back(meshBuffer->GetVertice()->GetNumElements() );
+		mTotalVertices += meshBuffer->GetVertice()->GetNumElements();
 	}
 }

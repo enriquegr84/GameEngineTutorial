@@ -58,8 +58,10 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 					geometry, eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
 					SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 
-				eastl::shared_ptr<Visual> visual = mf.CreateMesh(meshBuffer->mMesh.get());
-				visual->SetEffect(effect);
+				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
+					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
+				visual->UpdateModelNormals();
+				visual->UpdateModelBound();
 				visual->UpdateModelNormals();
 				mVisuals.push_back(visual);
 				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());

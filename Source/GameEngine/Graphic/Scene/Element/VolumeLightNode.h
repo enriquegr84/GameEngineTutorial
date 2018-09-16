@@ -26,12 +26,6 @@ public:
 	virtual bool PreRender(Scene *pScene);
 	virtual bool Render(Scene *pScene);
 
-	//! returns the material based on the zero based index i.
-	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
-
-	//! returns amount of materials used by this scene node.
-	virtual unsigned int GetMaterialCount() const;
-
 	//! Returns type of the scene node
 	virtual NodeType GetType() const { return NT_VOLUME_LIGHT; }
 
@@ -58,6 +52,33 @@ public:
 
 	//! Returns the color of the tip of the light
 	eastl::array<float, 4> GetTailColor() const { return mTailColor; }
+
+	//! returns the material based on the zero based index i. To get the amount
+	//! of materials used by this scene node, use GetMaterialCount().
+	//! This function is needed for inserting the node into the scene hirachy on a
+	//! optimal position for minimizing renderstate changes, but can also be used
+	//! to directly modify the material of a scene node.
+	virtual eastl::shared_ptr<Material> const& GetMaterial(unsigned int i);
+
+	//! returns amount of materials used by this scene node.
+	virtual unsigned int GetMaterialCount() const;
+
+	//! Sets all material flags at once to a new value.
+	/** Useful, for example, if you want the whole mesh to be
+	affected by light.
+	\param flag Which flag of all materials to be set.
+	\param newvalue New value of that flag. */
+	virtual void SetMaterialFlag(MaterialFlag flag, bool newvalue);
+
+	//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
+	/** \param textureLayer Layer of texture to be set. Must be a
+	value smaller than MATERIAL_MAX_TEXTURES.
+	\param texture New texture to be used. */
+	virtual void SetMaterialTexture(unsigned int textureLayer, Texture2* texture);
+
+	//! Sets the material type of all materials in this scene node to a new material type.
+	/** \param newType New type of material to be set. */
+	virtual void SetMaterialType(MaterialType newType);
 
 private:
 
