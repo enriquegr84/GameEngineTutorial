@@ -12,9 +12,9 @@
 #include "Core/Logger/Logger.h"
 #include "Core/Utility/StringUtil.h"
 
-#include <Importer.hpp>      // C++ importer interface
-#include <scene.h>           // Output data structure
-#include <postprocess.h>     // Post processing flags
+#include <assimp/Importer.hpp>      // C++ importer interface
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
 
 //! Constructor
 MeshFileLoader::MeshFileLoader( )
