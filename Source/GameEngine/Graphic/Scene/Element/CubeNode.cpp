@@ -53,8 +53,7 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
 	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, eastl::make_shared<Material>(),
-		eastl::make_shared<Lighting>());
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, eastl::make_shared<Lighting>());
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
@@ -119,8 +118,19 @@ bool CubeNode::Render(Scene *pScene)
 	// overwrite half transparency
 	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
 		mMaterial->mType = MT_TRANSPARENT_ADD_COLOR;
-	//effect->SetMaterial(material);
+
+	Renderer::Get()->SetBlendState(mMaterial->mBlendState);
+	Renderer::Get()->SetRasterizerState(mMaterial->mRasterizerState);
+	Renderer::Get()->SetDepthStencilState(mMaterial->mDepthStencilState);
+
+	eastl::shared_ptr<AmbientLightEffect> effect =
+		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+	effect->SetMaterial(mMaterial);
 	Renderer::Get()->Draw(mVisual);
+
+	Renderer::Get()->SetDefaultDepthStencilState();
+	Renderer::Get()->SetDefaultRasterizerState();
+	Renderer::Get()->SetDefaultBlendState();
 
 	/*
 	// for debug purposes only:
@@ -203,19 +213,6 @@ eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId 
 	return mShadow;
 }
 
-
-eastl::shared_ptr<Material> const& CubeNode::GetMaterial(unsigned int i)
-{
-	return mMaterial;
-}
-
-
-//! returns amount of materials used by this scene node.
-unsigned int CubeNode::GetMaterialCount() const
-{
-	return 1;
-}
-
 //! returns the material based on the zero based index i. To get the amount
 //! of materials used by this scene node, use GetMaterialCount().
 //! This function is needed for inserting the node into the scene hirachy on a
@@ -232,16 +229,6 @@ unsigned int CubeNode::GetMaterialCount() const
 	return 1;
 }
 
-//! Sets all material flags at once to a new value.
-/** Useful, for example, if you want the whole mesh to be affected by light.
-\param flag Which flag of all materials to be set.
-\param newvalue New value of that flag. */
-void CubeNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
-{
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetFlag(flag, newvalue);
-}
-
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
@@ -251,7 +238,7 @@ void CubeNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
 		return;
 
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetTexture(textureLayer, texture);
+		GetMaterial(i)->SetTexture(textureLayer, texture);
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.
@@ -260,16 +247,4 @@ void CubeNode::SetMaterialType(MaterialType newType)
 {
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 		GetMaterial(i)->mType = newType;
-}
-
-//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
-void CubeNode::SetReadOnlyMaterials(bool readonly)
-{
-	mReadOnlyMaterials = readonly;
-}
-
-//! Returns if the scene node should not copy the materials of the mesh but use them in a read only style
-bool CubeNode::IsReadOnlyMaterials() const
-{
-	return mReadOnlyMaterials;
 }

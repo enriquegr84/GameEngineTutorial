@@ -8,8 +8,11 @@
 #include "Graphic/Effect/Mesh.h"
 
 //! Simple implementation of the IAnimatedMesh interface.
-struct AnimatedMesh : public BaseAnimatedMesh
+class AnimatedMesh : public BaseAnimatedMesh
 {
+
+public:
+
 	//! constructor
 	AnimatedMesh(const eastl::shared_ptr<BaseMesh>& mesh=0, AnimatedMeshType type=AMT_UNKNOWN) : 
 		BaseAnimatedMesh(), mFramesPerSecond(25.f), mType(type)
@@ -22,7 +25,15 @@ struct AnimatedMesh : public BaseAnimatedMesh
 	{
 		// drop meshes
 	}
-
+	
+	//! Gets the frame of the animated mesh.
+	/** \return frames. If the amount is 1, it is a static, non animated mesh. */
+	/*
+	virtual const eastl::vector<eastl::shared_ptr<BaseMesh>> GetFrames() const
+	{
+		return mMeshes;
+	}
+	*/
 	//! Gets the frame count of the animated mesh.
 	/** \return Amount of frames. If the amount is 1, it is a static, non animated mesh. */
 	virtual unsigned int GetFrameCount() const
@@ -109,6 +120,8 @@ struct AnimatedMesh : public BaseAnimatedMesh
 
 		return nullptr;
 	}
+
+protected:
 
 	//! All meshes defining the animated mesh
 	eastl::vector<eastl::shared_ptr<BaseMesh>> mMeshes;

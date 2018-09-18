@@ -267,6 +267,8 @@ bool GameApplication::OnInitialize()
 	extern eastl::shared_ptr<BaseResourceLoader> CreatePLYMeshResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateXMeshResourceLoader();
 	*/
+	extern eastl::shared_ptr<BaseResourceLoader> CreateMeshResourceLoader();
+
 	extern eastl::shared_ptr<BaseResourceLoader> CreateXmlResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateImageResourceLoader();
 	//extern eastl::shared_ptr<BaseResourceLoader> CreateScriptResourceLoader();
@@ -301,6 +303,8 @@ bool GameApplication::OnInitialize()
 	mResCache->RegisterLoader(CreatePLYMeshResourceLoader());
 	mResCache->RegisterLoader(CreateXMeshResourceLoader());
 	*/
+	mResCache->RegisterLoader(CreateMeshResourceLoader());
+
 	mResCache->RegisterLoader(CreateXmlResourceLoader());
 	mResCache->RegisterLoader(CreateImageResourceLoader());
 	//mResCache->RegisterLoader(CreateScriptResourceLoader());

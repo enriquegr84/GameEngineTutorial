@@ -10,84 +10,15 @@
 
 #include "Graphic/GraphicStd.h"
 
+#include "MaterialLayer.h"
+
+#include "Graphic/State/DepthStencilState.h"
+#include "Graphic/State/RasterizerState.h"
+#include "Graphic/State/BlendState.h"
+
+#include "Graphic/Resource/Texture/Texture2.h"
+
 #include "Mathematic/Algebra/Vector4.h"
-
-//! Material flags
-enum GRAPHIC_ITEM MaterialFlag
-{
-	//! Draw as wireframe or filled triangles? Default: false
-	MF_WIREFRAME = 0x1,
-
-	//! Draw as point cloud or filled triangles? Default: false
-	MF_POINTCLOUD = 0x2,
-
-	//! Flat or Gouraud shading? Default: true
-	MF_GOURAUD_SHADING = 0x4,
-
-	//! Will this material be lighted? Default: true
-	MF_LIGHTING = 0x8,
-
-	//! Is the ZBuffer enabled? Default: true
-	MF_ZBUFFER = 0x10,
-
-	//! May be written to the zbuffer or is it readonly. Default: true
-	/** This flag is ignored, if the material type is a transparent type. */
-	MF_ZWRITE_ENABLE = 0x20,
-
-	//! Is backface culling enabled? Default: true
-	MF_BACK_FACE_CULLING = 0x40,
-
-	//! Is frontface culling enabled? Default: false
-	/** Overrides EMF_BACK_FACE_CULLING if both are enabled. */
-	MF_FRONT_FACE_CULLING = 0x80,
-
-	//! Is bilinear filtering enabled? Default: true
-	MF_BILINEAR_FILTER = 0x100,
-
-	//! Is trilinear filtering enabled? Default: false
-	/** If the trilinear filter flag is enabled,
-	the bilinear filtering flag is ignored. */
-	MF_TRILINEAR_FILTER = 0x200,
-
-	//! Is anisotropic filtering? Default: false
-	/** In Irrlicht you can use anisotropic texture filtering in
-	conjunction with bilinear or trilinear texture filtering
-	to improve rendering results. Primitives will look less
-	blurry with this flag switched on. */
-	MF_ANISOTROPIC_FILTER = 0x400,
-
-	//! Is fog enabled? Default: false
-	MF_FOG_ENABLE = 0x800,
-
-	//! Normalizes normals. Default: false
-	/** You can enable this if you need to scale a dynamic lighted
-	model. Usually, its normals will get scaled too then and it
-	will get darker. If you enable the EMF_NORMALIZE_NORMALS flag,
-	the normals will be normalized again, and the model will look
-	as bright as it should. */
-	MF_NORMALIZE_NORMALS = 0x1000,
-
-	//! Access to all layers texture wrap settings. Overwrites separate layer settings.
-	MF_TEXTURE_WRAP = 0x2000,
-
-	//! AntiAliasing mode
-	MF_ANTI_ALIASING = 0x4000,
-
-	//! ColorMask bits, for enabling the color planes
-	MF_COLOR_MASK = 0x8000,
-
-	//! ColorMaterial enum for vertex color interpretation
-	MF_COLOR_MATERIAL = 0x10000,
-
-	//! Flag for enabling/disabling mipmap usage
-	MF_USE_MIP_MAPS = 0x20000,
-
-	//! Flag for blend operation
-	MF_BLEND_OPERATION = 0x40000,
-
-	//! Flag for polygon offset
-	MF_POLYGON_OFFSET = 0x80000
-};
 
 //! Abstracted and easy to use fixed function/programmable pipeline material modes.
 enum GRAPHIC_ITEM MaterialType
@@ -275,22 +206,63 @@ enum GRAPHIC_ITEM MaterialType
 	MT_FORCE_32BIT = 0x7fffffff
 };
 
+//! Defines all shading models supported by the library.
+enum ShadingModel
+{
+	//! Flat shading. Shading is done on per-face base, diffuse only. Also known as 'faceted shading'.
+	SM_FLAT = 0x1,
+	//! Gouraud shading.
+	SM_GOURAUD = 0x2,
+	//! Phong-Shading
+	SM_PHONG = 0x3,
+	//! Phong - Blinn - Shading.
+	SM_BLINN = 0x4,
+	//! No shading at all.
+	SM_NONE = 0x9,
+	//! Fresnel shading.
+	SM_FRESNEL = 0xa
+};
+
 class GRAPHIC_ITEM Material
 {
 public:
     // Construction.
     Material();
 
+	//! Copy constructor
+	/** \param other Material to copy from. */
+	Material(const Material& other) { *this = other; }
+
 	bool operator!=(const Material& m) const;
 	bool operator==(const Material& m) const;
 
 	bool IsTransparent() const;
 
+	//! Gets the i-th texture
+	/** \param i The desired level.
+	\return Texture for texture level i, if defined, else 0. */
+	Texture2* GetTexture(unsigned int i) const;
+
+	//! Sets the i-th texture
+	/** If i>=MATERIAL_MAX_TEXTURES this setting will be ignored.
+	\param i The desired level.
+	\param tex Texture for texture level i. */
+	void SetTexture(unsigned int i, Texture2* tex);
+
+	//! Store the blend state of choice
+	/** Values to be chosen from BlendState. The actual way to use this value
+	is not yet determined, so ignore it for now. */
+	eastl::shared_ptr<BlendState> mBlendState;
+
+	eastl::shared_ptr<DepthStencilState> mDepthStencilState;
+
+	eastl::shared_ptr<RasterizerState> mRasterizerState;
+
+	//! Texture layer array.
+	MaterialLayer mTextureLayer[MATERIAL_MAX_TEXTURES];
+
 	//! Type of the material. Specifies how everything is blended together
 	MaterialType mType;
-
-	// material flag
-	MaterialFlag mFlag;
 
 	//! Light emitted by this material. Default is to emit no light.
     Vector4<float> mEmissive;
@@ -317,33 +289,17 @@ public:
 	\code
 	sceneNode->getMaterial(0).Shininess = 20.0f;
 	\endcode
-
-	You can change the color of the highlights using
-	\code
-	sceneNode->getMaterial(0).SpecularColor.set(255,255,255,255);
-	\endcode
-
-	The specular color of the dynamic lights
-	(SLight::SpecularColor) will influence the the highlight color
-	too, but they are set to a useful value by default when
-	creating the light scene node. Here is a simple example on how
-	to use specular highlights:
-	\code
-	// load and display mesh
-	scene::IAnimatedMeshSceneNode* node = smgr->addAnimatedMeshSceneNode(
-	smgr->getMesh("data/faerie.md2"));
-	node->setMaterialTexture(0, driver->getTexture("data/Faerie2.pcx")); // set diffuse texture
-	node->setMaterialFlag(video::EMF_LIGHTING, true); // enable dynamic lighting
-	node->getMaterial(0).Shininess = 20.0f; // set size of specular highlights
-
-	// add white light
-	scene::ILightSceneNode* light = smgr->addLightSceneNode(0,
-	core::vector3df(5,5,5), video::SColorf(1.0f, 1.0f, 1.0f));
-	\endcode */
+	*/
 	float mShininess;
 
 	//! Thickness of non-3dimensional elements such as lines and points.
 	float mThickness;
+
+	//! shading model
+	ShadingModel mShadingModel : 1;
+
+	//! Will this material be lighted? Default: true
+	bool mLighting : 1;
 };
 
 #endif

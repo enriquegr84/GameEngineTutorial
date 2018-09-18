@@ -157,6 +157,7 @@ bool Scene::OnRender()
 
 			mRoot->Render(this);
 
+			/*
 			for (auto const& visual : mCuller.GetVisibleSet())
 			{
 				//if (visual->name.find("Water") == std::string::npos)
@@ -164,7 +165,7 @@ bool Scene::OnRender()
 					Renderer::Get()->Draw(visual);
 				}
 			}
-			/*
+
 			Renderer::Get()->SetBlendState(mBlendState);
 			Renderer::Get()->Draw(mWaterMesh[0]);
 			Renderer::Get()->Draw(mWaterMesh[1]);

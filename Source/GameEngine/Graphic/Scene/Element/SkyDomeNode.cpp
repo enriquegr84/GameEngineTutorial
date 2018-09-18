@@ -31,25 +31,20 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(
 		IP_TRIMESH, (2 * mVerticalResolution - 1) * mHorizontalResolution, sizeof(unsigned int));
 
+	//SetAutomaticCulling(AC_OFF);
+	mMeshBuffer = eastl::make_shared<MeshBuffer>();
 	// Create the visual effect. The world up-direction is (0,0,1).  Choose
 	// the light to point down.
-	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
-	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
-	material->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
-	material->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
-	material->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+	mMeshBuffer->GetMaterial()->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+	mMeshBuffer->GetMaterial()->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
+	mMeshBuffer->GetMaterial()->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
+	mMeshBuffer->GetMaterial()->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
 
-	//SetAutomaticCulling(AC_OFF);
-	/*
-	Buffer = new SMeshBuffer();
-	Buffer->Material.Lighting = false;
-	Buffer->Material.ZBuffer = video::ECFN_NEVER;
-	Buffer->Material.ZWriteEnable = false;
-	Buffer->Material.AntiAliasing = video::EAAM_OFF;
-	Buffer->Material.setTexture(0, sky);
-	Buffer->BoundingBox.MaxEdge.set(0, 0, 0);
-	Buffer->BoundingBox.MinEdge.set(0, 0, 0);
-	*/
+	mMeshBuffer->GetMaterial()->mLighting = false;
+	mMeshBuffer->GetMaterial()->mDepthStencilState->mDepthEnable = false;
+	mMeshBuffer->GetMaterial()->mRasterizerState->mEnableDepthClip = false;
+	mMeshBuffer->GetMaterial()->mRasterizerState->mEnableAntialiasedLine = false;
+	mMeshBuffer->GetMaterial()->SetTexture(0, sky.get());
 
 	eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
 	lighting->mAmbient = Renderer::Get()->GetClearColor();
@@ -59,7 +54,7 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
 	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, material, lighting, geometry, sky,
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMeshBuffer->GetMaterial(), lighting, geometry, sky,
 		SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 
 	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, effect);
@@ -168,7 +163,18 @@ bool SkyDomeNode::Render(Scene* pScene)
 		//Matrix4x4<float> translate(toWorld);
 		GetRelativeTransform().SetTranslation(camera->GetAbsoluteTransform().GetTranslation());
 
+		Renderer::Get()->SetBlendState(mMeshBuffer->GetMaterial()->mBlendState);
+		Renderer::Get()->SetRasterizerState(mMeshBuffer->GetMaterial()->mRasterizerState);
+		Renderer::Get()->SetDepthStencilState(mMeshBuffer->GetMaterial()->mDepthStencilState);
+
+		eastl::shared_ptr<PointLightTextureEffect> effect =
+			eastl::static_pointer_cast<PointLightTextureEffect>(mVisual->GetEffect());
+		effect->SetMaterial(mMeshBuffer->GetMaterial());
 		Renderer::Get()->Draw(mVisual);
+
+		Renderer::Get()->SetDefaultDepthStencilState();
+		Renderer::Get()->SetDefaultRasterizerState();
+		Renderer::Get()->SetDefaultBlendState();
 	}
 	/*
 	// for debug purposes only:
@@ -200,18 +206,6 @@ bool SkyDomeNode::Render(Scene* pScene)
 	return Node::Render(pScene);
 }
 
-eastl::shared_ptr<Material> const& SkyDomeNode::GetMaterial(unsigned int i)
-{
-	return mMaterial;
-}
-
-
-//! returns amount of materials used by this scene node.
-unsigned int SkyDomeNode::GetMaterialCount() const
-{
-	return 1;
-}
-
 //! returns the material based on the zero based index i. To get the amount
 //! of materials used by this scene node, use GetMaterialCount().
 //! This function is needed for inserting the node into the scene hirachy on a
@@ -219,23 +213,13 @@ unsigned int SkyDomeNode::GetMaterialCount() const
 //! to directly modify the material of a scene node.
 eastl::shared_ptr<Material> const& SkyDomeNode::GetMaterial(unsigned int i)
 {
-	return mMaterial;
+	return mMeshBuffer->GetMaterial();
 }
 
 //! returns amount of materials used by this scene node.
 unsigned int SkyDomeNode::GetMaterialCount() const
 {
 	return 1;
-}
-
-//! Sets all material flags at once to a new value.
-/** Useful, for example, if you want the whole mesh to be affected by light.
-\param flag Which flag of all materials to be set.
-\param newvalue New value of that flag. */
-void SkyDomeNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
-{
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetFlag(flag, newvalue);
 }
 
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
@@ -247,7 +231,7 @@ void SkyDomeNode::SetMaterialTexture(unsigned int textureLayer, Texture2* textur
 		return;
 
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetTexture(textureLayer, texture);
+		GetMaterial(i)->SetTexture(textureLayer, texture);
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.

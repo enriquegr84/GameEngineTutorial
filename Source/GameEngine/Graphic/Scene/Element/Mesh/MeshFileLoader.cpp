@@ -6,6 +6,7 @@
 
 #include "MeshFileLoader.h"
 
+#include "Graphic/Scene/Element/Mesh/AnimatedMesh.h"
 #include "Graphic/Scene/Element/Mesh/StandardMesh.h"
 
 #include "Core/Logger/Logger.h"
@@ -71,7 +72,7 @@ bool MeshFileLoader::IsALoadableFileExtension(const eastl::wstring& fileName) co
 	if (fileName.rfind('.') != eastl::string::npos)
 	{
 		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
-		return fileExtension.compare(L"*") == 0;
+		return !fileExtension.empty();
 	}
 	else return false;
 }
@@ -112,10 +113,10 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 			vformat.Bind(VA_TANGENT, DF_R32G32B32_FLOAT, 0);
 		if (pScene->mMeshes[m]->HasTangentsAndBitangents())
 			vformat.Bind(VA_BINORMAL, DF_R32G32B32_FLOAT, 0);
-		for (int ch = 0; ch < pScene->mMeshes[m]->GetNumColorChannels(); ch++)
+		for (unsigned int ch = 0; ch < pScene->mMeshes[m]->GetNumColorChannels(); ch++)
 			if (pScene->mMeshes[m]->HasVertexColors(ch))
 				vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, ch);
-		for (int ch = 0; ch < pScene->mMeshes[m]->GetNumUVChannels(); ch++)
+		for (unsigned int ch = 0; ch < pScene->mMeshes[m]->GetNumUVChannels(); ch++)
 			if (pScene->mMeshes[m]->HasTextureCoords(ch))
 				vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, ch);
 
@@ -144,7 +145,7 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 				const aiVector3D& bitangent = pScene->mMeshes[m]->mBitangents[v];
 				meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, bitangent.y, bitangent.z };
 			}	
-			for (int ch = 0; ch < pScene->mMeshes[m]->GetNumColorChannels(); ch++)
+			for (unsigned int ch = 0; ch < pScene->mMeshes[m]->GetNumColorChannels(); ch++)
 			{
 				if (pScene->mMeshes[m]->HasVertexColors(ch))
 				{
@@ -152,7 +153,7 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 					meshBuffer->Color(ch, v) = Vector4<float>{ color.r, color.g, color.b, color.a };
 				}
 			}
-			for (int ch = 0; ch < pScene->mMeshes[m]->GetNumUVChannels(); ch++)
+			for (unsigned int ch = 0; ch < pScene->mMeshes[m]->GetNumUVChannels(); ch++)
 			{
 				if (pScene->mMeshes[m]->HasTextureCoords(ch))
 				{
@@ -175,20 +176,34 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 			aiColor4D ambientColor;
 			aiColor4D specularColor;
 			aiColor4D emissiveColor;
+			aiColor4D transparentColor;
+			int wireframe, culling, shadingModel;
+			float opacity;
 
 			aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &diffuseColor);
 			aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &ambientColor);
 			aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &specularColor);
 			aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &emissiveColor);
+			aiGetMaterialColor(material, AI_MATKEY_COLOR_TRANSPARENT, &transparentColor);
+			aiGetMaterialInteger(material, AI_MATKEY_TWOSIDED, &culling);
+			aiGetMaterialInteger(material, AI_MATKEY_ENABLE_WIREFRAME, &wireframe);
+			aiGetMaterialInteger(material, AI_MATKEY_SHADING_MODEL, &shadingModel);
+			aiGetMaterialFloat(material, AI_MATKEY_OPACITY, &opacity);
 			aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &meshBuffer->GetMaterial()->mShininess);
-			
+
+			meshBuffer->GetMaterial()->mType = (opacity > 0.5f) ? MT_TRANSPARENT_ADD_COLOR : MT_SOLID;
+			meshBuffer->GetMaterial()->mRasterizerState->mCullMode =
+				(culling != 0) ? RasterizerState::CULL_BACK : RasterizerState::CULL_NONE;
+			meshBuffer->GetMaterial()->mRasterizerState->mFillMode = 
+				(wireframe != 0) ? RasterizerState::FILL_WIREFRAME : RasterizerState::FILL_SOLID;
+			meshBuffer->GetMaterial()->mShadingModel = (ShadingModel)shadingModel;
 			meshBuffer->GetMaterial()->mDiffuse = Vector4<float>{ diffuseColor.r, diffuseColor.g, diffuseColor.b, diffuseColor.a };
 			meshBuffer->GetMaterial()->mAmbient = Vector4<float>{ ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a };
 			meshBuffer->GetMaterial()->mSpecular = Vector4<float>{ specularColor.r, specularColor.g, specularColor.b, specularColor.a };
 			meshBuffer->GetMaterial()->mEmissive = Vector4<float>{ emissiveColor.r, emissiveColor.g, emissiveColor.b, emissiveColor.a };
 		}
 
-		mesh->AddMeshBuffer(meshBuffer);
+		mesh->mMeshBuffer = meshBuffer;
 		aMesh->AddMesh(mesh);
 	}
 

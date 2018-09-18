@@ -227,13 +227,20 @@ bool BillboardNode::Render(Scene *pScene)
 	Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity);
 	Renderer::Get()->SetMaterial(mMaterial);
 	Renderer::Get()->DrawIndexedTriangleList(mVertices, 4, mIndices, 2);
+	*/
+
+	Renderer::Get()->SetBlendState(mMaterial->mBlendState);
+	Renderer::Get()->SetRasterizerState(mMaterial->mRasterizerState);
+	Renderer::Get()->SetDepthStencilState(mMaterial->mDepthStencilState);
 
 	eastl::shared_ptr<AmbientLightEffect> effect =
 		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
-	effect->SetMaterial(material);
-	*/
-
+	effect->SetMaterial(mMaterial);
 	Renderer::Get()->Draw(mVisual);
+
+	Renderer::Get()->SetDefaultDepthStencilState();
+	Renderer::Get()->SetDefaultRasterizerState();
+	Renderer::Get()->SetDefaultBlendState();
 
 	return Node::Render(pScene);
 }
@@ -292,19 +299,6 @@ void BillboardNode::GetSize(float& height, float& bottomEdgeWidth, float& topEdg
 	topEdgeWidth = mTopEdgeWidth;
 }
 
-
-eastl::shared_ptr<Material> const& BillboardNode::GetMaterial(unsigned int i)
-{
-	return mMaterial;
-}
-
-
-//! returns amount of materials used by this scene node.
-unsigned int BillboardNode::GetMaterialCount() const
-{
-	return 1;
-}
-
 //! returns the material based on the zero based index i. To get the amount
 //! of materials used by this scene node, use GetMaterialCount().
 //! This function is needed for inserting the node into the scene hirachy on a
@@ -321,16 +315,6 @@ unsigned int BillboardNode::GetMaterialCount() const
 	return 1;
 }
 
-//! Sets all material flags at once to a new value.
-/** Useful, for example, if you want the whole mesh to be affected by light.
-\param flag Which flag of all materials to be set.
-\param newvalue New value of that flag. */
-void BillboardNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
-{
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetFlag(flag, newvalue);
-}
-
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
@@ -340,7 +324,7 @@ void BillboardNode::SetMaterialTexture(unsigned int textureLayer, Texture2* text
 		return;
 
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetTexture(textureLayer, texture);
+		GetMaterial(i)->SetTexture(textureLayer, texture);
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.

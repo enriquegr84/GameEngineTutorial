@@ -29,10 +29,17 @@ SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 	mf.SetVertexFormat(vformat);
 	mVisual = mf.CreateSphere(polyCountX, polyCountY, radius);
 
+	// Create the visual effect. The world up-direction is (0,0,1).  Choose
+	// the light to point down.
+	mMaterial = eastl::make_shared<Material>();
+	mMaterial->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+	mMaterial->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
+	mMaterial->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
+	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+
 	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
 	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, eastl::make_shared<Material>(), 
-		eastl::make_shared<Lighting>());
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, eastl::make_shared<Lighting>());
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
@@ -95,11 +102,26 @@ bool SphereNode::Render(Scene *pScene)
 
 	//Renderer::Get()->SetMaterial(mMesh->GetMeshBuffer(0)->GetMaterial());
 	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
+
 	if (mShadow)
 		mShadow->UpdateShadowVolumes(pScene);
 
-	//Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
+	// overwrite half transparency
+	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
+		mMaterial->mType = MT_TRANSPARENT_ADD_COLOR;
+
+	Renderer::Get()->SetBlendState(mMaterial->mBlendState);
+	Renderer::Get()->SetRasterizerState(mMaterial->mRasterizerState);
+	Renderer::Get()->SetDepthStencilState(mMaterial->mDepthStencilState);
+
+	eastl::shared_ptr<AmbientLightEffect> effect =
+		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
+	effect->SetMaterial(mMaterial);
 	Renderer::Get()->Draw(mVisual);
+
+	Renderer::Get()->SetDefaultDepthStencilState();
+	Renderer::Get()->SetDefaultRasterizerState();
+	Renderer::Get()->SetDefaultBlendState();
 	/*
 	if (DebugDataVisible() & DS_BBOX )
 	{
@@ -146,18 +168,6 @@ eastl::shared_ptr<ShadowVolumeNode> SphereNode::AddShadowVolumeNode(const ActorI
 	return mShadow;
 }
 
-eastl::shared_ptr<Material> const& SphereNode::GetMaterial(unsigned int i)
-{
-	return mMaterial;
-}
-
-
-//! returns amount of materials used by this scene node.
-unsigned int SphereNode::GetMaterialCount() const
-{
-	return 1;
-}
-
 //! returns the material based on the zero based index i. To get the amount
 //! of materials used by this scene node, use GetMaterialCount().
 //! This function is needed for inserting the node into the scene hirachy on a
@@ -174,16 +184,6 @@ unsigned int SphereNode::GetMaterialCount() const
 	return 1;
 }
 
-//! Sets all material flags at once to a new value.
-/** Useful, for example, if you want the whole mesh to be affected by light.
-\param flag Which flag of all materials to be set.
-\param newvalue New value of that flag. */
-void SphereNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
-{
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetFlag(flag, newvalue);
-}
-
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
@@ -193,7 +193,7 @@ void SphereNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture
 		return;
 
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetTexture(textureLayer, texture);
+		GetMaterial(i)->SetTexture(textureLayer, texture);
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.
@@ -202,16 +202,4 @@ void SphereNode::SetMaterialType(MaterialType newType)
 {
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 		GetMaterial(i)->mType = newType;
-}
-
-//! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.
-void SphereNode::SetReadOnlyMaterials(bool readonly)
-{
-	mReadOnlyMaterials = readonly;
-}
-
-//! Returns if the scene node should not copy the materials of the mesh but use them in a read only style
-bool SphereNode::IsReadOnlyMaterials() const
-{
-	return mReadOnlyMaterials;
 }

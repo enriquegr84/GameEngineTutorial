@@ -247,10 +247,18 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
 				material->mType = MT_TRANSPARENT_ADD_COLOR;
 
-				if (mRenderFromIdentity)
+				//if (mRenderFromIdentity)
 					//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+				Renderer::Get()->SetBlendState(material->mBlendState);
+				Renderer::Get()->SetRasterizerState(material->mRasterizerState);
+				Renderer::Get()->SetDepthStencilState(material->mDepthStencilState);
+
 				effect->SetMaterial(material);
 				Renderer::Get()->Draw(mVisuals[i]);
+
+				Renderer::Get()->SetDefaultDepthStencilState();
+				Renderer::Get()->SetDefaultRasterizerState();
+				Renderer::Get()->SetDefaultBlendState();
 			}
 			renderMeshes = false;
 		}
@@ -273,10 +281,18 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 				eastl::shared_ptr<Material> material =
 					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
 
-				if (mRenderFromIdentity)
+				//if (mRenderFromIdentity)
 					//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+				Renderer::Get()->SetBlendState(material->mBlendState);
+				Renderer::Get()->SetRasterizerState(material->mRasterizerState);
+				Renderer::Get()->SetDepthStencilState(material->mDepthStencilState);
+
 				effect->SetMaterial(material);
 				Renderer::Get()->Draw(mVisuals[i]);
+
+				Renderer::Get()->SetDefaultDepthStencilState();
+				Renderer::Get()->SetDefaultRasterizerState();
+				Renderer::Get()->SetDefaultBlendState();
 			}
 		}
 	}
@@ -473,16 +489,6 @@ unsigned int AnimatedMeshNode::GetMaterialCount() const
 	return mMesh->GetMeshBufferCount();
 }
 
-//! Sets all material flags at once to a new value.
-/** Useful, for example, if you want the whole mesh to be affected by light.
-\param flag Which flag of all materials to be set.
-\param newvalue New value of that flag. */
-void AnimatedMeshNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
-{
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetFlag(flag, newvalue);
-}
-
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
@@ -492,7 +498,7 @@ void AnimatedMeshNode::SetMaterialTexture(unsigned int textureLayer, Texture2* t
 		return;
 
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetTexture(textureLayer, texture);
+		GetMaterial(i)->SetTexture(textureLayer, texture);
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.

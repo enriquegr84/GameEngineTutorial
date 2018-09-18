@@ -25,6 +25,7 @@
 #include "Effect/Lighting.h"
 #include "Effect/LightingEffect.h"
 #include "Effect/LightCameraGeometry.h"
+#include "Effect/MaterialLayer.h"
 #include "Effect/Material.h"
 #include "Effect/PointLightEffect.h"
 #include "Effect/PointLightTextureEffect.h"

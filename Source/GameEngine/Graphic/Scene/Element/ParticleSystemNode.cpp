@@ -161,8 +161,20 @@ bool ParticleSystemNode::Render(Scene *pScene)
 		idx +=4;
 	}
 
-	// render all
+	//if (mRenderFromIdentity)
+	//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+	Renderer::Get()->SetBlendState(mMeshBuffer->GetMaterial()->mBlendState);
+	Renderer::Get()->SetRasterizerState(mMeshBuffer->GetMaterial()->mRasterizerState);
+	Renderer::Get()->SetDepthStencilState(mMeshBuffer->GetMaterial()->mDepthStencilState);
+
+	eastl::shared_ptr<PointLightTextureEffect> effect =
+		eastl::static_pointer_cast<PointLightTextureEffect>(mVisual->GetEffect());
+	effect->SetMaterial(mMeshBuffer->GetMaterial());
 	Renderer::Get()->Draw(mVisual);
+
+	Renderer::Get()->SetDefaultDepthStencilState();
+	Renderer::Get()->SetDefaultRasterizerState();
+	Renderer::Get()->SetDefaultBlendState();
 	/*
 	Transform mat;
 	if (!mParticlesAreGlobal)
@@ -371,16 +383,6 @@ unsigned int ParticleSystemNode::GetMaterialCount() const
 	return 1;
 }
 
-//! Sets all material flags at once to a new value.
-/** Useful, for example, if you want the whole mesh to be affected by light.
-\param flag Which flag of all materials to be set.
-\param newvalue New value of that flag. */
-void ParticleSystemNode::SetMaterialFlag(MaterialFlag flag, bool newvalue)
-{
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetFlag(flag, newvalue);
-}
-
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
@@ -390,7 +392,7 @@ void ParticleSystemNode::SetMaterialTexture(unsigned int textureLayer, Texture2*
 		return;
 
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i).SetTexture(textureLayer, texture);
+		GetMaterial(i)->SetTexture(textureLayer, texture);
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.

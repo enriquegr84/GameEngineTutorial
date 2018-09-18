@@ -29,11 +29,16 @@ bool EmptyNode::PreRender(Scene *pScene)
 		int transparentCount = 0;
 		int solidCount = 0;
 
-		// count transparent and solid materials in this scene node
-		if (GetMaterial().IsTransparent())
-			++transparentCount;
-		else
-			++solidCount;
+		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+		{
+			if (GetMaterial(i)->IsTransparent())
+				++transparentCount;
+			else
+				++solidCount;
+
+			if (solidCount && transparentCount)
+				break;
+		}
 
 		// register according to material types counted
 		if (!pScene->IsCulled(this))

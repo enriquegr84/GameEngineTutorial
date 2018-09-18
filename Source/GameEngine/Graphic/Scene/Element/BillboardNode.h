@@ -51,12 +51,6 @@ public:
 	//! returns amount of materials used by this scene node.
 	virtual unsigned int GetMaterialCount() const;
 
-	//! Sets all material flags at once to a new value.
-	/** Useful, for example, if you want the whole mesh to be affected by light.
-	\param flag Which flag of all materials to be set.
-	\param newvalue New value of that flag. */
-	virtual void SetMaterialFlag(MaterialFlag flag, bool newvalue);
-
 	//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 	/** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 	\param texture New texture to be used. */

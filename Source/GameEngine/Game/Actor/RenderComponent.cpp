@@ -69,9 +69,6 @@ bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 
 	mMeshModelFile = pMesh->Attribute("model_file");
 	mMeshTextureFile = pMesh->Attribute("texture_file");
-    //pMesh->Attribute("position", &segments);
-	//pMesh->Attribute("rotation", &segments);
-	//pMesh->Attribute("scale", &segments);
 
     return true;
 }
@@ -119,7 +116,8 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 						const eastl::shared_ptr<ImageResourceExtraData>& extra =
 							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
-						animatedMeshNode->SetMaterialFlag(MF_LIGHTING, false);
+						for (unsigned int i = 0; i<animatedMeshNode->GetMaterialCount(); ++i)
+							animatedMeshNode->GetMaterial(i)->mLighting = false;
 						animatedMeshNode->SetMaterialTexture(0, extra->GetImage().get());
 					}
 				}
@@ -190,11 +188,11 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
 			// create a sphere node with specified radius and poly count.
-			eastl::shared_ptr<Node> sphere =
+			eastl::shared_ptr<Node> sphereNode =
 				pScene->AddSphereNode(wbrcp, nullptr, mRadius, mSegments, mOwner->GetId());
-			if (sphere)
+			if (sphereNode)
 			{
-				sphere->GetRelativeTransform() = transform;
+				sphereNode->GetRelativeTransform() = transform;
 
 				eastl::shared_ptr<ResHandle>& resHandle =
 					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
@@ -203,12 +201,13 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 					const eastl::shared_ptr<ImageResourceExtraData>& extra =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
-					sphere->SetMaterialTexture(0, extra->GetImage().get());
-					sphere->SetMaterialFlag(MF_LIGHTING, false);
+					for (unsigned int i = 0; i<sphereNode->GetMaterialCount(); ++i)
+						sphereNode->GetMaterial(i)->mLighting = false;
+					sphereNode->SetMaterialTexture(0, extra->GetImage().get());
 				}
 			}
 
-			return sphere;
+			return sphereNode;
 		}
 		else LogAssert(nullptr, "Unknown Renderer Implementation in SphereRenderComponent::CreateSceneNode");
 	}
@@ -317,7 +316,8 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 						const eastl::shared_ptr<ImageResourceExtraData>& extra =
 							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
-						gridNode->SetMaterialFlag(MF_LIGHTING, false);
+						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
+							gridNode->GetMaterial(i)->mLighting = false;
 						gridNode->SetMaterialTexture(0, extra->GetImage().get());
 					}
 
@@ -328,9 +328,11 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 						const eastl::shared_ptr<ImageResourceExtraData>& extra =
 							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
+						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
+							gridNode->GetMaterial(i)->mLighting = false;
+						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
+							gridNode->GetMaterial(i)->mRasterizerState->mCullMode = RasterizerState::CULL_NONE;
 						gridNode->SetMaterialTexture(0, extra->GetImage().get());
-						gridNode->SetMaterialFlag(MF_LIGHTING, false);
-						gridNode->SetMaterialFlag(MF_BACK_FACE_CULLING, true);
 					}
 
 				}
@@ -539,15 +541,17 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 					const eastl::shared_ptr<ImageResourceExtraData>& extra =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
-					eastl::shared_ptr<Node> bill = pScene->AddBillboardNode(eastl::weak_ptr<BaseRenderComponent>(), 
+					eastl::shared_ptr<Node> billNode = 
+						pScene->AddBillboardNode(eastl::weak_ptr<BaseRenderComponent>(), 
 						light, extra->GetImage(), mBillboardSize, INVALID_ACTOR_ID);
-					if (bill)
+					if (billNode)
 					{
-						bill->GetRelativeTransform() = transform;
+						billNode->GetRelativeTransform() = transform;
 
-						bill->SetMaterialFlag(MF_LIGHTING, false);
-						bill->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
-						bill->SetMaterialTexture(0, extra->GetImage().get());
+						for (unsigned int i = 0; i<billNode->GetMaterialCount(); ++i)
+							billNode->GetMaterial(i)->mLighting = false;
+						billNode->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
+						billNode->SetMaterialTexture(0, extra->GetImage().get());
 					}
 				}
 			}
@@ -670,8 +674,10 @@ eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
 					const eastl::shared_ptr<ImageResourceExtraData>& extra =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
-					particleSystem->SetMaterialFlag(MF_LIGHTING, false);
-					particleSystem->SetMaterialFlag(MF_ZWRITE_ENABLE, false);
+					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
+						particleSystem->GetMaterial(i)->mLighting = false;
+					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
+						particleSystem->GetMaterial(i)->mDepthStencilState->mDepthEnable = false;
 					particleSystem->SetMaterialTexture(0, extra->GetImage().get());
 					particleSystem->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
 				}
