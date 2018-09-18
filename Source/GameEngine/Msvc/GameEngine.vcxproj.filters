@@ -238,6 +238,9 @@
     <Filter Include="Assets\World">
       <UniqueIdentifier>{21ad7b9a-aab3-4745-9602-4959288a839f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphic\3rdParty\assimp\include">
+      <UniqueIdentifier>{f981db26-0219-48d0-9986-961d35510f2e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -2290,6 +2293,114 @@
     <ClInclude Include="..\Graphic\Effect\MaterialLayer.h">
       <Filter>Graphic\Effect</Filter>
     </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\ai_assert.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\anim.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\camera.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\cexport.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\cfileio.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\cimport.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\color4.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\DefaultIOStream.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\DefaultIOSystem.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\DefaultLogger.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Defines.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\defs.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Exporter.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Importer.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\importerdesc.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\IOStream.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\IOSystem.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\light.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\Logger.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\LogStream.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\material.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\matrix3x3.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\matrix4x4.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\mesh.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\metadata.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\NullLogger.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\postprocess.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\ProgressHandler.hpp">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\quaternion.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\scene.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\SceneCombiner.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\texture.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\types.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\vector2.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\vector3.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\assimp\include\version.h">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl">
@@ -2378,6 +2489,30 @@
     </None>
     <None Include="..\..\..\Assets\Effects\VertexColorEffectVS.glsl">
       <Filter>Assets\Effects</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\color4.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\config.h.in">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\material.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\matrix3x3.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\matrix4x4.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\quaternion.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\vector2.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
+    </None>
+    <None Include="..\Graphic\3rdParty\assimp\include\vector3.inl">
+      <Filter>Graphic\3rdParty\assimp\include</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
