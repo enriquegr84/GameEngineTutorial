@@ -26,13 +26,10 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(
-		vformat, (mHorizontalResolution + 1) * (mVerticalResolution + 1));
-	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(
-		IP_TRIMESH, (2 * mVerticalResolution - 1) * mHorizontalResolution, sizeof(unsigned int));
-
 	//SetAutomaticCulling(AC_OFF);
-	mMeshBuffer = eastl::make_shared<MeshBuffer>();
+	mMeshBuffer = eastl::make_shared<MeshBuffer>(vformat, 
+		(mHorizontalResolution + 1) * (mVerticalResolution + 1), 
+		(2 * mVerticalResolution - 1) * mHorizontalResolution, sizeof(unsigned int));
 	// Create the visual effect. The world up-direction is (0,0,1).  Choose
 	// the light to point down.
 	mMeshBuffer->GetMaterial()->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -44,22 +41,19 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	mMeshBuffer->GetMaterial()->mDepthStencilState->mDepthEnable = false;
 	mMeshBuffer->GetMaterial()->mRasterizerState->mEnableDepthClip = false;
 	mMeshBuffer->GetMaterial()->mRasterizerState->mEnableAntialiasedLine = false;
-	mMeshBuffer->GetMaterial()->SetTexture(0, sky.get());
+	mMeshBuffer->GetMaterial()->SetTexture(0, sky);
 
-	eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
-	lighting->mAmbient = Renderer::Get()->GetClearColor();
-	lighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
+	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+	eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
+		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
+		mMeshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mFilter,
+		mMeshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[0],
+		mMeshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[1]);
 
-	eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
-
-	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
-	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMeshBuffer->GetMaterial(), lighting, geometry, sky,
-		SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
-
-	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, effect);
+	mVisual = eastl::make_shared<Visual>(mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), effect);
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelNormals();
+	mVisual->UpdateModelBound();
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 
 	// regenerate the mesh
@@ -86,9 +80,9 @@ void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
 		Vector3<float> normal;
 		Vector2<float> tcoord;
 	};
-	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
-	unsigned int numVertices = vbuffer->GetNumElements();
-	Vertex* vertex = vbuffer->Get<Vertex>();
+
+	unsigned int numVertices = mMeshBuffer->GetVertice()->GetNumElements();
+	Vertex* vertex = mMeshBuffer->GetVertice()->Get<Vertex>();
 
 	const float tcV = mTexturePercentage / mVerticalResolution;
 	int vtx = 0;
@@ -114,9 +108,8 @@ void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
 		azimuth += azimuthStep;
 	}
 
-	eastl::shared_ptr<IndexBuffer> ibuffer = mVisual->GetIndexBuffer();
-	unsigned int numIndices = ibuffer->GetNumElements();
-	unsigned int* indices = ibuffer->Get<unsigned int>();
+	unsigned int numIndices = mMeshBuffer->GetIndice()->GetNumElements();
+	unsigned int* indices = mMeshBuffer->GetIndice()->Get<unsigned int>();
 
 	int idx = 0;
 	for (unsigned int k = 0; k < mHorizontalResolution; ++k)
@@ -162,19 +155,20 @@ bool SkyDomeNode::Render(Scene* pScene)
 		// draw perspective skydome
 		//Matrix4x4<float> translate(toWorld);
 		GetRelativeTransform().SetTranslation(camera->GetAbsoluteTransform().GetTranslation());
-
+		/*
 		Renderer::Get()->SetBlendState(mMeshBuffer->GetMaterial()->mBlendState);
 		Renderer::Get()->SetRasterizerState(mMeshBuffer->GetMaterial()->mRasterizerState);
 		Renderer::Get()->SetDepthStencilState(mMeshBuffer->GetMaterial()->mDepthStencilState);
 
-		eastl::shared_ptr<PointLightTextureEffect> effect =
-			eastl::static_pointer_cast<PointLightTextureEffect>(mVisual->GetEffect());
 		effect->SetMaterial(mMeshBuffer->GetMaterial());
-		Renderer::Get()->Draw(mVisual);
+		*/
 
+		Renderer::Get()->Draw(mVisual);
+		/*
 		Renderer::Get()->SetDefaultDepthStencilState();
 		Renderer::Get()->SetDefaultRasterizerState();
 		Renderer::Get()->SetDefaultBlendState();
+		*/
 	}
 	/*
 	// for debug purposes only:
@@ -225,7 +219,7 @@ unsigned int SkyDomeNode::GetMaterialCount() const
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
-void SkyDomeNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+void SkyDomeNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Texture2> texture)
 {
 	if (textureLayer >= MATERIAL_MAX_TEXTURES)
 		return;

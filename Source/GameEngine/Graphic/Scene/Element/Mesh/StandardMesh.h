@@ -8,7 +8,7 @@
 #include "GameEngineStd.h"
 
 #include "Graphic/Resource/Buffer/MeshBuffer.h"
-#include "Graphic/Effect/Mesh.h"
+#include "Graphic/Scene/Element/Mesh/Mesh.h"
 
 //! Simple implementation of the BaseMesh interface.
 class StandardMesh : public BaseMesh
@@ -27,7 +27,7 @@ public:
 	//! clean mesh
 	virtual void Clear()
 	{
-		mMeshBuffer.reset();
+		mMeshBuffers.clear();
 	}
 
 
@@ -40,20 +40,29 @@ public:
 	//! Get pointer to a mesh buffer.
 	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(unsigned int nr) const
 	{
-		return mMeshBuffer;
+		if (mMeshBuffers.empty())
+			return nullptr;
+
+		if (nr < 0 || nr >= mMeshBuffers.size())
+			return nullptr;
+
+		return mMeshBuffers[nr];
 	}
 
 	//! Get pointer to a mesh buffer which fits a material
 	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(const Material &material) const
 	{
-		if (&material == mMeshBuffer->GetMaterial().get())
-			mMeshBuffer;
+		for (auto meshBuffer : mMeshBuffers)
+		{
+			if (&material == meshBuffer->GetMaterial().get())
+				meshBuffer;
+		}
 
 		return nullptr;
 	}
 
 	//! The meshbuffer of this mesh
-	eastl::shared_ptr<MeshBuffer> mMeshBuffer;
+	eastl::vector<eastl::shared_ptr<MeshBuffer>> mMeshBuffers;
 };
 
 #endif

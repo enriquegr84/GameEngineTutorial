@@ -6,6 +6,7 @@
 
 #include "MeshFileLoader.h"
 
+#include "Graphic/Image/ImageResource.h"
 #include "Graphic/Scene/Element/Mesh/AnimatedMesh.h"
 #include "Graphic/Scene/Element/Mesh/StandardMesh.h"
 
@@ -128,22 +129,22 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 			if (pScene->mMeshes[m]->HasPositions())
 			{
 				const aiVector3D& position = pScene->mMeshes[m]->mVertices[v];
-				meshBuffer->Position(v) = Vector3<float>{ position.x, position.y, position.z };
+				meshBuffer->Position(v) = Vector3<float>{ position.x, position.z, position.y };
 			}
 			if (pScene->mMeshes[m]->HasNormals())
 			{
 				const aiVector3D& normal = pScene->mMeshes[m]->mNormals[v];
-				meshBuffer->Normal(v) = Vector3<float>{ normal.x, normal.y, normal.z };
+				meshBuffer->Normal(v) = Vector3<float>{ normal.x, normal.z , normal.y };
 			}
 			if (pScene->mMeshes[m]->HasTangentsAndBitangents())
 			{
 				const aiVector3D& tangent = pScene->mMeshes[m]->mTangents[v];
-				meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, tangent.y, tangent.z };
+				meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, tangent.z , tangent.y };
 			}
 			if (pScene->mMeshes[m]->HasTangentsAndBitangents())
 			{
 				const aiVector3D& bitangent = pScene->mMeshes[m]->mBitangents[v];
-				meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, bitangent.y, bitangent.z };
+				meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, bitangent.z, bitangent.y };
 			}	
 			for (unsigned int ch = 0; ch < pScene->mMeshes[m]->GetNumColorChannels(); ch++)
 			{
@@ -158,7 +159,7 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 				if (pScene->mMeshes[m]->HasTextureCoords(ch))
 				{
 					const aiVector3D& texCoord = pScene->mMeshes[m]->mTextureCoords[ch][v];
-					meshBuffer->TCoord(ch, v) = Vector2<float>{ texCoord.x, texCoord.y };
+					meshBuffer->TCoord(ch, v) = Vector2<float>{ texCoord.x, 1-texCoord.y };
 				}
 			}
 		}
@@ -172,35 +173,129 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 		if (pScene->HasMaterials())
 		{
 			const aiMaterial* material = pScene->mMaterials[pScene->mMeshes[m]->mMaterialIndex];
+
 			aiColor4D diffuseColor;
 			aiColor4D ambientColor;
 			aiColor4D specularColor;
 			aiColor4D emissiveColor;
 			aiColor4D transparentColor;
 			int wireframe, culling, shadingModel;
-			float opacity;
+			float opacity, shininess;
 
-			aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &diffuseColor);
-			aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &ambientColor);
-			aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &specularColor);
-			aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &emissiveColor);
-			aiGetMaterialColor(material, AI_MATKEY_COLOR_TRANSPARENT, &transparentColor);
-			aiGetMaterialInteger(material, AI_MATKEY_TWOSIDED, &culling);
-			aiGetMaterialInteger(material, AI_MATKEY_ENABLE_WIREFRAME, &wireframe);
-			aiGetMaterialInteger(material, AI_MATKEY_SHADING_MODEL, &shadingModel);
-			aiGetMaterialFloat(material, AI_MATKEY_OPACITY, &opacity);
-			aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &meshBuffer->GetMaterial()->mShininess);
+			if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &diffuseColor) == aiReturn::aiReturn_SUCCESS)
+				meshBuffer->GetMaterial()->mDiffuse = Vector4<float>{ diffuseColor.r, diffuseColor.g, diffuseColor.b, diffuseColor.a };
+			if (aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &ambientColor) == aiReturn::aiReturn_SUCCESS)
+				meshBuffer->GetMaterial()->mAmbient = Vector4<float>{ ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a };
+			if (aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &specularColor) == aiReturn::aiReturn_SUCCESS)
+				meshBuffer->GetMaterial()->mSpecular = Vector4<float>{ specularColor.r, specularColor.g, specularColor.b, specularColor.a };
+			if (aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, &emissiveColor) == aiReturn::aiReturn_SUCCESS)
+				meshBuffer->GetMaterial()->mEmissive = Vector4<float>{ emissiveColor.r, emissiveColor.g, emissiveColor.b, emissiveColor.a };
+			//if (aiGetMaterialColor(material, AI_MATKEY_COLOR_TRANSPARENT, &transparentColor) == aiReturn::aiReturn_SUCCESS)
 
-			meshBuffer->GetMaterial()->mType = (opacity > 0.5f) ? MT_TRANSPARENT_ADD_COLOR : MT_SOLID;
-			meshBuffer->GetMaterial()->mRasterizerState->mCullMode =
-				(culling != 0) ? RasterizerState::CULL_BACK : RasterizerState::CULL_NONE;
-			meshBuffer->GetMaterial()->mRasterizerState->mFillMode = 
-				(wireframe != 0) ? RasterizerState::FILL_WIREFRAME : RasterizerState::FILL_SOLID;
-			meshBuffer->GetMaterial()->mShadingModel = (ShadingModel)shadingModel;
-			meshBuffer->GetMaterial()->mDiffuse = Vector4<float>{ diffuseColor.r, diffuseColor.g, diffuseColor.b, diffuseColor.a };
-			meshBuffer->GetMaterial()->mAmbient = Vector4<float>{ ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a };
-			meshBuffer->GetMaterial()->mSpecular = Vector4<float>{ specularColor.r, specularColor.g, specularColor.b, specularColor.a };
-			meshBuffer->GetMaterial()->mEmissive = Vector4<float>{ emissiveColor.r, emissiveColor.g, emissiveColor.b, emissiveColor.a };
+			if (aiGetMaterialInteger(material, AI_MATKEY_TWOSIDED, &culling) == aiReturn::aiReturn_SUCCESS)
+				meshBuffer->GetMaterial()->mRasterizerState->mCullMode = (culling != 0) ? RasterizerState::CULL_BACK : RasterizerState::CULL_NONE;
+			if (aiGetMaterialInteger(material, AI_MATKEY_ENABLE_WIREFRAME, &wireframe) == aiReturn::aiReturn_SUCCESS)
+				meshBuffer->GetMaterial()->mRasterizerState->mFillMode = (wireframe != 0) ? RasterizerState::FILL_WIREFRAME : RasterizerState::FILL_SOLID;
+			if (aiGetMaterialInteger(material, AI_MATKEY_SHADING_MODEL, &shadingModel) == aiReturn::aiReturn_SUCCESS)
+				meshBuffer->GetMaterial()->mShadingModel = (ShadingModel)shadingModel;
+			if (aiGetMaterialFloat(material, AI_MATKEY_OPACITY, &opacity) == aiReturn::aiReturn_SUCCESS)
+				meshBuffer->GetMaterial()->mType = (opacity > 0.5f) ? MT_TRANSPARENT_ADD_COLOR : MT_SOLID;
+			if (aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &shininess) == aiReturn::aiReturn_SUCCESS)
+				meshBuffer->GetMaterial()->mShininess = shininess;
+
+			int textureIdx = 0;
+			aiTextureType textureTypes[] = { 
+				aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_AMBIENT, 
+				aiTextureType_EMISSIVE, aiTextureType_HEIGHT, aiTextureType_NORMALS, 
+				aiTextureType_SHININESS, aiTextureType_OPACITY, aiTextureType_DISPLACEMENT, 
+				aiTextureType_LIGHTMAP, aiTextureType_REFLECTION };
+			for (auto textureType : textureTypes)
+			{
+				for (unsigned int idx = 0; idx < material->GetTextureCount(textureType); idx++)
+				{
+					aiString texturePath;
+					aiTextureOp textureOperation;
+					aiTextureMapMode textureMapMode;
+					aiTextureMapping textureMapping;
+					ai_real blend;
+					unsigned int uvindex;
+
+					material->GetTexture(textureType, idx, &texturePath, &textureMapping, &uvindex, &blend, &textureOperation, &textureMapMode);
+					for (unsigned int propIdx = 0; propIdx < material->mNumProperties; propIdx++)
+					{
+						if (!eastl::string(material->mProperties[propIdx]->mKey.C_Str()).compare(_AI_MATKEY_TEXTURE_BASE))
+						{
+							eastl::shared_ptr<ResHandle>& resHandle =
+								ResCache::Get()->GetHandle(&BaseResource(L"Art/" + ToWideString(texturePath.C_Str())));
+							if (resHandle)
+							{
+								const eastl::shared_ptr<ImageResourceExtraData>& extra =
+									eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+								extra->GetImage()->AutogenerateMipmaps();
+								meshBuffer->GetMaterial()->SetTexture(textureIdx, extra->GetImage());
+							}
+						}
+						else if (!eastl::string(material->mProperties[propIdx]->mKey.C_Str()).compare(_AI_MATKEY_UVWSRC_BASE))
+						{
+
+						}
+						else if (!eastl::string(material->mProperties[propIdx]->mKey.C_Str()).compare(_AI_MATKEY_TEXOP_BASE))
+						{
+
+						}
+						else if (!eastl::string(material->mProperties[propIdx]->mKey.C_Str()).compare(_AI_MATKEY_MAPPING_BASE))
+						{
+
+						}
+						else if (!eastl::string(material->mProperties[propIdx]->mKey.C_Str()).compare(_AI_MATKEY_TEXBLEND_BASE))
+						{
+
+						}
+						else if (!eastl::string(material->mProperties[propIdx]->mKey.C_Str()).compare(_AI_MATKEY_MAPPINGMODE_U_BASE))
+						{
+							switch (textureMapMode)
+							{
+								case aiTextureMapMode_Wrap:
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[0] = SamplerState::WRAP;
+									break;
+								case aiTextureMapMode_Clamp:
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[0] = SamplerState::CLAMP;
+									break;
+								case aiTextureMapMode_Decal:
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[0] = SamplerState::BORDER;
+									break;
+								case aiTextureMapMode_Mirror:
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[0] = SamplerState::MIRROR;
+									break;
+								default:
+									break;
+							}
+						}
+						else if (!eastl::string(material->mProperties[propIdx]->mKey.C_Str()).compare(_AI_MATKEY_MAPPINGMODE_V_BASE))
+						{
+							switch (textureMapMode)
+							{
+								case aiTextureMapMode_Wrap:
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[1] = SamplerState::WRAP;
+									break;
+								case aiTextureMapMode_Clamp:
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[1] = SamplerState::CLAMP;
+									break;
+								case aiTextureMapMode_Decal:
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[1] = SamplerState::BORDER;
+									break;
+								case aiTextureMapMode_Mirror:
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[1] = SamplerState::MIRROR;
+									break;
+								default:
+									break;
+							}
+						}
+					}
+
+					textureIdx++;
+				}
+			}
 		}
 
 		mesh->mMeshBuffer = meshBuffer;

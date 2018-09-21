@@ -1,7 +1,7 @@
 <Actor type="Light" resource="actors\light.xml">
 
 	<TransformComponent>
-		<Position x="5.0" y="3.0" z="5.0"/>
+		<Position x="30.0" y="15.0" z="10.0"/>
 		<YawPitchRoll x="45" y="0" z="-45"/>
 	</TransformComponent>
 

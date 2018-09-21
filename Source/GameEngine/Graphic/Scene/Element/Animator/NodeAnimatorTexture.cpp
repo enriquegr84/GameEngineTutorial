@@ -8,7 +8,8 @@
 
 //! constructor
 NodeAnimatorTexture::NodeAnimatorTexture(
-	const eastl::vector<Texture2*>& textures, int timePerFrame, bool loop, unsigned int now)
+	const eastl::vector<eastl::shared_ptr<Texture2>>& textures, 
+	int timePerFrame, bool loop, unsigned int now)
 : mFinishTime(0), mHasFinished(false), mTimePerFrame(timePerFrame), mStartTime(now), mLoop(loop)
 {
 	for (unsigned int i=0; i<textures.size(); ++i)

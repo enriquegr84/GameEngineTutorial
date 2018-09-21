@@ -680,8 +680,8 @@ void BulletPhysics::AddPointCloud(Vector3<float> *verts, int numPoints, eastl::w
 	btConvexHullShape * const shape = new btConvexHullShape();
 	
 	// add the points to the shape one at a time
-	for ( int ii=0; ii<numPoints; ++ii )
-		shape->addPoint(  Vector3_to_btVector3( verts[ii] ) );
+	for ( int i=0; i<numPoints; ++i )
+		shape->addPoint(  Vector3_to_btVector3( verts[i] ) );
 	
 	// approximate absolute mass using bounding box
 	btVector3 aabbMin(0,0,0), aabbMax(0,0,0);

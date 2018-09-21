@@ -9,12 +9,12 @@
         <Density>pine</Density>
         <PhysicsMaterial>Bouncy</PhysicsMaterial>
 		<RigidBodyTransform>
-			<Scale x="0.25" y="0.25" z="0.25" />  
+			<Scale x="10" y="10" z="10" />  
 		</RigidBodyTransform>
     </PhysicsComponent>
 
     <SphereRenderComponent>
-        <Sphere radius="0.25" segments="25"/>
+        <Sphere radius="10" segments="25"/>
 		<Texture file="art\wall.bmp" x="1.0" y="1.0" />
 	</SphereRenderComponent>
 

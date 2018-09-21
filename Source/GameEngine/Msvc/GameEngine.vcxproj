@@ -155,6 +155,7 @@
     <ClCompile Include="..\Graphic\Resource\Buffer\IndexBuffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\MeshBuffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\RawBuffer.cpp" />
+    <ClCompile Include="..\Graphic\Resource\Buffer\SkinMeshBuffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\StructuredBuffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\TextureBuffer.cpp" />
     <ClCompile Include="..\Graphic\Resource\Buffer\VertexBuffer.cpp" />
@@ -189,6 +190,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorRotation.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorTexture.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\BillboardNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\BoneNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\CameraNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\CubeNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\EmptyNode.cpp" />
@@ -196,6 +198,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\MeshNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshCache.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\SkinnedMesh.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ParticleSystemNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleAttractionAffector.cpp" />
@@ -519,7 +522,6 @@
     <ClInclude Include="..\Graphic\Effect\LightingEffect.h" />
     <ClInclude Include="..\Graphic\Effect\Material.h" />
     <ClInclude Include="..\Graphic\Effect\MaterialLayer.h" />
-    <ClInclude Include="..\Graphic\Effect\Mesh.h" />
     <ClInclude Include="..\Graphic\Effect\Particle.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightEffect.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightTextureEffect.h" />
@@ -593,6 +595,7 @@
     <ClInclude Include="..\Graphic\Resource\Buffer\IndexFormat.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\MeshBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\RawBuffer.h" />
+    <ClInclude Include="..\Graphic\Resource\Buffer\SkinMeshBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\StructuredBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\TextureBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\VertexBuffer.h" />
@@ -628,12 +631,14 @@
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorRotation.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorTexture.h" />
     <ClInclude Include="..\Graphic\Scene\Element\BillboardNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\BoneNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\CameraNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\CubeNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\EmptyNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\LightNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\MeshNode.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\AnimatedMesh.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\Mesh.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\SkinnedMesh.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshLoader.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshCache.h" />

@@ -33,12 +33,13 @@ bool PVWUpdater::Subscribe(Matrix4x4<float> const& worldMatrix,
 {
     if (cbuffer && cbuffer->HasMember(pvwMatrixName))
     {
-        if (mSubscribers.find(&worldMatrix) == mSubscribers.end())
-        {
-            mSubscribers.insert(eastl::make_pair(&worldMatrix,
-                eastl::make_pair(cbuffer, pvwMatrixName)));
-            return true;
-        }
+		for (PVWIterator it = mSubscribers.begin(); it != mSubscribers.end(); it++)
+			if ((*it).second.first == cbuffer)
+				return false;
+
+		mSubscribers.insert(eastl::make_pair(&worldMatrix,
+			eastl::make_pair(cbuffer, pvwMatrixName)));
+		return true;
     }
     return false;
 }

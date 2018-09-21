@@ -241,13 +241,13 @@ public:
 	//! Gets the i-th texture
 	/** \param i The desired level.
 	\return Texture for texture level i, if defined, else 0. */
-	Texture2* GetTexture(unsigned int i) const;
+	eastl::shared_ptr<Texture2> GetTexture(unsigned int i) const;
 
 	//! Sets the i-th texture
 	/** If i>=MATERIAL_MAX_TEXTURES this setting will be ignored.
 	\param i The desired level.
 	\param tex Texture for texture level i. */
-	void SetTexture(unsigned int i, Texture2* tex);
+	void SetTexture(unsigned int i, eastl::shared_ptr<Texture2> tex);
 
 	//! Store the blend state of choice
 	/** Values to be chosen from BlendState. The actual way to use this value

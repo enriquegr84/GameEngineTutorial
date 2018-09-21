@@ -7,8 +7,7 @@
 
 #include "GameEngineStd.h"
 
-#include "Material.h"
-
+#include "Graphic/Effect/Material.h"
 #include "Graphic/Resource/Buffer/MeshBuffer.h"
 
 #include "Mathematic/Geometric/AlignedBox.h"

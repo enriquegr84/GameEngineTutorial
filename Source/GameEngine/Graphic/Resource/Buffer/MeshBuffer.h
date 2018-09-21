@@ -31,8 +31,36 @@ It's therefore required to dynamically allocate meshbuffers which are
 passed to a video driver and only drop the buffer once it's not used in
 the current code block anymore.
 */
+class GRAPHIC_ITEM BaseMeshBuffer : public Buffer
+{
+public:
 
-class GRAPHIC_ITEM MeshBuffer : public Buffer
+	//! Get vertices of this meshbuffer
+	/** \return Vertice of this buffer. */
+	virtual const eastl::shared_ptr<VertexBuffer>& GetVertice() const = 0;
+
+	//! Get indices of this meshbuffer
+	/** \return Indice of this buffer. */
+	virtual const eastl::shared_ptr<IndexBuffer>& GetIndice() const = 0;
+
+	//! Get the material of this meshbuffer
+	/** \return Material of this buffer. */
+	virtual const eastl::shared_ptr<Material>& GetMaterial() const = 0;
+
+	//! Get material of this meshbuffer
+	/** \return Material of this buffer */
+	virtual eastl::shared_ptr<Material>& GetMaterial() = 0;
+
+	virtual inline Vector3<float>& Position(unsigned int i) = 0;
+	virtual inline Vector3<float>& Normal(unsigned int i) = 0;
+	virtual inline Vector3<float>& Tangent(unsigned int i) = 0;
+	virtual inline Vector3<float>& Bitangent(unsigned int i) = 0;
+	virtual inline Vector4<float>& Color(unsigned int unit, unsigned int i) = 0;
+	virtual inline Vector2<float>& TCoord(unsigned int unit, unsigned int i) = 0;
+};
+
+
+class GRAPHIC_ITEM MeshBuffer : public BaseMeshBuffer
 {
 public:
 
@@ -44,38 +72,38 @@ public:
 
 	//! Get vertices of this meshbuffer
 	/** \return Vertice of this buffer. */
-	const eastl::shared_ptr<VertexBuffer>& GetVertice() const
+	virtual const eastl::shared_ptr<VertexBuffer>& GetVertice() const
 	{
 		return mVertice;
 	}
 
 	//! Get indices of this meshbuffer
 	/** \return Indice of this buffer. */
-	const eastl::shared_ptr<IndexBuffer>& GetIndice() const
+	virtual const eastl::shared_ptr<IndexBuffer>& GetIndice() const
 	{
 		return mIndice;
 	}
 
 	//! Get the material of this meshbuffer
 	/** \return Material of this buffer. */
-	const eastl::shared_ptr<Material>& GetMaterial() const
+	virtual const eastl::shared_ptr<Material>& GetMaterial() const
 	{
 		return mMaterial;
 	}
 
 	//! Get material of this meshbuffer
 	/** \return Material of this buffer */
-	eastl::shared_ptr<Material>& GetMaterial()
+	virtual eastl::shared_ptr<Material>& GetMaterial()
 	{
 		return mMaterial;
 	}
 
-	inline Vector3<float>& Position(unsigned int i);
-	inline Vector3<float>& Normal(unsigned int i);
-	inline Vector3<float>& Tangent(unsigned int i);
-	inline Vector3<float>& Bitangent(unsigned int i);
-	inline Vector4<float>& Color(unsigned int unit, unsigned int i);
-	inline Vector2<float>& TCoord(unsigned int unit, unsigned int i);
+	virtual inline Vector3<float>& Position(unsigned int i);
+	virtual inline Vector3<float>& Normal(unsigned int i);
+	virtual inline Vector3<float>& Tangent(unsigned int i);
+	virtual inline Vector3<float>& Bitangent(unsigned int i);
+	virtual inline Vector4<float>& Color(unsigned int unit, unsigned int i);
+	virtual inline Vector2<float>& TCoord(unsigned int unit, unsigned int i);
 
 protected:
 	//! indices for this meshbuffer.

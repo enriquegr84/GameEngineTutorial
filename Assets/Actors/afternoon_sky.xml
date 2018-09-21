@@ -1,5 +1,5 @@
 <Actor type="Sky" resource="actors\afternoon_sky.xml">
     <SkyRenderComponent>
-		<Texture file="art\skydome.bmp" horiRes="16" vertRes="8" texturePercentage="0.95" spherePercentage="2.0" radius="1000.0" />
+		<Texture file="art\skydome.bmp" horiRes="16" vertRes="8" texturePercentage="0.95" spherePercentage="2.0" radius="2000.0" />
     </SkyRenderComponent>
 </Actor>

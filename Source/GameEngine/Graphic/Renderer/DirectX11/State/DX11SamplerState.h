@@ -23,7 +23,7 @@ public:
     inline ID3D11SamplerState* GetDXSamplerState();
 
 private:
-    // Conversions from GTEngine values to DX11 values.
+    // Conversions from GEngine values to DX11 values.
     static D3D11_FILTER const msFilter[];
     static D3D11_TEXTURE_ADDRESS_MODE const msMode[];
     static D3D11_COMPARISON_FUNC const msComparison[];

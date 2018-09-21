@@ -16,34 +16,14 @@
 
 #include "Mathematic/Algebra/Matrix4x4.h"
 
-//! Texture coord clamp mode outside [0.0, 1.0]
-enum GRAPHIC_ITEM TextureClamp
-{
-	//! Texture repeats
-	TC_REPEAT = 0,
-	//! Texture is clamped to the last pixel
-	TC_CLAMP,
-	//! Texture is clamped to the edge pixel
-	TC_CLAMP_TO_EDGE,
-	//! Texture is clamped to the border pixel (if exists)
-	TC_CLAMP_TO_BORDER,
-	//! Texture is alternatingly mirrored (0..1..0..1..0..)
-	TC_MIRROR,
-	//! Texture is mirrored once and then clamped (0..1..0)
-	TC_MIRROR_CLAMP,
-	//! Texture is mirrored once and then clamped to edge
-	TC_MIRROR_CLAMP_TO_EDGE,
-	//! Texture is mirrored once and then clamped to border
-	TC_MIRROR_CLAMP_TO_BORDER
-};
-
 class GRAPHIC_ITEM MaterialLayer
 {
 public:
     // Construction.
-	MaterialLayer()
-		: mTexture(0), mSamplerState(0)
-	{}
+	MaterialLayer() : mTexture(0)
+	{
+		mSamplerState = eastl::make_shared<SamplerState>();
+	}
 
 	//! Copy constructor
 	/** \param other Material layer to copy from. */
@@ -93,9 +73,8 @@ public:
 	}
 
 	//! Texture
-	Texture2* mTexture;
-
-	SamplerState* mSamplerState;
+	eastl::shared_ptr<Texture2> mTexture;
+	eastl::shared_ptr<SamplerState> mSamplerState;
 
 private:
 	friend class Material;

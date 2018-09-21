@@ -9,7 +9,7 @@
 
 SamplerState::SamplerState()
     :
-    mFilter(MIN_P_MAG_P_MIP_P),
+    mFilter(MIN_P_MAG_P_MIP_L),
     mMipLODBias(0.0f),
     mMaxAnisotropy(1),
     mComparison(NEVER),
@@ -19,8 +19,8 @@ SamplerState::SamplerState()
 {
     mType = GE_SAMPLER_STATE;
 
-    mMode[0] = CLAMP;
-    mMode[1] = CLAMP;
-    mMode[2] = CLAMP;
+    mMode[0] = WRAP;
+    mMode[1] = WRAP;
+    mMode[2] = WRAP;
 }
 

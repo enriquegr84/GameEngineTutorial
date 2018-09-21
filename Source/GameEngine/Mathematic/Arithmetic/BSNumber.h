@@ -44,7 +44,7 @@
 //          bool Read(std::ifstream& input);
 //      };
 //
-// GTEngine currently has 32-bits-per-word storage for UIntegerType.  See the
+// GEngine currently has 32-bits-per-word storage for UIntegerType.  See the
 // classes UIntegerAP32 (arbitrary precision), UIntegerFP32<N> (fixed
 // precision), and UIntegerALU32 (arithmetic logic unit shared by the previous
 // two classes).  The document at the following link describes the design,

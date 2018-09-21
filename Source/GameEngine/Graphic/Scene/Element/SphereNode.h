@@ -50,7 +50,7 @@ public:
 	/** \param textureLayer Layer of texture to be set. Must be a
 	value smaller than MATERIAL_MAX_TEXTURES.
 	\param texture New texture to be used. */
-	virtual void SetMaterialTexture(unsigned int textureLayer, Texture2* texture);
+	virtual void SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Texture2> texture);
 
 	//! Sets the material type of all materials in this scene node to a new material type.
 	/** \param newType New type of material to be set. */

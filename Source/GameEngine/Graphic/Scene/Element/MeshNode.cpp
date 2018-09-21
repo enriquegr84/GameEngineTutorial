@@ -42,19 +42,12 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 		const eastl::shared_ptr<MeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
 		if (meshBuffer)
 		{
-			// Create the visual effect.  The world up-direction is (0,0,1).  Choose
-			// the light to point down.
-			eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
-			lighting->mAmbient = Renderer::Get()->GetClearColor();
-			lighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
-
-			eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
-
-			eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
-			eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-				ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, meshBuffer->GetMaterial(), lighting,
-				geometry, eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
-				SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
+			eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+			eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
+				ProgramFactory::Get(), path, meshBuffer->GetMaterial()->GetTexture(0),
+				meshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mFilter,
+				meshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[0],
+				meshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[1]);
 
 			eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
 				meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
@@ -114,15 +107,10 @@ bool MeshNode::Render(Scene *pScene)
 	if (!mMesh || !Renderer::Get())
 		return false;
 
-	Matrix4x4<float> toWorld, fromWorld;
-	//Transform(&toWorld, &fromWorld);
-
 	bool isTransparentPass = GetRenderPass() && RP_TRANSPARENT;
-
 	++mPassCount;
 
 	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
-	//mBBox = mMesh->GetBoundingBox();
 
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
@@ -137,26 +125,27 @@ bool MeshNode::Render(Scene *pScene)
 		{
 			for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 			{
-				eastl::shared_ptr<PointLightTextureEffect> effect =
-					eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
-
 				const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
-				eastl::shared_ptr<Material> material =
-					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
+				eastl::shared_ptr<Material> material = mb->GetMaterial();
+				/*
 				material->mType = MT_TRANSPARENT_ADD_COLOR;
 
 				//if (mRenderFromIdentity)
 				//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+
 				Renderer::Get()->SetBlendState(material->mBlendState);
 				Renderer::Get()->SetRasterizerState(material->mRasterizerState);
 				Renderer::Get()->SetDepthStencilState(material->mDepthStencilState);
 
 				effect->SetMaterial(material);
-				Renderer::Get()->Draw(mVisuals[i]);
+				*/
 
+				Renderer::Get()->Draw(mVisuals[i]);
+				/*
 				Renderer::Get()->SetDefaultDepthStencilState();
 				Renderer::Get()->SetDefaultRasterizerState();
 				Renderer::Get()->SetDefaultBlendState();
+				*/
 			}
 			renderMeshes = false;
 		}
@@ -167,18 +156,15 @@ bool MeshNode::Render(Scene *pScene)
 	{
 		for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 		{
-			eastl::shared_ptr<PointLightTextureEffect> effect =
-				eastl::static_pointer_cast<PointLightTextureEffect>(mVisuals[i]->GetEffect());
-			bool transparent = (effect->GetMaterial()->IsTransparent());
+			const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
+			eastl::shared_ptr<Material> material = mb->GetMaterial();
+			bool transparent = (material->IsTransparent());
 
 			// only render transparent buffer if this is the transparent render pass
 			// and solid only in solid pass
 			if (transparent == isTransparentPass)
 			{
-				const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
-				eastl::shared_ptr<Material> material =
-					mReadOnlyMaterials ? mb->GetMaterial() : effect->GetMaterial();
-
+				/*
 				//if (mRenderFromIdentity)
 				//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
 				Renderer::Get()->SetBlendState(material->mBlendState);
@@ -186,11 +172,13 @@ bool MeshNode::Render(Scene *pScene)
 				Renderer::Get()->SetDepthStencilState(material->mDepthStencilState);
 
 				effect->SetMaterial(material);
+				*/
 				Renderer::Get()->Draw(mVisuals[i]);
-
+				/*
 				Renderer::Get()->SetDefaultDepthStencilState();
 				Renderer::Get()->SetDefaultRasterizerState();
 				Renderer::Get()->SetDefaultBlendState();
+				*/
 			}
 		}
 	}
@@ -305,7 +293,7 @@ unsigned int MeshNode::GetMaterialCount() const
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
-void MeshNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+void MeshNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Texture2> texture)
 {
 	if (textureLayer >= MATERIAL_MAX_TEXTURES)
 		return;

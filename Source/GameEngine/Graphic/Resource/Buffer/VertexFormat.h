@@ -45,6 +45,20 @@ enum GRAPHIC_ITEM VAConstant
     VA_MAX_COLOR_UNITS = 2
 };
 
+enum GRAPHIC_ITEM VertexType
+{
+	//! Standard vertex type used by the engine
+	VT_STANDARD = 0,
+
+	//! Vertex with two texture coordinates
+	/** Usually used for geometry with lightmaps or other special materials. */
+	VT_2TCOORDS,
+
+	//! Vertex with a tangent and binormal vector
+	/** Usually used for tangent space normal mapping. */
+	VT_TANGENTS
+};
+
 class GRAPHIC_ITEM VertexFormat
 {
 public:

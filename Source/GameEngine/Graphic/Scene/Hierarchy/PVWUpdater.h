@@ -58,7 +58,8 @@ protected:
 
     typedef Matrix4x4<float> const* PVWKey;
     typedef eastl::pair<eastl::shared_ptr<ConstantBuffer>, eastl::string> PVWValue;
-	eastl::map<PVWKey, PVWValue> mSubscribers;
+	typedef eastl::multimap<PVWKey, PVWValue>::iterator PVWIterator;
+	eastl::multimap<PVWKey, PVWValue> mSubscribers;
 };
 
 

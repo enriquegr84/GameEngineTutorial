@@ -26,23 +26,11 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* update
 	mMeshBuffer = eastl::make_shared<MeshBuffer>();
 	if (mMeshBuffer)
 	{
-		// Create the visual effect.  The world up-direction is (0,0,1).  Choose
-		// the light to point down.
-		eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
-		lighting->mAmbient = Renderer::Get()->GetClearColor();
-		lighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
+		eastl::string path = FileSystem::Get()->GetPath("Effects/VertexColorEffect.hlsl");
+		eastl::shared_ptr<ColorEffect> effect = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
 
-		eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
-
-		eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
-		eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-			ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMeshBuffer->GetMaterial(), lighting,
-			geometry, eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
-			SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
-
-		mVisual = eastl::make_shared<Visual>(mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), effect);
-		mVisual->UpdateModelNormals();
-		mVisual->UpdateModelBound();
+		mVisual= eastl::make_shared<Visual>(
+			mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), effect);
 		mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 	}
 
@@ -163,18 +151,20 @@ bool ParticleSystemNode::Render(Scene *pScene)
 
 	//if (mRenderFromIdentity)
 	//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+	/*
 	Renderer::Get()->SetBlendState(mMeshBuffer->GetMaterial()->mBlendState);
 	Renderer::Get()->SetRasterizerState(mMeshBuffer->GetMaterial()->mRasterizerState);
 	Renderer::Get()->SetDepthStencilState(mMeshBuffer->GetMaterial()->mDepthStencilState);
 
-	eastl::shared_ptr<PointLightTextureEffect> effect =
-		eastl::static_pointer_cast<PointLightTextureEffect>(mVisual->GetEffect());
 	effect->SetMaterial(mMeshBuffer->GetMaterial());
-	Renderer::Get()->Draw(mVisual);
+	*/
 
+	Renderer::Get()->Draw(mVisual);
+	/*
 	Renderer::Get()->SetDefaultDepthStencilState();
 	Renderer::Get()->SetDefaultRasterizerState();
 	Renderer::Get()->SetDefaultBlendState();
+	*/
 	/*
 	Transform mat;
 	if (!mParticlesAreGlobal)
@@ -386,7 +376,7 @@ unsigned int ParticleSystemNode::GetMaterialCount() const
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
-void ParticleSystemNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+void ParticleSystemNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Texture2> texture)
 {
 	if (textureLayer >= MATERIAL_MAX_TEXTURES)
 		return;

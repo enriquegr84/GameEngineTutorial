@@ -228,20 +228,20 @@ bool BillboardNode::Render(Scene *pScene)
 	Renderer::Get()->SetMaterial(mMaterial);
 	Renderer::Get()->DrawIndexedTriangleList(mVertices, 4, mIndices, 2);
 	*/
-
+	/*
 	Renderer::Get()->SetBlendState(mMaterial->mBlendState);
 	Renderer::Get()->SetRasterizerState(mMaterial->mRasterizerState);
 	Renderer::Get()->SetDepthStencilState(mMaterial->mDepthStencilState);
-
+	*/
 	eastl::shared_ptr<AmbientLightEffect> effect =
 		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
 	effect->SetMaterial(mMaterial);
 	Renderer::Get()->Draw(mVisual);
-
+	/*
 	Renderer::Get()->SetDefaultDepthStencilState();
 	Renderer::Get()->SetDefaultRasterizerState();
 	Renderer::Get()->SetDefaultBlendState();
-
+	*/
 	return Node::Render(pScene);
 }
 
@@ -318,7 +318,7 @@ unsigned int BillboardNode::GetMaterialCount() const
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
-void BillboardNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+void BillboardNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Texture2> texture)
 {
 	if (textureLayer >= MATERIAL_MAX_TEXTURES)
 		return;

@@ -503,7 +503,7 @@ eastl::shared_ptr<NodeAnimator> Scene::CreateFlyStraightAnimator(const Vector3<f
 //! Creates a texture animator, which switches the textures of the target scene
 //! node based on a list of textures.
 eastl::shared_ptr<NodeAnimator> Scene::CreateTextureAnimator(
-	const eastl::vector<Texture2*>& textures, int timePerFrame, bool loop)
+	const eastl::vector<eastl::shared_ptr<Texture2>>& textures, int timePerFrame, bool loop)
 {
 	return eastl::shared_ptr<NodeAnimator>(
 		new NodeAnimatorTexture(textures, timePerFrame, loop, Timer::GetTime()));

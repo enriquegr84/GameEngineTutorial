@@ -34,7 +34,7 @@ public:
     void Enable(ID3D11DeviceContext* context);
 
 private:
-    // Conversions from GTEngine values to DX11 values.
+    // Conversions from GEngine values to DX11 values.
     static D3D11_FILL_MODE const msFillMode[];
     static D3D11_CULL_MODE const msCullMode[];
 };

@@ -58,9 +58,6 @@ bool VolumeLightNode::PreRender(Scene *pScene)
 bool VolumeLightNode::Render(Scene *pScene)
 {
 	/*
-	Matrix4x4<float> toWorld, fromWorld;
-	//Get()->Transform(&toWorld, &fromWorld);
-
 	Renderer::Get()->SetTransform(ETS_WORLD, toWorld);
 
 	Renderer::Get()->SetMaterial(mMesh->GetMeshBuffer(0)->GetMaterial());
@@ -131,7 +128,7 @@ unsigned int VolumeLightNode::GetMaterialCount() const
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
-void VolumeLightNode::SetMaterialTexture(unsigned int textureLayer, Texture2* texture)
+void VolumeLightNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Texture2> texture)
 {
 	if (textureLayer >= MATERIAL_MAX_TEXTURES)
 		return;

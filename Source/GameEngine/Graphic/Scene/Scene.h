@@ -393,7 +393,7 @@ public:
 	If you no longer need the animator, you should call ISceneNodeAnimator::drop().
 	See IReferenceCounted::drop() for more information. */
 	eastl::shared_ptr<NodeAnimator> Scene::CreateTextureAnimator(
-		const eastl::vector<Texture2*>& textures, int timePerFrame, bool loop = true);
+		const eastl::vector<eastl::shared_ptr<Texture2>>& textures, int timePerFrame, bool loop = true);
 
 	//! Creates a scene node animator, which deletes the scene node after some time automatically.
 	/** \param timeMs: Time in milliseconds, after when the node will be deleted.

@@ -12,8 +12,9 @@ class NodeAnimatorTexture : public NodeAnimator
 public:
 
 	//! constructor
-	NodeAnimatorTexture(const eastl::vector<Texture2*>& textures,
-			int timePerFrame, bool loop, unsigned int now);
+	NodeAnimatorTexture(
+		const eastl::vector<eastl::shared_ptr<Texture2>>& textures,
+		int timePerFrame, bool loop, unsigned int now);
 
 	//! destructor
 	virtual ~NodeAnimatorTexture();
@@ -38,7 +39,7 @@ private:
 
 	void ClearTextures();
 
-	eastl::vector<Texture2*> mTextures;
+	eastl::vector<eastl::shared_ptr<Texture2>> mTextures;
 	unsigned int mTimePerFrame;
 	unsigned int mStartTime;
 	bool mLoop;

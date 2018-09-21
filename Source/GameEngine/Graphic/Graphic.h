@@ -27,6 +27,7 @@
 #include "Effect/LightCameraGeometry.h"
 #include "Effect/MaterialLayer.h"
 #include "Effect/Material.h"
+#include "Effect/Particle.h"
 #include "Effect/PointLightEffect.h"
 #include "Effect/PointLightTextureEffect.h"
 #include "Effect/SpotLightEffect.h"
@@ -49,6 +50,7 @@
 #include "Resource/Buffer/ConstantBuffer.h"
 #include "Resource/Buffer/IndexBuffer.h"
 #include "Resource/Buffer/IndexFormat.h"
+#include "Resource/Buffer/SkinMeshBuffer.h"
 #include "Resource/Buffer/MeshBuffer.h"
 #include "Resource/Buffer/RawBuffer.h"
 #include "Resource/Buffer/TextureBuffer.h"
@@ -90,7 +92,8 @@
 #include "Scene/Element/Animator/NodeAnimatorRotation.h"
 #include "Scene/Element/Animator/NodeAnimatorTexture.h"
 
-#include "Scene/Element/Mesh/AnimatedMesh.h"
+#include "Scene/Element/Mesh/Mesh.h"
+#include "Scene/Element/Mesh/SkinnedMesh.h"
 #include "Scene/Element/Mesh/StandardMesh.h"
 #include "Scene/Element/Mesh/MeshCache.h"
 #include "Scene/Element/Mesh/MeshLoader.h"
@@ -112,6 +115,7 @@
 
 #include "Scene/Element/AnimatedMeshNode.h"
 #include "Scene/Element/BillboardNode.h"
+#include "Scene/Element/BoneNode.h"
 #include "Scene/Element/CameraNode.h"
 #include "Scene/Element/RectangleNode.h"
 #include "Scene/Element/CubeNode.h"

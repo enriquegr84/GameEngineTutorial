@@ -68,7 +68,7 @@ bool Material::operator==(const Material& other) const
 //! Gets the i-th texture
 /** \param i The desired level.
 \return Texture for texture level i, if defined, else 0. */
-Texture2* Material::GetTexture(unsigned int i) const
+eastl::shared_ptr<Texture2> Material::GetTexture(unsigned int i) const
 {
 	return i < MATERIAL_MAX_TEXTURES ? mTextureLayer[i].mTexture : 0;
 }
@@ -77,7 +77,7 @@ Texture2* Material::GetTexture(unsigned int i) const
 /** If i>=MATERIAL_MAX_TEXTURES this setting will be ignored.
 \param i The desired level.
 \param tex Texture for texture level i. */
-void Material::SetTexture(unsigned int i, Texture2* tex)
+void Material::SetTexture(unsigned int i, eastl::shared_ptr<Texture2> tex)
 {
 	if (i >= MATERIAL_MAX_TEXTURES)
 		return;

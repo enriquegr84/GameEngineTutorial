@@ -68,7 +68,6 @@ bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 	tinyxml2::XMLElement* pMesh = pData->FirstChildElement("Mesh");
 
 	mMeshModelFile = pMesh->Attribute("model_file");
-	mMeshTextureFile = pMesh->Attribute("texture_file");
 
     return true;
 }
@@ -99,28 +98,8 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 				eastl::shared_ptr<Node> animatedMeshNode =
 					pScene->AddAnimatedMeshNode(wbrcp, 0, animatedMesh, mOwner->GetId());
 
-				//To let the mesh look a little bit nicer, we change its material. We
-				//disable lighting because we do not have a dynamic light in here, and
-				//the mesh would be totally black otherwise. And last, we apply a
-				//texture to the mesh. Without it the mesh would be drawn using only a
-				//color.
-
 				if (animatedMeshNode)
-				{
 					animatedMeshNode->GetRelativeTransform() = transform;
-
-					resHandle =
-						ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshTextureFile.c_str())));
-					if (resHandle)
-					{
-						const eastl::shared_ptr<ImageResourceExtraData>& extra =
-							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
-						for (unsigned int i = 0; i<animatedMeshNode->GetMaterialCount(); ++i)
-							animatedMeshNode->GetMaterial(i)->mLighting = false;
-						animatedMeshNode->SetMaterialTexture(0, extra->GetImage().get());
-					}
-				}
 
 				return animatedMeshNode;
 			}
@@ -203,7 +182,7 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 
 					for (unsigned int i = 0; i<sphereNode->GetMaterialCount(); ++i)
 						sphereNode->GetMaterial(i)->mLighting = false;
-					sphereNode->SetMaterialTexture(0, extra->GetImage().get());
+					sphereNode->SetMaterialTexture(0, extra->GetImage());
 				}
 			}
 
@@ -318,7 +297,7 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 
 						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
 							gridNode->GetMaterial(i)->mLighting = false;
-						gridNode->SetMaterialTexture(0, extra->GetImage().get());
+						gridNode->SetMaterialTexture(0, extra->GetImage());
 					}
 
 					resHandle =
@@ -332,7 +311,7 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 							gridNode->GetMaterial(i)->mLighting = false;
 						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
 							gridNode->GetMaterial(i)->mRasterizerState->mCullMode = RasterizerState::CULL_NONE;
-						gridNode->SetMaterialTexture(0, extra->GetImage().get());
+						gridNode->SetMaterialTexture(0, extra->GetImage());
 					}
 
 				}
@@ -551,7 +530,7 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 						for (unsigned int i = 0; i<billNode->GetMaterialCount(); ++i)
 							billNode->GetMaterial(i)->mLighting = false;
 						billNode->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
-						billNode->SetMaterialTexture(0, extra->GetImage().get());
+						billNode->SetMaterialTexture(0, extra->GetImage());
 					}
 				}
 			}
@@ -678,7 +657,7 @@ eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
 						particleSystem->GetMaterial(i)->mLighting = false;
 					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
 						particleSystem->GetMaterial(i)->mDepthStencilState->mDepthEnable = false;
-					particleSystem->SetMaterialTexture(0, extra->GetImage().get());
+					particleSystem->SetMaterialTexture(0, extra->GetImage());
 					particleSystem->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
 				}
 			}

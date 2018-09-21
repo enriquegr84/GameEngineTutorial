@@ -64,7 +64,7 @@ GameDemoCameraController::GameDemoCameraController(const eastl::shared_ptr<Camer
 	mTargetYaw = mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
 	mTargetPitch = mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
-	mMaxSpeed = 0.002f;			// meters per second
+	mMaxSpeed = 0.3f;			// meters per second
 	mCurrentSpeed = 0.0f;
 	mRotateSpeed = 0.005f;
 
@@ -253,11 +253,13 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 
 		Vector4<float> direction = atWorld + rightWorld + upWorld;
 		Normalize(direction);
-
+		/*
 		// Ramp the acceleration by the elapsed time.
 		mCurrentSpeed += mMaxSpeed * elapsedTime;
 		if (mCurrentSpeed > mMaxSpeed)
 			mCurrentSpeed = mMaxSpeed;
+		*/
+		mCurrentSpeed = mMaxSpeed;
 
 		direction *= mCurrentSpeed;
 		Vector4<float> pos = mTarget->GetAbsoluteTransform().GetTranslationW0() + direction;
