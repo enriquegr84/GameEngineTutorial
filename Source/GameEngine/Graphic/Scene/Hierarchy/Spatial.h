@@ -100,6 +100,11 @@ public:
 	\return The relative transformation matrix. */
 	Transform& GetAbsoluteTransform() { return mWorldTransform; }
 
+	//! Updates the absolute position based on the relative and the parents position
+	/** Note: This does not recursively update the parents absolute positions, so if you have a deeper
+	hierarchy you might want to update the parents first.*/
+	void UpdateAbsoluteTransform();
+
 	void SetCurrentAbsoluteTransform(bool enable) { mWorldTransformIsCurrent = enable; }
 
 	//! Returns the absoulte bound of the spatial node

@@ -145,8 +145,8 @@ static btTransform Transform_to_btTransform( Transform const & transform)
 	btMatrix3x3 bulletRotation;
 	btVector3 bulletPosition;
 	
-	// copy rotation matrix
-	Matrix4x4<float> transformMatrix = transform.GetMatrix();
+	// copy transform matrix
+	Matrix4x4<float> transformMatrix = transform.GetRotation();
 	for ( int row=0; row<3; ++row )
 		for ( int column=0; column<3; ++column )
 			bulletRotation[row][column] = transformMatrix(row, column);
@@ -172,8 +172,8 @@ static Transform btTransform_to_Transform( btTransform const & trans )
 	btMatrix3x3 const & bulletRotation = trans.getBasis();
 	btVector3 const & bulletPosition = trans.getOrigin();
 	
-	// copy rotation matrix
-	Matrix4x4<float> transformMatrix;
+	// copy transform matrix
+	Matrix4x4<float> transformMatrix = Matrix4x4<float>::Identity();
 	for ( int row=0; row<3; ++row )
 		for ( int column=0; column<3; ++column )
 			transformMatrix(row,column) = bulletRotation[row][column];
@@ -188,7 +188,7 @@ static Transform btTransform_to_Transform( btTransform const & trans )
 	for (int column = 0; column<3; ++column)
 		translationVector[column] = bulletPosition[column];
 
-	returnTransform.SetMatrix(transformMatrix);
+	returnTransform.SetRotation(transformMatrix);
 	returnTransform.SetTranslation(translationVector);
 	return returnTransform;
 }

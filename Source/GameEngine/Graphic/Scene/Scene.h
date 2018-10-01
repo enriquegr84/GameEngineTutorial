@@ -84,28 +84,6 @@ class LightManager;
 
 class Scene
 {
-protected:
-	Culler mCuller;
-	PVWUpdater mPVWUpdater;
-	BufferUpdater mBufferUpdater;
-
-	eastl::shared_ptr<RootNode> mRoot;
-	eastl::shared_ptr<CameraNode> mCamera;
-	eastl::shared_ptr<LightManager> mLightManager;
-
-	SceneNodeActorMap mSceneNodeActors;		
-	RenderPass mCurrentRenderPass;
-	
-	eastl::array<float, 4> mShadowColor;
-	eastl::array<float, 4> mAmbientLight;
-
-	//! scene node lists
-	SceneNodeRenderList mDeletionList;
-	SceneNodeRenderList mRenderList[RP_LAST];
-
-	void RemoveAll();
-	void Clear();
-
 public:
 
 	Scene();
@@ -463,6 +441,8 @@ public:
 
 	const eastl::shared_ptr<LightManager>& GetLightManager() { return mLightManager; }
 
+	PVWUpdater& GetPVWUpdater() { return mPVWUpdater; }
+
 	//! Get current render time.
 	RenderPass GetCurrentRenderPass() const { return mCurrentRenderPass; }
 
@@ -495,6 +475,28 @@ public:
 
 	//! clears the deletion list
 	void ClearDeletionList();
+
+protected:
+	Culler mCuller;
+	PVWUpdater mPVWUpdater;
+	BufferUpdater mBufferUpdater;
+
+	eastl::shared_ptr<RootNode> mRoot;
+	eastl::shared_ptr<CameraNode> mCamera;
+	eastl::shared_ptr<LightManager> mLightManager;
+
+	SceneNodeActorMap mSceneNodeActors;
+	RenderPass mCurrentRenderPass;
+
+	eastl::array<float, 4> mShadowColor;
+	eastl::array<float, 4> mAmbientLight;
+
+	//! scene node lists
+	SceneNodeRenderList mDeletionList;
+	SceneNodeRenderList mRenderList[RP_LAST];
+
+	void RemoveAll();
+	void Clear();
 };
 
 

@@ -7,7 +7,7 @@
 #include "MeshFileLoader.h"
 
 #include "Graphic/Image/ImageResource.h"
-#include "Graphic/Scene/Element/Mesh/AnimatedMesh.h"
+#include "Graphic/Scene/Element/Mesh/SkinnedMesh.h"
 #include "Graphic/Scene/Element/Mesh/StandardMesh.h"
 
 #include "Core/Logger/Logger.h"
@@ -78,7 +78,83 @@ bool MeshFileLoader::IsALoadableFileExtension(const eastl::wstring& fileName) co
 	else return false;
 }
 
-AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
+
+const aiNodeAnim* FindNodeAnim(const aiScene* pScene, aiString nodeName)
+{
+	for (unsigned int a = 0; a < pScene->mNumAnimations; a++)
+	{
+		for (unsigned int ch = 0; ch < pScene->mAnimations[a]->mNumChannels; ch++)
+		{
+			const aiNodeAnim* pNodeAnim = pScene->mAnimations[a]->mChannels[ch];
+
+			if (pNodeAnim->mNodeName == nodeName)
+				return pNodeAnim;
+		}
+	}
+
+	return NULL;
+}
+
+void ReadNodeHeirarchy(const aiScene* pScene, const aiNode* pNode, const aiNode* pParentNode, SkinnedMesh* skinnedMesh)
+{
+	int jointNr = skinnedMesh->GetJointNumber(pNode->mName.C_Str());
+	BaseSkinnedMesh::Joint* joint = jointNr != -1 ?
+		skinnedMesh->GetAllJoints()[jointNr] : skinnedMesh->AddJoint();
+	if (jointNr == -1)
+		joint->mName = pNode->mName.C_Str();
+
+	if (pParentNode != nullptr)
+	{
+		BaseSkinnedMesh::Joint* parentJoint =
+			skinnedMesh->GetAllJoints()[skinnedMesh->GetJointNumber(pParentNode->mName.C_Str())];
+
+		joint->mParent = parentJoint;
+		parentJoint->mChildren.push_back(joint);
+	}
+
+	const aiNodeAnim* pNodeAnim = FindNodeAnim(pScene, pNode->mName);
+	if (pNodeAnim)
+	{
+		for (unsigned p = 0; p < pNodeAnim->mNumPositionKeys; p++)
+		{
+			SkinnedMesh::PositionKey* positionKey = skinnedMesh->AddPositionKey(joint);
+			positionKey->mFrame = (float)pNodeAnim->mPositionKeys[p].mTime;
+			positionKey->mPosition = Vector3<float>{
+				pNodeAnim->mPositionKeys[p].mValue[0],
+				pNodeAnim->mPositionKeys[p].mValue[1],
+				pNodeAnim->mPositionKeys[p].mValue[2],
+			};
+		}
+
+		for (unsigned int s = 0; s < pNodeAnim->mNumScalingKeys; s++)
+		{
+			SkinnedMesh::ScaleKey* scaleKey = skinnedMesh->AddScaleKey(joint);
+			scaleKey->mFrame = (float)pNodeAnim->mScalingKeys[s].mTime;
+			scaleKey->mScale = Vector3<float>{
+				pNodeAnim->mScalingKeys[s].mValue[0],
+				pNodeAnim->mScalingKeys[s].mValue[1],
+				pNodeAnim->mScalingKeys[s].mValue[2],
+			};
+		}
+
+		for (unsigned int r = 0; r < pNodeAnim->mNumRotationKeys; r++)
+		{
+			SkinnedMesh::RotationKey* rotationKey = skinnedMesh->AddRotationKey(joint);
+			rotationKey->mFrame = (float)pNodeAnim->mRotationKeys[r].mTime;
+			rotationKey->mRotation = Quaternion<float>{
+				pNodeAnim->mRotationKeys[r].mValue.x,
+				pNodeAnim->mRotationKeys[r].mValue.y,
+				pNodeAnim->mRotationKeys[r].mValue.z,
+				pNodeAnim->mRotationKeys[r].mValue.w
+			};
+		}
+	}
+
+	for (unsigned int n = 0; n < pNode->mNumChildren; n++)
+		ReadNodeHeirarchy(pScene, pNode->mChildren[n], pNode, skinnedMesh);
+}
+
+BaseMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 {
 	// Create an instance of the Importer class
 	Assimp::Importer importer;
@@ -88,10 +164,8 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 	// probably to request more postprocessing than we do in this example.
 	const aiScene* pScene = importer.ReadFile(
 		ToString(file->GetFileName().c_str()).c_str(),
-		aiProcess_Triangulate |
-		aiProcess_OptimizeMeshes |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType);
+		aiProcess_ConvertToLeftHanded | //this is necessary for Direct3D rendering
+		aiProcessPreset_TargetRealtime_Fast );
 	// If the import failed, report it
 	if (!pScene)
 	{
@@ -99,12 +173,14 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 		return false;
 	}
 
-	AnimatedMesh * aMesh = new AnimatedMesh();
+	BaseMesh * mesh = NULL;
+	if (pScene->HasAnimations())
+		mesh = new SkinnedMesh();
+	else
+		mesh = new StandardMesh();
 
 	for (unsigned int m = 0; m<pScene->mNumMeshes; m++)
 	{
-		eastl::shared_ptr<StandardMesh> mesh(new StandardMesh());
-
 		VertexFormat vformat;
 		if (pScene->mMeshes[m]->HasPositions())
 			vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
@@ -121,9 +197,20 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 			if (pScene->mMeshes[m]->HasTextureCoords(ch))
 				vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, ch);
 
-		eastl::shared_ptr<MeshBuffer> meshBuffer(
-			new MeshBuffer(vformat, pScene->mMeshes[m]->mNumVertices, 
-			pScene->mMeshes[m]->mNumFaces, sizeof(unsigned int)));
+		BaseMeshBuffer* meshBuffer = NULL;
+		if (pScene->HasAnimations())
+		{
+			meshBuffer = new SkinMeshBuffer(
+				vformat, pScene->mMeshes[m]->mNumVertices,
+				pScene->mMeshes[m]->mNumFaces, sizeof(unsigned int));
+		}
+		else
+		{
+			meshBuffer = new MeshBuffer(
+				vformat, pScene->mMeshes[m]->mNumVertices,
+				pScene->mMeshes[m]->mNumFaces, sizeof(unsigned int));
+		}
+
 		for (unsigned int v = 0; v < pScene->mMeshes[m]->mNumVertices; v++)
 		{
 			if (pScene->mMeshes[m]->HasPositions())
@@ -159,7 +246,7 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 				if (pScene->mMeshes[m]->HasTextureCoords(ch))
 				{
 					const aiVector3D& texCoord = pScene->mMeshes[m]->mTextureCoords[ch][v];
-					meshBuffer->TCoord(ch, v) = Vector2<float>{ texCoord.x, 1-texCoord.y };
+					meshBuffer->TCoord(ch, v) = Vector2<float>{ texCoord.x, texCoord.y };
 				}
 			}
 		}
@@ -193,13 +280,13 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 			//if (aiGetMaterialColor(material, AI_MATKEY_COLOR_TRANSPARENT, &transparentColor) == aiReturn::aiReturn_SUCCESS)
 
 			if (aiGetMaterialInteger(material, AI_MATKEY_TWOSIDED, &culling) == aiReturn::aiReturn_SUCCESS)
-				meshBuffer->GetMaterial()->mRasterizerState->mCullMode = (culling != 0) ? RasterizerState::CULL_BACK : RasterizerState::CULL_NONE;
+				meshBuffer->GetMaterial()->mCullMode = (culling != 0) ? RasterizerState::CULL_BACK : RasterizerState::CULL_NONE;
 			if (aiGetMaterialInteger(material, AI_MATKEY_ENABLE_WIREFRAME, &wireframe) == aiReturn::aiReturn_SUCCESS)
-				meshBuffer->GetMaterial()->mRasterizerState->mFillMode = (wireframe != 0) ? RasterizerState::FILL_WIREFRAME : RasterizerState::FILL_SOLID;
+				meshBuffer->GetMaterial()->mFillMode = (wireframe != 0) ? RasterizerState::FILL_WIREFRAME : RasterizerState::FILL_SOLID;
 			if (aiGetMaterialInteger(material, AI_MATKEY_SHADING_MODEL, &shadingModel) == aiReturn::aiReturn_SUCCESS)
 				meshBuffer->GetMaterial()->mShadingModel = (ShadingModel)shadingModel;
 			if (aiGetMaterialFloat(material, AI_MATKEY_OPACITY, &opacity) == aiReturn::aiReturn_SUCCESS)
-				meshBuffer->GetMaterial()->mType = (opacity > 0.5f) ? MT_TRANSPARENT_ADD_COLOR : MT_SOLID;
+				meshBuffer->GetMaterial()->mType = (opacity > 0.5f) ? MT_TRANSPARENT : MT_SOLID;
 			if (aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &shininess) == aiReturn::aiReturn_SUCCESS)
 				meshBuffer->GetMaterial()->mShininess = shininess;
 
@@ -256,16 +343,16 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 							switch (textureMapMode)
 							{
 								case aiTextureMapMode_Wrap:
-									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[0] = SamplerState::WRAP;
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mModeU = SamplerState::WRAP;
 									break;
 								case aiTextureMapMode_Clamp:
-									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[0] = SamplerState::CLAMP;
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mModeU = SamplerState::CLAMP;
 									break;
 								case aiTextureMapMode_Decal:
-									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[0] = SamplerState::BORDER;
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mModeU = SamplerState::BORDER;
 									break;
 								case aiTextureMapMode_Mirror:
-									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[0] = SamplerState::MIRROR;
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mModeU = SamplerState::MIRROR;
 									break;
 								default:
 									break;
@@ -276,16 +363,16 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 							switch (textureMapMode)
 							{
 								case aiTextureMapMode_Wrap:
-									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[1] = SamplerState::WRAP;
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mModeV = SamplerState::WRAP;
 									break;
 								case aiTextureMapMode_Clamp:
-									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[1] = SamplerState::CLAMP;
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mModeV = SamplerState::CLAMP;
 									break;
 								case aiTextureMapMode_Decal:
-									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[1] = SamplerState::BORDER;
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mModeV = SamplerState::BORDER;
 									break;
 								case aiTextureMapMode_Mirror:
-									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mSamplerState->mMode[1] = SamplerState::MIRROR;
+									meshBuffer->GetMaterial()->mTextureLayer[textureIdx].mModeV = SamplerState::MIRROR;
 									break;
 								default:
 									break;
@@ -296,11 +383,52 @@ AnimatedMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 					textureIdx++;
 				}
 			}
+
+			if (pScene->mMeshes[m]->HasBones())
+			{
+				SkinnedMesh* skinnedMesh = dynamic_cast<SkinnedMesh*>(mesh);
+				for (unsigned int b = 0; b < pScene->mMeshes[m]->mNumBones; b++)
+				{
+					aiBone* bone = pScene->mMeshes[m]->mBones[b];
+
+					// copy rotation matrix
+					Matrix4x4<float> transformMatrix = Matrix4x4<float>::Identity();
+					for (int row = 0; row < 3; ++row)
+						for (int column = 0; column < 3; ++column)
+							transformMatrix(row, column) = bone->mOffsetMatrix[row][column];
+
+					// copy position
+					Vector3<float> translationVector;
+					for (int row = 0; row < 3; ++row)
+						translationVector[row] = bone->mOffsetMatrix[row][3];
+
+					BaseSkinnedMesh::Joint* joint = skinnedMesh->AddJoint();
+					joint->mName = bone->mName.C_Str();
+					joint->mLocalTransform.SetRotation(transformMatrix);
+					joint->mLocalTransform.SetTranslation(translationVector);
+					joint->mAttachedMeshes.push_back(mesh->GetMeshBufferCount());
+					for (unsigned int w = 0; w < bone->mNumWeights; w++)
+					{
+						BaseSkinnedMesh::Weight weight;
+						weight.mBufferId = mesh->GetMeshBufferCount();
+						weight.mVertexId = bone->mWeights[w].mVertexId;
+						weight.mStrength = bone->mWeights[w].mWeight;
+						joint->mWeights.push_back(weight);
+					}
+				}
+			}
 		}
 
-		mesh->mMeshBuffer = meshBuffer;
-		aMesh->AddMesh(mesh);
+		mesh->AddMeshBuffer(meshBuffer);
+	}
+	
+	if (mesh->GetMeshType() == MT_SKINNED)
+	{
+		SkinnedMesh* skinnedMesh = dynamic_cast<SkinnedMesh*>(mesh);
+
+		ReadNodeHeirarchy(pScene, pScene->mRootNode, nullptr, skinnedMesh);
+		skinnedMesh->Finalize();
 	}
 
-	return aMesh;
+	return mesh;
 }

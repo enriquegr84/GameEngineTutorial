@@ -35,6 +35,10 @@ class GRAPHIC_ITEM BaseMeshBuffer : public Buffer
 {
 public:
 
+	// Abstract base class.
+	BaseMeshBuffer(unsigned int numElements, size_t elementSize, bool createStorage = true)
+		: Buffer(numElements, elementSize, createStorage) { }
+
 	//! Get vertices of this meshbuffer
 	/** \return Vertice of this buffer. */
 	virtual const eastl::shared_ptr<VertexBuffer>& GetVertice() const = 0;

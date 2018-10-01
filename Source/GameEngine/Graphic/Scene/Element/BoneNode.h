@@ -55,7 +55,7 @@ public:
 
 	virtual bool OnAnimate(Scene* pScene, unsigned int timeMs);
 
-	virtual void UpdateAbsolutePositionOfAllChildren(double timeMs);
+	virtual void UpdateAbsoluteTransformationChildren();
 
 	//! How the relative transformation of the bone is used
 	virtual void SetSkinningSpace(BoneSkinningSpace space )
@@ -68,17 +68,17 @@ public:
 		return mSkinningSpace;
 	}
 
+	int mPositionHint;
+	int mScaleHint;
+	int mRotationHint;
+
 private:
-	void UpdateAbsolutePositionOfAllChildren(eastl::shared_ptr<Node> node, double timeMs);
+	void UpdateAbsoluteTransformationChildren(eastl::shared_ptr<Node> node);
 
 	unsigned int mBoneIndex;
 
 	BoneAnimationMode mAnimationMode;
 	BoneSkinningSpace mSkinningSpace;
-
-	int mPositionHint;
-	int mScaleHint;
-	int mRotationHint;
 };
 
 #endif

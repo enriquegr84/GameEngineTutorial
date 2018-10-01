@@ -38,17 +38,16 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	mMeshBuffer->GetMaterial()->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
 
 	mMeshBuffer->GetMaterial()->mLighting = false;
-	mMeshBuffer->GetMaterial()->mDepthStencilState->mDepthEnable = false;
-	mMeshBuffer->GetMaterial()->mRasterizerState->mEnableDepthClip = false;
-	mMeshBuffer->GetMaterial()->mRasterizerState->mEnableAntialiasedLine = false;
+	mMeshBuffer->GetMaterial()->mDepthBuffer = false;
+	mMeshBuffer->GetMaterial()->mAntiAliasing = false;
 	mMeshBuffer->GetMaterial()->SetTexture(0, sky);
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
 	eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
-		mMeshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mFilter,
-		mMeshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[0],
-		mMeshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[1]);
+		mMeshBuffer->GetMaterial()->mTextureLayer[0].mFilter,
+		mMeshBuffer->GetMaterial()->mTextureLayer[0].mModeU,
+		mMeshBuffer->GetMaterial()->mTextureLayer[0].mModeV);
 
 	mVisual = eastl::make_shared<Visual>(mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), effect);
 	mVisual->SetEffect(effect);

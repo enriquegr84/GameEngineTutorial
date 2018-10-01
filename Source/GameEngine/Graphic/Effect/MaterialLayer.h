@@ -20,9 +20,14 @@ class GRAPHIC_ITEM MaterialLayer
 {
 public:
     // Construction.
-	MaterialLayer() : mTexture(0)
+	MaterialLayer() : 
+		mTexture(0),
+		mModeU(SamplerState::WRAP),
+		mModeV(SamplerState::WRAP),
+		mFilter(SamplerState::MIN_P_MAG_P_MIP_L),
+		mLODBias(false)
 	{
-		mSamplerState = eastl::make_shared<SamplerState>();
+
 	}
 
 	//! Copy constructor
@@ -48,7 +53,10 @@ public:
 			return *this;
 
 		mTexture = other.mTexture;
-		mSamplerState = other.mSamplerState;
+		mModeU = other.mModeU;
+		mModeV = other.mModeV;
+		mFilter = other.mFilter;
+		mLODBias = other.mLODBias;
 
 		return *this;
 	}
@@ -60,7 +68,10 @@ public:
 	{
 		bool different =
 			mTexture != other.mTexture ||
-			mSamplerState != other.mSamplerState;
+			mModeU != other.mModeU ||
+			mModeV != other.mModeV ||
+			mFilter != other.mFilter ||
+			mLODBias != other.mLODBias;
 		return different;
 	}
 
@@ -74,7 +85,20 @@ public:
 
 	//! Texture
 	eastl::shared_ptr<Texture2> mTexture;
-	eastl::shared_ptr<SamplerState> mSamplerState;
+
+	//! Modes for texture coordinates.
+	SamplerState::Mode mModeU;
+	SamplerState::Mode mModeV;
+
+	//! Filter state codification
+	SamplerState::Filter mFilter;
+
+	//! Bias for the mipmap choosing decision.
+	/** This value can make the textures more or less blurry than with the
+	default value of 0. The value (divided by 8.f) is added to the mipmap level
+	chosen initially, and thus takes a smaller mipmap for a region
+	if the value is positive. */
+	bool mLODBias;
 
 private:
 	friend class Material;

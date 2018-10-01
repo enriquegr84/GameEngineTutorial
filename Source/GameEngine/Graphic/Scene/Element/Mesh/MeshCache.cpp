@@ -3,8 +3,7 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "MeshCache.h"
-#include "AnimatedMesh.h"
-#include "Graphic/Effect/Mesh.h"
+#include "Mesh.h"
 
 MeshCache::~MeshCache()
 {

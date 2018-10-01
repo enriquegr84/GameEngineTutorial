@@ -7,7 +7,7 @@
 
 #include "ParticleEmitter.h"
 
-#include "Graphic/Effect/Mesh.h"
+#include "Graphic/Scene/Element/Mesh/Mesh.h"
 
 
 //! A particle emitter which emits from vertices of a mesh

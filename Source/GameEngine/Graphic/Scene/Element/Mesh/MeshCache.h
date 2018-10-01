@@ -5,7 +5,7 @@
 #ifndef MESHCACHE_H
 #define MESHCACHE_H
 
-#include "AnimatedMesh.h"
+#include "GameEngineStd.h"
 
 class BaseMesh;
 class BaseMeshLoader;

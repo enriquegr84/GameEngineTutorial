@@ -108,7 +108,7 @@ bool SphereNode::Render(Scene *pScene)
 
 	// overwrite half transparency
 	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
-		mMaterial->mType = MT_TRANSPARENT_ADD_COLOR;
+		mMaterial->mType = MT_TRANSPARENT;
 	/*
 	Renderer::Get()->SetBlendState(mMaterial->mBlendState);
 	Renderer::Get()->SetRasterizerState(mMaterial->mRasterizerState);

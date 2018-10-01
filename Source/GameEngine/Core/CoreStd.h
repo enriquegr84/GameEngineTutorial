@@ -39,6 +39,8 @@
 
 #define LITTLE_ENDIAN
 
+#pragma warning(disable : 4091)
+
 // Disable the Microsoft warnings about not using the secure functions.
 #pragma warning(disable : 4996)
 

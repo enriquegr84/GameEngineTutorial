@@ -56,26 +56,29 @@ void Spatial::OnGetVisibleSet(Culler& culler,
     culler.SetPlaneState(savePlaneState);
 }
 
+void Spatial::UpdateAbsoluteTransform()
+{
+	if (mParent)
+	{
+#if defined(GE_USE_MAT_VEC)
+		mWorldTransform = mParent->mWorldTransform*mLocalTransform;
+#else
+		mWorldTransform = localTransform * mParent->mWorldTransform;
+#endif
+	}
+	else
+	{
+		mWorldTransform = mLocalTransform;
+	}
+}
+
 void Spatial::UpdateWorldData(double applicationTIme)
 {
     UpdateControllers(applicationTIme);
 
     // Update world transforms.
     if (!mWorldTransformIsCurrent)
-    {
-        if (mParent)
-        {
-#if defined(GE_USE_MAT_VEC)
-            mWorldTransform = mParent->mWorldTransform*mLocalTransform;
-#else
-			mWorldTransform = localTransform*mParent->mWorldTransform;
-#endif
-        }
-        else
-        {
-            mWorldTransform = mLocalTransform;
-        }
-    }
+		UpdateAbsoluteTransform();
 }
 
 void Spatial::PropagateBoundToRoot ()

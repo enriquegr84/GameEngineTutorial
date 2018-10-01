@@ -490,6 +490,7 @@ Vector4<float> operator*(Vector4<float> const& V, Transform const& M)
 
 Transform operator*(Transform const& A, Transform const& B)
 {
+
     if (A.IsIdentity())
     {
         return B;

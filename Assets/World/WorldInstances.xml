@@ -16,7 +16,7 @@
 
 		<PhysicsComponent>
 			<RigidBodyTransform>
-				<Scale x="500" y="500" z="0.1" />  
+				<Scale x="800" y="800" z="0.1" />  
 			</RigidBodyTransform>
 		</PhysicsComponent>	
 

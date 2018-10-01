@@ -5,8 +5,7 @@
 #ifndef ANIMATEDMESHNODE_H
 #define ANIMATEDMESHNODE_H
 
-#include "Graphic/Scene/Hierarchy/Node.h"
-
+#include "BoneNode.h"
 #include "ShadowVolumeNode.h"
 
 enum GRAPHIC_ITEM JointUpdateOnRender
@@ -48,7 +47,7 @@ public:
 
 	//! Constructor
 	AnimatedMeshNode(const ActorId actorId, PVWUpdater* updater,
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseAnimatedMesh>& aMesh);
+		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseAnimatedMesh>& mesh);
 
 	//! Destructor
 	virtual ~AnimatedMeshNode() {}
@@ -59,6 +58,29 @@ public:
 	The frame number must be a valid frame number of the IMesh used by this
 	scene node. Set IAnimatedMesh::getMesh() for details. */
 	void SetCurrentFrame(float frame);
+
+	//! Returns the currently displayed frame number.
+	float GetFrameNr() const;
+
+	//! Returns the current start frame number.
+	int GetStartFrame() const;
+
+	//! Returns the current end frame number.
+	int GetEndFrame() const;
+
+	//! Sets looping mode which is on by default.
+	/** If set to false, animations will not be played looped. */
+	void SetLoopMode(bool playAnimationLooped);
+
+	//! returns the current loop mode
+	/** When true the animations are played looped */
+	bool GetLoopMode() const;
+
+	//! Sets a callback interface which will be called if an animation playback has ended.
+	/** Set this to 0 to disable the callback again.
+	Please note that this will only be called when in non looped
+	mode, see AnimatedMeshNode::SetLoopMode(). */
+	void SetAnimationEndCallback(AnimationEndCallBack* callback = 0);
 
 	//! Sets the frame numbers between the animation is looped.
 	/** The default is 0 - MaximalFrameCount of the mesh.
@@ -74,6 +96,30 @@ public:
 	//! Gets the speed with which the animation is played.
 	/** \return Frames per second played. */
 	float GetAnimationSpeed() const;
+
+	//! Returns a pointer to a child node, which has the same transformation as
+	//! the corrsesponding joint, if the mesh in this scene node is a skinned mesh.
+	eastl::shared_ptr<BoneNode> GetJointNode(const char* jointName);
+
+	//! same as GetJointNode(const char* jointName), but based on id
+	eastl::shared_ptr<BoneNode> GetJointNode(unsigned int jointID);
+
+	//! Gets joint count.
+	unsigned int GetJointCount() const;
+
+	//! Set the joint update mode (0-unused, 1-get joints only, 2-set joints only, 3-move and set)
+	void SetJointMode(JointUpdateOnRender mode);
+
+	//! Sets the transition time in seconds (note: This needs to enable joints, and setJointmode maybe set to 2)
+	//! you must call animateJoints(), or the mesh will not animate
+	void SetTransitionTime(float time);
+
+	//! updates the joint positions of this mesh
+	void AnimateJoints(bool calculateAbsolutePositions = true);
+
+	//! render mesh ignoring its transformation. Used with ragdolls. (culling is unaffected)
+	void SetRenderFromIdentity(bool on);
+
 
 	virtual bool PreRender(Scene *pScene);
 	virtual bool Render(Scene *pScene);
@@ -108,37 +154,11 @@ public:
 		const eastl::shared_ptr<BaseMesh>& shadowMesh = 0,
 		bool zfailmethod=true, float infinity=10000.0f);
 
-	//! Returns the currently displayed frame number.
-	float GetFrameNr() const;
-
-	//! Returns the current start frame number.
-	int GetStartFrame() const;
-
-	//! Returns the current end frame number.
-	int GetEndFrame() const;
-
-	//! Sets looping mode which is on by default.
-	/** If set to false, animations will not be played looped. */
-	void SetLoopMode(bool playAnimationLooped);
-
-	//! returns the current loop mode
-	/** When true the animations are played looped */
-	bool GetLoopMode() const;
-
-	//! Sets a callback interface which will be called if an animation playback has ended.
-	/** Set this to 0 to disable the callback again.
-	Please note that this will only be called when in non looped
-	mode, see AnimatedMeshNode::SetLoopMode(). */
-	void SetAnimationEndCallback(AnimationEndCallBack* callback=0);
-
 	//! Sets a new mesh
 	void SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh);
 
 	//! Returns the current mesh
 	const eastl::shared_ptr<BaseAnimatedMesh>& GetMesh(void);
-
-	//! render mesh ignoring its transformation.
-	void SetRenderFromIdentity( bool On );
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use GetMaterialCount().
@@ -174,6 +194,8 @@ private:
 	eastl::shared_ptr<BaseMesh> GetMeshForCurrentFrame();
 
 	void BuildFrameNr(unsigned int timeMs);
+	void CheckJoints();
+	void BeginTransition();
 
 	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
 	eastl::shared_ptr<BaseAnimatedMesh> mMesh;
@@ -184,6 +206,9 @@ private:
 	float mCurrentFrameNr;
 
 	unsigned int mLastTime;
+	unsigned int mTransitionTime; //Transition time in millisecs
+	float mTransiting; //is mesh transiting (plus cache of TransitionTime)
+	float mTransitingBlend; //0-1, calculated on buildFrameNr
 
 	bool mLooping;
 	bool mReadOnlyMaterials;
@@ -193,6 +218,13 @@ private:
 	int mPassCount;
 
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
+
+	//0-unused, 1-get joints only, 2-set joints only, 3-move and set
+	JointUpdateOnRender mJointMode;
+	bool mJointsUsed;
+
+	eastl::vector<eastl::shared_ptr<BoneNode>> mJointChildSceneNodes;
+	eastl::vector<Transform> mPretransitingSave;
 };
 
 

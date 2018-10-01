@@ -7,6 +7,7 @@
 
 #include "Mathematic/Function/Functions.h"
 
+#include "Graphic/Scene/Scene.h"
 #include "Graphic/Scene/Element/BoneNode.h"
 #include "Graphic/Scene/Element/AnimatedMeshNode.h"
 
@@ -14,8 +15,7 @@
 SkinnedMesh::SkinnedMesh()
 : 
 	mSkinningBuffers(0), mAnimationFrames(0.f), mFramesPerSecond(25.f),
-	mLastAnimatedFrame(-1), mSkinnedLastFrame(false),
-	mInterpolationMode(IM_LINEAR),
+	mLastAnimatedFrame(-1), mSkinnedLastFrame(false), mInterpolationMode(IM_LINEAR),
 	mHasAnimation(false), mPreparedForSkinning(false),
 	mAnimateNormals(true), mHardwareSkinning(false)
 {
@@ -101,9 +101,9 @@ void SkinnedMesh::AnimateMesh(float frame, float blend)
 		//to their parents
 		Joint *joint = mAllJoints[i];
 
-		const Vector3<float> oldPosition = joint->mAnimatedposition;
-		const Vector3<float> oldScale = joint->mAnimatedscale;
-		const Quaternion<float> oldRotation = joint->mAnimatedrotation;
+		const Vector3<float> oldPosition = joint->mAnimatedPosition;
+		const Vector3<float> oldScale = joint->mAnimatedScale;
+		const Quaternion<float> oldRotation = joint->mAnimatedRotation;
 
 		Vector3<float> position = oldPosition;
 		Vector3<float> scale = oldScale;
@@ -117,19 +117,18 @@ void SkinnedMesh::AnimateMesh(float frame, float blend)
 		if (blend==1.0f)
 		{
 			//No blending needed
-			joint->mAnimatedposition = position;
-			joint->mAnimatedscale = scale;
-			joint->mAnimatedrotation = rotation;
+			joint->mAnimatedPosition = position;
+			joint->mAnimatedScale = scale;
+			joint->mAnimatedRotation = rotation;
 		}
 		else
 		{
 			//Blend animation
-			joint->mAnimatedposition = Function<float>::Lerp(oldPosition, position, blend);
-			joint->mAnimatedscale = Function<float>::Lerp(oldScale, scale, blend);
-			joint->mAnimatedrotation = Slerp(blend, oldRotation, rotation);
+			joint->mAnimatedPosition = Function<float>::Lerp(oldPosition, position, blend);
+			joint->mAnimatedScale = Function<float>::Lerp(oldScale, scale, blend);
+			joint->mAnimatedRotation = Slerp(blend, oldRotation, rotation);
 		}
 	}
-
 	//Note:
 	//LocalAnimatedMatrix needs to be built at some point, but this function may be called lots of times for
 	//one render (to play two animations at the same time) LocalAnimatedMatrix only needs to be built once.
@@ -161,50 +160,53 @@ void SkinnedMesh::BuildAllLocalAnimatedMatrices()
 
 			// IRR_TEST_BROKEN_QUATERNION_USE: TODO - switched to getMatrix_transposed instead of getMatrix for downward compatibility. 
 			//								   Not tested so far if this was correct or wrong before quaternion fix!
-			joint->mAnimatedrotation = Rotation<4, float>(Transpose(joint->mLocalAnimatedMatrix));
+			joint->mAnimatedRotation = Rotation<4, float>(
+				Transpose(joint->mLocalAnimatedTransform.GetRotation()));
 
-			// --- joint->mLocalAnimatedMatrix *= joint->mAnimatedrotation.GetMatrix() ---
-			joint->mLocalAnimatedMatrix[0] += joint->mAnimatedposition[0] * joint->mLocalAnimatedMatrix[3];
-			joint->mLocalAnimatedMatrix[1] += joint->mAnimatedposition[1] * joint->mLocalAnimatedMatrix[3];
-			joint->mLocalAnimatedMatrix[2] += joint->mAnimatedposition[2] * joint->mLocalAnimatedMatrix[3];
-			joint->mLocalAnimatedMatrix[4] += joint->mAnimatedposition[0] * joint->mLocalAnimatedMatrix[7];
-			joint->mLocalAnimatedMatrix[5] += joint->mAnimatedposition[1] * joint->mLocalAnimatedMatrix[7];
-			joint->mLocalAnimatedMatrix[6] += joint->mAnimatedposition[2] * joint->mLocalAnimatedMatrix[7];
-			joint->mLocalAnimatedMatrix[8] += joint->mAnimatedposition[0] * joint->mLocalAnimatedMatrix[11];
-			joint->mLocalAnimatedMatrix[9] += joint->mAnimatedposition[1] * joint->mLocalAnimatedMatrix[11];
-			joint->mLocalAnimatedMatrix[10] += joint->mAnimatedposition[2] * joint->mLocalAnimatedMatrix[11];
-			joint->mLocalAnimatedMatrix[12] += joint->mAnimatedposition[0] * joint->mLocalAnimatedMatrix[15];
-			joint->mLocalAnimatedMatrix[13] += joint->mAnimatedposition[1] * joint->mLocalAnimatedMatrix[15];
-			joint->mLocalAnimatedMatrix[14] += joint->mAnimatedposition[2] * joint->mLocalAnimatedMatrix[15];
+			// --- joint->mLocalAnimatedMatrix *= joint->mAnimatedRotation.GetMatrix() ---
+			Matrix4x4<float> localAnimatedMatrix = joint->mLocalAnimatedTransform.GetRotation();
+			Vector3<float> localAnimatedTraslation = joint->mLocalAnimatedTransform.GetTranslation();
+			localAnimatedMatrix[0] += joint->mAnimatedPosition[0] * localAnimatedMatrix[3];
+			localAnimatedMatrix[1] += joint->mAnimatedPosition[1] * localAnimatedMatrix[3];
+			localAnimatedMatrix[2] += joint->mAnimatedPosition[2] * localAnimatedMatrix[3];
+			localAnimatedMatrix[4] += joint->mAnimatedPosition[0] * localAnimatedMatrix[7];
+			localAnimatedMatrix[5] += joint->mAnimatedPosition[1] * localAnimatedMatrix[7];
+			localAnimatedMatrix[6] += joint->mAnimatedPosition[2] * localAnimatedMatrix[7];
+			localAnimatedMatrix[8] += joint->mAnimatedPosition[0] * localAnimatedMatrix[11];
+			localAnimatedMatrix[9] += joint->mAnimatedPosition[1] * localAnimatedMatrix[11];
+			localAnimatedMatrix[10] += joint->mAnimatedPosition[2] * localAnimatedMatrix[11];
+			localAnimatedTraslation[0] += joint->mAnimatedPosition[0] * localAnimatedMatrix[15];
+			localAnimatedTraslation[1] += joint->mAnimatedPosition[1] * localAnimatedMatrix[15];
+			localAnimatedTraslation[2] += joint->mAnimatedPosition[2] * localAnimatedMatrix[15];
 			// -----------------------------------
 
 			if (joint->mScaleKeys.size())
 			{
-				/*
-				Matrix4x4 scaleMatrix;
-				scaleMatrix.SetScale(joint->mAnimatedscale);
-				joint->mLocalAnimatedMatrix *= scaleMatrix;
-				*/
+				// Matrix4x4 scaleMatrix;
+				// scaleMatrix.SetScale(joint->mAnimatedscale);
+				// joint->mLocalAnimatedMatrix *= scaleMatrix;
 
 				// -------- joint->mLocalAnimatedMatrix *= scaleMatrix -----------------
-				joint->mLocalAnimatedMatrix[0] *= joint->mAnimatedscale[0];
-				joint->mLocalAnimatedMatrix[1] *= joint->mAnimatedscale[0];
-				joint->mLocalAnimatedMatrix[2] *= joint->mAnimatedscale[0];
-				joint->mLocalAnimatedMatrix[3] *= joint->mAnimatedscale[0];
-				joint->mLocalAnimatedMatrix[4] *= joint->mAnimatedscale[1];
-				joint->mLocalAnimatedMatrix[5] *= joint->mAnimatedscale[1];
-				joint->mLocalAnimatedMatrix[6] *= joint->mAnimatedscale[1];
-				joint->mLocalAnimatedMatrix[7] *= joint->mAnimatedscale[1];
-				joint->mLocalAnimatedMatrix[8] *= joint->mAnimatedscale[2];
-				joint->mLocalAnimatedMatrix[9] *= joint->mAnimatedscale[2];
-				joint->mLocalAnimatedMatrix[10] *= joint->mAnimatedscale[2];
-				joint->mLocalAnimatedMatrix[11] *= joint->mAnimatedscale[2];
+				localAnimatedMatrix[0] *= joint->mAnimatedScale[0];
+				localAnimatedMatrix[1] *= joint->mAnimatedScale[0];
+				localAnimatedMatrix[2] *= joint->mAnimatedScale[0];
+				localAnimatedMatrix[3] *= joint->mAnimatedScale[0];
+				localAnimatedMatrix[4] *= joint->mAnimatedScale[1];
+				localAnimatedMatrix[5] *= joint->mAnimatedScale[1];
+				localAnimatedMatrix[6] *= joint->mAnimatedScale[1];
+				localAnimatedMatrix[7] *= joint->mAnimatedScale[1];
+				localAnimatedMatrix[8] *= joint->mAnimatedScale[2];
+				localAnimatedMatrix[9] *= joint->mAnimatedScale[2];
+				localAnimatedMatrix[10] *= joint->mAnimatedScale[2];
+				localAnimatedMatrix[11] *= joint->mAnimatedScale[2];
 				// -----------------------------------
 			}
+			joint->mLocalAnimatedTransform.SetRotation(localAnimatedMatrix);
+			joint->mLocalAnimatedTransform.SetTranslation(localAnimatedTraslation);
 		}
 		else
 		{
-			joint->mLocalAnimatedMatrix=joint->mLocalMatrix;
+			joint->mLocalAnimatedTransform = joint->mLocalTransform;
 		}
 	}
 	mSkinnedLastFrame=false;
@@ -223,9 +225,9 @@ void SkinnedMesh::BuildAllGlobalAnimatedMatrices(Joint *joint, Joint *parentJoin
 	{
 		// Find global matrix...
 		if (!parentJoint || joint->mGlobalSkinningSpace)
-			joint->mGlobalAnimatedMatrix = joint->mLocalAnimatedMatrix;
+			joint->mGlobalAnimatedTransform = joint->mLocalAnimatedTransform;
 		else
-			joint->mGlobalAnimatedMatrix = parentJoint->mGlobalAnimatedMatrix * joint->mLocalAnimatedMatrix;
+			joint->mGlobalAnimatedTransform = parentJoint->mGlobalAnimatedTransform * joint->mLocalAnimatedTransform;
 	}
 
 	for (unsigned int j=0; j<joint->mChildren.size(); ++j)
@@ -244,9 +246,9 @@ void SkinnedMesh::GetFrameData(float frame, Joint *joint,
 
 	if (joint->mUseAnimationFrom)
 	{
-		const eastl::array<PositionKey> &positionKeys=joint->mUseAnimationFrom->mPositionKeys;
-		const eastl::array<ScaleKey> &scaleKeys=joint->mUseAnimationFrom->mScaleKeys;
-		const eastl::array<RotationKey> &rotationKeys=joint->mUseAnimationFrom->mRotationKeys;
+		const eastl::vector<PositionKey> &positionKeys=joint->mUseAnimationFrom->mPositionKeys;
+		const eastl::vector<ScaleKey> &scaleKeys=joint->mUseAnimationFrom->mScaleKeys;
+		const eastl::vector<RotationKey> &rotationKeys=joint->mUseAnimationFrom->mRotationKeys;
 
 		if (positionKeys.size())
 		{
@@ -469,7 +471,10 @@ void SkinnedMesh::SkinMesh()
 			{
 				eastl::shared_ptr<SkinMeshBuffer> buffer =
 					(*mSkinningBuffers)[ mAllJoints[i]->mAttachedMeshes[j] ];
-				buffer->GetTransform().SetMatrix(mAllJoints[i]->mGlobalAnimatedMatrix);
+				buffer->GetTransform().SetRotation(
+					mAllJoints[i]->mGlobalAnimatedTransform.GetRotation());
+				buffer->GetTransform().SetTranslation(
+					mAllJoints[i]->mGlobalAnimatedTransform.GetTranslation());
 			}
 		}
 
@@ -492,9 +497,12 @@ void SkinnedMesh::SkinJoint(Joint *joint, Joint *parentJoint)
 	{
 		//Find this joints pull on vertices...
 		Matrix4x4<float> jointVertexPull;
-		jointVertexPull = joint->mGlobalAnimatedMatrix * joint->mGlobalInversedMatrix;
+		jointVertexPull = 
+			joint->mGlobalAnimatedTransform.GetRotation() * 
+			joint->mGlobalInversedTransform.GetRotation();
 
-		Vector3<float> thisVertexMove, thisNormalMove;
+		Vector4<float> thisVertexMove = Vector4<float>::Zero();
+		Vector4<float> thisNormalMove = Vector4<float>::Zero();
 
 		eastl::vector<eastl::shared_ptr<SkinMeshBuffer>> &buffersUsed=*mSkinningBuffers;
 
@@ -505,33 +513,45 @@ void SkinnedMesh::SkinJoint(Joint *joint, Joint *parentJoint)
 
 			// Pull this vertex...
 #if defined(GE_USE_MAT_VEC)
-			thisVertexMove = HProject(jointVertexPull * HLift(weight.mStaticPos, 0.f));
+			thisVertexMove = jointVertexPull * HLift(weight.mStaticPos, 0.f);
 #else
-			thisVertexMove = HProject(HLift(weight.mStaticPos, 0.f) * jointVertexPull);
+			thisVertexMove = HLift(weight.mStaticPos, 0.f) * jointVertexPull;
 #endif
+			thisVertexMove += joint->mGlobalAnimatedTransform.GetTranslationW1();
 
 			if (mAnimateNormals)
-				thisNormalMove = HProject(
-					Rotate(Quaternion<float>(Rotation<4, float>(jointVertexPull)), HLift(weight.mStaticNormal, 0.f)));
+			{
+#if defined(GE_USE_MAT_VEC)
+				thisNormalMove = jointVertexPull * HLift(weight.mStaticNormal, 0.f);
+#else
+				thisNormalMove = HLift(weight.mStaticNormal, 0.f) * jointVertexPull;
+#endif
+			}
 
 			if (! (*(weight.mMoved)) )
 			{
 				*(weight.mMoved) = true;
 
-				buffersUsed[weight.mBufferId]->Position(weight.mVertexId) = thisVertexMove * weight.mStrength;
+				buffersUsed[weight.mBufferId]->Position(weight.mVertexId) = 
+					HProject(thisVertexMove) * weight.mStrength;
 
 				if (mAnimateNormals)
-					buffersUsed[weight.mBufferId]->Normal(weight.mVertexId) = thisNormalMove * weight.mStrength;
-
+				{
+					buffersUsed[weight.mBufferId]->Normal(weight.mVertexId) = 
+						HProject(thisNormalMove) * weight.mStrength;
+				}
 				//*(weight.mPos) = thisVertexMove * weight.mStrength;
 			}
 			else
 			{
-				buffersUsed[weight.mBufferId]->Position(weight.mVertexId) += thisVertexMove * weight.mStrength;
+				buffersUsed[weight.mBufferId]->Position(weight.mVertexId) += 
+					HProject(thisVertexMove) * weight.mStrength;
 
 				if (mAnimateNormals)
-					buffersUsed[weight.mBufferId]->Normal(weight.mVertexId) += thisNormalMove * weight.mStrength;
-
+				{
+					buffersUsed[weight.mBufferId]->Normal(weight.mVertexId) += 
+						HProject(thisNormalMove) * weight.mStrength;
+				}
 				//*(weight.mPos) += thisVertexMove * weight.mStrength;
 			}
 
@@ -545,9 +565,9 @@ void SkinnedMesh::SkinJoint(Joint *joint, Joint *parentJoint)
 }
 
 
-AnimatedMeshType SkinnedMesh::GetMeshType() const
+MeshType SkinnedMesh::GetMeshType() const
 {
-	return AMT_SKINNED;
+	return MT_SKINNED;
 }
 
 
@@ -588,7 +608,7 @@ unsigned int SkinnedMesh::GetMeshBufferCount() const
 
 
 //! returns pointer to a mesh buffer
-eastl::shared_ptr<SkinMeshBuffer> SkinnedMesh::GetMeshBuffer(unsigned int nr) const
+eastl::shared_ptr<BaseMeshBuffer> SkinnedMesh::GetMeshBuffer(unsigned int nr) const
 {
 	if (nr < mLocalBuffers.size())
 		return mLocalBuffers[nr];
@@ -598,11 +618,11 @@ eastl::shared_ptr<SkinMeshBuffer> SkinnedMesh::GetMeshBuffer(unsigned int nr) co
 
 
 //! Returns pointer to a mesh buffer which fits a material
-eastl::shared_ptr<SkinMeshBuffer> SkinnedMesh::GetMeshBuffer(const Material &material) const
+eastl::shared_ptr<BaseMeshBuffer> SkinnedMesh::GetMeshBuffer(const Material &material) const
 {
 	for (unsigned int i=0; i<mLocalBuffers.size(); ++i)
 	{
-		if (mLocalBuffers[i]->GetMaterial().get() == material)
+		if (&material == mLocalBuffers[i]->GetMaterial().get())
 			return mLocalBuffers[i];
 	}
 	return 0;
@@ -716,17 +736,17 @@ void SkinnedMesh::CalculateGlobalMatrices(Joint *joint,Joint *parentJoint)
 	}
 
 	if (!parentJoint)
-		joint->mGlobalMatrix = joint->mLocalMatrix;
+		joint->mGlobalTransform = joint->mLocalTransform;
 	else
-		joint->mGlobalMatrix = parentJoint->mGlobalMatrix * joint->mLocalMatrix;
+		joint->mGlobalTransform = parentJoint->mGlobalTransform * joint->mLocalTransform;
 
-	joint->mLocalAnimatedMatrix=joint->mLocalMatrix;
-	joint->mGlobalAnimatedMatrix=joint->mGlobalMatrix;
+	joint->mLocalAnimatedTransform=joint->mLocalTransform;
+	joint->mGlobalAnimatedTransform=joint->mGlobalTransform;
 
-	if (joint->mGlobalInversedMatrix == Matrix4x4<float>::Identity())//might be pre calculated
+	if (joint->mGlobalInversedTransform.GetMatrix() == Matrix4x4<float>::Identity())//might be pre calculated
 	{
-		joint->mGlobalInversedMatrix = joint->mGlobalMatrix;
-		joint->mGlobalInversedMatrix = Inverse(joint->mGlobalInversedMatrix); // slow
+		joint->mGlobalInversedTransform = joint->mGlobalTransform;
+		joint->mGlobalInversedTransform.SetRotation(Inverse(joint->mGlobalInversedTransform.GetRotation())); // slow
 	}
 
 	for (unsigned int j=0; j<joint->mChildren.size(); ++j)
@@ -803,12 +823,12 @@ void SkinnedMesh::CheckForAnimation()
 				if (bufferId>=mLocalBuffers.size())
 				{
 					LogWarning("Skinned Mesh: Weight buffer id too large");
-					joint->mWeights[j].mBufferId = joint->mWeights[j].mVertexId =0;
+					joint->mWeights[j].mBufferId = joint->mWeights[j].mVertexId = 0;
 				}
 				else if (vertexId>=mLocalBuffers[bufferId]->GetVertice()->GetNumElements())
 				{
 					LogWarning("Skinned Mesh: Weight vertex id too large");
-					joint->mWeights[j].mBufferId = joint->mWeights[j].mVertexId =0;
+					joint->mWeights[j].mBufferId = joint->mWeights[j].mVertexId = 0;
 				}
 			}
 		}
@@ -865,41 +885,22 @@ void SkinnedMesh::Finalize()
 		// populate AllJoints or RootJoints, depending on which is empty
 		if (!mRootJoints.size())
 		{
-
-			for(unsigned int checkingIdx=0; checkingIdx < mAllJoints.size(); ++checkingIdx)
-			{
-
-				bool foundParent=false;
-				for(i=0; i < mAllJoints.size(); ++i)
-				{
-					for(unsigned int n=0; n < mAllJoints[i]->mChildren.size(); ++n)
-					{
-						if (mAllJoints[i]->mChildren[n] == mAllJoints[checkingIdx])
-							foundParent=true;
-					}
-				}
-
-				if (!foundParent)
-					mRootJoints.push_back(mAllJoints[checkingIdx]);
-			}
+			for(unsigned int jointIdx=0; jointIdx < mAllJoints.size(); ++jointIdx)
+				if (mAllJoints[jointIdx]->mParent == nullptr)
+					mRootJoints.push_back(mAllJoints[jointIdx]);
 		}
-		else
-		{
-			mAllJoints=mRootJoints;
-		}
+		else mAllJoints=mRootJoints;
 	}
 
 	for(i=0; i < mAllJoints.size(); ++i)
-	{
 		mAllJoints[i]->mUseAnimationFrom=mAllJoints[i];
-	}
 
 	//Set array sizes...
 
 	for (i=0; i<mLocalBuffers.size(); ++i)
 	{
-		mVerticesMoved.push_back( eastl::vector<bool>() );
-		//mVerticesMoved[i].SetUsed(mLocalBuffers[i]->GetVertice()->GetNumElements());
+		mVerticesMoved.push_back(eastl::vector<bool>());
+		mVerticesMoved[i].resize(mLocalBuffers[i]->GetVertice()->GetNumElements());
 	}
 
 	//Todo: optimise keys here...
@@ -1069,7 +1070,10 @@ void SkinnedMesh::Finalize()
 		{
 			eastl::shared_ptr<SkinMeshBuffer> buffer=
 				(*mSkinningBuffers)[ mAllJoints[i]->mAttachedMeshes[j] ];
-			buffer->GetTransform().SetMatrix(mAllJoints[i]->mGlobalAnimatedMatrix);
+			buffer->GetTransform().SetRotation(
+				mAllJoints[i]->mGlobalAnimatedTransform.GetRotation());
+			buffer->GetTransform().SetTranslation(
+				mAllJoints[i]->mGlobalAnimatedTransform.GetTranslation());
 		}
 	}
 	/*
@@ -1116,11 +1120,9 @@ void SkinnedMesh::UpdateBoundingBox(void)
 }
 
 
-SkinMeshBuffer *SkinnedMesh::AddMeshBuffer()
+void SkinnedMesh::AddMeshBuffer(BaseMeshBuffer* meshBuffer)
 {
-	SkinMeshBuffer *buffer = new SkinMeshBuffer();
-	mLocalBuffers.push_back(buffer);
-	return buffer;
+	mLocalBuffers.push_back(eastl::shared_ptr<SkinMeshBuffer>((SkinMeshBuffer*)meshBuffer));
 }
 
 
@@ -1143,7 +1145,7 @@ SkinnedMesh::Joint *SkinnedMesh::AddJoint(Joint *parent)
 }
 
 
-SkinnedMesh::PositionKey * SkinnedMesh::AddPositionKey(Joint *joint)
+SkinnedMesh::PositionKey* SkinnedMesh::AddPositionKey(Joint *joint)
 {
 	if (!joint)
 		return 0;
@@ -1163,7 +1165,7 @@ SkinnedMesh::ScaleKey* SkinnedMesh::AddScaleKey(Joint *joint)
 }
 
 
-SkinnedMesh::RotationKey *SkinnedMesh::AddRotationKey(Joint *joint)
+SkinnedMesh::RotationKey* SkinnedMesh::AddRotationKey(Joint *joint)
 {
 	if (!joint)
 		return 0;
@@ -1173,7 +1175,7 @@ SkinnedMesh::RotationKey *SkinnedMesh::AddRotationKey(Joint *joint)
 }
 
 
-SkinnedMesh::Weight *SkinnedMesh::AddWeight(Joint *joint)
+SkinnedMesh::Weight* SkinnedMesh::AddWeight(Joint *joint)
 {
 	if (!joint)
 		return 0;
@@ -1202,7 +1204,7 @@ void SkinnedMesh::NormalizeWeights()
 	for (i=0; i<mLocalBuffers.size(); ++i)
 	{
 		verticesTotalWeight.push_back(eastl::vector<float>());
-		//verticesTotalWeight[i].SetUsed(mLocalBuffers[i]->GetVertice()->GetNumElements());
+		verticesTotalWeight[i].resize(mLocalBuffers[i]->GetVertice()->GetNumElements());
 	}
 
 	for (i=0; i<verticesTotalWeight.size(); ++i)
@@ -1239,35 +1241,35 @@ void SkinnedMesh::NormalizeWeights()
 }
 
 
-void SkinnedMesh::RecoverJointsFromMesh(eastl::vector<BoneNode*> &jointChildSceneNodes)
+void SkinnedMesh::RecoverJointsFromMesh(eastl::vector<eastl::shared_ptr<BoneNode>> &jointChildSceneNodes)
 {
 	for (unsigned int i=0; i<mAllJoints.size(); ++i)
 	{
-		BoneNode* node=jointChildSceneNodes[i];
+		eastl::shared_ptr<BoneNode> node=jointChildSceneNodes[i];
 		Joint *joint=mAllJoints[i];
-		node->GetAbsoluteTransform().SetTranslation(joint->mLocalAnimatedMatrix);
-		node->GetAbsoluteTransform().SetRotation(joint->mLocalAnimatedMatrix);
-		node->GetAbsoluteTransform().SetScale(joint->mLocalAnimatedMatrix);
+		node->GetRelativeTransform().SetTranslation(joint->mLocalAnimatedTransform.GetTranslation());
+		node->GetRelativeTransform().SetRotation(joint->mLocalAnimatedTransform.GetRotation());
+		node->GetRelativeTransform().SetScale(joint->mLocalAnimatedTransform.GetScale());
 
 		node->mPositionHint=joint->mPositionHint;
 		node->mScaleHint=joint->mScaleHint;
 		node->mRotationHint=joint->mRotationHint;
 
-		node->UpdateAbsolutePosition();
+		node->UpdateAbsoluteTransform();
 	}
 }
 
 
-void SkinnedMesh::TransferJointsToMesh(const eastl::vector<BoneNode*> &jointChildSceneNodes)
+void SkinnedMesh::TransferJointsToMesh(const eastl::vector<eastl::shared_ptr<BoneNode>> &jointChildSceneNodes)
 {
 	for (unsigned int i=0; i<mAllJoints.size(); ++i)
 	{
-		const BoneNode* const node=jointChildSceneNodes[i];
+		eastl::shared_ptr<BoneNode> const node=jointChildSceneNodes[i];
 		Joint *joint=mAllJoints[i];
 
-		joint->mLocalAnimatedMatrix.SetRotation(node->GetAbsoluteTransform().GetRotation());
-		joint->mLocalAnimatedMatrix.SetTranslation(node->GetAbsoluteTransform().GetTranslation());
-		joint->mLocalAnimatedMatrix *= Matrix4x4<float>().SetScale(node->GetAbsoluteTransform().GetScale());
+		joint->mLocalAnimatedTransform.SetRotation(node->GetRelativeTransform().GetRotation());
+		joint->mLocalAnimatedTransform.SetTranslation(node->GetRelativeTransform().GetTranslation());
+		joint->mLocalAnimatedTransform.SetScale(node->GetRelativeTransform().GetScale());
 
 		joint->mPositionHint=node->mPositionHint;
 		joint->mScaleHint=node->mScaleHint;
@@ -1281,11 +1283,11 @@ void SkinnedMesh::TransferJointsToMesh(const eastl::vector<BoneNode*> &jointChil
 }
 
 
-void SkinnedMesh::TransferOnlyJointsHintsToMesh(const eastl::vector<BoneNode*> &jointChildSceneNodes)
+void SkinnedMesh::TransferOnlyJointsHintsToMesh(const eastl::vector<eastl::shared_ptr<BoneNode>> &jointChildSceneNodes)
 {
 	for (unsigned int i=0; i<mAllJoints.size(); ++i)
 	{
-		const BoneNode* const node=jointChildSceneNodes[i];
+		const eastl::shared_ptr<BoneNode> node=jointChildSceneNodes[i];
 		Joint *joint=mAllJoints[i];
 
 		joint->mPositionHint=node->mPositionHint;
@@ -1296,12 +1298,13 @@ void SkinnedMesh::TransferOnlyJointsHintsToMesh(const eastl::vector<BoneNode*> &
 }
 
 
-void SkinnedMesh::AddJoints(eastl::vector<BoneNode*> &jointChildSceneNodes, AnimatedMeshNode* node, Scene* smgr)
+void SkinnedMesh::AddJoints(eastl::vector<eastl::shared_ptr<BoneNode>> &jointChildSceneNodes, AnimatedMeshNode* node, Scene* scene)
 {
 	//Create new joints
 	for (unsigned int i=0; i<mAllJoints.size(); ++i)
 	{
-		jointChildSceneNodes.push_back(new BoneNode(0, smgr, 0, i, mAllJoints[i]->mName.c_str()));
+		jointChildSceneNodes.push_back(eastl::make_shared<BoneNode>(
+			INVALID_ACTOR_ID, &scene->GetPVWUpdater(), WeakBaseRenderComponentPtr(), i, mAllJoints[i]->mName.c_str()));
 	}
 
 	//Match up parents
@@ -1327,9 +1330,9 @@ void SkinnedMesh::AddJoints(eastl::vector<BoneNode*> &jointChildSceneNodes, Anim
 			}
 		}
 
-		BoneNode* bone=jointChildSceneNodes[i];
+		eastl::shared_ptr<BoneNode> bone=jointChildSceneNodes[i];
 		if (parentID!=-1)
-			bone->SetParent(jointChildSceneNodes[parentID]);
+			bone->SetParent(jointChildSceneNodes[parentID].get());
 		else
 			bone->SetParent(node);
 	}
@@ -1347,44 +1350,41 @@ void SkinnedMesh::ConvertMeshToTangents()
 			mLocalBuffers[b]->ConvertToTangents();
 
 			const int idxCnt = mLocalBuffers[b]->GetIndice()->GetNumElements();
-
-			unsigned int* idx = mLocalBuffers[b]->GetIndice();
-			Vertex* v = mLocalBuffers[b]->GetVertice();
-
+			unsigned int* idx = mLocalBuffers[b]->GetIndice()->Get<unsigned int>();
 			for (int i=0; i<idxCnt; i+=3)
 			{
 				CalculateTangents(
-					v[idx[i+0]].Normal,
-					v[idx[i+0]].Tangent,
-					v[idx[i+0]].Binormal,
-					v[idx[i+0]].Pos,
-					v[idx[i+1]].Pos,
-					v[idx[i+2]].Pos,
-					v[idx[i+0]].TCoords,
-					v[idx[i+1]].TCoords,
-					v[idx[i+2]].TCoords);
+					mLocalBuffers[b]->Normal(idx[i+0]),
+					mLocalBuffers[b]->Tangent(idx[i+0]),
+					mLocalBuffers[b]->Bitangent(idx[i+0]),
+					mLocalBuffers[b]->Position(idx[i+0]),
+					mLocalBuffers[b]->Position(idx[i+1]),
+					mLocalBuffers[b]->Position(idx[i+2]),
+					mLocalBuffers[b]->TCoord(idx[i+0], 0),
+					mLocalBuffers[b]->TCoord(idx[i+1], 0),
+					mLocalBuffers[b]->TCoord(idx[i+2], 0));
 
 				CalculateTangents(
-					v[idx[i+1]].Normal,
-					v[idx[i+1]].Tangent,
-					v[idx[i+1]].Binormal,
-					v[idx[i+1]].Pos,
-					v[idx[i+2]].Pos,
-					v[idx[i+0]].Pos,
-					v[idx[i+1]].TCoords,
-					v[idx[i+2]].TCoords,
-					v[idx[i+0]].TCoords);
+					mLocalBuffers[b]->Normal(idx[i+1]),
+					mLocalBuffers[b]->Tangent(idx[i+1]),
+					mLocalBuffers[b]->Bitangent(idx[i+1]),
+					mLocalBuffers[b]->Position(idx[i+1]),
+					mLocalBuffers[b]->Position(idx[i+2]),
+					mLocalBuffers[b]->Position(idx[i+0]),
+					mLocalBuffers[b]->TCoord(idx[i+1], 0),
+					mLocalBuffers[b]->TCoord(idx[i+2], 0),
+					mLocalBuffers[b]->TCoord(idx[i+0], 0));
 
 				CalculateTangents(
-					v[idx[i+2]].Normal,
-					v[idx[i+2]].Tangent,
-					v[idx[i+2]].Binormal,
-					v[idx[i+2]].Pos,
-					v[idx[i+0]].Pos,
-					v[idx[i+1]].Pos,
-					v[idx[i+2]].TCoords,
-					v[idx[i+0]].TCoords,
-					v[idx[i+1]].TCoords);
+					mLocalBuffers[b]->Normal(idx[i+2]),
+					mLocalBuffers[b]->Tangent(idx[i+2]),
+					mLocalBuffers[b]->Bitangent(idx[i+2]),
+					mLocalBuffers[b]->Position(idx[i+2]),
+					mLocalBuffers[b]->Position(idx[i+0]),
+					mLocalBuffers[b]->Position(idx[i+1]),
+					mLocalBuffers[b]->TCoord(idx[i+2], 0),
+					mLocalBuffers[b]->TCoord(idx[i+0], 0),
+					mLocalBuffers[b]->TCoord(idx[i+1], 0));
 			}
 		}
 	}

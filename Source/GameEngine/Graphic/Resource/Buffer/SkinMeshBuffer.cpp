@@ -5,14 +5,14 @@
 #include "SkinMeshBuffer.h"
 
 SkinMeshBuffer::SkinMeshBuffer()
-	: Buffer(0, 0), mVertexType(VT_STANDARD)
+	: BaseMeshBuffer(0, 0), mVertexType(VT_STANDARD)
 {
 	mMaterial = eastl::make_shared<Material>();
 }
 
 SkinMeshBuffer::SkinMeshBuffer(VertexFormat const& vformat, uint32_t numVertices,
 	uint32_t numPrimitives, size_t indexSize)
-	: Buffer(numPrimitives, 0), mVertexType(VT_STANDARD)
+	: BaseMeshBuffer(numPrimitives, 0), mVertexType(VT_STANDARD)
 {
 	mVFormat = vformat;
 
@@ -190,6 +190,118 @@ char* SkinMeshBuffer::GetGeometricChannel(
 		}
 	}
 	return channel;
+}
+
+//! Convert to tcoords vertex type
+void SkinMeshBuffer::ConvertToTCoords()
+{
+	if (mVertexType == VT_STANDARD)
+	{
+		int const numVertices = mVertice->GetNumElements();
+		for (int i = 0; i < numVertices; ++i)
+		{
+			mVertexType = VT_STANDARD;
+
+			Vector3<float> position{ Position(i)[0], Position(i)[1], Position(i)[2] };
+			Vector3<float> normal{ Normal(i)[0], Normal(i)[1], Normal(i)[2] };
+			Vector3<float> tangent{ Tangent(i)[0], Tangent(i)[1], Tangent(i)[2] };
+			Vector3<float> bitangent{ Bitangent(i)[0], Bitangent(i)[1], Bitangent(i)[2] };
+
+			eastl::map<int, Vector4<float>> color;
+			for (unsigned int unit = 0; unit < VA_MAX_COLOR_UNITS; ++unit)
+				color[unit] = { Color(unit, i)[0], Color(unit, i)[1], Color(unit, i)[2], Color(unit, i)[3] };
+			eastl::map<int, Vector2<float>> tcoord;
+			for (unsigned int unit = 0; unit < VA_MAX_TCOORD_UNITS; ++unit)
+				tcoord[unit] = { TCoord(unit, i)[0], TCoord(unit, i)[1] };
+
+			mVertexType = VT_TCOORDS;
+
+			Position(i) = position;
+			Normal(i) = normal;
+			Tangent(i) = tangent;
+			Bitangent(i) = bitangent;
+
+			for (unsigned int unit = 0; unit < VA_MAX_COLOR_UNITS; ++unit)
+				Color(unit, i) = color[unit];
+			for (unsigned int unit = 0; unit < VA_MAX_TCOORD_UNITS; ++unit)
+				TCoord(unit, i) = tcoord[unit];
+		}
+
+		mVertexType = VT_TCOORDS;
+	}
+}
+
+//! Convert to tangents vertex type
+void SkinMeshBuffer::ConvertToTangents()
+{
+	if (mVertexType == VT_STANDARD)
+	{
+		int const numVertices = mVertice->GetNumElements();
+		for (int i = 0; i < numVertices; ++i)
+		{
+			mVertexType = VT_STANDARD;
+
+			Vector3<float> position{ Position(i)[0], Position(i)[1], Position(i)[2] };
+			Vector3<float> normal{ Normal(i)[0], Normal(i)[1], Normal(i)[2] };
+			Vector3<float> tangent{ Tangent(i)[0], Tangent(i)[1], Tangent(i)[2] };
+			Vector3<float> bitangent{ Bitangent(i)[0], Bitangent(i)[1], Bitangent(i)[2] };
+
+			eastl::map<int, Vector4<float>> color;
+			for (unsigned int unit = 0; unit < VA_MAX_COLOR_UNITS; ++unit)
+				color[unit] = { Color(unit, i)[0], Color(unit, i)[1], Color(unit, i)[2], Color(unit, i)[3] };
+			eastl::map<int, Vector2<float>> tcoord;
+			for (unsigned int unit = 0; unit < VA_MAX_TCOORD_UNITS; ++unit)
+				tcoord[unit] = { TCoord(unit, i)[0], TCoord(unit, i)[1] };
+
+			mVertexType = VT_TANGENTS;
+
+			Position(i) = position;
+			Normal(i) = normal;
+			Tangent(i) = tangent;
+			Bitangent(i) = bitangent;
+
+			for (unsigned int unit = 0; unit < VA_MAX_COLOR_UNITS; ++unit)
+				Color(unit, i) = color[unit];
+			for (unsigned int unit = 0; unit < VA_MAX_TCOORD_UNITS; ++unit)
+				TCoord(unit, i) = tcoord[unit];
+		}
+
+		mVertexType = VT_TANGENTS;
+	}
+	else if (mVertexType == VT_TCOORDS)
+	{
+		int const numVertices = mVertice->GetNumElements();
+		for (int i = 0; i < numVertices; ++i)
+		{
+			mVertexType = VT_TCOORDS;
+
+			Vector3<float> position{ Position(i)[0], Position(i)[1], Position(i)[2] };
+			Vector3<float> normal{ Normal(i)[0], Normal(i)[1], Normal(i)[2] };
+			Vector3<float> tangent{ Tangent(i)[0], Tangent(i)[1], Tangent(i)[2] };
+			Vector3<float> bitangent{ Bitangent(i)[0], Bitangent(i)[1], Bitangent(i)[2] };
+
+			eastl::map<int, Vector4<float>> color;
+			for (unsigned int unit = 0; unit < VA_MAX_COLOR_UNITS; ++unit)
+				color[unit] = { Color(unit, i)[0], Color(unit, i)[1], Color(unit, i)[2], Color(unit, i)[3] };
+			eastl::map<int, Vector2<float>> tcoord;
+			for (unsigned int unit = 0; unit < VA_MAX_TCOORD_UNITS; ++unit)
+				tcoord[unit] = { TCoord(unit, i)[0], TCoord(unit, i)[1] };
+
+			mVertexType = VT_TANGENTS;
+
+			Position(i) = position;
+			Normal(i) = normal;
+			Tangent(i) = tangent;
+			Bitangent(i) = bitangent;
+
+			for (unsigned int unit = 0; unit < VA_MAX_COLOR_UNITS; ++unit)
+				Color(unit, i) = color[unit];
+			for (unsigned int unit = 0; unit < VA_MAX_TCOORD_UNITS; ++unit)
+				TCoord(unit, i) = tcoord[unit];
+		}
+
+		mVertexType = VT_TANGENTS;
+	}
 }
 
 void SkinMeshBuffer::SetPosition(unsigned int i, Vector3<float> const& pos)

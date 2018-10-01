@@ -93,15 +93,25 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 			{
 				const eastl::shared_ptr<MeshResourceExtraData>& extra =
 					eastl::static_pointer_cast<MeshResourceExtraData>(resHandle->GetExtra());
-				eastl::shared_ptr<BaseAnimatedMesh> animatedMesh(extra->GetMesh());
-				// create an animated mesh scene node with specified mesh.
-				eastl::shared_ptr<Node> animatedMeshNode =
-					pScene->AddAnimatedMeshNode(wbrcp, 0, animatedMesh, mOwner->GetId());
+				eastl::shared_ptr<BaseMesh> mesh(extra->GetMesh());
 
-				if (animatedMeshNode)
-					animatedMeshNode->GetRelativeTransform() = transform;
-
-				return animatedMeshNode;
+				eastl::shared_ptr<Node> meshNode = nullptr;
+				if (mesh->GetMeshType() == MT_STANDARD)
+				{
+					// create an mesh scene node with specified mesh.
+					meshNode = pScene->AddMeshNode(wbrcp, 0, mesh, mOwner->GetId());
+					if (meshNode)
+						meshNode->GetRelativeTransform() = transform;
+				}
+				else
+				{
+					// create an animated mesh scene node with specified animated mesh.
+					meshNode = pScene->AddAnimatedMeshNode(
+						wbrcp, 0, eastl::dynamic_shared_pointer_cast<BaseAnimatedMesh>(mesh), mOwner->GetId());
+					if (meshNode)
+						meshNode->GetRelativeTransform() = transform;
+				}
+				return meshNode;
 			}
 		}
 		else LogAssert(nullptr, "Unknown Renderer Implementation in MeshRenderComponent::CreateSceneNode");
@@ -310,7 +320,7 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
 							gridNode->GetMaterial(i)->mLighting = false;
 						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
-							gridNode->GetMaterial(i)->mRasterizerState->mCullMode = RasterizerState::CULL_NONE;
+							gridNode->GetMaterial(i)->mCullMode = RasterizerState::CULL_NONE;
 						gridNode->SetMaterialTexture(0, extra->GetImage());
 					}
 
@@ -529,7 +539,7 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 
 						for (unsigned int i = 0; i<billNode->GetMaterialCount(); ++i)
 							billNode->GetMaterial(i)->mLighting = false;
-						billNode->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
+						billNode->SetMaterialType(MT_TRANSPARENT);
 						billNode->SetMaterialTexture(0, extra->GetImage());
 					}
 				}
@@ -656,9 +666,9 @@ eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
 					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
 						particleSystem->GetMaterial(i)->mLighting = false;
 					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
-						particleSystem->GetMaterial(i)->mDepthStencilState->mDepthEnable = false;
+						particleSystem->GetMaterial(i)->mDepthBuffer = false;
 					particleSystem->SetMaterialTexture(0, extra->GetImage());
-					particleSystem->SetMaterialType(MT_TRANSPARENT_ADD_COLOR);
+					particleSystem->SetMaterialType(MT_TRANSPARENT);
 				}
 			}
 			return node;

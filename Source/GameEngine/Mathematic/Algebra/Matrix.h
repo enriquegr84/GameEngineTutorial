@@ -700,14 +700,14 @@ operator*(
     Vector<NumCols, Real> const& V)
 {
     Vector<NumRows, Real> result;
-    for (int r = 0; r < NumRows; ++r)
-    {
-        result[r] = (Real)0;
-        for (int c = 0; c < NumCols; ++c)
-        {
-            result[r] += M(r, c) * V[c];
-        }
-    }
+	for (int r = 0; r < NumRows; ++r)
+	{
+		result[r] = (Real)0;
+		for (int c = 0; c < NumCols; ++c)
+		{
+			result[r] += M(r, c) * V[c];
+		}
+	}
     return result;
 }
 
@@ -743,17 +743,17 @@ MultiplyAB(
     Matrix<NumCommon, NumCols, Real> const& B)
 {
     Matrix<NumRows, NumCols, Real> result;
-    for (int r = 0; r < NumRows; ++r)
-    {
-        for (int c = 0; c < NumCols; ++c)
-        {
-            result(r, c) = (Real)0;
-            for (int i = 0; i < NumCommon; ++i)
-            {
-                result(r, c) += A(r, i) * B(i, c);
-            }
-        }
-    }
+	for (int r = 0; r < NumRows; ++r)
+	{
+		for (int c = 0; c < NumCols; ++c)
+		{
+			result(r, c) = (Real)0;
+			for (int i = 0; i < NumCommon; ++i)
+			{
+				result(r, c) += A(r, i) * B(i, c);
+			}
+		}
+	}
     return result;
 }
 

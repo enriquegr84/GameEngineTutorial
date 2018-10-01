@@ -34,20 +34,19 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 		return; // won't set null mesh
 
 	mMesh = mesh;
-	MeshFactory mf;
 
 	mVisuals.clear();
 	for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 	{
-		const eastl::shared_ptr<MeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
+		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
 		if (meshBuffer)
 		{
 			eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
 			eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 				ProgramFactory::Get(), path, meshBuffer->GetMaterial()->GetTexture(0),
-				meshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mFilter,
-				meshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[0],
-				meshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[1]);
+				meshBuffer->GetMaterial()->mTextureLayer[0].mFilter,
+				meshBuffer->GetMaterial()->mTextureLayer[0].mModeU,
+				meshBuffer->GetMaterial()->mTextureLayer[0].mModeV);
 
 			eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
 				meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
@@ -125,10 +124,10 @@ bool MeshNode::Render(Scene *pScene)
 		{
 			for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 			{
-				const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
+				const eastl::shared_ptr<BaseMeshBuffer>& mb = mMesh->GetMeshBuffer(i);
 				eastl::shared_ptr<Material> material = mb->GetMaterial();
 				/*
-				material->mType = MT_TRANSPARENT_ADD_COLOR;
+				material->mType = MT_TRANSPARENT;
 
 				//if (mRenderFromIdentity)
 				//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
@@ -156,7 +155,7 @@ bool MeshNode::Render(Scene *pScene)
 	{
 		for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 		{
-			const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
+			const eastl::shared_ptr<BaseMeshBuffer>& mb = mMesh->GetMeshBuffer(i);
 			eastl::shared_ptr<Material> material = mb->GetMaterial();
 			bool transparent = (material->IsTransparent());
 

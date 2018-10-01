@@ -34,11 +34,11 @@ public:
 	//! returns amount of mesh buffers.
 	virtual unsigned int GetMeshBufferCount() const
 	{
-		return 1;
+		return mMeshBuffers.size();
 	}
 
 	//! Get pointer to a mesh buffer.
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(unsigned int nr) const
+	virtual eastl::shared_ptr<BaseMeshBuffer> GetMeshBuffer(unsigned int nr) const
 	{
 		if (mMeshBuffers.empty())
 			return nullptr;
@@ -50,7 +50,7 @@ public:
 	}
 
 	//! Get pointer to a mesh buffer which fits a material
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(const Material &material) const
+	virtual eastl::shared_ptr<BaseMeshBuffer> GetMeshBuffer(const Material &material) const
 	{
 		for (auto meshBuffer : mMeshBuffers)
 		{
@@ -60,6 +60,20 @@ public:
 
 		return nullptr;
 	}
+
+	//! Returns the type of the animated mesh.
+	virtual MeshType GetMeshType() const
+	{
+		return MT_STANDARD;
+	}
+
+	//! Adds a new meshbuffer to the mesh, access it as last one
+	virtual void AddMeshBuffer(BaseMeshBuffer* meshBuffer) 
+	{
+		mMeshBuffers.push_back(eastl::shared_ptr<MeshBuffer>((MeshBuffer*)meshBuffer));
+	}
+
+protected:
 
 	//! The meshbuffer of this mesh
 	eastl::vector<eastl::shared_ptr<MeshBuffer>> mMeshBuffers;

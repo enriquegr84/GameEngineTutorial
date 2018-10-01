@@ -11,6 +11,8 @@
 
 #include "Graphic/Scene/Scene.h"
 
+#include "Application/GameApplication.h"
+
 //! constructor
 AnimatedMeshNode::AnimatedMeshNode(const ActorId actorId, PVWUpdater* updater,
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
@@ -35,15 +37,15 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 	mVisuals.clear();
 	for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 	{
-		const eastl::shared_ptr<MeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
+		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
 		if (meshBuffer)
 		{
 			eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
 			eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 				ProgramFactory::Get(), path, meshBuffer->GetMaterial()->GetTexture(0),
-				meshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mFilter,
-				meshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[0],
-				meshBuffer->GetMaterial()->mTextureLayer[0].mSamplerState->mMode[1]);
+				meshBuffer->GetMaterial()->mTextureLayer[0].mFilter,
+				meshBuffer->GetMaterial()->mTextureLayer[0].mModeU,
+				meshBuffer->GetMaterial()->mTextureLayer[0].mModeV);
 
 			eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
 				meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
@@ -52,6 +54,13 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 			mVisuals.push_back(visual);
 			mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 		}
+	}
+
+	// clean up joint nodes
+	if (mJointsUsed)
+	{
+		mJointsUsed = false;
+		CheckJoints();
 	}
 
 	// get start and begin time
@@ -72,6 +81,8 @@ void AnimatedMeshNode::SetCurrentFrame(float frame)
 {
 	// if you pass an out of range value, we just clamp it
 	mCurrentFrameNr = eastl::clamp ( frame, (float)mStartFrame, (float)mEndFrame );
+
+	BeginTransition(); //transit to this frame if enabled
 }
 
 
@@ -85,6 +96,16 @@ float AnimatedMeshNode::GetFrameNr() const
 //! Get CurrentFrameNr and update transiting settings
 void AnimatedMeshNode::BuildFrameNr(unsigned int timeMs)
 {
+	if (mTransiting != 0.f)
+	{
+		mTransitingBlend += timeMs * mTransiting;
+		if (mTransitingBlend > 1.f)
+		{
+			mTransiting = 0.f;
+			mTransitingBlend = 0.f;
+		}
+	}
+
 	if ((mStartFrame==mEndFrame))
 	{
 		mCurrentFrameNr = (float)mStartFrame; //Support for non animated meshes
@@ -134,9 +155,47 @@ void AnimatedMeshNode::BuildFrameNr(unsigned int timeMs)
 
 eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 {
-	int frameNr = (int)GetFrameNr();
-	int frameBlend = (int)(Function<float>::Fract( GetFrameNr() ) * 1000.f);
-	return mMesh->GetMesh(frameNr, frameBlend, mStartFrame, mEndFrame);
+	if (mMesh->GetMeshType() != MT_SKINNED)
+	{
+		int frameNr = (int)GetFrameNr();
+		int frameBlend = (int)(Function<float>::Fract(GetFrameNr()) * 1000.f);
+
+		return mMesh->GetMesh(frameNr, frameBlend, mStartFrame, mEndFrame);
+	}
+	else
+	{
+		// As multiple scene nodes may be sharing the same skinned mesh, we have to
+		// re-animate it every frame to ensure that this node gets the mesh that it needs.
+
+		eastl::shared_ptr<SkinnedMesh> skinnedMesh = 
+			eastl::dynamic_shared_pointer_cast<SkinnedMesh>(mMesh);
+
+		if (mJointMode == JUOR_CONTROL)//write to mesh
+			skinnedMesh->TransferJointsToMesh(mJointChildSceneNodes);
+		else
+			skinnedMesh->AnimateMesh(GetFrameNr(), 1.0f);
+
+		// Update the skinned mesh for the current joint transforms.
+		skinnedMesh->SkinMesh();
+
+		if (mJointMode == JUOR_READ)//read from mesh
+		{
+			skinnedMesh->RecoverJointsFromMesh(mJointChildSceneNodes);
+
+			//---slow---
+			for (unsigned int n = 0; n<mJointChildSceneNodes.size(); ++n)
+				if (mJointChildSceneNodes[n]->GetParent() == this)
+					mJointChildSceneNodes[n]->UpdateAbsoluteTransformationChildren(); //temp, should be an option
+		}
+
+		if (mJointMode == JUOR_CONTROL)
+		{
+			// For meshes other than JUOR_CONTROL, this is done by calling animateMesh()
+			//skinnedMesh->UpdateBoundingBox();
+		}
+
+		return skinnedMesh;
+	}
 }
 
 
@@ -150,10 +209,15 @@ bool AnimatedMeshNode::OnAnimate(Scene* pScene, unsigned int time)
 	BuildFrameNr(time - mLastTime);
 
 	// update bbox
+	/*
 	if (mMesh)
 	{
 		BaseMesh * mesh = GetMeshForCurrentFrame().get();
+
+		if (mesh)
+			mBox = mesh->GetBoundingBox();
 	}
+	*/
 	mLastTime = time;
 
 	return Node::OnAnimate(pScene, time);
@@ -205,7 +269,7 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		pScene->GetCurrentRenderPass() == RP_TRANSPARENT;
 	++mPassCount;
 
-	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
+	eastl::shared_ptr<BaseMesh> mesh = GetMeshForCurrentFrame();
 
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
@@ -217,12 +281,13 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		// overwrite half transparency
 		if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
 		{
-			for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
+			for (unsigned int i=0; i<mesh->GetMeshBufferCount(); ++i)
 			{
-				const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
+				const eastl::shared_ptr<SkinMeshBuffer>& mb =
+					eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mesh->GetMeshBuffer(i));
 				eastl::shared_ptr<Material> material = mb->GetMaterial();
 				/*
-				material->mType = MT_TRANSPARENT_ADD_COLOR;
+				material->mType = MT_TRANSPARENT;
 
 				//if (mRenderFromIdentity)
 					//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
@@ -233,8 +298,20 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 
 				effect->SetMaterial(material);
 				*/
+				eastl::shared_ptr<ConstantBuffer> cbuffer;
+				cbuffer = mVisuals[i]->GetEffect()->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
+				Matrix4x4<float> pvwMatrix = *cbuffer->Get<Matrix4x4<float>>();
 
-				Renderer::Get()->Draw(mVisuals[i]);
+#if defined(GE_USE_MAT_VEC)
+				pvwMatrix = pvwMatrix * mb->GetTransform();
+#else
+				pvwMatrix = mb->GetTransform() * pvwMatrix;
+#endif
+				cbuffer->SetMember("pvwMatrix", pvwMatrix);
+
+				Renderer* renderer = Renderer::Get();
+				renderer->Update(cbuffer);
+				renderer->Draw(mVisuals[i]);
 				/*
 				Renderer::Get()->SetDefaultDepthStencilState();
 				Renderer::Get()->SetDefaultRasterizerState();
@@ -248,9 +325,10 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 	// render original meshes
 	if (renderMeshes)
 	{
-		for (unsigned int i=0; i<mMesh->GetMeshBufferCount(); ++i)
+		for (unsigned int i=0; i<mesh->GetMeshBufferCount(); ++i)
 		{
-			const eastl::shared_ptr<MeshBuffer>& mb = mMesh->GetMeshBuffer(i);
+			const eastl::shared_ptr<SkinMeshBuffer>& mb =
+				eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mesh->GetMeshBuffer(i));
 			eastl::shared_ptr<Material> material = mb->GetMaterial();
 			bool transparent = (material->IsTransparent());
 
@@ -261,13 +339,32 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 				/*
 				//if (mRenderFromIdentity)
 					//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+
+				eastl::shared_ptr<DepthStencilState> depthStencilState = Renderer::Get()->GetDefaultDepthStencilState();
+				eastl::shared_ptr<RasterizerState> rasterizerState = Renderer::Get()->GetDefaultRasterizerState();
+				eastl::shared_ptr<BlendState> blendState = Renderer::Get()->GetDefaultBlendState();
+
 				Renderer::Get()->SetBlendState(material->mBlendState);
 				Renderer::Get()->SetRasterizerState(material->mRasterizerState);
 				Renderer::Get()->SetDepthStencilState(material->mDepthStencilState);
 
 				effect->SetMaterial(material);
 				*/
-				Renderer::Get()->Draw(mVisuals[i]);
+
+				eastl::shared_ptr<ConstantBuffer> cbuffer;
+				cbuffer = mVisuals[i]->GetEffect()->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
+				Matrix4x4<float> pvwMatrix = *cbuffer->Get<Matrix4x4<float>>();
+
+#if defined(GE_USE_MAT_VEC)
+				pvwMatrix = pvwMatrix * mb->GetTransform();
+#else
+				pvwMatrix = mb->GetTransform() * pvwMatrix;
+#endif
+				cbuffer->SetMember("pvwMatrix", pvwMatrix);
+
+				Renderer* renderer = Renderer::Get();
+				renderer->Update(cbuffer);
+				renderer->Draw(mVisuals[i]);
 				/*
 				Renderer::Get()->SetDefaultDepthStencilState();
 				Renderer::Get()->SetDefaultRasterizerState();
@@ -317,7 +414,7 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		{
 			for (unsigned int g=0; g< mesh->GetMeshBufferCount(); ++g)
 			{
-				const eastl::shared_ptr<MeshBuffer>& mb = mesh->GetMeshBuffer(g);
+				const eastl::shared_ptr<BaseMeshBuffer>& mb = mesh->GetMeshBuffer(g);
 
 				Renderer::Get()->Draw3DBox(mb->GetBoundingBox(), eastl::array<float, 4>{255.f, 190.f, 128.f, 128.f});
 			}
@@ -333,7 +430,7 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 
 			for (unsigned int g=0; g<mesh->GetMeshBufferCount(); ++g)
 			{
-				const eastl::shared_ptr<MeshBuffer>& mb = mesh->GetMeshBuffer(g);
+				const eastl::shared_ptr<BaseMeshBuffer>& mb = mesh->GetMeshBuffer(g);
 				if (mRenderFromIdentity)
 					Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
 				Renderer::Get()->DrawMeshBuffer(mb);
@@ -395,6 +492,251 @@ float AnimatedMeshNode::GetAnimationSpeed() const
 	return mFramesPerSecond * 1000.f;
 }
 
+//! Sets looping mode which is on by default. If set to false,
+//! animations will not be looped.
+void AnimatedMeshNode::SetLoopMode(bool playAnimationLooped)
+{
+	mLooping = playAnimationLooped;
+}
+
+//! returns the current loop mode
+bool AnimatedMeshNode::GetLoopMode() const
+{
+	return mLooping;
+}
+
+//! Sets a callback interface which will be called if an animation
+//! playback has ended. Set this to 0 to disable the callback again.
+void AnimatedMeshNode::SetAnimationEndCallback(AnimationEndCallBack* callback)
+{
+	if (callback == mLoopCallBack.get())
+		return;
+
+	mLoopCallBack.reset(callback);
+}
+
+//! Returns a pointer to a child node, which has the same transformation as
+//! the corresponding joint, if the mesh in this scene node is a skinned mesh.
+eastl::shared_ptr<BoneNode> AnimatedMeshNode::GetJointNode(const char* jointName)
+{
+	if (!mMesh || mMesh->GetMeshType() != MT_SKINNED)
+	{
+		LogWarning("No mesh, or mesh not of skinned mesh type");
+		return NULL;
+	}
+
+	CheckJoints();
+
+	eastl::shared_ptr<SkinnedMesh> skinnedMesh =
+		eastl::dynamic_shared_pointer_cast<SkinnedMesh>(mMesh);
+
+	const int number = skinnedMesh->GetJointNumber(jointName);
+
+	if (number == -1)
+	{
+		LogWarning("Joint with specified name not found in skinned mesh " + eastl::string(jointName));
+		return 0;
+	}
+
+	if ((int)mJointChildSceneNodes.size() <= number)
+	{
+		LogWarning("Joint was found in mesh, but is not loaded into node " + eastl::string(jointName));
+		return 0;
+	}
+
+	return mJointChildSceneNodes[number];
+}
+
+
+//! Returns a pointer to a child node, which has the same transformation as
+//! the corresponding joint, if the mesh in this scene node is a skinned mesh.
+eastl::shared_ptr<BoneNode> AnimatedMeshNode::GetJointNode(unsigned int jointID)
+{
+	if (!mMesh || mMesh->GetMeshType() != MT_SKINNED)
+	{
+		LogWarning("No mesh, or mesh not of skinned mesh type");
+		return NULL;
+	}
+
+	CheckJoints();
+
+	if (mJointChildSceneNodes.size() <= jointID)
+	{
+		LogWarning("Joint not loaded into node");
+		return 0;
+	}
+
+	return mJointChildSceneNodes[jointID];
+}
+
+//! Gets joint count.
+unsigned int AnimatedMeshNode::GetJointCount() const
+{
+
+	if (!mMesh || mMesh->GetMeshType() != MT_SKINNED)
+		return 0;
+
+	eastl::shared_ptr<SkinnedMesh> skinnedMesh = 
+		eastl::dynamic_shared_pointer_cast<SkinnedMesh>(mMesh);
+
+	return skinnedMesh->GetJointCount();
+}
+
+//! updates the joint positions of this mesh
+void AnimatedMeshNode::AnimateJoints(bool calculateAbsolutePositions)
+{
+	if (mMesh && mMesh->GetMeshType() == MT_SKINNED)
+	{
+		CheckJoints();
+		const float frame = GetFrameNr(); //old?
+
+		eastl::shared_ptr<SkinnedMesh> skinnedMesh =
+			eastl::dynamic_shared_pointer_cast<SkinnedMesh>(mMesh);
+
+		skinnedMesh->TransferOnlyJointsHintsToMesh(mJointChildSceneNodes);
+		skinnedMesh->AnimateMesh(frame, 1.0f);
+		skinnedMesh->RecoverJointsFromMesh(mJointChildSceneNodes);
+
+		//-----------------------------------------
+		//		Transition
+		//-----------------------------------------
+
+		if (mTransiting != 0.f)
+		{
+			// Init additional matrices
+			if (mPretransitingSave.size()<mJointChildSceneNodes.size())
+			{
+				for (unsigned int n = mPretransitingSave.size(); n<mJointChildSceneNodes.size(); ++n)
+					mPretransitingSave.push_back(Transform());
+			}
+
+			for (unsigned int n = 0; n<mJointChildSceneNodes.size(); ++n)
+			{
+				//------Position------
+
+				mJointChildSceneNodes[n]->GetAbsoluteTransform().
+					SetTranslation(Function<float>::Lerp( 
+						mPretransitingSave[n].GetTranslation(),
+						mJointChildSceneNodes[n]->GetAbsoluteTransform().GetTranslation(), 
+						mTransitingBlend));
+
+				//------Rotation------
+
+				//Code is slow, needs to be fixed up
+				const Quaternion<float> rotationStart(
+					Rotation<4, float>(mPretransitingSave[n].GetRotation()));
+				const Quaternion<float> rotationEnd(
+					Rotation<4, float>(mJointChildSceneNodes[n]->GetAbsoluteTransform().GetRotation()));
+
+				Quaternion<float> qRotation = Slerp(mTransitingBlend, rotationStart, rotationEnd);
+				mJointChildSceneNodes[n]->GetAbsoluteTransform().SetRotation(qRotation);
+
+				//------Scale------
+				/*
+				mJointChildSceneNodes[n]->GetAbsoluteTransform().
+					SetScale(Function<float>::Lerp(
+						mPretransitingSave[n].GetScale(),
+						mJointChildSceneNodes[n]->GetAbsoluteTransform().GetScale(),
+						mTransitingBlend));
+				*/
+			}
+		}
+
+		if (calculateAbsolutePositions)
+		{
+			//---slow---
+			for (unsigned int n = 0; n<mJointChildSceneNodes.size(); ++n)
+			{
+				if (mJointChildSceneNodes[n]->GetParent() == this)
+				{
+					mJointChildSceneNodes[n]->UpdateAbsoluteTransformationChildren(); //temp, should be an option
+				}
+			}
+		}
+	}
+}
+
+/*!
+*/
+void AnimatedMeshNode::CheckJoints()
+{
+	if (!mMesh || mMesh->GetMeshType() != MT_SKINNED)
+		return;
+
+	if (!mJointsUsed)
+	{
+		for (unsigned int i = 0; i<mJointChildSceneNodes.size(); ++i)
+			DetachChild(mJointChildSceneNodes[i]);
+		mJointChildSceneNodes.clear();
+
+		//Create joints for SkinnedMesh
+		eastl::shared_ptr<SkinnedMesh> skinnedMesh =
+			eastl::dynamic_shared_pointer_cast<SkinnedMesh>(mMesh);
+
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
+		skinnedMesh->AddJoints(mJointChildSceneNodes, this, pScene.get());
+		skinnedMesh->RecoverJointsFromMesh(mJointChildSceneNodes);
+
+		mJointsUsed = true;
+		mJointMode = JUOR_READ;
+	}
+}
+
+/*!
+*/
+void AnimatedMeshNode::BeginTransition()
+{
+	if (!mJointsUsed)
+		return;
+
+	if (mTransitionTime != 0)
+	{
+		//Check the array is big enough
+		if (mPretransitingSave.size()<mJointChildSceneNodes.size())
+		{
+			for (unsigned int n = mPretransitingSave.size(); n<mJointChildSceneNodes.size(); ++n)
+				mPretransitingSave.push_back(Transform());
+		}
+
+		//Copy the position of joints
+		for (unsigned int n = 0; n<mJointChildSceneNodes.size(); ++n)
+			mPretransitingSave[n] = mJointChildSceneNodes[n]->GetRelativeTransform();
+
+		mTransiting = mTransitionTime != 0 ? 1 / (float)mTransitionTime : 0;
+	}
+	mTransitingBlend = 0.f;
+}
+
+//! Set the joint update mode (0-unused, 1-get joints only, 2-set joints only, 3-move and set)
+void AnimatedMeshNode::SetJointMode(JointUpdateOnRender mode)
+{
+	CheckJoints();
+	mJointMode = mode;
+}
+
+//! Sets the transition time in seconds (note: This needs to enable joints, and setJointmode maybe set to 2)
+//! you must call animateJoints(), or the mesh will not animate
+void AnimatedMeshNode::SetTransitionTime(float time)
+{
+	const unsigned int ttime = (unsigned int)Function<float>::Floor(time*1000.0f);
+	if (mTransitionTime == ttime)
+		return;
+	mTransitionTime = ttime;
+	if (ttime != 0)
+		SetJointMode(JUOR_CONTROL);
+	else
+		SetJointMode(JUOR_NONE);
+}
+
+
+//! render mesh ignoring its transformation. Used with ragdolls. (culling is unaffected)
+void AnimatedMeshNode::SetRenderFromIdentity(bool enable)
+{
+	mRenderFromIdentity = enable;
+}
+
+
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
 eastl::shared_ptr<ShadowVolumeNode> AnimatedMeshNode::AddShadowVolumeNode(const ActorId actorId,
@@ -421,32 +763,22 @@ int AnimatedMeshNode::DetachChild(eastl::shared_ptr<Node> const& child)
 		mShadow = 0;
 
 	if (Node::DetachChild(child))
+	{
+		if (mJointsUsed) //stop weird bugs caused while changing parents as the joints are being created
+		{
+			for (unsigned int i = 0; i<mJointChildSceneNodes.size(); ++i)
+			{
+				if (mJointChildSceneNodes[i] == child)
+				{
+					mJointChildSceneNodes[i] = 0; //remove link to child
+					break;
+				}
+			}
+		}
 		return true;
+	}
 
 	return false;
-}
-
-//! Sets looping mode which is on by default. If set to false,
-//! animations will not be looped.
-void AnimatedMeshNode::SetLoopMode(bool playAnimationLooped)
-{
-	mLooping = playAnimationLooped;
-}
-
-//! returns the current loop mode
-bool AnimatedMeshNode::GetLoopMode() const
-{
-	return mLooping;
-}
-
-//! Sets a callback interface which will be called if an animation
-//! playback has ended. Set this to 0 to disable the callback again.
-void AnimatedMeshNode::SetAnimationEndCallback(AnimationEndCallBack* callback)
-{
-	if (callback == mLoopCallBack.get())
-		return;
-	
-	mLoopCallBack.reset(callback);
 }
 
 //! returns the material based on the zero based index i. To get the amount
@@ -498,10 +830,4 @@ void AnimatedMeshNode::SetReadOnlyMaterials(bool readonly)
 bool AnimatedMeshNode::IsReadOnlyMaterials() const
 {
 	return mReadOnlyMaterials;
-}
-
-//! render mesh ignoring its transformation. Used with ragdolls. (culling is unaffected)
-void AnimatedMeshNode::SetRenderFromIdentity(bool enable)
-{
-	mRenderFromIdentity=enable;
 }

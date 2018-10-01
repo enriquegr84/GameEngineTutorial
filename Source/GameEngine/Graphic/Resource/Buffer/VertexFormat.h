@@ -52,7 +52,7 @@ enum GRAPHIC_ITEM VertexType
 
 	//! Vertex with two texture coordinates
 	/** Usually used for geometry with lightmaps or other special materials. */
-	VT_2TCOORDS,
+	VT_TCOORDS,
 
 	//! Vertex with a tangent and binormal vector
 	/** Usually used for tangent space normal mapping. */

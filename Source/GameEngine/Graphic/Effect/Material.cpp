@@ -11,25 +11,18 @@ Material::Material()
     : mType(MT_SOLID),
     mEmissive({ 0.0f, 0.0f, 0.0f, 1.0f }), mAmbient({ 1.0f, 1.0f, 1.0f, 1.0f }),
     mDiffuse({ 1.0f, 1.0f, 1.0f, 1.0f }), mSpecular({ 1.0f, 1.0f, 1.0f, 1.0f }), 
-	mShininess(0.0f), mThickness(1.0f), mLighting(true), mShadingModel(SM_GOURAUD)
+	mShininess(0.0f), mThickness(1.0f), mLighting(true), 
+	mAntiAliasing(true), mDepthBuffer(true),
+	mFillMode(RasterizerState::FILL_SOLID),
+	mCullMode(RasterizerState::CULL_NONE),
+	mShadingModel(SM_GOURAUD)
 {
-	mBlendState = eastl::make_shared<BlendState>();
-	mRasterizerState = eastl::make_shared<RasterizerState>();
-	mDepthStencilState = eastl::make_shared<DepthStencilState>();
 
-	mRasterizerState->mEnableAntialiasedLine = true;
-	mRasterizerState->mFillMode = RasterizerState::FILL_SOLID;
-	mRasterizerState->mCullMode = RasterizerState::CULL_BACK;
-	mRasterizerState->mEnableDepthClip = true;
-	mDepthStencilState->mDepthEnable = true;
 }
 
 bool Material::IsTransparent() const
 {
-	return mType == MT_TRANSPARENT_ADD_COLOR ||
-		mType == MT_TRANSPARENT_ALPHA_CHANNEL ||
-		mType == MT_TRANSPARENT_VERTEX_ALPHA ||
-		mType == MT_TRANSPARENT_REFLECTION_2_LAYER;
+	return mType == MT_TRANSPARENT;
 }
 
 //! Inequality operator
@@ -47,9 +40,10 @@ bool Material::operator!=(const Material& other) const
 		mThickness != other.mThickness ||
 		mShadingModel != other.mShadingModel ||
 		mLighting != other.mLighting ||
-		mBlendState != other.mBlendState ||
-		mRasterizerState != other.mRasterizerState ||
-		mDepthStencilState != other.mDepthStencilState;
+		mAntiAliasing != other.mAntiAliasing ||
+		mDepthBuffer != other.mDepthBuffer ||
+		mFillMode != other.mFillMode ||
+		mCullMode != other.mCullMode;
 	for (unsigned int i = 0; (i<MATERIAL_MAX_TEXTURES) && !different; ++i)
 	{
 		different |= (mTextureLayer[i] != other.mTextureLayer[i]);

@@ -67,22 +67,17 @@ bool BoneNode::OnAnimate(Scene* pScene, unsigned int timeMs)
 }
 
 
-void BoneNode::UpdateAbsolutePositionOfAllChildren(eastl::shared_ptr<Node> node, double timeMs)
+void BoneNode::UpdateAbsoluteTransformationChildren(eastl::shared_ptr<Node> node)
 {
-	node->UpdateWorldData(timeMs);
+	node->UpdateAbsoluteTransform();
 
-	SceneNodeList::iterator i = node->GetChildren().begin();
-	SceneNodeList::iterator end = node->GetChildren().end();
-
-	while (i != end)
-	{
-		UpdateAbsolutePositionOfAllChildren((*it), timeMs);
-		++i;
-	}
+	SceneNodeList::const_iterator it = node->GetChildren().begin();
+	for (; it != node->GetChildren().end(); ++it)
+		UpdateAbsoluteTransformationChildren((*it));
 }
 
 
-void BoneNode::UpdateAbsolutePositionOfAllChildren(double timeMs)
+void BoneNode::UpdateAbsoluteTransformationChildren()
 {
-	UpdateAbsolutePositionOfAllChildren( shared_from_this(), timeMs );
+	UpdateAbsoluteTransformationChildren( shared_from_this() );
 }

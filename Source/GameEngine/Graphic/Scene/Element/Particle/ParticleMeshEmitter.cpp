@@ -60,7 +60,7 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 			{
 				for( unsigned int j=0; j<mParticleMesh->GetMeshBufferCount(); ++j )
 				{
-					const eastl::shared_ptr<MeshBuffer>& meshBuffer = mParticleMesh->GetMeshBuffer(j);
+					const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mParticleMesh->GetMeshBuffer(j);
 					for( unsigned int k=0; k<meshBuffer->GetVertice()->GetNumElements(); ++k )
 					{
 						particle.mPos = meshBuffer->Position(k);
@@ -110,7 +110,7 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 			{
 				const int randomMB = (mMBNumber < 0) ? (Randomizer::Rand() % mMBCount) : mMBNumber;
 
-				const eastl::shared_ptr<MeshBuffer>& meshBuffer = mParticleMesh->GetMeshBuffer(randomMB);
+				const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mParticleMesh->GetMeshBuffer(randomMB);
 				if (!meshBuffer->GetVertice()->GetNumElements())
 					continue;
 				
@@ -185,7 +185,7 @@ void ParticleMeshEmitter::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 	mMBCount = mParticleMesh->GetMeshBufferCount();
 	for( unsigned int i = 0; i < mMBCount; ++i )
 	{
-		const eastl::shared_ptr<MeshBuffer>& meshBuffer = mParticleMesh->GetMeshBuffer(i);
+		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mParticleMesh->GetMeshBuffer(i);
 		mVertexPerMeshBufferList.push_back(meshBuffer->GetVertice()->GetNumElements() );
 		mTotalVertices += meshBuffer->GetVertice()->GetNumElements();
 	}

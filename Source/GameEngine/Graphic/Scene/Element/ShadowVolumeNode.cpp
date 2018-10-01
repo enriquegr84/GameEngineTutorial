@@ -41,7 +41,7 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 		mVisuals.clear();
 		for (unsigned int i = 0; i<mShadowMesh->GetMeshBufferCount(); ++i)
 		{
-			const eastl::shared_ptr<MeshBuffer>& meshBuffer = mShadowMesh->GetMeshBuffer(i);
+			const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mShadowMesh->GetMeshBuffer(i);
 			if (meshBuffer)
 			{
 				// Create the visual effect.  The world up-direction is (0,0,1).  Choose
@@ -258,7 +258,7 @@ void ShadowVolumeNode::UpdateShadowVolumes(Scene *pScene)
 
 	for (i=0; i<bufcnt; ++i)
 	{
-		const MeshBuffer* buf = mesh->GetMeshBuffer(i).get();
+		const BaseMeshBuffer* buf = mesh->GetMeshBuffer(i).get();
 		totalIndices += buf->GetNumElements();
 		totalVertices += buf->GetNumElements();
 	}

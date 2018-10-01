@@ -5,14 +5,14 @@
 #include "MeshBuffer.h"
 
 MeshBuffer::MeshBuffer()
-	: Buffer(0, 0)
+	: BaseMeshBuffer(0, 0)
 {
 	mMaterial = eastl::make_shared<Material>();
 }
 
 MeshBuffer::MeshBuffer(VertexFormat const& vformat, uint32_t numVertices,
 	uint32_t numPrimitives, size_t indexSize)
-	: Buffer(numPrimitives, 0)
+	: BaseMeshBuffer(numPrimitives, 0)
 {
 	mVFormat = vformat;
 

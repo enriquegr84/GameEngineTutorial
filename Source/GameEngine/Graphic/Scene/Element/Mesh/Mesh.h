@@ -12,46 +12,20 @@
 
 #include "Mathematic/Geometric/AlignedBox.h"
 
-//! Possible types of (animated) meshes.
-enum GRAPHIC_ITEM AnimatedMeshType
+//! Possible types of meshes.
+enum GRAPHIC_ITEM MeshType
 {
 	//! Unknown animated mesh type.
-	AMT_UNKNOWN = 0,
+	MT_UNKNOWN = 0,
 
-	//! Quake 2 MD2 model file
-	AMT_MD2,
+	//! generic mesh
+	MT_STANDARD,
 
-	//! Quake 3 MD3 model file
-	AMT_MD3,
-
-	//! Maya .obj static model
-	AMT_OBJ,
-
-	//! Quake 3 .bsp static Map
-	AMT_BSP,
-
-	//! 3D Studio .3ds file
-	AMT_3DS,
-
-	//! My3D Mesh, the file format by Zhuck Dimitry
-	AMT_MY3D,
-
-	//! Pulsar LMTools .lmts file. This Irrlicht loader was written by Jonas Petersen
-	AMT_LMTS,
-
-	//! Cartography Shop .csm file. This loader was created by Saurav Mohapatra.
-	AMT_CSM,
-
-	//! .oct file for Paul Nette's FSRad or from Murphy McCauley's Blender .oct exporter.
-	/** The oct file format contains 3D geometry and lightmaps and
-	can be loaded directly by Irrlicht */
-	AMT_OCT,
-
-	//! Halflife MDL model file
-	AMT_MDL_HALFLIFE,
+	//! generic animated mesh
+	MT_ANIMATED,
 
 	//! generic skinned mesh
-	AMT_SKINNED
+	MT_SKINNED
 };
 
 //! Class which holds the geometry of an object.
@@ -71,14 +45,22 @@ public:
 	GetMeshBufferCount() - 1;
 	\return Pointer to the mesh buffer or 0 if there is no such
 	mesh buffer. */
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(unsigned int nr) const = 0;
+	virtual eastl::shared_ptr<BaseMeshBuffer> GetMeshBuffer(unsigned int nr) const = 0;
 
 	//! Get pointer to a mesh buffer which fits a material
 	/** \param material: material to search for
 	\return Pointer to the mesh buffer or 0 if there is no such
 	mesh buffer. */
-	virtual eastl::shared_ptr<MeshBuffer> GetMeshBuffer(const Material &material) const = 0;
+	virtual eastl::shared_ptr<BaseMeshBuffer> GetMeshBuffer(const Material &material) const = 0;
 
+	//! Adds a new meshbuffer to the mesh, access it as last one
+	virtual void AddMeshBuffer(BaseMeshBuffer* meshBuffer) = 0;
+
+	//! Returns the type of the mesh.
+	virtual MeshType GetMeshType() const
+	{
+		return MT_UNKNOWN;
+	}
 };
 
 //! Interface for an animated mesh.
@@ -122,17 +104,6 @@ public:
 	\return Returns the animated mesh based on a detail level. */
 	virtual eastl::shared_ptr<BaseMesh> GetMesh(int frame, int detailLevel = 255,
 		int startFrameLoop = -1, int endFrameLoop = -1) = 0;
-
-	//! Returns the type of the animated mesh.
-	/** In most cases it is not neccessary to use this method.
-	This is useful for making a safe downcast. For example,
-	if getMeshType() returns EAMT_MD2 it's safe to cast the
-	IAnimatedMesh to IAnimatedMeshMD2.
-	\returns Type of the mesh. */
-	virtual AnimatedMeshType GetMeshType() const
-	{
-		return AMT_UNKNOWN;
-	}
 };
 
 #endif

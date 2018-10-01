@@ -33,7 +33,7 @@ the current code block anymore.
 */
 
 //! A mesh buffer able to choose between VertexTCoords, Vertex and VertexTangents at runtime
-class GRAPHIC_ITEM SkinMeshBuffer : public Buffer
+class GRAPHIC_ITEM SkinMeshBuffer : public BaseMeshBuffer
 {
 public:
 
@@ -45,28 +45,38 @@ public:
 
 	//! Get vertices of this meshbuffer
 	/** \return Vertice of this buffer. */
-	virtual const eastl::shared_ptr<VertexBuffer>& GetVertice() const
+	const eastl::shared_ptr<VertexBuffer>& GetVertice() const
 	{
-		return mVertice;
+		switch (mVertexType)
+		{
+			case VT_TCOORDS:
+				return mVerticeTCoords;
+			case VT_TANGENTS:
+				return mVerticeTangent;
+			case VT_STANDARD:
+				return mVertice;
+		}
+
+		return nullptr;
 	}
 
 	//! Get indices of this meshbuffer
 	/** \return Indice of this buffer. */
-	virtual const eastl::shared_ptr<IndexBuffer>& GetIndice() const
+	const eastl::shared_ptr<IndexBuffer>& GetIndice() const
 	{
 		return mIndice;
 	}
 
 	//! Get the material of this meshbuffer
 	/** \return Material of this buffer. */
-	virtual const eastl::shared_ptr<Material>& GetMaterial() const
+	const eastl::shared_ptr<Material>& GetMaterial() const
 	{
 		return mMaterial;
 	}
 
 	//! Get material of this meshbuffer
 	/** \return Material of this buffer */
-	virtual eastl::shared_ptr<Material>& GetMaterial()
+	eastl::shared_ptr<Material>& GetMaterial()
 	{
 		return mMaterial;
 	}
@@ -76,12 +86,15 @@ public:
 		return mTransform;
 	}
 
-	virtual inline Vector3<float>& Position(unsigned int i);
-	virtual inline Vector3<float>& Normal(unsigned int i);
-	virtual inline Vector3<float>& Tangent(unsigned int i);
-	virtual inline Vector3<float>& Bitangent(unsigned int i);
-	virtual inline Vector4<float>& Color(unsigned int unit, unsigned int i);
-	virtual inline Vector2<float>& TCoord(unsigned int unit, unsigned int i);
+	void ConvertToTCoords();
+	void ConvertToTangents();
+
+	inline Vector3<float>& Position(unsigned int i);
+	inline Vector3<float>& Normal(unsigned int i);
+	inline Vector3<float>& Tangent(unsigned int i);
+	inline Vector3<float>& Bitangent(unsigned int i);
+	inline Vector4<float>& Color(unsigned int unit, unsigned int i);
+	inline Vector2<float>& TCoord(unsigned int unit, unsigned int i);
 
 protected:
 	//! indices for this meshbuffer.
@@ -148,114 +161,108 @@ inline Vector3<float>& SkinMeshBuffer::Position(unsigned int i)
 {
 	switch (mVertexType)
 	{
-		case VT_2TCOORDS:
+		case VT_TCOORDS:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexTCPositions + i * mVFormat.GetVertexSize());
-			break;
 		case VT_TANGENTS:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexTanPositions + i * mVFormat.GetVertexSize());
-			break;
 		case VT_STANDARD:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexPositions + i * mVFormat.GetVertexSize());
-			break;
 	}
+
+	return Vector3<float>::Zero();
 }
 
 inline Vector3<float>& SkinMeshBuffer::Normal(unsigned int i)
 {
 	switch (mVertexType)
 	{
-		case VT_2TCOORDS:
+		case VT_TCOORDS:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexTCNormals + i * mVFormat.GetVertexSize());
-			break;
 		case VT_TANGENTS:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexTanNormals + i * mVFormat.GetVertexSize());
-			break;
 		case VT_STANDARD:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexNormals + i * mVFormat.GetVertexSize());
-			break;
 	}
+
+	return Vector3<float>::Zero();
 }
 
 inline Vector3<float>& SkinMeshBuffer::Tangent(unsigned int i)
 {
 	switch (mVertexType)
 	{
-		case VT_2TCOORDS:
+		case VT_TCOORDS:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexTCTangents + i * mVFormat.GetVertexSize());
-			break;
 		case VT_TANGENTS:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexTanTangents + i * mVFormat.GetVertexSize());
-			break;
 		case VT_STANDARD:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexTangents + i * mVFormat.GetVertexSize());
-			break;
 	}
+
+	return Vector3<float>::Zero();
 }
 
 inline Vector3<float>& SkinMeshBuffer::Bitangent(unsigned int i)
 {
 	switch (mVertexType)
 	{
-		case VT_2TCOORDS:
+		case VT_TCOORDS:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexTCBitangents + i * mVFormat.GetVertexSize());
-			break;
 		case VT_TANGENTS:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexTanBitangents + i * mVFormat.GetVertexSize());
-			break;
 		case VT_STANDARD:
 			return *reinterpret_cast<Vector3<float>*>(
 				mVertexBitangents + i * mVFormat.GetVertexSize());
-			break;
 	}
+
+	return Vector3<float>::Zero();
 }
 
 inline Vector4<float>& SkinMeshBuffer::Color(unsigned int unit, unsigned int i)
 {
 	switch (mVertexType)
 	{
-		case VT_2TCOORDS:
+		case VT_TCOORDS:
 			return *reinterpret_cast<Vector4<float>*>(
 				mVertexTCColors[unit] + i * mVFormat.GetVertexSize());
-			break;
 		case VT_TANGENTS:
 			return *reinterpret_cast<Vector4<float>*>(
 				mVertexTanColors[unit] + i * mVFormat.GetVertexSize());
-			break;
 		case VT_STANDARD:
 			return *reinterpret_cast<Vector4<float>*>(
 				mVertexColors[unit] + i * mVFormat.GetVertexSize());
-			break;
 	}
+
+	return Vector4<float>::Zero();
 }
 
 inline Vector2<float>& SkinMeshBuffer::TCoord(unsigned int unit, unsigned int i)
 {
 	switch (mVertexType)
 	{
-		case VT_2TCOORDS:
+		case VT_TCOORDS:
 			return *reinterpret_cast<Vector2<float>*>(
 				mVertexTCTCoords[unit] + i * mVFormat.GetVertexSize());
-			break;
 		case VT_TANGENTS:
 			return *reinterpret_cast<Vector2<float>*>(
 				mVertexTanTCoords[unit] + i * mVFormat.GetVertexSize());
-			break;
 		case VT_STANDARD:
 			return *reinterpret_cast<Vector2<float>*>(
 				mVertexTCoords[unit] + i * mVFormat.GetVertexSize());
-			break;
 	}
+
+	return Vector2<float>::Zero();
 }
 
 #endif

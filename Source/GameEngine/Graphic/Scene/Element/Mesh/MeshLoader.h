@@ -7,19 +7,19 @@
 
 #include "Core/IO/ResourceCache.h"
 
-#include "AnimatedMesh.h"
+#include "Mesh.h"
 
 class MeshResourceExtraData : public BaseResourceExtraData
 {
 
 public:
     virtual eastl::wstring ToString() { return L"MeshResourceExtraData"; }
-	virtual BaseAnimatedMesh* GetMesh() { return mAnimatedMesh; }
-	virtual void SetMesh(BaseAnimatedMesh* aMesh) { mAnimatedMesh = aMesh; }
-	virtual ~MeshResourceExtraData() { delete mAnimatedMesh; }
+	virtual BaseMesh* GetMesh() { return mMesh; }
+	virtual void SetMesh(BaseMesh* mesh) { mMesh = mesh; }
+	virtual ~MeshResourceExtraData() { delete mMesh; }
 
 protected:
-	BaseAnimatedMesh* mAnimatedMesh;
+	BaseMesh* mMesh;
 
 };
 
