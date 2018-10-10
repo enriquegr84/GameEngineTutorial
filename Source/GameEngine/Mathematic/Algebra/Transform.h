@@ -153,7 +153,7 @@ public:
     Transform Inverse() const;
 
     // The identity transformation.
-    static Transform const IDENTITY;
+    static Transform const Identity;
 
 private:
     // Fill in the entries of mHMatrix whenever one of the components
@@ -191,7 +191,6 @@ inline Matrix4x4<float> operator*(Matrix4x4<float> const& A,
 
 inline Matrix4x4<float> operator*(Transform const& A,
     Matrix4x4<float> const& B);
-
 
 inline Transform::operator Matrix4x4<float> const&() const
 {

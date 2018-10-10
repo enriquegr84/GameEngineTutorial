@@ -25,6 +25,9 @@ public:
     Quaternion(Vector<4,Real> const& q);
     Quaternion(Real x, Real y, Real z, Real w);
 
+	//setters
+	Quaternion& Set(Real x, Real y, Real z, Real w);
+
     // Assignment.
     Quaternion& operator=(Quaternion const& q);
     Quaternion& operator=(Vector<4,Real> const& q);
@@ -155,6 +158,16 @@ Quaternion<Real>::Quaternion(Real x, Real y, Real z, Real w)
     this->mTuple[1] = y;
     this->mTuple[2] = z;
     this->mTuple[3] = w;
+}
+
+template <typename Real>
+Quaternion<Real>& Quaternion<Real>::Set(Real x, Real y, Real z, Real w)
+{
+	this->mTuple[0] = x;
+	this->mTuple[1] = y;
+	this->mTuple[2] = z;
+	this->mTuple[3] = w;
+	return *this;
 }
 
 template <typename Real>

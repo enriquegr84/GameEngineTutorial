@@ -51,7 +51,7 @@ Real Trace(Matrix4x4<Real> const& M);
 //       +-                               -+
 //
 // where M applies to [U^T 1]^T by M*[U^T 1]^T.  The matrix is chosen so
-// that M[3][3] > 0 whenever Dot(N,D) < 0; the projection is onto the
+// that m[3][3] > 0 whenever Dot(N,D) < 0; the projection is onto the
 // "positive side" of the plane.
 template <typename Real>
 Matrix4x4<Real> MakeObliqueProjection(Vector4<Real> const& origin,
@@ -85,42 +85,44 @@ Matrix4x4<Real> MakeReflection(Vector4<Real> const& origin, Vector4<Real> const&
 template <typename Real>
 Matrix4x4<Real> Inverse(Matrix4x4<Real> const& M, bool* reportInvertibility)
 {
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
     Matrix4x4<Real> inverse;
     bool invertible;
-    Real a0 = M(0, 0) * M(1, 1) - M(0, 1) * M(1, 0);
-    Real a1 = M(0, 0) * M(1, 2) - M(0, 2) * M(1, 0);
-    Real a2 = M(0, 0) * M(1, 3) - M(0, 3) * M(1, 0);
-    Real a3 = M(0, 1) * M(1, 2) - M(0, 2) * M(1, 1);
-    Real a4 = M(0, 1) * M(1, 3) - M(0, 3) * M(1, 1);
-    Real a5 = M(0, 2) * M(1, 3) - M(0, 3) * M(1, 2);
-    Real b0 = M(2, 0) * M(3, 1) - M(2, 1) * M(3, 0);
-    Real b1 = M(2, 0) * M(3, 2) - M(2, 2) * M(3, 0);
-    Real b2 = M(2, 0) * M(3, 3) - M(2, 3) * M(3, 0);
-    Real b3 = M(2, 1) * M(3, 2) - M(2, 2) * M(3, 1);
-    Real b4 = M(2, 1) * M(3, 3) - M(2, 3) * M(3, 1);
-    Real b5 = M(2, 2) * M(3, 3) - M(2, 3) * M(3, 2);
+    Real a0 = m[0 * 4 + 0] * m[1 * 4 + 1] - m[0 * 4 + 1] * m[1 * 4 + 0];
+    Real a1 = m[0 * 4 + 0] * m[1 * 4 + 2] - m[0 * 4 + 2] * m[1 * 4 + 0];
+    Real a2 = m[0 * 4 + 0] * m[1 * 4 + 3] - m[0 * 4 + 3] * m[1 * 4 + 0];
+    Real a3 = m[0 * 4 + 1] * m[1 * 4 + 2] - m[0 * 4 + 2] * m[1 * 4 + 1];
+    Real a4 = m[0 * 4 + 1] * m[1 * 4 + 3] - m[0 * 4 + 3] * m[1 * 4 + 1];
+    Real a5 = m[0 * 4 + 2] * m[1 * 4 + 3] - m[0 * 4 + 3] * m[1 * 4 + 2];
+    Real b0 = m[2 * 4 + 0] * m[3 * 4 + 1] - m[2 * 4 + 1] * m[3 * 4 + 0];
+    Real b1 = m[2 * 4 + 0] * m[3 * 4 + 2] - m[2 * 4 + 2] * m[3 * 4 + 0];
+    Real b2 = m[2 * 4 + 0] * m[3 * 4 + 3] - m[2 * 4 + 3] * m[3 * 4 + 0];
+    Real b3 = m[2 * 4 + 1] * m[3 * 4 + 2] - m[2 * 4 + 2] * m[3 * 4 + 1];
+    Real b4 = m[2 * 4 + 1] * m[3 * 4 + 3] - m[2 * 4 + 3] * m[3 * 4 + 1];
+    Real b5 = m[2 * 4 + 2] * m[3 * 4 + 3] - m[2 * 4 + 3] * m[3 * 4 + 2];
     Real det = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
     if (det != (Real)0)
     {
         Real invDet = ((Real)1) / det;
         inverse = Matrix4x4<Real>
         {
-            (+M(1, 1) * b5 - M(1, 2) * b4 + M(1, 3) * b3) * invDet,
-            (-M(0, 1) * b5 + M(0, 2) * b4 - M(0, 3) * b3) * invDet,
-            (+M(3, 1) * a5 - M(3, 2) * a4 + M(3, 3) * a3) * invDet,
-            (-M(2, 1) * a5 + M(2, 2) * a4 - M(2, 3) * a3) * invDet,
-            (-M(1, 0) * b5 + M(1, 2) * b2 - M(1, 3) * b1) * invDet,
-            (+M(0, 0) * b5 - M(0, 2) * b2 + M(0, 3) * b1) * invDet,
-            (-M(3, 0) * a5 + M(3, 2) * a2 - M(3, 3) * a1) * invDet,
-            (+M(2, 0) * a5 - M(2, 2) * a2 + M(2, 3) * a1) * invDet,
-            (+M(1, 0) * b4 - M(1, 1) * b2 + M(1, 3) * b0) * invDet,
-            (-M(0, 0) * b4 + M(0, 1) * b2 - M(0, 3) * b0) * invDet,
-            (+M(3, 0) * a4 - M(3, 1) * a2 + M(3, 3) * a0) * invDet,
-            (-M(2, 0) * a4 + M(2, 1) * a2 - M(2, 3) * a0) * invDet,
-            (-M(1, 0) * b3 + M(1, 1) * b1 - M(1, 2) * b0) * invDet,
-            (+M(0, 0) * b3 - M(0, 1) * b1 + M(0, 2) * b0) * invDet,
-            (-M(3, 0) * a3 + M(3, 1) * a1 - M(3, 2) * a0) * invDet,
-            (+M(2, 0) * a3 - M(2, 1) * a1 + M(2, 2) * a0) * invDet
+            (+m[1 * 4 + 1] * b5 - m[1 * 4 + 2] * b4 + m[1 * 4 + 3] * b3) * invDet,
+            (-m[0 * 4 + 1] * b5 + m[0 * 4 + 2] * b4 - m[0 * 4 + 3] * b3) * invDet,
+            (+m[3 * 4 + 1] * a5 - m[3 * 4 + 2] * a4 + m[3 * 4 + 3] * a3) * invDet,
+            (-m[2 * 4 + 1] * a5 + m[2 * 4 + 2] * a4 - m[2 * 4 + 3] * a3) * invDet,
+            (-m[1 * 4 + 0] * b5 + m[1 * 4 + 2] * b2 - m[1 * 4 + 3] * b1) * invDet,
+            (+m[0 * 4 + 0] * b5 - m[0 * 4 + 2] * b2 + m[0 * 4 + 3] * b1) * invDet,
+            (-m[3 * 4 + 0] * a5 + m[3 * 4 + 2] * a2 - m[3 * 4 + 3] * a1) * invDet,
+            (+m[2 * 4 + 0] * a5 - m[2 * 4 + 2] * a2 + m[2 * 4 + 3] * a1) * invDet,
+            (+m[1 * 4 + 0] * b4 - m[1 * 4 + 1] * b2 + m[1 * 4 + 3] * b0) * invDet,
+            (-m[0 * 4 + 0] * b4 + m[0 * 4 + 1] * b2 - m[0 * 4 + 3] * b0) * invDet,
+            (+m[3 * 4 + 0] * a4 - m[3 * 4 + 1] * a2 + m[3 * 4 + 3] * a0) * invDet,
+            (-m[2 * 4 + 0] * a4 + m[2 * 4 + 1] * a2 - m[2 * 4 + 3] * a0) * invDet,
+            (-m[1 * 4 + 0] * b3 + m[1 * 4 + 1] * b1 - m[1 * 4 + 2] * b0) * invDet,
+            (+m[0 * 4 + 0] * b3 - m[0 * 4 + 1] * b1 + m[0 * 4 + 2] * b0) * invDet,
+            (-m[3 * 4 + 0] * a3 + m[3 * 4 + 1] * a1 - m[3 * 4 + 2] * a0) * invDet,
+            (+m[2 * 4 + 0] * a3 - m[2 * 4 + 1] * a1 + m[2 * 4 + 2] * a0) * invDet
         };
         invertible = true;
     }
@@ -140,55 +142,59 @@ Matrix4x4<Real> Inverse(Matrix4x4<Real> const& M, bool* reportInvertibility)
 template <typename Real>
 Matrix4x4<Real> Adjoint(Matrix4x4<Real> const& M)
 {
-    Real a0 = M(0, 0) * M(1, 1) - M(0, 1) * M(1, 0);
-    Real a1 = M(0, 0) * M(1, 2) - M(0, 2) * M(1, 0);
-    Real a2 = M(0, 0) * M(1, 3) - M(0, 3) * M(1, 0);
-    Real a3 = M(0, 1) * M(1, 2) - M(0, 2) * M(1, 1);
-    Real a4 = M(0, 1) * M(1, 3) - M(0, 3) * M(1, 1);
-    Real a5 = M(0, 2) * M(1, 3) - M(0, 3) * M(1, 2);
-    Real b0 = M(2, 0) * M(3, 1) - M(2, 1) * M(3, 0);
-    Real b1 = M(2, 0) * M(3, 2) - M(2, 2) * M(3, 0);
-    Real b2 = M(2, 0) * M(3, 3) - M(2, 3) * M(3, 0);
-    Real b3 = M(2, 1) * M(3, 2) - M(2, 2) * M(3, 1);
-    Real b4 = M(2, 1) * M(3, 3) - M(2, 3) * M(3, 1);
-    Real b5 = M(2, 2) * M(3, 3) - M(2, 3) * M(3, 2);
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
+    Real a0 = m[0 * 4 + 0] * m[1 * 4 + 1] - m[0 * 4 + 1] * m[1 * 4 + 0];
+    Real a1 = m[0 * 4 + 0] * m[1 * 4 + 2] - m[0 * 4 + 2] * m[1 * 4 + 0];
+    Real a2 = m[0 * 4 + 0] * m[1 * 4 + 3] - m[0 * 4 + 3] * m[1 * 4 + 0];
+    Real a3 = m[0 * 4 + 1] * m[1 * 4 + 2] - m[0 * 4 + 2] * m[1 * 4 + 1];
+    Real a4 = m[0 * 4 + 1] * m[1 * 4 + 3] - m[0 * 4 + 3] * m[1 * 4 + 1];
+    Real a5 = m[0 * 4 + 2] * m[1 * 4 + 3] - m[0 * 4 + 3] * m[1 * 4 + 2];
+    Real b0 = m[2 * 4 + 0] * m[3 * 4 + 1] - m[2 * 4 + 1] * m[3 * 4 + 0];
+    Real b1 = m[2 * 4 + 0] * m[3 * 4 + 2] - m[2 * 4 + 2] * m[3 * 4 + 0];
+    Real b2 = m[2 * 4 + 0] * m[3 * 4 + 3] - m[2 * 4 + 3] * m[3 * 4 + 0];
+    Real b3 = m[2 * 4 + 1] * m[3 * 4 + 2] - m[2 * 4 + 2] * m[3 * 4 + 1];
+    Real b4 = m[2 * 4 + 1] * m[3 * 4 + 3] - m[2 * 4 + 3] * m[3 * 4 + 1];
+    Real b5 = m[2 * 4 + 2] * m[3 * 4 + 3] - m[2 * 4 + 3] * m[3 * 4 + 2];
 
     return Matrix4x4<Real>
     {
-        +M(1, 1) * b5 - M(1, 2) * b4 + M(1, 3) * b3,
-        -M(0, 1) * b5 + M(0, 2) * b4 - M(0, 3) * b3,
-        +M(3, 1) * a5 - M(3, 2) * a4 + M(3, 3) * a3,
-        -M(2, 1) * a5 + M(2, 2) * a4 - M(2, 3) * a3,
-        -M(1, 0) * b5 + M(1, 2) * b2 - M(1, 3) * b1,
-        +M(0, 0) * b5 - M(0, 2) * b2 + M(0, 3) * b1,
-        -M(3, 0) * a5 + M(3, 2) * a2 - M(3, 3) * a1,
-        +M(2, 0) * a5 - M(2, 2) * a2 + M(2, 3) * a1,
-        +M(1, 0) * b4 - M(1, 1) * b2 + M(1, 3) * b0,
-        -M(0, 0) * b4 + M(0, 1) * b2 - M(0, 3) * b0,
-        +M(3, 0) * a4 - M(3, 1) * a2 + M(3, 3) * a0,
-        -M(2, 0) * a4 + M(2, 1) * a2 - M(2, 3) * a0,
-        -M(1, 0) * b3 + M(1, 1) * b1 - M(1, 2) * b0,
-        +M(0, 0) * b3 - M(0, 1) * b1 + M(0, 2) * b0,
-        -M(3, 0) * a3 + M(3, 1) * a1 - M(3, 2) * a0,
-        +M(2, 0) * a3 - M(2, 1) * a1 + M(2, 2) * a0
+        +m[1 * 4 + 1] * b5 - m[1 * 4 + 2] * b4 + m[1 * 4 + 3] * b3,
+        -m[0 * 4 + 1] * b5 + m[0 * 4 + 2] * b4 - m[0 * 4 + 3] * b3,
+        +m[3 * 4 + 1] * a5 - m[3 * 4 + 2] * a4 + m[3 * 4 + 3] * a3,
+        -m[2 * 4 + 1] * a5 + m[2 * 4 + 2] * a4 - m[2 * 4 + 3] * a3,
+        -m[1 * 4 + 0] * b5 + m[1 * 4 + 2] * b2 - m[1 * 4 + 3] * b1,
+        +m[0 * 4 + 0] * b5 - m[0 * 4 + 2] * b2 + m[0 * 4 + 3] * b1,
+        -m[3 * 4 + 0] * a5 + m[3 * 4 + 2] * a2 - m[3 * 4 + 3] * a1,
+        +m[2 * 4 + 0] * a5 - m[2 * 4 + 2] * a2 + m[2 * 4 + 3] * a1,
+        +m[1 * 4 + 0] * b4 - m[1 * 4 + 1] * b2 + m[1 * 4 + 3] * b0,
+        -m[0 * 4 + 0] * b4 + m[0 * 4 + 1] * b2 - m[0 * 4 + 3] * b0,
+        +m[3 * 4 + 0] * a4 - m[3 * 4 + 1] * a2 + m[3 * 4 + 3] * a0,
+        -m[2 * 4 + 0] * a4 + m[2 * 4 + 1] * a2 - m[2 * 4 + 3] * a0,
+        -m[1 * 4 + 0] * b3 + m[1 * 4 + 1] * b1 - m[1 * 4 + 2] * b0,
+        +m[0 * 4 + 0] * b3 - m[0 * 4 + 1] * b1 + m[0 * 4 + 2] * b0,
+        -m[3 * 4 + 0] * a3 + m[3 * 4 + 1] * a1 - m[3 * 4 + 2] * a0,
+        +m[2 * 4 + 0] * a3 - m[2 * 4 + 1] * a1 + m[2 * 4 + 2] * a0
     };
 }
 
 template <typename Real>
 Real Determinant(Matrix4x4<Real> const& M)
 {
-    Real a0 = M(0, 0) * M(1, 1) - M(0, 1) * M(1, 0);
-    Real a1 = M(0, 0) * M(1, 2) - M(0, 2) * M(1, 0);
-    Real a2 = M(0, 0) * M(1, 3) - M(0, 3) * M(1, 0);
-    Real a3 = M(0, 1) * M(1, 2) - M(0, 2) * M(1, 1);
-    Real a4 = M(0, 1) * M(1, 3) - M(0, 3) * M(1, 1);
-    Real a5 = M(0, 2) * M(1, 3) - M(0, 3) * M(1, 2);
-    Real b0 = M(2, 0) * M(3, 1) - M(2, 1) * M(3, 0);
-    Real b1 = M(2, 0) * M(3, 2) - M(2, 2) * M(3, 0);
-    Real b2 = M(2, 0) * M(3, 3) - M(2, 3) * M(3, 0);
-    Real b3 = M(2, 1) * M(3, 2) - M(2, 2) * M(3, 1);
-    Real b4 = M(2, 1) * M(3, 3) - M(2, 3) * M(3, 1);
-    Real b5 = M(2, 2) * M(3, 3) - M(2, 3) * M(3, 2);
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
+    Real a0 = m[0 * 4 + 0] * m[1 * 4 + 1] - m[0 * 4 + 1] * m[1 * 4 + 0];
+    Real a1 = m[0 * 4 + 0] * m[1 * 4 + 2] - m[0 * 4 + 2] * m[1 * 4 + 0];
+    Real a2 = m[0 * 4 + 0] * m[1 * 4 + 3] - m[0 * 4 + 3] * m[1 * 4 + 0];
+    Real a3 = m[0 * 4 + 1] * m[1 * 4 + 2] - m[0 * 4 + 2] * m[1 * 4 + 1];
+    Real a4 = m[0 * 4 + 1] * m[1 * 4 + 3] - m[0 * 4 + 3] * m[1 * 4 + 1];
+    Real a5 = m[0 * 4 + 2] * m[1 * 4 + 3] - m[0 * 4 + 3] * m[1 * 4 + 2];
+    Real b0 = m[2 * 4 + 0] * m[3 * 4 + 1] - m[2 * 4 + 1] * m[3 * 4 + 0];
+    Real b1 = m[2 * 4 + 0] * m[3 * 4 + 2] - m[2 * 4 + 2] * m[3 * 4 + 0];
+    Real b2 = m[2 * 4 + 0] * m[3 * 4 + 3] - m[2 * 4 + 3] * m[3 * 4 + 0];
+    Real b3 = m[2 * 4 + 1] * m[3 * 4 + 2] - m[2 * 4 + 2] * m[3 * 4 + 1];
+    Real b4 = m[2 * 4 + 1] * m[3 * 4 + 3] - m[2 * 4 + 3] * m[3 * 4 + 1];
+    Real b5 = m[2 * 4 + 2] * m[3 * 4 + 3] - m[2 * 4 + 3] * m[3 * 4 + 2];
     Real det = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
     return det;
 }
@@ -196,7 +202,9 @@ Real Determinant(Matrix4x4<Real> const& M)
 template <typename Real>
 Real Trace(Matrix4x4<Real> const& M)
 {
-    Real trace = M(0, 0) + M(1, 1) + M(2, 2) + M(3, 3);
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
+    Real trace = m[0 * 4 + 0] + m[1 * 4 + 1] + m[2 * 4 + 2] + m[3 * 4 + 3];
     return trace;
 }
 
@@ -205,45 +213,46 @@ Matrix4x4<Real> MakeObliqueProjection(Vector4<Real> const& origin,
     Vector4<Real> const& normal, Vector4<Real> const& direction)
 {
     Matrix4x4<Real> M;
+	Real* m = reinterpret_cast<Real*>(&M);
 
     Real const zero = (Real)0;
     Real dotND = Dot(normal, direction);
     Real dotNO = Dot(origin, normal);
 
 #if defined(GE_USE_MAT_VEC)
-    M(0, 0) = direction[0] * normal[0] - dotND;
-    M(0, 1) = direction[0] * normal[1];
-    M(0, 2) = direction[0] * normal[2];
-    M(0, 3) = -dotNO * direction[0];
-    M(1, 0) = direction[1] * normal[0];
-    M(1, 1) = direction[1] * normal[1] - dotND;
-    M(1, 2) = direction[1] * normal[2];
-    M(1, 3) = -dotNO * direction[1];
-    M(2, 0) = direction[2] * normal[0];
-    M(2, 1) = direction[2] * normal[1];
-    M(2, 2) = direction[2] * normal[2] - dotND;
-    M(2, 3) = -dotNO * direction[2];
-    M(3, 0) = zero;
-    M(3, 1) = zero;
-    M(3, 2) = zero;
-    M(3, 3) = -dotND;
+    m[0 * 4 + 0] = direction[0] * normal[0] - dotND;
+    m[0 * 4 + 1] = direction[0] * normal[1];
+    m[0 * 4 + 2] = direction[0] * normal[2];
+    m[0 * 4 + 3] = -dotNO * direction[0];
+    m[1 * 4 + 0] = direction[1] * normal[0];
+    m[1 * 4 + 1] = direction[1] * normal[1] - dotND;
+    m[1 * 4 + 2] = direction[1] * normal[2];
+    m[1 * 4 + 3] = -dotNO * direction[1];
+    m[2 * 4 + 0] = direction[2] * normal[0];
+    m[2 * 4 + 1] = direction[2] * normal[1];
+    m[2 * 4 + 2] = direction[2] * normal[2] - dotND;
+    m[2 * 4 + 3] = -dotNO * direction[2];
+    m[3 * 4 + 0] = zero;
+    m[3 * 4 + 1] = zero;
+    m[3 * 4 + 2] = zero;
+    m[3 * 4 + 3] = -dotND;
 #else
-    M(0, 0) = direction[0] * normal[0] - dotND;
-    M(1, 0) = direction[0] * normal[1];
-    M(2, 0) = direction[0] * normal[2];
-    M(3, 0) = -dotNO * direction[0];
-    M(0, 1) = direction[1] * normal[0];
-    M(1, 1) = direction[1] * normal[1] - dotND;
-    M(2, 1) = direction[1] * normal[2];
-    M(3, 1) = -dotNO * direction[1];
-    M(0, 2) = direction[2] * normal[0];
-    M(1, 2) = direction[2] * normal[1];
-    M(2, 2) = direction[2] * normal[2] - dotND;
-    M(3, 2) = -dotNO * direction[2];
-    M(0, 2) = zero;
-    M(1, 3) = zero;
-    M(2, 3) = zero;
-    M(3, 3) = -dotND;
+    m[0 * 4 + 0] = direction[0] * normal[0] - dotND;
+    m[1 * 4 + 0] = direction[0] * normal[1];
+    m[2 * 4 + 0] = direction[0] * normal[2];
+    m[3 * 4 + 0] = -dotNO * direction[0];
+    m[0 * 4 + 1] = direction[1] * normal[0];
+    m[1 * 4 + 1] = direction[1] * normal[1] - dotND;
+    m[2 * 4 + 1] = direction[1] * normal[2];
+    m[3 * 4 + 1] = -dotNO * direction[1];
+    m[0 * 4 + 2] = direction[2] * normal[0];
+    m[1 * 4 + 2] = direction[2] * normal[1];
+    m[2 * 4 + 2] = direction[2] * normal[2] - dotND;
+    m[3 * 4 + 2] = -dotNO * direction[2];
+    m[0 * 4 + 2] = zero;
+    m[1 * 4 + 3] = zero;
+    m[2 * 4 + 3] = zero;
+    m[3 * 4 + 3] = -dotND;
 #endif
 
     return M;
@@ -254,43 +263,44 @@ Matrix4x4<Real> MakePerspectiveProjection(Vector4<Real> const& origin,
     Vector4<Real> const& normal, Vector4<Real> const& eye)
 {
     Matrix4x4<Real> M;
+	Real* m = reinterpret_cast<Real*>(&M);
 
     Real dotND = Dot(normal, eye - origin);
 
 #if defined(GE_USE_MAT_VEC)
-    M(0, 0) = dotND - eye[0] * normal[0];
-    M(0, 1) = -eye[0] * normal[1];
-    M(0, 2) = -eye[0] * normal[2];
-    M(0, 3) = -(M(0, 0) * eye[0] + M(0, 1) * eye[1] + M(0, 2) * eye[2]);
-    M(1, 0) = -eye[1] * normal[0];
-    M(1, 1) = dotND - eye[1] * normal[1];
-    M(1, 2) = -eye[1] * normal[2];
-    M(1, 3) = -(M(1, 0) * eye[0] + M(1, 1) * eye[1] + M(1, 2) * eye[2]);
-    M(2, 0) = -eye[2] * normal[0];
-    M(2, 1) = -eye[2] * normal[1];
-    M(2, 2) = dotND - eye[2] * normal[2];
-    M(2, 3) = -(M(2, 0) * eye[0] + M(2, 1) * eye[1] + M(2, 2) * eye[2]);
-    M(3, 0) = -normal[0];
-    M(3, 1) = -normal[1];
-    M(3, 2) = -normal[2];
-    M(3, 3) = Dot(eye, normal);
+    m[0 * 4 + 0] = dotND - eye[0] * normal[0];
+    m[0 * 4 + 1] = -eye[0] * normal[1];
+    m[0 * 4 + 2] = -eye[0] * normal[2];
+    m[0 * 4 + 3] = -(m[0 * 4 + 0] * eye[0] + m[0 * 4 + 1] * eye[1] + m[0 * 4 + 2] * eye[2]);
+    m[1 * 4 + 0] = -eye[1] * normal[0];
+    m[1 * 4 + 1] = dotND - eye[1] * normal[1];
+    m[1 * 4 + 2] = -eye[1] * normal[2];
+    m[1 * 4 + 3] = -(m[1 * 4 + 0] * eye[0] + m[1 * 4 + 1] * eye[1] + m[1 * 4 + 2] * eye[2]);
+    m[2 * 4 + 0] = -eye[2] * normal[0];
+    m[2 * 4 + 1] = -eye[2] * normal[1];
+    m[2 * 4 + 2] = dotND - eye[2] * normal[2];
+    m[2 * 4 + 3] = -(m[2 * 4 + 0] * eye[0] + m[2 * 4 + 1] * eye[1] + m[2 * 4 + 2] * eye[2]);
+    m[3 * 4 + 0] = -normal[0];
+    m[3 * 4 + 1] = -normal[1];
+    m[3 * 4 + 2] = -normal[2];
+    m[3 * 4 + 3] = Dot(eye, normal);
 #else
-    M(0, 0) = dotND - eye[0] * normal[0];
-    M(1, 0) = -eye[0] * normal[1];
-    M(2, 0) = -eye[0] * normal[2];
-    M(3, 0) = -(M(0, 0) * eye[0] + M(0, 1) * eye[1] + M(0, 2) * eye[2]);
-    M(0, 1) = -eye[1] * normal[0];
-    M(1, 1) = dotND - eye[1] * normal[1];
-    M(2, 1) = -eye[1] * normal[2];
-    M(3, 1) = -(M(1, 0) * eye[0] + M(1, 1) * eye[1] + M(1, 2) * eye[2]);
-    M(0, 2) = -eye[2] * normal[0];
-    M(1, 2) = -eye[2] * normal[1];
-    M(2, 2) = dotND - eye[2] * normal[2];
-    M(3, 2) = -(M(2, 0) * eye[0] + M(2, 1) * eye[1] + M(2, 2) * eye[2]);
-    M(0, 3) = -normal[0];
-    M(1, 3) = -normal[1];
-    M(2, 3) = -normal[2];
-    M(3, 3) = Dot(eye, normal);
+    m[0 * 4 + 0] = dotND - eye[0] * normal[0];
+    m[1 * 4 + 0] = -eye[0] * normal[1];
+    m[2 * 4 + 0] = -eye[0] * normal[2];
+    m[3 * 4 + 0] = -(m[0 * 4 + 0] * eye[0] + m[0 * 4 + 1] * eye[1] + m[0 * 4 + 2] * eye[2]);
+    m[0 * 4 + 1] = -eye[1] * normal[0];
+    m[1 * 4 + 1] = dotND - eye[1] * normal[1];
+    m[2 * 4 + 1] = -eye[1] * normal[2];
+    m[3 * 4 + 1] = -(m[1 * 4 + 0] * eye[0] + m[1 * 4 + 1] * eye[1] + m[1 * 4 + 2] * eye[2]);
+    m[0 * 4 + 2] = -eye[2] * normal[0];
+    m[1 * 4 + 2] = -eye[2] * normal[1];
+    m[2 * 4 + 2] = dotND - eye[2] * normal[2];
+    m[3 * 4 + 2] = -(m[2 * 4 + 0] * eye[0] + m[2 * 4 + 1] * eye[1] + m[2 * 4 + 2] * eye[2]);
+    m[0 * 4 + 3] = -normal[0];
+    m[1 * 4 + 3] = -normal[1];
+    m[2 * 4 + 3] = -normal[2];
+    m[3 * 4 + 3] = Dot(eye, normal);
 #endif
 
     return M;
@@ -300,44 +310,45 @@ template <typename Real>
 Matrix4x4<Real> MakeReflection(Vector4<Real> const& origin, Vector4<Real> const& normal)
 {
     Matrix4x4<Real> M;
+	Real* m = reinterpret_cast<Real*>(&M);
 
     Real const zero = (Real)0, one = (Real)1, two = (Real)2;
     Real twoDotNO = two * Dot(origin, normal);
 
 #if defined(GE_USE_MAT_VEC)
-    M(0, 0) = one - two * normal[0] * normal[0];
-    M(0, 1) = -two * normal[0] * normal[1];
-    M(0, 2) = -two * normal[0] * normal[2];
-    M(0, 3) = twoDotNO * normal[0];
-    M(1, 0) = M(0, 1);
-    M(1, 1) = one - two * normal[1] * normal[1];
-    M(1, 2) = -two * normal[1] * normal[2];
-    M(1, 3) = twoDotNO * normal[1];
-    M(2, 0) = M(0, 2);
-    M(2, 1) = M(1, 2);
-    M(2, 2) = one - two * normal[2] * normal[2];
-    M(2, 3) = twoDotNO * normal[2];
-    M(3, 0) = zero;
-    M(3, 1) = zero;
-    M(3, 2) = zero;
-    M(3, 3) = one;
+    m[0 * 4 + 0] = one - two * normal[0] * normal[0];
+    m[0 * 4 + 1] = -two * normal[0] * normal[1];
+    m[0 * 4 + 2] = -two * normal[0] * normal[2];
+    m[0 * 4 + 3] = twoDotNO * normal[0];
+    m[1 * 4 + 0] = m[0 * 4 + 1];
+    m[1 * 4 + 1] = one - two * normal[1] * normal[1];
+    m[1 * 4 + 2] = -two * normal[1] * normal[2];
+    m[1 * 4 + 3] = twoDotNO * normal[1];
+    m[2 * 4 + 0] = m[0 * 4 + 2];
+    m[2 * 4 + 1] = m[1 * 4 + 2];
+    m[2 * 4 + 2] = one - two * normal[2] * normal[2];
+    m[2 * 4 + 3] = twoDotNO * normal[2];
+    m[3 * 4 + 0] = zero;
+    m[3 * 4 + 1] = zero;
+    m[3 * 4 + 2] = zero;
+    m[3 * 4 + 3] = one;
 #else
-    M(0, 0) = one - two * normal[0] * normal[0];
-    M(1, 0) = -two * normal[0] * normal[1];
-    M(2, 0) = -two * normal[0] * normal[2];
-    M(3, 0) = twoDotNO * normal[0];
-    M(0, 1) = M(1, 0);
-    M(1, 1) = one - two * normal[1] * normal[1];
-    M(2, 1) = -two * normal[1] * normal[2];
-    M(3, 1) = twoDotNO * normal[1];
-    M(0, 2) = M(2, 0);
-    M(1, 2) = M(2, 1);
-    M(2, 2) = one - two * normal[2] * normal[2];
-    M(3, 2) = twoDotNO * normal[2];
-    M(0, 3) = zero;
-    M(1, 3) = zero;
-    M(2, 3) = zero;
-    M(3, 3) = one;
+    m[0 * 4 + 0] = one - two * normal[0] * normal[0];
+    m[1 * 4 + 0] = -two * normal[0] * normal[1];
+    m[2 * 4 + 0] = -two * normal[0] * normal[2];
+    m[3 * 4 + 0] = twoDotNO * normal[0];
+    m[0 * 4 + 1] = m[1 * 4 + 0];
+    m[1 * 4 + 1] = one - two * normal[1] * normal[1];
+    m[2 * 4 + 1] = -two * normal[1] * normal[2];
+    m[3 * 4 + 1] = twoDotNO * normal[1];
+    m[0 * 4 + 2] = m[2 * 4 + 0];
+    m[1 * 4 + 2] = m[2 * 4 + 1];
+    m[2 * 4 + 2] = one - two * normal[2] * normal[2];
+    m[3 * 4 + 2] = twoDotNO * normal[2];
+    m[0 * 4 + 3] = zero;
+    m[1 * 4 + 3] = zero;
+    m[2 * 4 + 3] = zero;
+    m[3 * 4 + 3] = one;
 #endif
 
     return M;

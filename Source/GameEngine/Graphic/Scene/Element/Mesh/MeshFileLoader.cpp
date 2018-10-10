@@ -78,7 +78,6 @@ bool MeshFileLoader::IsALoadableFileExtension(const eastl::wstring& fileName) co
 	else return false;
 }
 
-
 const aiNodeAnim* FindNodeAnim(const aiScene* pScene, aiString nodeName)
 {
 	for (unsigned int a = 0; a < pScene->mNumAnimations; a++)
@@ -95,18 +94,36 @@ const aiNodeAnim* FindNodeAnim(const aiScene* pScene, aiString nodeName)
 	return NULL;
 }
 
-void ReadNodeHeirarchy(const aiScene* pScene, const aiNode* pNode, const aiNode* pParentNode, SkinnedMesh* skinnedMesh)
+void ReadNodeHeirarchy(const aiScene* pScene, 
+	const aiNode* pNode, const aiNode* pParentNode, SkinnedMesh* skinnedMesh)
 {
 	int jointNr = skinnedMesh->GetJointNumber(pNode->mName.C_Str());
 	BaseSkinnedMesh::Joint* joint = jointNr != -1 ?
 		skinnedMesh->GetAllJoints()[jointNr] : skinnedMesh->AddJoint();
 	if (jointNr == -1)
+	{
 		joint->mName = pNode->mName.C_Str();
+
+		// copy rotation matrix
+		Matrix4x4<float> transformMatrix = Matrix4x4<float>::Identity();
+		for (int row = 0; row < 3; ++row)
+			for (int column = 0; column < 3; ++column)
+				transformMatrix(row, column) = pNode->mTransformation[column][row];
+
+		// copy position
+		Vector3<float> translationVector = Vector3<float>::Zero();
+		for (int row = 0; row < 3; ++row)
+			translationVector[row] = pNode->mTransformation[row][3];
+
+		// transforms the mesh vertices to the space of the node
+		joint->mLocalTransform.SetRotation(transformMatrix);
+		joint->mLocalTransform.SetTranslation(translationVector);
+	}
 
 	if (pParentNode != nullptr)
 	{
-		BaseSkinnedMesh::Joint* parentJoint =
-			skinnedMesh->GetAllJoints()[skinnedMesh->GetJointNumber(pParentNode->mName.C_Str())];
+		BaseSkinnedMesh::Joint* parentJoint = skinnedMesh->GetAllJoints()
+			[skinnedMesh->GetJointNumber(pParentNode->mName.C_Str())];
 
 		joint->mParent = parentJoint;
 		parentJoint->mChildren.push_back(joint);
@@ -122,7 +139,7 @@ void ReadNodeHeirarchy(const aiScene* pScene, const aiNode* pNode, const aiNode*
 			positionKey->mPosition = Vector3<float>{
 				pNodeAnim->mPositionKeys[p].mValue[0],
 				pNodeAnim->mPositionKeys[p].mValue[1],
-				pNodeAnim->mPositionKeys[p].mValue[2],
+				pNodeAnim->mPositionKeys[p].mValue[2]
 			};
 		}
 
@@ -133,7 +150,7 @@ void ReadNodeHeirarchy(const aiScene* pScene, const aiNode* pNode, const aiNode*
 			scaleKey->mScale = Vector3<float>{
 				pNodeAnim->mScalingKeys[s].mValue[0],
 				pNodeAnim->mScalingKeys[s].mValue[1],
-				pNodeAnim->mScalingKeys[s].mValue[2],
+				pNodeAnim->mScalingKeys[s].mValue[2]
 			};
 		}
 
@@ -141,12 +158,12 @@ void ReadNodeHeirarchy(const aiScene* pScene, const aiNode* pNode, const aiNode*
 		{
 			SkinnedMesh::RotationKey* rotationKey = skinnedMesh->AddRotationKey(joint);
 			rotationKey->mFrame = (float)pNodeAnim->mRotationKeys[r].mTime;
-			rotationKey->mRotation = Quaternion<float>{
-				pNodeAnim->mRotationKeys[r].mValue.x,
-				pNodeAnim->mRotationKeys[r].mValue.y,
-				pNodeAnim->mRotationKeys[r].mValue.z,
-				pNodeAnim->mRotationKeys[r].mValue.w
-			};
+			rotationKey->mRotation.Set(
+				-pNodeAnim->mRotationKeys[r].mValue.x,
+				-pNodeAnim->mRotationKeys[r].mValue.y,
+				-pNodeAnim->mRotationKeys[r].mValue.z,
+				pNodeAnim->mRotationKeys[r].mValue.w);
+			Normalize(rotationKey->mRotation);
 		}
 	}
 
@@ -390,22 +407,41 @@ BaseMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 				for (unsigned int b = 0; b < pScene->mMeshes[m]->mNumBones; b++)
 				{
 					aiBone* bone = pScene->mMeshes[m]->mBones[b];
+					aiNode* node = pScene->mRootNode->FindNode(bone->mName);
+
+					BaseSkinnedMesh::Joint* joint = skinnedMesh->AddJoint();
+					joint->mName = bone->mName.C_Str();
 
 					// copy rotation matrix
 					Matrix4x4<float> transformMatrix = Matrix4x4<float>::Identity();
 					for (int row = 0; row < 3; ++row)
 						for (int column = 0; column < 3; ++column)
-							transformMatrix(row, column) = bone->mOffsetMatrix[row][column];
+							transformMatrix(row, column) = node->mTransformation[column][row];
 
 					// copy position
-					Vector3<float> translationVector;
+					Vector3<float> translationVector = Vector3<float>::Zero();
 					for (int row = 0; row < 3; ++row)
-						translationVector[row] = bone->mOffsetMatrix[row][3];
+						translationVector[row] = node->mTransformation[row][3];
 
-					BaseSkinnedMesh::Joint* joint = skinnedMesh->AddJoint();
-					joint->mName = bone->mName.C_Str();
+					// transforms the mesh vertices to the space of the node
 					joint->mLocalTransform.SetRotation(transformMatrix);
 					joint->mLocalTransform.SetTranslation(translationVector);
+
+					if (!bone->mOffsetMatrix.IsIdentity())
+					{
+						transformMatrix = Matrix4x4<float>::Identity();
+						for (int row = 0; row < 3; ++row)
+							for (int column = 0; column < 3; ++column)
+								transformMatrix(row, column) = bone->mOffsetMatrix[column][row];
+
+						translationVector = Vector3<float>::Zero();
+						for (int row = 0; row < 3; ++row)
+							translationVector[row] = bone->mOffsetMatrix[row][3];
+
+						joint->mGlobalInversedTransform.SetRotation(transformMatrix);
+						joint->mGlobalInversedTransform.SetTranslation(translationVector);
+					}
+
 					joint->mAttachedMeshes.push_back(mesh->GetMeshBufferCount());
 					for (unsigned int w = 0; w < bone->mNumWeights; w++)
 					{

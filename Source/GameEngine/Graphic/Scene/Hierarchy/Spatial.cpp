@@ -13,7 +13,6 @@ Spatial::Spatial()
     : mParent(nullptr), mWorldTransformIsCurrent(false), mWorldBoundIsCurrent(false),
     mCulling(CULL_DYNAMIC), mAutomaticCullingState(AC_OFF), mDebugDataVisible(DS_OFF)
 {
-
 }
 
 Spatial::~Spatial()
@@ -61,7 +60,7 @@ void Spatial::UpdateAbsoluteTransform()
 	if (mParent)
 	{
 #if defined(GE_USE_MAT_VEC)
-		mWorldTransform = mParent->mWorldTransform*mLocalTransform;
+		mWorldTransform = mParent->mWorldTransform * mLocalTransform;
 #else
 		mWorldTransform = localTransform * mParent->mWorldTransform;
 #endif

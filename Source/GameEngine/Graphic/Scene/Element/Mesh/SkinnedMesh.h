@@ -126,13 +126,17 @@ public:
 			mAnimatedScale = Vector3<float>::Zero();
 			mAnimatedPosition = Vector3<float>::Zero();
 			mAnimatedRotation = Quaternion<float>::Zero();
+
+			mLocalTransform.MakeIdentity();
+			mGlobalTransform.MakeIdentity();
 		}
 
 		//! The name of this joint
 		eastl::string mName;
 
-		//! Local transform of this joint
+		//! transform of this joint
 		Transform mLocalTransform;
+		Transform mGlobalTransform;
 
 		Joint* mParent;
 
@@ -155,7 +159,6 @@ public:
 		eastl::vector<Weight> mWeights;
 
 		//! Unnecessary for loaders, will be overwritten on finalize
-		Transform mGlobalTransform;
 		Transform mGlobalAnimatedTransform;
 		Transform mLocalAnimatedTransform;
 		Vector3<float> mAnimatedPosition;
@@ -339,15 +342,14 @@ private:
 	void NormalizeWeights();
 
 	void BuildAllLocalAnimatedMatrices();
-
 	void BuildAllGlobalAnimatedMatrices(Joint *joint = 0, Joint *parentJoint = 0);
+
+	void CalculateGlobalMatrices(Joint *joint, Joint *parentJoint);
 
 	void GetFrameData(float frame, Joint *Node,
 		Vector3<float> &position, int &positionHint,
 		Vector3<float> &scale, int &scaleHint,
 		Quaternion<float> &rotation, int &rotationHint);
-
-	void CalculateGlobalMatrices(Joint *joint, Joint *parentJoint);
 
 	void SkinJoint(Joint *joint, Joint *parentJoint);
 
@@ -356,8 +358,8 @@ private:
 		Vector3<float>& vt1, Vector3<float>& vt2, Vector3<float>& vt3,
 		Vector2<float>& tc1, Vector2<float>& tc2, Vector2<float>& tc3);
 
-	eastl::vector<eastl::shared_ptr<SkinMeshBuffer>>* mSkinningBuffers; //Meshbuffer to skin, default is to skin localBuffers
-
+	//Meshbuffer to skin, default is to skin localBuffers
+	eastl::vector<SkinMeshBuffer*> mSkinningBuffers;
 	eastl::vector<eastl::shared_ptr<SkinMeshBuffer>> mLocalBuffers;
 
 	eastl::vector<Joint*> mAllJoints;

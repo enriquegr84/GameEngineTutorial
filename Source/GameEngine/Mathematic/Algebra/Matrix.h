@@ -13,6 +13,137 @@
 #include "Mathematic/NumericalMethod/GaussianElimination.h"
 
 template <int NumRows, int NumCols, typename Real>
+class Matrix;
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real>
+operator+(Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real>
+operator-(Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real> operator+(
+	Matrix<NumRows, NumCols, Real> const& M0,
+	Matrix<NumRows, NumCols, Real> const& M1);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real> operator-(
+	Matrix<NumRows, NumCols, Real> const& M0,
+	Matrix<NumRows, NumCols, Real> const& M1);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real>
+operator*(Matrix<NumRows, NumCols, Real> const& M, Real scalar);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real>
+operator*(Real scalar, Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real>
+operator/(Matrix<NumRows, NumCols, Real> const& M, Real scalar);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real>& operator+=(
+	Matrix<NumRows, NumCols, Real>& M0,
+	Matrix<NumRows, NumCols, Real> const& M1);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real>& operator-=(
+	Matrix<NumRows, NumCols, Real>& M0,
+	Matrix<NumRows, NumCols, Real> const& M1);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real>& operator*=(
+	Matrix<NumRows, NumCols, Real>& M, Real scalar);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real>& operator/=(
+	Matrix<NumRows, NumCols, Real>& M, Real scalar);
+
+template <int NumRows, int NumCols, typename Real>
+Real L1Norm(Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
+Real L2Norm(Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
+Real LInfinityNorm(Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real> Inverse(
+	Matrix<NumRows, NumCols, Real> const& M,
+	bool* reportInvertibility = nullptr);
+
+template <int NumRows, int NumCols, typename Real>
+Real Determinant(Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumCols, NumRows, Real>
+Transpose(Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
+Vector<NumRows, Real> operator*(
+	Matrix<NumRows, NumCols, Real> const& M,
+	Vector<NumCols, Real> const& V);
+
+template <int NumRows, int NumCols, typename Real>
+Vector<NumCols, Real> operator*(
+	Vector<NumRows, Real> const& V,
+	Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, int NumCommon, typename Real>
+Matrix<NumRows, NumCols, Real> operator*(
+	Matrix<NumRows, NumCommon, Real> const& A,
+	Matrix<NumCommon, NumCols, Real> const& B);
+
+template <int NumRows, int NumCols, int NumCommon, typename Real>
+Matrix<NumRows, NumCols, Real> MultiplyAB(
+	Matrix<NumRows, NumCommon, Real> const& A,
+	Matrix<NumCommon, NumCols, Real> const& B);
+
+template <int NumRows, int NumCols, int NumCommon, typename Real>
+Matrix<NumRows, NumCols, Real> MultiplyABT(
+	Matrix<NumRows, NumCommon, Real> const& A,
+	Matrix<NumCols, NumCommon, Real> const& B);
+
+template <int NumRows, int NumCols, int NumCommon, typename Real>
+Matrix<NumRows, NumCols, Real> MultiplyATB(
+	Matrix<NumCommon, NumRows, Real> const& A,
+	Matrix<NumCommon, NumCols, Real> const& B);
+
+template <int NumRows, int NumCols, int NumCommon, typename Real>
+Matrix<NumRows, NumCols, Real> MultiplyATBT(
+	Matrix<NumCommon, NumRows, Real> const& A,
+	Matrix<NumCols, NumCommon, Real> const& B);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real> MultiplyMD(
+	Matrix<NumRows, NumCols, Real> const& M,
+	Vector<NumCols, Real> const& D);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real> MultiplyDM(
+	Vector<NumRows, Real> const& D,
+	Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows, NumCols, Real> OuterProduct(
+	Vector<NumRows, Real> const& U, Vector<NumCols, Real> const& V);
+
+template <int NumRows, int NumCols, typename Real>
+void MakeDiagonal(Vector<NumRows, Real> const& D, Matrix<NumRows, NumCols, Real>& M);
+
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows + 1, NumCols + 1, Real> HLift(Matrix<NumRows, NumCols, Real> const& M);
+
+// Extract the upper (N-1)-by-(N-1) block of the input N-by-N matrix.
+template <int NumRows, int NumCols, typename Real>
+Matrix<NumRows - 1, NumCols - 1, Real> HProject(Matrix<NumRows, NumCols, Real> const& M);
+
+template <int NumRows, int NumCols, typename Real>
 class Matrix
 {
 public:
@@ -53,27 +184,27 @@ public:
     inline Real const& operator()(int r, int c) const;
     inline Real& operator()(int r, int c);
 
+	// Member access by 1-dimensional index.  NOTE: These accessors are
+	// useful for the manipulation of matrix entries when it does not
+	// matter whether storage is row-major or column-major.  Do not use
+	// constructs such as M[c+NumCols*r] or M[r+NumRows*c] that expose the
+	// storage convention.
+	inline Real const& operator[](int i) const;
+	inline Real& operator[](int i);
+
     // Member access by rows or by columns.
     void SetRow(int r, Vector<NumCols,Real> const& vec);
     void SetCol(int c, Vector<NumRows,Real> const& vec);
     Vector<NumCols,Real> GetRow(int r) const;
     Vector<NumRows,Real> GetCol(int c) const;
 
-    // Member access by 1-dimensional index.  NOTE: These accessors are
-    // useful for the manipulation of matrix entries when it does not
-    // matter whether storage is row-major or column-major.  Do not use
-    // constructs such as M[c+NumCols*r] or M[r+NumRows*c] that expose the
-    // storage convention.
-    inline Real const& operator[](int i) const;
-    inline Real& operator[](int i);
+	// Transformation
+	void Transformation(
+		Vector<NumRows, Real> const& in, Vector<NumRows, Real>& out) const;
 
     // Comparisons for sorted containers and geometric ordering.
     inline bool operator==(Matrix const& mat) const;
     inline bool operator!=(Matrix const& mat) const;
-    inline bool operator< (Matrix const& mat) const;
-    inline bool operator<=(Matrix const& mat) const;
-    inline bool operator> (Matrix const& mat) const;
-    inline bool operator>=(Matrix const& mat) const;
 
     // Special matrices.
     void MakeZero();  // All components are 0.
@@ -83,203 +214,112 @@ public:
     static Matrix Unit(int r, int c);
     static Matrix Identity();
 
+	// Unary operations.
+	friend Matrix operator+<NumRows, NumCols, Real>(Matrix const& M);
+	friend Matrix operator-<NumRows, NumCols, Real>(Matrix const& M);
+
+	// Linear-algebraic operations.
+	friend Matrix operator+<NumRows, NumCols, Real>(Matrix const& M0, Matrix const& M1);
+	friend Matrix operator-<NumRows, NumCols, Real>(Matrix const& M0, Matrix const& M1);
+	friend Matrix operator*<NumRows, NumCols, Real>(Matrix const& M, Real scalar);
+	friend Matrix operator*<NumRows, NumCols, Real>(Real scalar, Matrix const& M);
+	friend Matrix operator/<NumRows, NumCols, Real>(Matrix const& M, Real scalar);
+	friend Matrix& operator+=<NumRows, NumCols, Real>(Matrix& M0, Matrix const& M1);
+	friend Matrix& operator-=<NumRows, NumCols, Real>(Matrix& M0, Matrix const& M1);
+	friend Matrix& operator*=<NumRows, NumCols, Real>(Matrix& M, Real scalar);
+	friend Matrix& operator/=<NumRows, NumCols, Real>(Matrix& M, Real scalar);
+
+	// Geometric operations.
+	friend Real L1Norm<NumRows, NumCols, Real>(Matrix const& M);
+	friend Real L2Norm<NumRows, NumCols, Real>(Matrix const& M);
+	friend Real LInfinityNorm<NumRows, NumCols, Real>(Matrix const& M);
+
+	friend Matrix Inverse<NumRows, NumCols, Real>(Matrix const& M, bool* reportInvertibility);
+	friend Real Determinant<NumRows, NumCols, Real>(Matrix const& M);
+
+	// M^T
+	friend Matrix<NumCols, NumRows, Real> Transpose<NumRows, NumCols, Real>(Matrix const& M);
+
+	// M*V
+	friend Vector<NumRows, Real> operator*<NumRows, NumCols, Real>
+		(Matrix const& M, Vector<NumCols, Real> const& V);
+
+	// V^T*M
+	friend Vector<NumCols, Real> operator*<NumRows, NumCols, Real>
+		(Vector<NumRows, Real> const& V, Matrix const& M);
+
+	// A*B
+	template <int NumRows, int NumCols, int NumCommon, typename Real>
+	friend Matrix<NumRows, NumCols, Real> operator*<NumRows, NumCols, Real>(
+			Matrix<NumRows, NumCommon, Real> const& A,
+			Matrix<NumCommon, NumCols, Real> const& B);
+
+	template <int NumRows, int NumCols, int NumCommon, typename Real>
+	friend Matrix<NumRows, NumCols, Real> MultiplyAB<NumRows, NumCols, Real>(
+			Matrix<NumRows, NumCommon, Real> const& A,
+			Matrix<NumCommon, NumCols, Real> const& B);
+
+	// A*B^T
+	template <int NumRows, int NumCols, int NumCommon, typename Real>
+	friend Matrix<NumRows, NumCols, Real> MultiplyABT<NumRows, NumCols, Real>(
+			Matrix<NumRows, NumCommon, Real> const& A,
+			Matrix<NumCols, NumCommon, Real> const& B);
+
+	// A^T*B
+	template <int NumRows, int NumCols, int NumCommon, typename Real>
+	friend Matrix<NumRows, NumCols, Real> MultiplyATB<NumRows, NumCols, Real>(
+			Matrix<NumCommon, NumRows, Real> const& A,
+			Matrix<NumCommon, NumCols, Real> const& B);
+
+	// A^T*B^T
+	template <int NumRows, int NumCols, int NumCommon, typename Real>
+	friend Matrix<NumRows, NumCols, Real> MultiplyATBT<NumRows, NumCols, Real>(
+			Matrix<NumCommon, NumRows, Real> const& A,
+			Matrix<NumCols, NumCommon, Real> const& B);
+
+	// M*D, D is diagonal NumCols-by-NumCols
+	friend Matrix MultiplyMD<NumRows, NumCols, Real>(Matrix const& M, Vector<NumCols, Real> const& D);
+
+	// D*M, D is diagonal NumRows-by-NumRows
+	friend Matrix MultiplyDM<NumRows, NumCols, Real>(Vector<NumRows, Real> const& D, Matrix const& M);
+
+	// U*V^T, U is NumRows-by-1, V is Num-Cols-by-1, result is NumRows-by-NumCols.
+	friend Matrix OuterProduct<NumRows, NumCols, Real>(
+		Vector<NumRows, Real> const& U, Vector<NumCols, Real> const& V);
+
+	// Initialization to a diagonal matrix whose diagonal entries are the
+	// components of D.
+	friend void MakeDiagonal<NumRows, NumCols, Real>(Vector<NumRows, Real> const& D, Matrix& M);
+
+	// Create an (N+1)-by-(N+1) matrix H by setting the upper N-by-N block to the
+	// input N-by-N matrix and all other entries to 0 except for the last row
+	// and last column entry which is set to 1.
+	friend Matrix<NumRows + 1, NumCols + 1, Real> HLift<NumRows, NumCols, Real>(Matrix const& M);
+
+	// Extract the upper (N-1)-by-(N-1) block of the input N-by-N matrix.
+	friend Matrix<NumRows - 1, NumCols - 1, Real> HProject<NumRows, NumCols, Real>(Matrix const& M);
+
 protected:
-    class Table
-    {
-    public:
-        // Storage-order-independent element access as 2D array.
-        inline Real const& operator()(int r, int c) const;
-        inline Real& operator()(int r, int c);
 
-        // Element access as 1D array.  Use this internally only when
-        // the 2D storage order is not relevant.
-        inline Real const& operator[](int i) const;
-        inline Real& operator[](int i);
-
-#if defined(GE_USE_ROW_MAJOR)
-        eastl::array<eastl::array<Real,NumCols>,NumRows> mStorage;
-#else
-		eastl::array<eastl::array<Real,NumRows>,NumCols> mStorage;
-#endif
-    };
-
-    Table mTable;
+	Real mTable[NumCols*NumRows];
 };
-
-// Unary operations.
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-operator+(Matrix<NumRows,NumCols,Real> const& M);
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-operator-(Matrix<NumRows,NumCols,Real> const& M);
-
-// Linear-algebraic operations.
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-operator+(
-    Matrix<NumRows,NumCols,Real> const& M0,
-    Matrix<NumRows,NumCols,Real> const& M1);
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-operator-(
-    Matrix<NumRows,NumCols,Real> const& M0,
-    Matrix<NumRows,NumCols,Real> const& M1);
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-operator*(Matrix<NumRows,NumCols,Real> const& M, Real scalar);
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-operator*(Real scalar, Matrix<NumRows,NumCols,Real> const& M);
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-operator/(Matrix<NumRows,NumCols,Real> const& M, Real scalar);
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>&
-operator+=(
-    Matrix<NumRows,NumCols,Real>& M0,
-    Matrix<NumRows,NumCols,Real> const& M1);
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>&
-operator-=(
-    Matrix<NumRows,NumCols,Real>& M0,
-    Matrix<NumRows,NumCols,Real> const& M1);
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>&
-operator*=(Matrix<NumRows,NumCols,Real>& M, Real scalar);
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>&
-operator/=(Matrix<NumRows,NumCols,Real>& M, Real scalar);
-
-// Geometric operations.
-template <int NumRows, int NumCols, typename Real>
-Real L1Norm(Matrix<NumRows,NumCols,Real> const& M);
-
-template <int NumRows, int NumCols, typename Real>
-Real L2Norm(Matrix<NumRows,NumCols,Real> const& M);
-
-template <int NumRows, int NumCols, typename Real>
-Real LInfinityNorm(Matrix<NumRows,NumCols,Real> const& M);
-
-template <int N, typename Real>
-Matrix<N,N,Real> Inverse(Matrix<N,N,Real> const& M,
-    bool* reportInvertibility = nullptr);
-
-template <int N, typename Real>
-Real Determinant(Matrix<N, N, Real> const& M);
-
-// M^T
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumCols,NumRows,Real>
-Transpose(Matrix<NumRows,NumCols,Real> const& M);
-
-// M*V
-template <int NumRows, int NumCols, typename Real>
-Vector<NumRows,Real>
-operator*(
-    Matrix<NumRows,NumCols,Real> const& M,
-    Vector<NumCols,Real> const& V);
-
-// V^T*M
-template <int NumRows, int NumCols, typename Real>
-Vector<NumCols,Real>
-operator*(
-    Vector<NumRows,Real> const& V,
-    Matrix<NumRows,NumCols,Real> const& M);
-
-// A*B
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows,NumCols,Real>
-operator*(
-    Matrix<NumRows,NumCommon,Real> const& A,
-    Matrix<NumCommon,NumCols,Real> const& B);
-
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows,NumCols,Real>
-MultiplyAB(
-    Matrix<NumRows,NumCommon,Real> const& A,
-    Matrix<NumCommon,NumCols,Real> const& B);
-
-// A*B^T
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows,NumCols,Real>
-MultiplyABT(
-    Matrix<NumRows,NumCommon,Real> const& A,
-    Matrix<NumCols,NumCommon,Real> const& B);
-
-// A^T*B
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows,NumCols,Real>
-MultiplyATB(
-    Matrix<NumCommon,NumRows,Real> const& A,
-    Matrix<NumCommon,NumCols,Real> const& B);
-
-// A^T*B^T
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows,NumCols,Real>
-MultiplyATBT(
-    Matrix<NumCommon,NumRows,Real> const& A,
-    Matrix<NumCols,NumCommon,Real> const& B);
-
-// M*D, D is diagonal NumCols-by-NumCols
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-MultiplyMD(
-    Matrix<NumRows,NumCols,Real> const& M,
-    Vector<NumCols,Real> const& D);
-
-// D*M, D is diagonal NumRows-by-NumRows
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-MultiplyDM(
-    Vector<NumRows,Real> const& D,
-    Matrix<NumRows,NumCols,Real> const& M);
-
-// U*V^T, U is NumRows-by-1, V is Num-Cols-by-1, result is NumRows-by-NumCols.
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows,NumCols,Real>
-OuterProduct(Vector<NumRows, Real> const& U, Vector<NumCols, Real> const& V);
-
-// Initialization to a diagonal matrix whose diagonal entries are the
-// components of D.
-template <int N, typename Real>
-void MakeDiagonal(Vector<N, Real> const& D, Matrix<N, N, Real>& M);
-
-// Create an (N+1)-by-(N+1) matrix H by setting the upper N-by-N block to the
-// input N-by-N matrix and all other entries to 0 except for the last row
-// and last column entry which is set to 1.
-template <int N, typename Real>
-Matrix<N + 1, N+1, Real> HLift(Matrix<N, N, Real> const& M);
-
-// Extract the upper (N-1)-by-(N-1) block of the input N-by-N matrix.
-template <int N, typename Real>
-Matrix<N - 1, N - 1, Real> HProject(Matrix<N, N, Real> const& M);
-
 
 template <int NumRows, int NumCols, typename Real>
 Matrix<NumRows, NumCols, Real>::Matrix()
 {
-    MakeZero();
+
 }
 
 template <int NumRows, int NumCols, typename Real>
 Matrix<NumRows, NumCols, Real>::Matrix(
 	eastl::array<Real, NumRows*NumCols> const& values)
 {
+	Real const* in = reinterpret_cast<Real const*>(&values);
     for (int r = 0, i = 0; r < NumRows; ++r)
     {
         for (int c = 0; c < NumCols; ++c, ++i)
         {
-            mTable(r, c) = values[i];
+            mTable[r * NumCols + c] = in[i];
         }
     }
 }
@@ -296,7 +336,7 @@ Matrix<NumRows, NumCols, Real>::Matrix(std::initializer_list<Real> values)
         {
             if (i < numValues)
             {
-                mTable(r, c) = *iter++;
+                mTable[r * NumCols + c] = *iter++;
             }
             else
             {
@@ -309,7 +349,7 @@ Matrix<NumRows, NumCols, Real>::Matrix(std::initializer_list<Real> values)
             // Fill in the remaining columns of the current row with zeros.
             for (/**/; c < NumCols; ++c)
             {
-                mTable(r, c) = (Real)0;
+                mTable[r * NumCols + c] = (Real)0;
             }
             ++r;
             break;
@@ -323,7 +363,7 @@ Matrix<NumRows, NumCols, Real>::Matrix(std::initializer_list<Real> values)
         {
             for (c = 0; c < NumCols; ++c)
             {
-                mTable(r, c) = (Real)0;
+                mTable[r * NumCols + c] = (Real)0;
             }
         }
     }
@@ -338,22 +378,35 @@ Matrix<NumRows, NumCols, Real>::Matrix(int r, int c)
 template <int NumRows, int NumCols, typename Real> inline
 Real const& Matrix<NumRows, NumCols, Real>::operator()(int r, int c) const
 {
-    return mTable(r, c);
+	return mTable[r * NumCols + c];
 }
 
 template <int NumRows, int NumCols, typename Real> inline
 Real& Matrix<NumRows, NumCols, Real>::operator()(int r, int c)
 {
-    return mTable(r, c);
+	return mTable[r * NumCols + c];
+}
+
+template <int NumRows, int NumCols, typename Real> inline
+Real const& Matrix<NumRows, NumCols, Real>::operator[](int i) const
+{
+	return mTable[i];
+}
+
+template <int NumRows, int NumCols, typename Real> inline
+Real& Matrix<NumRows, NumCols, Real>::operator[](int i)
+{
+	return mTable[i];
 }
 
 template <int NumRows, int NumCols, typename Real>
 void Matrix<NumRows, NumCols, Real>::SetRow(int r,
     Vector<NumCols, Real> const& vec)
 {
+	Real const* in = reinterpret_cast<Real const*>(&vec);
     for (int c = 0; c < NumCols; ++c)
     {
-        mTable(r, c) = vec[c];
+        mTable[r * NumCols + c] = in[c];
     }
 }
 
@@ -361,9 +414,10 @@ template <int NumRows, int NumCols, typename Real>
 void Matrix<NumRows, NumCols, Real>::SetCol(int c,
     Vector<NumRows, Real> const& vec)
 {
+	Real const* in = reinterpret_cast<Real const*>(&vec);
     for (int r = 0; r < NumRows; ++r)
     {
-        mTable(r, c) = vec[r];
+        mTable[r * NumCols + c] = in[r];
     }
 }
 
@@ -371,9 +425,10 @@ template <int NumRows, int NumCols, typename Real>
 Vector<NumCols, Real> Matrix<NumRows, NumCols, Real>::GetRow(int r) const
 {
     Vector<NumCols, Real> vec;
+	Real* in = reinterpret_cast<Real*>(&vec);
     for (int c = 0; c < NumCols; ++c)
     {
-        vec[c] = mTable(r, c);
+        in[c] = mTable[r * NumCols + c];
     }
     return vec;
 }
@@ -382,59 +437,44 @@ template <int NumRows, int NumCols, typename Real>
 Vector<NumRows, Real> Matrix<NumRows, NumCols, Real>::GetCol(int c) const
 {
     Vector<NumRows, Real> vec;
+	Real* in = reinterpret_cast<Real*>(&vec);
     for (int r = 0; r < NumRows; ++r)
     {
-        vec[r] = mTable(r, c);
+        in[r] = mTable[r * NumCols + c];
     }
     return vec;
 }
 
-template <int NumRows, int NumCols, typename Real> inline
-Real const& Matrix<NumRows, NumCols, Real>::operator[](int i) const
+template <int NumRows, int NumCols, typename Real>
+void Matrix<NumRows, NumCols, Real>::Transformation(
+	Vector<NumRows, Real> const& in, Vector<NumRows, Real>& out) const
 {
-    return mTable[i];
-}
-
-template <int NumRows, int NumCols, typename Real> inline
-Real& Matrix<NumRows, NumCols, Real>::operator[](int i)
-{
-    return mTable[i];
+	Real* vOut = reinterpret_cast<Real*>(&out);
+	Real const* vIn = reinterpret_cast<Real const*>(&in);
+	for (int r = 0; r < NumRows; ++r)
+	{
+		vOut[r] = (Real)0;
+		for (int c = 0; c < NumCols; ++c)
+		{
+			vOut[r] += vIn[c] * mTable[c * NumCols + r];
+		}
+	}
 }
 
 template <int NumRows, int NumCols, typename Real> inline
 bool Matrix<NumRows, NumCols, Real>::operator==(Matrix const& mat) const
 {
-    return mTable.mStorage == mat.mTable.mStorage;
+	for (int i = 0; i < NumRows*NumCols; ++i)
+		if (mTable[i] != mat.mTable[i])
+			return false;
+
+	return true;
 }
 
 template <int NumRows, int NumCols, typename Real> inline
 bool Matrix<NumRows, NumCols, Real>::operator!=(Matrix const& mat) const
 {
-    return mTable.mStorage != mat.mTable.mStorage;
-}
-
-template <int NumRows, int NumCols, typename Real> inline
-bool Matrix<NumRows, NumCols, Real>::operator<(Matrix const& mat) const
-{
-    return mTable.mStorage < mat.mTable.mStorage;
-}
-
-template <int NumRows, int NumCols, typename Real> inline
-bool Matrix<NumRows, NumCols, Real>::operator<=(Matrix const& mat) const
-{
-    return mTable.mStorage <= mat.mTable.mStorage;
-}
-
-template <int NumRows, int NumCols, typename Real> inline
-bool Matrix<NumRows, NumCols, Real>::operator>(Matrix const& mat) const
-{
-    return mTable.mStorage > mat.mTable.mStorage;
-}
-
-template <int NumRows, int NumCols, typename Real> inline
-bool Matrix<NumRows, NumCols, Real>::operator>=(Matrix const& mat) const
-{
-    return mTable.mStorage >= mat.mTable.mStorage;
+	return !(*this == mat);
 }
 
 template <int NumRows, int NumCols, typename Real>
@@ -453,7 +493,7 @@ void Matrix<NumRows, NumCols, Real>::MakeUnit(int r, int c)
     MakeZero();
     if (0 <= r && r < NumRows && 0 <= c && c < NumCols)
     {
-        mTable(r, c) = (Real)1;
+        mTable[r * NumCols + c] = (Real)1;
     }
 }
 
@@ -464,7 +504,7 @@ void Matrix<NumRows, NumCols, Real>::MakeIdentity()
     int const numDiagonal = (NumRows <= NumCols ? NumRows : NumCols);
     for (int i = 0; i < numDiagonal; ++i)
     {
-        mTable(i, i) = (Real)1;
+        mTable[i * NumCols + i] = (Real)1;
     }
 }
 
@@ -493,30 +533,27 @@ Matrix<NumRows, NumCols, Real> Matrix<NumRows, NumCols, Real>::Identity()
     return M;
 }
 
-
-
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-operator+(Matrix<NumRows, NumCols, Real> const& M)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> operator+(
+	Matrix<NumRows, NumCols, Real> const& M)
 {
     return M;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-operator-(Matrix<NumRows, NumCols, Real> const& M)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> operator-(
+	Matrix<NumRows, NumCols, Real> const& M)
 {
     Matrix<NumRows, NumCols, Real> result;
     for (int i = 0; i < NumRows*NumCols; ++i)
     {
-        result[i] = -M[i];
+        result.mTable[i] = -M.mTable[i];
     }
     return result;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-operator+(
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> operator+(
     Matrix<NumRows, NumCols, Real> const& M0,
     Matrix<NumRows, NumCols, Real> const& M1)
 {
@@ -524,9 +561,8 @@ operator+(
     return result += M1;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-operator-(
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> operator-(
     Matrix<NumRows, NumCols, Real> const& M0,
     Matrix<NumRows, NumCols, Real> const& M1)
 {
@@ -534,118 +570,116 @@ operator-(
     return result -= M1;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-operator*(Matrix<NumRows, NumCols, Real> const& M, Real scalar)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> operator*(
+	Matrix<NumRows, NumCols, Real> const& M, Real scalar)
 {
     Matrix<NumRows, NumCols, Real> result = M;
     return result *= scalar;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-operator*(Real scalar, Matrix<NumRows, NumCols, Real> const& M)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> operator*(
+	Real scalar, Matrix<NumRows, NumCols, Real> const& M)
 {
     Matrix<NumRows, NumCols, Real> result = M;
     return result *= scalar;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-operator/(Matrix<NumRows, NumCols, Real> const& M, Real scalar)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> operator/(
+	Matrix<NumRows, NumCols, Real> const& M, Real scalar)
 {
     Matrix<NumRows, NumCols, Real> result = M;
     return result /= scalar;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>&
-operator+=(
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real>& operator+=(
     Matrix<NumRows, NumCols, Real>& M0,
     Matrix<NumRows, NumCols, Real> const& M1)
 {
     for (int i = 0; i < NumRows*NumCols; ++i)
     {
-        M0[i] += M1[i];
+        M0.mTable[i] += M1.mTable[i];
     }
     return M0;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>&
-operator-=(
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real>& operator-=(
     Matrix<NumRows, NumCols, Real>& M0,
     Matrix<NumRows, NumCols, Real> const& M1)
 {
     for (int i = 0; i < NumRows*NumCols; ++i)
     {
-        M0[i] -= M1[i];
+        M0.mTable[i] -= M1.mTable[i];
     }
     return M0;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>&
-operator*=(Matrix<NumRows, NumCols, Real>& M, Real scalar)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real>& operator*=(
+	Matrix<NumRows, NumCols, Real>& M, Real scalar)
 {
     for (int i = 0; i < NumRows*NumCols; ++i)
     {
-        M[i] *= scalar;
+        M.mTable[i] *= scalar;
     }
     return M;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>&
-operator/=(Matrix<NumRows, NumCols, Real>& M, Real scalar)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real>& operator/=(
+	Matrix<NumRows, NumCols, Real>& M, Real scalar)
 {
     if (scalar != (Real)0)
     {
         Real invScalar = ((Real)1) / scalar;
         for (int i = 0; i < NumRows*NumCols; ++i)
         {
-            M[i] *= invScalar;
+            M.mTable[i] *= invScalar;
         }
     }
     else
     {
         for (int i = 0; i < NumRows*NumCols; ++i)
         {
-            M[i] = (Real)0;
+            M.mTable[i] = (Real)0;
         }
     }
     return M;
 }
 
-template <int NumRows, int NumCols, typename Real>
+template <int NumRows, int NumCols, typename Real> inline
 Real L1Norm(Matrix<NumRows, NumCols, Real> const& M)
 {
-    Real sum = fabs(M[0]);
+    Real sum = fabs(M.mTable[0]);
     for (int i = 1; i < NumRows*NumCols; ++i)
     {
-        sum += fabs(M[i]);
+        sum += fabs(M.mTable[i]);
     }
     return sum;
 }
 
-template <int NumRows, int NumCols, typename Real>
+template <int NumRows, int NumCols, typename Real> inline
 Real L2Norm(Matrix<NumRows, NumCols, Real> const& M)
 {
-    Real sum = M[0] * M[0];
+    Real sum = M.mTable[0] * M.mTable[0];
     for (int i = 1; i < NumRows*NumCols; ++i)
     {
-        sum += M[i] * M[i];
+        sum += M.mTable[i] * M.mTable[i];
     }
     return sqrt(sum);
 }
 
-template <int NumRows, int NumCols, typename Real>
+template <int NumRows, int NumCols, typename Real> inline
 Real LInfinityNorm(Matrix<NumRows, NumCols, Real> const& M)
 {
-    Real maxAbsElement = M[0];
+    Real maxAbsElement = M.mTable[0];
     for (int i = 1; i < NumRows*NumCols; ++i)
     {
-        Real absElement = fabs(M[i]);
+        Real absElement = fabs(M.mTable[i]);
         if (absElement > maxAbsElement)
         {
             maxAbsElement = absElement;
@@ -654,13 +688,14 @@ Real LInfinityNorm(Matrix<NumRows, NumCols, Real> const& M)
     return maxAbsElement;
 }
 
-template <int N, typename Real>
-Matrix<N, N, Real> Inverse(Matrix<N, N, Real> const& M,
-    bool* reportInvertibility)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> Inverse(
+	Matrix<NumRows, NumCols, Real> const& M, bool* reportInvertibility)
 {
-    Matrix<N, N, Real> invM;
+    Matrix<NumRows, NumCols, Real> invM;
     Real determinant;
-    bool invertible = GaussianElimination<Real>()(N, &M[0], &invM[0],
+    bool invertible = GaussianElimination<Real>()(
+		NumRows, &M.mTable[0], &invM.mTable[0],
         determinant, nullptr, nullptr, nullptr, 0, nullptr);
     if (reportInvertibility)
     {
@@ -669,16 +704,16 @@ Matrix<N, N, Real> Inverse(Matrix<N, N, Real> const& M,
     return invM;
 }
 
-template <int N, typename Real>
-Real Determinant(Matrix<N, N, Real> const& M)
+template <int NumRows, int NumCols, typename Real> inline
+Real Determinant(Matrix<NumRows, NumCols, Real> const& M)
 {
     Real determinant;
-    GaussianElimination<Real>()(N, &M[0], nullptr, determinant, nullptr,
+    GaussianElimination<Real>()(NumRows, &M.mTable[0], nullptr, determinant, nullptr,
         nullptr, nullptr, 0, nullptr);
     return determinant;
 }
 
-template <int NumRows, int NumCols, typename Real>
+template <int NumRows, int NumCols, typename Real> inline
 Matrix<NumCols, NumRows, Real>
 Transpose(Matrix<NumRows, NumCols, Real> const& M)
 {
@@ -687,58 +722,73 @@ Transpose(Matrix<NumRows, NumCols, Real> const& M)
     {
         for (int c = 0; c < NumCols; ++c)
         {
-            result(c, r) = M(r, c);
+            result.mTable[c * NumCols + r] = M.mTable[r * NumCols + c];
         }
     }
     return result;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Vector<NumRows, Real>
-operator*(
+template <int NumRows, int NumCols, typename Real> inline
+Vector<NumRows, Real> operator*(
     Matrix<NumRows, NumCols, Real> const& M,
     Vector<NumCols, Real> const& V)
 {
     Vector<NumRows, Real> result;
+	Real* out = reinterpret_cast<Real*>(&result);
+	Real const* in = reinterpret_cast<Real const*>(&V);
 	for (int r = 0; r < NumRows; ++r)
 	{
-		result[r] = (Real)0;
+		out[r] = (Real)0;
 		for (int c = 0; c < NumCols; ++c)
 		{
-			result[r] += M(r, c) * V[c];
+			out[r] += M.mTable[r * NumCols + c] * in[c];
 		}
 	}
     return result;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Vector<NumCols, Real> operator*(Vector<NumRows, Real> const& V,
+template <int NumRows, int NumCols, typename Real> inline
+Vector<NumCols, Real> operator*(
+	Vector<NumRows, Real> const& V,
     Matrix<NumRows, NumCols, Real> const& M)
 {
     Vector<NumCols, Real> result;
+	Real* out = reinterpret_cast<Real*>(&result);
+	Real const* in = reinterpret_cast<Real const*>(&V);
     for (int c = 0; c < NumCols; ++c)
     {
-        result[c] = (Real)0;
+		out[c] = (Real)0;
         for (int r = 0; r < NumRows; ++r)
         {
-            result[c] += V[r] * M(r, c);
+			out[c] += in[r] * M.mTable[r * NumCols + c];
         }
     }
     return result;
 }
 
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows, NumCols, Real>
-operator*(
+template <int NumRows, int NumCols, int NumCommon, typename Real> inline
+Matrix<NumRows, NumCols, Real> operator*(
     Matrix<NumRows, NumCommon, Real> const& A,
     Matrix<NumCommon, NumCols, Real> const& B)
 {
-    return MultiplyAB(A, B);
+	Matrix<NumRows, NumCols, Real> result;
+	for (int r = 0; r < NumRows; ++r)
+	{
+		for (int c = 0; c < NumCols; ++c)
+		{
+			result.mTable[r * NumCols + c] = (Real)0;
+			for (int i = 0; i < NumCommon; ++i)
+			{
+				result.mTable[r * NumCols + c] +=
+					A.mTable[r * NumCols + i] * B.mTable[i * NumCols + c];
+			}
+		}
+	}
+	return result;
 }
 
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows, NumCols, Real>
-MultiplyAB(
+template <int NumRows, int NumCols, int NumCommon, typename Real> inline
+Matrix<NumRows, NumCols, Real> MultiplyAB(
     Matrix<NumRows, NumCommon, Real> const& A,
     Matrix<NumCommon, NumCols, Real> const& B)
 {
@@ -747,19 +797,19 @@ MultiplyAB(
 	{
 		for (int c = 0; c < NumCols; ++c)
 		{
-			result(r, c) = (Real)0;
+			result.mTable[r * NumCols + c] = (Real)0;
 			for (int i = 0; i < NumCommon; ++i)
 			{
-				result(r, c) += A(r, i) * B(i, c);
+				result.mTable[r * NumCols + c] +=
+					A.mTable[i * NumCols + c] * B.mTable[r * NumCols + i];
 			}
 		}
 	}
     return result;
 }
 
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows, NumCols, Real>
-MultiplyABT(
+template <int NumRows, int NumCols, int NumCommon, typename Real> inline
+Matrix<NumRows, NumCols, Real> MultiplyABT(
     Matrix<NumRows, NumCommon, Real> const& A,
     Matrix<NumCols, NumCommon, Real> const& B)
 {
@@ -768,19 +818,19 @@ MultiplyABT(
     {
         for (int c = 0; c < NumCols; ++c)
         {
-            result(r, c) = (Real)0;
+            result.mTable[r * NumCols + c] = (Real)0;
             for (int i = 0; i < NumCommon; ++i)
             {
-                result(r, c) += A(r, i) * B(c, i);
+                result.mTable[r * NumCols + c] +=
+					A.mTable[i * NumCols + c] * B.mTable[i * NumCols + r];
             }
         }
     }
     return result;
 }
 
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows, NumCols, Real>
-MultiplyATB(
+template <int NumRows, int NumCols, int NumCommon, typename Real> inline
+Matrix<NumRows, NumCols, Real> MultiplyATB(
     Matrix<NumCommon, NumRows, Real> const& A,
     Matrix<NumCommon, NumCols, Real> const& B)
 {
@@ -789,19 +839,19 @@ MultiplyATB(
     {
         for (int c = 0; c < NumCols; ++c)
         {
-            result(r, c) = (Real)0;
+            result.mTable[r * NumCols + c] = (Real)0;
             for (int i = 0; i < NumCommon; ++i)
             {
-                result(r, c) += A(i, r) * B(i, c);
+                result.mTable[r * NumCols + c] +=
+					A.mTable[c * NumCols + i] * B.mTable[r * NumCols + i];
             }
         }
     }
     return result;
 }
 
-template <int NumRows, int NumCols, int NumCommon, typename Real>
-Matrix<NumRows, NumCols, Real>
-MultiplyATBT(
+template <int NumRows, int NumCols, int NumCommon, typename Real> inline
+Matrix<NumRows, NumCols, Real> MultiplyATBT(
     Matrix<NumCommon, NumRows, Real> const& A,
     Matrix<NumCols, NumCommon, Real> const& B)
 {
@@ -810,146 +860,113 @@ MultiplyATBT(
     {
         for (int c = 0; c < NumCols; ++c)
         {
-            result(r, c) = (Real)0;
+            result.mTable[r * NumCols + c] = (Real)0;
             for (int i = 0; i < NumCommon; ++i)
             {
-                result(r, c) += A(i, r) * B(c, i);
+                result.mTable[r * NumCols + c] +=
+					A.mTable[c * NumCols + i] * B.mTable[i * NumCols + r];
             }
         }
     }
     return result;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-MultiplyMD(
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> MultiplyMD(
     Matrix<NumRows, NumCols, Real> const& M,
     Vector<NumCols, Real> const& D)
 {
     Matrix<NumRows, NumCols, Real> result;
+	Real const* in = reinterpret_cast<Real const*>(&D);
     for (int r = 0; r < NumRows; ++r)
     {
         for (int c = 0; c < NumCols; ++c)
         {
-            result(r, c) = M(r, c) * D[c];
+            result.mTable[r * NumCols + c] = M.mTable[r * NumCols + c] * in[c];
         }
     }
     return result;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-MultiplyDM(
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> MultiplyDM(
     Vector<NumRows, Real> const& D,
     Matrix<NumRows, NumCols, Real> const& M)
 {
     Matrix<NumRows, NumCols, Real> result;
+	Real const* in = reinterpret_cast<Real const*>(&D);
     for (int r = 0; r < NumRows; ++r)
     {
         for (int c = 0; c < NumCols; ++c)
         {
-            result(r, c) = D[r] * M(r, c);
+            result.mTable[r * NumCols + c] = in[r] * M.mTable[r * NumCols + c];
         }
     }
     return result;
 }
 
-template <int NumRows, int NumCols, typename Real>
-Matrix<NumRows, NumCols, Real>
-OuterProduct(Vector<NumRows, Real> const& U, Vector<NumCols, Real> const& V)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows, NumCols, Real> OuterProduct(
+	Vector<NumRows, Real> const& U, Vector<NumCols, Real> const& V)
 {
     Matrix<NumRows, NumCols, Real> result;
+	Real const* inU = reinterpret_cast<Real const*>(&U);
+	Real const* inV = reinterpret_cast<Real const*>(&V);
     for (int r = 0; r < NumRows; ++r)
     {
         for (int c = 0; c < NumCols; ++c)
         {
-            result(r, c) = U[r] * V[c];
+            result.mTable[r * NumCols + c] = inU[r] * inV[c];
         }
     }
     return result;
 }
 
-template <int N, typename Real>
-void MakeDiagonal(Vector<N, Real> const& D, Matrix<N, N, Real>& M)
+template <int NumRows, int NumCols, typename Real> inline
+void MakeDiagonal(Vector<NumRows, Real> const& D, Matrix<NumRows, NumCols, Real>& M)
 {
-    for (int i = 0; i < N*N; ++i)
+	Real const* in = reinterpret_cast<Real const*>(&D);
+    for (int i = 0; i < NumRows*NumCols; ++i)
     {
-        M[i] = (Real)0;
+        M.mTable[i] = (Real)0;
     }
 
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < NumRows; ++i)
     {
-        M(i, i) = D[i];
+        M.mTable[i * NumCols + i] = in[i];
     }
 }
 
-template <int N, typename Real>
-Matrix<N + 1, N + 1, Real> HLift(Matrix<N, N, Real> const& M)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows + 1, NumCols + 1, Real> HLift(Matrix<NumRows, NumCols, Real> const& M)
 {
-    Matrix<N + 1, N + 1, Real> result;
-    result.MakeIdentity();
-    for (int r = 0; r < N; ++r)
+    Matrix<NumRows + 1, NumCols + 1, Real> result;
+	Real* out = reinterpret_cast<Real*>(&result);
+    for (int r = 0; r < NumRows; ++r)
     {
-        for (int c = 0; c < N; ++c)
+        for (int c = 0; c < NumCols; ++c)
         {
-            result(r, c) = M(r, c);
+			out[r * NumCols + c] = M.mTable[r * NumCols + c];
         }
     }
     return result;
 }
 
 // Extract the upper (N-1)-by-(N-1) block of the input N-by-N matrix.
-template <int N, typename Real>
-Matrix<N - 1, N - 1, Real> HProject(Matrix<N, N, Real> const& M)
+template <int NumRows, int NumCols, typename Real> inline
+Matrix<NumRows - 1, NumCols - 1, Real> HProject(Matrix<NumRows, NumCols, Real> const& M)
 {
-    static_assert(N >= 2, "Invalid matrix dimension.");
-    Matrix<N - 1, N - 1, Real> result;
-    for (int r = 0; r < N - 1; ++r)
+    static_assert(NumRows >= 2, "Invalid matrix dimension.");
+    Matrix<NumRows - 1, NumCols - 1, Real> result;
+	Real* out = reinterpret_cast<Real*>(&result);
+    for (int r = 0; r < NumRows - 1; ++r)
     {
-        for (int c = 0; c < N - 1; ++c)
+        for (int c = 0; c < NumCols - 1; ++c)
         {
-            result(r, c) = M(r, c);
+			out[r * NumCols + c] = M.mTable[r * NumCols + c];
         }
     }
-    return result;
-}
-
-
-// Matrix<N,C,Real>::Table
-
-template <int NumRows, int NumCols, typename Real> inline
-Real const& Matrix<NumRows, NumCols, Real>::Table::operator()(int r, int c)
-    const
-{
-#if defined(GE_USE_ROW_MAJOR)
-    return mStorage[r][c];
-#else
-    return mStorage[c][r];
-#endif
-}
-
-template <int NumRows, int NumCols, typename Real> inline
-Real& Matrix<NumRows, NumCols, Real>::Table::operator()(int r, int c)
-{
-#if defined(GE_USE_ROW_MAJOR)
-    return mStorage[r][c];
-#else
-    return mStorage[c][r];
-#endif
-}
-
-template <int NumRows, int NumCols, typename Real> inline
-Real const& Matrix<NumRows, NumCols, Real>::Table::operator[](int i) const
-{
-    Real const* elements = &mStorage[0][0];
-    return elements[i];
-}
-
-template <int NumRows, int NumCols, typename Real> inline
-Real& Matrix<NumRows, NumCols, Real>::Table::operator[](int i)
-{
-    Real* elements = &mStorage[0][0];
-    return elements[i];
+    return out;
 }
 
 

@@ -123,7 +123,7 @@ public:
     virtual void SetAngularVelocity(ActorId actorId, const Vector3<float>& vel) { }
 	virtual void Translate(ActorId actorId, const Vector3<float>& vec) { }
 	virtual void SetTransform(const ActorId id, const Transform& mat) { }
-    virtual Transform GetTransform(const ActorId id) { return Transform::IDENTITY; }
+    virtual Transform GetTransform(const ActorId id) { return Transform::Identity; }
 };
 
 

@@ -356,54 +356,55 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
     Quaternion<Real>& q)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
+	Real const* rot = reinterpret_cast<Real const*>(&r);
 
-    Real r22 = r(2, 2);
+    Real r22 = rot[2 * 4 + 2];
     if (r22 <= (Real)0)  // x^2 + y^2 >= z^2 + w^2
     {
-        Real dif10 = r(1, 1) - r(0, 0);
+        Real dif10 = rot[1 * 4 + 1] - rot[0 * 4 + 0];
         Real omr22 = (Real)1 - r22;
         if (dif10 <= (Real)0)  // x^2 >= y^2
         {
             Real fourXSqr = omr22 - dif10;
             Real inv4x = ((Real)0.5) / sqrt(fourXSqr);
             q[0] = fourXSqr*inv4x;
-            q[1] = (r(0, 1) + r(1, 0))*inv4x;
-            q[2] = (r(0, 2) + r(2, 0))*inv4x;
+            q[1] = (rot[0 * 4 + 1] + rot[1 * 4 + 0])*inv4x;
+            q[2] = (rot[0 * 4 + 2] + rot[2 * 4 + 0])*inv4x;
 #if defined(GE_USE_MAT_VEC)
-            q[3] = (r(2, 1) - r(1, 2))*inv4x;
+            q[3] = (rot[2 * 4 + 1] - rot[1 * 4 + 2])*inv4x;
 #else
-            q[3] = (r(1, 2) - r(2, 1))*inv4x;
+            q[3] = (rot[1 * 4 + 2] - rot[2 * 4 + 1])*inv4x;
 #endif
         }
         else  // y^2 >= x^2
         {
             Real fourYSqr = omr22 + dif10;
             Real inv4y = ((Real)0.5) / sqrt(fourYSqr);
-            q[0] = (r(0, 1) + r(1, 0))*inv4y;
+            q[0] = (rot[0 * 4 + 1] + rot[1 * 4 + 0])*inv4y;
             q[1] = fourYSqr*inv4y;
-            q[2] = (r(1, 2) + r(2, 1))*inv4y;
+            q[2] = (rot[1 * 4 + 2] + rot[2 * 4 + 1])*inv4y;
 #if defined(GE_USE_MAT_VEC)
-            q[3] = (r(0, 2) - r(2, 0))*inv4y;
+            q[3] = (rot[0 * 4 + 2] - rot[2 * 4 + 0])*inv4y;
 #else
-            q[3] = (r(2, 0) - r(0, 2))*inv4y;
+            q[3] = (rot[2 * 4 + 0] - rot[0 * 4 + 2])*inv4y;
 #endif
         }
     }
     else  // z^2 + w^2 >= x^2 + y^2
     {
-        Real sum10 = r(1, 1) + r(0, 0);
+        Real sum10 = rot[1 * 4 + 1] + rot[0 * 4 + 0];
         Real opr22 = (Real)1 + r22;
         if (sum10 <= (Real)0)  // z^2 >= w^2
         {
             Real fourZSqr = opr22 - sum10;
             Real inv4z = ((Real)0.5) / sqrt(fourZSqr);
-            q[0] = (r(0, 2) + r(2, 0))*inv4z;
-            q[1] = (r(1, 2) + r(2, 1))*inv4z;
+            q[0] = (rot[0 * 4 + 2] + rot[2 * 4 + 0])*inv4z;
+            q[1] = (rot[1 * 4 + 2] + rot[2 * 4 + 1])*inv4z;
             q[2] = fourZSqr*inv4z;
 #if defined(GE_USE_MAT_VEC)
-            q[3] = (r(1, 0) - r(0, 1))*inv4z;
+            q[3] = (rot[1 * 4 + 0] - rot[0 * 4 + 1])*inv4z;
 #else
-            q[3] = (r(0, 1) - r(1, 0))*inv4z;
+            q[3] = (rot[0 * 4 + 1] - rot[1 * 4 + 0])*inv4z;
 #endif
         }
         else  // w^2 >= z^2
@@ -411,13 +412,13 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             Real fourWSqr = opr22 + sum10;
             Real inv4w = ((Real)0.5) / sqrt(fourWSqr);
 #if defined(GE_USE_MAT_VEC)
-            q[0] = (r(2, 1) - r(1, 2))*inv4w;
-            q[1] = (r(0, 2) - r(2, 0))*inv4w;
-            q[2] = (r(1, 0) - r(0, 1))*inv4w;
+            q[0] = (rot[2 * 4 + 1] - rot[1 * 4 + 2])*inv4w;
+            q[1] = (rot[0 * 4 + 2] - rot[2 * 4 + 0])*inv4w;
+            q[2] = (rot[1 * 4 + 0] - rot[0 * 4 + 1])*inv4w;
 #else
-            q[0] = (r(1, 2) - r(2, 1))*inv4w;
-            q[1] = (r(2, 0) - r(0, 2))*inv4w;
-            q[2] = (r(0, 1) - r(1, 0))*inv4w;
+            q[0] = (rot[1 * 4 + 2] - rot[2 * 4 + 1])*inv4w;
+            q[1] = (rot[2 * 4 + 0] - rot[0 * 4 + 2])*inv4w;
+            q[2] = (rot[0 * 4 + 1] - rot[1 * 4 + 0])*inv4w;
 #endif
             q[3] = fourWSqr*inv4w;
         }
@@ -428,6 +429,7 @@ template <int N, typename Real>
 void Rotation<N, Real>::Convert(Quaternion<Real> const& q, Matrix<N, N, Real>& r)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
+	Real* rot = reinterpret_cast<Real*>(&r);
 
     r.MakeIdentity();
 
@@ -445,25 +447,25 @@ void Rotation<N, Real>::Convert(Quaternion<Real> const& q, Matrix<N, N, Real>& r
     Real twoZW = twoZ*q[3];
 
 #if defined(GE_USE_MAT_VEC)
-    r(0, 0) = (Real)1 - twoYY - twoZZ;
-    r(0, 1) = twoXY - twoZW;
-    r(0, 2) = twoXZ + twoYW;
-    r(1, 0) = twoXY + twoZW;
-    r(1, 1) = (Real)1 - twoXX - twoZZ;
-    r(1, 2) = twoYZ - twoXW;
-    r(2, 0) = twoXZ - twoYW;
-    r(2, 1) = twoYZ + twoXW;
-    r(2, 2) = (Real)1 - twoXX - twoYY;
+    rot[0 * 4 + 0] = (Real)1 - twoYY - twoZZ;
+    rot[0 * 4 + 1] = twoXY - twoZW;
+    rot[0 * 4 + 2] = twoXZ + twoYW;
+    rot[1 * 4 + 0] = twoXY + twoZW;
+    rot[1 * 4 + 1] = (Real)1 - twoXX - twoZZ;
+    rot[1 * 4 + 2] = twoYZ - twoXW;
+    rot[2 * 4 + 0] = twoXZ - twoYW;
+    rot[2 * 4 + 1] = twoYZ + twoXW;
+    rot[2 * 4 + 2] = (Real)1 - twoXX - twoYY;
 #else
-    r(0, 0) = (Real)1 - twoYY - twoZZ;
-    r(1, 0) = twoXY - twoZW;
-    r(2, 0) = twoXZ + twoYW;
-    r(0, 1) = twoXY + twoZW;
-    r(1, 1) = (Real)1 - twoXX - twoZZ;
-    r(2, 1) = twoYZ - twoXW;
-    r(0, 2) = twoXZ - twoYW;
-    r(1, 2) = twoYZ + twoXW;
-    r(2, 2) = (Real)1 - twoXX - twoYY;
+    rot[0 * 4 + 0] = (Real)1 - twoYY - twoZZ;
+    rot[1 * 4 + 0] = twoXY - twoZW;
+    rot[2 * 4 + 0] = twoXZ + twoYW;
+    rot[0 * 4 + 1] = twoXY + twoZW;
+    rot[1 * 4 + 1] = (Real)1 - twoXX - twoZZ;
+    rot[2 * 4 + 1] = twoYZ - twoXW;
+    rot[0 * 4 + 2] = twoXZ - twoYW;
+    rot[1 * 4 + 2] = twoYZ + twoXW;
+    rot[2 * 4 + 2] = (Real)1 - twoXX - twoYY;
 #endif
 }
 
@@ -472,8 +474,9 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
     AxisAngle<N, Real>& a)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
+	Real const* rot = reinterpret_cast<Real const*>(&r);
 
-    Real trace = r(0, 0) + r(1, 1) + r(2, 2);
+    Real trace = rot[0 * 4 + 0] + rot[1 * 4 + 1] + rot[2 * 4 + 2];
     Real half = (Real)0.5;
     Real cs = half*(trace - (Real)1);
     cs = eastl::max(eastl::min(cs, (Real)1), (Real)-1);
@@ -486,14 +489,14 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
         {
             // The angle is in (0,pi).
 #if defined(GE_USE_MAT_VEC)
-            a.mAxis[0] = r(2, 1) - r(1, 2);
-            a.mAxis[1] = r(0, 2) - r(2, 0);
-            a.mAxis[2] = r(1, 0) - r(0, 1);
+            a.mAxis[0] = rot[2 * 4 + 1] - rot[1 * 4 + 2];
+            a.mAxis[1] = rot[0 * 4 + 2] - rot[2 * 4 + 0];
+            a.mAxis[2] = rot[1 * 4 + 0] - rot[0 * 4 + 1];
             Normalize(a.mAxis);
 #else
-            a.mAxis[0] = r(1, 2) - r(2, 1);
-            a.mAxis[1] = r(2, 0) - r(0, 2);
-            a.mAxis[2] = r(0, 1) - r(1, 0);
+            a.mAxis[0] = rot[1 * 4 + 2] - rot[2 * 4 + 1];
+            a.mAxis[1] = rot[2 * 4 + 0] - rot[0 * 4 + 2];
+            a.mAxis[2] = rot[0 * 4 + 1] - rot[1 * 4 + 0];
             Normalize(a.mAxis);
 #endif
         }
@@ -506,38 +509,38 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             // corresponding row to produce U.  It does not matter the
             // sign on u[d] for chosen diagonal d, because R(U,pi) = R(-U,pi).
             Real one = (Real)1;
-            if (r(0, 0) >= r(1, 1))
+            if (rot[0 * 4 + 0] >= rot[1 * 4 + 1])
             {
-                if (r(0, 0) >= r(2, 2))
+                if (rot[0 * 4 + 0] >= rot[2 * 4 + 2])
                 {
                     // r00 is maximum diagonal term
-                    a.mAxis[0] = r(0, 0) + one;
-                    a.mAxis[1] = half*(r(0, 1) + r(1, 0));
-                    a.mAxis[2] = half*(r(0, 2) + r(2, 0));
+                    a.mAxis[0] = rot[0 * 4 + 0] + one;
+                    a.mAxis[1] = half*(rot[0 * 4 + 1] + rot[1 * 4 + 0]);
+                    a.mAxis[2] = half*(rot[0 * 4 + 2] + rot[2 * 4 + 0]);
                 }
                 else
                 {
                     // r22 is maximum diagonal term
-                    a.mAxis[0] = half*(r(2, 0) + r(0, 2));
-                    a.mAxis[1] = half*(r(2, 1) + r(1, 2));
-                    a.mAxis[2] = r(2, 2) + one;
+                    a.mAxis[0] = half*(rot[2 * 4 + 0] + rot[0 * 4 + 2]);
+                    a.mAxis[1] = half*(rot[2 * 4 + 1] + rot[1 * 4 + 2]);
+                    a.mAxis[2] = rot[2 * 4 + 2] + one;
                 }
             }
             else
             {
-                if (r(1, 1) >= r(2, 2))
+                if (rot[1 * 4 + 1] >= rot[2 * 4 + 2])
                 {
                     // r11 is maximum diagonal term
-                    a.mAxis[0] = half*(r(1, 0) + r(0, 1));
-                    a.mAxis[1] = r(1, 1) + one;
-                    a.mAxis[2] = half*(r(1, 2) + r(2, 1));
+                    a.mAxis[0] = half*(rot[1 * 4 + 0] + rot[0 * 4 + 1]);
+                    a.mAxis[1] = rot[1 * 4 + 1] + one;
+                    a.mAxis[2] = half*(rot[1 * 4 + 2] + rot[2 * 4 + 1]);
                 }
                 else
                 {
                     // r22 is maximum diagonal term
-                    a.mAxis[0] = half*(r(2, 0) + r(0, 2));
-                    a.mAxis[1] = half*(r(2, 1) + r(1, 2));
-                    a.mAxis[2] = r(2, 2) + one;
+                    a.mAxis[0] = half*(rot[2 * 4 + 0] + rot[0 * 4 + 2]);
+                    a.mAxis[1] = half*(rot[2 * 4 + 1] + rot[1 * 4 + 2]);
+                    a.mAxis[2] = rot[2 * 4 + 2] + one;
                 }
             }
             Normalize(a.mAxis);
@@ -556,6 +559,7 @@ void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
     Matrix<N, N, Real>& r)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
+	Real* rot = reinterpret_cast<Real*>(&r);
 
     r.MakeIdentity();
 
@@ -573,25 +577,25 @@ void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
     Real x2Sin = a.mAxis[2] * sn;
 
 #if defined(GE_USE_MAT_VEC)
-    r(0, 0) = x0sqr*oneMinusCos + cs;
-    r(0, 1) = x0x1m - x2Sin;
-    r(0, 2) = x0x2m + x1Sin;
-    r(1, 0) = x0x1m + x2Sin;
-    r(1, 1) = x1sqr*oneMinusCos + cs;
-    r(1, 2) = x1x2m - x0Sin;
-    r(2, 0) = x0x2m - x1Sin;
-    r(2, 1) = x1x2m + x0Sin;
-    r(2, 2) = x2sqr*oneMinusCos + cs;
+    rot[0 * 4 + 0] = x0sqr*oneMinusCos + cs;
+    rot[0 * 4 + 1] = x0x1m - x2Sin;
+    rot[0 * 4 + 2] = x0x2m + x1Sin;
+    rot[1 * 4 + 0] = x0x1m + x2Sin;
+    rot[1 * 4 + 1] = x1sqr*oneMinusCos + cs;
+    rot[1 * 4 + 2] = x1x2m - x0Sin;
+    rot[2 * 4 + 0] = x0x2m - x1Sin;
+    rot[2 * 4 + 1] = x1x2m + x0Sin;
+    rot[2 * 4 + 2] = x2sqr*oneMinusCos + cs;
 #else
-    r(0, 0) = x0sqr*oneMinusCos + cs;
-    r(1, 0) = x0x1m - x2Sin;
-    r(2, 0) = x0x2m + x1Sin;
-    r(0, 1) = x0x1m + x2Sin;
-    r(1, 1) = x1sqr*oneMinusCos + cs;
-    r(2, 1) = x1x2m - x0Sin;
-    r(0, 2) = x0x2m - x1Sin;
-    r(1, 2) = x1x2m + x0Sin;
-    r(2, 2) = x2sqr*oneMinusCos + cs;
+    rot[0 * 4 + 0] = x0sqr*oneMinusCos + cs;
+    rot[1 * 4 + 0] = x0x1m - x2Sin;
+    rot[2 * 4 + 0] = x0x2m + x1Sin;
+    rot[0 * 4 + 1] = x0x1m + x2Sin;
+    rot[1 * 4 + 1] = x1sqr*oneMinusCos + cs;
+    rot[2 * 4 + 1] = x1x2m - x0Sin;
+    rot[0 * 4 + 2] = x0x2m - x1Sin;
+    rot[1 * 4 + 2] = x1x2m + x0Sin;
+    rot[2 * 4 + 2] = x2sqr*oneMinusCos + cs;
 #endif
 }
 
@@ -600,6 +604,7 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
     EulerAngles<Real>& e)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
+	Real const* rot = reinterpret_cast<Real const*>(&r);
 
     if (0 <= e.mAxis[0] && e.mAxis[0] < 3
         && 0 <= e.mAxis[1] && e.mAxis[1] < 3
@@ -615,23 +620,25 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             int parity = (((e.mAxis[2] | (e.mAxis[1] << 2)) >> e.mAxis[0]) & 1);
             Real const sgn = (parity & 1 ? (Real)-1 : (Real)+1);
 
-            if (r(e.mAxis[2], e.mAxis[0]) < (Real)1)
+            if (rot[e.mAxis[2] * N + e.mAxis[0]] < (Real)1)
             {
-                if (r(e.mAxis[2], e.mAxis[0]) > (Real)-1)
+                if (rot[e.mAxis[2] * N + e.mAxis[0]] > (Real)-1)
                 {
-                    e.mAngle[2] = atan2(sgn*r(e.mAxis[1], e.mAxis[0]),
-                        r(e.mAxis[0], e.mAxis[0]));
-                    e.mAngle[1] = asin(-sgn*r(e.mAxis[2], e.mAxis[0]));
-                    e.mAngle[0] = atan2(sgn*r(e.mAxis[2], e.mAxis[1]),
-                        r(e.mAxis[2], e.mAxis[2]));
+                    e.mAngle[2] = atan2(sgn*rot[e.mAxis[1] * N + e.mAxis[0]],
+						rot[e.mAxis[0] * N + e.mAxis[0]]);
+                    e.mAngle[1] = asin(-sgn * rot[e.mAxis[2] * N + e.mAxis[0]]);
+                    e.mAngle[0] = atan2(
+						sgn * rot[e.mAxis[2] * N + e.mAxis[1]],
+						rot[e.mAxis[2] * N + e.mAxis[2]]);
                     e.mResult = ER_UNIQUE;
                 }
                 else
                 {
                     e.mAngle[2] = (Real)0;
                     e.mAngle[1] = sgn*(Real)GE_C_HALF_PI;
-                    e.mAngle[0] = atan2(-sgn*r(e.mAxis[1], e.mAxis[2]),
-                        r(e.mAxis[1], e.mAxis[1]));
+                    e.mAngle[0] = atan2(
+						-sgn * rot[e.mAxis[1] * N + e.mAxis[2]],
+						rot[e.mAxis[1] * N + e.mAxis[1]]);
                     e.mResult = ER_NOT_UNIQUE_DIF;
                 }
             }
@@ -639,8 +646,9 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             {
                 e.mAngle[2] = (Real)0;
                 e.mAngle[1] = -sgn*(Real)GE_C_HALF_PI;
-                e.mAngle[0] = atan2(-sgn*r(e.mAxis[1], e.mAxis[2]),
-                    r(e.mAxis[1], e.mAxis[1]));
+                e.mAngle[0] = atan2(
+					-sgn * rot[e.mAxis[1] * N + e.mAxis[2]],
+					rot[e.mAxis[1] * N + e.mAxis[1]]);
                 e.mResult = ER_NOT_UNIQUE_SUM;
             }
 #else
@@ -649,23 +657,25 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             int parity = (((e.mAxis[0] | (e.mAxis[1] << 2)) >> e.mAxis[2]) & 1);
             Real const sgn = (parity & 1 ? (Real)+1 : (Real)-1);
 
-            if (r(e.mAxis[0], e.mAxis[2]) < (Real)1)
+            if (rot[e.mAxis[0] * N + e.mAxis[2]] < (Real)1)
             {
-                if (r(e.mAxis[0], e.mAxis[2]) > (Real)-1)
+                if (rot[e.mAxis[0] * N + e.mAxis[2]] > (Real)-1)
                 {
-                    e.mAngle[0] = atan2(sgn*r(e.mAxis[1], e.mAxis[2]),
-                        r(e.mAxis[2], e.mAxis[2]));
-                    e.mAngle[1] = asin(-sgn*r(e.mAxis[0], e.mAxis[2]));
-                    e.mAngle[2] = atan2(sgn*r(e.mAxis[0], e.mAxis[1]),
-                        r(e.mAxis[0], e.mAxis[0]));
+                    e.mAngle[0] = atan2(sgn*rot[e.mAxis[1] * N + e.mAxis[2]],
+						rot[e.mAxis[2] * N + e.mAxis[2]]);
+                    e.mAngle[1] = asin(-sgn * rot[e.mAxis[0] * N + e.mAxis[2]]);
+                    e.mAngle[2] = atan2(
+						sgn * rot[e.mAxis[0] * N + e.mAxis[1]]),
+						rot[e.mAxis[0] * N + e.mAxis[0]]);
                     e.mResult = ER_UNIQUE;
                 }
                 else
                 {
                     e.mAngle[0] = (Real)0;
                     e.mAngle[1] = sgn*(Real)GE_C_HALF_PI;
-                    e.mAngle[2] = atan2(-sgn*r(e.mAxis[1], e.mAxis[0]),
-                        r(e.mAxis[1], e.mAxis[1]));
+                    e.mAngle[2] = atan2(
+						-sgn * rot[e.mAxis[1] * N + e.mAxis[0]]),
+						rot[e.mAxis[1] * N + e.mAxis[1]]);
                     e.mResult = ER_NOT_UNIQUE_DIF;
                 }
             }
@@ -673,8 +683,9 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             {
                 e.mAngle[0] = (Real)0;
                 e.mAngle[1] = -sgn*(Real)GE_C_HALF_PI;
-                e.mAngle[2] = atan2(-sgn*r(e.mAxis[1], e.mAxis[0]),
-                    r(e.mAxis[1], e.mAxis[1]));
+                e.mAngle[2] = atan2(
+					-sgn* rot[e.mAxis[1] * N + e.mAxis[0]],
+					rot[e.mAxis[1] * N + e.mAxis[1]]);
                 e.mResult = ER_NOT_UNIQUE_SUM;
             }
 #endif
@@ -688,23 +699,26 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             int parity = (((b0 | (e.mAxis[1] << 2)) >> e.mAxis[2]) & 1);
             Real const sgn = (parity & 1 ? (Real)+1 : (Real)-1);
 
-            if (r(e.mAxis[2], e.mAxis[2]) < (Real)1)
+            if (rot[e.mAxis[2] * N + e.mAxis[2]] < (Real)1)
             {
-                if (r(e.mAxis[2], e.mAxis[2]) > (Real)-1)
+                if (rot[e.mAxis[2] * N + e.mAxis[2]] > (Real)-1)
                 {
-                    e.mAngle[2] = atan2(r(e.mAxis[1], e.mAxis[2]),
-                        sgn*r(b0, e.mAxis[2]));
-                    e.mAngle[1] = acos(r(e.mAxis[2], e.mAxis[2]));
-                    e.mAngle[0] = atan2(r(e.mAxis[2], e.mAxis[1]),
-                        -sgn*r(e.mAxis[2], b0));
+                    e.mAngle[2] = atan2(
+						rot[e.mAxis[1] * N + e.mAxis[2]],
+                        sgn * rot[b0 * N + e.mAxis[2]]);
+                    e.mAngle[1] = acos(rot[e.mAxis[2] * N + e.mAxis[2]]);
+                    e.mAngle[0] = atan2(
+						rot[e.mAxis[2] * N + e.mAxis[1]],
+                        -sgn * rot[e.mAxis[2] * N + b0]);
                     e.mResult = ER_UNIQUE;
                 }
                 else
                 {
                     e.mAngle[2] = (Real)0;
                     e.mAngle[1] = (Real)GE_C_PI;
-                    e.mAngle[0] = atan2(sgn*r(e.mAxis[1], b0),
-                        r(e.mAxis[1], e.mAxis[1]));
+                    e.mAngle[0] = atan2(
+						sgn*rot[e.mAxis[1] * N + b0],
+						rot[e.mAxis[1] * N + e.mAxis[1]]);
                     e.mResult = ER_NOT_UNIQUE_DIF;
                 }
             }
@@ -712,8 +726,9 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             {
                 e.mAngle[2] = (Real)0;
                 e.mAngle[1] = (Real)0;
-                e.mAngle[0] = atan2(sgn*r(e.mAxis[1], b0),
-                    r(e.mAxis[1], e.mAxis[1]));
+                e.mAngle[0] = atan2(
+					sgn*rot[e.mAxis[1] * N + b0],
+					rot[e.mAxis[1] * N + e.mAxis[1]]);
                 e.mResult = ER_NOT_UNIQUE_SUM;
             }
 #else
@@ -723,23 +738,26 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             int parity = (((b2 | (e.mAxis[1] << 2)) >> e.mAxis[0]) & 1);
             Real const sgn = (parity & 1 ? (Real)-1 : (Real)+1);
 
-            if (r(e.mAxis[0], e.mAxis[0]) < (Real)1)
+            if (rot[e.mAxis[0] * N + e.mAxis[0]] < (Real)1)
             {
-                if (r(e.mAxis[0], e.mAxis[0]) > (Real)-1)
+                if (rot[e.mAxis[0] * N + e.mAxis[0]] > (Real)-1)
                 {
-                    e.mAngle[0] = atan2(r(e.mAxis[1], e.mAxis[0]),
-                        sgn*r(b2, e.mAxis[0]));
-                    e.mAngle[1] = acos(r(e.mAxis[0], e.mAxis[0]));
-                    e.mAngle[2] = atan2(r(e.mAxis[0], e.mAxis[1]),
-                        -sgn*r(e.mAxis[0], b2));
+                    e.mAngle[0] = atan2(
+						rot[e.mAxis[1] * N e.mAxis[0]],
+                        sgn*rot[b2 * N + e.mAxis[0]]);
+                    e.mAngle[1] = acos(rot[e.mAxis[0] * N + e.mAxis[0]]);
+                    e.mAngle[2] = atan2(
+						rot[e.mAxis[0] * N + e.mAxis[1]],
+                        -sgn* rot[e.mAxis[0] * N + b2]);
                     e.mResult = ER_UNIQUE;
                 }
                 else
                 {
                     e.mAngle[0] = (Real)0;
                     e.mAngle[1] = (Real)GE_C_PI;
-                    e.mAngle[2] = atan2(sgn*r(e.mAxis[1], b2),
-                        r(e.mAxis[1], e.mAxis[1]));
+                    e.mAngle[2] = atan2(
+						sgn*rot[e.mAxis[1] * N + b2],
+						rot[e.mAxis[1] * N + e.mAxis[1]]);
                     e.mResult = ER_NOT_UNIQUE_DIF;
                 }
             }
@@ -747,8 +765,9 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
             {
                 e.mAngle[0] = (Real)0;
                 e.mAngle[1] = (Real)0;
-                e.mAngle[2] = atan2(sgn*r(e.mAxis[1], b2),
-                    r(e.mAxis[1], e.mAxis[1]));
+                e.mAngle[2] = atan2(
+					sgn*rot[e.mAxis[1] * N + b2],
+					rot[e.mAxis[1] * N + e.mAxis[1]]);
                 e.mResult = ER_NOT_UNIQUE_SUM;
             }
 #endif

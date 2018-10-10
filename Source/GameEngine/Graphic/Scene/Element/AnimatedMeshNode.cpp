@@ -298,19 +298,8 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 
 				effect->SetMaterial(material);
 				*/
-				eastl::shared_ptr<ConstantBuffer> cbuffer;
-				cbuffer = mVisuals[i]->GetEffect()->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
-				Matrix4x4<float> pvwMatrix = *cbuffer->Get<Matrix4x4<float>>();
-
-#if defined(GE_USE_MAT_VEC)
-				pvwMatrix = pvwMatrix * mb->GetTransform();
-#else
-				pvwMatrix = mb->GetTransform() * pvwMatrix;
-#endif
-				cbuffer->SetMember("pvwMatrix", pvwMatrix);
-
 				Renderer* renderer = Renderer::Get();
-				renderer->Update(cbuffer);
+				renderer->Update(mb->GetVertice());
 				renderer->Draw(mVisuals[i]);
 				/*
 				Renderer::Get()->SetDefaultDepthStencilState();
@@ -350,20 +339,8 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 
 				effect->SetMaterial(material);
 				*/
-
-				eastl::shared_ptr<ConstantBuffer> cbuffer;
-				cbuffer = mVisuals[i]->GetEffect()->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
-				Matrix4x4<float> pvwMatrix = *cbuffer->Get<Matrix4x4<float>>();
-
-#if defined(GE_USE_MAT_VEC)
-				pvwMatrix = pvwMatrix * mb->GetTransform();
-#else
-				pvwMatrix = mb->GetTransform() * pvwMatrix;
-#endif
-				cbuffer->SetMember("pvwMatrix", pvwMatrix);
-
 				Renderer* renderer = Renderer::Get();
-				renderer->Update(cbuffer);
+				renderer->Update(mb->GetVertice());
 				renderer->Draw(mVisuals[i]);
 				/*
 				Renderer::Get()->SetDefaultDepthStencilState();

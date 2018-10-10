@@ -50,44 +50,50 @@ Real Trace(Matrix2x2<Real> const& M);
 template <typename Real>
 void MakeRotation(Real angle, Matrix2x2<Real>& rotation)
 {
+	Real* rot = reinterpret_cast<Real*>(&rotation);
+
     Real cs = cos(angle);
     Real sn = sin(angle);
 #if defined(GE_USE_MAT_VEC)
-    rotation(0, 0) = cs;
-    rotation(0, 1) = -sn;
-    rotation(1, 0) = sn;
-    rotation(1, 1) = cs;
+	rot[0 * 2 + 0] = cs;
+	rot[0 * 2 + 1] = -sn;
+	rot[1 * 2 + 0] = sn;
+	rot[1 * 2 + 1] = cs;
 #else
-    rotation(0, 0) = cs;
-    rotation(0, 1) = sn;
-    rotation(1, 0) = -sn;
-    rotation(1, 1) = cs;
+	rot[0 * 2 + 0] = cs;
+	rot[0 * 2 + 1] = sn;
+	rot[1 * 2 + 0] = -sn;
+	rot[1 * 2 + 1] = cs;
 #endif
 }
 
 template <typename Real>
 Real GetRotationAngle(Matrix2x2<Real> const& rotation)
 {
+	Real const* rot = reinterpret_cast<Real const*>(&rotation);
+
 #if defined(GE_USE_MAT_VEC)
-    return atan2(rotation(1, 0), rotation(0, 0));
+    return atan2(rot[1 * 2 + 0], rot[0 * 2 + 0]);
 #else
-    return atan2(rotation(0, 1), rotation(0, 0));
+    return atan2(rot[0 * 2 + 1], rot[0 * 2 + 0]);
 #endif
 }
 
 template <typename Real>
 Matrix2x2<Real> Inverse(Matrix2x2<Real> const& M, bool* reportInvertibility)
 {
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
     Matrix2x2<Real> inverse;
     bool invertible;
-    Real det = M(0, 0)*M(1, 1) - M(0, 1)*M(1, 0);
+    Real det = m[0 * 2 + 0]* M[1 * 2 + 1] - m[0 * 2 + 1]* m[1 * 2 + 0];
     if (det != (Real)0)
     {
         Real invDet = ((Real)1) / det;
         inverse = Matrix2x2<Real>
         {
-            M(1, 1)*invDet, -M(0, 1)*invDet,
-                -M(1, 0)*invDet, M(0, 0)*invDet
+			m[1 * 2 + 1]*invDet, -m[0 * 2 + 1]*invDet,
+			-m[1 * 2 + 0]*invDet, m[0 * 2 + 0]*invDet
         };
         invertible = true;
     }
@@ -107,24 +113,30 @@ Matrix2x2<Real> Inverse(Matrix2x2<Real> const& M, bool* reportInvertibility)
 template <typename Real>
 Matrix2x2<Real> Adjoint(Matrix2x2<Real> const& M)
 {
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
     return Matrix2x2<Real>
     {
-        M(1, 1), -M(0, 1),
-            -M(1, 0), M(0, 0)
+		m[1 * 2 + 1], -m[0 * 2 + 1],
+		-m[1 * 2 + 0], m[0 * 2 + 0]
     };
 }
 
 template <typename Real>
 Real Determinant(Matrix2x2<Real> const& M)
 {
-    Real det = M(0, 0)*M(1, 1) - M(0, 1)*M(1, 0);
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
+    Real det = m[0 * 2 + 0]* m[1 * 2 + 1] - m[0 * 2 + 1]* m[1 * 2 + 0];
     return det;
 }
 
 template <typename Real>
 Real Trace(Matrix2x2<Real> const& M)
 {
-    Real trace = M(0, 0) + M(1, 1);
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
+    Real trace = m[0 * 2 + 0] + m[1 * 2 + 1];
     return trace;
 }
 

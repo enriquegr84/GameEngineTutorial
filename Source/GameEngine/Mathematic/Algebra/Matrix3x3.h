@@ -33,26 +33,28 @@ Real Trace(Matrix3x3<Real> const& M);
 template <typename Real>
 Matrix3x3<Real> Inverse(Matrix3x3<Real> const& M, bool* reportInvertibility)
 {
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
     Matrix3x3<Real> inverse;
     bool invertible;
-    Real c00 = M(1, 1)*M(2, 2) - M(1, 2)*M(2, 1);
-    Real c10 = M(1, 2)*M(2, 0) - M(1, 0)*M(2, 2);
-    Real c20 = M(1, 0)*M(2, 1) - M(1, 1)*M(2, 0);
-    Real det = M(0, 0)*c00 + M(0, 1)*c10 + M(0, 2)*c20;
+    Real c00 = m[1 * 3 + 1]*m[2 * 3 + 2] - m[1 * 3 + 2]*m[2 * 3 + 1];
+    Real c10 = m[1 * 3 + 2]*m[2 * 3 + 0] - m[1 * 3 + 0]*m[2 * 3 + 2];
+    Real c20 = m[1 * 3 + 0]*m[2 * 3 + 1] - m[1 * 3 + 1]*m[2 * 3 + 0];
+    Real det = m[0 * 3 + 0]*c00 + m[0 * 3 + 1]*c10 + m[0 * 3 + 2]*c20;
     if (det != (Real)0)
     {
         Real invDet = ((Real)1) / det;
         inverse = Matrix3x3<Real>
         {
             c00*invDet,
-                (M(0, 2)*M(2, 1) - M(0, 1)*M(2, 2))*invDet,
-                (M(0, 1)*M(1, 2) - M(0, 2)*M(1, 1))*invDet,
-                c10*invDet,
-                (M(0, 0)*M(2, 2) - M(0, 2)*M(2, 0))*invDet,
-                (M(0, 2)*M(1, 0) - M(0, 0)*M(1, 2))*invDet,
-                c20*invDet,
-                (M(0, 1)*M(2, 0) - M(0, 0)*M(2, 1))*invDet,
-                (M(0, 0)*M(1, 1) - M(0, 1)*M(1, 0))*invDet
+			(m[0 * 3 + 2]*m[2 * 3 + 1] - m[0 * 3 + 1]*m[2 * 3 + 2])*invDet,
+			(m[0 * 3 + 1]*m[1 * 3 + 2] - m[0 * 3 + 2]*m[1 * 3 + 1])*invDet,
+			c10*invDet,
+			(m[0 * 3 + 0]*m[2 * 3 + 2] - m[0 * 3 + 2]*m[2 * 3 + 0])*invDet,
+			(m[0 * 3 + 2]*m[1 * 3 + 0] - m[0 * 3 + 0]*m[1 * 3 + 2])*invDet,
+			c20*invDet,
+			(m[0 * 3 + 1]*m[2 * 3 + 0] - m[0 * 3 + 0]*m[2 * 3 + 1])*invDet,
+			(m[0 * 3 + 0]*m[1 * 3 + 1] - m[0 * 3 + 1]*m[1 * 3 + 0])*invDet
         };
         invertible = true;
     }
@@ -72,34 +74,40 @@ Matrix3x3<Real> Inverse(Matrix3x3<Real> const& M, bool* reportInvertibility)
 template <typename Real>
 Matrix3x3<Real> Adjoint(Matrix3x3<Real> const& M)
 {
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
     return Matrix3x3<Real>
     {
-        M(1, 1)*M(2, 2) - M(1, 2)*M(2, 1),
-            M(0, 2)*M(2, 1) - M(0, 1)*M(2, 2),
-            M(0, 1)*M(1, 2) - M(0, 2)*M(1, 1),
-            M(1, 2)*M(2, 0) - M(1, 0)*M(2, 2),
-            M(0, 0)*M(2, 2) - M(0, 2)*M(2, 0),
-            M(0, 2)*M(1, 0) - M(0, 0)*M(1, 2),
-            M(1, 0)*M(2, 1) - M(1, 1)*M(2, 0),
-            M(0, 1)*M(2, 0) - M(0, 0)*M(2, 1),
-            M(0, 0)*M(1, 1) - M(0, 1)*M(1, 0)
+        m[1 * 3 + 1]*m[2 * 3 + 2] - m[1 * 3 + 2]*m[2 * 3 + 1],
+		m[0 * 3 + 2]*m[2 * 3 + 1] - m[0 * 3 + 1]*m[2 * 3 + 2],
+        m[0 * 3 + 1]*m[1 * 3 + 2] - m[0 * 3 + 2]*m[1 * 3 + 1],
+        m[1 * 3 + 2]*m[2 * 3 + 0] - m[1 * 3 + 0]*m[2 * 3 + 2],
+        m[0 * 3 + 0]*m[2 * 3 + 2] - m[0 * 3 + 2]*m[2 * 3 + 0],
+        m[0 * 3 + 2]*m[1 * 3 + 0] - m[0 * 3 + 0]*m[1 * 3 + 2],
+        m[1 * 3 + 0]*m[2 * 3 + 1] - m[1 * 3 + 1]*m[2 * 3 + 0],
+        m[0 * 3 + 1]*m[2 * 3 + 0] - m[0 * 3 + 0]*m[2 * 3 + 1],
+        m[0 * 3 + 0]*m[1 * 3 + 1] - m[0 * 3 + 1]*m[1 * 3 + 0]
     };
 }
 
 template <typename Real>
 Real Determinant(Matrix3x3<Real> const& M)
 {
-    Real c00 = M(1, 1)*M(2, 2) - M(1, 2)*M(2, 1);
-    Real c10 = M(1, 2)*M(2, 0) - M(1, 0)*M(2, 2);
-    Real c20 = M(1, 0)*M(2, 1) - M(1, 1)*M(2, 0);
-    Real det = M(0, 0)*c00 + M(0, 1)*c10 + M(0, 2)*c20;
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
+    Real c00 = m[1 * 3 + 1]*m[2 * 3 + 2] - m[1 * 3 + 2]*m[2 * 3 + 1];
+    Real c10 = m[1 * 3 + 2]*m[2 * 3 + 0] - m[1 * 3 + 0]*m[2 * 3 + 2];
+    Real c20 = m[1 * 3 + 0]*m[2 * 3 + 1] - m[1 * 3 + 1]*m[2 * 3 + 0];
+    Real det = m[0 * 3 + 0]*c00 + m[0 * 3 + 1]*c10 + m[0 * 3 + 2]*c20;
     return det;
 }
 
 template <typename Real>
 Real Trace(Matrix3x3<Real> const& M)
 {
-    Real trace = M(0, 0) + M(1, 1) + M(2, 2);
+	Real const* m = reinterpret_cast<Real const*>(&M);
+
+    Real trace = m[0 * 3 + 0] + m[1 * 3 + 1] + m[2 * 3 + 2];
     return trace;
 }
 

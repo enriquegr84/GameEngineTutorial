@@ -8,7 +8,7 @@
 #include "Transform.h"
 #include <algorithm>
 
-Transform const Transform::IDENTITY;
+Transform const Transform::Identity;
 
 Transform::Transform()
     :
@@ -19,14 +19,15 @@ Transform::Transform()
     mIsUniformScale(true),
     mInverseNeedsUpdate(false)
 {
-    mHMatrix.MakeIdentity();
-    mInvHMatrix.MakeIdentity();
-    mMatrix.MakeIdentity();
+	mHMatrix.MakeIdentity();
+	mInvHMatrix.MakeIdentity();
+	mMatrix.MakeIdentity();
 }
 
 void Transform::MakeIdentity()
 {
-    mMatrix.MakeIdentity();
+	mMatrix.MakeIdentity();
+
     mTranslate = { 0.0f, 0.0f, 0.0f, 1.0f };
     mScale = { 1.0f, 1.0f, 1.0f, 1.0f };
     mIsIdentity = true;
@@ -113,11 +114,14 @@ void Transform::SetUniformScale(float scale)
 void Transform::SetRotation(Matrix3x3<float> const& rotate)
 {
     mMatrix.MakeIdentity();
+
+	float* matrix = reinterpret_cast<float*>(&mMatrix);
+	float const* in = reinterpret_cast<float const*>(&rotate);
     for (int r = 0; r < 3; ++r)
     {
         for (int c = 0; c < 3; ++c)
         {
-            mMatrix(r, c) = rotate(r, c);
+			matrix[r * 4 + c] = in[r * 4 + c];
         }
     }
 
@@ -129,11 +133,14 @@ void Transform::SetRotation(Matrix3x3<float> const& rotate)
 void Transform::GetRotation(Matrix3x3<float>& rotate) const
 {
     LogAssert(mIsRSMatrix, "Transform is not rotation-scale.");
+
+	float const* matrix = reinterpret_cast<float const*>(&mMatrix);
+	float* out = reinterpret_cast<float*>(&rotate);
     for (int r = 0; r < 3; ++r)
     {
         for (int c = 0; c < 3; ++c)
         {
-            rotate(r, c) = mMatrix(r, c);
+			out[r * 4 + c] = matrix[r * 4 + c];
         }
     }
 }
@@ -187,27 +194,30 @@ float Transform::GetNorm() const
 
     if (mIsRSMatrix)
     {
+		float const* scale = reinterpret_cast<float const*>(&mScale);
+
         // A RS matrix (GE_USE_MAT_VEC) or an SR matrix (GE_USE_VEC_MAT).
-        r0 = fabs(mScale[0]);
-        r1 = fabs(mScale[1]);
-        r2 = fabs(mScale[2]);
+        r0 = fabs(scale[0]);
+        r1 = fabs(scale[1]);
+        r2 = fabs(scale[2]);
     }
     else
     {
         // The spectral norm (the maximum absolute value of the eigenvalues)
         // is smaller or equal to this norm.  Therefore, this function returns
         // an approximation to the maximum scale.
+		float const* matrix = reinterpret_cast<float const*>(&mMatrix);
 
 #if defined(GE_USE_MAT_VEC)
         // Use the max-row-sum matrix norm.
-        r0 = fabs(mMatrix(0, 0)) + fabs(mMatrix(0, 1)) + fabs(mMatrix(0, 2));
-        r1 = fabs(mMatrix(1, 0)) + fabs(mMatrix(1, 1)) + fabs(mMatrix(1, 2));
-        r2 = fabs(mMatrix(2, 0)) + fabs(mMatrix(2, 1)) + fabs(mMatrix(2, 2));
+        r0 = fabs(matrix[0 * 4 + 0]) + fabs(matrix[0 * 4 + 1]) + fabs(matrix[0 * 4 + 2]);
+        r1 = fabs(matrix[1 * 4 + 0]) + fabs(matrix[1 * 4 + 1]) + fabs(matrix[1 * 4 + 2]);
+        r2 = fabs(matrix[2 * 4 + 0]) + fabs(matrix[2 * 4 + 1]) + fabs(matrix[2 * 4 + 2]);
 #else
         // Use the max-col-sum matrix norm.
-        r0 = fabs(mMatrix(0, 0)) + fabs(mMatrix(1, 0)) + fabs(mMatrix(2, 0));
-        r1 = fabs(mMatrix(0, 1)) + fabs(mMatrix(1, 1)) + fabs(mMatrix(2, 1));
-        r2 = fabs(mMatrix(0, 2)) + fabs(mMatrix(1, 2)) + fabs(mMatrix(2, 2));
+        r0 = fabs(matrix[0 * 4 + 0]) + fabs(matrix[1 * 4 + 0]) + fabs(matrix[2 * 4 + 0]);
+        r1 = fabs(matrix[0 * 4 + 1]) + fabs(matrix[1 * 4 + 1]) + fabs(matrix[2 * 4 + 1]);
+        r2 = fabs(matrix[0 * 4 + 2]) + fabs(matrix[1 * 4 + 2]) + fabs(matrix[2 * 4 + 2]);
 #endif
     }
 
@@ -224,63 +234,69 @@ Matrix4x4<float> const& Transform::GetHInverse() const
         }
         else
         {
+			float const* matrix = reinterpret_cast<float const*>(&mMatrix);
+			float* invHMatrix = reinterpret_cast<float*>(&mInvHMatrix);
+
+			float const* scale = reinterpret_cast<float const*>(&mScale);
+			float const* translate = reinterpret_cast<float const*>(&mTranslate);
+
             if (mIsRSMatrix)
             {
                 if (mIsUniformScale)
                 {
-                    float invScale = 1.0f / mScale[0];
+                    float invScale = 1.0f / scale[0];
 #if defined(GE_USE_MAT_VEC)
-                    mInvHMatrix(0, 0) = invScale * mMatrix(0, 0);
-                    mInvHMatrix(0, 1) = invScale * mMatrix(1, 0);
-                    mInvHMatrix(0, 2) = invScale * mMatrix(2, 0);
-                    mInvHMatrix(1, 0) = invScale * mMatrix(0, 1);
-                    mInvHMatrix(1, 1) = invScale * mMatrix(1, 1);
-                    mInvHMatrix(1, 2) = invScale * mMatrix(2, 1);
-                    mInvHMatrix(2, 0) = invScale * mMatrix(0, 2);
-                    mInvHMatrix(2, 1) = invScale * mMatrix(1, 2);
-                    mInvHMatrix(2, 2) = invScale * mMatrix(2, 2);
+					invHMatrix[0 * 4 + 0] = invScale * matrix[0 * 4 + 0];
+					invHMatrix[0 * 4 + 1] = invScale * matrix[1 * 4 + 0];
+					invHMatrix[0 * 4 + 2] = invScale * matrix[2 * 4 + 0];
+					invHMatrix[1 * 4 + 0] = invScale * matrix[0 * 4 + 1];
+					invHMatrix[1 * 4 + 1] = invScale * matrix[1 * 4 + 1];
+					invHMatrix[1 * 4 + 2] = invScale * matrix[2 * 4 + 1];
+					invHMatrix[2 * 4 + 0] = invScale * matrix[0 * 4 + 2];
+					invHMatrix[2 * 4 + 1] = invScale * matrix[1 * 4 + 2];
+					invHMatrix[2 * 4 + 2] = invScale * matrix[2 * 4 + 2];
 #else
-                    mInvHMatrix(0, 0) = mMatrix(0, 0) * invScale;
-                    mInvHMatrix(0, 1) = mMatrix(1, 0) * invScale;
-                    mInvHMatrix(0, 2) = mMatrix(2, 0) * invScale;
-                    mInvHMatrix(1, 0) = mMatrix(0, 1) * invScale;
-                    mInvHMatrix(1, 1) = mMatrix(1, 1) * invScale;
-                    mInvHMatrix(1, 2) = mMatrix(2, 1) * invScale;
-                    mInvHMatrix(2, 0) = mMatrix(0, 2) * invScale;
-                    mInvHMatrix(2, 1) = mMatrix(1, 2) * invScale;
-                    mInvHMatrix(2, 2) = mMatrix(2, 2) * invScale;
+					invHMatrix[0 * 4 + 0] = matrix[0 * 4 + 0] * invScale;
+					invHMatrix[0 * 4 + 1] = matrix[1 * 4 + 0] * invScale;
+					invHMatrix[0 * 4 + 2] = matrix[2 * 4 + 0] * invScale;
+					invHMatrix[1 * 4 + 0] = matrix[0 * 4 + 1] * invScale;
+					invHMatrix[1 * 4 + 1] = matrix[1 * 4 + 1] * invScale;
+					invHMatrix[1 * 4 + 2] = matrix[2 * 4 + 1] * invScale;
+					invHMatrix[2 * 4 + 0] = matrix[0 * 4 + 2] * invScale;
+					invHMatrix[2 * 4 + 1] = matrix[1 * 4 + 2] * invScale;
+					invHMatrix[2 * 4 + 2] = matrix[2 * 4 + 2] * invScale;
 #endif
                 }
                 else
                 {
                     // Replace 3 reciprocals by 6 multiplies and 1 reciprocal.
-                    float s01 = mScale[0] * mScale[1];
-                    float s02 = mScale[0] * mScale[2];
-                    float s12 = mScale[1] * mScale[2];
-                    float invs012 = 1.0f / (s01 * mScale[2]);
+                    float s01 = scale[0] * scale[1];
+                    float s02 = scale[0] * scale[2];
+                    float s12 = scale[1] * scale[2];
+                    float invs012 = 1.0f / (s01 * scale[2]);
                     float invS0 = s12 * invs012;
                     float invS1 = s02 * invs012;
                     float invS2 = s01 * invs012;
 #if defined(GE_USE_MAT_VEC)
-                    mInvHMatrix(0, 0) = invS0 * mMatrix(0, 0);
-                    mInvHMatrix(0, 1) = invS0 * mMatrix(1, 0);
-                    mInvHMatrix(0, 2) = invS0 * mMatrix(2, 0);
-                    mInvHMatrix(1, 0) = invS1 * mMatrix(0, 1);
-                    mInvHMatrix(1, 1) = invS1 * mMatrix(1, 1);
-                    mInvHMatrix(1, 2) = invS1 * mMatrix(2, 1);
-                    mInvHMatrix(2, 0) = invS2 * mMatrix(0, 2);
-                    mInvHMatrix(2, 1) = invS2 * mMatrix(1, 2);
-                    mInvHMatrix(2, 2) = invS2 * mMatrix(2, 2);
+					invHMatrix[0 * 4 + 0] = invS0 * matrix[0 * 4 + 0];
+					invHMatrix[0 * 4 + 1] = invS0 * matrix[1 * 4 + 0];
+					invHMatrix[0 * 4 + 2] = invS0 * matrix[2 * 4 + 0];
+					invHMatrix[1 * 4 + 0] = invS1 * matrix[0 * 4 + 1];
+					invHMatrix[1 * 4 + 1] = invS1 * matrix[1 * 4 + 1];
+					invHMatrix[1 * 4 + 2] = invS1 * matrix[2 * 4 + 1];
+					invHMatrix[2 * 4 + 0] = invS2 * matrix[0 * 4 + 2];
+					invHMatrix[2 * 4 + 1] = invS2 * matrix[1 * 4 + 2];
+					invHMatrix[2 * 4 + 2] = invS2 * matrix[2 * 4 + 2];
 #else
-                    mInvHMatrix(0, 0) = mMatrix(0, 0) * invS0;
-                    mInvHMatrix(0, 1) = mMatrix(1, 0) * invS1;
-                    mInvHMatrix(0, 2) = mMatrix(2, 0) * invS2;
-                    mInvHMatrix(1, 0) = mMatrix(0, 1) * invS0;
-                    mInvHMatrix(1, 1) = mMatrix(1, 1) * invS1;
-                    mInvHMatrix(1, 2) = mMatrix(2, 1) * invS2;
-                    mInvHMatrix(2, 0) = mMatrix(0, 2) * invS0;
-                    mInvHMatrix(2, 1) = mMatrix(1, 2) * invS1;
-                    mInvHMatrix(2, 2) = mMatrix(2, 2) * invS2;
+					invHMatrix[0 * 4 + 0] = matrix[0 * 4 + 0] * invS0;
+					invHMatrix[0 * 4 + 1] = matrix[1 * 4 + 0] * invS1;
+					invHMatrix[0 * 4 + 2] = matrix[2 * 4 + 0] * invS2;
+					invHMatrix[1 * 4 + 0] = matrix[0 * 4 + 1] * invS0;
+					invHMatrix[1 * 4 + 1] = matrix[1 * 4 + 1] * invS1;
+					invHMatrix[1 * 4 + 2] = matrix[2 * 4 + 1] * invS2;
+					invHMatrix[2 * 4 + 0] = matrix[0 * 4 + 2] * invS0;
+					invHMatrix[2 * 4 + 1] = matrix[1 * 4 + 2] * invS1;
+					invHMatrix[2 * 4 + 2] = matrix[2 * 4 + 2] * invS2;
 #endif
                 }
             }
@@ -290,44 +306,44 @@ Matrix4x4<float> const& Transform::GetHInverse() const
             }
 
 #if defined(GE_USE_MAT_VEC)
-            mInvHMatrix(0, 3) = -(
-                mInvHMatrix(0, 0) * mTranslate[0] +
-                mInvHMatrix(0, 1) * mTranslate[1] +
-                mInvHMatrix(0, 2) * mTranslate[2]
+			invHMatrix[0 * 4 + 3] = -(
+				invHMatrix[0 * 4 + 0] * translate[0] +
+				invHMatrix[0 * 4 + 1] * translate[1] +
+				invHMatrix[0 * 4 + 2] * translate[2]
                 );
 
-            mInvHMatrix(1, 3) = -(
-                mInvHMatrix(1, 0) * mTranslate[0] +
-                mInvHMatrix(1, 1) * mTranslate[1] +
-                mInvHMatrix(1, 2) * mTranslate[2]
+			invHMatrix[1 * 4 + 3] = -(
+				invHMatrix[1 * 4 + 0] * translate[0] +
+				invHMatrix[1 * 4 + 1] * translate[1] +
+				invHMatrix[1 * 4 + 2] * translate[2]
                 );
 
-            mInvHMatrix(2, 3) = -(
-                mInvHMatrix(2, 0) * mTranslate[0] +
-                mInvHMatrix(2, 1) * mTranslate[1] +
-                mInvHMatrix(2, 2) * mTranslate[2]
+			invHMatrix[2 * 4 + 3] = -(
+				invHMatrix[2 * 4 + 0] * translate[0] +
+				invHMatrix[2 * 4 + 1] * translate[1] +
+				invHMatrix[2 * 4 + 2] * translate[2]
                 );
 
             // The last row of mHMatrix is always (0,0,0,1) for an affine
             // transformation, so it is set once in the constructor.  It is
             // not necessary to reset it here.
 #else
-            mInvHMatrix(3, 0) = -(
-                mInvHMatrix(0, 0) * mTranslate[0] +
-                mInvHMatrix(1, 0) * mTranslate[1] +
-                mInvHMatrix(2, 0) * mTranslate[2]
+			invHMatrix[3 * 4 + 0] = -(
+				invHMatrix[0 * 4 + 0] * translate[0] +
+				invHMatrix[1 * 4 + 0] * translate[1] +
+				invHMatrix[2 * 4 + 0] * translate[2]
                 );
 
-            mInvHMatrix(3, 1) = -(
-                mInvHMatrix(0, 1) * mTranslate[0] +
-                mInvHMatrix(1, 1) * mTranslate[1] +
-                mInvHMatrix(2, 1) * mTranslate[2]
+			invHMatrix[3 * 4 + 1] = -(
+				invHMatrix[0 * 4 + 1] * translate[0] +
+				invHMatrix[1 * 4 + 1] * translate[1] +
+				invHMatrix[2 * 4 + 1] * translate[2]
                 );
 
-            mInvHMatrix(3, 2) = -(
-                mInvHMatrix(0, 2) * mTranslate[0] +
-                mInvHMatrix(1, 2) * mTranslate[1] +
-                mInvHMatrix(2, 2) * mTranslate[2]
+			invHMatrix[3 * 4 + 2] = -(
+				invHMatrix[0 * 4 + 2] * translate[0] +
+				invHMatrix[1 * 4 + 2] * translate[1] +
+				invHMatrix[2 * 4 + 2] * translate[2]
                 );
 
             // The last column of mHMatrix is always (0,0,0,1) for an affine
@@ -379,55 +395,60 @@ void Transform::UpdateHMatrix()
     }
     else
     {
+		float* matrix = reinterpret_cast<float*>(&mMatrix);
+		float* hmatrix = reinterpret_cast<float*>(&mHMatrix);
+		float* translate = reinterpret_cast<float*>(&mTranslate);
+		float* scale = reinterpret_cast<float*>(&mScale);
+
         if (mIsRSMatrix)
         {
 #if defined(GE_USE_MAT_VEC)
-            mHMatrix(0, 0) = mMatrix(0, 0) * mScale[0];
-            mHMatrix(0, 1) = mMatrix(0, 1) * mScale[1];
-            mHMatrix(0, 2) = mMatrix(0, 2) * mScale[2];
-            mHMatrix(1, 0) = mMatrix(1, 0) * mScale[0];
-            mHMatrix(1, 1) = mMatrix(1, 1) * mScale[1];
-            mHMatrix(1, 2) = mMatrix(1, 2) * mScale[2];
-            mHMatrix(2, 0) = mMatrix(2, 0) * mScale[0];
-            mHMatrix(2, 1) = mMatrix(2, 1) * mScale[1];
-            mHMatrix(2, 2) = mMatrix(2, 2) * mScale[2];
+			hmatrix[0 * 4 + 0] = matrix[0 * 4 + 0] * scale[0];
+			hmatrix[0 * 4 + 1] = matrix[0 * 4 + 1] * scale[1];
+			hmatrix[0 * 4 + 2] = matrix[0 * 4 + 2] * scale[2];
+			hmatrix[1 * 4 + 0] = matrix[1 * 4 + 0] * scale[0];
+			hmatrix[1 * 4 + 1] = matrix[1 * 4 + 1] * scale[1];
+			hmatrix[1 * 4 + 2] = matrix[1 * 4 + 2] * scale[2];
+			hmatrix[2 * 4 + 0] = matrix[2 * 4 + 0] * scale[0];
+			hmatrix[2 * 4 + 1] = matrix[2 * 4 + 1] * scale[1];
+			hmatrix[2 * 4 + 2] = matrix[2 * 4 + 2] * scale[2];
 #else
-            mHMatrix(0, 0) = mScale[0] * mMatrix(0, 0);
-            mHMatrix(0, 1) = mScale[0] * mMatrix(0, 1);
-            mHMatrix(0, 2) = mScale[0] * mMatrix(0, 2);
-            mHMatrix(1, 0) = mScale[1] * mMatrix(1, 0);
-            mHMatrix(1, 1) = mScale[1] * mMatrix(1, 1);
-            mHMatrix(1, 2) = mScale[1] * mMatrix(1, 2);
-            mHMatrix(2, 0) = mScale[2] * mMatrix(2, 0);
-            mHMatrix(2, 1) = mScale[2] * mMatrix(2, 1);
-            mHMatrix(2, 2) = mScale[2] * mMatrix(2, 2);
+			hmatrix[0 * 4 + 0] = scale[0] * matrix[0 * 4 + 0];
+			hmatrix[0 * 4 + 1] = scale[0] * matrix[0 * 4 + 1];
+			hmatrix[0 * 4 + 2] = scale[0] * matrix[0 * 4 + 2];
+			hmatrix[1 * 4 + 0] = scale[1] * matrix[1 * 4 + 0];
+			hmatrix[1 * 4 + 1] = scale[1] * matrix[1 * 4 + 1];
+			hmatrix[1 * 4 + 2] = scale[1] * matrix[1 * 4 + 2];
+			hmatrix[2 * 4 + 0] = scale[2] * matrix[2 * 4 + 0];
+			hmatrix[2 * 4 + 1] = scale[2] * matrix[2 * 4 + 1];
+			hmatrix[2 * 4 + 2] = scale[2] * matrix[2 * 4 + 2];
 #endif
         }
         else
         {
-            mHMatrix(0, 0) = mMatrix(0, 0);
-            mHMatrix(0, 1) = mMatrix(0, 1);
-            mHMatrix(0, 2) = mMatrix(0, 2);
-            mHMatrix(1, 0) = mMatrix(1, 0);
-            mHMatrix(1, 1) = mMatrix(1, 1);
-            mHMatrix(1, 2) = mMatrix(1, 2);
-            mHMatrix(2, 0) = mMatrix(2, 0);
-            mHMatrix(2, 1) = mMatrix(2, 1);
-            mHMatrix(2, 2) = mMatrix(2, 2);
+			hmatrix[0 * 4 + 0] = matrix[0 * 4 + 0];
+			hmatrix[0 * 4 + 1] = matrix[0 * 4 + 1];
+			hmatrix[0 * 4 + 2] = matrix[0 * 4 + 2];
+			hmatrix[1 * 4 + 0] = matrix[1 * 4 + 0];
+			hmatrix[1 * 4 + 1] = matrix[1 * 4 + 1];
+			hmatrix[1 * 4 + 2] = matrix[1 * 4 + 2];
+			hmatrix[2 * 4 + 0] = matrix[2 * 4 + 0];
+			hmatrix[2 * 4 + 1] = matrix[2 * 4 + 1];
+			hmatrix[2 * 4 + 2] = matrix[2 * 4 + 2];
         }
 
 #if defined(GE_USE_MAT_VEC)
-        mHMatrix(0, 3) = mTranslate[0];
-        mHMatrix(1, 3) = mTranslate[1];
-        mHMatrix(2, 3) = mTranslate[2];
+		hmatrix[0 * 4 + 3] = translate[0];
+		hmatrix[1 * 4 + 3] = translate[1];
+		hmatrix[2 * 4 + 3] = translate[2];
 
         // The last row of mHMatrix is always (0,0,0,1) for an affine
         // transformation, so it is set once in the constructor.  It is not
         // necessary to reset it here.
 #else
-        mHMatrix(3, 0) = mTranslate[0];
-        mHMatrix(3, 1) = mTranslate[1];
-        mHMatrix(3, 2) = mTranslate[2];
+		hmatrix[3 * 4 + 0] = translate[0];
+		hmatrix[3 * 4 + 1] = translate[1];
+		hmatrix[3 * 4 + 2] = translate[2];
 
         // The last column of mHMatrix is always (0,0,0,1) for an affine
         // transformation, so it is set once in the constructor.  It is not
@@ -438,44 +459,47 @@ void Transform::UpdateHMatrix()
     mInverseNeedsUpdate = true;
 }
 
-void Transform::Invert3x3(Matrix4x4<float> const& mat,
-    Matrix4x4<float>& invMat)
+void Transform::Invert3x3(Matrix4x4<float> const& matrix,
+    Matrix4x4<float>& invMatrix)
 {
+	float* invMat = reinterpret_cast<float*>(&invMatrix);
+	float const* mat = reinterpret_cast<float const*>(&matrix);
+
     // Compute the adjoint of M (3x3).
-    invMat(0, 0) = mat(1, 1) * mat(2, 2) - mat(1, 2) * mat(2, 1);
-    invMat(0, 1) = mat(0, 2) * mat(2, 1) - mat(0, 1) * mat(2, 2);
-    invMat(0, 2) = mat(0, 1) * mat(1, 2) - mat(0, 2) * mat(1, 1);
-    invMat(0, 3) = 0.0f;
-    invMat(1, 0) = mat(1, 2) * mat(2, 0) - mat(1, 0) * mat(2, 2);
-    invMat(1, 1) = mat(0, 0) * mat(2, 2) - mat(0, 2) * mat(2, 0);
-    invMat(1, 2) = mat(0, 2) * mat(1, 0) - mat(0, 0) * mat(1, 2);
-    invMat(1, 3) = 0.0f;
-    invMat(2, 0) = mat(1, 0) * mat(2, 1) - mat(1, 1) * mat(2, 0);
-    invMat(2, 1) = mat(0, 1) * mat(2, 0) - mat(0, 0) * mat(2, 1);
-    invMat(2, 2) = mat(0, 0) * mat(1, 1) - mat(0, 1) * mat(1, 0);
-    invMat(2, 3) = 0.0f;
-    invMat(3, 0) = 0.0f;
-    invMat(3, 1) = 0.0f;
-    invMat(3, 2) = 0.0f;
-    invMat(3, 3) = 1.0f;
+    invMat[0 * 4 + 0] = mat[1 * 4 + 1] * mat[2 * 4 + 2] - mat[1 * 4 + 2] * mat[2 * 4 + 1];
+    invMat[0 * 4 + 1] = mat[0 * 4 + 2] * mat[2 * 4 + 1] - mat[0 * 4 + 1] * mat[2 * 4 + 2];
+    invMat[0 * 4 + 2] = mat[0 * 4 + 1] * mat[1 * 4 + 2] - mat[0 * 4 + 2] * mat[1 * 4 + 1];
+    invMat[0 * 4 + 3] = 0.0f;
+    invMat[1 * 4 + 0] = mat[1 * 4 + 2] * mat[2 * 4 + 0] - mat[1 * 4 + 0] * mat[2 * 4 + 2];
+    invMat[1 * 4 + 1] = mat[0 * 4 + 0] * mat[2 * 4 + 2] - mat[0 * 4 + 2] * mat[2 * 4 + 0];
+    invMat[1 * 4 + 2] = mat[0 * 4 + 2] * mat[1 * 4 + 0] - mat[0 * 4 + 0] * mat[1 * 4 + 2];
+    invMat[1 * 4 + 3] = 0.0f;
+    invMat[2 * 4 + 0] = mat[1 * 4 + 0] * mat[2 * 4 + 1] - mat[1 * 4 + 1] * mat[2 * 4 + 0];
+    invMat[2 * 4 + 1] = mat[0 * 4 + 1] * mat[2 * 4 + 0] - mat[0 * 4 + 0] * mat[2 * 4 + 1];
+    invMat[2 * 4 + 2] = mat[0 * 4 + 0] * mat[1 * 4 + 1] - mat[0 * 4 + 1] * mat[1 * 4 + 0];
+    invMat[2 * 4 + 3] = 0.0f;
+    invMat[3 * 4 + 0] = 0.0f;
+    invMat[3 * 4 + 1] = 0.0f;
+    invMat[3 * 4 + 2] = 0.0f;
+    invMat[3 * 4 + 3] = 1.0f;
 
     // Compute the reciprocal of the determinant of M.
     float invDet = 1.0f / (
-        mat(0, 0) * invMat(0, 0) +
-        mat(0, 1) * invMat(1, 0) +
-        mat(0, 2) * invMat(2, 0)
+        mat[0 * 4 + 0] * invMat[0 * 4 + 0] +
+        mat[0 * 4 + 1] * invMat[1 * 4 + 0] +
+        mat[0 * 4 + 2] * invMat[2 * 4 + 0]
         );
 
     // inverse(M) = adjoint(M)/determinant(M).
-    invMat(0, 0) *= invDet;
-    invMat(0, 1) *= invDet;
-    invMat(0, 2) *= invDet;
-    invMat(1, 0) *= invDet;
-    invMat(1, 1) *= invDet;
-    invMat(1, 2) *= invDet;
-    invMat(2, 0) *= invDet;
-    invMat(2, 1) *= invDet;
-    invMat(2, 2) *= invDet;
+    invMat[0 * 4 + 0] *= invDet;
+    invMat[0 * 4 + 1] *= invDet;
+    invMat[0 * 4 + 2] *= invDet;
+    invMat[1 * 4 + 0] *= invDet;
+    invMat[1 * 4 + 1] *= invDet;
+    invMat[1 * 4 + 2] *= invDet;
+    invMat[2 * 4 + 0] *= invDet;
+    invMat[2 * 4 + 1] *= invDet;
+    invMat[2 * 4 + 2] *= invDet;
 }
 
 Vector4<float> operator*(Transform const& M, Vector4<float> const& V)
@@ -490,7 +514,6 @@ Vector4<float> operator*(Vector4<float> const& V, Transform const& M)
 
 Transform operator*(Transform const& A, Transform const& B)
 {
-
     if (A.IsIdentity())
     {
         return B;
@@ -508,11 +531,11 @@ Transform operator*(Transform const& A, Transform const& B)
 #if defined(GE_USE_MAT_VEC)
         if (A.IsUniformScale())
         {
-            product.SetRotation(A.GetRotation() * B.GetRotation());
+            product.SetRotation(MultiplyAB(A.GetRotation(), B.GetRotation()));
 
-            product.SetTranslation(A.GetUniformScale()*(
-                A.GetRotation() * B.GetTranslationW0()) +
-                A.GetTranslationW1());
+			Vector4<float> transform;
+			A.GetRotation().Transformation(B.GetTranslationW0(), transform);
+            product.SetTranslation(A.GetUniformScale()*transform + A.GetTranslationW1());
 
             if (B.IsUniformScale())
             {
@@ -529,10 +552,11 @@ Transform operator*(Transform const& A, Transform const& B)
 #else
         if (B.IsUniformScale())
         {
-            product.SetRotation(A.GetRotation() * B.GetRotation());
+            product.SetRotation(MultiplyAB(A.GetRotation(), B.GetRotation()));
 
-            product.SetTranslation(B.GetUniformScale()*(
-                A.GetTranslationW0() * B.GetRotation()) + B.GetTranslationW1());
+			Vector4<float> transform;
+			B.GetRotation().Transformation(A.GetTranslationW0(), transform);
+            product.SetTranslation(B.GetUniformScale()*transform + B.GetTranslationW1());
 
             if (A.IsUniformScale())
             {
@@ -578,13 +602,15 @@ Transform operator*(Transform const& A, Transform const& B)
         matMB = B.GetMatrix();
     }
 
-    product.SetMatrix(matMA * matMB);
+    product.SetMatrix(MultiplyAB(matMA, matMB));
 #if defined(GE_USE_MAT_VEC)
-    product.SetTranslation(matMA * B.GetTranslationW0() +
-        A.GetTranslationW1());
+	Vector4<float> transform;
+	matMA.Transformation(B.GetTranslationW0(), transform);
+	product.SetTranslation(transform + A.GetTranslationW1());
 #else
-    product.SetTranslation(A.GetTranslationW0() * matMB +
-        B.GetTranslationW1());
+	Vector4<float> transform;
+	matMB.Transformation(A.GetTranslationW0(), transform);
+	product.SetTranslation(transform + B.GetTranslationW1());
 #endif
     return product;
 }
