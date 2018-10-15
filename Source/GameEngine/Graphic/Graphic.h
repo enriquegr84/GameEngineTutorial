@@ -89,6 +89,7 @@
 #include "Scene/Element/Animator/NodeAnimatorFlyCircle.h"
 #include "Scene/Element/Animator/NodeAnimatorFlyStraight.h"
 #include "Scene/Element/Animator/NodeAnimatorFollowSpline.h"
+#include "Scene/Element/Animator/NodeAnimatorFollowCamera.h"
 #include "Scene/Element/Animator/NodeAnimatorRotation.h"
 #include "Scene/Element/Animator/NodeAnimatorTexture.h"
 

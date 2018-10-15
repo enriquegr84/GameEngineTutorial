@@ -824,21 +824,26 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 
 					case KEY_KEY_8:
 					{
+						if (!mPlayer)
+							SetControlledActor(mActorId);
+
+						mGamePlayerController->SetEnabled(true);
+						mGameCameraController->SetEnabled(false);
+
 						mKeyboardHandler = mGamePlayerController;
 						mMouseHandler = mGamePlayerController;
 						mCamera->SetTarget(mPlayer);
-						//mPlayer->SetAlpha(0.8f);
-						//ReleaseCapture();
 						return true;
 					}
 
 					case KEY_KEY_9:
 					{
+						mGameCameraController->SetEnabled(true);
+						mGamePlayerController->SetEnabled(false);
+
 						mKeyboardHandler = mGameCameraController;
 						mMouseHandler = mGameCameraController;
 						mCamera->ClearTarget();
-						//mPlayer->SetAlpha(fOPAQUE);
-						//SetCapture((HWND)System::Get()->GetID());
 						return true;
 					}
 
@@ -925,11 +930,9 @@ void GameDemoHumanView::SetControlledActor(ActorId actorId)
 
 	HumanView::SetControlledActor(actorId);
 
-    mGamePlayerController.reset(new GameDemoPlayerController(mPlayer));
+    mGamePlayerController.reset(new GameDemoPlayerController(mPlayer, 0, 0));
     mKeyboardHandler = mGamePlayerController;
     mMouseHandler = mGamePlayerController;
-    //mCamera->SetTarget(mPlayer);
-    //mPlayer->SetAlpha(0.8f);
 }
 
 void GameDemoHumanView::GameplayUiUpdateDelegate(BaseEventDataPtr pEventData)

@@ -50,20 +50,22 @@ class CameraNode;
 class GameDemoCameraController : public BaseMouseHandler, public BaseKeyboardHandler
 {
 protected:
+	bool mEnabled;
 	BYTE mKey[256];			// Which keys are up and down
 
 	Transform		mAbsoluteTransform;
 	Vector2<int>	mLastMousePos;
 
 	// Orientation Controls
-	float		mTargetYaw;
-	float		mTargetPitch;
 	float		mYaw;
 	float		mPitch;
 	float		mPitchOnDown;
 	float		mYawOnDown;
-	float		mMaxSpeed;
-	float		mCurrentSpeed;
+
+	// Speed Controls
+	float		mMaxMoveSpeed;
+	float		mMaxRotateSpeed;
+	float		mMoveSpeed;
 	float		mRotateSpeed;
 
 	// Added for Ch19/20 refactor
@@ -76,6 +78,12 @@ protected:
 public:
 	GameDemoCameraController(const eastl::shared_ptr<CameraNode>& target,
 		float initialYaw, float initialPitch, bool rotateWhenLButtonDown);
+
+	//! Sets whether or not the controller is currently enabled.
+	void SetEnabled(bool enabled) { mEnabled = enabled; }
+
+	//! Gets whether or not the affector is currently enabled.
+	bool GetEnabled() const { return mEnabled; }
 
 	void OnUpdate(unsigned long const elapsedTime);
 

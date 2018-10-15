@@ -11,7 +11,7 @@
 //! constructor
 SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
 		float radius, unsigned int polyCountX, unsigned int polyCountY)
-:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mShadow(0),
+:	Node(actorId, renderComponent, NT_CUBE), mShadow(0),
 	mRadius(radius), mPolyCountX(polyCountX), mPolyCountY(polyCountY)
 {
 	mPVWUpdater = updater;

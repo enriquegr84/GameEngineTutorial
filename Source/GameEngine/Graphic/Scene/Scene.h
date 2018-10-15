@@ -100,7 +100,7 @@ public:
 	void NewRenderComponentDelegate(BaseEventDataPtr pEventData);
 	void ModifiedRenderComponentDelegate(BaseEventDataPtr pEventData);
 	void DestroyActorDelegate(BaseEventDataPtr pEventData);
-	void MoveActorDelegate(BaseEventDataPtr pEventData);
+	void SyncActorDelegate(BaseEventDataPtr pEventData);
 
 	//! Adds an empty scene node to the scene graph.
 	/** Can be used for doing advanced transformations

@@ -104,6 +104,8 @@ HumanView::HumanView()
 		mScene.reset(new ScreenElementScene());
 
 		mCamera.reset(new CameraNode(GameLogic::Get()->GetNewActorID()));
+		mCamera->AttachAnimator(eastl::make_shared<NodeAnimatorFollowCamera>());
+
 		LogAssert(mScene && mCamera, "Out of memory");
 		//mCamera->SetFarValue(20000.f); // this increase a shadow visible range.
 		mScene->SetActiveCamera(mCamera);

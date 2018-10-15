@@ -8,7 +8,7 @@
 BoneNode::BoneNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, 
 	unsigned int boneIndex, const char* boneName)
-: Node(actorId, renderComponent, RP_NONE, NT_ANIMATED_MESH),
+: Node(actorId, renderComponent, NT_ANIMATED_MESH),
 	mBoneIndex(boneIndex), mAnimationMode(BAM_AUTOMATIC), mSkinningSpace(BSS_LOCAL),
 	mPositionHint(-1), mScaleHint(-1), mRotationHint(-1)
 {

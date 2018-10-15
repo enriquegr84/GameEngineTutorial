@@ -1003,6 +1003,9 @@
     <ClCompile Include="..\Graphic\Scene\Element\BoneNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowCamera.cpp">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -2433,6 +2436,9 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\BoneNode.h">
       <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowCamera.h">
+      <Filter>Graphic\Scene\Element\Animator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

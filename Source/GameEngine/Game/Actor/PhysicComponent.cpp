@@ -203,36 +203,20 @@ void PhysicComponent::Update(float deltaMs)
 
 		Vector4<float> direction;
 		// get the direction the object is facing
-		Transform transform = pTransformComponent->GetTransform();
-		direction = direction * transform;
-
+#if defined(GE_USE_MAT_VEC)
+		direction = GetTransform() * direction;
+#else
+		direction = direction * GetTransform();
+#endif
 		gamePhysics->ApplyForce(HProject(direction), accelerationPerFrame, mOwner->GetId());
-
-        // logging
-        // [rez] Comment this back in if you want to debug the physics thrust & rotation stuff. It spams quite 
-        // a bit of info the output window so I'm commenting it out for now.
-		eastl::string info(eastl::string("acceleration: ") + eastl::to_string(accelerationPerFrame) +
-			"; velocityScalar: " + eastl::to_string(velocityScalar) + "; direction: " + 
-			eastl::to_string(direction[0]) + eastl::string(" ") + eastl::to_string(direction[1]) + 
-			eastl::string(" ") + eastl::to_string(direction[2]) + "; direction.Length: " + 
-			eastl::to_string(Length(direction)) + "; velocity: " + eastl::to_string(velocity[0]) + 
-			eastl::string(" ") + eastl::to_string(velocity[1]) + eastl::string(" ") + 
-			eastl::to_string(velocity[2]) + "; velocity.getLength(): " + eastl::to_string(Length(velocity)));
-
-        LogInformation(info);
     }
 
     if (mAngularAcceleration != 0)
     {
         // calculate the acceleration this frame
-		Vector3<float> upVector{ 0.f,1.f,0.f };
+		Vector3<float> upVector = Vector3<float>::Unit(2); // up vector
         float angularAccelerationToApplyThisFrame = mAngularAcceleration / 1000.f * (float)deltaMs;
 		gamePhysics->ApplyTorque(upVector, angularAccelerationToApplyThisFrame, mOwner->GetId());
-
-        // logging
-        // [rez] Comment this back in if you want to debug the physics thrust & rotation stuff.  It spams quite 
-        // a bit of info the output window so I'm commenting it out for now.
-        //LogInformation("Actor", "Angular Acceleration: " + eastl::string(angularAccelerationToApplyThisFrame) );
     }
 }
 
@@ -313,10 +297,22 @@ void PhysicComponent::RemoveAngularAcceleration(void)
     mAngularAcceleration = 0;
 }
 
+Vector3<float> PhysicComponent::GetScale(void)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	return gamePhysics->GetScale(mOwner->GetId());
+}
+
 Vector3<float> PhysicComponent::GetVelocity(void)
 {
 	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
     return gamePhysics->GetVelocity(mOwner->GetId());
+}
+
+Transform PhysicComponent::GetTransform(void)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	return gamePhysics->GetTransform(mOwner->GetId());
 }
 
 void PhysicComponent::SetVelocity(const Vector3<float>& velocity)
@@ -325,40 +321,20 @@ void PhysicComponent::SetVelocity(const Vector3<float>& velocity)
     gamePhysics->SetVelocity(mOwner->GetId(), velocity);
 }
 
-void PhysicComponent::RotateY(float angleRadians)
-{
-    eastl::shared_ptr<TransformComponent> pTransformComponent(
-		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-    if (pTransformComponent)
-    {
-		Transform transform = pTransformComponent->GetTransform();
-        Vector3<float> position = transform.GetTranslation();
-
-		Transform rotateY;
-		AxisAngle<4, float> rotation(Vector4<float>::Unit(2), angleRadians);
-        rotateY.SetRotation(rotation);
-        rotateY.SetTranslation(position);
-
-        KinematicMove(rotateY);
-    }
-    else
-        LogError("Attempting to call RotateY() on actor with no transform component");
-}
-
 void PhysicComponent::SetPosition(float x, float y, float z)
 {
     eastl::shared_ptr<TransformComponent> pTransformComponent(
 		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
     if (pTransformComponent)
     {
-		Transform transform = pTransformComponent->GetTransform();
+		Transform transform = GetTransform();
 		Vector3<float> position = Vector3<float>{ x, y, z };
         transform.SetTranslation(position);
 
         KinematicMove(transform);
     }
     else
-        LogError("Attempting to call RotateY() on actor with no trnasform component");
+        LogError("Attempting to call SetPosition() on actor with no trnasform component");
 }
 
 void PhysicComponent::Stop(void)

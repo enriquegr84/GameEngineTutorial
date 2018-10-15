@@ -494,11 +494,11 @@ void GameLogic::RequestDestroyActorDelegate(BaseEventDataPtr pEventData)
     DestroyActor(pCastEventData->GetActorId());
 }
 
-void GameLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
+void GameLogic::SyncActorDelegate(BaseEventDataPtr pEventData)
 {
-    eastl::shared_ptr<EventDataMoveActor> pCastEventData = 
-		eastl::static_pointer_cast<EventDataMoveActor>(pEventData);
-    MoveActor(pCastEventData->GetId(), pCastEventData->GetTransform());
+	eastl::shared_ptr<EventDataSyncActor> pCastEventData =
+		eastl::static_pointer_cast<EventDataSyncActor>(pEventData);
+	SyncActor(pCastEventData->GetId(), pCastEventData->GetTransform());
 }
 
 void GameLogic::RequestNewActorDelegate(BaseEventDataPtr pEventData)

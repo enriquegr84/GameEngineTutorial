@@ -76,10 +76,10 @@ public:
     void ApplyAngularAcceleration(float acceleration);
     void RemoveAngularAcceleration(void);
 
-	//void RotateY(float angleRadians);
-    Vector3<float> GetVelocity(void);
+    Vector3<float> GetScale(void);
+	Vector3<float> GetVelocity(void);
+	Transform GetTransform(void);
     void SetVelocity(const Vector3<float>& velocity);
-    void RotateY(float angleRadians);
     void SetPosition(float x, float y, float z);
     void Stop(void);
 

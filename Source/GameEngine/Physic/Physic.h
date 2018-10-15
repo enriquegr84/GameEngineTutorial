@@ -84,9 +84,8 @@ public:
 	virtual bool KinematicMove(const Transform &mat, ActorId aid) = 0;
 
 	// Physics actor states
-	virtual void RotateY(ActorId actorId, float angleRadians, float time) = 0;
-	virtual float GetOrientationY(ActorId actorId) = 0;
 	virtual void StopActor(ActorId actorId) = 0;
+	virtual Vector3<float> GetScale(ActorId actorId) = 0;
 	virtual Vector3<float> GetVelocity(ActorId actorId) = 0;
 	virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel) = 0;
 	virtual Vector3<float> GetAngularVelocity(ActorId actorId) = 0;

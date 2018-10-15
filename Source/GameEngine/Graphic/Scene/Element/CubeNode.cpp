@@ -26,7 +26,7 @@
 //! constructor
 CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, float size)
-	:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mSize(size), mShadow(0)
+	:	Node(actorId, renderComponent, NT_CUBE), mSize(size), mShadow(0)
 {
 	mPVWUpdater = updater;
 

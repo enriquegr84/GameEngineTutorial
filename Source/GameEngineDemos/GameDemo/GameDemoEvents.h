@@ -94,6 +94,71 @@ public:
     }
 };
 
+//---------------------------------------------------------------------------------------------------------------------
+// EventDataMoveActor - sent when actors are moved
+//---------------------------------------------------------------------------------------------------------------------
+class EventDataMoveActor : public EventData
+{
+	ActorId mId;
+	Transform mTransform;
+
+public:
+	static const BaseEventType skEventType;
+
+	virtual const BaseEventType& GetEventType(void) const
+	{
+		return skEventType;
+	}
+
+	EventDataMoveActor(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	EventDataMoveActor(ActorId id, const Transform& trans)
+		: mId(id), mTransform(trans)
+	{
+		//
+	}
+
+	virtual void Serialize(std::ostrstream &out) const
+	{
+		out << mId << " ";
+		for (int i = 0; i<4; ++i)
+			for (int j = 0; j<4; ++j)
+				out << mTransform.GetMatrix()(i, j) << " ";
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
+
+		Matrix4x4<float> transform = mTransform.GetMatrix();
+		for (int i = 0; i<4; ++i)
+			for (int j = 0; j<4; ++j)
+				in >> transform(i, j);
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new EventDataMoveActor(mId, mTransform));
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "EventDataMoveActor";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+
+	const Transform& GetTransform(void) const
+	{
+		return mTransform;
+	}
+};
 
 //---------------------------------------------------------------------------------------------------------------------
 // class EventDataStartThrust				        - Chapter 10, 279
@@ -313,7 +378,7 @@ public:
 
     virtual BaseEventDataPtr Copy() const
     {
-        return BaseEventDataPtr(new EventDataEndThrust(mId));
+        return BaseEventDataPtr(new EventDataEndSteer(mId));
     }
 
     virtual void Serialize(std::ostrstream & out) const

@@ -1,7 +1,7 @@
 <Actor type="Player" resource="actors\remote_player.xml">
 
 	<TransformComponent>
-		<Position x="-50" y="-50" z="10"/>
+		<Position x="-50" y="-50" z="30"/>
 		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
 
@@ -11,12 +11,12 @@
 		<PhysicsMaterial>Normal</PhysicsMaterial>
 		
 		<RigidBodyTransform>
-			<Scale x="10" y="10" z="10" />  
+			<Scale x="12" y="12" z="30" />  
 		</RigidBodyTransform>
 	</PhysicsComponent>
 
 	<MeshRenderComponent>
-		<Mesh model_file="art\dwarf.x" texture_file="art\dwarf.bmp"/>
+		<Mesh model_file="art\dwarf.x" />
 	</MeshRenderComponent>
 
 </Actor>

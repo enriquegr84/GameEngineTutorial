@@ -154,12 +154,12 @@ public:
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// EventDataMoveActor - sent when actors are moved
+// EventDataSyncActor - sent when actors transform needs to be synchronized
 //---------------------------------------------------------------------------------------------------------------------
-class EventDataMoveActor : public EventData
+class EventDataSyncActor : public EventData
 {
-    ActorId mId;
-    Transform mTransform;
+	ActorId mId;
+	Transform mTransform;
 
 public:
 	static const BaseEventType skEventType;
@@ -169,54 +169,54 @@ public:
 		return skEventType;
 	}
 
-    EventDataMoveActor(void)
-    {
-        mId = INVALID_ACTOR_ID;
-    }
-
-	EventDataMoveActor(ActorId id, const Transform& trans)
-        : mId(id), mTransform(trans)
+	EventDataSyncActor(void)
 	{
-        //
+		mId = INVALID_ACTOR_ID;
+	}
+
+	EventDataSyncActor(ActorId id, const Transform& trans)
+		: mId(id), mTransform(trans)
+	{
+		//
 	}
 
 	virtual void Serialize(std::ostrstream &out) const
 	{
 		out << mId << " ";
-		for (int i=0; i<4; ++i)
-			for (int j=0; j<4; ++j)
-				out << mTransform.GetMatrix()(i,j) << " ";
+		for (int i = 0; i<4; ++i)
+			for (int j = 0; j<4; ++j)
+				out << mTransform.GetMatrix()(i, j) << " ";
 	}
 
-    virtual void Deserialize(std::istrstream& in)
-    {
-        in >> mId;
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
 
 		Matrix4x4<float> transform = mTransform.GetMatrix();
-        for (int i=0; i<4; ++i)
-            for (int j=0; j<4; ++j)
-                in >> transform(i,j);
-    }
+		for (int i = 0; i<4; ++i)
+			for (int j = 0; j<4; ++j)
+				in >> transform(i, j);
+	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new EventDataMoveActor(mId, mTransform));
+		return BaseEventDataPtr(new EventDataSyncActor(mId, mTransform));
 	}
 
-    virtual const char* GetName(void) const
-    {
-        return "EventDataMoveActor";
-    }
+	virtual const char* GetName(void) const
+	{
+		return "EventDataSyncActor";
+	}
 
-    ActorId GetId(void) const
-    {
-        return mId;
-    }
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
 
-    const Transform& GetTransform(void) const
-    {
-        return mTransform;
-    }
+	const Transform& GetTransform(void) const
+	{
+		return mTransform;
+	}
 };
 
 

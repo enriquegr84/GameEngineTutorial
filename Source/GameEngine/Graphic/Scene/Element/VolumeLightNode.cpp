@@ -15,7 +15,7 @@
 VolumeLightNode::VolumeLightNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, const unsigned int subdivU, 
 	const unsigned int subdivV, const eastl::array<float, 4> foot, const eastl::array<float, 4> tail)
-:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_VOLUME_LIGHT), mMesh(0), 
+:	Node(actorId, renderComponent, NT_VOLUME_LIGHT), mMesh(0), 
 	mLPDistance(8.0f), mSubdivideU(subdivU), mSubdivideV(subdivV), mFootColor(foot), 
 	mTailColor(tail), mLightDimensions(Vector3<float>{1.0f, 1.2f, 1.0f})
 {

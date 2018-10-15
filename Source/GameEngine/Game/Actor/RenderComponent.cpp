@@ -68,6 +68,10 @@ bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 	tinyxml2::XMLElement* pMesh = pData->FirstChildElement("Mesh");
 
 	mMeshModelFile = pMesh->Attribute("model_file");
+	mMeshModelTexture = "";
+
+	const char* texture = pMesh->Attribute("texture_file");
+	if (texture != nullptr) mMeshModelTexture = eastl::string(texture);
 
     return true;
 }
@@ -95,6 +99,21 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 					eastl::static_pointer_cast<MeshResourceExtraData>(resHandle->GetExtra());
 				eastl::shared_ptr<BaseMesh> mesh(extra->GetMesh());
 
+				if (!mMeshModelTexture.empty())
+				{
+					resHandle =
+						ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshModelTexture.c_str())));
+					if (resHandle)
+					{
+						const eastl::shared_ptr<ImageResourceExtraData>& extra =
+							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+						extra->GetImage()->AutogenerateMipmaps();
+
+						for (unsigned int i = 0; i<mesh->GetMeshBufferCount(); ++i)
+							mesh->GetMeshBuffer(i)->GetMaterial()->SetTexture(0, extra->GetImage());
+					}
+				}
+
 				eastl::shared_ptr<Node> meshNode = nullptr;
 				if (mesh->GetMeshType() == MT_STANDARD)
 				{
@@ -111,6 +130,7 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 					if (meshNode)
 						meshNode->GetRelativeTransform() = transform;
 				}
+
 				return meshNode;
 			}
 		}

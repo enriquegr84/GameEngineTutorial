@@ -10,7 +10,7 @@
 //! constructor
 EmptyNode::EmptyNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent)
-:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_UNKNOWN)
+:	Node(actorId, renderComponent, NT_UNKNOWN)
 {
 	mPVWUpdater = updater;
 	SetAutomaticCulling(AC_OFF);

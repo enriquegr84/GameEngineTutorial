@@ -11,7 +11,7 @@
 #include "Graphic/Scene/Scene.h"
 
 ViewVolumeNode::ViewVolumeNode(const ActorId actorid, eastl::shared_ptr<ViewVolume> const& viewVolume)
-    : Node(actorid, WeakBaseRenderComponentPtr(), RP_NONE, NT_LIGHT),  mOnUpdate([](ViewVolumeNode*){})
+    : Node(actorid, WeakBaseRenderComponentPtr(), NT_LIGHT),  mOnUpdate([](ViewVolumeNode*){})
 {
     SetViewVolume(viewVolume);
 }

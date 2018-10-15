@@ -289,13 +289,25 @@ Real& Vector<N, Real>::operator[](int i)
 template <int N, typename Real> inline
 bool Vector<N, Real>::operator==(Vector const& vec) const
 {
-    return mTuple == vec.mTuple;
+	for (int i = 0; i < N; ++i)
+	{
+		if (mTuple[i] != vec.mTuple[i])
+			return false;
+	}
+
+	return true;
 }
 
 template <int N, typename Real> inline
 bool Vector<N, Real>::operator!=(Vector const& vec) const
 {
-    return mTuple != vec.mTuple;
+	for (int i = 0; i < N; ++i)
+	{
+		if (mTuple[i] != vec.mTuple[i])
+			return true;
+	}
+
+	return false;
 }
 
 template <int N, typename Real> inline

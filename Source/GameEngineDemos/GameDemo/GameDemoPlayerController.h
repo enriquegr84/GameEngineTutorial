@@ -1,5 +1,5 @@
 //========================================================================
-// File: PlayerController.h
+// File: DemoCameraController.h
 //
 // Part of the GameEngine Application
 //
@@ -36,37 +36,64 @@
 //
 //========================================================================
 
-#ifndef GAMEDEMOCONTROLLER_H
-#define GAMEDEMOCONTROLLER_H
+#ifndef GAMEDEMOPLAYERCONTROLLER_H
+#define GAMEDEMOPLAYERCONTROLLER_H
 
 #include "GameEngineStd.h"
 
 #include "Application/System/EventSystem.h"
+
+#include "Mathematic/Algebra/Transform.h"
 
 class Node;
 
 class GameDemoPlayerController : public BaseMouseHandler, public BaseKeyboardHandler
 {
 protected:
+	bool mEnabled;
 	BYTE mKey[256];			// Which keys are up and down
+
+	Transform		mAbsoluteTransform;
+	Vector2<int>	mLastMousePos;
+
+	// Orientation Controls
+	float		mYaw;
+	float		mPitch;
+	float		mPitchOnDown;
+	float		mYawOnDown;
+
+	// Speed Controls
+	float		mMaxMoveSpeed;
+	float		mMaxRotateSpeed;
+	float		mMoveSpeed;
+	float		mRotateSpeed;
+
+	// Added for Ch19/20 refactor
+	bool		mWheelRollDown;
+
 	eastl::shared_ptr<Node> mObject;
 
 public:
-	GameDemoPlayerController(const eastl::shared_ptr<Node>& object);
-	//void SetObject(const eastl::shared_ptr<SceneNode>& newObject);
+	GameDemoPlayerController(
+		const eastl::shared_ptr<Node>& object, float initialYaw, float initialPitch);
+
+	//! Sets whether or not the controller is currently enabled.
+	void SetEnabled(bool enabled) { mEnabled = enabled; }
+
+	//! Gets whether or not the affector is currently enabled.
+	bool GetEnabled() const { return mEnabled; }
 
 	void OnUpdate(unsigned long const elapsedTime);
 
-	bool OnMouseMove(const Vector2<int> &mousePos, const int radius) { return true; }
+	bool OnMouseMove(const Vector2<int> &mousePos, const int radius);
 	bool OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
-	bool OnMouseButtonUp(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
-	{ return (buttonName == "PointerLeft"); }
+	bool OnMouseButtonUp(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
 
-	bool OnKeyDown(const KeyCode c);
-	bool OnKeyUp(const KeyCode c);
+	bool OnKeyDown(const KeyCode c) { mKey[c] = true; return true; }
+	bool OnKeyUp(const KeyCode c) { mKey[c] = false; return true; }
 
-	bool OnWheelRollDown() { return true; }
-	bool OnWheelRollUp() { return true; }
+	bool OnWheelRollDown() { mWheelRollDown = true; return true; }
+	bool OnWheelRollUp() { mWheelRollDown = false; return true; }
 
 };
 

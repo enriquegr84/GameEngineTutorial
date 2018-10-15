@@ -61,7 +61,7 @@ public:
 	// Update
 	virtual void SetProxy();
 
-	virtual void MoveActor(const ActorId id, Transform const &transform);
+	virtual void SyncActor(const ActorId id, Transform const &transform);
 
 	virtual void ResetViewType();
 	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView, bool add);
@@ -75,8 +75,7 @@ public:
 	void RemoteClientDelegate(BaseEventDataPtr pEventData);
 	void NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEventData);
 	void EnvironmentLoadedDelegate(BaseEventDataPtr pEventData);
-	void ThrustDelegate(BaseEventDataPtr pEventData);
-	void SteerDelegate(BaseEventDataPtr pEventData);
+	void MoveActorDelegate(BaseEventDataPtr pEventData);
 	void StartThrustDelegate(BaseEventDataPtr pEventData);
 	void EndThrustDelegate(BaseEventDataPtr pEventData);
 	void StartSteerDelegate(BaseEventDataPtr pEventData);

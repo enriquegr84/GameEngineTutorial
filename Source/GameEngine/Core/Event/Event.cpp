@@ -47,7 +47,7 @@
 const BaseEventType EventDataEnvironmentLoaded::skEventType(0xa3814acd);
 const BaseEventType EventDataRemoteEnvironmentLoaded::skEventType(0x8E2AD6E6);
 const BaseEventType EventDataNewActor::skEventType(0xe86c7c31);
-const BaseEventType EventDataMoveActor::skEventType(0xeeaa0a40);
+const BaseEventType EventDataSyncActor::skEventType(0xf1975ad);
 const BaseEventType EventDataDestroyActor::skEventType(0x77dd2b3a);
 const BaseEventType EventDataNewRenderComponent::skEventType(0xaf4aff75);
 const BaseEventType EventDataModifiedRenderComponent::skEventType(0x80fe9766);

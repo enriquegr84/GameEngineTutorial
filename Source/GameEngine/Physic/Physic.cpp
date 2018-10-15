@@ -114,9 +114,8 @@ public:
 	virtual bool KinematicMove(const Transform &mat, ActorId aid) { return true; }
 
 	// Physics actor states
-	virtual void RotateY(ActorId actorId, float angleRadians, float time) { }
-	virtual float GetOrientationY(ActorId actorId) { return 0.0f; }
 	virtual void StopActor(ActorId actorId) { }
+	virtual Vector3<float> GetScale(ActorId actorId) { return Vector3<float>(); }
     virtual Vector3<float> GetVelocity(ActorId actorId) { return Vector3<float>(); }
     virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel) { }
     virtual Vector3<float> GetAngularVelocity(ActorId actorId) { return Vector3<float>(); }
@@ -206,15 +205,22 @@ struct ActorMotionState : public btMotionState
 {
 	Transform mWorldToPositionTransform;
 	
-	ActorMotionState(Transform const & startingTransform )
-	  : mWorldToPositionTransform( startingTransform ) { }
+	ActorMotionState(Transform const & startingTransform)
+	  : mWorldToPositionTransform( startingTransform ) 
+	{
+
+	}
 	
 	// btMotionState interface:  Bullet calls these
 	virtual void getWorldTransform( btTransform& worldTrans ) const
-	   { worldTrans = Transform_to_btTransform( mWorldToPositionTransform ); }
+	{ 
+		worldTrans = Transform_to_btTransform( mWorldToPositionTransform ); 
+	}
 
 	virtual void setWorldTransform( const btTransform& worldTrans )
-	   { mWorldToPositionTransform = btTransform_to_Transform( worldTrans ); }
+	{ 
+		mWorldToPositionTransform = btTransform_to_Transform( worldTrans ); 
+	}
 };
 
 
@@ -270,11 +276,13 @@ class BulletPhysics : public BaseGamePhysic
 	CollisionPairs mPreviousTickCollisionPairs;
 	
 	// helpers for sending events relating to collision pairs
-	void SendCollisionPairAddEvent( btPersistentManifold const * manifold, btRigidBody const * body0, btRigidBody const * body1 );
+	void SendCollisionPairAddEvent( btPersistentManifold const * manifold, 
+		btRigidBody const * body0, btRigidBody const * body1 );
 	void SendCollisionPairRemoveEvent( btRigidBody const * body0, btRigidBody const * body1 );
 	
 	// common functionality used by VAddSphere, VAddBox, etc
-	void AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionShape* shape, float mass, const eastl::string& physicMaterial);
+	void AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionShape* shape, 
+		float mass, const eastl::string& physicMaterial);
 	
 	// helper for cleaning up objects
 	void RemoveCollisionObject( btCollisionObject * removeMe );
@@ -304,14 +312,14 @@ public:
 	virtual void RenderDiagnostics() override;
 
 	// Physics world modifiers
-	virtual void CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) override;
+	virtual void CreateTrigger(
+		eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) override;
 	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) override;
 	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) override;
 	virtual bool KinematicMove(const Transform &mat, ActorId aid) override;
 	
-	virtual void RotateY(ActorId actorId, float angleRadians, float time);
-	virtual float GetOrientationY(ActorId actorId);
 	virtual void StopActor(ActorId actorId);
+	virtual Vector3<float> GetScale(ActorId actorId);
     virtual Vector3<float> GetVelocity(ActorId actorId);
     virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel);
     virtual Vector3<float> GetAngularVelocity(ActorId actorId);
@@ -464,12 +472,13 @@ void BulletPhysics::SyncVisibleScene()
 			it != mActorIdToRigidBody.end(); ++it )
 	{ 
 		ActorId const id = it->first;
-		
+		btRigidBody* actorBody = it->second;
+
 		//	get the MotionState.  this object is updated by Bullet.
 		//	it's safe to cast the btMotionState to ActorMotionState, because all the bodies in 
 		//	m_actorIdToRigidBody were created through AddShape()
 		ActorMotionState const * const actorMotionState = 
-			static_cast<ActorMotionState*>(it->second->getMotionState());
+			static_cast<ActorMotionState*>(actorBody->getMotionState());
 		LogAssert( actorMotionState, "actor motion state null" );
 		
 		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(id).lock());
@@ -484,16 +493,17 @@ void BulletPhysics::SyncVisibleScene()
 					pTransformComponent->GetTransform().GetTranslation() !=
 					actorMotionState->mWorldToPositionTransform.GetTranslation())
                 {
-                    //	Bullet has moved the actor's physics object.  Sync the transform and inform 
-					//	the game an actor has moved
+                    // Bullet has moved the actor's physics object. Sync and inform
+					// about game actor transform 
 					pTransformComponent->SetTransform(actorMotionState->mWorldToPositionTransform);
+
 /*
 					LogInformation("x = " + eastl::to_string(actorMotionState->mWorldToPositionTransform.GetTranslation()[0]) +
 									" y = " + eastl::to_string(actorMotionState->mWorldToPositionTransform.GetTranslation()[1]) +
 									" z = " + eastl::to_string(actorMotionState->mWorldToPositionTransform.GetTranslation()[2]));
 */
-                    eastl::shared_ptr<EventDataMoveActor> pEvent(
-						new EventDataMoveActor(id, actorMotionState->mWorldToPositionTransform));
+                    eastl::shared_ptr<EventDataSyncActor> pEvent(
+						new EventDataSyncActor(id, actorMotionState->mWorldToPositionTransform));
                     BaseEventManager::Get()->QueueEvent(pEvent);
 			    }
             }
@@ -536,9 +546,9 @@ void BulletPhysics::AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionSha
 	}
 
 	// set the initial transform of the body from the actor
-	ActorMotionState * const myMotionState = new ActorMotionState(transform);
+	ActorMotionState * const motionState = new ActorMotionState(transform);
 	
-	btRigidBody::btRigidBodyConstructionInfo rbInfo( mass, myMotionState, shape, localInertia );
+	btRigidBody::btRigidBodyConstructionInfo rbInfo( mass, motionState, shape, localInertia );
 	
 	// set up the materal properties
 	rbInfo.m_restitution = material.mRestitution;
@@ -735,7 +745,8 @@ void BulletPhysics::CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vecto
         return;  // FUTURE WORK: Add a call to the error log here
 
 	// create the collision body, which specifies the shape of the object
-	btBoxShape * const boxShape = new btBoxShape(Vector3_to_btVector3(Vector3<float>{dim, dim, dim}));
+	Vector3<float> dimension{ dim, dim, dim };
+	btBoxShape * const boxShape = new btBoxShape(Vector3_to_btVector3(dimension));
 	
 	// triggers are immoveable.  0 mass signals this to Bullet.
 	btScalar const mass = 0;
@@ -743,9 +754,9 @@ void BulletPhysics::CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vecto
 	// set the initial position of the body from the actor
 	Transform triggerTransform;
 	triggerTransform.SetTranslation( pos );
-	ActorMotionState * const myMotionState = new ActorMotionState(triggerTransform);
+	ActorMotionState * const motionState = new ActorMotionState(triggerTransform);
 	
-	btRigidBody::btRigidBodyConstructionInfo rbInfo( mass, myMotionState, boxShape, btVector3(0,0,0) );
+	btRigidBody::btRigidBodyConstructionInfo rbInfo( mass, motionState, boxShape, btVector3(0,0,0) );
 	btRigidBody * const body = new btRigidBody(rbInfo);
 	
 	mDynamicsWorld->addRigidBody( body );
@@ -835,67 +846,26 @@ void BulletPhysics::SetTransform(ActorId actorId, const Transform& mat)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// BulletPhysics::RotateY						- not described in the book
-//
-//   A helper function used to turn objects to a new heading
-//
-void BulletPhysics::RotateY( ActorId const actorId, float const deltaAngleRadians, float const time )
-{
-	btRigidBody * pRigidBody = FindBulletRigidBody(actorId);
-	LogAssert(pRigidBody, "no rigid body");
-
-	// create a transform to represent the additional turning this frame
-	btTransform angleTransform;
-	angleTransform.setIdentity();
-	angleTransform.getBasis().setEulerYPR( 0, deltaAngleRadians, 0 ); // rotation about body Y-axis
-			
-	// concatenate the transform onto the body's transform
-	pRigidBody->setCenterOfMassTransform( pRigidBody->getCenterOfMassTransform() * angleTransform );
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-// BulletPhysics::GetOrientationY				- not described in the book
-//
-//   A helper functions use to access the current heading of a physics object
-//
-float BulletPhysics::GetOrientationY(ActorId actorId)
-{
-	btRigidBody * pRigidBody = FindBulletRigidBody(actorId);
-	LogAssert(pRigidBody, "no rigid body");
-	
-	const btTransform& actorTransform = pRigidBody->getCenterOfMassTransform();
-	btMatrix3x3 actorRotationMat(actorTransform.getBasis());  // should be just the rotation information
-
-	btVector3 startingVec(0,0,1);
-	btVector3 endingVec = actorRotationMat * startingVec; // transform the vector
-
-	endingVec.setY(0);  // we only care about rotation on the XZ plane
-
-	float const endingVecLength = endingVec.length();
-	if (endingVecLength < 0.001)
-	{
-		// gimbal lock (orientation is straight up or down)
-		return 0;
-	}
-
-	else
-	{
-		btVector3 cross = startingVec.cross(endingVec);
-		float sign = cross.getY() > 0 ? 1.0f : -1.0f;
-		return (acosf(startingVec.dot(endingVec) / endingVecLength) * sign);
-	}
-
-	return FLT_MAX;  // fail...
-}
-
-/////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::StopActor					- Chapter 17, page 604
 //
 void BulletPhysics::StopActor(ActorId actorId)
 {
 	SetVelocity(actorId, Vector3<float>());
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::GetScale					
+//
+Vector3<float> BulletPhysics::GetScale(ActorId actorId)
+{
+	btRigidBody* pRigidBody = FindBulletRigidBody(actorId);
+	LogAssert(pRigidBody, "no rigid body");
+	if (!pRigidBody) return Vector3<float>();
+
+	btVector3 aabbMin, aabbMax;
+	pRigidBody->getAabb(aabbMin, aabbMax);
+	btVector3 const aabbExtents = aabbMax - aabbMin;
+	return btVector3_to_Vector3(aabbExtents);
 }
 
 /////////////////////////////////////////////////////////////////////////////

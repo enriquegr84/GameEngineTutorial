@@ -18,11 +18,10 @@
 // Node Implementation
 ////////////////////////////////////////////////////
 
-Node::Node(int id, WeakBaseRenderComponentPtr renderComponent, RenderPass renderPass, NodeType nodeType)
+Node::Node(int id, WeakBaseRenderComponentPtr renderComponent, NodeType nodeType)
 	: Spatial(), mId(id)
 {
 	//mName = (renderComponent) ? renderComponent->GetName() : "SceneNode";
-	mRenderPass = renderPass;
 	mType = nodeType;
 	mRenderComponent = renderComponent;
 	mIsVisible = true;
@@ -355,16 +354,6 @@ bool Node::OnLostDevice(Scene *pScene)
 //
 bool Node::OnUpdate(Scene *pScene, unsigned long const elapsedMs)
 {
-	// This was added post press! Is is always ok to read directly from the game logic.
-	eastl::shared_ptr<Actor> pActor = GameLogic::Get()->GetActor(mId).lock();
-	if (pActor)
-	{
-		const eastl::shared_ptr<TransformComponent>& pTc =
-			pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-
-		if (pTc) mLocalTransform = pTc->GetTransform();
-	}
-
 	// This is meant to be called from any class
 	// that inherits from SceneNode and overloads
 	// do animations and other stuff.
@@ -534,56 +523,15 @@ bool Node::RenderChildren(Scene *pScene)
 	while (i != end)
 	{
 		Node* node = (*i).get();
-		if (node->PreRender(pScene) == true)
-		{
-			// You could short-circuit rendering
-			// if an object returns E_FAIL from
-			// PreRender()
 
-			// Don't render this node if you can't see it
-			bool CurrentRenderPass =
-				pScene->GetCurrentRenderPass() == node->GetRenderPass();
-			if (CurrentRenderPass && !pScene->IsCulled(node))
-			{
-				/*
-				float alpha = node->Get()->m_Material.GetAlpha();
+		if (pScene->GetLightManager())
+			pScene->GetLightManager()->OnNodePreRender(node);
 
-				if (alpha==fOPAQUE)
-				{
-				(*i)->VRender(pScene);
-				}
-				else if (alpha!=fTRANSPARENT)
-				{
-				// The object isn't totally transparent...
-				AlphaSceneNode *asn = new AlphaSceneNode;
-				GE_ASSERT(asn);
-				asn->m_pNode = *i;
-				asn->m_Concat = pScene->GetTopMatrix();
-
-				Vec4 worldPos(asn->m_Concat.GetPosition());
-
-				Matrix4x4<float> fromWorld = pScene->GetActiveCamera()->VGet()->FromWorld();
-
-				Vec4 screenPos = fromWorld.Xform(worldPos);
-
-				asn->m_ScreenZ = screenPos.z;
-
-				pScene->AddAlphaSceneNode(asn);
-				}
-				*/
-
-				if (pScene->GetLightManager())
-					pScene->GetLightManager()->OnNodePreRender(node);
-
-				node->Render(pScene);
-				node->RenderChildren(pScene);
+		node->Render(pScene);
+		node->RenderChildren(pScene);
 				
-				if (pScene->GetLightManager())
-					pScene->GetLightManager()->OnNodePostRender(node);
-			}
-		}
-		node->PostRender(pScene);
-		++i;
+		if (pScene->GetLightManager())
+			pScene->GetLightManager()->OnNodePostRender(node);
 	}
 
 	return true;

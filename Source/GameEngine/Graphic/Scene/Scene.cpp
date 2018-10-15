@@ -61,7 +61,8 @@
 //          The book only describes D3D11, so to find all the differences, just search for mRenderer!
 //
 Scene::Scene()
-	: mShadowColor{ 150 / 255.f,0.f,0.f,0.f }, mAmbientLight{ 0.f, 0.f, 0.f, 0.f }, mCurrentRenderPass(RP_NONE), mPVWUpdater(),
+	: mCurrentRenderPass(RP_NONE), mPVWUpdater(),
+	mShadowColor{ 150 / 255.f,0.f,0.f,0.f }, mAmbientLight{ 0.f, 0.f, 0.f, 0.f }, 
 	mBufferUpdater([this](eastl::shared_ptr<Buffer> const& buffer) { Renderer::Get()->Update(buffer); })
 {
 	mLightManager.reset(new LightManager());
@@ -71,7 +72,7 @@ Scene::Scene()
     BaseEventManager* pEventMgr = BaseEventManager::Get();
     pEventMgr->AddListener(MakeDelegate(this, &Scene::NewRenderComponentDelegate), EventDataNewRenderComponent::skEventType);
     pEventMgr->AddListener(MakeDelegate(this, &Scene::DestroyActorDelegate), EventDataDestroyActor::skEventType);
-    pEventMgr->AddListener(MakeDelegate(this, &Scene::MoveActorDelegate), EventDataMoveActor::skEventType);
+	pEventMgr->AddListener(MakeDelegate(this, &Scene::SyncActorDelegate), EventDataSyncActor::skEventType);
     pEventMgr->AddListener(MakeDelegate(this, &Scene::ModifiedRenderComponentDelegate), EventDataModifiedRenderComponent::skEventType);
 }
 
@@ -98,7 +99,7 @@ Scene::~Scene()
     BaseEventManager* pEventMgr = BaseEventManager::Get();
     pEventMgr->RemoveListener(MakeDelegate(this, &Scene::NewRenderComponentDelegate), EventDataNewRenderComponent::skEventType);
     pEventMgr->RemoveListener(MakeDelegate(this, &Scene::DestroyActorDelegate), EventDataDestroyActor::skEventType);
-    pEventMgr->RemoveListener(MakeDelegate(this, &Scene::MoveActorDelegate), EventDataMoveActor::skEventType);
+	pEventMgr->RemoveListener(MakeDelegate(this, &Scene::SyncActorDelegate), EventDataSyncActor::skEventType);
     pEventMgr->RemoveListener(MakeDelegate(this, &Scene::ModifiedRenderComponentDelegate), EventDataModifiedRenderComponent::skEventType);
 }
 
@@ -712,16 +713,31 @@ void Scene::DestroyActorDelegate(BaseEventDataPtr pEventData)
     RemoveSceneNode(pCastEventData->GetId());
 }
 
-void Scene::MoveActorDelegate(BaseEventDataPtr pEventData)
+void Scene::SyncActorDelegate(BaseEventDataPtr pEventData)
 {
-    eastl::shared_ptr<EventDataMoveActor> pCastEventData = 
-		eastl::static_pointer_cast<EventDataMoveActor>(pEventData);
+	eastl::shared_ptr<EventDataSyncActor> pCastEventData =
+		eastl::static_pointer_cast<EventDataSyncActor>(pEventData);
 
-    ActorId id = pCastEventData->GetId();
-    const Transform& transform = pCastEventData->GetTransform();
+	ActorId actorId = pCastEventData->GetId();
+	eastl::shared_ptr<Node> pNode = GetSceneNode(actorId);
+	if (pNode)
+	{
+		pNode->GetRelativeTransform() = pCastEventData->GetTransform();
 
-    eastl::shared_ptr<Node> pNode = GetSceneNode(id);
-    if (pNode)
-		pNode->GetRelativeTransform() = transform;
-
+		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
+		eastl::shared_ptr<PhysicComponent> pPhysicComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicComponent)
+		{
+			Vector4<float> upVector = Vector4<float>::Unit(2); // up vector
+#if defined(GE_USE_MAT_VEC)
+			upVector = pNode->GetRelativeTransform() * upVector;
+#else
+			upVector = upVector * pNode->GetRelativeTransform();
+#endif
+			Vector3<float> actorTranslation = pNode->GetRelativeTransform().GetTranslation();
+			actorTranslation -= HProject(upVector) * (pPhysicComponent->GetScale() / 2.f);
+			pNode->GetRelativeTransform().SetTranslation(actorTranslation);
+		}
+	}
 }

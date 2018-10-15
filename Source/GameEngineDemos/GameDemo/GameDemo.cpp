@@ -137,6 +137,8 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\player.xml", NULL);
 					if (pActor)
 					{
+						pView->OnAttach(pView->GetId(), pActor->GetId());
+
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
 							new EventDataNewActor(pActor->GetId(), pView->GetId()));
 
@@ -153,6 +155,8 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\remote_player.xml", NULL);
 					if (pActor)
 					{
+						pView->OnAttach(pView->GetId(), pActor->GetId());
+
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
 							new EventDataNewActor(pActor->GetId(), pNetworkGameView->GetId()));
 						BaseEventManager::Get()->QueueEvent(pNewActorEvent);
@@ -165,6 +169,8 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\ai_player.xml", NULL);
 					if (pActor)
 					{
+						pView->OnAttach(pView->GetId(), pActor->GetId());
+
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
 							new EventDataNewActor(pActor->GetId(), pAiView->GetId()));
 						BaseEventManager::Get()->QueueEvent(pNewActorEvent);
@@ -177,28 +183,9 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 	}
 }
 
-void GameDemoLogic::MoveActor(const ActorId id, Transform const &transform)
+void GameDemoLogic::SyncActor(const ActorId id, Transform const &transform)
 {
-	GameLogic::MoveActor(id, transform);
-
-	// [rez] HACK: This will be removed whenever the gameplay update stuff is in.  
-	//	This is meant to model the death zone under the grid.
-
-	// FUTURE WORK - This would make a great basis for a Trigger actor that ran a LUA script when other
-	//               actors entered or left it!
-	/*
-	eastl::shared_ptr<Actor> pActor = eastl::shared_ptr<Actor>(GetActor(id).lock());
-	if (pActor)
-	{
-		eastl::shared_ptr<TransformComponent> pTransformComponent = 
-			pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-		if (pTransformComponent)
-		{
-			eastl::shared_ptr<EventDataRequestDestroyActor> pDestroyActorEvent(new EventDataRequestDestroyActor(id));
-			BaseEventManager::Get()->QueueEvent(pDestroyActorEvent);
-		}
-	}
-	*/
+	GameLogic::SyncActor(id, transform);
 }
 
 void GameDemoLogic::RequestStartGameDelegate(BaseEventDataPtr pEventData)
@@ -280,6 +267,22 @@ void GameDemoLogic::NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEvent
 	LogError("Could not find HumanView to attach actor to!");
 }
 
+void GameDemoLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<EventDataMoveActor> pCastEventData =
+		eastl::static_pointer_cast<EventDataMoveActor>(pEventData);
+
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
+	if (pGameActor)
+	{
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+			pPhysicalComponent->KinematicMove(pCastEventData->GetTransform());
+	}
+}
+
 void GameDemoLogic::StartThrustDelegate(BaseEventDataPtr pEventData)
 {
 	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
@@ -310,8 +313,8 @@ void GameDemoLogic::EndThrustDelegate(BaseEventDataPtr pEventData)
 
 void GameDemoLogic::StartSteerDelegate(BaseEventDataPtr pEventData)
 {
-	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
-		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
+	eastl::shared_ptr<EventDataStartSteer> pCastEventData =
+		eastl::static_pointer_cast<EventDataStartSteer>(pEventData);
 	eastl::shared_ptr<Actor> pActor = GetActor(pCastEventData->GetActorId()).lock();
 	if (pActor)
 	{
@@ -324,8 +327,8 @@ void GameDemoLogic::StartSteerDelegate(BaseEventDataPtr pEventData)
 
 void GameDemoLogic::EndSteerDelegate(BaseEventDataPtr pEventData)
 {
-	eastl::shared_ptr<EventDataStartThrust> pCastEventData =
-		eastl::static_pointer_cast<EventDataStartThrust>(pEventData);
+	eastl::shared_ptr<EventDataStartSteer> pCastEventData =
+		eastl::static_pointer_cast<EventDataStartSteer>(pEventData);
 	eastl::shared_ptr<Actor> pActor = GetActor(pCastEventData->GetActorId()).lock();
 	if (pActor)
 	{
@@ -343,7 +346,10 @@ void GameDemoLogic::RegisterAllDelegates(void)
 	BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &GameDemoLogic::RemoteClientDelegate), 
-EventDataRemoteClient::skEventType);
+		EventDataRemoteClient::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::SyncActorDelegate),
+		EventDataSyncActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &GameDemoLogic::MoveActorDelegate), 
 		EventDataMoveActor::skEventType);
@@ -381,6 +387,9 @@ void GameDemoLogic::RemoveAllDelegates(void)
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &GameDemoLogic::RemoteClientDelegate), 
 		EventDataRemoteClient::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::SyncActorDelegate),
+		EventDataSyncActor::skEventType);
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &GameDemoLogic::MoveActorDelegate), 
 		EventDataMoveActor::skEventType);
@@ -440,6 +449,9 @@ void GameDemoLogic::CreateNetworkEventForwarder(const int socketId)
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 		EventDataNewActor::skEventType);
 	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		EventDataSyncActor::skEventType);
+	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 		EventDataMoveActor::skEventType);
 	pGlobalEventManager->AddListener(
@@ -474,6 +486,9 @@ void GameDemoLogic::DestroyAllNetworkEventForwarders(void)
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataNewActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			EventDataSyncActor::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataMoveActor::skEventType);

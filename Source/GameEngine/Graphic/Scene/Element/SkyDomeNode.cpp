@@ -16,7 +16,7 @@
 SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
 	const eastl::shared_ptr<Texture2>& sky, unsigned int horiRes, unsigned int vertRes,
 	float texturePercentage, float spherePercentage, float radius)
-:	Node(actorId, renderComponent, RP_SKY, NT_SKY), mHorizontalResolution(horiRes), mVerticalResolution(vertRes), 
+:	Node(actorId, renderComponent, NT_SKY), mHorizontalResolution(horiRes), mVerticalResolution(vertRes), 
 	mTexturePercentage(texturePercentage), mSpherePercentage(spherePercentage), mRadius(radius)
 {
 	mPVWUpdater = updater;

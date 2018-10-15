@@ -465,8 +465,10 @@ template <int NumRows, int NumCols, typename Real> inline
 bool Matrix<NumRows, NumCols, Real>::operator==(Matrix const& mat) const
 {
 	for (int i = 0; i < NumRows*NumCols; ++i)
+	{
 		if (mTable[i] != mat.mTable[i])
 			return false;
+	}
 
 	return true;
 }
@@ -474,7 +476,13 @@ bool Matrix<NumRows, NumCols, Real>::operator==(Matrix const& mat) const
 template <int NumRows, int NumCols, typename Real> inline
 bool Matrix<NumRows, NumCols, Real>::operator!=(Matrix const& mat) const
 {
-	return !(*this == mat);
+	for (int i = 0; i < NumRows*NumCols; ++i)
+	{
+		if (mTable[i] != mat.mTable[i])
+			return true;
+	}
+
+	return false;
 }
 
 template <int NumRows, int NumCols, typename Real>

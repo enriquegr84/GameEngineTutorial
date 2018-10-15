@@ -47,11 +47,6 @@
 #include "GameDemoEvents.h"
 #include "GameDemoApp.h"
 
-
-const float ACTOR_ACCELERATION = 6.5f * 8.0f;
-const float ACTOR_ANGULAR_ACCELERATION = 22.0f;
-
-
 ////////////////////////////////////////////////////
 // GameDemoCameraController Implementation
 ////////////////////////////////////////////////////
@@ -61,12 +56,13 @@ GameDemoCameraController::GameDemoCameraController(const eastl::shared_ptr<Camer
 	float initialYaw, float initialPitch, bool rotateWhenLButtonDown)
 	: mTarget(target)
 {
-	mTargetYaw = mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
-	mTargetPitch = mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
+	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
+	mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
-	mMaxSpeed = 0.3f;			// meters per second
-	mCurrentSpeed = 0.0f;
-	mRotateSpeed = 0.005f;
+	mMaxMoveSpeed = 300.0f;
+	mMaxRotateSpeed = 180.0f;
+	mMoveSpeed = 0.0f;
+	mRotateSpeed = 0.0f;
 
 	//Point cursor;
 	System* system = System::Get();
@@ -111,7 +107,7 @@ bool GameDemoCameraController::OnMouseButtonUp(
 }
 
 
-//  class GameDemoCameraController::VOnMouseMove		- Chapter 10, page 282
+//  class GameDemoCameraController::OnMouseMove		- Chapter 10, page 282
 
 bool GameDemoCameraController::OnMouseMove(const Vector2<int> &mousePos, const int radius)
 {
@@ -123,16 +119,22 @@ bool GameDemoCameraController::OnMouseMove(const Vector2<int> &mousePos, const i
 		// Only look around if the left button is down
 		if (mLastMousePos != mousePos && mMouseLButtonDown)
 		{
-			mTargetYaw = mTargetYaw + (mLastMousePos[0] - mousePos[0]);
-			mTargetPitch = mTargetPitch + (mousePos[1] - mLastMousePos[1]);
+			mRotateSpeed = mMaxRotateSpeed;
+
+			System* system = System::Get();
+			mYaw += ((mLastMousePos[0] - mousePos[0]) / (float)system->GetWidth()) * mRotateSpeed;
+			mPitch += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
 			mLastMousePos = mousePos;
 		}
 	}
 	else if (mLastMousePos != mousePos)
 	{
+		mRotateSpeed = mMaxRotateSpeed;
+
 		// Mode 2 - rotate the controller when the mouse buttons are up
-		mTargetYaw = mTargetYaw + (mLastMousePos[0] - mousePos[0]);
-		mTargetPitch = mTargetPitch + (mousePos[1] - mLastMousePos[1]);
+		System* system = System::Get();
+		mYaw += ((mLastMousePos[0] - mousePos[0]) / (float)system->GetWidth()) * mRotateSpeed;
+		mPitch += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
 		mLastMousePos = mousePos;
 	}
 
@@ -144,6 +146,7 @@ bool GameDemoCameraController::OnMouseMove(const Vector2<int> &mousePos, const i
 void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 {
 	// Special case, mouse is whipped outside of window before it can update.
+	if (mEnabled)
 	{
 		System* system = System::Get();
 		Vector2<unsigned int> cursorPosition = system->GetCursorControl()->GetPosition();
@@ -171,11 +174,7 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 
 	//Handling rotation as a result of mouse position
 	{
-		// The secret formula!!! Don't give it away!
-		//If you are seeing this now, then you must be some kind of elite hacker!
-		mYaw += (mTargetYaw - mYaw) * mRotateSpeed;
-		mTargetPitch = eastl::max(-89.f, eastl::min(89.f, mTargetPitch));
-		mPitch += (mTargetPitch - mPitch) * mRotateSpeed;
+		mPitch = eastl::max(-89.f, eastl::min(89.f, mPitch));
 
 		// Calculate the new rotation matrix from the camera
 		// yaw and pitch (zrotate and xrotate).
@@ -247,25 +246,18 @@ void GameDemoCameraController::OnUpdate(unsigned long const deltaMilliseconds)
 		isTranslating = true;
 	}
 
-	if (isTranslating)
+	if (mEnabled && isTranslating)
 	{
 		float elapsedTime = (float)deltaMilliseconds / 1000.0f;
 
 		Vector4<float> direction = atWorld + rightWorld + upWorld;
 		Normalize(direction);
-		/*
-		// Ramp the acceleration by the elapsed time.
-		mCurrentSpeed += mMaxSpeed * elapsedTime;
-		if (mCurrentSpeed > mMaxSpeed)
-			mCurrentSpeed = mMaxSpeed;
-		*/
-		mCurrentSpeed = mMaxSpeed;
 
-		direction *= mCurrentSpeed;
+		mMoveSpeed = mMaxMoveSpeed;
+		direction *= mMoveSpeed * elapsedTime;
 		Vector4<float> pos = mTarget->GetAbsoluteTransform().GetTranslationW0() + direction;
 		mAbsoluteTransform.SetTranslation(pos);
 	}
-	else mCurrentSpeed = 0.0f;
 
 	// update transform matrix
 	mTarget->GetRelativeTransform() = mAbsoluteTransform;

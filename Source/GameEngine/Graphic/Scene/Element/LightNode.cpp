@@ -16,7 +16,7 @@
 //! constructor
 LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Light>& light)
-	:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true)
+	:	Node(actorId, renderComponent, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true)
 {
 	mPVWUpdater = updater;
 

@@ -26,6 +26,9 @@ enum GRAPHIC_ITEM NodeAnimatorType
 	//! Fly straight scene node animator
 	NAT_FLY_STRAIGHT,
 
+	//! Follow camera scene node animator
+	NAT_FOLLOW_CAMERA,
+
 	//! Follow spline scene node animator
 	NAT_FOLLOW_SPLINE,
 
@@ -214,7 +217,7 @@ class GRAPHIC_ITEM Node : public Spatial, public eastl::enable_shared_from_this<
 {
 public:
 
-	Node(int id, WeakBaseRenderComponentPtr renderComponent, RenderPass renderPass, NodeType nodeType);
+	Node(int id, WeakBaseRenderComponentPtr renderComponent, NodeType nodeType);
 
 	virtual ~Node();
 
@@ -223,8 +226,6 @@ public:
 	void SetId(int id) { mId = id; }
 	const eastl::string& GetName() const { return mName; }
 	void SetName(const eastl::string& name) { mName = name; }
-
-	unsigned int GetRenderPass() const { return mRenderPass; }
 
 	virtual NodeType GetType() const { return mType; }
 
@@ -436,7 +437,6 @@ protected:
 	eastl::string mName;
 
 	NodeType mType;
-	RenderPass mRenderPass;
 	PVWUpdater* mPVWUpdater;
 
 	SceneNodeList mChildren;

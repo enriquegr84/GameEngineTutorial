@@ -186,6 +186,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorDelete.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyCircle.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyStraight.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowCamera.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowSpline.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorRotation.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorTexture.cpp" />
@@ -627,6 +628,7 @@
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorDelete.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyCircle.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyStraight.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowCamera.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowSpline.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorRotation.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorTexture.h" />

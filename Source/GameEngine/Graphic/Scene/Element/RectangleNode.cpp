@@ -15,7 +15,7 @@
 RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Texture2>& texture,
 	float texxScale, float texyScale, float xSize, float ySize, int xPolyCount, int yPolyCount)
-:	Node(actorId, renderComponent, RP_NONE, NT_CUBE), mShadow(0),
+:	Node(actorId, renderComponent, NT_CUBE), mShadow(0),
 	mSizeX(xSize), mSizeY(ySize), mPolyCountX(xPolyCount), mPolyCountY(yPolyCount)
 {
 	mPVWUpdater = updater;

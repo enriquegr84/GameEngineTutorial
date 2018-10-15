@@ -16,7 +16,7 @@
 //! constructor
 AnimatedMeshNode::AnimatedMeshNode(const ActorId actorId, PVWUpdater* updater,
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
-:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_ANIMATED_MESH),
+:	Node(actorId, renderComponent, NT_ANIMATED_MESH),
 	mMesh(0), mStartFrame(0), mEndFrame(0), mFramesPerSecond(0.025f), mCurrentFrameNr(0.f), 
 	mLastTime(0), mLooping(true), mReadOnlyMaterials(false), mRenderFromIdentity(false), 
 	mLoopCallBack(0), mPassCount(0), mShadow(0)

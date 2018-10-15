@@ -9,7 +9,7 @@
 
 //! constructor
 CameraNode::CameraNode(const ActorId actorid)
-	: Node(actorid, WeakBaseRenderComponentPtr(), RP_NONE, NT_CAMERA), 
+	: Node(actorid, WeakBaseRenderComponentPtr(), NT_CAMERA), 
 	mActive(true), mTarget(0), mCamera(eastl::make_shared<Camera>(true, true))
 {
 	mAffector = Matrix4x4<float>::Identity();
@@ -85,12 +85,6 @@ void CameraNode::UpdateMatrices()
 #else
 	direction = rotation.GetRow(1);
 #endif
-	if (mTarget)
-	{
-		direction = mTarget->GetAbsoluteTransform().GetTranslationW1() - position;
-		position = mTarget->GetAbsoluteTransform().GetTranslationW1();
-		Normalize(direction);
-	}
 
 	Vector4<float> up;
 #if defined(GE_USE_MAT_VEC)

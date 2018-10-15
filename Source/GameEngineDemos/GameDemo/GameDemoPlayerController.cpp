@@ -1,4 +1,4 @@
-// PlayerController.cpp - Controller class for the player 
+// DemoCameraController.cpp - Controller class for the player 
 //
 // Part of the GameEngine Application
 //
@@ -45,93 +45,194 @@
 
 #include "GameDemoPlayerController.h"
 #include "GameDemoEvents.h"
-
-const float ACTOR_ACCELERATION = 6.5f * 8.0f;
-const float ACTOR_ANGULAR_ACCELERATION = 22.0f;
-
+#include "GameDemoApp.h"
 
 ////////////////////////////////////////////////////
 // GameDemoPlayerController Implementation
 ////////////////////////////////////////////////////
 
 
-//
-// GameDemoPlayerController::GameDemoPlayerController
-//
-GameDemoPlayerController::GameDemoPlayerController(const eastl::shared_ptr<Node>& object)
-: mObject(object)
+GameDemoPlayerController::GameDemoPlayerController(
+	const eastl::shared_ptr<Node>& object, float initialYaw, float initialPitch)
+	: mObject(object)
 {
+	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
+	mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
+
+	mMaxMoveSpeed = 300.0f;
+	mMaxRotateSpeed = 180.0f;
+	mMoveSpeed = 0.0f;
+	mRotateSpeed = 0.0f;
+
+	//Point cursor;
+	System* system = System::Get();
+	system->GetCursorControl()->SetPosition(0.5f, 0.5f);
+	Vector2<unsigned int> cursorPosition = system->GetCursorControl()->GetPosition();
+	mLastMousePos = Vector2<int>{ (int)cursorPosition[0], (int)cursorPosition[1] };
+
 	memset(mKey, 0x00, sizeof(mKey));
 }
 
 //
-// GameDemoPlayerController::OnMouseButtonDown				- Chapter 19, page 735
+// GameDemoPlayerController::OnMouseButtonDown		- Chapter 10, page 282
 //
-bool GameDemoPlayerController::OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
+bool GameDemoPlayerController::OnMouseButtonDown(
+	const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
 {
-	if (buttonName != "PointerLeft")
-		return false;
-	ActorId actorId = mObject->GetId();
-	LogAssert(actorId != INVALID_ACTOR_ID, "The player controller isn't attached to a valid actor!");
-    eastl::shared_ptr<EventDataFireWeapon> pFireEvent(new EventDataFireWeapon(actorId));
-    BaseEventManager::Get()->QueueEvent(pFireEvent);
+	return false;
+}
+
+bool GameDemoPlayerController::OnMouseButtonUp(
+	const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
+{
+	return false;
+}
+
+
+//  class GameDemoPlayerController::OnMouseMove		- Chapter 10, page 282
+
+bool GameDemoPlayerController::OnMouseMove(const Vector2<int> &mousePos, const int radius)
+{
+	// rotate the view
+	if (mLastMousePos != mousePos)
+	{
+		mRotateSpeed = mMaxRotateSpeed;
+
+		System* system = System::Get();
+		mYaw += ((mLastMousePos[0] - mousePos[0]) / (float)system->GetWidth()) * mRotateSpeed;
+		mPitch += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
+		mLastMousePos = mousePos;
+	}
+
 	return true;
 }
 
-//
-// GameDemoPlayerController::OnUpdate				- Chapter 19, page 736
-//
-void GameDemoPlayerController::OnUpdate(unsigned long const deltaTime)  
+//  class GameDemoPlayerController::OnUpdate			- Chapter 10, page 283
+
+void GameDemoPlayerController::OnUpdate(unsigned long const deltaMilliseconds)
 {
-    //
-}
+	// Special case, mouse is whipped outside of window before it can update.
+	if (mEnabled)
+	{
+		System* system = System::Get();
+		Vector2<unsigned int> cursorPosition = system->GetCursorControl()->GetPosition();
+		Vector2<int> mousePosition{ (int)cursorPosition[0], (int)cursorPosition[1] };
 
-bool GameDemoPlayerController::OnKeyDown(const KeyCode c)
-{
-    // update the key table
-    mKey[c] = true;
+		Renderer* renderer = Renderer::Get();
+		Vector2<unsigned int> screenSize(renderer->GetScreenSize());
+		RectangleShape<2, int> screenRectangle;
+		screenRectangle.mCenter[0] = screenSize[0] / 2;
+		screenRectangle.mCenter[1] = screenSize[1] / 2;
+		screenRectangle.mExtent[0] = (int)screenSize[0];
+		screenRectangle.mExtent[1] = (int)screenSize[1];
 
-    // send a thrust event if necessary
-    if (mKey[KEY_KEY_W] || mKey[KEY_KEY_S])
-    {
-		const ActorId actorId = mObject->GetId();
-        eastl::shared_ptr<EventDataStartThrust> pEvent(new EventDataStartThrust(
-			actorId, (c == 'W' ? ACTOR_ACCELERATION : (-ACTOR_ACCELERATION))));
-        EventManager::Get()->QueueEvent(pEvent);
-    }
+		// Only if we are moving outside quickly.
+		bool reset = !screenRectangle.IsPointInside(mousePosition);
 
-    // send a steer event if necessary
-    if (mKey[KEY_KEY_A] || mKey[KEY_KEY_D])
-    {
-		const ActorId actorId = mObject->GetId();
-        eastl::shared_ptr<EventDataStartSteer> pEvent(new EventDataStartSteer(
-			actorId, (c == 'D' ? ACTOR_ANGULAR_ACCELERATION : (-ACTOR_ANGULAR_ACCELERATION))));
-        EventManager::Get()->QueueEvent(pEvent);
-    }
+		if (reset)
+		{
+			// Force a reset.
+			system->GetCursorControl()->SetPosition(0.5f, 0.5f);
+			cursorPosition = system->GetCursorControl()->GetPosition();
+			mLastMousePos = Vector2<int>{ (int)cursorPosition[0], (int)cursorPosition[1] };
+		}
+	}
 
-    return true;
-}
+	//Handling rotation as a result of mouse position
+	Matrix4x4<float> rotation;
 
-bool GameDemoPlayerController::OnKeyUp(const KeyCode c)
-{
-    // update the key table
-    mKey[c] = false;
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(mObject->GetId()).lock());
+	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
+		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
+	if (pPhysicComponent)
+	{
+		mPitch = eastl::max(-45.f, eastl::min(45.f, mPitch));
 
-    // send an end thrust event if necessary
-    if (mKey[KEY_KEY_W] || mKey[KEY_KEY_S])
-    {
-		const ActorId actorId = mObject->GetId();
-        eastl::shared_ptr<EventDataEndThrust> pEvent(new EventDataEndThrust(actorId));
-        EventManager::Get()->QueueEvent(pEvent);
-    }
+		// Calculate the new rotation matrix from the camera
+		// yaw and pitch (zrotate and xrotate).
+		Matrix4x4<float> yawRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
+		rotation = -yawRotation;
+		Matrix4x4<float> pitchRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(0), -mPitch * (float)GE_C_DEG_TO_RAD));
+		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
+		mAbsoluteTransform.SetTranslation(pPhysicComponent->GetTransform().GetTranslation());
+	}
 
-    // send an end steer event if necessary
-    if (mKey[KEY_KEY_A] || mKey[KEY_KEY_D])
-    {
-		const ActorId actorId = mObject->GetId();
-        eastl::shared_ptr<EventDataEndSteer> pEvent(new EventDataEndSteer(actorId));
-        EventManager::Get()->QueueEvent(pEvent);
-    }
+	bool isTranslating = false;
+	Vector4<float> atWorld = Vector4<float>::Zero();
+	Vector4<float> rightWorld = Vector4<float>::Zero();
+	Vector4<float> upWorld = Vector4<float>::Zero();
 
-    return true;
+	if (mKey[KEY_KEY_W] || mKey[KEY_KEY_S])
+	{
+		// This will give us the "look at" vector 
+		// in world space - we'll use that to move
+		// the camera.
+		atWorld = Vector4<float>::Unit(1); // forward vector
+#if defined(GE_USE_MAT_VEC)
+		atWorld = rotation * atWorld;
+#else
+		atWorld = atWorld * rotation;
+#endif
+
+		if (mKey[KEY_KEY_S])
+			atWorld *= -1.f;
+
+		isTranslating = true;
+	}
+
+	if (mKey[KEY_KEY_A] || mKey[KEY_KEY_D])
+	{
+		// This will give us the "look right" vector 
+		// in world space - we'll use that to move
+		// the camera.
+		rightWorld = Vector4<float>::Unit(0); // right vector
+#if defined(GE_USE_MAT_VEC)
+		rightWorld = rotation * rightWorld;
+#else
+		rightWorld = rightWorld * rotation;
+#endif
+
+		if (mKey[KEY_KEY_A])
+			rightWorld *= -1.f;
+
+		isTranslating = true;
+	}
+
+	if (mKey[KEY_SPACE] || mKey[KEY_KEY_C] || mKey[KEY_KEY_X])
+	{
+		//Unlike strafing, Up is always up no matter
+		//which way you are looking
+		upWorld = Vector4<float>::Unit(2); // up vector
+#if defined(GE_USE_MAT_VEC)
+		upWorld = rotation * upWorld;
+#else
+		upWorld = upWorld * rotation;
+#endif
+
+		if (!mKey[KEY_SPACE])
+			upWorld *= -1.f;
+
+		isTranslating = true;
+	}
+
+	if (mEnabled && isTranslating)
+	{
+		float elapsedTime = (float)deltaMilliseconds / 1000.0f;
+
+		Vector4<float> direction = atWorld + rightWorld + upWorld;
+		Normalize(direction);
+
+		mMoveSpeed = mMaxMoveSpeed;
+		direction *= mMoveSpeed * elapsedTime;
+		Vector4<float> pos = mAbsoluteTransform.GetTranslationW0() + direction;
+		mAbsoluteTransform.SetTranslation(pos);
+	}
+
+	const ActorId actorId = mObject->GetId();
+	eastl::shared_ptr<EventDataMoveActor> pEvent(
+		new EventDataMoveActor(actorId, mAbsoluteTransform));
+	EventManager::Get()->TriggerEvent(pEvent);
 }

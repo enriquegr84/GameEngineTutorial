@@ -8,6 +8,8 @@
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
+#include "Mathematic/Function/Constants.h"
+
 #include "Vector.h"
 
 // Template alias for convenience.
@@ -109,7 +111,6 @@ public:
     int extreme[4];
     bool extremeCCW;
 };
-
 
 template <int N, typename Real>
 Vector<N, Real> Cross(Vector<N, Real> const& v0, Vector<N, Real> const& v1)

@@ -86,7 +86,7 @@ public:
 	virtual void SetProxy() = 0;
 	virtual void OnUpdate(float time, float elapsedTime) = 0;
 	virtual void ChangeState(enum BaseGameState newState) = 0;
-	virtual void MoveActor(const ActorId id, Transform const &transform) = 0;
+	virtual void SyncActor(const ActorId id, Transform const &transform) = 0;
 };
 
 
@@ -126,7 +126,7 @@ public:
 	virtual eastl::weak_ptr<Actor> GetActor(const ActorId actorId);
 	virtual void ModifyActor(const ActorId actorId, tinyxml2::XMLElement *overrides);
 
-	virtual void MoveActor(const ActorId id, Transform const &transform) {}
+	virtual void SyncActor(const ActorId id, Transform const &transform) {}
 
 	// editor functions
 	eastl::string GetActorXml(const ActorId id);
@@ -174,7 +174,7 @@ protected:
 	// [rez] Override this function to do any game-specific loading.
 	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData) { return true; }
 
-	void MoveActorDelegate(BaseEventDataPtr pEventData);
+	void SyncActorDelegate(BaseEventDataPtr pEventData);
 	void RequestNewActorDelegate(BaseEventDataPtr pEventData);
 
 	float mLifetime;								//indicates how long this game has been in session

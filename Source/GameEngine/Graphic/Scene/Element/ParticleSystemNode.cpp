@@ -18,7 +18,7 @@
 //! constructor
 ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* updater,
 	WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter)
-:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_PARTICLE_SYSTEM),
+:	Node(actorId, renderComponent, NT_PARTICLE_SYSTEM),
 	mEmitter(0), mParticleSize(Vector2<float>{5.f, 5.f}), mLastEmitTime(0),
 	mMaxParticles(0xffff), mParticlesAreGlobal(true)
 {

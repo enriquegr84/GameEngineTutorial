@@ -18,7 +18,7 @@
 // RootNode::RootNode					- Chapter 16, page 545
 //
 RootNode::RootNode()
-	: Node(INVALID_ACTOR_ID, WeakBaseRenderComponentPtr(), RP_NONE, NT_ROOT)
+	: Node(INVALID_ACTOR_ID, WeakBaseRenderComponentPtr(), NT_ROOT)
 {
 
 }
@@ -28,7 +28,7 @@ RootNode::RootNode()
 //
 RootNode::RootNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent)
-	: Node(actorId, renderComponent, RP_NONE, NT_ROOT)
+	: Node(actorId, renderComponent, NT_ROOT)
 {
 	mPVWUpdater = updater;
 }
@@ -69,6 +69,8 @@ bool RootNode::RenderChildren(Scene *pScene)
 	// Iterate through the render children....
 	for (int pass = 0; pass < RP_LAST; pass++)
 	{
+		pScene->SetCurrentRenderPass((RenderPass)pass);
+
 		SceneNodeRenderList::iterator itNode = pScene->GetRenderList(pass).begin();
 		SceneNodeRenderList::iterator end = pScene->GetRenderList(pass).end();
 		/*
@@ -94,7 +96,9 @@ bool RootNode::RenderChildren(Scene *pScene)
 		{
 			if (pScene->GetLightManager())
 				pScene->GetLightManager()->OnNodePreRender((*itNode));
+
 			(*itNode)->Render(pScene);
+
 			if (pScene->GetLightManager())
 				pScene->GetLightManager()->OnNodePostRender((*itNode));
 

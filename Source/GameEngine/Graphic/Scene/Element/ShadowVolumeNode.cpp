@@ -16,7 +16,7 @@
 ShadowVolumeNode::ShadowVolumeNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& shadowMesh, 
 	bool zfailmethod, float infinity)
-:	Node(actorId, renderComponent, RP_SHADOW, NT_SHADOW_VOLUME), mShadowMesh(0), mIndexCount(0), 
+:	Node(actorId, renderComponent, NT_SHADOW_VOLUME), mShadowMesh(0), mIndexCount(0), 
 	mVertexCount(0), mShadowVolumesUsed(0), mInfinity(infinity), mUseZFailMethod(zfailmethod)
 {
 	mPVWUpdater = updater;

@@ -600,7 +600,7 @@ void GameApplication::RegisterEngineEvents(void)
 {
     REGISTER_EVENT(EventDataEnvironmentLoaded);
     REGISTER_EVENT(EventDataNewActor);
-    REGISTER_EVENT(EventDataMoveActor);
+	REGISTER_EVENT(EventDataSyncActor);
     REGISTER_EVENT(EventDataDestroyActor);
 	REGISTER_EVENT(EventDataRequestNewActor);
 	REGISTER_EVENT(EventDataNetworkPlayerActorAssignment);

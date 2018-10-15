@@ -18,7 +18,7 @@
 //! constructor
 BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
 	const eastl::shared_ptr<Texture2>& texture, const Vector2<float>& size)
-	: Node(actorId, renderComponent, RP_TRANSPARENT, NT_BILLBOARD)
+	: Node(actorId, renderComponent, NT_BILLBOARD)
 {
 	SetSize(size);
 

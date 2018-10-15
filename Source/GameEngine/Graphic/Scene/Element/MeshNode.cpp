@@ -13,7 +13,7 @@
 //! constructor
 MeshNode::MeshNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh)
-:	Node(actorId, renderComponent, RP_NONE, NT_MESH), mMesh(0), mShadow(0), mPassCount(0)
+:	Node(actorId, renderComponent, NT_MESH), mMesh(0), mShadow(0), mPassCount(0)
 {
 	mPVWUpdater = updater;
 	SetMesh(mesh);
@@ -106,7 +106,7 @@ bool MeshNode::Render(Scene *pScene)
 	if (!mMesh || !Renderer::Get())
 		return false;
 
-	bool isTransparentPass = GetRenderPass() && RP_TRANSPARENT;
+	bool isTransparentPass = pScene->GetCurrentRenderPass() && RP_TRANSPARENT;
 	++mPassCount;
 
 	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);

@@ -744,8 +744,19 @@ bool SkinnedMesh::SetHardwareSkinning(bool on)
 				{
 					const unsigned int bufferId=joint->mWeights[j].mBufferId;
 					const unsigned int vertexId=joint->mWeights[j].mVertexId;
-					mLocalBuffers[bufferId]->Position(vertexId) = joint->mWeights[j].mStaticPos;
-					mLocalBuffers[bufferId]->Normal(vertexId) = joint->mWeights[j].mStaticNormal;
+
+					float* target = reinterpret_cast<float*>(
+						&mLocalBuffers[bufferId]->Position(vertexId));
+					target[0] = joint->mWeights[j].mStaticPos[0];
+					target[1] = joint->mWeights[j].mStaticPos[2];
+					target[2] = joint->mWeights[j].mStaticPos[1];
+
+					target = reinterpret_cast<float*>(
+						&mLocalBuffers[bufferId]->Normal(vertexId));
+					target[0] = joint->mWeights[j].mStaticNormal[0];
+					target[1] = joint->mWeights[j].mStaticNormal[1];
+					target[2] = joint->mWeights[j].mStaticNormal[2];
+
 					//mLocalBuffers[bufferId]->BoundingBoxNeedsRecalculated();
 				}
 			}

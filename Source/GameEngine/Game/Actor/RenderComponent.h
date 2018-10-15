@@ -55,6 +55,7 @@
 class MeshRenderComponent : public BaseRenderComponent
 {
 	eastl::string mMeshModelFile;
+	eastl::string mMeshModelTexture;
 
 public:
 	static const char *Name;

@@ -20,7 +20,7 @@ ParticleAnimatedMeshNodeEmitter::ParticleAnimatedMeshNodeEmitter(const ActorId a
 		const eastl::array<float, 4>& minStartColor, const eastl::array<float, 4>& maxStartColor, 
 		unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, 
 		const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize)
-:	Node(actorId, renderComponent, RP_TRANSPARENT, NT_ANIMATED_MESH), mAnimatedNode(0), 
+:	Node(actorId, renderComponent, NT_ANIMATED_MESH), mAnimatedNode(0), 
 	mAnimatedMesh(0), mBaseMesh(0), mTotalVertices(0), mMBCount(0), mMBNumber(mbNumber), 
 	mDirection(direction), mNormalDirectionModifier(normalDirectionModifier),
 	mMinParticlesPerSecond(minParticlesPerSecond), mMaxParticlesPerSecond(maxParticlesPerSecond),
