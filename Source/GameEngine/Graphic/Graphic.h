@@ -31,7 +31,6 @@
 #include "Effect/PointLightEffect.h"
 #include "Effect/PointLightTextureEffect.h"
 #include "Effect/SpotLightEffect.h"
-#include "Effect/Texture2ColorEffect.h"
 #include "Effect/Texture2Effect.h"
 #include "Effect/TextEffect.h"
 #include "Effect/ColorEffect.h"

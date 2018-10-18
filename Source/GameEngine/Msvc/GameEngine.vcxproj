@@ -93,7 +93,6 @@
     <ClCompile Include="..\Graphic\Effect\SpotLightEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\TextEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\ColorEffect.cpp" />
-    <ClCompile Include="..\Graphic\Effect\Texture2ColorEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\Texture2Effect.cpp" />
     <ClCompile Include="..\Graphic\Effect\VisualEffect.cpp" />
     <ClCompile Include="..\Graphic\Image\ImageResource.cpp" />
@@ -530,7 +529,6 @@
     <ClInclude Include="..\Graphic\Effect\SpotLightEffect.h" />
     <ClInclude Include="..\Graphic\Effect\TextEffect.h" />
     <ClInclude Include="..\Graphic\Effect\ColorEffect.h" />
-    <ClInclude Include="..\Graphic\Effect\Texture2ColorEffect.h" />
     <ClInclude Include="..\Graphic\Effect\Texture2Effect.h" />
     <ClInclude Include="..\Graphic\Effect\VisualEffect.h" />
     <ClInclude Include="..\Graphic\Graphic.h" />
@@ -900,12 +898,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
-    <None Include="..\..\..\Assets\Effects\Texture2ColorEffectPS.glsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="..\..\..\Assets\Effects\Texture2ColorEffectVS.glsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
     <None Include="..\..\..\Assets\Effects\Texture2EffectPS.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1013,9 +1005,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\Texture2ColorEffect.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\Texture2Effect.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

@@ -7,7 +7,7 @@
 
 #include "AnimatedMeshNode.h"
 
-#include "Graphic/Effect/Texture2ColorEffect.h"
+#include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Scene/Hierarchy/Node.h"
 
 #include "Particle/ParticleAffector.h"
@@ -213,7 +213,7 @@ private:
 
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<MeshBuffer> mMeshBuffer;
-	eastl::shared_ptr<Texture2ColorEffect> mEffect;
+	eastl::shared_ptr<Texture2Effect> mEffect;
 	eastl::list<eastl::shared_ptr<BaseParticleAffector>> mAffectorList;
 	eastl::shared_ptr<BaseParticleEmitter> mEmitter;
 	eastl::vector<Particle> mParticles;
