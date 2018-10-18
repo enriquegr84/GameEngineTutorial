@@ -66,8 +66,8 @@ ActorFactory::ActorFactory(void)
 		ActorComponent::GetIdFromName(PhysicComponent::Name));
     mComponentFactory.Register<GridRenderComponent>(
 		ActorComponent::GetIdFromName(GridRenderComponent::Name));
-    mComponentFactory.Register<ParticleSystemRenderComponent>(
-		ActorComponent::GetIdFromName(ParticleSystemRenderComponent::Name));
+    mComponentFactory.Register<ParticleEffectRenderComponent>(
+		ActorComponent::GetIdFromName(ParticleEffectRenderComponent::Name));
     mComponentFactory.Register<LightRenderComponent>(
 		ActorComponent::GetIdFromName(LightRenderComponent::Name));
     mComponentFactory.Register<SkyRenderComponent>(

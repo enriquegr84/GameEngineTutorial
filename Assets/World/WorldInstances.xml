@@ -22,7 +22,8 @@
 
 	  </Actor>
 	  
-      <Actor resource="actors\light.xml" />
+	  <Actor resource="actors\light.xml" />
+      <Actor resource="actors\particle_effect.xml" />
 	  <Actor resource="actors\afternoon_sky.xml" />
 <!--
         <Actor resource="actors\player_spawner.xml" />

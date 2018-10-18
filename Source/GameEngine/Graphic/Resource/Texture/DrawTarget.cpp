@@ -169,5 +169,5 @@ void DrawTarget::UnsubscribeForDestruction(eastl::shared_ptr<ListenerForDestruct
 }
 
 
-std::mutex DrawTarget::msLFDMutex;
+std::recursive_mutex DrawTarget::msLFDMutex;
 eastl::set<eastl::shared_ptr<DrawTarget::ListenerForDestruction>> DrawTarget::msLFDSet;

@@ -44,5 +44,5 @@ void GraphicObject::UnsubscribeForDestruction(eastl::shared_ptr<ListenerForDestr
 }
 
 
-std::mutex GraphicObject::msLFDMutex;
+std::recursive_mutex GraphicObject::msLFDMutex;
 eastl::set<eastl::shared_ptr<GraphicObject::ListenerForDestruction>> GraphicObject::msLFDSet;

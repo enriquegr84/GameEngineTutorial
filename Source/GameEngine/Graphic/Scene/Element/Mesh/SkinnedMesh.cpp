@@ -1392,9 +1392,9 @@ void SkinnedMesh::ConvertMeshToTangents()
 					mLocalBuffers[b]->Position(idx[i+0]),
 					mLocalBuffers[b]->Position(idx[i+1]),
 					mLocalBuffers[b]->Position(idx[i+2]),
-					mLocalBuffers[b]->TCoord(idx[i+0], 0),
-					mLocalBuffers[b]->TCoord(idx[i+1], 0),
-					mLocalBuffers[b]->TCoord(idx[i+2], 0));
+					mLocalBuffers[b]->TCoord(0, idx[i + 0]),
+					mLocalBuffers[b]->TCoord(0, idx[i + 1]),
+					mLocalBuffers[b]->TCoord(0, idx[i + 2]));
 
 				CalculateTangents(
 					mLocalBuffers[b]->Normal(idx[i+1]),
@@ -1403,9 +1403,9 @@ void SkinnedMesh::ConvertMeshToTangents()
 					mLocalBuffers[b]->Position(idx[i+1]),
 					mLocalBuffers[b]->Position(idx[i+2]),
 					mLocalBuffers[b]->Position(idx[i+0]),
-					mLocalBuffers[b]->TCoord(idx[i+1], 0),
-					mLocalBuffers[b]->TCoord(idx[i+2], 0),
-					mLocalBuffers[b]->TCoord(idx[i+0], 0));
+					mLocalBuffers[b]->TCoord(0, idx[i + 1]),
+					mLocalBuffers[b]->TCoord(0, idx[i + 2]),
+					mLocalBuffers[b]->TCoord(0, idx[i + 0]));
 
 				CalculateTangents(
 					mLocalBuffers[b]->Normal(idx[i+2]),
@@ -1414,9 +1414,9 @@ void SkinnedMesh::ConvertMeshToTangents()
 					mLocalBuffers[b]->Position(idx[i+2]),
 					mLocalBuffers[b]->Position(idx[i+0]),
 					mLocalBuffers[b]->Position(idx[i+1]),
-					mLocalBuffers[b]->TCoord(idx[i+2], 0),
-					mLocalBuffers[b]->TCoord(idx[i+0], 0),
-					mLocalBuffers[b]->TCoord(idx[i+1], 0));
+					mLocalBuffers[b]->TCoord(0, idx[i + 2]),
+					mLocalBuffers[b]->TCoord(0, idx[i + 0]),
+					mLocalBuffers[b]->TCoord(0, idx[i + 1]));
 			}
 		}
 	}

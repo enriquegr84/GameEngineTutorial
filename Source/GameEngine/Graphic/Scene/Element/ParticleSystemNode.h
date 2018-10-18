@@ -7,6 +7,7 @@
 
 #include "AnimatedMeshNode.h"
 
+#include "Graphic/Effect/Texture2ColorEffect.h"
 #include "Graphic/Scene/Hierarchy/Node.h"
 
 #include "Particle/ParticleAffector.h"
@@ -46,6 +47,9 @@ public:
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);
 	virtual bool Render(Scene *pScene);
+
+	//! Set effect for rendering.
+	void SetEffect(int size);
 
 	//! Gets the particle emitter, which creates the particles.
 	eastl::shared_ptr<BaseParticleEmitter> GetEmitter();
@@ -179,7 +183,8 @@ public:
 	//! Creates a point attraction affector. This affector modifies the positions of the
 	//! particles and attracts them to a specified point at a specified speed per second.
 	ParticleAttractionAffector* CreateAttractionAffector(
-		const Vector3<float>& point, float speed = 1.0f, bool attract = true,
+		const Vector3<float>& point = Vector3<float>{ 0.f, 0.0f, 0.f }, 
+		float speed = 1.0f, bool attract = true, 
 		bool affectX = true, bool affectY = true, bool affectZ = true);
 
 	//! Creates a scale particle affector.
@@ -208,6 +213,7 @@ private:
 
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<MeshBuffer> mMeshBuffer;
+	eastl::shared_ptr<Texture2ColorEffect> mEffect;
 	eastl::list<eastl::shared_ptr<BaseParticleAffector>> mAffectorList;
 	eastl::shared_ptr<BaseParticleEmitter> mEmitter;
 	eastl::vector<Particle> mParticles;

@@ -158,7 +158,7 @@ protected:
 
 private:
     // Support for listeners for destruction (LFD).
-    static std::mutex msLFDMutex;
+    static std::recursive_mutex msLFDMutex;
     static eastl::set<eastl::shared_ptr<ListenerForDestruction>> msLFDSet;
 };
 

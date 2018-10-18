@@ -53,7 +53,7 @@ const char* SphereRenderComponent::Name = "SphereRenderComponent";
 const char* GridRenderComponent::Name = "GridRenderComponent";
 const char* LightRenderComponent::Name = "LightRenderComponent";
 const char* SkyRenderComponent::Name = "SkyRenderComponent";
-const char* ParticleSystemRenderComponent::Name = "ParticleSystemRenderComponent";
+const char* ParticleEffectRenderComponent::Name = "ParticleEffectRenderComponent";
 
 //---------------------------------------------------------------------------------------------------------------------
 // MeshRenderComponent
@@ -549,6 +549,7 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 				{
 					const eastl::shared_ptr<ImageResourceExtraData>& extra =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+					extra->GetImage()->AutogenerateMipmaps();
 
 					eastl::shared_ptr<Node> billNode = 
 						pScene->AddBillboardNode(eastl::weak_ptr<BaseRenderComponent>(), 
@@ -575,7 +576,6 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 void LightRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLDocument doc, tinyxml2::XMLElement *pBaseElement)
 {
-
 	tinyxml2::XMLElement* pSceneNode = doc.NewElement("Light");
 
 	// Ambient
@@ -623,19 +623,166 @@ void LightRenderComponent::CreateInheritedXMLElements(
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// ParticleSystemRenderComponent
+// ParticleEffectRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
-ParticleSystemRenderComponent::ParticleSystemRenderComponent(void)
+ParticleEffectRenderComponent::ParticleEffectRenderComponent(void)
 {
-
+	mTextureResource = "";
+	mEmitterType = PET_NONE;
+	mAffectorType = PAT_NONE;
 }
 
-bool ParticleSystemRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
+bool ParticleEffectRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 {
-    return true;
+	tinyxml2::XMLElement* pTexture = pData->FirstChildElement("Texture");
+	if (pTexture)
+	{
+		mTextureResource = pTexture->Attribute("file");
+	}
+
+	tinyxml2::XMLElement* pEmitterType = pData->FirstChildElement("EmitterType");
+	if (pEmitterType)
+	{
+		mEmitterType = (ParticleEmitterType)pEmitterType->IntAttribute("type");
+	}
+
+	tinyxml2::XMLElement* pAffector = pData->FirstChildElement("AffectorType");
+	if (pAffector)
+	{
+		mAffectorType = (ParticleAffectorType)pAffector->IntAttribute("type");
+	}
+
+	tinyxml2::XMLElement* pEmitter = pData->FirstChildElement("Emitter");
+	if (pEmitter)
+	{
+		float minx = -7.0f;
+		float miny = -7.0f;
+		float minz = 0.0f;
+
+		float maxx = 7.0f;
+		float maxy = 7.0f;
+		float maxz = 1.0f;
+
+		minx = pEmitter->FloatAttribute("minx", minx);
+		miny = pEmitter->FloatAttribute("miny", miny);
+		minz = pEmitter->FloatAttribute("minz", minz);
+		maxx = pEmitter->FloatAttribute("maxx", maxx);
+		maxy = pEmitter->FloatAttribute("maxy", maxy);
+		maxz = pEmitter->FloatAttribute("maxz", maxz);
+
+		mEmitter = AlignedBox3<float>(
+			Vector3<float>{minx, miny, minz}, 
+			Vector3<float>{maxx, maxy, maxz} );
+	}
+
+	tinyxml2::XMLElement* pDirection = pData->FirstChildElement("Direction");
+	if (pDirection)
+	{
+		float x = 0.0f;
+		float y = 0.0f;
+		float z = 0.06f;
+		x = pDirection->FloatAttribute("x", x);
+		y = pDirection->FloatAttribute("y", y);
+		z = pDirection->FloatAttribute("z", z);
+
+		mDirection = Vector3<float>{ x, y, z };
+	}
+
+	tinyxml2::XMLElement* pEmitRate = pData->FirstChildElement("EmitRate");
+	if (pEmitRate)
+	{
+		int min = 80;
+		int max = 100;
+		min = pEmitRate->IntAttribute("min", min);
+		max = pEmitRate->IntAttribute("max", max);
+
+		mMinParticlesPerSecond = min;
+		mMaxParticlesPerSecond = max;
+	}
+
+	tinyxml2::XMLElement* pColorMinimum = pData->FirstChildElement("ColorMinimum");
+	if (pColorMinimum)
+	{
+		float temp = 0;
+
+		temp = pColorMinimum->FloatAttribute("r", temp);
+		mMinStartColor[0] = temp;
+
+		temp = pColorMinimum->FloatAttribute("g", temp);
+		mMinStartColor[1] = temp;
+
+		temp = pColorMinimum->FloatAttribute("b", temp);
+		mMinStartColor[2] = temp;
+
+		temp = pColorMinimum->FloatAttribute("a", temp);
+		mMinStartColor[3] = temp;
+	}
+
+	tinyxml2::XMLElement* pColorMaximum = pData->FirstChildElement("ColorMaximum");
+	if (pColorMaximum)
+	{
+		float temp = 0;
+
+		temp = pColorMaximum->FloatAttribute("r", temp);
+		mMaxStartColor[0] = temp;
+
+		temp = pColorMaximum->FloatAttribute("g", temp);
+		mMaxStartColor[1] = temp;
+
+		temp = pColorMaximum->FloatAttribute("b", temp);
+		mMaxStartColor[2] = temp;
+
+		temp = pColorMaximum->FloatAttribute("a", temp);
+		mMaxStartColor[3] = temp;
+	}
+
+	tinyxml2::XMLElement* pLifeTime = pData->FirstChildElement("LifeTime");
+	if (pEmitRate)
+	{
+		int min = 800;
+		int max = 2000;
+		min = pLifeTime->IntAttribute("min", min);
+		max = pLifeTime->IntAttribute("max", max);
+
+		mMinLifeTime = min;
+		mMaxLifeTime = max;
+	}
+
+	tinyxml2::XMLElement* pAngleMaximum = pData->FirstChildElement("AngleMaximum");
+	if (pAngleMaximum)
+	{
+		int angle = 0;
+		angle = pAngleMaximum->IntAttribute("angle", angle);
+
+		mMaxAngle = angle;
+	}
+
+	tinyxml2::XMLElement* pSizeMinimum = pData->FirstChildElement("SizeMinimum");
+	if (pSizeMinimum)
+	{
+		float x = 10.0f;
+		float y = 10.0f;
+		x = pSizeMinimum->FloatAttribute("x", x);
+		y = pSizeMinimum->FloatAttribute("y", y);
+
+		mMinStartSize = Vector2<float>{ x, y };
+	}
+
+	tinyxml2::XMLElement* pSizeMaximum = pData->FirstChildElement("SizeMaximum");
+	if (pSizeMaximum)
+	{
+		float x = 20.0f;
+		float y = 20.0f;
+		x = pSizeMaximum->FloatAttribute("x", x);
+		y = pSizeMaximum->FloatAttribute("y", y);
+
+		mMaxStartSize = Vector2<float>{ x, y };
+	}
+
+	return true;
 }
 
-eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
+eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 {
     const eastl::shared_ptr<TransformComponent>& pTransformComponent(
 		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
@@ -659,29 +806,116 @@ eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
 					eastl::dynamic_shared_pointer_cast<ParticleSystemNode>(node);
 				particleSystem->GetRelativeTransform() = transform;
 
-				eastl::shared_ptr<BaseParticleEmitter> em(
-					particleSystem->CreateBoxEmitter(
-						AlignedBox3<float>(),//{-7, 0, -7, 7, 1, 7}, // emitter size
-						Vector3<float>{ 0.0f, 0.06f, 0.0f },   // initial direction
-						80,100,                     // emit rate
-						eastl::array<float, 4>{0, 255, 255, 255},       // darkest color
-						eastl::array<float, 4>{0, 255, 255, 255},       // brightest color
-						800,2000,0,                         // min and max age, angle
-						Vector2<float>{10.f, 10.f},         // min size
-						Vector2<float>{20.f, 20.f}));        // max size
+				switch (mEmitterType)
+				{
+					case PET_POINT:
+					{
+						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreatePointEmitter(
+							mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+							mMaxAngle, mMaxStartSize, mMinStartSize));
+						particleSystem->SetEmitter(em); // this grabs the emitter
+						break;
+					}
+					case PET_BOX:
+					{
+						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateBoxEmitter(
+							mEmitter, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+							mMaxAngle, mMaxStartSize, mMinStartSize));
+						particleSystem->SetEmitter(em); // this grabs the emitter
+						break;
+					}
+					case PET_CYLINDER:
+					{
+						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateCylinderEmitter(
+							Vector3<float>(), 0.0f, Vector3<float>(), 0.0f, true,
+							mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+							mMaxAngle, mMaxStartSize, mMinStartSize));
+						particleSystem->SetEmitter(em); // this grabs the emitter
+						break;
+					}
+					case PET_MESH:
+					{
+						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateMeshEmitter(
+							eastl::shared_ptr<BaseMesh>(), false, mDirection, 0, 0, false,
+							mMinParticlesPerSecond, mMaxParticlesPerSecond,
+							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+							mMaxAngle, mMaxStartSize, mMinStartSize));
+						particleSystem->SetEmitter(em); // this grabs the emitter;
+						break;
+					}
+					case PET_RING:
+					{
+						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateRingEmitter(
+							Vector3<float>(), 0.0f, 0.0f, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+							mMaxAngle, mMaxStartSize, mMinStartSize));
+						particleSystem->SetEmitter(em); // this grabs the emitter
+						break;
+					}
+					case PET_SPHERE:
+					{
+						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateSphereEmitter(
+							Vector3<float>(), 0.0f, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+							mMaxAngle, mMaxStartSize, mMinStartSize));
+						particleSystem->SetEmitter(em); // this grabs the emitter
+						break;
+					}
+					default:
+						break;
+				}
 
-				particleSystem->SetEmitter(em); // this grabs the emitter
-		
-				eastl::shared_ptr<BaseParticleAffector> particleAffector(
-					particleSystem->CreateFadeOutParticleAffector());
-				particleSystem->AddAffector(particleAffector); // same goes for the affector
+				switch (mAffectorType)
+				{
+					case PAT_ATTRACT:
+					{
+						eastl::shared_ptr<BaseParticleAffector> particleAffector(
+							particleSystem->CreateAttractionAffector());
+						particleSystem->AddAffector(particleAffector);
+						break;
+					}
+					case PAT_FADE_OUT:
+					{
+						eastl::shared_ptr<BaseParticleAffector> particleAffector(
+							particleSystem->CreateFadeOutParticleAffector());
+						particleSystem->AddAffector(particleAffector);
+						break;
+					}
+					case PAT_GRAVITY:
+					{
+						eastl::shared_ptr<BaseParticleAffector> particleAffector(
+							particleSystem->CreateGravityAffector());
+						particleSystem->AddAffector(particleAffector);
+						break;
+					}
+					case PAT_ROTATE:
+					{
+						eastl::shared_ptr<BaseParticleAffector> particleAffector(
+							particleSystem->CreateRotationAffector());
+						particleSystem->AddAffector(particleAffector);
+						break;
+					}
+					case PAT_SCALE:
+					{
+						eastl::shared_ptr<BaseParticleAffector> particleAffector(
+							particleSystem->CreateScaleParticleAffector());
+						particleSystem->AddAffector(particleAffector);
+						break;
+					}
+					default:
+						break;
+				}
 
 				eastl::shared_ptr<ResHandle>& resHandle =
-					ResCache::Get()->GetHandle(&BaseResource(L"Art/fire.bmp"));
+					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
 				if (resHandle)
 				{
 					const eastl::shared_ptr<ImageResourceExtraData>& extra =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+					extra->GetImage()->AutogenerateMipmaps();
 
 					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
 						particleSystem->GetMaterial(i)->mLighting = false;
@@ -690,18 +924,79 @@ eastl::shared_ptr<Node> ParticleSystemRenderComponent::CreateSceneNode(void)
 					particleSystem->SetMaterialTexture(0, extra->GetImage());
 					particleSystem->SetMaterialType(MT_TRANSPARENT);
 				}
+
+				particleSystem->SetEffect(0);
 			}
 			return node;
 		}
-		else LogError("Unknown Renderer Implementation in ParticleSystemRenderComponent");
+		else LogError("Unknown Renderer Implementation in ParticleEffectRenderComponent");
 	}
 	return eastl::shared_ptr<Node>();
 }
 
-void ParticleSystemRenderComponent::CreateInheritedXMLElements(
+void ParticleEffectRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLDocument doc, tinyxml2::XMLElement *pBaseElement)
 {
+	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
+	pTexture->SetAttribute("file", mTextureResource.c_str());
+	pBaseElement->LinkEndChild(pTexture);
 
+	tinyxml2::XMLElement* pAffector = doc.NewElement("Affector");
+	pAffector->SetAttribute("type", eastl::to_string(mAffectorType).c_str());
+	pBaseElement->LinkEndChild(pAffector);
+
+	tinyxml2::XMLElement* pEmitter = doc.NewElement("Emitter");
+	pEmitter->SetAttribute("minx", eastl::to_string(mEmitter.mMin[0]).c_str());
+	pEmitter->SetAttribute("miny", eastl::to_string(mEmitter.mMin[1]).c_str());
+	pEmitter->SetAttribute("minz", eastl::to_string(mEmitter.mMin[2]).c_str());
+	pEmitter->SetAttribute("maxx", eastl::to_string(mEmitter.mMax[0]).c_str());
+	pEmitter->SetAttribute("maxy", eastl::to_string(mEmitter.mMax[1]).c_str());
+	pEmitter->SetAttribute("maxz", eastl::to_string(mEmitter.mMax[2]).c_str());
+	pBaseElement->LinkEndChild(pEmitter);
+
+	tinyxml2::XMLElement* pDirection = doc.NewElement("Direction");
+	pDirection->SetAttribute("x", eastl::to_string(mDirection[0]).c_str());
+	pDirection->SetAttribute("y", eastl::to_string(mDirection[1]).c_str());
+	pDirection->SetAttribute("z", eastl::to_string(mDirection[2]).c_str());
+	pBaseElement->LinkEndChild(pDirection);
+
+	tinyxml2::XMLElement* pEmitRate = doc.NewElement("EmitRate");
+	pEmitRate->SetAttribute("min", eastl::to_string(mMinParticlesPerSecond).c_str());
+	pEmitRate->SetAttribute("max", eastl::to_string(mMaxParticlesPerSecond).c_str());
+	pBaseElement->LinkEndChild(pEmitRate);
+
+	tinyxml2::XMLElement* pColorMinimum = doc.NewElement("ColorMinimum");
+	pColorMinimum->SetAttribute("r", eastl::to_string(mMinStartColor[0]).c_str());
+	pColorMinimum->SetAttribute("g", eastl::to_string(mMinStartColor[1]).c_str());
+	pColorMinimum->SetAttribute("b", eastl::to_string(mMinStartColor[2]).c_str());
+	pColorMinimum->SetAttribute("a", eastl::to_string(mMinStartColor[3]).c_str());
+	pBaseElement->LinkEndChild(pColorMinimum);
+
+	tinyxml2::XMLElement* pColorMaximum = doc.NewElement("ColorMaximum");
+	pColorMaximum->SetAttribute("r", eastl::to_string(mMaxStartColor[0]).c_str());
+	pColorMaximum->SetAttribute("g", eastl::to_string(mMaxStartColor[1]).c_str());
+	pColorMaximum->SetAttribute("b", eastl::to_string(mMaxStartColor[2]).c_str());
+	pColorMaximum->SetAttribute("a", eastl::to_string(mMaxStartColor[3]).c_str());
+	pBaseElement->LinkEndChild(pColorMaximum);
+
+	tinyxml2::XMLElement* pLifeTime = doc.NewElement("LifeTime");
+	pLifeTime->SetAttribute("min", eastl::to_string(mMinLifeTime).c_str());
+	pLifeTime->SetAttribute("max", eastl::to_string(mMaxLifeTime).c_str());
+	pBaseElement->LinkEndChild(pLifeTime);
+
+	tinyxml2::XMLElement* pAngleMaximum = doc.NewElement("AngleMaximum");
+	pAngleMaximum->SetAttribute("angle", eastl::to_string(mMaxAngle).c_str());
+	pBaseElement->LinkEndChild(pAngleMaximum);
+
+	tinyxml2::XMLElement* pSizeMinimum = doc.NewElement("SizeMinimum");
+	pSizeMinimum->SetAttribute("x", eastl::to_string(mMinStartSize[0]).c_str());
+	pSizeMinimum->SetAttribute("y", eastl::to_string(mMinStartSize[1]).c_str());
+	pBaseElement->LinkEndChild(pSizeMinimum);
+
+	tinyxml2::XMLElement* pSizeMaximum = doc.NewElement("SizeMaximum");
+	pSizeMaximum->SetAttribute("x", eastl::to_string(mMaxStartSize[0]).c_str());
+	pSizeMaximum->SetAttribute("y", eastl::to_string(mMaxStartSize[1]).c_str());
+	pBaseElement->LinkEndChild(pSizeMaximum);
 }
 
 

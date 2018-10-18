@@ -16,6 +16,7 @@ enum GRAPHIC_ITEM ParticleAffectorType
 	PAT_GRAVITY,
 	PAT_ROTATE,
 	PAT_SCALE,
+	PET_NONE,
 	PAT_COUNT
 };
 

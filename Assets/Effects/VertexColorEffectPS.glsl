@@ -5,8 +5,8 @@
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // File Version: 3.0.0 (2016/06/19)
 
-in vec4 vertexColor;
-out vec4 pixelColor;
+layout(location = 0) in vec4 vertexColor;
+layout(location = 0) out vec4 pixelColor;
 
 void main()
 {

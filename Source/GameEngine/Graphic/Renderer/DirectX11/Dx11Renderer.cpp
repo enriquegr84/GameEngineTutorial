@@ -127,6 +127,12 @@ Dx11Renderer::~Dx11Renderer()
 	// cleared later in the destructor.
 	DestroyDefaultObjects();
 
+	GraphicObject::UnsubscribeForDestruction(mGOListener);
+	mGOListener = nullptr;
+
+	DrawTarget::UnsubscribeForDestruction(mDTListener);
+	mDTListener = nullptr;
+
 	if (mGraphicObjects.HasElements())
 	{
 		mGraphicObjects.RemoveAll();

@@ -13,11 +13,13 @@ cbuffer PVWMatrix
 struct VS_INPUT
 {
     float3 modelPosition : POSITION;
+	float4 modelColor : COLOR0;
     float2 modelTCoord : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
+	float4 vertexColor : COLOR0;
     float2 vertexTCoord : TEXCOORD0;
     float4 clipPosition : SV_POSITION;
 };
@@ -30,6 +32,7 @@ VS_OUTPUT VSMain(VS_INPUT input)
 #else
     output.clipPosition = mul(float4(input.modelPosition, 1.0f), pvwMatrix);
 #endif
+	output.vertexColor = input.modelColor;
     output.vertexTCoord = input.modelTCoord;
     return output;
 }
@@ -39,6 +42,7 @@ SamplerState baseSampler;
 
 struct PS_INPUT
 {
+	float4 vertexColor : COLOR0;
     float2 vertexTCoord : TEXCOORD0;
 };
 

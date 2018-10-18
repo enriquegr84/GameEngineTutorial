@@ -30,6 +30,12 @@ Renderer::Renderer()
 	mClearColor.fill(1.0f);
 	mCreateGraphicObject.fill(nullptr);
 
+	mGOListener = eastl::make_shared<GOListener>(this);
+	GraphicObject::SubscribeForDestruction(mGOListener);
+
+	mDTListener = eastl::make_shared<DTListener>(this);
+	DrawTarget::SubscribeForDestruction(mDTListener);
+
 	if (Renderer::mRenderer)
 	{
 		LogError("Attempting to create two global renderer! \
@@ -313,4 +319,40 @@ bool Renderer::Unbind(DrawTarget const* target)
 	}
 
 	return false;
+}
+
+Renderer::GOListener::~GOListener()
+{
+}
+
+Renderer::GOListener::GOListener(Renderer* renderer)
+	:	
+	mRenderer(renderer)
+{
+}
+
+void Renderer::GOListener::OnDestroy(GraphicObject const* object)
+{
+	if (mRenderer)
+	{
+		mRenderer->Unbind(object);
+	}
+}
+
+Renderer::DTListener::~DTListener()
+{
+}
+
+Renderer::DTListener::DTListener(Renderer* renderer)
+	:	
+	mRenderer(renderer)
+{
+}
+
+void Renderer::DTListener::OnDestroy(DrawTarget const* target)
+{
+	if (mRenderer)
+	{
+		mRenderer->Unbind(target);
+	}
 }

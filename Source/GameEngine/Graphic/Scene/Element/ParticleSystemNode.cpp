@@ -24,18 +24,76 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* update
 {
 	mPVWUpdater = updater;
 	mMeshBuffer = eastl::make_shared<MeshBuffer>();
-	if (mMeshBuffer)
-	{
-		eastl::string path = FileSystem::Get()->GetPath("Effects/VertexColorEffect.hlsl");
-		eastl::shared_ptr<ColorEffect> effect = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
-
-		mVisual= eastl::make_shared<Visual>(
-			mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), effect);
-		mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
-	}
 
 	if (createDefaultEmitter)
 		SetEmitter(eastl::shared_ptr<ParticleBoxEmitter>(CreateBoxEmitter()));
+}
+
+//! Set effect for rendering.
+void ParticleSystemNode::SetEffect(int size)
+{
+	struct Vertex
+	{
+		Vector3<float> position;// , normal;
+		Vector4<float> color;
+		Vector2<float> tcoord;
+	};
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	//vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+
+	MeshBuffer* meshBuffer = new MeshBuffer(
+		vformat, size * 4, size, sizeof(unsigned int));
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+		meshBuffer->GetMaterial() = GetMaterial(i);
+	mMeshBuffer.reset(meshBuffer);
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl");
+	mEffect = eastl::make_shared<Texture2ColorEffect>(
+		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
+		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+}
+
+
+void ParticleSystemNode::ReallocateBuffers()
+{
+	if (mParticles.size() * 4 != mMeshBuffer->GetVertice()->GetNumElements() ||
+		mParticles.size() * 2 != mMeshBuffer->GetIndice()->GetNumPrimitives())
+	{
+		MeshBuffer* meshBuffer = new MeshBuffer(mMeshBuffer->GetVertice()->GetFormat(), 
+			mParticles.size() * 4, mParticles.size() * 2, sizeof(unsigned int));
+		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+			meshBuffer->GetMaterial() = GetMaterial(i);
+		mMeshBuffer.reset(meshBuffer);
+
+		// fill vertices
+		for (unsigned int i = 0; i<mMeshBuffer->GetVertice()->GetNumElements(); i += 4)
+		{
+			mMeshBuffer->TCoord(0, 0 + i) = Vector2<float>{ 0.0f, 0.0f };
+			mMeshBuffer->TCoord(0, 1 + i) = Vector2<float>{ 0.0f, 1.0f };
+			mMeshBuffer->TCoord(0, 2 + i) = Vector2<float>{ 1.0f, 1.0f };
+			mMeshBuffer->TCoord(0, 3 + i) = Vector2<float>{ 1.0f, 0.0f };
+		}
+
+		// fill indices
+		int vertices = 0;
+		for (unsigned int i = 0; i<mMeshBuffer->GetIndice()->GetNumPrimitives(); i+=2, vertices +=4)
+		{
+			mMeshBuffer->GetIndice()->SetTriangle(i,
+				(unsigned int)0 + vertices, (unsigned int)2 + vertices, (unsigned int)1 + vertices);
+			mMeshBuffer->GetIndice()->SetTriangle(i + 1,
+				(unsigned int)0 + vertices, (unsigned int)3 + vertices, (unsigned int)2 + vertices);
+		}
+
+		if (mMeshBuffer)
+		{
+			mVisual.reset(new Visual(
+				mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect));
+			mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
+		}
+	}
 }
 
 
@@ -92,63 +150,119 @@ bool ParticleSystemNode::Render(Scene *pScene)
 	if (!cameraNode || !Renderer::Get())
 		return false;
 
-	const Matrix4x4<float> &m = cameraNode->Get()->GetViewMatrix();
-	const Vector3<float> view{ -m[2], -m[6] , -m[10] };
+	const float* cameraView = 
+		reinterpret_cast<const float*>(&cameraNode->Get()->GetViewMatrix());
+	Vector3<float> view = Vector3<float>{ -cameraView[2], -cameraView[6], -cameraView[10] };
+	/*
+	float* view = reinterpret_cast<float*>(
+		&Vector3<float>{ -cameraView[2], -cameraView[6], -cameraView[10] });
+	*/
 
 	// reallocate arrays, if they are too small
 	ReallocateBuffers();
-
+	/*
 	// create particle vertex data
+	eastl::set<DFType> required;
+	required.insert(DF_R32G32B32_FLOAT);
+	required.insert(DF_R32G32B32A32_FLOAT);
+	char* positions = mMeshBuffer->GetVertice()->GetChannel(VA_POSITION, 0, required);
+	char* normals = mMeshBuffer->GetVertice()->GetChannel(VA_NORMAL, 0, required);
+	char* colors = mMeshBuffer->GetVertice()->GetChannel(VA_COLOR, 0, required);
+	*/
 	int idx = 0;
-	for (unsigned int i=0; i<mParticles.size(); ++i)
+	unsigned int stride = mMeshBuffer->GetVertice()->GetFormat().GetVertexSize();
+	for (unsigned int i = 0; i < mParticles.size(); ++i)
 	{
 		const Particle& particle = mParticles[i];
 
 		float f = 0.5f * particle.mSize[0];
-		const Vector3<float> horizontal{ m[0] * f, m[4] * f, m[8] * f };
+		const Vector3<float> horizontal{ cameraView[0] * f, cameraView[4] * f, cameraView[8] * f };
 
 		f = -0.5f * particle.mSize[1];
-		const Vector3<float> vertical{ m[1] * f, m[5] * f, m[9] * f };
+		const Vector3<float> vertical{ cameraView[1] * f, cameraView[5] * f, cameraView[9] * f };
 
-		eastl::set<DFType> required;
-		required.insert(DF_R32G32B32_FLOAT);
-		required.insert(DF_R32G32B32A32_FLOAT);
-		char const* positions = mVisual->GetVertexBuffer()->GetChannel(VA_POSITION, 0, required);
-		char const* normals = mVisual->GetVertexBuffer()->GetChannel(VA_NORMAL, 0, required);
-		char const* colors = mVisual->GetVertexBuffer()->GetChannel(VA_COLOR, 0, required);
+		mMeshBuffer->Position(0 + idx) = particle.mPos + horizontal + vertical;
+		//mMeshBuffer->Normal(0 + idx) = view;
+		mMeshBuffer->Color(0, 0 + idx) = particle.mColor;
 
-		int const stride = (int)mVisual->GetVertexBuffer()->GetElementSize();
-		eastl::array<float, 4>& color = *(eastl::array<float, 4>*)(colors + idx*stride);
-		Vector3<float>& position = *(Vector3<float>*)(positions + idx*stride);
-		Vector3<float>& normal = *(Vector3<float>*)(normals + idx*stride);
-		position = particle.mPos + horizontal + vertical;
-		color = particle.mColor;
-		normal = view;
+		mMeshBuffer->Position(1 + idx) = particle.mPos + horizontal - vertical;
+		//mMeshBuffer->Normal(1 + idx) = view;
+		mMeshBuffer->Color(0, 1 + idx) = particle.mColor;
 
-		color = *(eastl::array<float, 4>*)(colors + 1 + idx*stride);
-		position = *(Vector3<float>*)(positions + 1 + idx*stride);
-		normal = *(Vector3<float>*)(normals + 1 + idx*stride);
-		position = particle.mPos + horizontal + vertical;
-		color = particle.mColor;
-		normal = view;
+		mMeshBuffer->Position(2 + idx) = particle.mPos - horizontal - vertical;
+		//mMeshBuffer->Normal(2 + idx) = view;
+		mMeshBuffer->Color(0, 2 + idx) = particle.mColor;
 
-		color = *(eastl::array<float, 4>*)(colors + 2 + idx*stride);
-		position = *(Vector3<float>*)(positions + 2 + idx*stride);
-		normal = *(Vector3<float>*)(normals + 2 + idx*stride);
-		position = particle.mPos + horizontal + vertical;
-		color = particle.mColor;
-		normal = view;
+		mMeshBuffer->Position(3 + idx) = particle.mPos - horizontal + vertical;
+		//mMeshBuffer->Normal(3 + idx) = view;
+		mMeshBuffer->Color(0, 3 + idx) = particle.mColor;
 
-		color = *(eastl::array<float, 4>*)(colors + 3 + idx*stride);
-		position = *(Vector3<float>*)(positions + 3 + idx*stride);
-		normal = *(Vector3<float>*)(normals + 3 + idx*stride);
-		position = particle.mPos + horizontal + vertical;
-		color = particle.mColor;
-		normal = view;
+		idx += 4;
+		/*
+		const float* particlePosition = reinterpret_cast<const float*>(&particle.mPos);
+		const float* particleColor = reinterpret_cast<const float*>(&particle.mColor);
 
-		idx +=4;
+		float f = 0.5f * particle.mSize[0];
+		const float* horizontal = reinterpret_cast<const float*>(
+			&Vector3<float>{ cameraView[0] * f, cameraView[4] * f, cameraView[8] * f });
+
+		f = -0.5f * particle.mSize[1];
+		const float* vertical = reinterpret_cast<const float*>(
+			&Vector3<float>{ cameraView[1] * f, cameraView[5] * f, cameraView[9] * f });
+
+		float* position = reinterpret_cast<float*>(positions);
+		float* normal = reinterpret_cast<float*>(normals);
+		float* color = reinterpret_cast<float*>(colors);
+
+		position[0 + 0 * stride] = particlePosition[0] + horizontal[0] + vertical[0];
+		position[1 + 0 * stride] = particlePosition[1] + horizontal[1] + vertical[1];
+		position[2 + 0 * stride] = particlePosition[2] + horizontal[2] + vertical[2];
+		normal[0 + 0 * stride] = view[0];
+		normal[1 + 0 * stride] = view[1];
+		normal[2 + 0 * stride] = view[2];
+		color[0 + 0 * stride] = particleColor[0];
+		color[1 + 0 * stride] = particleColor[1];
+		color[2 + 0 * stride] = particleColor[2];
+		color[3 + 0 * stride] = particleColor[3];
+
+		position[0 + 1 * stride] = particlePosition[0] + horizontal[0] - vertical[0];
+		position[1 + 1 * stride] = particlePosition[1] + horizontal[1] - vertical[1];
+		position[2 + 1 * stride] = particlePosition[2] + horizontal[2] - vertical[2];
+		normal[0 + 1 * stride] = view[0];
+		normal[1 + 1 * stride] = view[1];
+		normal[2 + 1 * stride] = view[2];
+		color[0 + 1 * stride] = particleColor[0];
+		color[1 + 1 * stride] = particleColor[1];
+		color[2 + 1 * stride] = particleColor[2];
+		color[3 + 1 * stride] = particleColor[3];
+
+		position[0 + 2 * stride] = particlePosition[0] - horizontal[0] - vertical[0];
+		position[1 + 2 * stride] = particlePosition[1] - horizontal[1] - vertical[1];
+		position[2 + 2 * stride] = particlePosition[2] - horizontal[2] - vertical[2];
+		normal[0 + 2 * stride] = view[0];
+		normal[1 + 2 * stride] = view[1];
+		normal[2 + 2 * stride] = view[2];
+		color[0 + 2 * stride] = particleColor[0];
+		color[1 + 2 * stride] = particleColor[1];
+		color[2 + 2 * stride] = particleColor[2];
+		color[3 + 2 * stride] = particleColor[3];
+
+		position[0 + 3 * stride] = particlePosition[0] - horizontal[0] + vertical[0];
+		position[1 + 3 * stride] = particlePosition[1] - horizontal[1] + vertical[1];
+		position[2 + 3 * stride] = particlePosition[2] - horizontal[2] + vertical[2];
+		normal[0 + 3 * stride] = view[0];
+		normal[1 + 3 * stride] = view[1];
+		normal[2 + 3 * stride] = view[2];
+		color[0 + 3 * stride] = particleColor[0];
+		color[1 + 3 * stride] = particleColor[1];
+		color[2 + 3 * stride] = particleColor[2];
+		color[3 + 3 * stride] = particleColor[3];
+
+		positions += 4*stride;
+		normals += 4*stride;
+		colors += 4*stride;
+		*/
 	}
-
 	//if (mRenderFromIdentity)
 	//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
 	/*
@@ -159,7 +273,9 @@ bool ParticleSystemNode::Render(Scene *pScene)
 	effect->SetMaterial(mMeshBuffer->GetMaterial());
 	*/
 
-	Renderer::Get()->Draw(mVisual);
+	Renderer* renderer = Renderer::Get();
+	renderer->Update(mMeshBuffer->GetVertice());
+	renderer->Draw(mVisual);
 	/*
 	Renderer::Get()->SetDefaultDepthStencilState();
 	Renderer::Get()->SetDefaultRasterizerState();
@@ -212,13 +328,13 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 		if (newParticles && array)
 		{
 			int j = mParticles.size();
-			if (newParticles > 16250-j)
-				newParticles=16250-j;
+			if (newParticles > 16250 - j)
+				newParticles = 16250 - j;
 
-			mParticles.resize(j+newParticles);
-			for (int i=j; i<j+newParticles; ++i)
+			mParticles.resize(j + newParticles);
+			for (int i = j; i<j + newParticles; ++i)
 			{
-				mParticles[i]=array[i-j];
+				mParticles[i] = array[i - j];
 				Quaternion<float> q = Rotation<4, float>(GetAbsoluteTransform().GetRotation());
 				mParticles[i].mStartVector = HProject(Rotate(q, HLift(mParticles[i].mStartVector, 0.f)));
 				if (mParticlesAreGlobal)
@@ -277,37 +393,6 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 	*/
 }
 
-void ParticleSystemNode::ReallocateBuffers()
-{
-	if (mParticles.size() * 4 > mMeshBuffer->GetVertice()->GetNumElements() ||
-		mParticles.size() * 6 > mMeshBuffer->GetIndice()->GetNumElements())
-	{
-		unsigned int oldSize = mMeshBuffer->GetVertice()->GetNumElements();
-		unsigned int oldIdxSize = mMeshBuffer->GetIndice()->GetNumElements();
-		unsigned int oldvertices = oldSize;
-		mMeshBuffer.reset(new MeshBuffer(
-			VertexFormat(), mParticles.size() * 4, mParticles.size(), sizeof(unsigned int)));
-
-		// fill remaining vertices
-		for (unsigned int i = oldSize; i<mMeshBuffer->GetVertice()->GetNumElements(); i += 4)
-		{
-			mMeshBuffer->TCoord(0, 0 + i) = Vector2<float>{ 0.0f, 0.0f };
-			mMeshBuffer->TCoord(0, 1 + i) = Vector2<float>{ 0.0f, 1.0f };
-			mMeshBuffer->TCoord(0, 2 + i) = Vector2<float>{ 1.0f, 1.0f };
-			mMeshBuffer->TCoord(0, 3 + i) = Vector2<float>{ 1.0f, 0.0f };
-		}
-
-		// fill remaining indices
-		for (unsigned int i = oldIdxSize; i<mMeshBuffer->GetIndice()->GetNumElements(); i += 6)
-		{
-			mMeshBuffer->GetIndice()->SetTriangle(i, 
-				(unsigned int)0 + oldvertices, (unsigned int)2 + oldvertices, (unsigned int)1 + oldvertices);
-			mMeshBuffer->GetIndice()->SetTriangle(i + 3,
-				(unsigned int)0 + oldvertices, (unsigned int)3 + oldvertices, (unsigned int)2 + oldvertices);
-			oldvertices += 4;
-		}
-	}
-}
 
 //! Sets if the particles should be global. If it is, the particles are affected by
 //! the movement of the particle system scene node too, otherwise they completely
@@ -329,13 +414,11 @@ eastl::shared_ptr<BaseParticleEmitter> ParticleSystemNode::GetEmitter()
 	return mEmitter;
 }
 
-
 //! Sets the particle emitter, which creates the particles.
 void ParticleSystemNode::SetEmitter(const eastl::shared_ptr<BaseParticleEmitter>& emitter)
 {
 	mEmitter = emitter;
 }
-
 
 //! Adds new particle effector to the particle system.
 void ParticleSystemNode::AddAffector(const eastl::shared_ptr<BaseParticleAffector>& affector)

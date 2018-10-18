@@ -238,6 +238,35 @@ protected:
 		eastl::vector<GraphicObject*>&, GraphicObject*);
 	CreateGEDrawTarget mCreateDrawTarget;
 
+	// Track GraphicsObject destruction and delete to-be-destroyed objects
+	// from the bridge map.
+	class GOListener : public GraphicObject::ListenerForDestruction
+	{
+	public:
+		virtual ~GOListener();
+		GOListener(Renderer* renderer);
+		virtual void OnDestroy(GraphicObject const* object);
+	private:
+		Renderer * mRenderer;
+	};
+
+	eastl::shared_ptr<GOListener> mGOListener;
+
+	// Track DrawTarget destruction and delete to-be-destroyed objects from
+	// the draw target map.
+	class DTListener : public DrawTarget::ListenerForDestruction
+	{
+	public:
+		virtual ~DTListener();
+		DTListener(Renderer* renderer);
+		virtual void OnDestroy(DrawTarget const* target);
+	private:
+		Renderer * mRenderer;
+	};
+
+	eastl::shared_ptr<DTListener> mDTListener;
+
+
 	// Helpers for construction and destruction.
 	void CreateDefaultGlobalState();
 	virtual void DestroyDefaultGlobalState();

@@ -12,9 +12,12 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-ParticleBoxEmitter::ParticleBoxEmitter( const AlignedBox3<float>& box, const Vector3<float>& direction,
-	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, eastl::array<float, 4> minStartColor, eastl::array<float, 4> maxStartColor,
-	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize)
+ParticleBoxEmitter::ParticleBoxEmitter( 
+	const AlignedBox3<float>& box, const Vector3<float>& direction,
+	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, 
+	eastl::array<float, 4> minStartColor, eastl::array<float, 4> maxStartColor,
+	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, 
+	const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize)
 :	mBox(box), mDirection(direction), mMaxStartSize(maxStartSize), mMinStartSize(minStartSize),
 	mMinParticlesPerSecond(minParticlesPerSecond), mMaxParticlesPerSecond(maxParticlesPerSecond),
 	mMinStartColor(minStartColor), mMaxStartColor(maxStartColor), mMinLifeTime(lifeTimeMin), 
@@ -40,17 +43,16 @@ int ParticleBoxEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall, 
 		unsigned int amount = (unsigned int)((mTime / everyWhatMillisecond) + 0.5f);
 		mTime = 0;
 		Particle particle;
-		Vector3<float> center, extent;
-		mBox.GetCenteredForm(center, extent);
+		Vector3<float> extent = mBox.mMax - mBox.mMin;
 
 		if (amount > mMaxParticlesPerSecond*2)
 			amount = mMaxParticlesPerSecond * 2;
 
 		for (unsigned int i=0; i<amount; ++i)
 		{
-			particle.mPos[0] = center[0] + Randomizer::FRand() * extent[0];
-			particle.mPos[1] = center[1] + Randomizer::FRand() * extent[1];
-			particle.mPos[2] = center[2] + Randomizer::FRand() * extent[2];
+			particle.mPos[0] = mBox.mMin[0] + Randomizer::FRand() * extent[0];
+			particle.mPos[1] = mBox.mMin[1] + Randomizer::FRand() * extent[1];
+			particle.mPos[2] = mBox.mMin[2] + Randomizer::FRand() * extent[2];
 
 			particle.mStartTime = now;
 			particle.mVector = mDirection;

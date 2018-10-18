@@ -157,16 +157,32 @@ protected:
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// ParticleSystem
+// ParticleEffect
 //---------------------------------------------------------------------------------------------------------------------
-class ParticleSystemRenderComponent : public BaseRenderComponent
+class ParticleEffectRenderComponent : public BaseRenderComponent
 {
+	eastl::string mTextureResource;
+	unsigned int mEmitterType;
+	unsigned int mAffectorType;
+
+	AlignedBox3<float> mEmitter; // emitter
+	Vector3<float> mDirection;    // direction
+	unsigned int mMinParticlesPerSecond; // emit rate
+	unsigned int mMaxParticlesPerSecond; // emit rate
+	eastl::array<float, 4> mMinStartColor;       // darkest color
+	eastl::array<float, 4> mMaxStartColor;       // brightest color
+	unsigned int mMinLifeTime;
+	unsigned int mMaxLifeTime;
+	int mMaxAngle;
+	Vector2<float> mMaxStartSize;        // min size
+	Vector2<float> mMinStartSize;       // max size
 
 public:
 	static const char *Name;
 	virtual const char *GetName() const { return Name; }
 
-    ParticleSystemRenderComponent(void);
+    ParticleEffectRenderComponent(void);
+	const char* GetTextureResource() { return mTextureResource.c_str(); }
 
 protected:
     virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
