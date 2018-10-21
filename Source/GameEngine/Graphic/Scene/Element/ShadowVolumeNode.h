@@ -5,6 +5,7 @@
 #ifndef SHADOWVOLUMENODE_H
 #define SHADOWVOLUMENODE_H
 
+#include "Graphic/Effect/PointLightTextureEffect.h"
 #include "Graphic/Scene/Hierarchy/Node.h"
 
 //! Scene node for rendering a shadow volume into a stencil buffer.
@@ -56,7 +57,11 @@ private:
 	// tells if face is front facing
 	eastl::vector<bool> mFaceData;
 
+	eastl::vector<eastl::shared_ptr<BlendState>> mBlendStates;
+	eastl::vector<eastl::shared_ptr<DepthStencilState>> mDepthStencilStates;
+
 	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
+	eastl::shared_ptr<PointLightTextureEffect> mEffect;
 	eastl::shared_ptr<BaseMesh> mShadowMesh;
 
 	unsigned int mIndexCount;

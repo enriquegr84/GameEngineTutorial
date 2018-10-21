@@ -12,6 +12,7 @@
 			<Specular r="1.0" g="1.0" b="0.5" a="1.0"/>
 			<Attenuation const="0.1" linear="0.0" exp="0.0" />
 			<Shape type="0" range="100.0" falloff="1.0" outercone="0.0" innercone="0.0"/>
+			<Material type="1" />
 		</Light>
 	</LightRenderComponent>
 

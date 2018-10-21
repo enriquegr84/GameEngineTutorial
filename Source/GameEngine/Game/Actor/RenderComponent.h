@@ -56,6 +56,7 @@ class MeshRenderComponent : public BaseRenderComponent
 {
 	eastl::string mMeshModelFile;
 	eastl::string mMeshModelTexture;
+	unsigned int mMaterialType;
 
 public:
 	static const char *Name;
@@ -78,6 +79,7 @@ class SphereRenderComponent : public BaseRenderComponent
 {
 	eastl::string mTextureResource;
 	Vector2<float> mTextureScale;
+	unsigned int mMaterialType;
     unsigned int mSegments;
 	float mRadius;
 
@@ -103,6 +105,7 @@ class GridRenderComponent : public BaseRenderComponent
 {
     eastl::string mTextureResource;
 	Vector2<float> mTextureScale;
+	unsigned int mMaterialType;
     Vector2<int> mSegments;
 	Vector2<float> mExtent;
 
@@ -162,6 +165,7 @@ protected:
 class ParticleEffectRenderComponent : public BaseRenderComponent
 {
 	eastl::string mTextureResource;
+	unsigned int mMaterialType;
 	unsigned int mEmitterType;
 	unsigned int mAffectorType;
 
@@ -199,6 +203,7 @@ protected:
 class SkyRenderComponent : public BaseRenderComponent
 {
 	eastl::string mTextureResource;
+	unsigned int mMaterialType;
 	unsigned int mHoriRes, mVertRes;
 	float mTexturePercentage, mSpherePercentage, mRadius;
 

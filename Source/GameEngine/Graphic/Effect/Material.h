@@ -83,6 +83,11 @@ public:
 	\param tex Texture for texture level i. */
 	void SetTexture(unsigned int i, eastl::shared_ptr<Texture2> tex);
 
+	// Update
+	void Update(eastl::shared_ptr<BlendState>& blendState) const;
+	void Update(eastl::shared_ptr<RasterizerState>& rasterizerState) const;
+	void Update(eastl::shared_ptr<DepthStencilState>& depthStencilState) const;
+
 	//! Texture layer array.
 	MaterialLayer mTextureLayer[MATERIAL_MAX_TEXTURES];
 
@@ -127,11 +132,16 @@ public:
 	/** Values are from E_COMPARISON_FUNC. */
 	bool mDepthBuffer : 1;
 
+	//depth stencil mask
+	DepthStencilState::WriteMask mDepthMask;
+
 	//! Sets the antialiasing mode
-	/** Values are chosen from E_ANTI_ALIASING_MODE. Default is
-	EAAM_SIMPLE|EAAM_LINE_SMOOTH, i.e. simple multi-sample
-	anti-aliasing and lime smoothing is enabled. */
 	bool mAntiAliasing : 1;
+
+	bool mMultisampling : 1;
+
+	//blend target state
+	BlendState::Target mBlendTarget;
 
 	//!culling state
 	RasterizerState::CullMode mCullMode;

@@ -60,7 +60,8 @@ const char* ParticleEffectRenderComponent::Name = "ParticleEffectRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
 MeshRenderComponent::MeshRenderComponent(void)
 {
-
+	mMeshModelTexture = "";
+	mMaterialType = 0;
 }
 
 bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
@@ -68,10 +69,12 @@ bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 	tinyxml2::XMLElement* pMesh = pData->FirstChildElement("Mesh");
 
 	mMeshModelFile = pMesh->Attribute("model_file");
-	mMeshModelTexture = "";
 
 	const char* texture = pMesh->Attribute("texture_file");
-	if (texture != nullptr) mMeshModelTexture = eastl::string(texture);
+	if (texture != nullptr) 
+		mMeshModelTexture = eastl::string(texture);
+
+	mMaterialType = pMesh->IntAttribute("material_type", mMaterialType);
 
     return true;
 }
@@ -108,6 +111,24 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 						const eastl::shared_ptr<ImageResourceExtraData>& extra =
 							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 						extra->GetImage()->AutogenerateMipmaps();
+						if (mMaterialType == MaterialType::MT_TRANSPARENT)
+						{
+							for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
+							{
+								eastl::shared_ptr<Material> material = mesh->GetMeshBuffer(i)->GetMaterial();
+								material->mBlendTarget.enable = true;
+								material->mBlendTarget.srcColor = BlendState::BM_ONE;
+								material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+								material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+								material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+							
+								material->mDepthBuffer = true;
+								material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+								material->mFillMode = RasterizerState::FILL_SOLID;
+								material->mCullMode = RasterizerState::CULL_NONE;
+							}
+						}
 
 						for (unsigned int i = 0; i<mesh->GetMeshBufferCount(); ++i)
 							mesh->GetMeshBuffer(i)->GetMaterial()->SetTexture(0, extra->GetImage());
@@ -130,6 +151,7 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 					if (meshNode)
 						meshNode->GetRelativeTransform() = transform;
 				}
+				meshNode->SetMaterialType((MaterialType)mMaterialType);
 
 				return meshNode;
 			}
@@ -142,7 +164,11 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 void MeshRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement)
 {
-	LogError("MeshRenderComponent::GenerateSubclassXml() not implemented");
+	tinyxml2::XMLElement* pMesh = doc.NewElement("Mesh");
+	pMesh->SetAttribute("model_file", mMeshModelFile.c_str());
+	pMesh->SetAttribute("model_texture", mMeshModelTexture.c_str());
+	pMesh->SetAttribute("material_type", eastl::to_string(mMaterialType).c_str());
+	pBaseElement->LinkEndChild(pBaseElement);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -151,6 +177,7 @@ void MeshRenderComponent::CreateInheritedXMLElements(
 SphereRenderComponent::SphereRenderComponent(void)
 {
     mSegments = 0;
+	mMaterialType = 0;
 	mTextureResource = "";
 }
 
@@ -176,6 +203,13 @@ bool SphereRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 		y = pTexture->FloatAttribute("y", y);
 		mTextureScale = Vector2<float>{ x, y };
 		mTextureResource = pTexture->Attribute("file");
+	}
+
+	tinyxml2::XMLElement* pMaterial = pData->FirstChildElement("Material");
+	if (pMaterial)
+	{
+		unsigned int type = 0;
+		mMaterialType = pMaterial->IntAttribute("type", type);
 	}
 
     return true;
@@ -209,10 +243,29 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 				{
 					const eastl::shared_ptr<ImageResourceExtraData>& extra =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+					if (mMaterialType == MaterialType::MT_TRANSPARENT)
+					{
+						for (unsigned int i = 0; i<sphereNode->GetMaterialCount(); ++i)
+						{
+							eastl::shared_ptr<Material> material = sphereNode->GetMaterial(i);
+							material->mBlendTarget.enable = true;
+							material->mBlendTarget.srcColor = BlendState::BM_ONE;
+							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+							material->mDepthBuffer = true;
+							material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+							material->mFillMode = RasterizerState::FILL_SOLID;
+							material->mCullMode = RasterizerState::CULL_NONE;
+						}
+					}
 
 					for (unsigned int i = 0; i<sphereNode->GetMaterialCount(); ++i)
 						sphereNode->GetMaterial(i)->mLighting = false;
 					sphereNode->SetMaterialTexture(0, extra->GetImage());
+					sphereNode->SetMaterialType((MaterialType)mMaterialType);
 				}
 			}
 
@@ -236,6 +289,10 @@ void SphereRenderComponent::CreateInheritedXMLElements(
 	pTexture->SetAttribute("x", eastl::to_string(mTextureScale[0]).c_str());
 	pTexture->SetAttribute("y", eastl::to_string(mTextureScale[1]).c_str());
 	pBaseElement->LinkEndChild(pTexture);
+
+	tinyxml2::XMLElement* pMaterial = doc.NewElement("Material");
+	pMaterial->SetAttribute("type", eastl::to_string(mMaterialType).c_str());
+	pBaseElement->LinkEndChild(pMaterial);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -244,6 +301,7 @@ void SphereRenderComponent::CreateInheritedXMLElements(
 GridRenderComponent::GridRenderComponent(void)
 {
     mTextureResource = "";
+	mMaterialType = 0;
 }
 
 bool GridRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
@@ -257,6 +315,13 @@ bool GridRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 		y = pTexture->FloatAttribute("y", y);
 		mTextureScale = Vector2<float>{ x, y };
 		mTextureResource = pTexture->Attribute("file");
+	}
+
+	tinyxml2::XMLElement* pMaterial = pData->FirstChildElement("Material");
+	if (pMaterial)
+	{
+		unsigned int type = 0;
+		mMaterialType = pMaterial->IntAttribute("type", type);
 	}
 
 	tinyxml2::XMLElement* pSegment = pData->FirstChildElement("Segment");
@@ -318,33 +383,31 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 				{
 					gridNode->GetRelativeTransform() = transform;
 
-					resHandle =
-						ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
-					if (resHandle)
+					if (mMaterialType == MaterialType::MT_TRANSPARENT)
 					{
-						const eastl::shared_ptr<ImageResourceExtraData>& extra =
-							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
 						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
-							gridNode->GetMaterial(i)->mLighting = false;
-						gridNode->SetMaterialTexture(0, extra->GetImage());
+						{
+							eastl::shared_ptr<Material> material = gridNode->GetMaterial(i);
+							material->mBlendTarget.enable = true;
+							material->mBlendTarget.srcColor = BlendState::BM_ONE;
+							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+							material->mDepthBuffer = true;
+							material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+							material->mFillMode = RasterizerState::FILL_SOLID;
+							material->mCullMode = RasterizerState::CULL_NONE;
+						}
 					}
 
-					resHandle =
-						ResCache::Get()->GetHandle(&BaseResource(L"Art/t351sml.bmp"));
-					if (resHandle)
-					{
-						const eastl::shared_ptr<ImageResourceExtraData>& extra =
-							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
-						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
-							gridNode->GetMaterial(i)->mLighting = false;
-						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
-							gridNode->GetMaterial(i)->mCullMode = RasterizerState::CULL_NONE;
-						gridNode->SetMaterialTexture(0, extra->GetImage());
-					}
-
+					for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
+						gridNode->GetMaterial(i)->mLighting = false;
+					gridNode->SetMaterialTexture(0, extra->GetImage());
+					gridNode->SetMaterialType((MaterialType)mMaterialType);
 				}
+
 				return gridNode;
 			}
 		}
@@ -362,6 +425,10 @@ void GridRenderComponent::CreateInheritedXMLElements(
 	pTexture->SetAttribute("x", eastl::to_string(mTextureScale[0]).c_str());
 	pTexture->SetAttribute("y", eastl::to_string(mTextureScale[1]).c_str());
     pBaseElement->LinkEndChild(pTexture);
+
+	tinyxml2::XMLElement* pMaterial = doc.NewElement("Material");
+	pMaterial->SetAttribute("type", eastl::to_string(mMaterialType).c_str());
+	pBaseElement->LinkEndChild(pMaterial);
 
 	tinyxml2::XMLElement* pSegment = doc.NewElement("Segment");
 	pSegment->SetAttribute("x", eastl::to_string(mSegments[0]).c_str());
@@ -562,6 +629,22 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 							billNode->GetMaterial(i)->mLighting = false;
 						billNode->SetMaterialType(MT_TRANSPARENT);
 						billNode->SetMaterialTexture(0, extra->GetImage());
+
+						for (unsigned int i = 0; i<billNode->GetMaterialCount(); ++i)
+						{
+							eastl::shared_ptr<Material> material = billNode->GetMaterial(i);
+							material->mBlendTarget.enable = true;
+							material->mBlendTarget.srcColor = BlendState::BM_ONE;
+							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+							material->mDepthBuffer = true;
+							material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+							material->mFillMode = RasterizerState::FILL_SOLID;
+							material->mCullMode = RasterizerState::CULL_NONE;
+						}
 					}
 				}
 			}
@@ -628,6 +711,7 @@ void LightRenderComponent::CreateInheritedXMLElements(
 ParticleEffectRenderComponent::ParticleEffectRenderComponent(void)
 {
 	mTextureResource = "";
+	mMaterialType = 0;
 	mEmitterType = PET_NONE;
 	mAffectorType = PAT_NONE;
 }
@@ -638,6 +722,13 @@ bool ParticleEffectRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 	if (pTexture)
 	{
 		mTextureResource = pTexture->Attribute("file");
+	}
+
+	tinyxml2::XMLElement* pMaterial = pData->FirstChildElement("Material");
+	if (pMaterial)
+	{
+		unsigned int type = 0;
+		mMaterialType = pMaterial->IntAttribute("type", type);
 	}
 
 	tinyxml2::XMLElement* pEmitterType = pData->FirstChildElement("EmitterType");
@@ -813,7 +904,7 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreatePointEmitter(
 							mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
 							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMaxStartSize, mMinStartSize));
+							mMaxAngle, mMinStartSize, mMaxStartSize));
 						particleSystem->SetEmitter(em); // this grabs the emitter
 						break;
 					}
@@ -822,7 +913,7 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateBoxEmitter(
 							mEmitter, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
 							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMaxStartSize, mMinStartSize));
+							mMaxAngle, mMinStartSize, mMaxStartSize));
 						particleSystem->SetEmitter(em); // this grabs the emitter
 						break;
 					}
@@ -832,7 +923,7 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 							Vector3<float>(), 0.0f, Vector3<float>(), 0.0f, true,
 							mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
 							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMaxStartSize, mMinStartSize));
+							mMaxAngle, mMinStartSize, mMaxStartSize));
 						particleSystem->SetEmitter(em); // this grabs the emitter
 						break;
 					}
@@ -842,7 +933,7 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 							eastl::shared_ptr<BaseMesh>(), false, mDirection, 0, 0, false,
 							mMinParticlesPerSecond, mMaxParticlesPerSecond,
 							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMaxStartSize, mMinStartSize));
+							mMaxAngle, mMinStartSize, mMaxStartSize));
 						particleSystem->SetEmitter(em); // this grabs the emitter;
 						break;
 					}
@@ -851,7 +942,7 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateRingEmitter(
 							Vector3<float>(), 0.0f, 0.0f, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
 							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMaxStartSize, mMinStartSize));
+							mMaxAngle, mMinStartSize, mMaxStartSize));
 						particleSystem->SetEmitter(em); // this grabs the emitter
 						break;
 					}
@@ -860,7 +951,7 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateSphereEmitter(
 							Vector3<float>(), 0.0f, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
 							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMaxStartSize, mMinStartSize));
+							mMaxAngle, mMinStartSize, mMaxStartSize));
 						particleSystem->SetEmitter(em); // this grabs the emitter
 						break;
 					}
@@ -919,10 +1010,28 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 
 					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
 						particleSystem->GetMaterial(i)->mLighting = false;
-					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
-						particleSystem->GetMaterial(i)->mDepthBuffer = false;
+					if (mMaterialType == MaterialType::MT_TRANSPARENT)
+					{
+						for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
+						{
+							eastl::shared_ptr<Material> material = particleSystem->GetMaterial(i);
+
+							material->mBlendTarget.enable = true;
+							material->mBlendTarget.srcColor = BlendState::BM_ONE;
+							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+							material->mDepthBuffer = true;
+							material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+							material->mFillMode = RasterizerState::FILL_SOLID;
+							material->mCullMode = RasterizerState::CULL_NONE;
+						}
+					}
+
 					particleSystem->SetMaterialTexture(0, extra->GetImage());
-					particleSystem->SetMaterialType(MT_TRANSPARENT);
+					particleSystem->SetMaterialType((MaterialType)mMaterialType);
 				}
 
 				particleSystem->SetEffect(0);
@@ -940,6 +1049,10 @@ void ParticleEffectRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
 	pTexture->SetAttribute("file", mTextureResource.c_str());
 	pBaseElement->LinkEndChild(pTexture);
+
+	tinyxml2::XMLElement* pMaterial = doc.NewElement("Material");
+	pMaterial->SetAttribute("type", eastl::to_string(mMaterialType).c_str());
+	pBaseElement->LinkEndChild(pMaterial);
 
 	tinyxml2::XMLElement* pAffector = doc.NewElement("Affector");
 	pAffector->SetAttribute("type", eastl::to_string(mAffectorType).c_str());

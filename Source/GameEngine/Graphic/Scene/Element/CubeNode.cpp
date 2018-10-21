@@ -4,7 +4,6 @@
 
 #include "CubeNode.h"
 
-#include "Graphic/Scene/Hierarchy/Node.h"
 #include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Scene/Scene.h"
 
@@ -30,6 +29,9 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
 {
 	mPVWUpdater = updater;
 
+	mBlendState = eastl::make_shared<BlendState>();
+	mDepthStencilState = eastl::make_shared<DepthStencilState>();
+
 	struct Vertex
 	{
 		Vector3<float> position;
@@ -52,11 +54,11 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
 	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
-	eastl::shared_ptr<AmbientLightEffect> effect = eastl::make_shared<AmbientLightEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, eastl::make_shared<Lighting>());
-	mVisual->SetEffect(effect);
+	mEffect = eastl::make_shared<AmbientLightEffect>(ProgramFactory::Get(), 
+		mPVWUpdater->GetUpdater(), path, mMaterial, eastl::make_shared<Lighting>());
+	mVisual->SetEffect(mEffect);
 	mVisual->UpdateModelNormals();
-	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+	mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 }
 
 
@@ -118,20 +120,21 @@ bool CubeNode::Render(Scene *pScene)
 	// overwrite half transparency
 	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
 		mMaterial->mType = MT_TRANSPARENT;
-	/*
-	Renderer::Get()->SetBlendState(mMaterial->mBlendState);
-	Renderer::Get()->SetRasterizerState(mMaterial->mRasterizerState);
-	Renderer::Get()->SetDepthStencilState(mMaterial->mDepthStencilState);
-	*/
-	eastl::shared_ptr<AmbientLightEffect> effect =
-		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
-	effect->SetMaterial(mMaterial);
+	mEffect->SetMaterial(mMaterial);
+
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+	{
+		GetMaterial(i)->Update(mBlendState);
+		GetMaterial(i)->Update(mDepthStencilState);
+	}
+
+	Renderer::Get()->SetBlendState(mBlendState);
+	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
+
 	Renderer::Get()->Draw(mVisual);
-	/*
-	Renderer::Get()->SetDefaultDepthStencilState();
-	Renderer::Get()->SetDefaultRasterizerState();
+
 	Renderer::Get()->SetDefaultBlendState();
-	*/
+	Renderer::Get()->SetDefaultDepthStencilState();
 	/*
 	// for debug purposes only:
 	if (DebugDataVisible())

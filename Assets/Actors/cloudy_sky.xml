@@ -1,5 +1,6 @@
 <Actor type="Sky" resource="actors\cloudy_sky.xml">
     <SkyRenderComponent>
 		<Texture file="art\skydome.bmp" horiRes="16" vertRes="8" texturePercentage="0.95" spherePercentage="2.0" radius="2000.0" />
+		<Material type="0" />
     </SkyRenderComponent>
 </Actor>

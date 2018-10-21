@@ -303,7 +303,7 @@ BaseMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 			if (aiGetMaterialInteger(material, AI_MATKEY_SHADING_MODEL, &shadingModel) == aiReturn::aiReturn_SUCCESS)
 				meshBuffer->GetMaterial()->mShadingModel = (ShadingModel)shadingModel;
 			if (aiGetMaterialFloat(material, AI_MATKEY_OPACITY, &opacity) == aiReturn::aiReturn_SUCCESS)
-				meshBuffer->GetMaterial()->mType = (opacity > 0.5f) ? MT_TRANSPARENT : MT_SOLID;
+				meshBuffer->GetMaterial()->mType = (opacity > 0.5f) ? MT_SOLID : MT_TRANSPARENT;
 			if (aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &shininess) == aiReturn::aiReturn_SUCCESS)
 				meshBuffer->GetMaterial()->mShininess = shininess;
 

@@ -64,6 +64,9 @@ private:
 
 	void GenerateMesh(const eastl::shared_ptr<Texture2>& sky);
 
+	eastl::shared_ptr<BlendState> mBlendState;
+	eastl::shared_ptr<DepthStencilState> mDepthStencilState;
+
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<MeshBuffer> mMeshBuffer;
 

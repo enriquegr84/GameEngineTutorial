@@ -69,8 +69,10 @@ public:
 
 protected:
 
-	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
+	eastl::vector<eastl::shared_ptr<BlendState>> mBlendStates;
+	eastl::vector<eastl::shared_ptr<DepthStencilState>> mDepthStencilStates;
 
+	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
 	eastl::shared_ptr<BaseMesh> mMesh;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
 

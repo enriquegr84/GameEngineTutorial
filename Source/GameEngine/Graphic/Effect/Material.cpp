@@ -11,8 +11,8 @@ Material::Material()
     : mType(MT_SOLID),
     mEmissive({ 0.0f, 0.0f, 0.0f, 1.0f }), mAmbient({ 1.0f, 1.0f, 1.0f, 1.0f }),
     mDiffuse({ 1.0f, 1.0f, 1.0f, 1.0f }), mSpecular({ 1.0f, 1.0f, 1.0f, 1.0f }), 
-	mShininess(0.0f), mThickness(1.0f), mLighting(true), 
-	mAntiAliasing(true), mDepthBuffer(true),
+	mShininess(0.0f), mThickness(1.0f), mLighting(true), mAntiAliasing(true), 
+	mDepthBuffer(true), mDepthMask(DepthStencilState::MASK_ALL),
 	mFillMode(RasterizerState::FILL_SOLID),
 	mCullMode(RasterizerState::CULL_NONE),
 	mShadingModel(SM_GOURAUD)
@@ -41,6 +41,8 @@ bool Material::operator!=(const Material& other) const
 		mShadingModel != other.mShadingModel ||
 		mLighting != other.mLighting ||
 		mAntiAliasing != other.mAntiAliasing ||
+		mMultisampling != other.mMultisampling ||
+		mBlendTarget != other.mBlendTarget ||
 		mDepthBuffer != other.mDepthBuffer ||
 		mFillMode != other.mFillMode ||
 		mCullMode != other.mCullMode;
@@ -76,4 +78,23 @@ void Material::SetTexture(unsigned int i, eastl::shared_ptr<Texture2> tex)
 	if (i >= MATERIAL_MAX_TEXTURES)
 		return;
 	mTextureLayer[i].mTexture = tex;
+}
+
+void Material::Update(eastl::shared_ptr<BlendState>& blendState) const
+{
+	blendState->mTarget[0] = mBlendTarget;
+}
+
+void Material::Update(eastl::shared_ptr<RasterizerState>& rasterizerState) const
+{
+	rasterizerState->mCullMode = mCullMode;
+	rasterizerState->mFillMode = mFillMode;
+	rasterizerState->mAntiAliasing = mAntiAliasing;
+	rasterizerState->mEnableMultisample = mMultisampling;
+}
+
+void Material::Update(eastl::shared_ptr<DepthStencilState>& depthStencilState) const
+{
+	depthStencilState->mDepthEnable = mDepthBuffer;
+	depthStencilState->mWriteMask = mDepthMask;
 }

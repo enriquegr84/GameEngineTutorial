@@ -22,7 +22,7 @@ DX11RasterizerState::DX11RasterizerState(ID3D11Device* device, RasterizerState c
     desc.DepthClipEnable = (rasterizerState->mEnableDepthClip ? TRUE : FALSE);
     desc.ScissorEnable = (rasterizerState->mEnableScissor ? TRUE : FALSE);
     desc.MultisampleEnable = (rasterizerState->mEnableMultisample ? TRUE : FALSE);
-    desc.AntialiasedLineEnable = (rasterizerState->mEnableAntialiasedLine ? TRUE : FALSE);
+    desc.AntialiasedLineEnable = (rasterizerState->mAntiAliasing ? TRUE : FALSE);
 
     // Create the rasterizer state.
     ID3D11RasterizerState* state = nullptr;

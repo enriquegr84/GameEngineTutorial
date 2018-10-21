@@ -5,6 +5,7 @@
 #ifndef RECTANGLENODE_H
 #define RECTANGLENODE_H
 
+#include "Graphic/Effect/PointLightTextureEffect.h"
 #include "Graphic/Scene/Hierarchy/Node.h"
 
 #include "ShadowVolumeNode.h"
@@ -59,7 +60,11 @@ public:
 
 private:
 
+	eastl::shared_ptr<BlendState> mBlendState;
+	eastl::shared_ptr<DepthStencilState> mDepthStencilState;
+
 	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<PointLightTextureEffect> mEffect;
 	eastl::shared_ptr<Material> mMaterial;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
 

@@ -13,5 +13,5 @@ layout(location = 0) out vec4 pixelColor;
 
 void main()
 {
-    pixelColor = vertexColor + texture(baseSampler, vertexTCoord);
+    pixelColor = vertexColor * texture(baseSampler, vertexTCoord);
 }

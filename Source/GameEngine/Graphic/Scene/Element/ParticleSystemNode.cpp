@@ -25,6 +25,9 @@ ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* update
 	mPVWUpdater = updater;
 	mMeshBuffer = eastl::make_shared<MeshBuffer>();
 
+	mBlendState = eastl::make_shared<BlendState>();
+	mDepthStencilState = eastl::make_shared<DepthStencilState>();
+
 	if (createDefaultEmitter)
 		SetEmitter(eastl::shared_ptr<ParticleBoxEmitter>(CreateBoxEmitter()));
 }
@@ -34,13 +37,13 @@ void ParticleSystemNode::SetEffect(int size)
 {
 	struct Vertex
 	{
-		Vector3<float> position;// , normal;
+		Vector3<float> position, normal;
 		Vector4<float> color;
 		Vector2<float> tcoord;
 	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	//vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
@@ -50,10 +53,11 @@ void ParticleSystemNode::SetEffect(int size)
 		meshBuffer->GetMaterial() = GetMaterial(i);
 	mMeshBuffer.reset(meshBuffer);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
-	mEffect = eastl::make_shared<Texture2Effect>(
+	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl");
+	mEffect = eastl::make_shared<Texture2ColorEffect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
-		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
+		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
+	mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 }
 
 
@@ -91,7 +95,6 @@ void ParticleSystemNode::ReallocateBuffers()
 		{
 			mVisual.reset(new Visual(
 				mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect));
-			mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 		}
 	}
 }
@@ -102,7 +105,6 @@ ParticleSystemNode::~ParticleSystemNode()
 {
 	RemoveAllAffectors();
 }
-
 
 //! prerender
 bool ParticleSystemNode::PreRender(Scene *pScene)
@@ -152,23 +154,12 @@ bool ParticleSystemNode::Render(Scene *pScene)
 
 	const float* cameraView = 
 		reinterpret_cast<const float*>(&cameraNode->Get()->GetViewMatrix());
+	Matrix4x4<float> cameraRotation = cameraNode->GetAbsoluteTransform().GetRotation();
 	Vector3<float> view = Vector3<float>{ -cameraView[2], -cameraView[6], -cameraView[10] };
-	/*
-	float* view = reinterpret_cast<float*>(
-		&Vector3<float>{ -cameraView[2], -cameraView[6], -cameraView[10] });
-	*/
 
 	// reallocate arrays, if they are too small
 	ReallocateBuffers();
-	/*
-	// create particle vertex data
-	eastl::set<DFType> required;
-	required.insert(DF_R32G32B32_FLOAT);
-	required.insert(DF_R32G32B32A32_FLOAT);
-	char* positions = mMeshBuffer->GetVertice()->GetChannel(VA_POSITION, 0, required);
-	char* normals = mMeshBuffer->GetVertice()->GetChannel(VA_NORMAL, 0, required);
-	char* colors = mMeshBuffer->GetVertice()->GetChannel(VA_COLOR, 0, required);
-	*/
+
 	int idx = 0;
 	unsigned int stride = mMeshBuffer->GetVertice()->GetFormat().GetVertexSize();
 	for (unsigned int i = 0; i < mParticles.size(); ++i)
@@ -181,117 +172,46 @@ bool ParticleSystemNode::Render(Scene *pScene)
 		f = -0.5f * particle.mSize[1];
 		const Vector3<float> vertical{ cameraView[1] * f, cameraView[5] * f, cameraView[9] * f };
 
-		mMeshBuffer->Position(0 + idx) = particle.mPos + horizontal + vertical;
-		//mMeshBuffer->Normal(0 + idx) = view;
+		mMeshBuffer->Position(0 + idx) = particle.mPos + 
+			HProject(cameraRotation * HLift(horizontal + vertical, 0.f));
+		mMeshBuffer->Normal(0 + idx) = view;
 		mMeshBuffer->Color(0, 0 + idx) = particle.mColor;
 
-		mMeshBuffer->Position(1 + idx) = particle.mPos + horizontal - vertical;
-		//mMeshBuffer->Normal(1 + idx) = view;
+		mMeshBuffer->Position(1 + idx) = particle.mPos + 
+			HProject(cameraRotation * HLift(horizontal - vertical, 0.f));
+		mMeshBuffer->Normal(1 + idx) = view;
 		mMeshBuffer->Color(0, 1 + idx) = particle.mColor;
 
-		mMeshBuffer->Position(2 + idx) = particle.mPos - horizontal - vertical;
-		//mMeshBuffer->Normal(2 + idx) = view;
+		mMeshBuffer->Position(2 + idx) = particle.mPos + 
+			HProject(cameraRotation * HLift(-horizontal - vertical, 0.f));
+		mMeshBuffer->Normal(2 + idx) = view;
 		mMeshBuffer->Color(0, 2 + idx) = particle.mColor;
 
-		mMeshBuffer->Position(3 + idx) = particle.mPos - horizontal + vertical;
-		//mMeshBuffer->Normal(3 + idx) = view;
+		mMeshBuffer->Position(3 + idx) = particle.mPos + 
+			HProject(cameraRotation * HLift(-horizontal + vertical, 0.f));
+		mMeshBuffer->Normal(3 + idx) = view;
 		mMeshBuffer->Color(0, 3 + idx) = particle.mColor;
 
 		idx += 4;
-		/*
-		const float* particlePosition = reinterpret_cast<const float*>(&particle.mPos);
-		const float* particleColor = reinterpret_cast<const float*>(&particle.mColor);
-
-		float f = 0.5f * particle.mSize[0];
-		const float* horizontal = reinterpret_cast<const float*>(
-			&Vector3<float>{ cameraView[0] * f, cameraView[4] * f, cameraView[8] * f });
-
-		f = -0.5f * particle.mSize[1];
-		const float* vertical = reinterpret_cast<const float*>(
-			&Vector3<float>{ cameraView[1] * f, cameraView[5] * f, cameraView[9] * f });
-
-		float* position = reinterpret_cast<float*>(positions);
-		float* normal = reinterpret_cast<float*>(normals);
-		float* color = reinterpret_cast<float*>(colors);
-
-		position[0 + 0 * stride] = particlePosition[0] + horizontal[0] + vertical[0];
-		position[1 + 0 * stride] = particlePosition[1] + horizontal[1] + vertical[1];
-		position[2 + 0 * stride] = particlePosition[2] + horizontal[2] + vertical[2];
-		normal[0 + 0 * stride] = view[0];
-		normal[1 + 0 * stride] = view[1];
-		normal[2 + 0 * stride] = view[2];
-		color[0 + 0 * stride] = particleColor[0];
-		color[1 + 0 * stride] = particleColor[1];
-		color[2 + 0 * stride] = particleColor[2];
-		color[3 + 0 * stride] = particleColor[3];
-
-		position[0 + 1 * stride] = particlePosition[0] + horizontal[0] - vertical[0];
-		position[1 + 1 * stride] = particlePosition[1] + horizontal[1] - vertical[1];
-		position[2 + 1 * stride] = particlePosition[2] + horizontal[2] - vertical[2];
-		normal[0 + 1 * stride] = view[0];
-		normal[1 + 1 * stride] = view[1];
-		normal[2 + 1 * stride] = view[2];
-		color[0 + 1 * stride] = particleColor[0];
-		color[1 + 1 * stride] = particleColor[1];
-		color[2 + 1 * stride] = particleColor[2];
-		color[3 + 1 * stride] = particleColor[3];
-
-		position[0 + 2 * stride] = particlePosition[0] - horizontal[0] - vertical[0];
-		position[1 + 2 * stride] = particlePosition[1] - horizontal[1] - vertical[1];
-		position[2 + 2 * stride] = particlePosition[2] - horizontal[2] - vertical[2];
-		normal[0 + 2 * stride] = view[0];
-		normal[1 + 2 * stride] = view[1];
-		normal[2 + 2 * stride] = view[2];
-		color[0 + 2 * stride] = particleColor[0];
-		color[1 + 2 * stride] = particleColor[1];
-		color[2 + 2 * stride] = particleColor[2];
-		color[3 + 2 * stride] = particleColor[3];
-
-		position[0 + 3 * stride] = particlePosition[0] - horizontal[0] + vertical[0];
-		position[1 + 3 * stride] = particlePosition[1] - horizontal[1] + vertical[1];
-		position[2 + 3 * stride] = particlePosition[2] - horizontal[2] + vertical[2];
-		normal[0 + 3 * stride] = view[0];
-		normal[1 + 3 * stride] = view[1];
-		normal[2 + 3 * stride] = view[2];
-		color[0 + 3 * stride] = particleColor[0];
-		color[1 + 3 * stride] = particleColor[1];
-		color[2 + 3 * stride] = particleColor[2];
-		color[3 + 3 * stride] = particleColor[3];
-
-		positions += 4*stride;
-		normals += 4*stride;
-		colors += 4*stride;
-		*/
 	}
-	//if (mRenderFromIdentity)
-	//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
-	/*
-	Renderer::Get()->SetBlendState(mMeshBuffer->GetMaterial()->mBlendState);
-	Renderer::Get()->SetRasterizerState(mMeshBuffer->GetMaterial()->mRasterizerState);
-	Renderer::Get()->SetDepthStencilState(mMeshBuffer->GetMaterial()->mDepthStencilState);
 
-	effect->SetMaterial(mMeshBuffer->GetMaterial());
-	*/
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+	{
+		GetMaterial(i)->Update(mBlendState);
+		GetMaterial(i)->Update(mDepthStencilState);
+	}
+
+	Renderer::Get()->SetBlendState(mBlendState);
+	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
 
 	Renderer* renderer = Renderer::Get();
 	renderer->Update(mMeshBuffer->GetVertice());
 	renderer->Draw(mVisual);
-	/*
-	Renderer::Get()->SetDefaultDepthStencilState();
-	Renderer::Get()->SetDefaultRasterizerState();
+
 	Renderer::Get()->SetDefaultBlendState();
-	*/
+	Renderer::Get()->SetDefaultDepthStencilState();
+
 	/*
-	Transform mat;
-	if (!mParticlesAreGlobal)
-		mat.SetTranslation(toWorld.GetTranslation());
-	Renderer::Get()->SetTransform(TS_WORLD, mat);
-
-	Renderer::Get()->SetMaterial(mBuffer->mMaterial);
-
-	Renderer::Get()->DrawVertexPrimitiveList(mBuffer->GetVertices(), mParticles.size()*4,
-		mBuffer->GetIndices(), mParticles.size()*2, VT_STANDARD, PT_TRIANGLES, mBuffer->GetIndexType());
-
 	// for debug purposes only:
 	if (DebugDataVisible() & DS_BBOX )
 	{
@@ -335,10 +255,19 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 			for (int i = j; i<j + newParticles; ++i)
 			{
 				mParticles[i] = array[i - j];
-				Quaternion<float> q = Rotation<4, float>(GetAbsoluteTransform().GetRotation());
-				mParticles[i].mStartVector = HProject(Rotate(q, HLift(mParticles[i].mStartVector, 0.f)));
+
+				Vector4<float> startVector;
+				GetAbsoluteTransform().GetRotation().Transformation(
+					HLift(mParticles[i].mStartVector, 0.f), startVector);
+				mParticles[i].mStartVector = HProject(startVector);
 				if (mParticlesAreGlobal)
-					mParticles[i].mPos = HProject(GetAbsoluteTransform().GetMatrix() * HLift(mParticles[i].mPos, 1.0f));
+				{
+					Vector4<float> positionVector;
+					GetAbsoluteTransform().GetRotation().Transformation(
+						HLift(mParticles[i].mPos, 0.f), positionVector);
+					mParticles[i].mPos = HProject(positionVector);
+					mParticles[i].mPos += GetAbsoluteTransform().GetTranslation();
+				}
 			}
 		}
 	}

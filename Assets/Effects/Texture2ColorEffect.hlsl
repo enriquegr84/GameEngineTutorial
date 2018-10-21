@@ -54,6 +54,8 @@ struct PS_OUTPUT
 PS_OUTPUT PSMain(PS_INPUT input)
 {
     PS_OUTPUT output;
-    output.pixelColor0 = baseTexture.Sample(baseSampler, input.vertexTCoord);
+
+	float4 textureColor = baseTexture.Sample(baseSampler, input.vertexTCoord);
+    output.pixelColor0 = input.vertexColor * textureColor;
     return output;
 }

@@ -21,6 +21,9 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 {
 	mPVWUpdater = updater;
 
+	mBlendState = eastl::make_shared<BlendState>();
+	mDepthStencilState = eastl::make_shared<DepthStencilState>();
+
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
@@ -151,23 +154,21 @@ bool SkyDomeNode::Render(Scene* pScene)
 
 	if ( camera->Get()->IsPerspective() )
 	{
-		// draw perspective skydome
-		//Matrix4x4<float> translate(toWorld);
 		GetRelativeTransform().SetTranslation(camera->GetAbsoluteTransform().GetTranslation());
-		/*
-		Renderer::Get()->SetBlendState(mMeshBuffer->GetMaterial()->mBlendState);
-		Renderer::Get()->SetRasterizerState(mMeshBuffer->GetMaterial()->mRasterizerState);
-		Renderer::Get()->SetDepthStencilState(mMeshBuffer->GetMaterial()->mDepthStencilState);
+		
+		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+		{
+			GetMaterial(i)->Update(mBlendState);
+			GetMaterial(i)->Update(mDepthStencilState);
+		}
 
-		effect->SetMaterial(mMeshBuffer->GetMaterial());
-		*/
+		Renderer::Get()->SetBlendState(mBlendState);
+		Renderer::Get()->SetDepthStencilState(mDepthStencilState);
 
 		Renderer::Get()->Draw(mVisual);
-		/*
-		Renderer::Get()->SetDefaultDepthStencilState();
-		Renderer::Get()->SetDefaultRasterizerState();
+
 		Renderer::Get()->SetDefaultBlendState();
-		*/
+		Renderer::Get()->SetDefaultDepthStencilState();
 	}
 	/*
 	// for debug purposes only:

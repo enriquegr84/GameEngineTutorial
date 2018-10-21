@@ -44,7 +44,7 @@ public:
     bool mEnableDepthClip;           // default: true
     bool mEnableScissor;             // default: false
     bool mEnableMultisample;         // default: false
-    bool mEnableAntialiasedLine;     // default: false
+    bool mAntiAliasing;     // default: false
 };
 
 #endif

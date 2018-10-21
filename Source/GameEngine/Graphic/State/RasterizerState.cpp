@@ -18,7 +18,7 @@ RasterizerState::RasterizerState()
     mEnableDepthClip(true),
     mEnableScissor(false),
     mEnableMultisample(false),
-    mEnableAntialiasedLine(false)
+    mAntiAliasing(false)
 {
     mType = GE_RASTERIZER_STATE;
 }

@@ -60,14 +60,52 @@ public:
 
     struct GRAPHIC_ITEM Target
     {
-        bool enable;        // default: false
-        Mode srcColor;      // default: BM_ONE
-        Mode dstColor;      // default: BM_ZERO
-        Operation opColor;  // default: OP_ADD
-        Mode srcAlpha;      // default: BM_ONE
-        Mode dstAlpha;      // default: BM_ZERO
-        Operation opAlpha;  // default: OP_ADD
-        unsigned char mask; // default: CW_ENABLE_ALL
+        bool enable;
+        Mode srcColor;
+        Mode dstColor;
+        Operation opColor;
+        Mode srcAlpha;
+        Mode dstAlpha;
+        Operation opAlpha;
+        unsigned char mask;
+
+		Target() // default
+		{
+			enable = false;
+			srcColor = BM_ONE;
+			dstColor = BM_ZERO;
+			opColor = OP_ADD;
+			srcAlpha = BM_ONE;
+			dstAlpha = BM_ZERO;
+			opAlpha = OP_ADD;
+			mask = CW_ENABLE_ALL;
+		}
+
+		//! Inequality operator
+		/** \param b Material to compare to.
+		\return True if the materials differ, else false. */
+		bool operator!=(const Target& other) const
+		{
+			bool different =
+				enable != other.enable ||
+				srcColor != other.srcColor ||
+				dstColor != other.dstColor ||
+				opColor != other.opColor ||
+				srcAlpha != other.srcAlpha ||
+				dstAlpha != other.dstAlpha ||
+				opAlpha != other.opAlpha ||
+				mask != other.mask;
+			return different;
+		}
+
+		//! Equality operator
+		/** \param b Material to compare to.
+		\return True if the materials are equal, else false. */
+		bool operator==(const Target& other) const
+		{
+			return !(other != *this);
+		}
+
     };
 
     // Construction.

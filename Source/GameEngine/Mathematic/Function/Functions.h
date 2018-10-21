@@ -244,7 +244,7 @@ public:
 
 		eastl::array<float, N> lerp = eastl::array<float, N>();
 		for (int i = 0; i < N; i++)
-			lerp[i] = round(v1[i] * inv + v0[i] * intp);
+			lerp[i] = v1[i] * inv + v0[i] * intp;
 
 		return lerp;
 	}
@@ -257,7 +257,7 @@ public:
 
 		Vector<N, float> lerp = Vector<N, float>();
 		for (int i = 0; i < N; i++)
-			lerp[i] = round(v1[i] * inv + v0[i] * intp);
+			lerp[i] = v1[i] * inv + v0[i] * intp;
 
 		return lerp;
 	}
@@ -509,7 +509,7 @@ public:
 
 		eastl::array<double, N> lerp = eastl::array<double, N>();
 		for (int i = 0; i < N; i++)
-			lerp[i] = round(v1[i] * inv + v0[i] * intp);
+			lerp[i] = v1[i] * inv + v0[i] * intp;
 
 		return lerp;
 	}
@@ -522,7 +522,7 @@ public:
 
 		Vector<N, double> lerp = Vector<N, double>();
 		for (int i = 0; i < N; i++)
-			lerp[i] = round(v1[i] * inv + v0[i] * intp);
+			lerp[i] = v1[i] * inv + v0[i] * intp;
 
 		return lerp;
 	}

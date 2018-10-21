@@ -40,6 +40,9 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
 		if (meshBuffer)
 		{
+			mBlendStates.push_back(eastl::make_shared<BlendState>());
+			mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
+
 			eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
 			eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 				ProgramFactory::Get(), path, meshBuffer->GetMaterial()->GetTexture(0),
@@ -286,26 +289,19 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 				const eastl::shared_ptr<SkinMeshBuffer>& mb =
 					eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mesh->GetMeshBuffer(i));
 				eastl::shared_ptr<Material> material = mb->GetMaterial();
-				/*
-				material->mType = MT_TRANSPARENT;
 
-				//if (mRenderFromIdentity)
-					//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+				material->Update(mBlendStates[i]);
+				material->Update(mDepthStencilStates[i]);
 
-				Renderer::Get()->SetBlendState(material->mBlendState);
-				Renderer::Get()->SetRasterizerState(material->mRasterizerState);
-				Renderer::Get()->SetDepthStencilState(material->mDepthStencilState);
+				Renderer::Get()->SetBlendState(mBlendStates[i]);
+				Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
 
-				effect->SetMaterial(material);
-				*/
 				Renderer* renderer = Renderer::Get();
 				renderer->Update(mb->GetVertice());
 				renderer->Draw(mVisuals[i]);
-				/*
-				Renderer::Get()->SetDefaultDepthStencilState();
-				Renderer::Get()->SetDefaultRasterizerState();
+
 				Renderer::Get()->SetDefaultBlendState();
-				*/
+				Renderer::Get()->SetDefaultDepthStencilState();
 			}
 			renderMeshes = false;
 		}
@@ -325,28 +321,18 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 			// and solid only in solid pass
 			if (transparent == isTransparentPass)
 			{
-				/*
-				//if (mRenderFromIdentity)
-					//Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
+				material->Update(mBlendStates[i]);
+				material->Update(mDepthStencilStates[i]);
 
-				eastl::shared_ptr<DepthStencilState> depthStencilState = Renderer::Get()->GetDefaultDepthStencilState();
-				eastl::shared_ptr<RasterizerState> rasterizerState = Renderer::Get()->GetDefaultRasterizerState();
-				eastl::shared_ptr<BlendState> blendState = Renderer::Get()->GetDefaultBlendState();
+				Renderer::Get()->SetBlendState(mBlendStates[i]);
+				Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
 
-				Renderer::Get()->SetBlendState(material->mBlendState);
-				Renderer::Get()->SetRasterizerState(material->mRasterizerState);
-				Renderer::Get()->SetDepthStencilState(material->mDepthStencilState);
-
-				effect->SetMaterial(material);
-				*/
 				Renderer* renderer = Renderer::Get();
 				renderer->Update(mb->GetVertice());
 				renderer->Draw(mVisuals[i]);
-				/*
-				Renderer::Get()->SetDefaultDepthStencilState();
-				Renderer::Get()->SetDefaultRasterizerState();
+
 				Renderer::Get()->SetDefaultBlendState();
-				*/
+				Renderer::Get()->SetDefaultDepthStencilState();
 			}
 		}
 	}

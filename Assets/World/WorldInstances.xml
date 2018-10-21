@@ -13,17 +13,15 @@
 			<Extent x="800.0" y="800.0"/>
 			<Segment x="1" y="1" />
 		</GridRenderComponent>
-
 		<PhysicsComponent>
 			<RigidBodyTransform>
 				<Scale x="800" y="800" z="0.1" />  
 			</RigidBodyTransform>
 		</PhysicsComponent>	
-
 	  </Actor>
 	  
+	  <Actor resource="actors\fire.xml" />
 	  <Actor resource="actors\light.xml" />
-      <Actor resource="actors\particle_effect.xml" />
 	  <Actor resource="actors\afternoon_sky.xml" />
 <!--
         <Actor resource="actors\player_spawner.xml" />

@@ -66,7 +66,7 @@ void BillboardNode::UpdateWorldData(double applicationTIme)
     // children of a BillboardNode cannot be updated until the billboard is
     // aligned with the camera.
     Spatial::UpdateWorldData(applicationTIme);
-	/*
+
     if (mPVWUpdater->GetCamera())
     {
         // Inverse-transform the camera to the model space of the billboard.
@@ -101,7 +101,6 @@ void BillboardNode::UpdateWorldData(double applicationTIme)
             child->Update(false);
         }
     }
-	*/
 }
 
 //! prerender

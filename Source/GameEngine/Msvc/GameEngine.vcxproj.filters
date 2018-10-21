@@ -1006,6 +1006,9 @@
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowCamera.cpp">
       <Filter>Graphic\Scene\Element\Animator</Filter>
     </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\Texture2ColorEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -2440,6 +2443,9 @@
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowCamera.h">
       <Filter>Graphic\Scene\Element\Animator</Filter>
     </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\Texture2ColorEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl">
@@ -2556,6 +2562,12 @@
     <None Include="..\Graphic\3rdParty\assimp\include\assimp\quaternion.inl">
       <Filter>Graphic\3rdParty\assimp\include\assimp</Filter>
     </None>
+    <None Include="..\..\..\Assets\Effects\Texture2ColorEffectPS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
+    <None Include="..\..\..\Assets\Effects\Texture2ColorEffectVS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\..\Assets\Effects\AmbientLightEffect.hlsl">
@@ -2598,6 +2610,9 @@
       <Filter>Assets\Effects</Filter>
     </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\VertexColorEffect.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ColorEffect.hlsl">
       <Filter>Assets\Effects</Filter>
     </FxCompile>
   </ItemGroup>
@@ -2653,7 +2668,7 @@
     <Xml Include="..\..\..\Assets\World\WorldInstances.xml">
       <Filter>Assets\World</Filter>
     </Xml>
-    <Xml Include="..\..\..\Assets\Actors\particle_effect.xml">
+    <Xml Include="..\..\..\Assets\Actors\fire.xml">
       <Filter>Assets\Actors</Filter>
     </Xml>
   </ItemGroup>

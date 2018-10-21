@@ -44,8 +44,16 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 			const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mShadowMesh->GetMeshBuffer(i);
 			if (meshBuffer)
 			{
+				mBlendStates.push_back(eastl::make_shared<BlendState>());
+				mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
+
 				// Create the visual effect.  The world up-direction is (0,0,1).  Choose
 				// the light to point down.
+				meshBuffer->GetMaterial()->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+				meshBuffer->GetMaterial()->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
+				meshBuffer->GetMaterial()->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
+				meshBuffer->GetMaterial()->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+
 				eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
 				lighting->mAmbient = Renderer::Get()->GetClearColor();
 				lighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -53,18 +61,18 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 				eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
 
 				eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
-				eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-					ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, meshBuffer->GetMaterial(), lighting,
+				mEffect = eastl::make_shared<PointLightTextureEffect>(ProgramFactory::Get(), 
+					mPVWUpdater->GetUpdater(), path, meshBuffer->GetMaterial(), lighting,
 					geometry, eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 
 					SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 
 				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
-					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
+					meshBuffer->GetVertice(), meshBuffer->GetIndice(), mEffect);
 				visual->UpdateModelNormals();
 				visual->UpdateModelBound();
 				visual->UpdateModelNormals();
 				mVisuals.push_back(visual);
-				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+				mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 			}
 		}
 	}

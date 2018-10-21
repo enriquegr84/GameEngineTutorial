@@ -8,9 +8,6 @@
 #include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Scene/Scene.h"
 
-//#include "Scenes/Mesh/MeshBuffer.h"
-
-
 //! constructor
 RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater, 
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Texture2>& texture,
@@ -19,6 +16,9 @@ RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater,
 	mSizeX(xSize), mSizeY(ySize), mPolyCountX(xPolyCount), mPolyCountY(yPolyCount)
 {
 	mPVWUpdater = updater;
+
+	mBlendState = eastl::make_shared<BlendState>();
+	mDepthStencilState = eastl::make_shared<DepthStencilState>();
 
 	struct Vertex
 	{
@@ -59,12 +59,12 @@ RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater,
 	eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
-	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
+	mEffect = eastl::make_shared<PointLightTextureEffect>(
 		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, lighting, geometry,
 		texture, SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
-	mVisual->SetEffect(effect);
+	mVisual->SetEffect(mEffect);
 	mVisual->UpdateModelNormals();
-	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+	mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 }
 
 
@@ -126,20 +126,21 @@ bool RectangleNode::Render(Scene *pScene)
 	// overwrite half transparency
 	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
 		mMaterial->mType = MT_TRANSPARENT;
-	/*
-	Renderer::Get()->SetBlendState(mMaterial->mBlendState);
-	Renderer::Get()->SetRasterizerState(mMaterial->mRasterizerState);
-	Renderer::Get()->SetDepthStencilState(mMaterial->mDepthStencilState);
-	*/
-	eastl::shared_ptr<AmbientLightEffect> effect =
-		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
-	effect->SetMaterial(mMaterial);
+	mEffect->SetMaterial(mMaterial);
+
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+	{
+		GetMaterial(i)->Update(mBlendState);
+		GetMaterial(i)->Update(mDepthStencilState);
+	}
+
+	Renderer::Get()->SetBlendState(mBlendState);
+	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
+
 	Renderer::Get()->Draw(mVisual);
-	/*
-	Renderer::Get()->SetDefaultDepthStencilState();
-	Renderer::Get()->SetDefaultRasterizerState();
+
 	Renderer::Get()->SetDefaultBlendState();
-	*/
+	Renderer::Get()->SetDefaultDepthStencilState();
 	/*
 	// for debug purposes only:
 	if (DebugDataVisible())
