@@ -16,6 +16,7 @@
 #include "Graphic/Effect/LightingEffect.h"
 
 class Scene;
+class CameraNode;
 
 typedef eastl::list<eastl::shared_ptr<Light> > Lights;
 
@@ -34,8 +35,8 @@ typedef eastl::list<eastl::shared_ptr<Light> > Lights;
 	In this example, this produces a funky looking but incoherent light display.
 
 	LIGHTS_NEAREST_NODE shows an implementation that turns on a limited number of lights
-	per mesh scene node.  If finds the 3 lights that are nearest to the node being rendered,
-	and turns them on, turning all other lights off.  This works, but as it operates on every
+	per mesh scene node. If finds the nearest light to the node being rendered,
+	and turns it on, turning all other lights off.  This works, but as it operates on every
 	light for every node, it does not scale well with many lights.  The flickering you can see
 	in this demo is due to the lights swapping their relative positions from the cubes
 	(a deliberate demonstration of the limitations of this technique).
@@ -89,39 +90,14 @@ public:
 	/** \param[in] node: the scene node that has just been rendered */
 	void OnNodePostRender(Node* node);
 
-	void UpdateLighting(Scene *pScene);
-	void UpdateLighting(Lighting* pLighting, Node *pNode);
+	void OnNodeLighting(Scene *pScene, Node* node);
+
 	int GetLightCount(const Node *node) { return mLights.size(); }
 
-	const Vector4<float>* GetLightAmbient(const Node *node) { return &mLightAmbient; }
-	const Vector4<float>* GetLightDirection(const Node *node) { return mLightDir; }
-	const eastl::array<float, 4>* GetLightDiffuse(const Node *node) { return mLightDiffuse; }
-
 protected:
-	/*
-	void CreateScene();
-	void UseLightType(int type);
-	void UpdateConstants();
-
-	eastl::shared_ptr<RasterizerState> mWireState;
-	*/
-	eastl::shared_ptr<Node> mDLightRoot;
-	eastl::shared_ptr<Light> mDLight;
-
-	enum { LDIR, LPNT, LSPT, LNUM };
-	enum { GPLN, GSPH, GNUM };
-	enum { SVTX, SPXL, SNUM };
-	eastl::shared_ptr<LightingEffect> mEffect[LNUM][GNUM][SNUM];
-	eastl::shared_ptr<Visual> mPlane[SNUM], mSphere[SNUM];
-	Vector4<float> mLightWorldPosition[2], mLightWorldDirection;
-	eastl::string mCaption[LNUM];
-	int mType;
 
 	Lights mLights;
-
-	Vector4<float> mLightDir[8];
-	eastl::array<float, 4> mLightDiffuse[8];
-	Vector4<float> mLightAmbient;
+	eastl::shared_ptr<Light> mLight;
 
 	typedef enum
 	{
@@ -130,9 +106,7 @@ protected:
 		LIGHTS_IN_ZONE
 	}
 	LightManagementMode;
-
 	LightManagementMode mMode;
-	LightManagementMode mRequestedMode;
 
 	// These data represent the state information that this light manager
 	// is interested in.
@@ -142,34 +116,14 @@ protected:
 
 private:
 
-	void UpdateCameraLightModelPositions(
-		eastl::shared_ptr<Node> object, eastl::shared_ptr<Camera> camera);
+	void UpdateCameraLightModelPositions(Node* object, CameraNode* camera);
 
 	// Find the empty scene node that is the parent of the specified node
-	Node* FindZone(Node* node)
-	{
-		if (!node)
-			return nullptr;
-
-		if (node->GetType() == NT_EMPTY)
-			return node;
-
-		return FindZone((Node*)node->GetParent());
-	}
+	Node* FindZone(Node* node);
 
 	// Turn on all lights that are children (directly or indirectly) of the
 	// specified scene node.
-	void TurnOnZoneLights(Node * node)
-	{
-		SceneNodeList children = node->GetChildren();
-		for (SceneNodeList::const_iterator child = children.begin(); child != children.end(); ++child)
-		{
-			if ((*child)->GetType() == NT_LIGHT)
-				(*child)->SetVisible(true);
-			else // Assume that lights don't have any children that are also lights
-				TurnOnZoneLights((*child).get());
-		}
-	}
+	void TurnOnZoneLights(Node* node);
 
 
 	// A utility class to aid in sorting scene nodes into a distance order

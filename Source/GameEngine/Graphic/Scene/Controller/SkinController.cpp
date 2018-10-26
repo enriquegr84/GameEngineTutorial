@@ -19,7 +19,7 @@ SkinController::SkinController(int numVertices, int numBones, Updater const& pos
     mNumVertices(numVertices),
     mNumBones(numBones),
     mBones(numBones),
-    mWeights(numBones, numVertices),
+    mWeights(numBones, eastl::vector<float>(numVertices)),
     mOffsets(numBones, numVertices),
     mPostUpdate(postUpdate),
     mPosition(nullptr),

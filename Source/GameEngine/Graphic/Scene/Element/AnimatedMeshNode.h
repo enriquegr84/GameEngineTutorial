@@ -160,6 +160,16 @@ public:
 	//! Returns the current mesh
 	const eastl::shared_ptr<BaseAnimatedMesh>& GetMesh(void);
 
+	//! Returns the visual based on the zero based index i. To get the amount 
+	//! of visuals used by this scene node, use GetVisualCount(). 
+	//! This function is needed for inserting the node into the scene hierarchy 
+	//! at an optimal position for minimizing renderstate changes, but can also 
+	//! be used to directly modify the visual of a scene node.
+	virtual eastl::shared_ptr<Visual> const& GetVisual(unsigned int i);
+
+	//! return amount of visuals of this scene node.
+	virtual unsigned int GetVisualCount() const;
+
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use GetMaterialCount().
 	//! This function is needed for inserting the node into the scene hirachy on a

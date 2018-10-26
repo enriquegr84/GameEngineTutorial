@@ -133,14 +133,12 @@ protected:
 //---------------------------------------------------------------------------------------------------------------------
 class LightRenderComponent : public BaseRenderComponent
 {
-	float mAnimatorSpeed;
-	eastl::string mAnimatorType;
+	int mAnimatorType;
+	float mAnimatorRadius;
 	Vector3<float> mAnimatorCenter;
 
-	bool mAddBillboard;
-	eastl::string mBillboardMaterial;
-	eastl::string mBillboardTexture;
-	Vector2<float> mBillboardSize;
+	Vector2<float> mTextureScale;
+	eastl::string mTextureResource;
 
 	eastl::shared_ptr<Light> mLightData;
 

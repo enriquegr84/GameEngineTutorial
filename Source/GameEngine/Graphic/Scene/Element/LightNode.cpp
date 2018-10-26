@@ -14,78 +14,69 @@
 #include "Application/GameApplication.h"
 
 //! constructor
-LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Light>& light)
-	:	Node(actorId, renderComponent, NT_LIGHT), mDriverLightIndex(-1), mLightIsOn(true)
+LightNode::LightNode(const ActorId actorId, PVWUpdater* updater, 
+	WeakBaseRenderComponentPtr renderComponent, 
+	const eastl::shared_ptr<Texture2>& texture, 
+	const Vector2<float>& size, const eastl::shared_ptr<Light>& light)
+	:	Node(actorId, renderComponent, NT_LIGHT), mLight(light)
 {
+	SetSize(size);
+
 	mPVWUpdater = updater;
+
+	mBlendState = eastl::make_shared<BlendState>();
+	mDepthStencilState = eastl::make_shared<DepthStencilState>();
 
 	// A point light illuminates the target.  Create a semitransparent
 	// material for the patch.
 	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
-	eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
-
 	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
-	material->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
-	material->mDiffuse = { 1.0f, 0.85f, 0.75f, 0.5f };
-	material->mSpecular = { 0.8f, 0.8f, 0.8f, 1.0f };
+	material->mAmbient = mLight->mLighting->mAmbient;
+	material->mDiffuse = mLight->mLighting->mDiffuse;
+	material->mSpecular = mLight->mLighting->mSpecular;
 
-	// Create a parabolic rectangle patch that is illuminated by the light.
-	// To hide the artifacts of vertex normal lighting on a grid, the patch
-	// is slightly bent so that the intersection with a plane is nearly
-	// circular.  The patch is translated slightly below the plane of the
-	// ground to hide the corners and the jaggies.
 	struct Vertex
 	{
-		Vector3<float> position, normal;
+		Vector3<float> position;
+		Vector4<float> color;
+		Vector2<float> tcoord;
 	};
-
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	// Create a flat surface.
-	MeshFactory mf;
-	mf.SetVertexFormat(vformat);
-	mVisual = mf.CreateRectangle(64, 64, light->mLighting->mRadius, light->mLighting->mRadius);
+	MeshBuffer* meshBuffer = new MeshBuffer(vformat, 4, 2, sizeof(unsigned int));
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+		meshBuffer->GetMaterial() = material;
+	mMeshBuffer.reset(meshBuffer);
+	SetMaterialTexture(0, texture);
 
-	// Adjust the heights to form a paraboloid.
-	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
-	unsigned int const numVertices = vbuffer->GetNumActiveElements();
-	Vertex* vertex = vbuffer->Get<Vertex>();
-	for (unsigned int i = 0; i < numVertices; ++i)
+	// fill vertices
+	for (unsigned int i = 0; i<mMeshBuffer->GetVertice()->GetNumElements(); i += 4)
 	{
-		Vector3<float>& pos = vertex[i].position;
-		pos[2] = 1.0f - (pos[0] * pos[0] + pos[1] * pos[1]) / 128.0f;
+		mMeshBuffer->TCoord(0, 0 + i) = Vector2<float>{ 0.0f, 0.0f };
+		mMeshBuffer->TCoord(0, 1 + i) = Vector2<float>{ 0.0f, 1.0f };
+		mMeshBuffer->TCoord(0, 2 + i) = Vector2<float>{ 1.0f, 1.0f };
+		mMeshBuffer->TCoord(0, 3 + i) = Vector2<float>{ 1.0f, 0.0f };
 	}
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightEffectPerVertex.hlsl");
-	eastl::shared_ptr<PointLightEffect> effect = eastl::make_shared<PointLightEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, 0, material, light->mLighting, geometry);
-	mVisual->SetEffect(effect);
-	mVisual->UpdateModelNormals();
-	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
-
-	// Encapsulate the light in a light node.  Rotate the light node so the
-	// light points downward.
-	mLightVolume = eastl::make_shared<ViewVolumeNode>(INVALID_ACTOR_ID, light);
-	mLightVolume->SetOnUpdate([this](ViewVolumeNode*)
+	// fill indices
+	int vertices = 0;
+	for (unsigned int i = 0; i<mMeshBuffer->GetIndice()->GetNumPrimitives(); i += 2, vertices += 4)
 	{
-		// The camera model position must be updated for the light targets to
-		// move.  The light model position is not updated because the point
-		// lights must move with their corresponding light targets.
-		eastl::shared_ptr<PointLightEffect> effect =
-			eastl::static_pointer_cast<PointLightEffect>(mVisual->GetEffect());
-		auto geometry = effect->GetGeometry();
+		mMeshBuffer->GetIndice()->SetTriangle(i,
+			(unsigned int)0 + vertices, (unsigned int)2 + vertices, (unsigned int)1 + vertices);
+		mMeshBuffer->GetIndice()->SetTriangle(i + 1,
+			(unsigned int)0 + vertices, (unsigned int)3 + vertices, (unsigned int)2 + vertices);
+	}
 
-		GameApplication* gameApp = (GameApplication*)Application::App;
-		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
-		geometry->cameraModelPosition = 
-			pScene->GetActiveCamera()->GetAbsoluteTransform().GetTranslationW1();
-		effect->UpdateGeometryConstant();
-	});
-
-	AttachChild(mLightVolume);
+	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl");
+	mEffect = eastl::make_shared<Texture2ColorEffect>(
+		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
+		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
+	mVisual = eastl::make_shared<Visual>(
+		mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect);
 
 	DoLightRecalc();
 }
@@ -106,8 +97,56 @@ bool LightNode::PreRender(Scene *pScene)
 //
 bool LightNode::Render(Scene *pScene)
 {
-	if (!Renderer::Get())
+	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
+
+	if (!cameraNode || !Renderer::Get())
 		return false;
+
+	/* Vertices are:
+	2--1
+	|\ |
+	| \|
+	3--0
+	*/
+
+	Vector3<float> scale = GetAbsoluteTransform().GetScale();
+	Vector3<float> position = GetAbsoluteTransform().GetTranslation();
+
+	float f = 0.5f * mSize[0];
+	const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
+
+	f = 0.5f * mSize[1];
+	const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
+
+	mMeshBuffer->Position(0) = position + HProject( horizontal + vertical) * scale;
+	mMeshBuffer->Color(0, 0) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(1) = position + HProject( horizontal - vertical) * scale;
+	mMeshBuffer->Color(0, 1) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(2) = position + HProject( -horizontal - vertical) * scale;
+	mMeshBuffer->Color(0, 2) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(3) = position + HProject( -horizontal + vertical) * scale;
+	mMeshBuffer->Color(0, 3) = mMeshBuffer->GetMaterial()->mDiffuse;
+
+	eastl::shared_ptr<ConstantBuffer> cbuffer;
+	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
+	*cbuffer->Get<Matrix4x4<float>>() = cameraNode->Get()->GetProjectionViewMatrix();
+
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+	{
+		GetMaterial(i)->Update(mBlendState);
+		GetMaterial(i)->Update(mDepthStencilState);
+	}
+
+	Renderer::Get()->SetBlendState(mBlendState);
+	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
+
+	Renderer* renderer = Renderer::Get();
+	renderer->Update(mMeshBuffer->GetVertice());
+	renderer->Update(cbuffer);
+	renderer->Draw(mVisual);
+
+	Renderer::Get()->SetDefaultBlendState();
+	Renderer::Get()->SetDefaultDepthStencilState();
 
 	/*
 	if (DebugDataVisible() & DS_BBOX )
@@ -133,61 +172,113 @@ bool LightNode::Render(Scene *pScene)
 				break;
 		}
 	}
-
-	mDriverLightIndex = Renderer::Get()->AddDynamicLight(mLightData.mLighting);
 	*/
-	SetVisible(mLightIsOn);
+
 	return true;
 }
 
-const eastl::shared_ptr<Lighting>& LightNode::GetLightData() const
+//! sets the size of the billboard
+void LightNode::SetSize(const Vector2<float>& size)
 {
-	eastl::shared_ptr<PointLightEffect> effect =
-		eastl::static_pointer_cast<PointLightEffect>(mVisual->GetEffect());
-	return effect->GetLighting();
+	mSize = size;
 }
 
-void LightNode::SetVisible(bool isVisible)
+//! gets the size of the light node
+const Vector2<float>& LightNode::GetSize() const
 {
-	mIsVisible = isVisible;
+	return mSize;
+}
 
-	if(mDriverLightIndex < 0)
-		return;
+//! Gets the light type.
+/** \return The current light type. */
+LightType LightNode::GetLightType() const
+{
+	return mLight->mLighting->mType;
+}
 
-	if (!Renderer::Get())
-		return;
-
-	mLightIsOn = isVisible;
-	//Renderer::Get()->TurnLightOn((unsigned int)mDriverLightIndex, mLightIsOn);
+//! Gets the light.
+/** \return The current light. */
+eastl::shared_ptr<Light> const& LightNode::GetLight() const 
+{ 
+	return mLight; 
 }
 
 void LightNode::DoLightRecalc()
 {
-	eastl::shared_ptr<PointLightEffect> effect =
-		eastl::static_pointer_cast<PointLightEffect>(mVisual->GetEffect());
-
-	if ((effect->GetLighting()->mType == LT_SPOT) ||
-		(effect->GetLighting()->mType == LT_DIRECTIONAL))
+	if ((mLight->mLighting->mType == LT_SPOT) ||
+		(mLight->mLighting->mType == LT_DIRECTIONAL))
 	{
-		effect->GetLighting()->mDirection = Vector3<float>{ 0.f, 0.f, 1.f };
-		//toWorld.RotateVect(mLightData.mLighting->mDirection);
-		//mLightData.mLighting->mDirection.Normalize();
+		/*
+		Vector4<float> lightDirection = Vector4<float>::Unit(1);
+		GetAbsoluteTransform().GetRotation().Transformation(Vector4<float>::Unit(1), lightDirection);
+		mLight->mLighting->mDirection = HProject(lightDirection);
+		Normalize(mLight->mLighting->mDirection);
+		*/
 	}
-	if ((effect->GetLighting()->mType == LT_SPOT) ||
-		(effect->GetLighting()->mType == LT_POINT))
+	if ((mLight->mLighting->mType == LT_SPOT) ||
+		(mLight->mLighting->mType == LT_POINT))
 	{
-		const float r = effect->GetLighting()->mRadius * effect->GetLighting()->mRadius * 0.5f;
+		mLight->mLighting->mPosition = GetAbsoluteTransform().GetTranslation();
 		//mBBox.MaxEdge.set( r, r, r );
 		//mBBox.MinEdge.set( -r, -r, -r );
 		//Get()->SetAutomaticCulling( AC_BOX );
 		//Get()->SetAutomaticCulling( AC_OFF );
-		//mLightData.mLighting->mPosition = toWorld.GetTranslation();
 	}
-	if (effect->GetLighting()->mType == LT_DIRECTIONAL)
+	if (mLight->mLighting->mType == LT_DIRECTIONAL)
 	{
 		//mBBox.Reset( 0, 0, 0 );
 		//Get()->SetAutomaticCulling( AC_OFF );
 	}
+}
 
-	//SetTransform(&toWorld);
+//! Returns the visual based on the zero based index i. To get the amount 
+//! of visuals used by this scene node, use GetVisualCount(). 
+//! This function is needed for inserting the node into the scene hierarchy 
+//! at an optimal position for minimizing renderstate changes, but can also 
+//! be used to directly modify the visual of a scene node.
+eastl::shared_ptr<Visual> const& LightNode::GetVisual(unsigned int i)
+{
+	return mVisual;
+}
+
+//! return amount of visuals of this scene node.
+unsigned int LightNode::GetVisualCount() const
+{
+	return 1;
+}
+
+//! returns the material based on the zero based index i. To get the amount
+//! of materials used by this scene node, use GetMaterialCount().
+//! This function is needed for inserting the node into the scene hirachy on a
+//! optimal position for minimizing renderstate changes, but can also be used
+//! to directly modify the material of a scene node.
+eastl::shared_ptr<Material> const& LightNode::GetMaterial(unsigned int i)
+{
+	return mMeshBuffer->GetMaterial();
+}
+
+//! returns amount of materials used by this scene node.
+unsigned int LightNode::GetMaterialCount() const
+{
+	return 1;
+}
+
+//! Sets the texture of the specified layer in all materials of this scene node to the new texture.
+/** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
+\param texture New texture to be used. */
+void LightNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Texture2> texture)
+{
+	if (textureLayer >= MATERIAL_MAX_TEXTURES)
+		return;
+
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i)->SetTexture(textureLayer, texture);
+}
+
+//! Sets the material type of all materials in this scene node to a new material type.
+/** \param newType New type of material to be set. */
+void LightNode::SetMaterialType(MaterialType newType)
+{
+	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+		GetMaterial(i)->mType = newType;
 }

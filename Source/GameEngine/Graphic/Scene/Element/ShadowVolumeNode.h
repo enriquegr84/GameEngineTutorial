@@ -5,7 +5,7 @@
 #ifndef SHADOWVOLUMENODE_H
 #define SHADOWVOLUMENODE_H
 
-#include "Graphic/Effect/PointLightTextureEffect.h"
+#include "Graphic/Effect/LightingEffect.h"
 #include "Graphic/Scene/Hierarchy/Node.h"
 
 //! Scene node for rendering a shadow volume into a stencil buffer.
@@ -61,7 +61,7 @@ private:
 	eastl::vector<eastl::shared_ptr<DepthStencilState>> mDepthStencilStates;
 
 	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
-	eastl::shared_ptr<PointLightTextureEffect> mEffect;
+	eastl::shared_ptr<LightingEffect> mEffect;
 	eastl::shared_ptr<BaseMesh> mShadowMesh;
 
 	unsigned int mIndexCount;

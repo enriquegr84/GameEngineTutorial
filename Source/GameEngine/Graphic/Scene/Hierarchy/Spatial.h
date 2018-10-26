@@ -8,7 +8,6 @@
 #ifndef SPATIAL_H
 #define SPATIAL_H
 
-#include "Graphic/Scene/Controller/ControlledObject.h"
 #include "Graphic/Scene/Visibility/Culler.h"
 
 #include <EASTL/string.h>
@@ -53,7 +52,7 @@ enum GRAPHIC_ITEM DebugSceneType
 // derives from Spatial and represents sound data.
 
 
-class GRAPHIC_ITEM Spatial : public ControlledObject
+class GRAPHIC_ITEM Spatial
 {
 public:
     // Abstract base class.
@@ -127,7 +126,7 @@ protected:
     Spatial();
 
     // Support for geometric updates.
-    virtual void UpdateWorldData(double applicationTIme);
+    virtual void UpdateWorldData();
     virtual void UpdateWorldBound() = 0;
     void PropagateBoundToRoot();
 

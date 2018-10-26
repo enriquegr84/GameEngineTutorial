@@ -38,15 +38,8 @@ void SkinMeshBuffer::CreateVBuffer(unsigned int numVertices)
 	{
 		//Vertex
 		{
-			// Get the position channel.
+			// Get the geometric channel.
 			mVertexPositions = GetGeometricChannel(vbuffer, VA_POSITION, 1.0f);
-			if (!mVertexPositions)
-			{
-				LogError("Positions are required.");
-				return;
-			}
-
-			// Get the optional geometric channels.
 			mVertexNormals = GetGeometricChannel(vbuffer, VA_NORMAL, 0.0f);
 			mVertexTangents = GetGeometricChannel(vbuffer, VA_TANGENT, 0.0f);
 			mVertexBitangents = GetGeometricChannel(vbuffer, VA_BINORMAL, 0.0f);

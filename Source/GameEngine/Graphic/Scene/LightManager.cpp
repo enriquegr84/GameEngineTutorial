@@ -7,174 +7,96 @@
 
 #include "LightManager.h"
 
+#include "Graphic/Scene/Element/CameraNode.h"
+
 #include "Application/GameApplication.h"
 
-// When exposed, turns off lighting so that the scene is unlit (texturing only).
-//#define DISABLE_LIGHTING
-
-// When exposed, use a directional light to modulate the textures.  When not
-// exposed, use a point light to modulate the textures.
-//#define USE_DIRECTIONAL_LIGHT_TEXTURE
-
-//----------------------------------------------------------------------------
-
 LightManager::LightManager()
-	: mMode(NO_MANAGEMENT), mRequestedMode(NO_MANAGEMENT),
-	mSceneLightList(0), mCurrentRenderPass(RP_NONE), mCurrentSceneNode(0)
+	:	mMode(NO_MANAGEMENT), mSceneLightList(0), mCurrentRenderPass(RP_NONE), mCurrentSceneNode(0)
 { 
 #if defined(GE_DEV_OPENGL)
-	mDLight = eastl::make_shared<Light>(true, false);
+	mLight = eastl::make_shared<Light>(true, false);
 #else
-	mDLight = eastl::make_shared<Light>(true, true);
+	mLight = eastl::make_shared<Light>(true, true);
 #endif
-	mDLight->mLighting = eastl::make_shared<Lighting>();
-
-	/*
-	eastl::shared_ptr<ViewVolumeNode> lightNode = 
-		eastl::make_shared<ViewVolumeNode>(INVALID_ACTOR_ID, mDLight);
-
-	lightNode->GetRelativeTransform().SetTranslation(1628.448730f, -51.877197f, 0.0f);
-	lightNode->GetRelativeTransform().SetRotation(
-		AxisAngle<4, float>({ -1.0f, 0.0f, 0.0f, 0.0f }, (float)GE_C_HALF_PI));
-
-	mDLightRoot = eastl::make_shared<Node>(GameLogic::Get()->GetNewActorID());
-	mDLightRoot->GetRelativeTransform().SetTranslation(-1824.998657f, -1531.269775f, 3886.592773f);
-	mDLightRoot->GetRelativeTransform().SetRotation(
-		AxisAngle<4, float>({ -0.494124f, 0.325880f, 0.806005f }, 1.371538f));
-
-	mDLightRoot->AttachChild(lightNode);
-	mDLightRoot->Update();
-	*/
+	mLight->mLighting = eastl::make_shared<Lighting>();
+	mLight->mLighting->mAmbient = Renderer::Get()->GetClearColor();
+	mLight->mLighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
 }
 
-void LightManager::UpdateCameraLightModelPositions(
-	eastl::shared_ptr<Node> node, eastl::shared_ptr<Camera> camera)
+void LightManager::UpdateCameraLightModelPositions(Node* node, CameraNode* cameraNode)
 {
-	Visual* visual = dynamic_cast<Visual*>(node.get());
-	if (visual)
+	if (node->IsVisible())
 	{
-		VisualEffect* effect = visual->GetEffect().get();
-#if defined(USE_DIRECTIONAL_LIGHT_TEXTURE)
-		DirectionalLightTextureEffect* ltEffect =
-			dynamic_cast<DirectionalLightTextureEffect*>(effect);
-#else
-		PointLightTextureEffect* ltEffect =
-			dynamic_cast<PointLightTextureEffect*>(effect);
-#endif
-		if (ltEffect)
+		for (unsigned int i = 0; i < node->GetVisualCount(); ++i)
 		{
-			Matrix4x4<float> invWMatrix = node->GetAbsoluteTransform().GetHInverse();
-			auto geometry = ltEffect->GetGeometry();
+			eastl::shared_ptr<Visual> visual = node->GetVisual(i);
+
+			if (visual)
+			{
+				LightingEffect* ltEffect = dynamic_cast<LightingEffect*>(visual->GetEffect().get());
+				if (ltEffect)
+				{
+					ltEffect->SetLighting(mLight->mLighting);
+					ltEffect->UpdateLightingConstant();
+
+					ltEffect->SetGeometry(eastl::make_shared<LightCameraGeometry>());
+					ltEffect->UpdateGeometryConstant();
+
+					for (unsigned int i = 0; i < mSceneLightList->size(); i++)
+					{
+						LightNode* lightNode = dynamic_cast<LightNode*>((*mSceneLightList)[i]);
+						if (!lightNode->IsVisible()) continue;
+
+						Vector4<float> cameraPosition = cameraNode->GetAbsoluteTransform().GetTranslationW1();
+						Matrix4x4<float> cameraRotation = cameraNode->GetAbsoluteTransform().GetRotation();
+
+						// The pvw-matrices are updated automatically whenever the camera moves
+						// or is rotated.  Here we need to update the camera model position, 
+						// light model position, and light model direction.
+						Matrix4x4<float> invWMatrix = node->GetAbsoluteTransform().GetHInverse();
+
+						Vector4<float> lightPosition = lightNode->GetAbsoluteTransform().GetTranslationW1();
+						Vector4<float> lightDirection = HLift(lightNode->GetLight()->mLighting->mDirection, 0.f);
+						Normalize(lightDirection);
+
+						auto geometry = ltEffect->GetGeometry();
 #if defined(GE_USE_MAT_VEC)
-			geometry->lightModelPosition = invWMatrix * mDLight->GetPosition();
-			geometry->lightModelDirection = invWMatrix * mDLight->GetDVector();
-			geometry->cameraModelPosition = invWMatrix * camera->GetPosition();
+						geometry->lightModelPosition = invWMatrix * lightPosition;
+						geometry->lightModelDirection = invWMatrix * lightDirection;
+						geometry->cameraModelPosition = invWMatrix * cameraPosition;
 #else
-			geometry->lightModelPosition = mDLight->GetPosition() * invWMatrix;
-			geometry->lightModelDirection = mDLight->GetDVector() * invWMatrix;
-			geometry->cameraModelPosition = mCamera->GetPosition() * invWMatrix;
+						geometry->lightModelPosition = lightPosition * invWMatrix;
+						geometry->lightModelDirection = lightDirection * invWMatrix;
+						geometry->cameraModelPosition = cameraPosition * invWMatrix;
 #endif
-			Normalize(geometry->lightModelDirection);
-			ltEffect->UpdateGeometryConstant();
-		}
-		return;
-	}
+						Normalize(geometry->lightModelDirection);
+						ltEffect->UpdateGeometryConstant();
 
-	if (node)
-	{
-		for (int i = 0; i < node->GetNumChildren(); ++i)
-			if (node->GetChild(i))
-				UpdateCameraLightModelPositions(node->GetChild(i), camera);
+						eastl::shared_ptr<Lighting> lighting = ltEffect->GetLighting();
+						lighting->mAttenuation = lightNode->GetLight()->mLighting->mAttenuation;
+						lighting->mSpotCutoff = lightNode->GetLight()->mLighting->mSpotCutoff;
+						ltEffect->SetLighting(lighting);
+						ltEffect->UpdateLightingConstant();
+						break;
+					}
+				}
+			}
+		}
 	}
 }
 
 //
-// LightManager::UpdateLighting					- Chapter 16, page 554
+// LightManager::OnNodeLighting
 //
-void LightManager::UpdateLighting(Scene *pScene)
+void LightManager::OnNodeLighting(Scene *pScene, Node* node)
 {
-	UpdateCameraLightModelPositions(pScene->GetRootNode(), pScene->GetActiveCamera()->Get());
-	/*
-	//	FUTURE WORK: There might be all kinds of things you'd want to do here for optimization, 
-	//	especially turning off lights on actors that can't be seen, etc.
-	pScene->GetRenderer()->UpdateLighting(&mLights, MAXIMUM_LIGHTS_SUPPORTED);
-
-	int count = 0;
-
-	LogAssertion(mLights.size() < MAXIMUM_LIGHTS_SUPPORTED);
-	for (Lights::iterator i = mLights.begin(); i != mLights.end(); ++i, ++count)
-	{
-		shared_ptr<LightNode> light = *i;
-
-		if (count == 0)
-		{
-			// Light 0 is the only one we use for ambient lighting. The rest are ignored in the simple shaders used for GameCode4.
-			Color ambient = light->VGet()->GetMaterial().GetAmbient();
-			mLightAmbient = D3DXVECTOR4(ambient.r, ambient.g, ambient.b, 1.0f);
-		}
-
-		Vec3 lightDir = light->GetDirection();
-		mLightDir[count] = D3DXVECTOR4(lightDir.x, lightDir.y, lightDir.z, 1.0f);
-		mLightDiffuse[count] = light->VGet()->GetMaterial().GetDiffuse();
-	}
-	*/
+	UpdateCameraLightModelPositions(node, pScene->GetActiveCamera().get());
 }
-
-
-void LightManager::UpdateLighting(Lighting* pLighting, Node *pNode)
-{
-	/*
-	int count = GetLightCount(pNode);
-	if (count)
-	{
-		pLighting->ambient = *GetLightAmbient(pNode);
-		memcpy(pLighting->specular, GetLightDirection(pNode), sizeof(Vec4) * count);
-		memcpy(pLighting->diffuse, GetLightDiffuse(pNode), sizeof(Vec4) * count);
-		pLighting->mNumLights = count;
-	}
-	*/
-}
-/*
-// The input receiver interface, which just switches light management strategy
-bool LightManager::OnEvent(const Event & event)
-{
-	bool handled = false;
-
-	if (event.mEventType == ET_KEY_INPUT_EVENT && event.mKeyInput.mPressedDown)
-	{
-		handled = true;
-		switch (event.mKeyInput.mKey)
-		{
-		case KEY_KEY_1:
-			mRequestedMode = NO_MANAGEMENT;
-			break;
-		case KEY_KEY_2:
-			mRequestedMode = LIGHTS_NEAREST_NODE;
-			break;
-		case KEY_KEY_3:
-			mRequestedMode = LIGHTS_IN_ZONE;
-			break;
-		default:
-			handled = false;
-			break;
-		}
-
-		if (NO_MANAGEMENT == mRequestedMode)
-			SceneManager->SetLightManager(0); // Show that it's safe to register the light manager
-		else
-			SceneManager->SetLightManager(this);
-	}
-
-	return handled;
-}
-*/
 
 // This is called before the first scene node is rendered.
 void LightManager::OnPreRender(eastl::vector<Node*> & lightList)
 {
-	// Update the mode; changing it here ensures that it's consistent throughout a render
-	mMode = mRequestedMode;
-
 	// Store the light list. I am free to alter this list until the end of OnPostRender().
 	mSceneLightList = &lightList;
 }
@@ -187,7 +109,10 @@ void LightManager::OnPostRender()
 	// to do this when using a light manager, since you'd continue to do light management
 	// yourself.
 	for (unsigned int i = 0; i < mSceneLightList->size(); i++)
-		(*mSceneLightList)[i]->SetVisible(true);
+	{
+		Node* lightNode = (*mSceneLightList)[i];
+		lightNode->SetVisible(true);
+	}
 }
 
 void LightManager::OnRenderPassPreRender(RenderPass renderPass)
@@ -198,10 +123,15 @@ void LightManager::OnRenderPassPreRender(RenderPass renderPass)
 
 void LightManager::OnRenderPassPostRender(RenderPass renderPass)
 {
-	// I only want solid nodes to be lit, so after the solid pass, turn all lights off.
-	if (RP_SOLID == renderPass)
+	// I only want solid nodes to be lit, so after the light pass, turn all lights off.
+	if (RP_LIGHT == renderPass)
+	{
 		for (unsigned int i = 0; i < mSceneLightList->size(); ++i)
-			(*mSceneLightList)[i]->SetVisible(false);
+		{
+			Node* lightNode = (*mSceneLightList)[i];
+			lightNode->SetVisible(false);
+		}
+	}
 }
 
 // This is called before the specified scene node is rendered
@@ -215,7 +145,7 @@ void LightManager::OnNodePreRender(Node* node)
 		return;
 
 	// And in fact for this example, I only want to consider lighting for cube scene
-	// nodes.  You will probably want to deal with lighting for (at least) mesh /
+	// nodes. You will probably want to deal with lighting for (at least) mesh /
 	// animated mesh scene nodes as well.
 	if (node->GetType() != NT_CUBE)
 		return;
@@ -240,19 +170,18 @@ void LightManager::OnNodePreRender(Node* node)
 			const float distance = Length(
 				lightNode->GetAbsoluteTransform().GetTranslation() - nodePosition);
 			sortingArray.push_back(LightDistanceElement(lightNode, distance));
-
 		}
 
 		eastl::sort(sortingArray.begin(), sortingArray.end());
 
 		// The list is now sorted by proximity to the node.
-		// Turn on the three nearest lights, and turn the others off.
+		// Turn on the nearest light, and turn the others off.
 		for (i = 0; i < sortingArray.size(); ++i)
-			sortingArray[i].node->SetVisible(i < 3);
+			sortingArray[i].node->SetVisible(i < 1);
 	}
 	else if (LIGHTS_IN_ZONE == mMode)
 	{
-		// Empty scene nodes are used to represent 'zones'.  For each solid mesh that
+		// Empty scene nodes are used to represent 'zones'. For each solid mesh that
 		// is being rendered, turn off all lights, then find its 'zone' parent, and turn
 		// on all lights that are found under that node in the scene graph.
 		// This is a general purpose algorithm that doesn't use any special
@@ -263,7 +192,7 @@ void LightManager::OnNodePreRender(Node* node)
 				continue;
 			LightNode* lightNode = static_cast<LightNode*>((*mSceneLightList)[i]);
 
-			if (LT_DIRECTIONAL != lightNode->GetLightData()->mType)
+			if (LT_DIRECTIONAL != lightNode->GetLightType())
 				lightNode->SetVisible(false);
 		}
 
@@ -276,364 +205,32 @@ void LightManager::OnNodePreRender(Node* node)
 // Called after the specified scene node is rendered
 void LightManager::OnNodePostRender(Node* node)
 {
-	// I don't need to do any light management after individual node rendering.
+	// any light management after individual node rendering.
 }
 
-/*
-void LightManager::OnIdle()
+// Find the empty scene node that is the parent of the specified node
+Node* LightManager::FindZone(Node* node)
 {
-	mTimer.Measure();
+	if (!node)
+		return nullptr;
 
-	if (mCameraRig.Move())
-	{
-		mPVWMatrices.Update();
-	}
-	UpdateConstants();
+	if (node->GetType() == NT_EMPTY)
+		return node;
 
-	mEngine->ClearBuffers();
-	mEngine->Draw(mPlane[0]);
-	mEngine->Draw(mPlane[1]);
-	mEngine->Draw(mSphere[0]);
-	mEngine->Draw(mSphere[1]);
-	std::array<float, 4> textColor{ 1.0f, 1.0f, 1.0f, 1.0f };
-	mEngine->Draw(8, 16, textColor, mCaption[mType]);
-	mEngine->Draw(8, mYSize - 8, textColor, mTimer.GetFPS());
-	mEngine->DisplayColorBuffer(0);
-
-	mTimer.UpdateFrameCount();
+	return FindZone((Node*)node->GetParent());
 }
 
-bool LightManager::OnCharPress(unsigned char key, int x, int y)
+// Turn on all lights that are children (directly or indirectly) of the
+// specified scene node.
+void LightManager::TurnOnZoneLights(Node * node)
 {
-	switch (key)
+	SceneNodeList children = node->GetChildren();
+	for (SceneNodeList::const_iterator child = children.begin(); child != children.end(); ++child)
 	{
-	case 'w':   // toggle wireframe
-	case 'W':
-		if (mEngine->GetRasterizerState() == mWireState)
-		{
-			mEngine->SetDefaultRasterizerState();
-		}
-		else
-		{
-			mEngine->SetRasterizerState(mWireState);
-		}
-		return true;
-
-	case 'd':   // use directional lights
-	case 'D':
-		UseLightType(LDIR);
-		return true;
-
-	case 'p':   // use point lights
-	case 'P':
-		UseLightType(LPNT);
-		return true;
-
-	case 's':   // use spot lights
-	case 'S':
-		UseLightType(LSPT);
-		return true;
-
-	case 'i':   // decrease light intensity
-		for (int lt = 0; lt < LNUM; ++lt)
-		{
-			for (int gt = 0; gt < GNUM; ++gt)
-			{
-				for (int st = 0; st < SNUM; ++st)
-				{
-					auto effect = mEffect[lt][gt][st];
-					auto lighting = effect->GetLighting();
-					lighting->attenuation[3] -= 0.125f;
-					lighting->attenuation[3] = eastl::max(lighting->attenuation[3], 0.0f);
-					effect->UpdateLightingConstant();
-				}
-			}
-		}
-		return true;
-
-	case 'I':   // increase light intensity
-		for (int lt = 0; lt < LNUM; ++lt)
-		{
-			for (int gt = 0; gt < GNUM; ++gt)
-			{
-				for (int st = 0; st < SNUM; ++st)
-				{
-					auto effect = mEffect[lt][gt][st];
-					auto lighting = effect->GetLighting();
-					lighting->attenuation[3] += 0.125f;
-					lighting->attenuation[3] = std::min(lighting->attenuation[3], 1.0f);
-					effect->UpdateLightingConstant();
-				}
-			}
-		}
-		return true;
-
-	case 'a':   // decrease spot angle
-		for (int gt = 0; gt < GNUM; ++gt)
-		{
-			for (int st = 0; st < SNUM; ++st)
-			{
-				auto effect = mEffect[LSPT][gt][st];
-				auto lighting = effect->GetLighting();
-				lighting->spotCutoff[0] -= 0.1f;
-				lighting->spotCutoff[0] = eastl::max(lighting->spotCutoff[0], 0.0f);
-				lighting->spotCutoff[1] = cos(lighting->spotCutoff[0]);
-				lighting->spotCutoff[2] = sin(lighting->spotCutoff[0]);
-				effect->UpdateLightingConstant();
-			}
-		}
-		return true;
-
-	case 'A':   // increase spot angle
-		for (int gt = 0; gt < GNUM; ++gt)
-		{
-			for (int st = 0; st < SNUM; ++st)
-			{
-				auto effect = mEffect[LSPT][gt][st];
-				auto lighting = effect->GetLighting();
-				lighting->spotCutoff[0] -= 0.1f;
-				lighting->spotCutoff[0] = eastl::min(lighting->spotCutoff[0], (float)GE_C_HALF_PI);
-				lighting->spotCutoff[1] = cos(lighting->spotCutoff[0]);
-				lighting->spotCutoff[2] = sin(lighting->spotCutoff[0]);
-				effect->UpdateLightingConstant();
-			}
-		}
-		return true;
-
-	case 'e':   // decrease spot exponent
-		for (int gt = 0; gt < GNUM; ++gt)
-		{
-			for (int st = 0; st < SNUM; ++st)
-			{
-				auto effect = mEffect[LSPT][gt][st];
-				auto lighting = effect->GetLighting();
-				lighting->spotCutoff[3] *= 0.5f;
-				effect->UpdateLightingConstant();
-			}
-		}
-		return true;
-
-	case 'E':   // increase spot exponent
-		for (int gt = 0; gt < GNUM; ++gt)
-		{
-			for (int st = 0; st < SNUM; ++st)
-			{
-				auto effect = mEffect[LSPT][gt][st];
-				auto lighting = effect->GetLighting();
-				lighting->spotCutoff[3] *= 2.0f;
-				effect->UpdateLightingConstant();
-			}
-		}
-		return true;
-	}
-	return Window::OnCharPress(key, x, y);
-}
-
-void LightManager::CreateScene()
-{
-	// Copper color for the planes.
-	Vector4<float> planeAmbient{ 0.2295f, 0.08825f, 0.0275f, 1.0f };
-	Vector4<float> planeDiffuse{ 0.5508f, 0.2118f, 0.066f, 1.0f };
-	Vector4<float> planeSpecular{ 0.580594f, 0.223257f, 0.0695701f, 51.2f };
-
-	// Gold color for the spheres.
-	Vector4<float> sphereAmbient{ 0.24725f, 0.2245f, 0.0645f, 1.0f };
-	Vector4<float> sphereDiffuse{ 0.34615f, 0.3143f, 0.0903f, 1.0f };
-	Vector4<float> sphereSpecular{ 0.797357f, 0.723991f, 0.208006f, 83.2f };
-
-	// Various parameters shared by the lighting constants.  The geometric
-	// parameters are dynamic, modified by UpdateConstants() whenever the
-	// camera or scene moves.  These include camera model position, light
-	// model position, light model direction, and model-to-world matrix.
-	// The typecasts on cos/sin are to avoid an incorrect g++ warning with
-	// Fedora 21 Linux.
-	Vector4<float> darkGray{ 0.1f, 0.1f, 0.1f, 1.0f };
-	Vector4<float> lightGray{ 0.75f, 0.75f, 0.75f, 1.0f };
-	float angle = 0.125f*(float)GE_C_PI;
-	Vector4<float> lightSpotCutoff{ angle, (float)cos(angle), (float)sin(angle), 1.0f };
-
-	mLightWorldPosition[SVTX] = { 4.0f, 4.0f - 8.0f, 8.0f, 1.0f };
-	mLightWorldPosition[SPXL] = { 4.0f, 4.0f + 8.0f, 8.0f, 1.0f };
-	mLightWorldDirection = { -1.0f, -1.0f, -1.0f, 0.0f };
-	Normalize(mLightWorldDirection);
-
-	std::shared_ptr<Material> material[LNUM][GNUM];
-	std::shared_ptr<Lighting> lighting[LNUM][GNUM];
-	std::shared_ptr<LightCameraGeometry> geometry[LNUM][GNUM];
-	for (int lt = 0; lt < LNUM; ++lt)
-	{
-		for (int gt = 0; gt < GNUM; ++gt)
-		{
-			material[lt][gt] = std::make_shared<Material>();
-			lighting[lt][gt] = std::make_shared<Lighting>();
-			geometry[lt][gt] = std::make_shared<LightCameraGeometry>();
-		}
-	}
-
-	// Initialize the directional lighting constants.
-	material[LDIR][GPLN]->ambient = planeAmbient;
-	material[LDIR][GPLN]->diffuse = planeDiffuse;
-	material[LDIR][GPLN]->specular = planeSpecular;
-	lighting[LDIR][GPLN]->ambient = lightGray;
-	material[LDIR][GSPH]->ambient = sphereAmbient;
-	material[LDIR][GSPH]->diffuse = sphereDiffuse;
-	material[LDIR][GSPH]->specular = sphereSpecular;
-	lighting[LDIR][GSPH]->ambient = lightGray;
-
-	// Initialize the point lighting constants.
-	material[LPNT][GPLN]->ambient = planeAmbient;
-	material[LPNT][GPLN]->diffuse = planeDiffuse;
-	material[LPNT][GPLN]->specular = planeSpecular;
-	lighting[LPNT][GPLN]->ambient = darkGray;
-	material[LPNT][GSPH]->ambient = sphereAmbient;
-	material[LPNT][GSPH]->diffuse = sphereDiffuse;
-	material[LPNT][GSPH]->specular = sphereSpecular;
-	lighting[LPNT][GSPH]->ambient = darkGray;
-
-	// Initialize the spot lighting constants.
-	material[LSPT][GPLN]->ambient = planeAmbient;
-	material[LSPT][GPLN]->diffuse = planeDiffuse;
-	material[LSPT][GPLN]->specular = planeSpecular;
-	lighting[LSPT][GPLN]->ambient = darkGray;
-	lighting[LSPT][GPLN]->spotCutoff = lightSpotCutoff;
-	material[LSPT][GSPH]->ambient = sphereAmbient;
-	material[LSPT][GSPH]->diffuse = sphereDiffuse;
-	material[LSPT][GSPH]->specular = sphereSpecular;
-	lighting[LSPT][GSPH]->ambient = darkGray;
-	lighting[LSPT][GSPH]->spotCutoff = lightSpotCutoff;
-
-	// Create the effects.
-	for (int gt = 0; gt < GNUM; ++gt)
-	{
-		for (int st = 0; st < SNUM; ++st)
-		{
-			mEffect[LDIR][gt][st] = std::make_shared<DirectionalLightEffect>(
-				mProgramFactory, mBufferUpdater, st,
-				material[LDIR][gt], lighting[LDIR][gt], geometry[LDIR][gt]);
-
-			mEffect[LPNT][gt][st] = std::make_shared<PointLightEffect>(
-				mProgramFactory, mBufferUpdater, st,
-				material[LPNT][gt], lighting[LPNT][gt], geometry[LPNT][gt]);
-
-			mEffect[LSPT][gt][st] = std::make_shared<SpotLightEffect>(
-				mProgramFactory, mBufferUpdater, st,
-				material[LSPT][gt], lighting[LSPT][gt], geometry[LSPT][gt]);
-		}
-	}
-
-	// Create the planes and spheres.
-	VertexFormat vformat;
-	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
-	MeshFactory mf;
-	mf.SetVertexFormat(vformat);
-
-	mPlane[SVTX] = mf.CreateRectangle(128, 128, 8.0f, 8.0f);
-	mPlane[SVTX]->localTransform.SetTranslation(0.0f, -8.0f, 0.0f);
-	mTrackball.Attach(mPlane[SVTX]);
-
-	mPlane[SPXL] = mf.CreateRectangle(128, 128, 8.0f, 8.0f);
-	mPlane[SPXL]->localTransform.SetTranslation(0.0f, +8.0f, 0.0f);
-	mTrackball.Attach(mPlane[SPXL]);
-
-	mSphere[SVTX] = mf.CreateSphere(64, 64, 2.0f);
-	mSphere[SVTX]->localTransform.SetTranslation(0.0f, -8.0f, 2.0f);
-	mTrackball.Attach(mSphere[SVTX]);
-
-	mSphere[SPXL] = mf.CreateSphere(64, 64, 2.0f);
-	mSphere[SPXL]->localTransform.SetTranslation(0.0f, +8.0f, 2.0f);
-	mTrackball.Attach(mSphere[SPXL]);
-
-	mTrackball.Update();
-
-	mCaption[LDIR] = "Directional Light (left per vertex, right per pixel)";
-	mCaption[LPNT] = "Point Light (left per vertex, right per pixel)";
-	mCaption[LSPT] = "Spot Light (left per vertex, right per pixel)";
-
-	UseLightType(LDIR);
-}
-
-void LightManager::UseLightType(int type)
-{
-	mPVWMatrices.Unsubscribe(mPlane[SVTX]->worldTransform);
-	mPlane[SVTX]->SetEffect(mEffect[type][GPLN][SVTX]);
-	mPVWMatrices.Subscribe(mPlane[SVTX]->worldTransform, mEffect[type][GPLN][SVTX]->GetPVWMatrixConstant());
-
-	mPVWMatrices.Unsubscribe(mPlane[SPXL]->worldTransform);
-	mPlane[SPXL]->SetEffect(mEffect[type][GPLN][SPXL]);
-	mPVWMatrices.Subscribe(mPlane[SPXL]->worldTransform, mEffect[type][GPLN][SPXL]->GetPVWMatrixConstant());
-
-	mPVWMatrices.Unsubscribe(mSphere[SVTX]->worldTransform);
-	mSphere[SVTX]->SetEffect(mEffect[type][GSPH][SVTX]);
-	mPVWMatrices.Subscribe(mSphere[SVTX]->worldTransform, mEffect[type][GSPH][SVTX]->GetPVWMatrixConstant());
-
-	mPVWMatrices.Unsubscribe(mSphere[SPXL]->worldTransform);
-	mSphere[SPXL]->SetEffect(mEffect[type][GSPH][SPXL]);
-	mPVWMatrices.Subscribe(mSphere[SPXL]->worldTransform, mEffect[type][GSPH][SPXL]->GetPVWMatrixConstant());
-
-	mType = type;
-
-	mPVWMatrices.Update();
-}
-
-void LightManager::UpdateConstants()
-{
-	// The pvw-matrices are updated automatically whenever the camera moves
-	// or the trackball is rotated, which happens before this call.  Here we
-	// need to update the camera model position, light model position, and
-	// light model direction.
-
-	// Compute the model-to-world transforms for the planes and spheres.
-	Matrix4x4<float> wMatrix[GNUM][SNUM];
-	Matrix4x4<float> rotate = mTrackball.GetOrientation();
-#if defined(GE_USE_MAT_VEC)
-	wMatrix[GPLN][SVTX] = rotate * mPlane[SVTX]->worldTransform;
-	wMatrix[GPLN][SPXL] = rotate * mPlane[SPXL]->worldTransform;
-	wMatrix[GSPH][SVTX] = rotate * mSphere[SVTX]->worldTransform;
-	wMatrix[GSPH][SPXL] = rotate * mSphere[SPXL]->worldTransform;
-#else
-	wMatrix[GPLN][SVTX] = mPlane[SVTX]->worldTransform * rotate;
-	wMatrix[GPLN][SPXL] = mPlane[SPXL]->worldTransform * rotate;
-	wMatrix[GSPH][SVTX] = mSphere[SVTX]->worldTransform * rotate;
-	wMatrix[GSPH][SPXL] = mSphere[SPXL]->worldTransform * rotate;
-#endif
-
-	// Compute the world-to-model transforms for the planes and spheres.
-	Matrix4x4<float> invWMatrix[GNUM][SNUM];
-	for (int gt = 0; gt < GNUM; ++gt)
-	{
-		for (int st = 0; st < SNUM; ++st)
-		{
-			invWMatrix[gt][st] = Inverse(wMatrix[gt][st]);
-		}
-	}
-
-	Vector4<float> cameraWorldPosition = mCamera->GetPosition();
-	for (int lt = 0; lt < LNUM; ++lt)
-	{
-		for (int gt = 0; gt < GNUM; ++gt)
-		{
-			for (int st = 0; st < SNUM; ++st)
-			{
-				auto effect = mEffect[lt][gt][st];
-				auto lighting = mEffect[lt][gt][st]->GetLighting();
-				auto geometry = mEffect[lt][gt][st]->GetGeometry();
-				auto const& invwmat = invWMatrix[gt][st];
-
-#if defined(GE_USE_MAT_VEC)
-				geometry->lightModelPosition = invwmat * mLightWorldPosition[st];
-				geometry->lightModelDirection = invwmat * mLightWorldDirection;
-				geometry->cameraModelPosition = invwmat * cameraWorldPosition;
-#else
-				geometry->lightModelPosition = mLightWorldPosition[st] * invwmat;
-				geometry->lightModelDirection = mLightWorldDirection * invwmat;
-				geometry->cameraModelPosition = cameraWorldPosition * invwmat;
-#endif
-				effect->UpdateGeometryConstant();
-			}
-		}
+		if ((*child)->GetType() == NT_LIGHT)
+			(*child)->SetVisible(true);
+		else // Assume that lights don't have any children that are also lights
+			TurnOnZoneLights((*child).get());
 	}
 }
-*/
-
 //----------------------------------------------------------------------------

@@ -51,7 +51,7 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
 	mMaterial->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
 	mMaterial->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
 	mMaterial->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
-	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 0.75f };
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
 	mEffect = eastl::make_shared<AmbientLightEffect>(ProgramFactory::Get(), 
@@ -214,6 +214,22 @@ eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId 
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;
+}
+
+//! Returns the visual based on the zero based index i. To get the amount 
+//! of visuals used by this scene node, use GetVisualCount(). 
+//! This function is needed for inserting the node into the scene hierarchy 
+//! at an optimal position for minimizing renderstate changes, but can also 
+//! be used to directly modify the visual of a scene node.
+eastl::shared_ptr<Visual> const& CubeNode::GetVisual(unsigned int i)
+{
+	return mVisual;
+}
+
+//! return amount of visuals of this scene node.
+unsigned int CubeNode::GetVisualCount() const
+{
+	return 1;
 }
 
 //! returns the material based on the zero based index i. To get the amount

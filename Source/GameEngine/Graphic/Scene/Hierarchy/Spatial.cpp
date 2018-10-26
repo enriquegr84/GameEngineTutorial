@@ -23,10 +23,7 @@ Spatial::~Spatial()
 
 void Spatial::Update(bool initiator)
 {
-	// Update any controllers associated with this object.
-	double applicationTIme = (double)Timer::GetTime();
-
-    UpdateWorldData(applicationTIme);
+    UpdateWorldData();
     UpdateWorldBound();
     if (initiator)
     {
@@ -71,10 +68,8 @@ void Spatial::UpdateAbsoluteTransform()
 	}
 }
 
-void Spatial::UpdateWorldData(double applicationTIme)
+void Spatial::UpdateWorldData()
 {
-    UpdateControllers(applicationTIme);
-
     // Update world transforms.
     if (!mWorldTransformIsCurrent)
 		UpdateAbsoluteTransform();

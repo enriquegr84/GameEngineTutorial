@@ -260,6 +260,25 @@ eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId 
 	return mShadow;
 }
 
+//! Returns the visual based on the zero based index i. To get the amount 
+//! of visuals used by this scene node, use GetVisualCount(). 
+//! This function is needed for inserting the node into the scene hierarchy 
+//! at an optimal position for minimizing renderstate changes, but can also 
+//! be used to directly modify the visual of a scene node.
+eastl::shared_ptr<Visual> const& MeshNode::GetVisual(unsigned int i)
+{
+	if (i >= mVisuals.size())
+		return nullptr;
+
+	return mVisuals[i];
+}
+
+//! return amount of visuals of this scene node.
+unsigned int MeshNode::GetVisualCount() const
+{
+	return mVisuals.size();
+}
+
 //! returns the material based on the zero based index i. To get the amount
 //! of materials used by this scene node, use GetMaterialCount().
 //! This function is needed for inserting the node into the scene hirachy on a

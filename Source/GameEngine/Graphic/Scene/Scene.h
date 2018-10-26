@@ -126,8 +126,7 @@ public:
 	\return Pointer to the created test scene node. This
 	pointer should not be dropped. See IReferenceCounted::drop()
 	for more information. */
-	eastl::shared_ptr<Node> AddRectangleNode(
-		WeakBaseRenderComponentPtr renderComponent, 
+	eastl::shared_ptr<Node> AddRectangleNode(WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& texture, 
 		float texxScale = 1.f, float texyScale = 1.f, float xSize = 5.f, float ySize = 5.f, 
 		int xPolyCount = 16, int yPolyCount = 16, int id = -1);
@@ -143,8 +142,7 @@ public:
 	\return Pointer to the created test scene node. This
 	pointer should not be dropped. See IReferenceCounted::drop()
 	for more information. */
-	eastl::shared_ptr<Node> AddCubeNode(
-		WeakBaseRenderComponentPtr renderComponent, 
+	eastl::shared_ptr<Node> AddCubeNode(WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<Node>& parent,  float size = 10.0f, int id = -1);
 
 	//! Adds a sphere scene node of the given radius and detail
@@ -162,8 +160,7 @@ public:
 	\return Pointer to the created test scene node. This
 	pointer should not be dropped. See IReferenceCounted::drop()
 	for more information. */
-	eastl::shared_ptr<Node> AddSphereNode(
-		WeakBaseRenderComponentPtr renderComponent, 
+	eastl::shared_ptr<Node> AddSphereNode(WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<Node>& parent, float radius = 5.f, int polyCount = 16, int id = -1);
 
 	//! Adds Volume Lighting Scene Node.
@@ -183,7 +180,7 @@ public:
 	eastl::shared_ptr<Node> AddVolumeLightNode(
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
 		int id = -1, const unsigned int subdivU = 32, const unsigned int subdivV = 32,
-		eastl::array<float, 4> const foot = eastl::array<float, 4>{51.f, 0.f, 230.f, 180.f}, 
+		eastl::array<float, 4> const foot = eastl::array<float, 4>{51/255.f, 0/255.f, 230/255.f, 180/255.f}, 
 		eastl::array<float, 4> const tail = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f});
 
 	//! Adds a camera scene node to the scene graph and sets it as active camera.
@@ -224,10 +221,8 @@ public:
 	\return Pointer to the billboard if successful, otherwise NULL.
 	This pointer should not be dropped. See
 	IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddBillboardNode(
-		WeakBaseRenderComponentPtr renderComponent, 
-		const eastl::shared_ptr<Node>& parent, 
-		const eastl::shared_ptr<Texture2>& texture,
+	eastl::shared_ptr<Node> AddBillboardNode(WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& texture,
 		const Vector2<float>& size = Vector2<float>{ 10.0f, 10.0f }, int id = -1);
 
 	//! Adds a particle system scene node to the scene graph.
@@ -243,8 +238,7 @@ public:
 	\param scale: Initial scale of the scene node.
 	\return Pointer to the created scene node.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddParticleSystemNode(
-		WeakBaseRenderComponentPtr renderComponent,
+	eastl::shared_ptr<Node> AddParticleSystemNode(WeakBaseRenderComponentPtr renderComponent,
 		const eastl::shared_ptr<Node>& parent, int id = -1, bool withDefaultEmitter = true);
 
 	//! Adds a skydome scene node to the scene graph.
@@ -265,10 +259,10 @@ public:
 	\param id: An id of the node. This id can be used to identify the node.
 	\return Pointer to the sky dome if successful, otherwise NULL.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddSkyDomeNode(
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-		const eastl::shared_ptr<Texture2>& sky, unsigned int horiRes, unsigned int vertRes,
-		float texturePercentage, float spherePercentage, float radius, int id = -1);
+	eastl::shared_ptr<Node> AddSkyDomeNode(WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& sky, 
+		unsigned int horiRes, unsigned int vertRes, float texturePercentage, 
+		float spherePercentage, float radius, int id = -1);
 
 	//! Adds a scene node for rendering a static mesh.
 	/** \param mesh: Pointer to the loaded static mesh to be displayed.
@@ -281,9 +275,9 @@ public:
 	\param alsoAddIfMeshPointerZero: Add the scene node even if a 0 pointer is passed.
 	\return Pointer to the created scene node.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddMeshNode(
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-		eastl::shared_ptr<BaseMesh> mesh, int id = -1, bool alsoAddIfMeshPointerZero = false);
+	eastl::shared_ptr<Node> AddMeshNode(WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, eastl::shared_ptr<BaseMesh> mesh, 
+		int id = -1, bool alsoAddIfMeshPointerZero = false);
 
 	//! Adds a scene node for rendering an animated mesh model.
 	/** \param mesh: Pointer to the loaded animated mesh to be displayed.
@@ -296,9 +290,9 @@ public:
 	\param alsoAddIfMeshPointerZero: Add the scene node even if a 0 pointer is passed.
 	\return Pointer to the created scene node.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddAnimatedMeshNode(
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-		eastl::shared_ptr<BaseAnimatedMesh> mesh, int id = -1, bool alsoAddIfMeshPointerZero = false);
+	eastl::shared_ptr<Node> AddAnimatedMeshNode(WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, eastl::shared_ptr<BaseAnimatedMesh> mesh, 
+		int id = -1, bool alsoAddIfMeshPointerZero = false);
 
 	//! Adds a dynamic light scene node to the scene graph.
 	/** The light will cast dynamic light on all
@@ -313,9 +307,9 @@ public:
 	\param id: id of the node. This id can be used to identify the node.
 	\return Pointer to the interface of the light if successful, otherwise NULL.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddLightNode(
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-		const eastl::shared_ptr<Light>& light, int id = -1);
+	eastl::shared_ptr<Node> AddLightNode(WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& texture, 
+		const eastl::shared_ptr<Light>& light, const Vector2<float>& size = Vector2<float>{ 10.0f, 10.0f }, int id = -1);
 
 	//! Creates a rotation animator, which rotates the attached scene node around itself.
 	/** \param rotationSpeed Specifies the speed of the animation in degree per 10 milliseconds.
@@ -340,7 +334,7 @@ public:
 	See IReferenceCounted::drop() for more information. */
 	eastl::shared_ptr<NodeAnimator> Scene::CreateFlyCircleAnimator(
 		const Vector3<float>& center = Vector3<float>{ 0.f, 0.f, 0.f }, float radius = 100.f, float speed = 0.001f,
-		const Vector3<float>& direction = Vector3<float>{ 0.f, 1.f, 0.f }, float startPosition = 0.f, float radiusEllipsoid = 0.f);
+		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.f, 1.f }, float startPosition = 0.f, float radiusEllipsoid = 0.f);
 
 	//! Creates a fly straight animator, which lets the attached scene node fly or move 
 	//	along a line between two points.

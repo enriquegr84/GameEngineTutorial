@@ -265,13 +265,13 @@ inline Matrix4x4<float> const& Transform::GetHMatrix() const
 inline Matrix4x4<float> operator*(Matrix4x4<float> const& A,
     Transform const& B)
 {
-    return A * B.GetMatrix();
+    return A * B.GetHMatrix();
 }
 
 inline Matrix4x4<float> operator*(Transform const& A,
     Matrix4x4<float> const& B)
 {
-    return A.GetMatrix() * B;
+    return A.GetHMatrix() * B;
 }
 
 #endif

@@ -30,10 +30,14 @@ uniform LightCameraGeometry
     vec4 cameraModelPosition;
 };
 
+uniform sampler2D baseSampler;
+
 layout(location = 0) in vec3 vertexPosition;
 layout(location = 1) in vec3 vertexNormal;
+layout(location = 2) in vec2 vertexTCoord;
 
 layout(location = 0) out vec4 pixelColor0;
+
 vec4 lit(float NdotL, float NdotH, float m)
 {
   float ambient = 1.0;
@@ -62,18 +66,20 @@ void main()
     {
         lighting = vec4(1.0f, 0.0f, 0.0f, 0.0f);
     }
+	// Compute the lighting color.
+    vec3 lightingColor = materialAmbient.rgb * lightingAmbient.rgb + lighting.w * (
+        lighting.y * materialDiffuse.rgb * lightingDiffuse.rgb +
+        lighting.z * materialSpecular.rgb * lightingSpecular.rgb);
 
     // Compute the distance-based attenuation.
     float distance = length(modelLightDiff);
     float attenuation = lightingAttenuation.w / (lightingAttenuation.x + distance *
         (lightingAttenuation.y + distance * lightingAttenuation.z));
 
-    // Compute the lighting color.
-    vec3 color = materialAmbient.rgb * lightingAmbient.rgb + lighting.w * (
-        lighting.y * materialDiffuse.rgb * lightingDiffuse.rgb +
-        lighting.z * materialSpecular.rgb * lightingSpecular.rgb);
+	vec4 textureColor = texture(baseSampler, vertexTCoord);
 
     // Compute the pixel color.
-    pixelColor0.rgb = materialEmissive.rgb + attenuation*color;
-    pixelColor0.a = materialDiffuse.a;
+	vec3 color = lightingColor * textureColor.rgb;
+    pixelColor0.rgb = materialEmissive.rgb + attenuation * color;
+    pixelColor0.a = materialDiffuse.a * textureColor.a;
 }

@@ -1,20 +1,21 @@
 <Actor type="Fire" resource="actors\fire.xml">
 
 	<TransformComponent>
-		<Position x="100" y="100" z="0"/>
+		<Position x="200" y="200" z="0"/>
+		<Scale x="1.0" y="1.0" z="1.0" />
 		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
 	
     <ParticleEffectRenderComponent>
-		<Texture file="art\fire.bmp" />
 		<Material type="1" />
+		<Texture file="art\fire.bmp" />
 		<EmitterType type="2" />
 		<AffectorType type="2" />
 		<Emitter minx="-7.0" miny="-7.0" minz="0.0" maxx="7.0" maxy="7.0" maxz="1.0" />
 		<Direction x="0.0" y="0.0" z="0.06" />
 		<EmitRate min="60" max="80" />
-		<ColorMinimum r="1.0" g="1.0" b="1.0" a="0.0" />
-		<ColorMaximum r="1.0" g="1.0" b="1.0" a="0.0" />
+		<ColorMinimum r="1.0" g="0.5" b="0.5" a="0.0" />
+		<ColorMaximum r="1.0" g="0.5" b="0.5" a="0.0" />
 		<LifeTime min="400" max="1200" />
 		<AngleMaximum angle="0" />
 		<SizeMinimum x="8.0" y="8.0" />

@@ -95,7 +95,10 @@ bool RootNode::RenderChildren(Scene *pScene)
 		for (; itNode != end; ++itNode)
 		{
 			if (pScene->GetLightManager())
+			{
 				pScene->GetLightManager()->OnNodePreRender((*itNode));
+				pScene->GetLightManager()->OnNodeLighting(pScene, (*itNode));
+			}
 
 			(*itNode)->Render(pScene);
 

@@ -256,9 +256,9 @@ eastl::shared_ptr<NodeAnimator> Node::GetAnimator(int i)
 	return nullptr;
 }
 
-void Node::UpdateWorldData(double applicationTIme)
+void Node::UpdateWorldData()
 {
-    Spatial::UpdateWorldData(applicationTIme);
+    Spatial::UpdateWorldData();
 
     for (auto& child : mChildren)
     {

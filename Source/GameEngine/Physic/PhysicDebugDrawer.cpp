@@ -230,11 +230,10 @@ void BulletDebugDrawer::Render()
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
-	Matrix4x4<float> pvwMatrix = pScene->GetActiveCamera()->Get()->GetProjectionViewMatrix();
 
 	eastl::shared_ptr<ConstantBuffer> cbuffer;
 	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
-	*cbuffer->Get<Matrix4x4<float>>() = pvwMatrix;
+	*cbuffer->Get<Matrix4x4<float>>() = pScene->GetActiveCamera()->Get()->GetProjectionViewMatrix();
 
 	Renderer* renderer = Renderer::Get();
 	renderer->Update(cbuffer);

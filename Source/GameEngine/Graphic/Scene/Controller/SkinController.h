@@ -10,7 +10,6 @@
 
 #include "Controller.h"
 
-#include "Core/Utility/Array2.h"
 #include "Mathematic/Algebra/Vector4.h"
 #include "Graphic/Resource/Buffer/VertexBuffer.h"
 
@@ -35,8 +34,8 @@ public:
     inline int GetNumVertices() const;
     inline int GetNumBones() const;
     inline eastl::vector<eastl::weak_ptr<Node>>& GetBones();
-    inline Array2<float>& GetWeights();
-    inline Array2<Vector4<float>>& GetOffsets();
+    inline eastl::vector<eastl::vector<float>>& GetWeights();
+    inline eastl::vector<Vector4<float>>& GetOffsets();
 
     // The animation update.
     virtual bool Update(double applicationTime);
@@ -51,8 +50,8 @@ protected:
     int mNumVertices;                           // nv
     int mNumBones;                              // nb
     eastl::vector<eastl::weak_ptr<Node>> mBones;    // bones[nb]
-	Array2<float> mWeights;                     // weight[nv][nb], index b+nb*v
-	Array2<Vector4<float>> mOffsets;            // offset[nv][nb], index b+nb*v
+	eastl::vector<eastl::vector<float>> mWeights;	// weight[nv][nb], index b+nb*v
+	eastl::vector<Vector4<float>> mOffsets;            // offset[nv][nb], index b+nb*v
     Updater mPostUpdate;
     char* mPosition;
     unsigned int mStride;
@@ -75,12 +74,12 @@ inline eastl::vector<eastl::weak_ptr<Node>>& SkinController::GetBones()
     return mBones;
 }
 
-inline Array2<float>& SkinController::GetWeights()
+inline eastl::vector<eastl::vector<float>>& SkinController::GetWeights()
 {
     return mWeights;
 }
 
-inline Array2<Vector4<float>>& SkinController::GetOffsets()
+inline eastl::vector<Vector4<float>>& SkinController::GetOffsets()
 {
     return mOffsets;
 }

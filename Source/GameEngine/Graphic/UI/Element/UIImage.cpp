@@ -94,7 +94,8 @@ void UIImage::Draw()
 			targetPos[1] = mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2);
 		}
 		*/
-		mEffect->SetTexture(mTexture);
+		auto effect = eastl::dynamic_pointer_cast<Texture2Effect>(mEffect);
+		effect->SetTexture(mTexture);
 		skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.mExtent / 2);
 	}
 	else

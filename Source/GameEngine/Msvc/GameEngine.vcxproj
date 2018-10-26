@@ -91,6 +91,7 @@
     <ClCompile Include="..\Graphic\Effect\PointLightEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\PointLightTextureEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\SpotLightEffect.cpp" />
+    <ClCompile Include="..\Graphic\Effect\SpotLightTextureEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\TextEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\ColorEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\Texture2ColorEffect.cpp" />
@@ -451,9 +452,6 @@
     <ClInclude Include="..\Core\Process\ProcessManager.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeMap.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeQueue.h" />
-    <ClInclude Include="..\Core\Utility\Array2.h" />
-    <ClInclude Include="..\Core\Utility\Array3.h" />
-    <ClInclude Include="..\Core\Utility\Array4.h" />
     <ClInclude Include="..\Core\Utility\LexicoArray2.h" />
     <ClInclude Include="..\Core\Utility\StringUtil.h" />
     <ClInclude Include="..\GameEngineStd.h" />
@@ -528,6 +526,7 @@
     <ClInclude Include="..\Graphic\Effect\PointLightEffect.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightTextureEffect.h" />
     <ClInclude Include="..\Graphic\Effect\SpotLightEffect.h" />
+    <ClInclude Include="..\Graphic\Effect\SpotLightTextureEffect.h" />
     <ClInclude Include="..\Graphic\Effect\TextEffect.h" />
     <ClInclude Include="..\Graphic\Effect\ColorEffect.h" />
     <ClInclude Include="..\Graphic\Effect\Texture2ColorEffect.h" />
@@ -888,6 +887,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="..\..\..\Assets\Effects\SpotLightTextureEffectPS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\Assets\Effects\SpotLightTextureEffectVS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="..\..\..\Assets\Effects\TextEffectPS.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1007,6 +1012,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\SpotLightTextureEffect.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\TextEffect.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

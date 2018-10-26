@@ -7,7 +7,6 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 class BaseUIButton;
@@ -145,7 +144,7 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<Texture2Effect> mEffect;
+	eastl::shared_ptr<VisualEffect> mEffect;
 
 	eastl::shared_ptr<BaseUIButton> mListButton;
 	eastl::shared_ptr<BaseUIStaticText> mSelectedText;

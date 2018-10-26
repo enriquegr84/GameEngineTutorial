@@ -41,7 +41,6 @@
 
 #include "GameEngineStd.h"
 
-#include "Graphic/Effect/ColorEffect.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 #include "btBulletDynamicsCommon.h"
@@ -84,7 +83,7 @@ private:
 		Vector4<float> color;
 	};
 	eastl::map<Vertex*, Vertex*> mVertices;
-	eastl::shared_ptr<ColorEffect> mEffect;
+	eastl::shared_ptr<VisualEffect> mEffect;
 };
 
 #endif

@@ -38,7 +38,7 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	mMeshBuffer->GetMaterial()->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
 	mMeshBuffer->GetMaterial()->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
 	mMeshBuffer->GetMaterial()->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
-	mMeshBuffer->GetMaterial()->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+	mMeshBuffer->GetMaterial()->mSpecular = { 1.0f, 1.0f, 1.0f, 0.75f };
 
 	mMeshBuffer->GetMaterial()->mLighting = false;
 	mMeshBuffer->GetMaterial()->mDepthBuffer = false;
@@ -198,6 +198,22 @@ bool SkyDomeNode::Render(Scene* pScene)
 	}
 	*/
 	return Node::Render(pScene);
+}
+
+//! Returns the visual based on the zero based index i. To get the amount 
+//! of visuals used by this scene node, use GetVisualCount(). 
+//! This function is needed for inserting the node into the scene hierarchy 
+//! at an optimal position for minimizing renderstate changes, but can also 
+//! be used to directly modify the visual of a scene node.
+eastl::shared_ptr<Visual> const& SkyDomeNode::GetVisual(unsigned int i)
+{
+	return mVisual;
+}
+
+//! return amount of visuals of this scene node.
+unsigned int SkyDomeNode::GetVisualCount() const
+{
+	return 1;
 }
 
 //! returns the material based on the zero based index i. To get the amount

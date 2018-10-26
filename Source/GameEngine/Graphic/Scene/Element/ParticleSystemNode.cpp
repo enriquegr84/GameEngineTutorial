@@ -37,13 +37,12 @@ void ParticleSystemNode::SetEffect(int size)
 {
 	struct Vertex
 	{
-		Vector3<float> position, normal;
+		Vector3<float> position;
 		Vector4<float> color;
 		Vector2<float> tcoord;
 	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
@@ -57,7 +56,6 @@ void ParticleSystemNode::SetEffect(int size)
 	mEffect = eastl::make_shared<Texture2ColorEffect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
 		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
-	mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 }
 
 
@@ -152,48 +150,35 @@ bool ParticleSystemNode::Render(Scene *pScene)
 	if (!cameraNode || !Renderer::Get())
 		return false;
 
-	const float* cameraView = 
-		reinterpret_cast<const float*>(&cameraNode->Get()->GetViewMatrix());
-	Matrix4x4<float> cameraRotation = cameraNode->GetAbsoluteTransform().GetRotation();
-	Vector3<float> view = Vector3<float>{ -cameraView[2], -cameraView[6], -cameraView[10] };
-
 	// reallocate arrays, if they are too small
 	ReallocateBuffers();
 
 	int idx = 0;
-	unsigned int stride = mMeshBuffer->GetVertice()->GetFormat().GetVertexSize();
 	for (unsigned int i = 0; i < mParticles.size(); ++i)
 	{
 		const Particle& particle = mParticles[i];
 
 		float f = 0.5f * particle.mSize[0];
-		const Vector3<float> horizontal{ cameraView[0] * f, cameraView[4] * f, cameraView[8] * f };
+		const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
 
-		f = -0.5f * particle.mSize[1];
-		const Vector3<float> vertical{ cameraView[1] * f, cameraView[5] * f, cameraView[9] * f };
+		f = 0.5f * particle.mSize[1];
+		const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
 
-		mMeshBuffer->Position(0 + idx) = particle.mPos + 
-			HProject(cameraRotation * HLift(horizontal + vertical, 0.f));
-		mMeshBuffer->Normal(0 + idx) = view;
+		mMeshBuffer->Position(0 + idx) = particle.mPos + HProject(horizontal + vertical);
 		mMeshBuffer->Color(0, 0 + idx) = particle.mColor;
-
-		mMeshBuffer->Position(1 + idx) = particle.mPos + 
-			HProject(cameraRotation * HLift(horizontal - vertical, 0.f));
-		mMeshBuffer->Normal(1 + idx) = view;
+		mMeshBuffer->Position(1 + idx) = particle.mPos + HProject(horizontal - vertical);
 		mMeshBuffer->Color(0, 1 + idx) = particle.mColor;
-
-		mMeshBuffer->Position(2 + idx) = particle.mPos + 
-			HProject(cameraRotation * HLift(-horizontal - vertical, 0.f));
-		mMeshBuffer->Normal(2 + idx) = view;
+		mMeshBuffer->Position(2 + idx) = particle.mPos + HProject(-horizontal - vertical);
 		mMeshBuffer->Color(0, 2 + idx) = particle.mColor;
-
-		mMeshBuffer->Position(3 + idx) = particle.mPos + 
-			HProject(cameraRotation * HLift(-horizontal + vertical, 0.f));
-		mMeshBuffer->Normal(3 + idx) = view;
+		mMeshBuffer->Position(3 + idx) = particle.mPos + HProject(-horizontal + vertical);
 		mMeshBuffer->Color(0, 3 + idx) = particle.mColor;
 
 		idx += 4;
 	}
+
+	eastl::shared_ptr<ConstantBuffer> cbuffer;
+	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
+	*cbuffer->Get<Matrix4x4<float>>() = cameraNode->Get()->GetProjectionViewMatrix();
 
 	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 	{
@@ -206,6 +191,7 @@ bool ParticleSystemNode::Render(Scene *pScene)
 
 	Renderer* renderer = Renderer::Get();
 	renderer->Update(mMeshBuffer->GetVertice());
+	renderer->Update(cbuffer);
 	renderer->Draw(mVisual);
 
 	Renderer::Get()->SetDefaultBlendState();
@@ -257,13 +243,13 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 				mParticles[i] = array[i - j];
 
 				Vector4<float> startVector;
-				GetAbsoluteTransform().GetRotation().Transformation(
+				GetAbsoluteTransform().GetHMatrix().Transformation(
 					HLift(mParticles[i].mStartVector, 0.f), startVector);
 				mParticles[i].mStartVector = HProject(startVector);
 				if (mParticlesAreGlobal)
 				{
 					Vector4<float> positionVector;
-					GetAbsoluteTransform().GetRotation().Transformation(
+					GetAbsoluteTransform().GetHMatrix().Transformation(
 						HLift(mParticles[i].mPos, 0.f), positionVector);
 					mParticles[i].mPos = HProject(positionVector);
 					mParticles[i].mPos += GetAbsoluteTransform().GetTranslation();
@@ -367,6 +353,22 @@ void ParticleSystemNode::RemoveAllAffectors()
 	eastl::list<eastl::shared_ptr<BaseParticleAffector>>::iterator it = mAffectorList.begin();
 	while (it != mAffectorList.end())
 		it = mAffectorList.erase(it);
+}
+
+//! Returns the visual based on the zero based index i. To get the amount 
+//! of visuals used by this scene node, use GetVisualCount(). 
+//! This function is needed for inserting the node into the scene hierarchy 
+//! at an optimal position for minimizing renderstate changes, but can also 
+//! be used to directly modify the visual of a scene node.
+eastl::shared_ptr<Visual> const& ParticleSystemNode::GetVisual(unsigned int i)
+{
+	return mVisual;
+}
+
+//! return amount of visuals of this scene node.
+unsigned int ParticleSystemNode::GetVisualCount() const
+{
+	return 1;
 }
 
 //! returns the material based on the zero based index i. To get the amount

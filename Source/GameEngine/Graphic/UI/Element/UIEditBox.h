@@ -7,9 +7,6 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Effect/Texture2Effect.h"
-#include "Graphic/Effect/ColorEffect.h"
-
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 //! Single line edit box for editing simple text.
@@ -270,10 +267,10 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<Texture2Effect> mEffect;
+	eastl::shared_ptr<VisualEffect> mEffect;
 
 	eastl::shared_ptr<Visual> mVisualHighlight;
-	eastl::shared_ptr<ColorEffect> mEffectHighlight;
+	eastl::shared_ptr<VisualEffect> mEffectHighlight;
 };
 
 #endif

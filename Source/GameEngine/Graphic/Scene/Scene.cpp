@@ -139,17 +139,8 @@ bool Scene::OnRender()
 	
 	if (mRoot && mPVWUpdater.GetCamera())
 	{
-
-		//if (mFixedHeightRig.Move())
-		{
-			// The scene root could be anything, but it
-			// is usually a SceneNode with the identity
-			// matrix
-			mLightManager->UpdateLighting(this);
-			mPVWUpdater.Update();
-			mCuller.ComputeVisibleSet(mPVWUpdater.GetCamera(), mRoot);
-		}
-
+		mPVWUpdater.Update();
+		mCuller.ComputeVisibleSet(mPVWUpdater.GetCamera(), mRoot);
 
 		if (mRoot->PreRender(this)==true)
 		{
@@ -158,25 +149,10 @@ bool Scene::OnRender()
 
 			mRoot->Render(this);
 
-			/*
-			for (auto const& visual : mCuller.GetVisibleSet())
-			{
-				//if (visual->name.find("Water") == std::string::npos)
-				{
-					Renderer::Get()->Draw(visual);
-				}
-			}
-
-			Renderer::Get()->SetBlendState(mBlendState);
-			Renderer::Get()->Draw(mWaterMesh[0]);
-			Renderer::Get()->Draw(mWaterMesh[1]);
-			Renderer::Get()->SetDefaultBlendState();
-			*/
-
-			mRoot->PostRender(this);
-			
 			if (mLightManager)
 				mLightManager->OnPostRender();
+
+			mRoot->PostRender(this);
 		}
 	}
 	
@@ -458,10 +434,11 @@ eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
 //! turned on. (This is the default setting in most scene nodes).
 eastl::shared_ptr<Node> Scene::AddLightNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-	const eastl::shared_ptr<Light>& light, int id)
+	const eastl::shared_ptr<Texture2>& texture, const eastl::shared_ptr<Light>& light, 
+	const Vector2<float>& size, int id)
 {
 	eastl::shared_ptr<Node> node(
-		new LightNode(id, &mPVWUpdater, renderComponent, light));
+		new LightNode(id, &mPVWUpdater, renderComponent, texture, size, light));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -722,7 +699,9 @@ void Scene::SyncActorDelegate(BaseEventDataPtr pEventData)
 	eastl::shared_ptr<Node> pNode = GetSceneNode(actorId);
 	if (pNode)
 	{
+		Vector3<float> actorScale = pNode->GetRelativeTransform().GetScale();
 		pNode->GetRelativeTransform() = pCastEventData->GetTransform();
+		pNode->GetRelativeTransform().SetScale(actorScale);
 
 		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
 		eastl::shared_ptr<PhysicComponent> pPhysicComponent =

@@ -238,6 +238,7 @@ void UIButton::Draw( )
 		return;
 
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
+	auto effect = eastl::dynamic_pointer_cast<Texture2Effect>(mEffect);
 
 	// todo: move sprite up and text down if the pressed state has a sprite
 	RectangleShape<2, int> spritePos = mAbsoluteRect;
@@ -249,7 +250,7 @@ void UIButton::Draw( )
 
 		if (mImage)
 		{
-			mEffect->SetTexture(mImage);
+			effect->SetTexture(mImage);
 
 			if (mScaleImage)
 				skin->Draw2DTexture(shared_from_this(), mVisual, spritePos, mImageRect.mExtent);
@@ -261,7 +262,7 @@ void UIButton::Draw( )
 	{
 		if (mPressedImage)
 		{
-			mEffect->SetTexture(mPressedImage);
+			effect->SetTexture(mPressedImage);
 
 			if (mScaleImage)
 			{

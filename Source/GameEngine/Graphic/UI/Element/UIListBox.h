@@ -7,7 +7,6 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Effect/ColorEffect.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 class BaseUIFont;
@@ -286,7 +285,7 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<ColorEffect> mEffect;
+	eastl::shared_ptr<VisualEffect> mEffect;
 
 	unsigned int mSelectTime;
 	unsigned int mLastKeyTime;

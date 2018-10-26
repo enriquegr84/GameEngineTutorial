@@ -7,7 +7,7 @@
 
 #include "AnimatedMeshNode.h"
 
-#include "Graphic/Effect/Texture2ColorEffect.h"
+#include "Graphic/Effect/VisualEffect.h"
 #include "Graphic/Scene/Hierarchy/Node.h"
 
 #include "Particle/ParticleAffector.h"
@@ -81,6 +81,16 @@ public:
 
 	//! Returns type of the scene node
 	virtual NodeType GetType() const { return NT_PARTICLE_SYSTEM; }
+
+	//! Returns the visual based on the zero based index i. To get the amount 
+	//! of visuals used by this scene node, use GetVisualCount(). 
+	//! This function is needed for inserting the node into the scene hierarchy 
+	//! at an optimal position for minimizing renderstate changes, but can also 
+	//! be used to directly modify the visual of a scene node.
+	virtual eastl::shared_ptr<Visual> const& GetVisual(unsigned int i);
+
+	//! return amount of visuals of this scene node.
+	virtual unsigned int GetVisualCount() const;
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use GetMaterialCount().
@@ -216,7 +226,7 @@ private:
 
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<MeshBuffer> mMeshBuffer;
-	eastl::shared_ptr<Texture2ColorEffect> mEffect;
+	eastl::shared_ptr<VisualEffect> mEffect;
 	eastl::list<eastl::shared_ptr<BaseParticleAffector>> mAffectorList;
 	eastl::shared_ptr<BaseParticleEmitter> mEmitter;
 	eastl::vector<Particle> mParticles;

@@ -16,7 +16,7 @@
 enum LightType
 {
 	//! point light, it has a position in space and radiates light in all directions
-	LT_POINT,
+	LT_POINT = 0,
 	//! spot light, it has a position in space, a direction, and a limited cone of influence
 	LT_SPOT,
 	//! directional light, coming from a direction from an infinite distance
@@ -42,26 +42,22 @@ struct GRAPHIC_ITEM Lighting
     // (r,g,b,*): default (1,1,1,1)
     Vector4<float> mSpecular;
 
+	//! Spotcutoff parameters
+	//! angle in which everything within will be lighted.
+	//! cosAngle of the spot's inner cone. Ignored for other lights.
+	//! sinAngle of the spot's outer cone. Ignored for other lights.
+	//! exponent light strength's decrease between Outer and Inner cone.
     // (angle,cosAngle,sinAngle,exponent): default (pi/2,0,1,1)
     Vector4<float> mSpotCutoff;
 
-    // Attenuation is: intensity/(constant + linear * (d + quadratic * d)
+    // Attenuation is: intensity/(constant + linear * (d + exponent * d)
     // where d is the distance from the light position to the vertex position.
     // The distance is in model space.  If the transformation from model space
     // to world space involves uniform scaling, you can include the scaling
     // factor in the 'intensity' component (by multiplication).
     //
-    // (constant,linear,quadratic,intensity): default (1,0,0,1)
+    // (constant,linear,exponent,intensity): default (1,0,0,1)
     Vector4<float> mAttenuation;
-
-	//! The angle of the spot's outer cone. Ignored for other lights.
-	float mOuterCone;
-
-	//! The angle of the spot's inner cone. Ignored for other lights.
-	float mInnerCone;
-
-	//! The light strength's decrease between Outer and Inner cone.
-	float mFalloff;
 
 	//! Read-ONLY! Position of the light.
 	/** If Type is ELT_DIRECTIONAL, it is ignored. Changed via light scene node's position. */
@@ -70,9 +66,6 @@ struct GRAPHIC_ITEM Lighting
 	//! Read-ONLY! Direction of the light.
 	/** If Type is ELT_POINT, it is ignored. Changed via light scene node's rotation. */
 	Vector3<float> mDirection;
-
-	//! Read-ONLY! Radius of light. Everything within this radius will be lighted.
-	float mRadius;
 
 	//! Read-ONLY! Type of the light. Default: ELT_POINT
 	LightType mType;

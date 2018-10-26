@@ -409,15 +409,8 @@ eastl::shared_ptr<VertexBuffer> MeshFactory::CreateVBuffer(unsigned int numVerti
     auto vbuffer = eastl::make_shared<VertexBuffer>(mVFormat, numVertices);
     if (vbuffer)
     {
-        // Get the position channel.
+        // Get the geometric channel.
         mPositions = GetGeometricChannel(vbuffer, VA_POSITION, 1.0f);
-        if (!mPositions)
-        {
-            LogError("Positions are required.");
-            return nullptr;
-        }
-
-        // Get the optional geometric channels.
         mNormals = GetGeometricChannel(vbuffer, VA_NORMAL, 0.0f);
         mTangents = GetGeometricChannel(vbuffer, VA_TANGENT, 0.0f);
         mBitangents = GetGeometricChannel(vbuffer, VA_BINORMAL, 0.0f);

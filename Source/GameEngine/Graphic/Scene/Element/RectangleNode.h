@@ -5,7 +5,7 @@
 #ifndef RECTANGLENODE_H
 #define RECTANGLENODE_H
 
-#include "Graphic/Effect/PointLightTextureEffect.h"
+#include "Graphic/Effect/LightingEffect.h"
 #include "Graphic/Scene/Hierarchy/Node.h"
 
 #include "ShadowVolumeNode.h"
@@ -38,6 +38,16 @@ public:
 	//! or to remove attached childs.
 	virtual int DetachChild(eastl::shared_ptr<Node> const& child);
 
+	//! Returns the visual based on the zero based index i. To get the amount 
+	//! of visuals used by this scene node, use GetVisualCount(). 
+	//! This function is needed for inserting the node into the scene hierarchy 
+	//! at an optimal position for minimizing renderstate changes, but can also 
+	//! be used to directly modify the visual of a scene node.
+	virtual eastl::shared_ptr<Visual> const& GetVisual(unsigned int i);
+
+	//! return amount of visuals of this scene node.
+	virtual unsigned int GetVisualCount() const;
+
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use GetMaterialCount().
 	//! This function is needed for inserting the node into the scene hirachy on a
@@ -64,7 +74,7 @@ private:
 	eastl::shared_ptr<DepthStencilState> mDepthStencilState;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<PointLightTextureEffect> mEffect;
+	eastl::shared_ptr<LightingEffect> mEffect;
 	eastl::shared_ptr<Material> mMaterial;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
 

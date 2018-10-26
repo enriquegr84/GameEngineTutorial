@@ -445,8 +445,10 @@ void GridRenderComponent::CreateInheritedXMLElements(
 // LightRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
 LightRenderComponent::LightRenderComponent(void)
-: mAnimatorType("none"), mAddBillboard(false)
 {
+	mAnimatorType = -1;
+	mTextureResource = "";
+
 #if defined(GE_DEV_OPENGL)
 	mLightData = eastl::make_shared<Light>(true, false);
 #else
@@ -460,121 +462,137 @@ bool LightRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 	float temp = 0;
 
 	tinyxml2::XMLElement* pLight = pData->FirstChildElement("Light");
-	tinyxml2::XMLElement* pAmbientNode = pLight->FirstChildElement("Ambient");
-	if (pAmbientNode)
+
+	tinyxml2::XMLElement* pLighting = pLight->FirstChildElement("Lighting");
+	if (pLighting)
 	{
-		temp = pAmbientNode->FloatAttribute("r", temp);
+		int type = 0;
+		type = pLighting->IntAttribute("type", type);
+		mLightData->mLighting->mType = (LightType)type;
+	}
+
+	tinyxml2::XMLElement* pTexture = pLight->FirstChildElement("Texture");
+	if (pTexture)
+	{
+		float x = 1.f;
+		float y = 1.f;
+		x = pTexture->FloatAttribute("x", x);
+		y = pTexture->FloatAttribute("y", y);
+		mTextureScale = Vector2<float>{ x, y };
+		mTextureResource = pTexture->Attribute("file");
+	}
+
+	tinyxml2::XMLElement* pDirection = pLight->FirstChildElement("Direction");
+	if (pDirection)
+	{
+		temp = pDirection->FloatAttribute("x", temp);
+		mLightData->mLighting->mDirection[0] = temp;
+
+		temp = pDirection->FloatAttribute("y", temp);
+		mLightData->mLighting->mDirection[1] = temp;
+
+		temp = pDirection->FloatAttribute("z", temp);
+		mLightData->mLighting->mDirection[2] = temp;
+	}
+
+	tinyxml2::XMLElement* pAmbient = pLight->FirstChildElement("Ambient");
+	if (pAmbient)
+	{
+		temp = pAmbient->FloatAttribute("r", temp);
 		mLightData->mLighting->mAmbient[0] = temp;
 
-		temp = pAmbientNode->FloatAttribute("g", temp);
+		temp = pAmbient->FloatAttribute("g", temp);
 		mLightData->mLighting->mAmbient[1] = temp;
 
-		temp = pAmbientNode->FloatAttribute("b", temp);
+		temp = pAmbient->FloatAttribute("b", temp);
 		mLightData->mLighting->mAmbient[2] = temp;
 
-		temp = pAmbientNode->FloatAttribute("a", temp);
+		temp = pAmbient->FloatAttribute("a", temp);
 		mLightData->mLighting->mAmbient[3] = temp;
 	}
 
-	tinyxml2::XMLElement* pDiffuseNode = pLight->FirstChildElement("Diffuse");
-	if (pDiffuseNode)
+	tinyxml2::XMLElement* pDiffuse = pLight->FirstChildElement("Diffuse");
+	if (pDiffuse)
 	{
-		temp = pDiffuseNode->FloatAttribute("r", temp);
+		temp = pDiffuse->FloatAttribute("r", temp);
 		mLightData->mLighting->mDiffuse[0] = temp;
 
-		temp = pDiffuseNode->FloatAttribute("g", temp);
+		temp = pDiffuse->FloatAttribute("g", temp);
 		mLightData->mLighting->mDiffuse[1] = temp;
 
-		temp = pDiffuseNode->FloatAttribute("b", temp);
+		temp = pDiffuse->FloatAttribute("b", temp);
 		mLightData->mLighting->mDiffuse[2] = temp;
 
-		temp = pDiffuseNode->FloatAttribute("a", temp);
+		temp = pDiffuse->FloatAttribute("a", temp);
 		mLightData->mLighting->mDiffuse[3] = temp;
 	}
 
-	tinyxml2::XMLElement* pSpecularNode = pLight->FirstChildElement("Specular");
-	if (pSpecularNode)
+	tinyxml2::XMLElement* pSpecular = pLight->FirstChildElement("Specular");
+	if (pSpecular)
 	{
-		temp = pSpecularNode->FloatAttribute("r", temp);
+		temp = pSpecular->FloatAttribute("r", temp);
 		mLightData->mLighting->mSpecular[0] = temp;
 
-		temp = pSpecularNode->FloatAttribute("g", temp);
+		temp = pSpecular->FloatAttribute("g", temp);
 		mLightData->mLighting->mSpecular[1] = temp;
 
-		temp = pSpecularNode->FloatAttribute("b", temp);
+		temp = pSpecular->FloatAttribute("b", temp);
 		mLightData->mLighting->mSpecular[2] = temp;
 
-		temp = pSpecularNode->FloatAttribute("a", temp);
+		temp = pSpecular->FloatAttribute("a", temp);
 		mLightData->mLighting->mSpecular[3] = temp;
 	}
 
-	tinyxml2::XMLElement* pAttenuationNode = pLight->FirstChildElement("Attenuation");
-    if (pAttenuationNode)
+	tinyxml2::XMLElement* pAttenuation = pLight->FirstChildElement("Attenuation");
+    if (pAttenuation)
 	{
-		temp = pAttenuationNode->FloatAttribute("const", temp);
+		temp = pAttenuation->FloatAttribute("const", temp);
 		mLightData->mLighting->mAttenuation[0] = temp;
 
-		temp = pAttenuationNode->FloatAttribute("linear", temp);
+		temp = pAttenuation->FloatAttribute("linear", temp);
 		mLightData->mLighting->mAttenuation[1] = temp;
 
-		temp = pAttenuationNode->FloatAttribute("exp", temp);
+		temp = pAttenuation->FloatAttribute("exp", temp);
 		mLightData->mLighting->mAttenuation[2] = temp;
+
+		temp = pAttenuation->FloatAttribute("int", temp);
+		mLightData->mLighting->mAttenuation[3] = temp;
 	}
 
-	tinyxml2::XMLElement* pShapeNode = pLight->FirstChildElement("Shape");
-    if (pShapeNode)
+	tinyxml2::XMLElement* pSpotCutoff = pLight->FirstChildElement("SpotCutoff");
+    if (pSpotCutoff)
 	{
-		temp = pShapeNode->FloatAttribute("type", temp);
-		mLightData->mLighting->mType = static_cast<LightType>((int)temp);
+		temp = pSpotCutoff->FloatAttribute("angle", temp);
+		mLightData->mLighting->mSpotCutoff[0] = temp;
+		mLightData->mLighting->mSpotCutoff[1] = cos(temp);
+		mLightData->mLighting->mSpotCutoff[2] = sin(temp);
 
-		temp = pShapeNode->FloatAttribute("range", temp);
-		mLightData->mLighting->mRadius = temp;
-
-		temp = pShapeNode->FloatAttribute("falloff", temp);
-		mLightData->mLighting->mFalloff = temp;
-
-		temp = pShapeNode->FloatAttribute("outercone", temp);
-		mLightData->mLighting->mOuterCone = temp;
-
-		temp = pShapeNode->FloatAttribute("innercone", temp);
-		mLightData->mLighting->mInnerCone = temp;
+		temp = pSpotCutoff->FloatAttribute("exponent", temp);
+		mLightData->mLighting->mSpotCutoff[3] = temp;
 	}
 
 	tinyxml2::XMLElement* pAnimator = pData->FirstChildElement("Animator");
-	if (pAnimator)
+	tinyxml2::XMLElement* pAnimation = pAnimator->FirstChildElement("Animation");
+	if (pAnimation)
 	{
-		mAnimatorType = pAnimator->Attribute("type");
+		unsigned int type = 0;
+		mAnimatorType = pAnimation->IntAttribute("type", type);
 
-		temp = pAnimator->FloatAttribute("x", temp);
-		//mAnimatorCenter.X = temp;
-
-		temp = pAnimator->FloatAttribute("y", temp);
-		//mAnimatorCenter.Y = temp;
-
-		temp = pAnimator->FloatAttribute("z", temp);
-		//mAnimatorCenter.Z = temp;
-
-		temp = pAnimator->FloatAttribute("speed", temp);
-		//mAnimatorSpeed = temp;
+		float radius = 0;
+		mAnimatorRadius = pAnimation->FloatAttribute("radius", radius);
 	}
 
-	tinyxml2::XMLElement* pBillBoard = pData->FirstChildElement("Billboard");
-	if (pBillBoard)
+	tinyxml2::XMLElement* pCenter = pAnimator->FirstChildElement("Center");
+	if (pCenter)
 	{
-		mAddBillboard=true;
+		temp = pCenter->FloatAttribute("x", temp);
+		mAnimatorCenter[0] = temp;
 
-		temp = pBillBoard->FloatAttribute("x", temp);
-		//mBillboardSize.Width = temp;
+		temp = pCenter->FloatAttribute("y", temp);
+		mAnimatorCenter[1] = temp;
 
-		temp = pBillBoard->FloatAttribute("y", temp);
-		//mBillboardSize.Height = temp;
-	
-		tinyxml2::XMLElement* pMaterial = pBillBoard->FirstChildElement("Material");
-		if (pMaterial)
-		{
-			mBillboardMaterial = pMaterial->Attribute("type");
-			mBillboardTexture = pMaterial->Attribute("texture");
-		}
+		temp = pCenter->FloatAttribute("z", temp);
+		mAnimatorCenter[2] = temp;
 	}
 
     return true;
@@ -594,62 +612,57 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
-			// Add light
-			eastl::shared_ptr<Node> light = 
-				pScene->AddLightNode(wbrcp, 0, mLightData, mOwner->GetId());
-
-			light->GetRelativeTransform() = transform;
-
-			if (mAnimatorType == "flycircle")
+			eastl::shared_ptr<ResHandle>& resHandle =
+				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
+			if (resHandle)
 			{
-				eastl::shared_ptr<NodeAnimator> anim = 0;
-				anim = pScene->CreateFlyCircleAnimator(mAnimatorCenter, mAnimatorSpeed);
-				light->AttachAnimator(anim);
-			}
+				const eastl::shared_ptr<ImageResourceExtraData>& extra =
+					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+				extra->GetImage()->AutogenerateMipmaps();
 
-			// attach billboard to light
-			if (mAddBillboard)
-			{
-				eastl::shared_ptr<ResHandle>& resHandle =
-					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mBillboardTexture.c_str())));
-				if (resHandle)
+				// Add light
+				eastl::shared_ptr<Node> lightNode =
+					pScene->AddLightNode(wbrcp, 0, extra->GetImage(), mLightData, mTextureScale, mOwner->GetId());
+				if (lightNode)
 				{
-					const eastl::shared_ptr<ImageResourceExtraData>& extra =
-						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-					extra->GetImage()->AutogenerateMipmaps();
+					lightNode->GetRelativeTransform() = transform;
 
-					eastl::shared_ptr<Node> billNode = 
-						pScene->AddBillboardNode(eastl::weak_ptr<BaseRenderComponent>(), 
-						light, extra->GetImage(), mBillboardSize, INVALID_ACTOR_ID);
-					if (billNode)
+					switch(mAnimatorType)
 					{
-						billNode->GetRelativeTransform() = transform;
-
-						for (unsigned int i = 0; i<billNode->GetMaterialCount(); ++i)
-							billNode->GetMaterial(i)->mLighting = false;
-						billNode->SetMaterialType(MT_TRANSPARENT);
-						billNode->SetMaterialTexture(0, extra->GetImage());
-
-						for (unsigned int i = 0; i<billNode->GetMaterialCount(); ++i)
+						case NAT_FLY_CIRCLE:
 						{
-							eastl::shared_ptr<Material> material = billNode->GetMaterial(i);
-							material->mBlendTarget.enable = true;
-							material->mBlendTarget.srcColor = BlendState::BM_ONE;
-							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
-							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
-							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
-
-							material->mDepthBuffer = true;
-							material->mDepthMask = DepthStencilState::MASK_ZERO;
-
-							material->mFillMode = RasterizerState::FILL_SOLID;
-							material->mCullMode = RasterizerState::CULL_NONE;
+							eastl::shared_ptr<NodeAnimator> anim = 0;
+							anim = pScene->CreateFlyCircleAnimator(mAnimatorCenter, mAnimatorRadius);
+							lightNode->AttachAnimator(anim);
+							break;
 						}
+
+						default:
+							break;
+					}
+
+					for (unsigned int i = 0; i < lightNode->GetMaterialCount(); ++i)
+						lightNode->GetMaterial(i)->mLighting = false;
+					lightNode->SetMaterialType(MT_TRANSPARENT);
+
+					for (unsigned int i = 0; i < lightNode->GetMaterialCount(); ++i)
+					{
+						eastl::shared_ptr<Material> material = lightNode->GetMaterial(i);
+						material->mBlendTarget.enable = true;
+						material->mBlendTarget.srcColor = BlendState::BM_ONE;
+						material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+						material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+						material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+						material->mDepthBuffer = true;
+						material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+						material->mFillMode = RasterizerState::FILL_SOLID;
+						material->mCullMode = RasterizerState::CULL_NONE;
 					}
 				}
+				return lightNode;
 			}
-
-			return light;
 		}
 		else LogError("Unknown Renderer Implementation in LightRenderComponent");
 	}
@@ -659,7 +672,26 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 void LightRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLDocument doc, tinyxml2::XMLElement *pBaseElement)
 {
-	tinyxml2::XMLElement* pSceneNode = doc.NewElement("Light");
+	tinyxml2::XMLElement* pLightElement = doc.NewElement("Light");
+
+	// lighting
+	tinyxml2::XMLElement* pLighting = doc.NewElement("Lighting");
+	pLighting->SetAttribute("type", eastl::to_string(mLightData->mLighting->mType).c_str());
+	pLightElement->LinkEndChild(pLighting);
+
+	// texture
+	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
+	pTexture->SetAttribute("file", mTextureResource.c_str());
+	pTexture->SetAttribute("x", eastl::to_string(mTextureScale[0]).c_str());
+	pTexture->SetAttribute("y", eastl::to_string(mTextureScale[1]).c_str());
+	pLightElement->LinkEndChild(pTexture);
+
+	// Ambient
+	tinyxml2::XMLElement* pDirection = doc.NewElement("Direction");
+	pDirection->SetAttribute("x", eastl::to_string(mLightData->mLighting->mDirection[0]).c_str());
+	pDirection->SetAttribute("y", eastl::to_string(mLightData->mLighting->mDirection[1]).c_str());
+	pDirection->SetAttribute("z", eastl::to_string(mLightData->mLighting->mDirection[2]).c_str());
+	pLightElement->LinkEndChild(pDirection);
 
 	// Ambient
 	tinyxml2::XMLElement* pAmbient = doc.NewElement("Ambient");
@@ -667,7 +699,7 @@ void LightRenderComponent::CreateInheritedXMLElements(
 	pAmbient->SetAttribute("g", eastl::to_string(mLightData->mLighting->mAmbient[1]).c_str());
 	pAmbient->SetAttribute("b", eastl::to_string(mLightData->mLighting->mAmbient[2]).c_str());
 	pAmbient->SetAttribute("a", eastl::to_string(mLightData->mLighting->mAmbient[3]).c_str());
-	pSceneNode->LinkEndChild(pAmbient);
+	pLightElement->LinkEndChild(pAmbient);
 
 	// Diffuse
 	tinyxml2::XMLElement* pDiffuse = doc.NewElement("Diffuse");
@@ -675,7 +707,7 @@ void LightRenderComponent::CreateInheritedXMLElements(
 	pDiffuse->SetAttribute("g", eastl::to_string(mLightData->mLighting->mDiffuse[1]).c_str());
 	pDiffuse->SetAttribute("b", eastl::to_string(mLightData->mLighting->mDiffuse[2]).c_str());
 	pDiffuse->SetAttribute("a", eastl::to_string(mLightData->mLighting->mDiffuse[3]).c_str());
-	pSceneNode->LinkEndChild(pDiffuse);
+	pLightElement->LinkEndChild(pDiffuse);
 
 	// Specular
 	tinyxml2::XMLElement* pSpecular = doc.NewElement("Specular");
@@ -683,25 +715,39 @@ void LightRenderComponent::CreateInheritedXMLElements(
 	pSpecular->SetAttribute("g", eastl::to_string(mLightData->mLighting->mSpecular[1]).c_str());
 	pSpecular->SetAttribute("b", eastl::to_string(mLightData->mLighting->mSpecular[2]).c_str());
 	pSpecular->SetAttribute("a", eastl::to_string(mLightData->mLighting->mSpecular[3]).c_str());
-	pSceneNode->LinkEndChild(pSpecular);
+	pLightElement->LinkEndChild(pSpecular);
 
     // attenuation
 	tinyxml2::XMLElement* pAttenuation = doc.NewElement("Attenuation");
     pAttenuation->SetAttribute("const", eastl::to_string(mLightData->mLighting->mAttenuation[0]).c_str());
     pAttenuation->SetAttribute("linear", eastl::to_string(mLightData->mLighting->mAttenuation[1]).c_str());
     pAttenuation->SetAttribute("exp", eastl::to_string(mLightData->mLighting->mAttenuation[2]).c_str());
-    pSceneNode->LinkEndChild(pAttenuation);
+	pAttenuation->SetAttribute("int", eastl::to_string(mLightData->mLighting->mAttenuation[3]).c_str());
+    pLightElement->LinkEndChild(pAttenuation);
 
-    // shape
-	tinyxml2::XMLElement* pShape = doc.NewElement("Shape");
-    pShape->SetAttribute("range", eastl::to_string(mLightData->mLighting->mRadius).c_str());
-    pShape->SetAttribute("falloff", eastl::to_string(mLightData->mLighting->mFalloff).c_str());
-    pShape->SetAttribute("theta", eastl::to_string(mLightData->mLighting->mInnerCone).c_str());
-    pShape->SetAttribute("phi", eastl::to_string(mLightData->mLighting->mOuterCone).c_str());
-    pSceneNode->LinkEndChild(pShape);
+    // spotcutoff
+	tinyxml2::XMLElement* pSpotCutoff = doc.NewElement("SpotCutoff");
+	pSpotCutoff->SetAttribute("angle", eastl::to_string(mLightData->mLighting->mSpotCutoff[0]).c_str());
+	pSpotCutoff->SetAttribute("exponent", eastl::to_string(mLightData->mLighting->mSpotCutoff[3]).c_str());
+    pLightElement->LinkEndChild(pSpotCutoff);
 
-    pBaseElement->LinkEndChild(pSceneNode);
+	pBaseElement->LinkEndChild(pLightElement);
 
+	tinyxml2::XMLElement* pAnimatorElement = doc.NewElement("Animator");
+
+	// animation
+	tinyxml2::XMLElement* pAnimation = doc.NewElement("Animation");
+	pAnimation->SetAttribute("type", eastl::to_string(mAnimatorType).c_str());
+	pAnimation->SetAttribute("radius", eastl::to_string(mAnimatorRadius).c_str());
+	pAnimatorElement->LinkEndChild(pAnimation);
+
+	tinyxml2::XMLElement* pCenter = doc.NewElement("Center");
+	pCenter->SetAttribute("x", eastl::to_string(mAnimatorCenter[0]).c_str());
+	pCenter->SetAttribute("y", eastl::to_string(mAnimatorCenter[1]).c_str());
+	pCenter->SetAttribute("z", eastl::to_string(mAnimatorCenter[2]).c_str());
+	pAnimatorElement->LinkEndChild(pCenter);
+
+	pBaseElement->LinkEndChild(pAnimatorElement);
 }
 
 

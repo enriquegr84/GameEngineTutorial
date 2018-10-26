@@ -14,12 +14,14 @@ struct VS_INPUT
 {
     float3 modelPosition : POSITION;
     float3 modelNormal : NORMAL;
+	float2 modelTCoord : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
     float3 vertexPosition : TEXCOORD0;
     float3 vertexNormal : TEXCOORD1;
+	float2 vertexTCoord : TEXCOORD2;
     float4 clipPosition : SV_POSITION;
 };
 
@@ -29,6 +31,7 @@ VS_OUTPUT VSMain(VS_INPUT input)
 
     output.vertexPosition = input.modelPosition;
     output.vertexNormal = input.modelNormal;
+	output.vertexTCoord = input.modelTCoord;
 #if GE_USE_MAT_VEC
     output.clipPosition = mul(pvwMatrix, float4(input.modelPosition, 1.0f));
 #else
@@ -61,10 +64,14 @@ cbuffer LightCameraGeometry
     float4 cameraModelPosition;
 };
 
+Texture2D<float4> baseTexture;
+SamplerState baseSampler;
+
 struct PS_INPUT
 {
     float3 vertexPosition : TEXCOORD0;
     float3 vertexNormal : TEXCOORD1;
+	float2 vertexTCoord : TEXCOORD2;
 };
 
 struct PS_OUTPUT
@@ -94,19 +101,21 @@ PS_OUTPUT PSMain(PS_INPUT input)
     {
         lighting = float4(1.0f, 0.0f, 0.0f, 0.0f);
     }
+	// Compute the lighting color.
+	float3 lightingColor = materialAmbient.rgb * lightingAmbient.rgb + lighting.w * (
+		lighting.y * materialDiffuse.rgb * lightingDiffuse.rgb +
+		lighting.z * materialSpecular.rgb * lightingSpecular.rgb);
 
     // Compute the distance-based attenuation.
     float distance = length(modelLightDiff);
     float attenuation = lightingAttenuation.w / (lightingAttenuation.x + distance *
         (lightingAttenuation.y + distance * lightingAttenuation.z));
 
-    // Compute the lighting color.
-    float3 color = materialAmbient.rgb * lightingAmbient.rgb + lighting.w * (
-        lighting.y * materialDiffuse.rgb * lightingDiffuse.rgb +
-        lighting.z * materialSpecular.rgb * lightingSpecular.rgb);
+	float4 textureColor = baseTexture.Sample(baseSampler, input.vertexTCoord);
 
     // Compute the pixel color.
-    output.pixelColor0.rgb = materialEmissive.rgb + attenuation*color;
-    output.pixelColor0.a = materialDiffuse.a;
+	float3 color = lightingColor * textureColor.rgb;
+    output.pixelColor0.rgb = materialEmissive.rgb + attenuation * color;
+    output.pixelColor0.a = materialDiffuse.a * textureColor.a;
     return output;
 }

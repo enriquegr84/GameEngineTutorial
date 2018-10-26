@@ -44,9 +44,17 @@ bool PVWUpdater::Subscribe(Matrix4x4<float> const& worldMatrix,
     return false;
 }
 
-bool PVWUpdater::Unsubscribe(Matrix4x4<float> const& worldMatrix)
+bool PVWUpdater::Unsubscribe(eastl::shared_ptr<ConstantBuffer> const& cbuffer)
 {
-    return mSubscribers.erase(&worldMatrix) > 0;
+	for (PVWIterator it = mSubscribers.begin(); it != mSubscribers.end(); it++)
+	{
+		if ((*it).second.first == cbuffer)
+		{
+			mSubscribers.erase(it);
+			return true;
+		}
+	}
+	return false;
 }
 
 void PVWUpdater::UnsubscribeAll()

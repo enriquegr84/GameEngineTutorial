@@ -4,6 +4,8 @@
 
 #include "MeshBuffer.h"
 
+#include "Mathematic/Surface/RectangleMesh.h"
+
 MeshBuffer::MeshBuffer()
 	: BaseMeshBuffer(0, 0)
 {
@@ -16,12 +18,13 @@ MeshBuffer::MeshBuffer(VertexFormat const& vformat, uint32_t numVertices,
 {
 	mVFormat = vformat;
 
-	mIndice = CreateIBuffer(numPrimitives, indexSize);
-	if (!mIndice)
-		LogError("Error creating index buffer");
 	mVertice = CreateVBuffer(numVertices);
 	if (!mVertice)
 		LogError("Error creating vertex buffer");
+
+	mIndice = CreateIBuffer(numPrimitives, indexSize);
+	if (!mIndice)
+		LogError("Error creating index buffer");
 
 	mMaterial = eastl::make_shared<Material>();
 }

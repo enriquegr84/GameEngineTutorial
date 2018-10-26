@@ -1,7 +1,7 @@
 <Actor type="Music" resource="actors\music.xml">
 	<AudioComponent>
 		<Sound>audio\spacegod7-level2.ogg</Sound>
-		<Loop>1</Loop>
+		<Looping>1</Looping>
 		<FadeIn>5.0</FadeIn>
 	</AudioComponent>	
 </Actor>

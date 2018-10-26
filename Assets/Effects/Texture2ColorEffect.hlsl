@@ -13,8 +13,8 @@ cbuffer PVWMatrix
 struct VS_INPUT
 {
     float3 modelPosition : POSITION;
-    float4 modelColor : COLOR0;
     float2 modelTCoord : TEXCOORD0;
+	float4 modelColor : COLOR0;
 };
 
 struct VS_OUTPUT

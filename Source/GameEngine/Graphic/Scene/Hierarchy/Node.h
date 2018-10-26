@@ -163,14 +163,14 @@ enum GRAPHIC_ITEM RenderPass
 	//! Static nodes
 	RP_STATIC,
 
-	//! In this pass, lights are transformed into camera space and added to the driver
-	RP_LIGHT,
-
 	//! This is used for skies.
 	RP_SKY,
 
 	//! Solid scene nodes or special scene nodes without materials.
 	RP_SOLID,
+
+	//! In this pass, lights are transformed into camera space and added to the driver
+	RP_LIGHT,
 
 	//! Transparent scene nodes, drawn after solid nodes. They are sorted from back to front and drawn in that order.
 	RP_TRANSPARENT,
@@ -322,6 +322,20 @@ public:
 
 	const SceneNodeAnimatorList& GetAnimators() const { return mAnimators; }
 
+	//! Returns the visual based on the zero based index i.
+	/** To get the amount of visuals used by this scene node, use
+	GetVisualCount(). This function is needed for inserting the
+	node into the scene hierarchy at an optimal position for
+	minimizing renderstate changes, but can also be used to
+	directly modify the visual of a scene node.
+	\param num Zero based index. The maximal value is GetVisualCount() - 1.
+	\return The visual at that index. */
+	virtual eastl::shared_ptr<Visual> const& GetVisual(unsigned int i){ return nullptr; }
+
+	//! Get amount of visuals used by this scene node.
+	/** \return Current amount of visuals of this scene node. */
+	virtual unsigned int GetVisualCount() const { return 0; }
+
 	//! Returns the material based on the zero based index i.
 	/** To get the amount of materials used by this scene node, use
 	getMaterialCount(). This function is needed for inserting the
@@ -426,7 +440,7 @@ protected:
 protected:
 
     // Support for geometric updates.
-    virtual void UpdateWorldData(double applicationTIme);
+    virtual void UpdateWorldData();
     virtual void UpdateWorldBound();
 
     // Support for hierarchical culling.

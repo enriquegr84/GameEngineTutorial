@@ -16,7 +16,8 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
+BillboardNode::BillboardNode(const ActorId actorId, 
+	PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
 	const eastl::shared_ptr<Texture2>& texture, const Vector2<float>& size)
 	: Node(actorId, renderComponent, NT_BILLBOARD)
 {
@@ -41,12 +42,9 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBas
 	mMaterial->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
 	mMaterial->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
 	mMaterial->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
-	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 0.75f };
 
 	eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
-	lighting->mAmbient = Renderer::Get()->GetClearColor();
-	lighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
-
 	eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
@@ -58,14 +56,14 @@ BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, WeakBas
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 }
 
-void BillboardNode::UpdateWorldData(double applicationTIme)
+void BillboardNode::UpdateWorldData()
 {
     // Compute the billboard's world transforms based on its parent's world
     // transform and its local transforms.  Notice that you should not call
     // Node::UpdateWorldData since that function updates its children.  The
     // children of a BillboardNode cannot be updated until the billboard is
     // aligned with the camera.
-    Spatial::UpdateWorldData(applicationTIme);
+    Spatial::UpdateWorldData();
 
     if (mPVWUpdater->GetCamera())
     {
@@ -296,6 +294,22 @@ void BillboardNode::GetSize(float& height, float& bottomEdgeWidth, float& topEdg
 	height = mSize[1];
 	bottomEdgeWidth = mSize[0];
 	topEdgeWidth = mTopEdgeWidth;
+}
+
+//! Returns the visual based on the zero based index i. To get the amount 
+//! of visuals used by this scene node, use GetVisualCount(). 
+//! This function is needed for inserting the node into the scene hierarchy 
+//! at an optimal position for minimizing renderstate changes, but can also 
+//! be used to directly modify the visual of a scene node.
+eastl::shared_ptr<Visual> const& BillboardNode::GetVisual(unsigned int i)
+{
+	return mVisual;
+}
+
+//! return amount of visuals of this scene node.
+unsigned int BillboardNode::GetVisualCount() const
+{
+	return 1;
 }
 
 //! returns the material based on the zero based index i. To get the amount

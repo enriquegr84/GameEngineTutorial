@@ -44,7 +44,7 @@ public:
     bool Subscribe(Matrix4x4<float> const& worldMatrix,
 		eastl::shared_ptr<ConstantBuffer> const& cbuffer,
 		eastl::string const& pvwMatrixName = "pvwMatrix");
-    bool Unsubscribe(Matrix4x4<float> const& worldMatrix);
+    bool Unsubscribe(eastl::shared_ptr<ConstantBuffer> const& cbuffer);
     void UnsubscribeAll();
 
     // After any camera modifictions that change the projection or view

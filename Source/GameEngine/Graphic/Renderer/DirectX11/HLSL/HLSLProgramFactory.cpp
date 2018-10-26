@@ -19,6 +19,7 @@ eastl::string HLSLProgramFactory::defaultGSEntry = "GSMain";
 eastl::string HLSLProgramFactory::defaultCSEntry = "CSMain";
 unsigned int HLSLProgramFactory::defaultFlags = (
 	D3DCOMPILE_DEBUG |
+	D3DCOMPILE_SKIP_OPTIMIZATION |
     D3DCOMPILE_ENABLE_STRICTNESS |
     D3DCOMPILE_IEEE_STRICTNESS |
     D3DCOMPILE_OPTIMIZATION_LEVEL3);

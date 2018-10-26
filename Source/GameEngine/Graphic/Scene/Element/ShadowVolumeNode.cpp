@@ -52,12 +52,9 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 				meshBuffer->GetMaterial()->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
 				meshBuffer->GetMaterial()->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
 				meshBuffer->GetMaterial()->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
-				meshBuffer->GetMaterial()->mSpecular = { 1.0f, 1.0f, 1.0f, 75.0f };
+				meshBuffer->GetMaterial()->mSpecular = { 1.0f, 1.0f, 1.0f, 0.75f };
 
 				eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
-				lighting->mAmbient = Renderer::Get()->GetClearColor();
-				lighting->mAttenuation = { 1.0f, 0.0f, 0.0f, 1.0f };
-
 				eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
 
 				eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");

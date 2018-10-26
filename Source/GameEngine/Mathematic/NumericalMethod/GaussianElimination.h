@@ -9,7 +9,7 @@
 #define GAUSSIANELIMINATION_H
 
 #include "Core/Utility/LexicoArray2.h"
-//#include "Core/Logger/Logger.h"
+#include "Core/Logger/Logger.h"
 
 // The input matrix M must be NxN.  The storage convention for element lookup
 // is determined by GE_USE_ROW_MAJOR or GE_USE_COL_MAJOR, whichever is

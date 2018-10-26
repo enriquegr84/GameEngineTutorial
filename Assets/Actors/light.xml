@@ -1,19 +1,26 @@
 <Actor type="Light" resource="actors\light.xml">
 
 	<TransformComponent>
-		<Position x="30.0" y="15.0" z="10.0"/>
-		<YawPitchRoll x="45" y="0" z="-45"/>
+		<Position x="0.0" y="0.0" z="100.0"/>
+		<Scale x="1.0" y="1.0" z="1.0" />
+		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
 
 	<LightRenderComponent>
 		<Light>
-			<Ambient r="1.0" g="1.0" b="0.5" a="1.0"/>
-			<Diffuse r="1.0" g="1.0" b="0.5" a="1.0"/>
-			<Specular r="1.0" g="1.0" b="0.5" a="1.0"/>
-			<Attenuation const="0.1" linear="0.0" exp="0.0" />
-			<Shape type="0" range="100.0" falloff="1.0" outercone="0.0" innercone="0.0"/>
-			<Material type="1" />
+			<Lighting type="0" />
+			<Texture file="art\particlewhite.bmp" x="50.0" y="50.0" />
+			<Direction x="0.0" y="0.0" z="-1.0"/>
+			<Ambient r="1.0" g="1.0" b="1.0" a="1.0"/>
+			<Diffuse r="1.0" g="1.0" b="1.0" a="1.0"/>
+			<Specular r="1.0" g="1.0" b="1.0" a="0.75"/>
+			<Attenuation const="0.1" linear="0.0" exp="0.0" int="0.1"/>
+			<SpotCutoff angle="0.6" exponent="1.0" />
 		</Light>
+		<Animator>
+			<Animation type="0" radius="200.0" />
+			<Center x="0.0" y="0.0" z="100.0" />
+		</Animator>
 	</LightRenderComponent>
 
 </Actor>

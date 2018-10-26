@@ -7,7 +7,6 @@
 
 #include "UIElement.h"
 
-#include "Graphic/Effect/Texture2Effect.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 //! BaseUI element displaying an image.
@@ -86,7 +85,7 @@ private:
 	BaseUI* mUI;
 
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<Texture2Effect> mEffect;
+	eastl::shared_ptr<VisualEffect> mEffect;
 
 	eastl::shared_ptr<Texture2> mTexture;
 	eastl::array<float, 4> mColor;
