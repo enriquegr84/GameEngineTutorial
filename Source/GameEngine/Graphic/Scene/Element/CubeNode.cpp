@@ -23,8 +23,8 @@
 	*/
 
 //! constructor
-CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater, 
-	WeakBaseRenderComponentPtr renderComponent, float size)
+CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
+	const eastl::shared_ptr<Texture2>& texture, float texxScale, float texyScale, float size)
 	:	Node(actorId, renderComponent, NT_CUBE), mSize(size), mShadow(0)
 {
 	mPVWUpdater = updater;
@@ -34,16 +34,27 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
 
 	struct Vertex
 	{
-		Vector3<float> position;
-		Vector4<float> color;
+		Vector3<float> position, normal;
+		Vector2<float> tcoord;
 	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);
 	mVisual = mf.CreateBox(mSize, mSize, mSize);
+
+	// Multiply the texture coordinates by a factor to enhance the wrap-around.
+	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
+	unsigned int numVertices = vbuffer->GetNumElements();
+	Vertex* vertex = vbuffer->Get<Vertex>();
+	for (unsigned int i = 0; i < numVertices; ++i)
+	{
+		vertex[i].tcoord[0] *= texxScale;
+		vertex[i].tcoord[1] *= texyScale;
+	}
 
 	// Create the visual effect. The world up-direction is (0,0,1).  Choose
 	// the light to point down.
@@ -53,9 +64,13 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
 	mMaterial->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
 	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 0.75f };
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/AmbientLightEffect.hlsl");
-	mEffect = eastl::make_shared<AmbientLightEffect>(ProgramFactory::Get(), 
-		mPVWUpdater->GetUpdater(), path, mMaterial, eastl::make_shared<Lighting>());
+	eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
+	eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
+
+	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
+	mEffect = eastl::make_shared<PointLightTextureEffect>(
+		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, lighting, geometry,
+		texture, SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 	mVisual->SetEffect(mEffect);
 	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());

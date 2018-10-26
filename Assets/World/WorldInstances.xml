@@ -19,7 +19,8 @@
 			</RigidBodyTransform>
 		</PhysicsComponent>	
 	  </Actor>
-	  
+	<Actor resource="actors\cube.xml" />
+		  
 	  <Actor resource="actors\light.xml" />
 	  <Actor resource="actors\fire.xml" />
 	  <Actor resource="actors\afternoon_sky.xml" />

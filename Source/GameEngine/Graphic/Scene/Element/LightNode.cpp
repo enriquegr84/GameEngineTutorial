@@ -27,14 +27,6 @@ LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
 	mBlendState = eastl::make_shared<BlendState>();
 	mDepthStencilState = eastl::make_shared<DepthStencilState>();
 
-	// A point light illuminates the target.  Create a semitransparent
-	// material for the patch.
-	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
-	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
-	material->mAmbient = mLight->mLighting->mAmbient;
-	material->mDiffuse = mLight->mLighting->mDiffuse;
-	material->mSpecular = mLight->mLighting->mSpecular;
-
 	struct Vertex
 	{
 		Vector3<float> position;
@@ -47,6 +39,14 @@ LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
 	MeshBuffer* meshBuffer = new MeshBuffer(vformat, 4, 2, sizeof(unsigned int));
+	
+	// A point light illuminates the target.  Create a semitransparent
+	// material for the patch.
+	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
+	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+	material->mAmbient = mLight->mLighting->mAmbient;
+	material->mDiffuse = mLight->mLighting->mDiffuse;
+	material->mSpecular = mLight->mLighting->mSpecular;
 	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		meshBuffer->GetMaterial() = material;
 	mMeshBuffer.reset(meshBuffer);

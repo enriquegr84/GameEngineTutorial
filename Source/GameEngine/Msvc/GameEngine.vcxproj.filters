@@ -2677,5 +2677,8 @@
     <Xml Include="..\..\..\Assets\Actors\fire.xml">
       <Filter>Assets\Actors</Filter>
     </Xml>
+    <Xml Include="..\..\..\Assets\Actors\cube.xml">
+      <Filter>Assets\Actors</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

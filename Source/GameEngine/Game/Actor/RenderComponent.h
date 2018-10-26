@@ -97,9 +97,35 @@ protected:
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
+//---------------------------------------------------------------------------------------------------------------------
+// Cube
+//---------------------------------------------------------------------------------------------------------------------
+class CubeRenderComponent : public BaseRenderComponent
+{
+	eastl::string mTextureResource;
+	Vector2<float> mTextureScale;
+	unsigned int mMaterialType;
+	float mSize;
+
+public:
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
+
+	CubeRenderComponent(void);
+	const char* GetTextureResource() { return mTextureResource.c_str(); }
+	const Vector2<float> GetTextureScale() { return mTextureScale; }
+	const float GetSize() { return mSize; }
+
+protected:
+	virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+	
+	// editor stuff
+	virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
+};
 
 //---------------------------------------------------------------------------------------------------------------------
-// Grids, which represent the world
+// Grids
 //---------------------------------------------------------------------------------------------------------------------
 class GridRenderComponent : public BaseRenderComponent
 {

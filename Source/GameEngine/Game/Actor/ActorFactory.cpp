@@ -62,8 +62,8 @@ ActorFactory::ActorFactory(void)
 		ActorComponent::GetIdFromName(MeshRenderComponent::Name));
     mComponentFactory.Register<SphereRenderComponent>(
 		ActorComponent::GetIdFromName(SphereRenderComponent::Name));
-    mComponentFactory.Register<PhysicComponent>(
-		ActorComponent::GetIdFromName(PhysicComponent::Name));
+	mComponentFactory.Register<CubeRenderComponent>(
+		ActorComponent::GetIdFromName(CubeRenderComponent::Name));
     mComponentFactory.Register<GridRenderComponent>(
 		ActorComponent::GetIdFromName(GridRenderComponent::Name));
     mComponentFactory.Register<ParticleEffectRenderComponent>(
@@ -74,6 +74,8 @@ ActorFactory::ActorFactory(void)
 		ActorComponent::GetIdFromName(SkyRenderComponent::Name));
     mComponentFactory.Register<AudioComponent>(
 		ActorComponent::GetIdFromName(AudioComponent::Name));
+	mComponentFactory.Register<PhysicComponent>(
+		ActorComponent::GetIdFromName(PhysicComponent::Name));
 }
 
 eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, tinyxml2::XMLElement *overrides,

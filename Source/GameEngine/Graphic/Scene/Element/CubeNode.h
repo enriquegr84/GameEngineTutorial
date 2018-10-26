@@ -15,8 +15,8 @@ class CubeNode : public Node
 public:
 
 	//! constructor
-	CubeNode(const ActorId actorId, PVWUpdater* updater, 
-		WeakBaseRenderComponentPtr renderComponent, float size);
+	CubeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Texture2>& texture, float texxScale, float texyScale, float size);
 
 	virtual ~CubeNode();
 

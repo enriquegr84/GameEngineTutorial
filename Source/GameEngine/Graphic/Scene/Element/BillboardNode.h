@@ -8,6 +8,8 @@
 #ifndef BILLBOARDNODE_H
 #define BILLBOARDNODE_H
 
+#include "Graphic/Effect/VisualEffect.h"
+
 #include "Graphic/Scene/Hierarchy/Node.h"
 
 //! Scene node which is a billboard. A billboard is like a 3d sprite: A 2d element,
@@ -32,14 +34,8 @@ public:
 	//! sets the size of the billboard
 	void SetSize(const Vector2<float>& size);
 
-	//! Sets the widths of the top and bottom edges of the billboard independently.
-	void SetSize(float height, float bottomEdgeWidth, float topEdgeWidth);
-
 	//! gets the size of the billboard
 	const Vector2<float>& GetSize() const;
-
-	//! Gets the widths of the top and bottom edges of the billboard.
-	void GetSize(float& height, float& bottomEdgeWidth, float& topEdgeWidth) const;
 
 	//! Returns the visual based on the zero based index i. To get the amount 
 	//! of visuals used by this scene node, use GetVisualCount(). 
@@ -70,18 +66,17 @@ public:
 	/** \param newType New type of material to be set. */
 	virtual void SetMaterialType(MaterialType newType);
 
-protected:
-    // Support for the geometric update.
-    virtual void UpdateWorldData();
-
 private:
 
 	//! Size.Width is the bottom edge width
 	Vector2<float> mSize;
-	float mTopEdgeWidth;
 
+	eastl::shared_ptr<BlendState> mBlendState;
+	eastl::shared_ptr<DepthStencilState> mDepthStencilState;
+
+	eastl::shared_ptr<VisualEffect> mEffect;
+	eastl::shared_ptr<MeshBuffer> mMeshBuffer;
 	eastl::shared_ptr<Visual> mVisual;
-	eastl::shared_ptr<Material> mMaterial;
 };
 
 #endif

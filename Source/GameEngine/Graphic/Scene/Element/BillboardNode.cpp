@@ -25,80 +25,60 @@ BillboardNode::BillboardNode(const ActorId actorId,
 
 	mPVWUpdater = updater;
 
+	mBlendState = eastl::make_shared<BlendState>();
+	mDepthStencilState = eastl::make_shared<DepthStencilState>();
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+		Vector2<float> tcoord;
+	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	MeshFactory mf;
-	mf.SetVertexFormat(vformat);
-	mVisual = mf.CreateBox(size[0], 0.f, size[1]);
-	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
-	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
+	MeshBuffer* meshBuffer = new MeshBuffer(vformat, 4, 2, sizeof(unsigned int));
 
-	// Create the visual effect. The world up-direction is (0,0,1).  Choose
-	// the light to point down.
-	mMaterial = eastl::make_shared<Material>();
-	mMaterial->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
-	mMaterial->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
-	mMaterial->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
-	mMaterial->mSpecular = { 1.0f, 1.0f, 1.0f, 0.75f };
+	// A point light illuminates the target.  Create a semitransparent
+	// material for the patch.
+	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
+	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
+	material->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
+	material->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
+	material->mSpecular = { 1.0f, 1.0f, 1.0f, 0.75f };
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+		meshBuffer->GetMaterial() = material;
+	mMeshBuffer.reset(meshBuffer);
+	SetMaterialTexture(0, texture);
 
-	eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
-	eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
+	// fill vertices
+	for (unsigned int i = 0; i<mMeshBuffer->GetVertice()->GetNumElements(); i += 4)
+	{
+		mMeshBuffer->TCoord(0, 0 + i) = Vector2<float>{ 0.0f, 0.0f };
+		mMeshBuffer->TCoord(0, 1 + i) = Vector2<float>{ 0.0f, 1.0f };
+		mMeshBuffer->TCoord(0, 2 + i) = Vector2<float>{ 1.0f, 1.0f };
+		mMeshBuffer->TCoord(0, 3 + i) = Vector2<float>{ 1.0f, 0.0f };
+	}
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
-	eastl::shared_ptr<PointLightTextureEffect> effect = eastl::make_shared<PointLightTextureEffect>(
-		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, lighting, geometry, texture,
-		SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
-	mVisual->SetEffect(effect);
-	mVisual->UpdateModelNormals();
-	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
-}
+	// fill indices
+	int vertices = 0;
+	for (unsigned int i = 0; i<mMeshBuffer->GetIndice()->GetNumPrimitives(); i += 2, vertices += 4)
+	{
+		mMeshBuffer->GetIndice()->SetTriangle(i,
+			(unsigned int)0 + vertices, (unsigned int)2 + vertices, (unsigned int)1 + vertices);
+		mMeshBuffer->GetIndice()->SetTriangle(i + 1,
+			(unsigned int)0 + vertices, (unsigned int)3 + vertices, (unsigned int)2 + vertices);
+	}
 
-void BillboardNode::UpdateWorldData()
-{
-    // Compute the billboard's world transforms based on its parent's world
-    // transform and its local transforms.  Notice that you should not call
-    // Node::UpdateWorldData since that function updates its children.  The
-    // children of a BillboardNode cannot be updated until the billboard is
-    // aligned with the camera.
-    Spatial::UpdateWorldData();
+	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl");
+	mEffect = eastl::make_shared<Texture2ColorEffect>(
+		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
+		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
+	mVisual = eastl::make_shared<Visual>(
+		mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect);
 
-    if (mPVWUpdater->GetCamera())
-    {
-        // Inverse-transform the camera to the model space of the billboard.
-        Matrix4x4<float> const& inverse = mWorldTransform.GetHInverse();
-#if defined(GE_USE_MAT_VEC)
-        Vector4<float> modelPos = inverse * mPVWUpdater->GetCamera()->GetPosition();
-#else
-        Vector4<float> modelPos = mPVWUpdater.GetCamera()->GetPosition() * inverse;
-#endif
-
-        // To align the billboard, the projection of the camera to the
-        // xz-plane of the billboard's model space determines the angle of
-        // rotation about the billboard's model y-axis.  If the projected
-        // camera is on the model axis (x = 0 and z = 0), ATan2 returns zero
-        // (rather than NaN), so there is no need to trap this degenerate
-        // case and handle it separately.
-        float angle = Function<float>::ATan2(modelPos[0], modelPos[2]);
-        Matrix4x4<float> orient = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(2), angle));
-#if defined(GE_USE_MAT_VEC)
-        mWorldTransform.SetRotation(mWorldTransform.GetRotation() * orient);
-#else
-        mWorldTransform.SetRotation(orient * mWorldTransform.GetRotation());
-#endif
-    }
-
-    // Update the children now that the billboard orientation is known.
-    for (auto& child : mChildren)
-    {
-        if (child)
-        {
-            child->Update(false);
-        }
-    }
 }
 
 //! prerender
@@ -144,64 +124,12 @@ bool BillboardNode::PreRender(Scene *pScene)
 // BillboardNode::Render
 //
 bool BillboardNode::Render(Scene *pScene)
-{/*
+{
 	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
 
 	if (!cameraNode || !Renderer::Get())
 		return false;
 
-	// make billboard look to camera
-	Matrix4x4<float> rotation = mWorldTransform.GetRotation();
-	Vector4<float> position = mWorldTransform.GetTranslationW1();
-
-	Vector4<float> camPosition = cameraNode->Get()->GetPosition();
-	Vector4<float> direction;
-#if defined(GE_USE_MAT_VEC)
-	direction = rotation.GetCol(1);
-#else
-	direction = rotation.GetRow(1);
-#endif
-
-	if (cameraNode->GetTarget())
-	{
-		direction = cameraNode->GetTarget()->GetAbsoluteTransform().GetTranslationW1() - camPosition;
-		Normalize(direction);
-	}
-
-	Vector4<float> up = cameraNode->Get()->GetUVector();
-	Vector4<float> horizontal = Cross(up, direction);
-	if (Length(horizontal) == 0)
-		horizontal = { up[1], up[0], up[2], up[3] };
-
-	Normalize(horizontal);
-	Vector4<float> topHorizontal = horizontal * 0.5f * mTopEdgeWidth;
-	horizontal *= 0.5f * mSize[0];
-
-	// pointing down!
-	Vector4<float> vertical = Cross(horizontal, direction);
-	Normalize(vertical);
-	vertical *= 0.5f * mSize[1];
-
-	direction *= -1.0f;
-
-	struct Vertex
-	{
-		Vector3<float> position;
-		Vector3<float> normal;
-		Vector2<float> tcoord;
-	};
-	Vertex* vertex = mVisual->GetVertexBuffer()->Get<Vertex>();
-	for (int i = 0; i<4; ++i)
-		vertex[i].normal = { direction[0], direction[1], direction[2] };
-
-	Vector4<float> vertexPos = position + horizontal + vertical;
-	vertex[0].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
-	vertexPos = position + topHorizontal - vertical;
-	vertex[1].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
-	vertexPos = position - topHorizontal - vertical;
-	vertex[2].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
-	vertexPos = position - horizontal + vertical;
-	vertex[3].position = { vertexPos[0], vertexPos[1], vertexPos[2] };
 	/* Vertices are:
 	2--1
 	|\ |
@@ -209,91 +137,84 @@ bool BillboardNode::Render(Scene *pScene)
 	3--0
 	*/
 
+	Vector3<float> scale = GetAbsoluteTransform().GetScale();
+	Vector3<float> position = GetAbsoluteTransform().GetTranslation();
 
-	// draw
+	float f = 0.5f * mSize[0];
+	const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
+
+	f = 0.5f * mSize[1];
+	const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
+
+	mMeshBuffer->Position(0) = position + HProject(horizontal + vertical) * scale;
+	mMeshBuffer->Color(0, 0) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(1) = position + HProject(horizontal - vertical) * scale;
+	mMeshBuffer->Color(0, 1) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(2) = position + HProject(-horizontal - vertical) * scale;
+	mMeshBuffer->Color(0, 2) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(3) = position + HProject(-horizontal + vertical) * scale;
+	mMeshBuffer->Color(0, 3) = mMeshBuffer->GetMaterial()->mDiffuse;
+
+	eastl::shared_ptr<ConstantBuffer> cbuffer;
+	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
+	*cbuffer->Get<Matrix4x4<float>>() = cameraNode->Get()->GetProjectionViewMatrix();
+
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+	{
+		GetMaterial(i)->Update(mBlendState);
+		GetMaterial(i)->Update(mDepthStencilState);
+	}
+
+	Renderer::Get()->SetBlendState(mBlendState);
+	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
+
+	Renderer* renderer = Renderer::Get();
+	renderer->Update(mMeshBuffer->GetVertice());
+	renderer->Update(cbuffer);
+	renderer->Draw(mVisual);
+
+	Renderer::Get()->SetDefaultBlendState();
+	Renderer::Get()->SetDefaultDepthStencilState();
+
 	/*
-	if (DebugDataVisible() & DS_BBOX)
+	if (DebugDataVisible() & DS_BBOX )
 	{
 		Renderer::Get()->SetTransform(TS_WORLD, toWorld);
 		Material m;
 		m.mLighting = false;
 		Renderer::Get()->SetMaterial(m);
-		Renderer::Get()->Draw3DBox(mBBox, eastl::array<float, 4>{0.f, 208.f, 195.f, 152.f});
-	}
 
-	Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity);
-	Renderer::Get()->SetMaterial(mMaterial);
-	Renderer::Get()->DrawIndexedTriangleList(mVertices, 4, mIndices, 2);
+		switch ( mLightData.mType )
+		{
+			case LT_POINT:
+			case LT_SPOT:
+				Renderer::Get()->Draw3DBox(mBBox, mLightData.mLighting->mDiffuse.ToColor());
+				break;
+
+			case LT_DIRECTIONAL:
+				Renderer::Get()->Draw3DLine(Vector3<float>{0.f, 0.f, 0.f},
+				mLightData.mLighting->mDirection * mLightData.mRadius,
+				mLightData.mLighting.>mDiffuse.ToColor());
+				break;
+			default:
+				break;
+		}
+	}
 	*/
-	/*
-	Renderer::Get()->SetBlendState(mMaterial->mBlendState);
-	Renderer::Get()->SetRasterizerState(mMaterial->mRasterizerState);
-	Renderer::Get()->SetDepthStencilState(mMaterial->mDepthStencilState);
-	*/
-	eastl::shared_ptr<AmbientLightEffect> effect =
-		eastl::static_pointer_cast<AmbientLightEffect>(mVisual->GetEffect());
-	effect->SetMaterial(mMaterial);
-	Renderer::Get()->Draw(mVisual);
-	/*
-	Renderer::Get()->SetDefaultDepthStencilState();
-	Renderer::Get()->SetDefaultRasterizerState();
-	Renderer::Get()->SetDefaultBlendState();
-	*/
-	return Node::Render(pScene);
+
+	return true;
 }
 
 //! sets the size of the billboard
 void BillboardNode::SetSize(const Vector2<float>& size)
 {
 	mSize = size;
-
-	if (Function<float>::Equals(mSize[0], 0.0f))
-		mSize[0] = 1.0f;
-	mTopEdgeWidth = mSize[0];
-
-	if (Function<float>::Equals(mSize[1], 0.0f))
-		mSize[1] = 1.0f;
-
-	const float avg = (mSize[0] + mSize[1]) / 6;
-	//mBBox.mMinEdge.set(-avg, -avg, -avg);
-	//mBBox.mMaxEdge.set(avg, avg, avg);
 }
 
-
-void BillboardNode::SetSize(float height, float bottomEdgeWidth, float topEdgeWidth)
-{
-	mSize = { bottomEdgeWidth, height };
-	mTopEdgeWidth = topEdgeWidth;
-
-	if (Function<float>::Equals(mSize[1], 0.0f))
-		mSize[1] = 1.0f;
-
-	if (Function<float>::Equals(mSize[0], 0.f) &&
-		Function<float>::Equals(mTopEdgeWidth, 0.f))
-	{
-		mSize[0] = 1.0f;
-		mTopEdgeWidth = 1.0f;
-	}
-
-	const float avg = (eastl::max(mSize[0], mTopEdgeWidth) + mSize[1]) / 6;
-	//mBBox.MinEdge.set(-avg, -avg, -avg);
-	//mBBox.MaxEdge.set(avg, avg, avg);
-}
-
-
-//! gets the size of the billboard
+//! gets the size of the light node
 const Vector2<float>& BillboardNode::GetSize() const
 {
 	return mSize;
-}
-
-
-//! Gets the widths of the top and bottom edges of the billboard.
-void BillboardNode::GetSize(float& height, float& bottomEdgeWidth, float& topEdgeWidth) const
-{
-	height = mSize[1];
-	bottomEdgeWidth = mSize[0];
-	topEdgeWidth = mTopEdgeWidth;
 }
 
 //! Returns the visual based on the zero based index i. To get the amount 
@@ -319,7 +240,7 @@ unsigned int BillboardNode::GetVisualCount() const
 //! to directly modify the material of a scene node.
 eastl::shared_ptr<Material> const& BillboardNode::GetMaterial(unsigned int i)
 {
-	return mMaterial;
+	return mMeshBuffer->GetMaterial();
 }
 
 //! returns amount of materials used by this scene node.

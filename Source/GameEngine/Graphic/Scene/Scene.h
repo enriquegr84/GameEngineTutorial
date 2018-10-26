@@ -143,7 +143,8 @@ public:
 	pointer should not be dropped. See IReferenceCounted::drop()
 	for more information. */
 	eastl::shared_ptr<Node> AddCubeNode(WeakBaseRenderComponentPtr renderComponent, 
-		const eastl::shared_ptr<Node>& parent,  float size = 10.0f, int id = -1);
+		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& texture, 
+		float texxScale, float texyScale, float size = 10.0f, int id = -1);
 
 	//! Adds a sphere scene node of the given radius and detail
 	/** \param radius: Radius of the sphere.

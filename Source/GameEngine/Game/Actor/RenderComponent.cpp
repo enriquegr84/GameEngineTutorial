@@ -50,6 +50,7 @@
 
 const char* MeshRenderComponent::Name = "MeshRenderComponent";
 const char* SphereRenderComponent::Name = "SphereRenderComponent";
+const char* CubeRenderComponent::Name = "CubeRenderComponent";
 const char* GridRenderComponent::Name = "GridRenderComponent";
 const char* LightRenderComponent::Name = "LightRenderComponent";
 const char* SkyRenderComponent::Name = "SkyRenderComponent";
@@ -283,6 +284,133 @@ void SphereRenderComponent::CreateInheritedXMLElements(
 	pMesh->SetAttribute("radius", eastl::to_string(mRadius).c_str());
     pMesh->SetAttribute("segments", eastl::to_string(mSegments).c_str());
     pBaseElement->LinkEndChild(pBaseElement);
+
+	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
+	pTexture->SetAttribute("file", mTextureResource.c_str());
+	pTexture->SetAttribute("x", eastl::to_string(mTextureScale[0]).c_str());
+	pTexture->SetAttribute("y", eastl::to_string(mTextureScale[1]).c_str());
+	pBaseElement->LinkEndChild(pTexture);
+
+	tinyxml2::XMLElement* pMaterial = doc.NewElement("Material");
+	pMaterial->SetAttribute("type", eastl::to_string(mMaterialType).c_str());
+	pBaseElement->LinkEndChild(pMaterial);
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// CubeRenderComponent
+//---------------------------------------------------------------------------------------------------------------------
+CubeRenderComponent::CubeRenderComponent(void)
+{
+	mTextureResource = "";
+	mMaterialType = 0;
+	mSize = 0;
+}
+
+bool CubeRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
+{
+	tinyxml2::XMLElement* pCube = pData->FirstChildElement("Cube");
+	if (pCube)
+	{
+		mSize = 1.f;
+		mSize = pCube->FloatAttribute("size", mSize);
+	}
+
+	tinyxml2::XMLElement* pTexture = pData->FirstChildElement("Texture");
+	if (pTexture)
+	{
+		float x = 1.f;
+		float y = 1.f;
+		x = pTexture->FloatAttribute("x", x);
+		y = pTexture->FloatAttribute("y", y);
+		mTextureScale = Vector2<float>{ x, y };
+		mTextureResource = pTexture->Attribute("file");
+	}
+
+	tinyxml2::XMLElement* pMaterial = pData->FirstChildElement("Material");
+	if (pMaterial)
+	{
+		unsigned int type = 0;
+		mMaterialType = pMaterial->IntAttribute("type", type);
+	}
+
+	return true;
+}
+
+eastl::shared_ptr<Node> CubeRenderComponent::CreateSceneNode(void)
+{
+	const eastl::shared_ptr<TransformComponent>& pTransformComponent(
+		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+	if (pTransformComponent)
+	{
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
+		Transform transform = pTransformComponent->GetTransform();
+		WeakBaseRenderComponentPtr wbrcp(
+			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
+
+		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
+		{
+			eastl::shared_ptr<ResHandle>& resHandle =
+				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
+			if (resHandle)
+			{
+				const eastl::shared_ptr<ImageResourceExtraData>& extra =
+					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+				extra->GetImage()->AutogenerateMipmaps();
+
+				// create an animated mesh scene node with specified mesh.
+				eastl::shared_ptr<Node> cubeNode = pScene->AddCubeNode(wbrcp, 0, 
+					extra->GetImage(), mTextureScale[0], mTextureScale[1], mSize, mOwner->GetId());
+
+				//To let the mesh look a little bit nicer, we change its material. We
+				//disable lighting because we do not have a dynamic light in here, and
+				//the mesh would be totally black otherwise. And last, we apply a
+				//texture to the mesh. Without it the mesh would be drawn using only a
+				//color.
+				if (cubeNode)
+				{
+					cubeNode->GetRelativeTransform() = transform;
+
+					if (mMaterialType == MaterialType::MT_TRANSPARENT)
+					{
+						for (unsigned int i = 0; i<cubeNode->GetMaterialCount(); ++i)
+						{
+							eastl::shared_ptr<Material> material = cubeNode->GetMaterial(i);
+							material->mBlendTarget.enable = true;
+							material->mBlendTarget.srcColor = BlendState::BM_ONE;
+							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+							material->mDepthBuffer = true;
+							material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+							material->mFillMode = RasterizerState::FILL_SOLID;
+							material->mCullMode = RasterizerState::CULL_NONE;
+						}
+					}
+
+					for (unsigned int i = 0; i<cubeNode->GetMaterialCount(); ++i)
+						cubeNode->GetMaterial(i)->mLighting = false;
+					cubeNode->SetMaterialTexture(0, extra->GetImage());
+					cubeNode->SetMaterialType((MaterialType)mMaterialType);
+				}
+
+				return cubeNode;
+			}
+		}
+		else LogError("Unknown Renderer Implementation in CubeRenderComponent");
+	}
+
+	return eastl::shared_ptr<Node>();
+}
+
+void CubeRenderComponent::CreateInheritedXMLElements(
+	tinyxml2::XMLDocument doc, tinyxml2::XMLElement *pBaseElement)
+{
+	tinyxml2::XMLElement* pCube = doc.NewElement("Cube");
+	pCube->SetAttribute("size", eastl::to_string(mSize).c_str());
+	pBaseElement->LinkEndChild(pCube);
 
 	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
 	pTexture->SetAttribute("file", mTextureResource.c_str());

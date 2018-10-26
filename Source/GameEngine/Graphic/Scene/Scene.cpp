@@ -277,9 +277,10 @@ eastl::shared_ptr<Node> Scene::AddRectangleNode(
 //! the returned pointer must not be dropped.
 eastl::shared_ptr<Node> Scene::AddCubeNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-	float size, int id)
+	const eastl::shared_ptr<Texture2>& texture, float texxScale, float texyScale, float size, int id)
 {
-	eastl::shared_ptr<Node> node(new CubeNode(id, &mPVWUpdater, renderComponent, size));
+	eastl::shared_ptr<Node> node(new CubeNode(
+		id, &mPVWUpdater, renderComponent, texture, texxScale, texyScale, size));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -702,21 +703,5 @@ void Scene::SyncActorDelegate(BaseEventDataPtr pEventData)
 		Vector3<float> actorScale = pNode->GetRelativeTransform().GetScale();
 		pNode->GetRelativeTransform() = pCastEventData->GetTransform();
 		pNode->GetRelativeTransform().SetScale(actorScale);
-
-		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
-		eastl::shared_ptr<PhysicComponent> pPhysicComponent =
-			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
-		if (pPhysicComponent)
-		{
-			Vector4<float> upVector = Vector4<float>::Unit(2); // up vector
-#if defined(GE_USE_MAT_VEC)
-			upVector = pNode->GetRelativeTransform() * upVector;
-#else
-			upVector = upVector * pNode->GetRelativeTransform();
-#endif
-			Vector3<float> actorTranslation = pNode->GetRelativeTransform().GetTranslation();
-			actorTranslation -= HProject(upVector) * (pPhysicComponent->GetScale() / 2.f);
-			pNode->GetRelativeTransform().SetTranslation(actorTranslation);
-		}
 	}
 }

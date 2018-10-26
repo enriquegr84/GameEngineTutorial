@@ -1,26 +1,25 @@
-<Actor type="Grid" resource="actors\grid.xml">
+<Actor type="Cube" resource="actors\cube.xml">
 
 	<TransformComponent>
-		<Position x="0" y="0" z="0"/>
+		<Position x="200" y="-150" z="30"/>
 		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
 	
     <PhysicsComponent>
         <Shape>Box</Shape>
-        <Density>Infinite</Density>
+        <Density>glass</Density>
         <PhysicsMaterial>Normal</PhysicsMaterial>
 
         <RigidBodyTransform>
-			<Scale x="16" y="16" z="0.01" />  
+			<Scale x="16" y="16" z="16" />  
 		</RigidBodyTransform>
 
     </PhysicsComponent>
 	
-    <GridRenderComponent>
+    <CubeRenderComponent>
+		<Cube size="16" />
 		<Material type="0" />
 		<Texture file="art\wall.bmp" x="128.0" y="128.0" />
-		<Extent x="16.0" y="16.0"/>
-		<Segment x="2" y="2" />
-    </GridRenderComponent>
+    </CubeRenderComponent>
 
 </Actor>
