@@ -53,7 +53,6 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 
 			eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
 				meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
-			visual->UpdateModelNormals();
 			visual->UpdateModelBound();
 			mVisuals.push_back(visual);
 			mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());

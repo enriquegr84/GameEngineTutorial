@@ -425,7 +425,7 @@ bool BulletPhysics::Initialize()
 	// This is the main Bullet interface point.  Pass in all these components to customize its behavior.
 	mDynamicsWorld = new btDiscreteDynamicsWorld( 
 		mDispatcher, mBroadphase, mSolver, mCollisionConfiguration );
-	mDynamicsWorld->setGravity(btVector3(0, 0, -1));
+	mDynamicsWorld->setGravity(btVector3(0, 0, -10));
 
 	mDebugDrawer = new BulletDebugDrawer();
 	GameApplication* gameApp = (GameApplication*)Application::App;

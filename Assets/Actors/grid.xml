@@ -18,7 +18,7 @@
 	
     <GridRenderComponent>
 		<Material type="0" />
-		<Texture file="art\wall.bmp" x="128.0" y="128.0" />
+		<Texture file="art\wall.bmp" x="50.0" y="50.0" />
 		<Extent x="16.0" y="16.0"/>
 		<Segment x="2" y="2" />
     </GridRenderComponent>

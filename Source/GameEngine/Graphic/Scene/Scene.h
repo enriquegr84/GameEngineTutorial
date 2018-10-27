@@ -162,7 +162,8 @@ public:
 	pointer should not be dropped. See IReferenceCounted::drop()
 	for more information. */
 	eastl::shared_ptr<Node> AddSphereNode(WeakBaseRenderComponentPtr renderComponent, 
-		const eastl::shared_ptr<Node>& parent, float radius = 5.f, int polyCount = 16, int id = -1);
+		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& texture, 
+		float radius = 5.f, int polyCount = 16, int id = -1);
 
 	//! Adds Volume Lighting Scene Node.
 	/** Example Usage:

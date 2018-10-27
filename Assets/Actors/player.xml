@@ -1,7 +1,7 @@
 <Actor type="Player" resource="actors\player.xml">
 
 	<TransformComponent>
-		<Position x="0" y="0" z="50"/>
+		<Position x="0" y="0" z="30"/>
 		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
 

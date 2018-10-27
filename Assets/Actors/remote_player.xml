@@ -1,7 +1,7 @@
 <Actor type="Player" resource="actors\remote_player.xml">
 
 	<TransformComponent>
-		<Position x="-50" y="-50" z="50"/>
+		<Position x="-50" y="-50" z="30"/>
 		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
 

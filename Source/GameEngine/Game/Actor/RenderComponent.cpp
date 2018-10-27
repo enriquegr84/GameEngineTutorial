@@ -231,22 +231,24 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 
 		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
 		{
-			// create a sphere node with specified radius and poly count.
-			eastl::shared_ptr<Node> sphereNode =
-				pScene->AddSphereNode(wbrcp, nullptr, mRadius, mSegments, mOwner->GetId());
-			if (sphereNode)
+			eastl::shared_ptr<ResHandle>& resHandle =
+				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
+			if (resHandle)
 			{
-				sphereNode->GetRelativeTransform() = transform;
+				const eastl::shared_ptr<ImageResourceExtraData>& extra =
+					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+				extra->GetImage()->AutogenerateMipmaps();
 
-				eastl::shared_ptr<ResHandle>& resHandle =
-					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
-				if (resHandle)
+				// create a sphere node with specified radius and poly count.
+				eastl::shared_ptr<Node> sphereNode =
+					pScene->AddSphereNode(wbrcp, nullptr, extra->GetImage(), mRadius, mSegments, mOwner->GetId());
+				if (sphereNode)
 				{
-					const eastl::shared_ptr<ImageResourceExtraData>& extra =
-						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+					sphereNode->GetRelativeTransform() = transform;
+
 					if (mMaterialType == MaterialType::MT_TRANSPARENT)
 					{
-						for (unsigned int i = 0; i<sphereNode->GetMaterialCount(); ++i)
+						for (unsigned int i = 0; i < sphereNode->GetMaterialCount(); ++i)
 						{
 							eastl::shared_ptr<Material> material = sphereNode->GetMaterial(i);
 							material->mBlendTarget.enable = true;
@@ -263,14 +265,13 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 						}
 					}
 
-					for (unsigned int i = 0; i<sphereNode->GetMaterialCount(); ++i)
+					for (unsigned int i = 0; i < sphereNode->GetMaterialCount(); ++i)
 						sphereNode->GetMaterial(i)->mLighting = false;
 					sphereNode->SetMaterialTexture(0, extra->GetImage());
 					sphereNode->SetMaterialType((MaterialType)mMaterialType);
 				}
+				return sphereNode;
 			}
-
-			return sphereNode;
 		}
 		else LogAssert(nullptr, "Unknown Renderer Implementation in SphereRenderComponent::CreateSceneNode");
 	}

@@ -55,7 +55,6 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	mVisual = eastl::make_shared<Visual>(mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), effect);
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelBound();
-	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 
 	// regenerate the mesh
@@ -131,8 +130,6 @@ void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
 			indices[idx++] = 0 + (mVerticalResolution + 1) * k + j;
 		}
 	}
-	//mVisual->UpdateModelNormals();
-	//Buffer->SetHardwareMappingHint(scene::EHM_STATIC);
 }
 
 //! pre render method

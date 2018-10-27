@@ -9,19 +9,6 @@
 
 //#include "Scenes/Mesh/MeshBuffer.h"
 
-	/*
-        011         111
-          /6,8------/5        y
-         /  |      / |        ^  z
-        /   |     /  |        | /
-    010 3,9-------2  |        |/
-        |   7- - -10,4 101     *---->x
-        |  /      |  /
-        |/        | /
-        0------11,1/
-       000       100
-	*/
-
 //! constructor
 CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
 	const eastl::shared_ptr<Texture2>& texture, float texxScale, float texyScale, float size)
@@ -73,7 +60,6 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderCom
 		texture, SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 	mVisual->SetEffect(mEffect);
 	mVisual->UpdateModelBound();
-	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 }
 

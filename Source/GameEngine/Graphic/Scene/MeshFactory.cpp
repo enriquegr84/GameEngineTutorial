@@ -151,7 +151,7 @@ eastl::shared_ptr<Visual> MeshFactory::CreateTriangle(unsigned int numSamples,
 eastl::shared_ptr<Visual> MeshFactory::CreateBox(float xExtent, float yExtent, float zExtent)
 {
 	// Quantities derived from inputs.
-	int numVertices = 8;
+	int numVertices = 24;
 	int numTriangles = 12;
 
 	// Generate geometry.
@@ -164,34 +164,95 @@ eastl::shared_ptr<Visual> MeshFactory::CreateBox(float xExtent, float yExtent, f
 	Vector3<float> pos, nor, basis[3];
 	Vector2<float> tcd;
 
-	// Choose vertex normals in the diagonal directions.
-	Vector3<float> diag{ xExtent, yExtent, zExtent };
-	Normalize(diag);
+	// Choose vertex normals in the directions.
+	float normal = 1.0f;
 	if (!mOutside)
-	{
-		diag = -diag;
-	}
+		normal = -normal;
 
-	for (unsigned int z = 0, v = 0; z < 2; ++z)
+	unsigned int v = 0;
+	for (unsigned int z = 0; z < 2; ++z)
 	{
 		float fz = static_cast<float>(z), omfz = 1.0f - fz;
 		float zSign = 2.0f*fz - 1.0f;
 		pos[2] = zSign*zExtent;
-		nor[2] = zSign*diag[2];
+		nor = Vector3<float>::Unit(2);
+		nor *= zSign*normal;
 		for (unsigned int y = 0; y < 2; ++y)
 		{
 			float fy = static_cast<float>(y);
 			float ySign = 2.0f*fy - 1.0f;
 			pos[1] = ySign*yExtent;
-			nor[1] = ySign*diag[1];
-			tcd[1] = (1.0f - fy)*omfz + (0.75f - 0.5f*fy)*fz;
+			tcd[1] = (1.0f - fy)*omfz + (1.0f - fy)*fz;
 			for (unsigned int x = 0; x < 2; ++x, ++v)
 			{
 				float fx = static_cast<float>(x);
 				float xSign = 2.0f*fx - 1.0f;
 				pos[0] = xSign*xExtent;
-				nor[0] = xSign*diag[0];
-				tcd[0] = fx*omfz + (0.25f + 0.5f*fx)*fz;
+				tcd[0] = fx*omfz + fx*fz;
+
+				basis[0] = nor;
+				ComputeOrthogonalComplement(1, basis);
+
+				SetPosition(v, pos);
+				SetNormal(v, nor);
+				SetTangent(v, basis[1]);
+				SetBinormal(v, basis[2]);
+				SetTCoord(v, tcd);
+			}
+		}
+	}
+
+	for (unsigned int y = 0; y < 2; ++y)
+	{
+		float fy = static_cast<float>(y), omfy = 1.0f - fy;
+		float ySign = 2.0f*fy - 1.0f;
+		pos[1] = ySign * yExtent;
+		nor = Vector3<float>::Unit(1);
+		nor *= ySign*normal;
+		for (unsigned int z = 0; z < 2; ++z)
+		{
+			float fz = static_cast<float>(z);
+			float zSign = 2.0f*fz - 1.0f;
+			pos[2] = zSign * zExtent;
+			tcd[1] = (1.0f - fz)*omfy + (1.0f - fz)*fy;
+			for (unsigned int x = 0; x < 2; ++x, ++v)
+			{
+				float fx = static_cast<float>(x);
+				float xSign = 2.0f*fx - 1.0f;
+				pos[0] = xSign * xExtent;
+				tcd[0] = fx*omfy + fx*fy;
+
+				basis[0] = nor;
+				ComputeOrthogonalComplement(1, basis);
+
+				SetPosition(v, pos);
+				SetNormal(v, nor);
+				SetTangent(v, basis[1]);
+				SetBinormal(v, basis[2]);
+				SetTCoord(v, tcd);
+			}
+		}
+	}
+
+	for (unsigned int x = 0; x < 2; ++x)
+	{
+		float fx = static_cast<float>(x), omfx = 1.0f - fx;
+		float xSign = 2.0f*fx - 1.0f;
+		pos[0] = xSign * xExtent;
+		nor = Vector3<float>::Unit(0);
+		nor *= xSign*normal;
+		for (unsigned int z = 0; z < 2; ++z)
+		{
+			float fz = static_cast<float>(z);
+			float zSign = 2.0f*fz - 1.0f;
+			pos[2] = zSign * zExtent;
+			tcd[1] = (1.0f - fz)*omfx + (1.0f - fz)*fx;
+			for (unsigned int y = 0; y < 2; ++y, ++v)
+			{
+				float fy = static_cast<float>(y);
+				float ySign = 2.0f*fy - 1.0f;
+				pos[1] = ySign * yExtent;
+				tcd[0] = fy*omfx + fy*fx;
 
 				basis[0] = nor;
 				ComputeOrthogonalComplement(1, basis);
@@ -211,18 +272,14 @@ eastl::shared_ptr<Visual> MeshFactory::CreateBox(float xExtent, float yExtent, f
 	{
 		return nullptr;
 	}
-	ibuffer->SetTriangle(0, 0, 2, 3);
-	ibuffer->SetTriangle(1, 0, 3, 1);
-	ibuffer->SetTriangle(2, 0, 1, 5);
-	ibuffer->SetTriangle(3, 0, 5, 4);
-	ibuffer->SetTriangle(4, 0, 4, 6);
-	ibuffer->SetTriangle(5, 0, 6, 2);
-	ibuffer->SetTriangle(6, 7, 6, 4);
-	ibuffer->SetTriangle(7, 7, 4, 5);
-	ibuffer->SetTriangle(8, 7, 5, 1);
-	ibuffer->SetTriangle(9, 7, 1, 3);
-	ibuffer->SetTriangle(10, 7, 3, 2);
-	ibuffer->SetTriangle(11, 7, 2, 6);
+
+	unsigned int tr = 0;
+	for (v = 0; v < 24; v += 4)
+	{
+		ibuffer->SetTriangle(tr++, 0 + v, 2 + v, 3 + v);
+		ibuffer->SetTriangle(tr++, 0 + v, 3 + v, 1 + v);
+	}
+
 	if (!mOutside)
 	{
 		ReverseTriangleOrder(ibuffer.get());

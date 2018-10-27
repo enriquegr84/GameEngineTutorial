@@ -293,10 +293,10 @@ eastl::shared_ptr<Node> Scene::AddCubeNode(
 //! Adds a sphere scene node for test purposes to the scene.
 eastl::shared_ptr<Node> Scene::AddSphereNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-	float radius, int polyCount, int id)
+	const eastl::shared_ptr<Texture2>& texture, float radius, int polyCount, int id)
 {
 	eastl::shared_ptr<Node> node(
-		new SphereNode(id, &mPVWUpdater, renderComponent, radius, polyCount, polyCount));
+		new SphereNode(id, &mPVWUpdater, renderComponent, texture, radius, polyCount, polyCount));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 

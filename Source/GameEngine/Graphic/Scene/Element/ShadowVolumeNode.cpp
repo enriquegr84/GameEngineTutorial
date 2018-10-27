@@ -62,9 +62,7 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 
 				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
 					meshBuffer->GetVertice(), meshBuffer->GetIndice(), mEffect);
-				visual->UpdateModelNormals();
 				visual->UpdateModelBound();
-				visual->UpdateModelNormals();
 				mVisuals.push_back(visual);
 				mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 			}
