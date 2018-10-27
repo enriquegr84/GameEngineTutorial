@@ -46,6 +46,7 @@
 
 #include "Mathematic/Algebra/Vector2.h"
 #include "Mathematic/Algebra/Vector3.h"
+#include "Mathematic/Geometric/AlignedBox.h"
 
 //---------------------------------------------------------------------------------------------------------------------
 // This class represents a render component built from a Mesh.  In a real game, this is the one you'll use 99% of the 

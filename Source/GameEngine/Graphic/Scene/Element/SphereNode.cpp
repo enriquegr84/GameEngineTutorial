@@ -44,6 +44,7 @@ SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 	mEffect = eastl::make_shared<AmbientLightEffect>(
 		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, eastl::make_shared<Lighting>());
 	mVisual->SetEffect(mEffect);
+	mVisual->UpdateModelBound();
 	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 }

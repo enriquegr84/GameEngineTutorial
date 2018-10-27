@@ -136,8 +136,6 @@ void SkinnedMesh::AnimateMesh(float frame, float blend)
 	// Temp!
 	BuildAllLocalAnimatedMatrices();
 	//-----------------
-
-	UpdateBoundingBox();
 }
 
 
@@ -489,7 +487,6 @@ void SkinnedMesh::SkinMesh()
 		for (i=0; i<mRootJoints.size(); ++i)
 			SkinJoint(mRootJoints[i], 0);
 	}
-	UpdateBoundingBox();
 }
 
 
@@ -589,8 +586,6 @@ void SkinnedMesh::SkinJoint(Joint *joint, Joint *parentJoint)
 				}
 				//*(weight.mPos) += thisVertexMove * weight.mStrength;
 			}
-
-			//buffersUsed[weight.mBufferId]->BoundingBoxNeedsRecalculated();
 		}
 	}
 
@@ -756,8 +751,6 @@ bool SkinnedMesh::SetHardwareSkinning(bool on)
 					target[0] = joint->mWeights[j].mStaticNormal[0];
 					target[1] = joint->mWeights[j].mStaticNormal[1];
 					target[2] = joint->mWeights[j].mStaticNormal[2];
-
-					//mLocalBuffers[bufferId]->BoundingBoxNeedsRecalculated();
 				}
 			}
 		}
@@ -920,13 +913,6 @@ void SkinnedMesh::Finalize()
 	mLastAnimatedFrame=-1;
 	mSkinnedLastFrame=false;
 
-	//calculate bounding box
-	/*
-	for (i=0; i<mLocalBuffers.size(); ++i)
-	{
-		mLocalBuffers[i]->RecalculateBoundingBox();
-	}
-	*/
 	if (mAllJoints.size() || mRootJoints.size())
 	{
 		// populate AllJoints or RootJoints, depending on which is empty
@@ -1118,47 +1104,6 @@ void SkinnedMesh::Finalize()
 			buffer->GetTransform() = mAllJoints[i]->mGlobalAnimatedTransform;
 		}
 	}
-	/*
-	//calculate bounding box
-	if (!mLocalBuffers.empty())
-	{
-		BoundingBox3<float> bb(mLocalBuffers[0]->mBoundingBox);
-		mLocalBuffers[0]->mTransformation.transformBoxEx(bb);
-		mBoundingBox.reset(bb);
-
-		for (unsigned int j=1; j<mLocalBuffers.size(); ++j)
-		{
-			bb = mLocalBuffers[j]->mBoundingBox;
-			mLocalBuffers[j]->mTransformation.transformBoxEx(bb);
-
-			mBoundingBox.addInternalBox(bb);
-		}
-	}
-	else mBoundingBox.reset(0, 0, 0);
-	*/
-}
-
-
-void SkinnedMesh::UpdateBoundingBox(void)
-{
-	if(mSkinningBuffers.empty())
-		return;
-	/*
-	eastl::array<SkinMeshBuffer*> & buffer = *mSkinningBuffers;
-	mBoundingBox.reset(0,0,0);
-
-	if (!buffer.empty())
-	{
-		for (unsigned int j=0; j<buffer.size(); ++j)
-		{
-			buffer[j]->RecalculateBoundingBox();
-			BoundingBox<float> bb = buffer[j]->mBoundingBox;
-			buffer[j]->mTransformation.transformBoxEx(bb);
-
-			mBoundingBox.addInternalBox(bb);
-		}
-	}
-	*/
 }
 
 

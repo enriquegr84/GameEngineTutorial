@@ -703,5 +703,26 @@ void Scene::SyncActorDelegate(BaseEventDataPtr pEventData)
 		Vector3<float> actorScale = pNode->GetRelativeTransform().GetScale();
 		pNode->GetRelativeTransform() = pCastEventData->GetTransform();
 		pNode->GetRelativeTransform().SetScale(actorScale);
+
+		//not the best strategy to calculate a surrounding bound in the model
+		//would be better approach if we compute an aabb
+		BoundingSphere modelBound;
+		for (unsigned int v = 0; v < pNode->GetVisualCount(); v++)
+		{
+			eastl::shared_ptr<Visual> visual = pNode->GetVisual(v);
+			if (visual->mModelBound.GetRadius() > modelBound.GetRadius())
+				modelBound = pNode->GetVisual(v)->mModelBound;
+		}
+
+		if (modelBound.GetRadius() != 0.f)
+		{
+			Vector3<float> actorTranslation = pNode->GetRelativeTransform().GetTranslation();
+#if defined(GE_USE_MAT_VEC)
+			actorTranslation -= HProject(pNode->GetRelativeTransform() * modelBound.GetCenter());
+#else
+			actorTranslation -= HProject(modelBound.GetCenter() * pNode->GetRelativeTransform());
+#endif
+			pNode->GetRelativeTransform().SetTranslation(actorTranslation);
+		}
 	}
 }

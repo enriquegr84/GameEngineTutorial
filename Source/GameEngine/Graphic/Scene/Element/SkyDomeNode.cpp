@@ -54,8 +54,8 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 
 	mVisual = eastl::make_shared<Visual>(mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), effect);
 	mVisual->SetEffect(effect);
-	mVisual->UpdateModelNormals();
 	mVisual->UpdateModelBound();
+	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 
 	// regenerate the mesh

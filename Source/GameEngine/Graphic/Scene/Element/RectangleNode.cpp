@@ -60,6 +60,7 @@ RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater,
 		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, lighting, geometry,
 		texture, SamplerState::MIN_L_MAG_L_MIP_L, SamplerState::WRAP, SamplerState::WRAP);
 	mVisual->SetEffect(mEffect);
+	mVisual->UpdateModelBound();
 	mVisual->UpdateModelNormals();
 	mPVWUpdater->Subscribe(mWorldTransform, mEffect->GetPVWMatrixConstant());
 }

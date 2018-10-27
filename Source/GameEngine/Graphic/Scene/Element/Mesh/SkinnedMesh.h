@@ -322,8 +322,6 @@ public:
 	//! Adds a new weight to the mesh, access it as last one
 	virtual Weight *AddWeight(Joint *joint);
 
-	virtual void UpdateBoundingBox(void);
-
 	//! Recovers the joints from the mesh
 	void RecoverJointsFromMesh(eastl::vector<eastl::shared_ptr<BoneNode>> &jointChildSceneNodes);
 
@@ -366,8 +364,6 @@ private:
 	eastl::vector<Joint*> mRootJoints;
 
 	eastl::vector<eastl::vector<bool>> mVerticesMoved;
-
-	//BoundingBox3<float> mBoundingBox;
 
 	float mAnimationFrames;
 	float mFramesPerSecond;

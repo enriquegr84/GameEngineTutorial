@@ -77,6 +77,7 @@ protected:
 
 	//! The meshbuffer of this mesh
 	eastl::vector<eastl::shared_ptr<MeshBuffer>> mMeshBuffers;
+
 };
 
 #endif

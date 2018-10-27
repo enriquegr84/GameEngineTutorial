@@ -39,7 +39,7 @@ private:
 	typedef eastl::vector<Vector3<float>> ShadowVolume;
 
 	void CreateShadowVolume(const Vector3<float>& pos, bool isDirectional=false);
-	unsigned int CreateEdgesAndCaps(const Vector3<float>& light, ShadowVolume* svp, AlignedBox3<float>* bb);
+	unsigned int CreateEdgesAndCaps(const Vector3<float>& light, ShadowVolume* svp, BoundingSphere* bs);
 
 	//! Generates adjacency information based on mesh indices.
 	void CalculateAdjacency();
@@ -48,7 +48,7 @@ private:
 	eastl::vector<ShadowVolume> mShadowVolumes;
 
 	// a back cap bounding box for every light
-	eastl::vector<AlignedBox3<float>> mShadowBBox;
+	eastl::vector<BoundingSphere> mShadowBBox;
 
 	eastl::vector<Vector3<float>> mVertices;
 	eastl::vector<unsigned int> mIndices;

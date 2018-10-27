@@ -31,9 +31,6 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 
 	mShadowMesh = mesh;
 
-	//if (mShadowMesh)
-	//	mBBox = mShadowMesh->GetBoundingBox();
-
 	if (mShadowMesh)
 	{
 		MeshFactory mf;
@@ -80,7 +77,7 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 void ShadowVolumeNode::CreateShadowVolume(const Vector3<float>& light, bool isDirectional)
 {
 	ShadowVolume* svp = 0;
-	AlignedBox3<float>* bb = 0;
+	BoundingSphere* bs = 0;
 
 	// builds the shadow volume and adds it to the shadow volume list.
 	if (mShadowVolumes.size() > mShadowVolumesUsed)
@@ -88,22 +85,22 @@ void ShadowVolumeNode::CreateShadowVolume(const Vector3<float>& light, bool isDi
 		// get the next unused buffer
 
 		svp = &mShadowVolumes[mShadowVolumesUsed];
-		bb = &mShadowBBox[mShadowVolumesUsed];
+		bs = &mShadowBBox[mShadowVolumesUsed];
 	}
 	else
 	{
 		mShadowVolumes.push_back(ShadowVolume());
 		svp = &mShadowVolumes.back();
 
-		mShadowBBox.push_back(AlignedBox3<float>());
-		bb = &mShadowBBox.back();
+		mShadowBBox.push_back(BoundingSphere());
+		bs = &mShadowBBox.back();
 	}
 	++mShadowVolumesUsed;
 
 	// We use triangle lists
 	unsigned int numEdges = 0;
 
-	numEdges=CreateEdgesAndCaps(light, svp, bb);
+	numEdges=CreateEdgesAndCaps(light, svp, bs);
 
 	// for all edges add the near->far quads
 	for (unsigned int i=0; i<numEdges; ++i)
@@ -130,16 +127,13 @@ void ShadowVolumeNode::CreateShadowVolume(const Vector3<float>& light, bool isDi
 #define _USE_ADJACENCY
 #define _USE_REVERSE_EXTRUDED
 
-unsigned int ShadowVolumeNode::CreateEdgesAndCaps(const Vector3<float>& light, ShadowVolume* svp, AlignedBox3<float>* bb)
+unsigned int ShadowVolumeNode::CreateEdgesAndCaps(const Vector3<float>& light, ShadowVolume* svp, BoundingSphere* bs)
 {
 	unsigned int numEdges=0;
 	const unsigned int faceCount = mIndexCount / 3;
-	/*
-	if(faceCount >= 1)
-		bb->Reset(mVertices[mIndices[0]]);
-	else
-		bb->Reset(0,0,0);
-	*/
+
+	bs->SetCenter(Vector4<float>::Zero());
+
 	// Check every face if it is front or back facing the light.
 	for (unsigned int i=0; i<faceCount; ++i)
 	{
@@ -177,11 +171,10 @@ unsigned int ShadowVolumeNode::CreateEdgesAndCaps(const Vector3<float>& light, S
 			svp->push_back(i0);
 			svp->push_back(i1);
 			svp->push_back(i2);
-			/*
-			bb->AddInternalPoint(i0);
-			bb->AddInternalPoint(i1);
-			bb->AddInternalPoint(i2);
-			*/
+
+			bs->ComputeFromData(1, sizeof(Vector3<float>), reinterpret_cast<const char*>(&i0));
+			bs->ComputeFromData(1, sizeof(Vector3<float>), reinterpret_cast<const char*>(&i1));
+			bs->ComputeFromData(1, sizeof(Vector3<float>), reinterpret_cast<const char*>(&i2));
 		}
 	}
 

@@ -173,80 +173,6 @@ void ReadNodeHeirarchy(const aiScene* pScene,
 }
 
 // -------------------------------------------------------------------------------
-void FindAABBTransformed(const aiMesh* mesh, aiVector3D& min, aiVector3D& max,
-	const aiMatrix4x4& m)
-{
-	min = aiVector3D(ai_real(10e10), ai_real(10e10), ai_real(10e10));
-	max = aiVector3D(ai_real(-10e10), ai_real(-10e10), ai_real(-10e10));
-	for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
-	{
-		const aiVector3D v = m * mesh->mVertices[i];
-		min = eastl::min(v, min);
-		max = eastl::max(v, max);
-	}
-}
-
-// -------------------------------------------------------------------------------
-void FindMeshCenterTransformed(aiMesh* mesh, aiVector3D& out, aiVector3D& min,
-	aiVector3D& max, const aiMatrix4x4& m)
-{
-	FindAABBTransformed(mesh, min, max, m);
-	out = min + (max - min)*(ai_real)0.5;
-}
-
-// -------------------------------------------------------------------------------
-void FindMeshCenterTransformed(aiMesh* mesh, aiVector3D& out,
-	const aiMatrix4x4& m)
-{
-	aiVector3D min, max;
-	FindMeshCenterTransformed(mesh, out, min, max, m);
-}
-
-
-// -------------------------------------------------------------------------------
-void FindMeshCenter(aiMesh* mesh, aiVector3D& out, aiVector3D& min, aiVector3D& max)
-{
-	for (unsigned int i = 0; i < mesh->mNumVertices; ++i) 
-	{
-		aiVector3D tout, tmin, tmax;
-		min = eastl::min(mesh->mVertices[i], min);
-		max = eastl::max(mesh->mVertices[i], max);
-	}
-	out = min + (max - min)*(ai_real)0.5;
-}
-
-// -------------------------------------------------------------------------------
-void FindSceneCenter(const aiScene* scene, aiVector3D& out, aiVector3D& min, aiVector3D& max) 
-{
-	if (NULL == scene) 
-		return;
-
-	if (0 == scene->mNumMeshes)
-		return;
-
-	for (unsigned int m = 0; m < scene->mNumMeshes; ++m)
-	{
-		aiVector3D tout, tmin, tmax;
-		FindMeshCenter(scene->mMeshes[m], tout, tmin, tmax);
-		if (min[0] > tmin[0]) min[0] = tmin[0];
-		if (min[1] > tmin[1]) min[1] = tmin[1];
-		if (min[2] > tmin[2]) min[2] = tmin[2];
-		if (max[0] < tmax[0]) max[0] = tmax[0];
-		if (max[1] < tmax[1]) max[1] = tmax[1];
-		if (max[2] < tmax[2]) max[2] = tmax[2];
-	}
-	out = min + (max - min)*(ai_real)0.5;
-}
-
-// -------------------------------------------------------------------------------
-
-void FindSceneCenter(const aiScene* scene, aiVector3D& out)
-{
-	aiVector3D min, max;
-	FindSceneCenter(scene, out, min, max);
-}
-
-// -------------------------------------------------------------------------------
 BaseMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 {
 	// Create an instance of the Importer class
@@ -271,9 +197,6 @@ BaseMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 		mesh = new SkinnedMesh();
 	else
 		mesh = new StandardMesh();
-
-	aiVector3D centerMesh;
-	FindSceneCenter(pScene, centerMesh);
 
 	for (unsigned int m = 0; m<pScene->mNumMeshes; m++)
 	{
@@ -346,6 +269,7 @@ BaseMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 				}
 			}
 		}
+
 		for (unsigned int f = 0; f < pScene->mMeshes[m]->mNumFaces; f++)
 		{
 			const aiFace& face = pScene->mMeshes[m]->mFaces[f];

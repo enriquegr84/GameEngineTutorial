@@ -10,8 +10,6 @@
 #include "Graphic/Effect/Material.h"
 #include "Graphic/Resource/Buffer/MeshBuffer.h"
 
-#include "Mathematic/Geometric/AlignedBox.h"
-
 //! Possible types of meshes.
 enum GRAPHIC_ITEM MeshType
 {

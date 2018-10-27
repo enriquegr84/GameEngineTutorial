@@ -194,7 +194,7 @@ eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 		if (mJointMode == JUOR_CONTROL)
 		{
 			// For meshes other than JUOR_CONTROL, this is done by calling animateMesh()
-			//skinnedMesh->UpdateBoundingBox();
+			//skinnedMesh->UpdateBoundingModel();
 		}
 
 		return skinnedMesh;
@@ -212,15 +212,9 @@ bool AnimatedMeshNode::OnAnimate(Scene* pScene, unsigned int time)
 	BuildFrameNr(time - mLastTime);
 
 	// update bbox
-	/*
-	if (mMesh)
-	{
-		BaseMesh * mesh = GetMeshForCurrentFrame().get();
+	for (auto visual : mVisuals)
+		visual->UpdateModelBound();
 
-		if (mesh)
-			mBox = mesh->GetBoundingBox();
-	}
-	*/
 	mLastTime = time;
 
 	return Node::OnAnimate(pScene, time);

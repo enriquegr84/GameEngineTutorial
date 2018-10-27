@@ -93,6 +93,7 @@ void ParticleSystemNode::ReallocateBuffers()
 		{
 			mVisual.reset(new Visual(
 				mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect));
+			mVisual->UpdateModelBound();
 		}
 	}
 }
@@ -262,12 +263,7 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 	eastl::list<eastl::shared_ptr<BaseParticleAffector>>::iterator ait = mAffectorList.begin();
 	for (; ait != mAffectorList.end(); ++ait)
 		(*ait)->Affect(now, mParticles.data(), mParticles.size());
-	/*
-	if (mParticlesAreGlobal)
-		mVisual->GetAbsoulteBound()->mBoundingBox.Reset(GetAbsoluteTransform().GetTranslation());
-	else
-		mVisual->GetAbsoulteBound()->mBoundingBox.Reset(Vector3<float>{0.f, 0.f, 0.f});
-	*/
+
 	// animate all particles
 	float scale = (float)timediff;
 
@@ -286,26 +282,9 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 		else
 		{
 			mParticles[i].mPos += (mParticles[i].mVector * scale);
-			//mVisual->GetAbsoulteBound()->mBoundingBox.AddInternalPoint(mParticles[i].mPos);
 			++i;
 		}
 	}
-	/*
-	const float m = (mParticleSize[0] > mParticleSize[1] ? mParticleSize[0] : mParticleSize[1]) * 0.5f;
-	mVisual->GetAbsoulteBound()->mBoundingBox.MaxEdge.X += m;
-	mVisual->GetAbsoulteBound()->mBoundingBox.MaxEdge.Y += m;
-	mVisual->GetAbsoulteBound()->mBoundingBox.MaxEdge.Z += m;
-
-	mVisual->GetAbsoulteBound()->mBoundingBox.MinEdge.X -= m;
-	mVisual->GetAbsoulteBound()->mBoundingBox.MinEdge.Y -= m;
-	mVisual->GetAbsoulteBound()->mBoundingBox.MinEdge.Z -= m;
-
-	if (mParticlesAreGlobal)
-	{
-		//Matrix4x4<float> absinv( toWorld, Matrix4x4<float>::EM4CONST_INVERSE );
-		GetRelativeTransform().TransformBoxEx(mVisual->GetAbsoulteBound()->mBoundingBox);
-	}
-	*/
 }
 
 

@@ -77,6 +77,7 @@ LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
 		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
 	mVisual = eastl::make_shared<Visual>(
 		mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect);
+	mVisual->UpdateModelBound();
 
 	DoLightRecalc();
 }
