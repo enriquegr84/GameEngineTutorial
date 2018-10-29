@@ -49,31 +49,6 @@ const Matrix4x4<float>& CameraNode::GetViewMatrixAffector() const
 	return mAffector;
 }
 
-
-//! It is possible to send mouse and key events to the camera. Most cameras
-//! may ignore this input, but camera scene nodes which are created for
-//! example with ISceneManager::addMayaCameraSceneNode or
-//! ISceneManager::addFPSCameraSceneNode, may want to get this input
-//! for changing their position, look at target or whatever.
-/*
-bool CameraNode::OnEvent(const Event& event)
-{
-	if (!InputReceiverEnabled)
-		return false;
-
-	// send events to event receiving animators
-
-	SceneNodeAnimatorList::Iterator ait = mAnimators.begin();
-
-	for (; ait != mAnimators.end(); ++ait)
-		if ((*ait)->EventReceiverEnabled() && (*ait)->OnEvent(event))
-			return true;
-
-	// if nobody processed the event, return false
-	return false;
-}
-*/
-
 //! update
 void CameraNode::UpdateMatrices()
 {
@@ -112,20 +87,7 @@ void CameraNode::UpdateMatrices()
 		up * mAffector,
 		right * mAffector);
 #endif
-/*
-#if defined(GE_USE_MAT_VEC)
-	mCamera->SetFrame(
-		mAffector * mWorldTransform.GetTranslationW0(),
-		mAffector * mWorldTransform * Vector4<float>::Unit(1), // direction vector
-		mAffector * mWorldTransform * Vector4<float>::Unit(2), // up vector
-		mAffector * mWorldTransform * Vector4<float>::Unit(0)); // right vector
-#else
-	mCamera->SetFrame(
-		mAffector * mWorldTransform.GetTranslationW0(),
-		Vector4<float>::Unit(1) * mAffector * mWorldTransform, // direction vector
-		Vector4<float>::Unit(2) * mAffector * mWorldTransform, // up vector
-		Vector4<float>::Unit(0) * mAffector * mWorldTransform); // right vector
-#endif*/
+
 }
 
 //! prerender
@@ -146,12 +108,5 @@ bool CameraNode::PreRender(Scene *pScene)
 bool CameraNode::Render(Scene *pScene)
 {
 	UpdateMatrices();
-	/*
-	if (Renderer::Get())
-	{
-		Renderer::Get()->SetTransform(TS_PROJECTION, ViewArea.GetTransform ( TS_PROJECTION) );
-		Renderer::Get()->SetTransform(TS_VIEW, ViewArea.GetTransform ( TS_VIEW) );
-	}
-	*/
 	return true;
 }

@@ -211,6 +211,7 @@ private:
 	eastl::vector<eastl::shared_ptr<DepthStencilState>> mDepthStencilStates;
 
 	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
+	eastl::shared_ptr<BaseMesh> mCurrentFrameMesh;
 	eastl::shared_ptr<BaseAnimatedMesh> mMesh;
 
 	int mStartFrame;

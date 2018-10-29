@@ -180,8 +180,12 @@ void TriangleDemoApplication::OnIdle()
 		mCuller.ComputeVisibleSet(mCamera, mScene);
 
 	mRenderer->ClearBuffers();
-	for (auto const& visual : mCuller.GetVisibleSet())
-		mRenderer->Draw(visual);
+	for (auto const& spatial : mCuller.GetVisibleSet())
+	{
+		Node* node = dynamic_cast<Node*>(spatial);
+		for (unsigned int v = 0; v < node->GetVisualCount(); v++)
+			mRenderer->Draw(node->GetVisual(v));
+	}
 
 	wchar_t message[256];
 	wsprintf(message, L"fps: %i", mFramesPerSecond);

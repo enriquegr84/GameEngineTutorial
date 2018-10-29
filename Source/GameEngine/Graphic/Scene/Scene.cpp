@@ -139,11 +139,11 @@ bool Scene::OnRender()
 	
 	if (mRoot && mPVWUpdater.GetCamera())
 	{
-		mPVWUpdater.Update();
-		mCuller.ComputeVisibleSet(mPVWUpdater.GetCamera(), mRoot);
-
 		if (mRoot->PreRender(this)==true)
 		{
+			mPVWUpdater.Update();
+			mCuller.ComputeVisibleSet(mPVWUpdater.GetCamera(), mRoot);
+
 			if (mLightManager)
 				mLightManager->OnPreRender(mRenderList[RP_LIGHT]);
 
@@ -570,79 +570,7 @@ void Scene::SetActiveCamera(const eastl::shared_ptr<CameraNode>& camera)
 //	
 bool Scene::IsCulled(Node* node)
 {
-	if (!node->IsVisible())
-		return true;
-
-	// transform the location of this node into the camera space 
-	// of the camera attached to the scene
-	/*
-	ViewFrustum frustum(mPVWUpdater.GetCamera()->GetViewFrustum());
-	*/
-	float const* frustum = mPVWUpdater.GetCamera()->GetFrustum();
-
-	bool isVisible = false;
-	/*
-	// has occlusion query information
-	if (node->GetAutomaticCulling() & AC_OCC_QUERY)
-	{
-		isVisible =
-			(Renderer::Get()->GetOcclusionQueryResult(GetSceneNode(node->GetId())) == 0);
-	}
-	*/
-	// can be seen by a bounding box ?
-	if (!isVisible && (node->GetAutomaticCulling() & AC_BOX))
-	{
-		/*
-		AlignedBox3<float> tbox = node->GetBoundingBox();
-		toWorld.TransformBoxEx(tbox);
-		isVisible = !(tbox.IntersectsWithBox(frustum.GetBoundingBox()));
-		*/
-		isVisible = mCuller.IsVisible(node->GetAbsoulteBound());
-	}
-
-	// can be seen by a bounding sphere
-	if (!isVisible && (node->GetAutomaticCulling() & AC_FRUSTUM_SPHERE))
-	{ 
-		// requires bbox diameter
-		isVisible = mCuller.IsVisible(node->GetAbsoulteBound());
-	}
-
-	// can be seen by cam pyramid planes ?
-	if (!isVisible && (node->GetAutomaticCulling() & AC_FRUSTUM_BOX))
-	{
-		/*
-		//transform the frustum to the node's current absolute transformation
-		Matrix4x4<float> invTrans(
-			node->GetAbsoluteTransform().GetMatrix(), 
-			Matrix4x4<float>::EM4CONST_INVERSE);
-		//invTrans.makeInverse();
-		frustum.Transform(invTrans);
-
-		Vector3<float> edges[8];
-		node->GetBoundingBox().GetEdges(edges);
-
-		for (int i = 0; i< ViewFrustum::VF_PLANE_COUNT; ++i)
-		{
-			bool boxInFrustum = false;
-			for (unsigned int j = 0; j<8; ++j)
-			{
-				if (frustum.Planes[i].ClassifyPointRelation(edges[j]) != ISREL3D_FRONT)
-				{
-					boxInFrustum = true;
-					break;
-				}
-			}
-
-			if (!boxInFrustum)
-			{
-				isVisible = true;
-				break;
-			}
-		}
-		*/
-	}
-
-	return isVisible;
+	return !mCuller.IsVisible(node);
 }
 
 void Scene::NewRenderComponentDelegate(BaseEventDataPtr pEventData)
@@ -706,21 +634,22 @@ void Scene::SyncActorDelegate(BaseEventDataPtr pEventData)
 
 		//not the best strategy to calculate a surrounding bound in the model
 		//would be better approach if we compute an aabb
-		BoundingSphere modelBound;
+		BoundingSphere actorBound;
 		for (unsigned int v = 0; v < pNode->GetVisualCount(); v++)
 		{
 			eastl::shared_ptr<Visual> visual = pNode->GetVisual(v);
-			if (visual->mModelBound.GetRadius() > modelBound.GetRadius())
-				modelBound = pNode->GetVisual(v)->mModelBound;
+			if (visual->mModelBound.GetRadius() > actorBound.GetRadius())
+				actorBound = pNode->GetVisual(v)->mModelBound;
 		}
 
-		if (modelBound.GetRadius() != 0.f)
+		if (actorBound.GetRadius() != 0.f)
 		{
 			Vector3<float> actorTranslation = pNode->GetRelativeTransform().GetTranslation();
+			Matrix4x4<float> actorRotation = pNode->GetRelativeTransform().GetRotation();
 #if defined(GE_USE_MAT_VEC)
-			actorTranslation -= HProject(pNode->GetRelativeTransform() * modelBound.GetCenter());
+			actorTranslation -= HProject(actorRotation * actorBound.GetCenter());
 #else
-			actorTranslation -= HProject(modelBound.GetCenter() * pNode->GetRelativeTransform());
+			actorTranslation -= HProject(actorBound.GetCenter() * actorRotation);
 #endif
 			pNode->GetRelativeTransform().SetTranslation(actorTranslation);
 		}

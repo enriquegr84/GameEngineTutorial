@@ -68,6 +68,8 @@ public:
 
 private:
 
+	void DoBillboardBuffers(Scene *pScene);
+
 	//! Size.Width is the bottom edge width
 	Vector2<float> mSize;
 

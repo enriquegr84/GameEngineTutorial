@@ -273,9 +273,16 @@ void Node::UpdateWorldBound()
 {
     if (!mWorldBoundIsCurrent)
     {
-        // Start with an invalid bound.
-        mWorldBound.SetCenter({ 0.0f, 0.0f, 0.0f, 1.0f });
-		mWorldBound.SetRadius(0.0f);
+        // Start with visual bound.
+        mWorldBound.SetCenter(Vector4<float>::Zero());
+		mWorldBound.SetRadius(0.f);
+		for (unsigned int v = 0; v < GetVisualCount(); v++)
+		{
+			BoundingSphere worldBound;
+			BoundingSphere modelBound = GetVisual(v)->mModelBound;
+			modelBound.TransformBy(mWorldTransform, worldBound);
+			mWorldBound.GrowToContain(worldBound);
+		}
 
         for (auto& child : mChildren)
         {

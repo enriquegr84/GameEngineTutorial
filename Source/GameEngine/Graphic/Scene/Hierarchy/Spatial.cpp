@@ -35,20 +35,18 @@ void Spatial::OnGetVisibleSet(Culler& culler,
 	eastl::shared_ptr<Camera> const& camera, bool noCull)
 {
     if (mCulling == CULL_ALWAYS)
-    {
         return;
-    }
 
     if (mCulling == CULL_NEVER)
-    {
         noCull = true;
-    }
 
     unsigned int savePlaneState = culler.GetPlaneState();
-    if (noCull || culler.IsVisible(mWorldBound))
-    {
-        GetVisibleSet(culler, camera, noCull);
-    }
+	if (noCull || culler.IsVisible(mWorldBound))
+	{
+		culler.Insert(this);
+		GetVisibleSet(culler, camera, noCull);
+	}
+
     culler.SetPlaneState(savePlaneState);
 }
 

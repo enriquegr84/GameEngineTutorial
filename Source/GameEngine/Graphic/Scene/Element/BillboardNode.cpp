@@ -78,13 +78,14 @@ BillboardNode::BillboardNode(const ActorId actorId,
 		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
 	mVisual = eastl::make_shared<Visual>(
 		mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect);
-	mVisual->UpdateModelBound();
 
 }
 
 //! prerender
 bool BillboardNode::PreRender(Scene *pScene)
 {
+	DoBillboardBuffers(pScene);
+
 	if (IsVisible())
 	{
 		// because this node supports rendering of mixed mode meshes consisting of
@@ -130,31 +131,6 @@ bool BillboardNode::Render(Scene *pScene)
 
 	if (!cameraNode || !Renderer::Get())
 		return false;
-
-	/* Vertices are:
-	2--1
-	|\ |
-	| \|
-	3--0
-	*/
-
-	Vector3<float> scale = GetAbsoluteTransform().GetScale();
-	Vector3<float> position = GetAbsoluteTransform().GetTranslation();
-
-	float f = 0.5f * mSize[0];
-	const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
-
-	f = 0.5f * mSize[1];
-	const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
-
-	mMeshBuffer->Position(0) = position + HProject(horizontal + vertical) * scale;
-	mMeshBuffer->Color(0, 0) = mMeshBuffer->GetMaterial()->mDiffuse;
-	mMeshBuffer->Position(1) = position + HProject(horizontal - vertical) * scale;
-	mMeshBuffer->Color(0, 1) = mMeshBuffer->GetMaterial()->mDiffuse;
-	mMeshBuffer->Position(2) = position + HProject(-horizontal - vertical) * scale;
-	mMeshBuffer->Color(0, 2) = mMeshBuffer->GetMaterial()->mDiffuse;
-	mMeshBuffer->Position(3) = position + HProject(-horizontal + vertical) * scale;
-	mMeshBuffer->Color(0, 3) = mMeshBuffer->GetMaterial()->mDiffuse;
 
 	eastl::shared_ptr<ConstantBuffer> cbuffer;
 	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
@@ -204,6 +180,34 @@ bool BillboardNode::Render(Scene *pScene)
 	*/
 
 	return true;
+}
+
+void BillboardNode::DoBillboardBuffers(Scene *pScene)
+{
+	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
+
+	if (!cameraNode)
+		return;
+
+	Vector3<float> scale = GetAbsoluteTransform().GetScale();
+	Vector3<float> position = GetAbsoluteTransform().GetTranslation();
+
+	float f = 0.5f * mSize[0];
+	const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
+
+	f = 0.5f * mSize[1];
+	const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
+
+	mMeshBuffer->Position(0) = position + HProject(horizontal + vertical) * scale;
+	mMeshBuffer->Color(0, 0) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(1) = position + HProject(horizontal - vertical) * scale;
+	mMeshBuffer->Color(0, 1) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(2) = position + HProject(-horizontal - vertical) * scale;
+	mMeshBuffer->Color(0, 2) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(3) = position + HProject(-horizontal + vertical) * scale;
+	mMeshBuffer->Color(0, 3) = mMeshBuffer->GetMaterial()->mDiffuse;
+
+	mVisual->UpdateModelBound();
 }
 
 //! sets the size of the billboard

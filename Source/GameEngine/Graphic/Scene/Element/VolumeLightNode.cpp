@@ -57,12 +57,6 @@ bool VolumeLightNode::PreRender(Scene *pScene)
 //
 bool VolumeLightNode::Render(Scene *pScene)
 {
-	/*
-	Renderer::Get()->SetTransform(ETS_WORLD, toWorld);
-
-	Renderer::Get()->SetMaterial(mMesh->GetMeshBuffer(0)->GetMaterial());
-	Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
-	*/
 	return Node::Render(pScene);
 }
 

@@ -72,12 +72,13 @@ LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
 	}
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl");
-	mEffect = eastl::make_shared<Texture2ColorEffect>(
+	eastl::shared_ptr<Texture2ColorEffect> effect = eastl::make_shared<Texture2ColorEffect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
 		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
+	mEffect = effect;
 	mVisual = eastl::make_shared<Visual>(
 		mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect);
-	mVisual->UpdateModelBound();
+	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 
 	DoLightRecalc();
 }
@@ -86,6 +87,7 @@ LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
 bool LightNode::PreRender(Scene *pScene)
 {
 	DoLightRecalc();
+	DoLightBuffers(pScene);
 
 	if (IsVisible())
 		pScene->AddToRenderQueue(RP_LIGHT, shared_from_this());
@@ -98,39 +100,8 @@ bool LightNode::PreRender(Scene *pScene)
 //
 bool LightNode::Render(Scene *pScene)
 {
-	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
-
-	if (!cameraNode || !Renderer::Get())
+	if (!Renderer::Get() || pScene->IsCulled(this))
 		return false;
-
-	/* Vertices are:
-	2--1
-	|\ |
-	| \|
-	3--0
-	*/
-
-	Vector3<float> scale = GetAbsoluteTransform().GetScale();
-	Vector3<float> position = GetAbsoluteTransform().GetTranslation();
-
-	float f = 0.5f * mSize[0];
-	const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
-
-	f = 0.5f * mSize[1];
-	const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
-
-	mMeshBuffer->Position(0) = position + HProject( horizontal + vertical) * scale;
-	mMeshBuffer->Color(0, 0) = mMeshBuffer->GetMaterial()->mDiffuse;
-	mMeshBuffer->Position(1) = position + HProject( horizontal - vertical) * scale;
-	mMeshBuffer->Color(0, 1) = mMeshBuffer->GetMaterial()->mDiffuse;
-	mMeshBuffer->Position(2) = position + HProject( -horizontal - vertical) * scale;
-	mMeshBuffer->Color(0, 2) = mMeshBuffer->GetMaterial()->mDiffuse;
-	mMeshBuffer->Position(3) = position + HProject( -horizontal + vertical) * scale;
-	mMeshBuffer->Color(0, 3) = mMeshBuffer->GetMaterial()->mDiffuse;
-
-	eastl::shared_ptr<ConstantBuffer> cbuffer;
-	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
-	*cbuffer->Get<Matrix4x4<float>>() = cameraNode->Get()->GetProjectionViewMatrix();
 
 	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 	{
@@ -143,7 +114,6 @@ bool LightNode::Render(Scene *pScene)
 
 	Renderer* renderer = Renderer::Get();
 	renderer->Update(mMeshBuffer->GetVertice());
-	renderer->Update(cbuffer);
 	renderer->Draw(mVisual);
 
 	Renderer::Get()->SetDefaultBlendState();
@@ -206,30 +176,42 @@ eastl::shared_ptr<Light> const& LightNode::GetLight() const
 
 void LightNode::DoLightRecalc()
 {
-	if ((mLight->mLighting->mType == LT_SPOT) ||
-		(mLight->mLighting->mType == LT_DIRECTIONAL))
-	{
-		/*
-		Vector4<float> lightDirection = Vector4<float>::Unit(1);
-		GetAbsoluteTransform().GetRotation().Transformation(Vector4<float>::Unit(1), lightDirection);
-		mLight->mLighting->mDirection = HProject(lightDirection);
-		Normalize(mLight->mLighting->mDirection);
-		*/
-	}
-	if ((mLight->mLighting->mType == LT_SPOT) ||
-		(mLight->mLighting->mType == LT_POINT))
-	{
-		mLight->mLighting->mPosition = GetAbsoluteTransform().GetTranslation();
-		//mBBox.MaxEdge.set( r, r, r );
-		//mBBox.MinEdge.set( -r, -r, -r );
-		//Get()->SetAutomaticCulling( AC_BOX );
-		//Get()->SetAutomaticCulling( AC_OFF );
-	}
-	if (mLight->mLighting->mType == LT_DIRECTIONAL)
-	{
-		//mBBox.Reset( 0, 0, 0 );
-		//Get()->SetAutomaticCulling( AC_OFF );
-	}
+	/*
+	Vector4<float> lightDirection = Vector4<float>::Unit(1);
+	GetAbsoluteTransform().GetRotation().Transformation(Vector4<float>::Unit(1), lightDirection);
+	mLight->mLighting->mDirection = HProject(lightDirection);
+	Normalize(mLight->mLighting->mDirection);
+	*/
+	mLight->mLighting->mPosition = GetAbsoluteTransform().GetTranslation();
+}
+
+void LightNode::DoLightBuffers(Scene* pScene)
+{
+	mVisual->mModelBound.SetCenter(Vector4<float>::Zero());
+	mVisual->mModelBound.SetRadius(eastl::max(mSize[0], mSize[1]));
+
+	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
+	if (!cameraNode)
+		return;
+
+	Vector3<float> scale = GetAbsoluteTransform().GetScale();
+
+	float f = 0.5f * mSize[0];
+	const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
+
+	f = 0.5f * mSize[1];
+	const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
+
+	mMeshBuffer->Position(0) = HProject(horizontal + vertical) * scale;
+	mMeshBuffer->Color(0, 0) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(1) = HProject(horizontal - vertical) * scale;
+	mMeshBuffer->Color(0, 1) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(2) = HProject(-horizontal - vertical) * scale;
+	mMeshBuffer->Color(0, 2) = mMeshBuffer->GetMaterial()->mDiffuse;
+	mMeshBuffer->Position(3) = HProject(-horizontal + vertical) * scale;
+	mMeshBuffer->Color(0, 3) = mMeshBuffer->GetMaterial()->mDiffuse;
+
+	mVisual->UpdateModelBound();
 }
 
 //! Returns the visual based on the zero based index i. To get the amount 

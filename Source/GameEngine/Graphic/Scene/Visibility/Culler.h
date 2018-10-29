@@ -14,7 +14,7 @@
 #include <EASTL/vector.h>
 #include <memory>
 
-// Support for determining the potentially visible set of Visual objects in
+// Support for determining the potentially visible set of spatial objects in
 // a scene.  The class is designed to support derived classes that provide
 // specialized culling and sorting.  One example is a culler that stores
 // opaque objects in one set, sorted from front to back, and semitransparent
@@ -24,7 +24,6 @@
 // inserted into the set twice).
 
 class Spatial;
-class Visual;
 
 enum GRAPHIC_ITEM CullingMode
 {
@@ -53,7 +52,7 @@ enum GRAPHIC_ITEM CullingType
 	AC_OCC_QUERY = 8
 };
 
-typedef eastl::vector<Visual*> VisibleSet;
+typedef eastl::vector<Spatial*> VisibleSet;
 
 class GRAPHIC_ITEM Culler
 {
@@ -79,8 +78,11 @@ public:
     void ComputeVisibleSet(eastl::shared_ptr<Camera> const& camera,
         eastl::shared_ptr<Spatial> const& scene);
 
-    // Access to the camera and potentially visible set.
+    // Access to the potentially visible set.
     inline VisibleSet& GetVisibleSet();
+
+	// Find the spatial object in the visible set
+	bool IsVisible(Spatial* spatial);
 
 protected:
     enum { INITIALLY_VISIBLE = 128 };
@@ -88,7 +90,6 @@ protected:
     // These classes must make calls into the Culler, but applications are not
     // allowed to.
     friend class Spatial;
-    friend class Visual;
 	friend class Scene;
 
     // Compare the object's world bounding sphere against the culling planes.
@@ -99,9 +100,9 @@ protected:
     // the visible set (stored as an array).  Derived classes may override
     // this behavior; for example, the array might be maintained as a sorted
     // array for minimizing render state changes or it might be maintained
-    // as a unique list of objects for a portal system.  Only Visual calls
+    // as a unique list of objects for a portal system.  Only spatial calls
     // this function.
-    virtual void Insert(Visual* visible);
+    virtual void Insert(Spatial* spatial);
 
     // See the comments before data member mPlaneState about the bit system
     // for enabling and disabling planes during culling.  Only Spatial calls

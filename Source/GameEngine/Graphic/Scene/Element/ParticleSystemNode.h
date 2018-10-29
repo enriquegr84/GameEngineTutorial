@@ -220,6 +220,7 @@ public:
 private:
 
 	void ReallocateBuffers();
+	void DoParticleBuffers(Scene *pScene);
 
 	eastl::shared_ptr<BlendState> mBlendState;
 	eastl::shared_ptr<DepthStencilState> mDepthStencilState;

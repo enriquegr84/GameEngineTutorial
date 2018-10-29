@@ -38,21 +38,6 @@ RootNode::RootNode(const ActorId actorId, PVWUpdater* updater,
 //
 bool RootNode::PreRender(Scene *pScene)
 {
-	// reset all transforms
-	/*
-	Renderer::Get()->SetMaterial(Material());
-	Renderer::Get()->SetTransform(TS_PROJECTION, Matrix4x4<float>::Identity());
-	Renderer::Get()->SetTransform(TS_VIEW, Matrix4x4<float>::Identity());
-	Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity());
-	for (unsigned int i = TS_COUNT - 1; i >= TS_TEXTURE_0; --i)
-		renderer->SetTransform((TRANSFORMATION_STATE)i, Matrix4x4<float>::Identity());
-	Renderer::Get()->SetAllowZWriteOnTransparent(true);
-
-	// first scene node for prerendering should be the active camera
-	// consistent Camera is needed for culling
-	if (pScene->GetActiveCamera())
-		pScene->GetActiveCamera()->Render(pScene);
-	*/
 	bool success = Node::PreRender(pScene);
 
 	if (success)
@@ -73,24 +58,10 @@ bool RootNode::RenderChildren(Scene *pScene)
 
 		SceneNodeRenderList::iterator itNode = pScene->GetRenderList(pass).begin();
 		SceneNodeRenderList::iterator end = pScene->GetRenderList(pass).end();
-		/*
-		Renderer::Get()->GetOverrideMaterial().mEnabled =
-			((Renderer::Get()->GetOverrideMaterial().mEnablePasses & pass) != 0);
-		*/
+
 		if (pScene->GetLightManager())
 			pScene->GetLightManager()->OnRenderPassPreRender((RenderPass)pass);
-		/*
-		if (pass == RP_LIGHT)
-		{
-			Renderer::Get()->DeleteAllDynamicLights();
-			Renderer::Get()->SetAmbientLight(pScene->GetAmbientLight());
 
-			unsigned int maxLights = pScene->GetRenderList(pass).size();
-			if (!pScene->GetLightManager())
-				end = itNode +
-				eastl::min(Renderer::Get()->GetMaximalDynamicLightAmount(), maxLights);
-		}
-		*/
 		// This code creates fine control of the render passes.
 		for (; itNode != end; ++itNode)
 		{
@@ -106,15 +77,7 @@ bool RootNode::RenderChildren(Scene *pScene)
 				pScene->GetLightManager()->OnNodePostRender((*itNode));
 
 		}
-		/*
-		if (pass == RP_SHADOW)
-		{
-			if (!pScene->GetRenderList(pass).empty())
-				Renderer::Get()->DrawStencilShadow(true,
-					pScene->GetShadowColor(), pScene->GetShadowColor(),
-					pScene->GetShadowColor(), pScene->GetShadowColor());
-		}
-		*/
+
 		if (pScene->GetLightManager())
 			pScene->GetLightManager()->OnRenderPassPostRender((RenderPass)pass);
 	}

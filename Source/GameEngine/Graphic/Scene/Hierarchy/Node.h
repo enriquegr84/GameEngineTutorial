@@ -8,6 +8,7 @@
 #ifndef NODE_H
 #define NODE_H
 
+#include "Visual.h"
 #include "Spatial.h"
 #include "PVWUpdater.h"
 

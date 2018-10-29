@@ -111,8 +111,6 @@ bool MeshNode::Render(Scene *pScene)
 	bool isTransparentPass = pScene->GetCurrentRenderPass() && RP_TRANSPARENT;
 	++mPassCount;
 
-	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
-
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
 

@@ -68,12 +68,7 @@ eastl::shared_ptr<Visual> MeshFactory::CreateRectangle(unsigned int numXSamples,
 	rectangle.mExtent = { xExtent, yExtent };
 	RectangleMesh<float> mesh(desc, rectangle);
 
-	auto visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
-	if (visual)
-	{
-		visual->UpdateModelBound();
-	}
-	return visual;
+	return eastl::make_shared<Visual>(vbuffer, ibuffer);
 }
 
 eastl::shared_ptr<Visual> MeshFactory::CreateTriangle(unsigned int numSamples,
@@ -140,12 +135,7 @@ eastl::shared_ptr<Visual> MeshFactory::CreateTriangle(unsigned int numSamples,
     ibuffer->SetTriangle(t++, y0, y0 + 1, y1);
 
     // Create the mesh.
-	eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
-    if (visual)
-    {
-        visual->UpdateModelBound();
-    }
-    return visual;
+	return eastl::make_shared<Visual>(vbuffer, ibuffer);
 }
 
 eastl::shared_ptr<Visual> MeshFactory::CreateBox(float xExtent, float yExtent, float zExtent)
@@ -286,12 +276,7 @@ eastl::shared_ptr<Visual> MeshFactory::CreateBox(float xExtent, float yExtent, f
 	}
 
 	// Create the mesh.
-	eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
-	if (visual)
-	{
-		visual->UpdateModelBound();
-	}
-	return visual;
+	return eastl::make_shared<Visual>(vbuffer, ibuffer);
 }
 
 eastl::shared_ptr<Visual> MeshFactory::CreateSphere(unsigned int numZSamples,
@@ -447,18 +432,7 @@ eastl::shared_ptr<Visual> MeshFactory::CreateSphere(unsigned int numZSamples,
 	}
 
 	// Create the mesh.
-	eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vbuffer, ibuffer);
-	if (visual)
-	{
-		visual->UpdateModelBound();
-
-		// The duplication of vertices at the seam cause the automatically
-		// generated bounding volume to be slightly off center.  Reset the
-		// bound to use the true information.
-		visual->mModelBound.SetCenter({ 0.0f, 0.0f, 0.0f, 1.0f });
-		visual->mModelBound.SetRadius(radius);
-	}
-	return visual;
+	return eastl::make_shared<Visual>(vbuffer, ibuffer);
 }
 
 eastl::shared_ptr<VertexBuffer> MeshFactory::CreateVBuffer(unsigned int numVertices)

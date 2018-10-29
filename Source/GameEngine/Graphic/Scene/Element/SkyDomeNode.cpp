@@ -45,6 +45,9 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	mMeshBuffer->GetMaterial()->mAntiAliasing = false;
 	mMeshBuffer->GetMaterial()->SetTexture(0, sky);
 
+	// regenerate the mesh
+	GenerateMesh(sky);
+
 	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
 	eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
@@ -56,9 +59,6 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	mVisual->SetEffect(effect);
 	mVisual->UpdateModelBound();
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
-
-	// regenerate the mesh
-	GenerateMesh(sky);
 }
 
 void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
@@ -136,7 +136,10 @@ void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
 bool SkyDomeNode::PreRender(Scene* pScene)
 {
 	if (IsVisible())
-		pScene->AddToRenderQueue(RP_SKY, shared_from_this());
+	{
+		if (!pScene->IsCulled(this))
+			pScene->AddToRenderQueue(RP_SKY, shared_from_this());
+	}
 
 	return Node::PreRender(pScene);
 }

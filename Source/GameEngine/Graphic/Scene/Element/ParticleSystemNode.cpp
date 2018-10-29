@@ -53,51 +53,14 @@ void ParticleSystemNode::SetEffect(int size)
 	mMeshBuffer.reset(meshBuffer);
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl");
-	mEffect = eastl::make_shared<Texture2ColorEffect>(
+	eastl::shared_ptr<Texture2ColorEffect> effect = eastl::make_shared<Texture2ColorEffect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
 		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
+	mEffect = effect;
+	mVisual = eastl::make_shared<Visual>(
+		meshBuffer->GetVertice(), meshBuffer->GetIndice(), mEffect);
+	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 }
-
-
-void ParticleSystemNode::ReallocateBuffers()
-{
-	if (mParticles.size() * 4 != mMeshBuffer->GetVertice()->GetNumElements() ||
-		mParticles.size() * 2 != mMeshBuffer->GetIndice()->GetNumPrimitives())
-	{
-		MeshBuffer* meshBuffer = new MeshBuffer(mMeshBuffer->GetVertice()->GetFormat(), 
-			mParticles.size() * 4, mParticles.size() * 2, sizeof(unsigned int));
-		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
-			meshBuffer->GetMaterial() = GetMaterial(i);
-		mMeshBuffer.reset(meshBuffer);
-
-		// fill vertices
-		for (unsigned int i = 0; i<mMeshBuffer->GetVertice()->GetNumElements(); i += 4)
-		{
-			mMeshBuffer->TCoord(0, 0 + i) = Vector2<float>{ 0.0f, 0.0f };
-			mMeshBuffer->TCoord(0, 1 + i) = Vector2<float>{ 0.0f, 1.0f };
-			mMeshBuffer->TCoord(0, 2 + i) = Vector2<float>{ 1.0f, 1.0f };
-			mMeshBuffer->TCoord(0, 3 + i) = Vector2<float>{ 1.0f, 0.0f };
-		}
-
-		// fill indices
-		int vertices = 0;
-		for (unsigned int i = 0; i<mMeshBuffer->GetIndice()->GetNumPrimitives(); i+=2, vertices +=4)
-		{
-			mMeshBuffer->GetIndice()->SetTriangle(i,
-				(unsigned int)0 + vertices, (unsigned int)2 + vertices, (unsigned int)1 + vertices);
-			mMeshBuffer->GetIndice()->SetTriangle(i + 1,
-				(unsigned int)0 + vertices, (unsigned int)3 + vertices, (unsigned int)2 + vertices);
-		}
-
-		if (mMeshBuffer)
-		{
-			mVisual.reset(new Visual(
-				mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect));
-			mVisual->UpdateModelBound();
-		}
-	}
-}
-
 
 //! destructor
 ParticleSystemNode::~ParticleSystemNode()
@@ -108,36 +71,43 @@ ParticleSystemNode::~ParticleSystemNode()
 //! prerender
 bool ParticleSystemNode::PreRender(Scene *pScene)
 {
-	DoParticleSystem(Timer::GetTime());
-
-	if (IsVisible() && (mParticles.size() != 0))
+	if (IsVisible())
 	{
-		int transparentCount = 0;
-		int solidCount = 0;
+		DoParticleSystem(Timer::GetTime());
 
-		// count transparent and solid materials in this scene node
-		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+		// reallocate arrays, if they are too small
+		ReallocateBuffers();
+
+		DoParticleBuffers(pScene);
+
+		if (mParticles.size() != 0)
 		{
-			if (GetMaterial(i)->IsTransparent())
-				++transparentCount;
-			else
-				++solidCount;
+			int transparentCount = 0;
+			int solidCount = 0;
 
-			if (solidCount && transparentCount)
-				break;
-		}
+			// count transparent and solid materials in this scene node
+			for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+			{
+				if (GetMaterial(i)->IsTransparent())
+					++transparentCount;
+				else
+					++solidCount;
 
-		// register according to material types counted
-		if (!pScene->IsCulled(this))
-		{
-			if (solidCount)
-				pScene->AddToRenderQueue(RP_SOLID, shared_from_this());
+				if (solidCount && transparentCount)
+					break;
+			}
 
-			if (transparentCount)
-				pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
+			// register according to material types counted
+			if (!pScene->IsCulled(this))
+			{
+				if (solidCount)
+					pScene->AddToRenderQueue(RP_SOLID, shared_from_this());
+
+				if (transparentCount)
+					pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
+			}
 		}
 	}
-
 	return true;
 }
 
@@ -146,40 +116,8 @@ bool ParticleSystemNode::PreRender(Scene *pScene)
 //
 bool ParticleSystemNode::Render(Scene *pScene)
 {
-	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
-
-	if (!cameraNode || !Renderer::Get())
+	if (!Renderer::Get())
 		return false;
-
-	// reallocate arrays, if they are too small
-	ReallocateBuffers();
-
-	int idx = 0;
-	for (unsigned int i = 0; i < mParticles.size(); ++i)
-	{
-		const Particle& particle = mParticles[i];
-
-		float f = 0.5f * particle.mSize[0];
-		const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
-
-		f = 0.5f * particle.mSize[1];
-		const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
-
-		mMeshBuffer->Position(0 + idx) = particle.mPos + HProject(horizontal + vertical);
-		mMeshBuffer->Color(0, 0 + idx) = particle.mColor;
-		mMeshBuffer->Position(1 + idx) = particle.mPos + HProject(horizontal - vertical);
-		mMeshBuffer->Color(0, 1 + idx) = particle.mColor;
-		mMeshBuffer->Position(2 + idx) = particle.mPos + HProject(-horizontal - vertical);
-		mMeshBuffer->Color(0, 2 + idx) = particle.mColor;
-		mMeshBuffer->Position(3 + idx) = particle.mPos + HProject(-horizontal + vertical);
-		mMeshBuffer->Color(0, 3 + idx) = particle.mColor;
-
-		idx += 4;
-	}
-
-	eastl::shared_ptr<ConstantBuffer> cbuffer;
-	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
-	*cbuffer->Get<Matrix4x4<float>>() = cameraNode->Get()->GetProjectionViewMatrix();
 
 	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 	{
@@ -192,7 +130,6 @@ bool ParticleSystemNode::Render(Scene *pScene)
 
 	Renderer* renderer = Renderer::Get();
 	renderer->Update(mMeshBuffer->GetVertice());
-	renderer->Update(cbuffer);
 	renderer->Draw(mVisual);
 
 	Renderer::Get()->SetDefaultBlendState();
@@ -212,7 +149,6 @@ bool ParticleSystemNode::Render(Scene *pScene)
 	return Node::Render(pScene);
 }
 
-
 void ParticleSystemNode::DoParticleSystem(unsigned int time)
 {
 	if (mLastEmitTime==0)
@@ -227,7 +163,7 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 
 	// run emitter
 
-	if (mEmitter && IsVisible())
+	if (mEmitter)
 	{
 		Particle* array = 0;
 		int newParticles = mEmitter->Emitt(now, timediff, array);
@@ -244,16 +180,15 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 				mParticles[i] = array[i - j];
 
 				Vector4<float> startVector;
-				GetAbsoluteTransform().GetHMatrix().Transformation(
+				GetAbsoluteTransform().GetRotation().Transformation(
 					HLift(mParticles[i].mStartVector, 0.f), startVector);
 				mParticles[i].mStartVector = HProject(startVector);
 				if (mParticlesAreGlobal)
 				{
 					Vector4<float> positionVector;
-					GetAbsoluteTransform().GetHMatrix().Transformation(
+					GetAbsoluteTransform().GetRotation().Transformation(
 						HLift(mParticles[i].mPos, 0.f), positionVector);
 					mParticles[i].mPos = HProject(positionVector);
-					mParticles[i].mPos += GetAbsoluteTransform().GetTranslation();
 				}
 			}
 		}
@@ -287,6 +222,79 @@ void ParticleSystemNode::DoParticleSystem(unsigned int time)
 	}
 }
 
+void ParticleSystemNode::ReallocateBuffers()
+{
+	if (mParticles.size() * 4 != mMeshBuffer->GetVertice()->GetNumElements() ||
+		mParticles.size() * 2 != mMeshBuffer->GetIndice()->GetNumPrimitives())
+	{
+		MeshBuffer* meshBuffer = new MeshBuffer(mMeshBuffer->GetVertice()->GetFormat(),
+			mParticles.size() * 4, mParticles.size() * 2, sizeof(unsigned int));
+		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+			meshBuffer->GetMaterial() = GetMaterial(i);
+		mMeshBuffer.reset(meshBuffer);
+
+		// fill vertices
+		for (unsigned int i = 0; i<mMeshBuffer->GetVertice()->GetNumElements(); i += 4)
+		{
+			mMeshBuffer->TCoord(0, 0 + i) = Vector2<float>{ 0.0f, 0.0f };
+			mMeshBuffer->TCoord(0, 1 + i) = Vector2<float>{ 0.0f, 1.0f };
+			mMeshBuffer->TCoord(0, 2 + i) = Vector2<float>{ 1.0f, 1.0f };
+			mMeshBuffer->TCoord(0, 3 + i) = Vector2<float>{ 1.0f, 0.0f };
+		}
+
+		// fill indices
+		int vertices = 0;
+		for (unsigned int i = 0; i<mMeshBuffer->GetIndice()->GetNumPrimitives(); i += 2, vertices += 4)
+		{
+			mMeshBuffer->GetIndice()->SetTriangle(i,
+				(unsigned int)0 + vertices, (unsigned int)2 + vertices, (unsigned int)1 + vertices);
+			mMeshBuffer->GetIndice()->SetTriangle(i + 1,
+				(unsigned int)0 + vertices, (unsigned int)3 + vertices, (unsigned int)2 + vertices);
+		}
+
+		if (mMeshBuffer)
+		{
+			mVisual.reset(new Visual(
+				mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect));
+		}
+	}
+}
+
+void ParticleSystemNode::DoParticleBuffers(Scene *pScene)
+{
+	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
+
+	if (!cameraNode) return;
+
+	//fill vertices
+	if (mParticles.size() != 0)
+	{
+		int idx = 0;
+		for (unsigned int i = 0; i < mParticles.size(); ++i)
+		{
+			const Particle& particle = mParticles[i];
+
+			float f = 0.5f * particle.mSize[0];
+			const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
+
+			f = 0.5f * particle.mSize[1];
+			const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
+
+			mMeshBuffer->Position(0 + idx) = particle.mPos + HProject(horizontal + vertical);
+			mMeshBuffer->Color(0, 0 + idx) = particle.mColor;
+			mMeshBuffer->Position(1 + idx) = particle.mPos + HProject(horizontal - vertical);
+			mMeshBuffer->Color(0, 1 + idx) = particle.mColor;
+			mMeshBuffer->Position(2 + idx) = particle.mPos + HProject(-horizontal - vertical);
+			mMeshBuffer->Color(0, 2 + idx) = particle.mColor;
+			mMeshBuffer->Position(3 + idx) = particle.mPos + HProject(-horizontal + vertical);
+			mMeshBuffer->Color(0, 3 + idx) = particle.mColor;
+
+			idx += 4;
+		}
+	}
+
+	mVisual->UpdateModelBound();
+}
 
 //! Sets if the particles should be global. If it is, the particles are affected by
 //! the movement of the particle system scene node too, otherwise they completely

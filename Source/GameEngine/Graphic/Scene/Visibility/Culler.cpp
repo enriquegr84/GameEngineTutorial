@@ -99,9 +99,14 @@ bool Culler::IsVisible(BoundingSphere const& sphere)
     return true;
 }
 
-void Culler::Insert(Visual* visible)
+bool Culler::IsVisible(Spatial* spatial)
 {
-    mVisibleSet.push_back(visible);
+	return eastl::find(mVisibleSet.begin(), mVisibleSet.end(), spatial) != mVisibleSet.end();
+}
+
+void Culler::Insert(Spatial* spatial)
+{
+    mVisibleSet.push_back(spatial);
 }
 
 void Culler::PushViewFrustumPlanes(eastl::shared_ptr<Camera> const& camera)

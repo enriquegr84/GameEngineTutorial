@@ -52,7 +52,6 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 
 			eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
 				meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
-			visual->UpdateModelBound();
 			mVisuals.push_back(visual);
 			mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 		}
@@ -122,12 +121,18 @@ void AnimatedMeshNode::BuildFrameNr(unsigned int timeMs)
 		if (mFramesPerSecond > 0.f) //forwards...
 		{
 			if (mCurrentFrameNr > mEndFrame)
-				mCurrentFrameNr = mStartFrame + fmod(mCurrentFrameNr - mStartFrame, (float)(mEndFrame - mStartFrame));
+			{
+				mCurrentFrameNr = mStartFrame +
+					fmod(mCurrentFrameNr - mStartFrame, (float)(mEndFrame - mStartFrame));
+			}
 		}
 		else //backwards...
 		{
 			if (mCurrentFrameNr < mStartFrame)
-				mCurrentFrameNr = mEndFrame - fmod(mEndFrame - mCurrentFrameNr, (float)(mEndFrame - mStartFrame));
+			{
+				mCurrentFrameNr = mEndFrame -
+					fmod(mEndFrame - mCurrentFrameNr, (float)(mEndFrame - mStartFrame));
+			}
 		}
 	}
 	else
@@ -157,19 +162,12 @@ void AnimatedMeshNode::BuildFrameNr(unsigned int timeMs)
 
 eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 {
-	if (mMesh->GetMeshType() != MT_SKINNED)
-	{
-		int frameNr = (int)GetFrameNr();
-		int frameBlend = (int)(Function<float>::Fract(GetFrameNr()) * 1000.f);
-
-		return mMesh->GetMesh(frameNr, frameBlend, mStartFrame, mEndFrame);
-	}
-	else
+	if (mMesh->GetMeshType() == MT_SKINNED)
 	{
 		// As multiple scene nodes may be sharing the same skinned mesh, we have to
 		// re-animate it every frame to ensure that this node gets the mesh that it needs.
 
-		eastl::shared_ptr<SkinnedMesh> skinnedMesh = 
+		eastl::shared_ptr<SkinnedMesh> skinnedMesh =
 			eastl::dynamic_shared_pointer_cast<SkinnedMesh>(mMesh);
 
 		if (mJointMode == JUOR_CONTROL)//write to mesh
@@ -187,7 +185,7 @@ eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 			//---slow---
 			for (unsigned int n = 0; n<mJointChildSceneNodes.size(); ++n)
 				if (mJointChildSceneNodes[n]->GetParent() == this)
-					mJointChildSceneNodes[n]->UpdateAbsoluteTransformationChildren(); //temp, should be an option
+					mJointChildSceneNodes[n]->UpdateAbsoluteTransformationChildren();
 		}
 
 		if (mJointMode == JUOR_CONTROL)
@@ -197,6 +195,13 @@ eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 		}
 
 		return skinnedMesh;
+	}
+	else
+	{
+		int frameNr = (int)GetFrameNr();
+		int frameBlend = (int)(Function<float>::Fract(GetFrameNr()) * 1000.f);
+
+		return mMesh->GetMesh(frameNr, frameBlend, mStartFrame, mEndFrame);
 	}
 }
 
@@ -210,10 +215,6 @@ bool AnimatedMeshNode::OnAnimate(Scene* pScene, unsigned int time)
 	// set CurrentFrameNr
 	BuildFrameNr(time - mLastTime);
 
-	// update bbox
-	for (auto visual : mVisuals)
-		visual->UpdateModelBound();
-
 	mLastTime = time;
 
 	return Node::OnAnimate(pScene, time);
@@ -223,6 +224,12 @@ bool AnimatedMeshNode::PreRender(Scene* pScene)
 {
 	if (IsVisible())
 	{
+		mCurrentFrameMesh = GetMeshForCurrentFrame();
+
+		// update bbox
+		for (auto visual : mVisuals)
+			visual->UpdateModelBound();
+
 		// because this node supports rendering of mixed mode meshes consisting of
 		// transparent and solid material at the same time, we need to go through all
 		// materials, check of what type they are and register this node for the right
@@ -245,11 +252,14 @@ bool AnimatedMeshNode::PreRender(Scene* pScene)
 		}
 
 		// register according to material types counted
-		if (solidCount && !pScene->IsCulled(this))
-			pScene->AddToRenderQueue(RP_SOLID, shared_from_this());
+		if (!pScene->IsCulled(this))
+		{
+			if (solidCount)
+				pScene->AddToRenderQueue(RP_SOLID, shared_from_this());
 
-		if (transparentCount && !pScene->IsCulled(this))
-			pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
+			if (transparentCount)
+				pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
+		}
 	}
 
 	return Node::PreRender(pScene);
@@ -265,8 +275,6 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		pScene->GetCurrentRenderPass() == RP_TRANSPARENT;
 	++mPassCount;
 
-	eastl::shared_ptr<BaseMesh> mesh = GetMeshForCurrentFrame();
-
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
 
@@ -277,10 +285,10 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		// overwrite half transparency
 		if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
 		{
-			for (unsigned int i=0; i<mesh->GetMeshBufferCount(); ++i)
+			for (unsigned int i=0; i<mCurrentFrameMesh->GetMeshBufferCount(); ++i)
 			{
-				const eastl::shared_ptr<SkinMeshBuffer>& mb =
-					eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mesh->GetMeshBuffer(i));
+				const eastl::shared_ptr<SkinMeshBuffer>& mb = 
+					eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mCurrentFrameMesh->GetMeshBuffer(i));
 				eastl::shared_ptr<Material> material = mb->GetMaterial();
 
 				material->Update(mBlendStates[i]);
@@ -303,10 +311,10 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 	// render original meshes
 	if (renderMeshes)
 	{
-		for (unsigned int i=0; i<mesh->GetMeshBufferCount(); ++i)
+		for (unsigned int i=0; i<mCurrentFrameMesh->GetMeshBufferCount(); ++i)
 		{
 			const eastl::shared_ptr<SkinMeshBuffer>& mb =
-				eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mesh->GetMeshBuffer(i));
+				eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mCurrentFrameMesh->GetMeshBuffer(i));
 			eastl::shared_ptr<Material> material = mb->GetMaterial();
 			bool transparent = (material->IsTransparent());
 
@@ -330,7 +338,6 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		}
 	}
 
-	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
 	/*
 	// for debug purposes only:
 	if (DebugDataVisible() && mPassCount==1)

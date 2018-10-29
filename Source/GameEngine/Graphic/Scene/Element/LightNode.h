@@ -75,6 +75,7 @@ public:
 private:
 
 	void DoLightRecalc();
+	void DoLightBuffers(Scene* pScene);
 
 	eastl::shared_ptr<Light> mLight;
 	//! Size.Width is the bottom edge width
