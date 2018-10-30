@@ -109,7 +109,7 @@ bool GameDemoPlayerController::OnMouseMove(const Vector2<int> &mousePos, const i
 
 //  class GameDemoPlayerController::OnUpdate			- Chapter 10, page 283
 
-void GameDemoPlayerController::OnUpdate(unsigned long const deltaMilliseconds)
+void GameDemoPlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
 	// Special case, mouse is whipped outside of window before it can update.
 	if (mEnabled)
@@ -212,7 +212,7 @@ void GameDemoPlayerController::OnUpdate(unsigned long const deltaMilliseconds)
 		upWorld = upWorld * rotation;
 #endif
 
-		if (!mKey[KEY_SPACE])
+		if (mKey[KEY_SPACE])
 			upWorld *= -1.f;
 
 		isTranslating = true;
@@ -220,7 +220,7 @@ void GameDemoPlayerController::OnUpdate(unsigned long const deltaMilliseconds)
 
 	if (mEnabled && isTranslating)
 	{
-		float elapsedTime = (float)deltaMilliseconds / 1000.0f;
+		float elapsedTime = (float)deltaMs / 1000.0f;
 
 		Vector4<float> direction = atWorld + rightWorld + upWorld;
 		Normalize(direction);

@@ -31,8 +31,7 @@ public:
     // and maximum values, compute C and extents, and then recompute the
     // minimum and maximum values, the numerical round-off errors can lead to
     // results different from what you started with.
-    void GetCenteredForm(Vector<N, Real>& center, Vector<N, Real>& extent)
-        const;
+    void GetCenteredForm(Vector<N, Real>& center, Vector<N, Real>& extent) const;
 
     // Public member access.  It is required that min[i] <= max[i].
     Vector<N, Real> mMin, mMax;

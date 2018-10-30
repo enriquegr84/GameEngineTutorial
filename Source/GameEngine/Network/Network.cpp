@@ -1023,7 +1023,7 @@ void NetworkGameView::OnAttach(GameViewId viewId, ActorId aid)
 }
 
 
-void NetworkGameView::OnUpdate(unsigned long deltaMs)
+void NetworkGameView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 { 
 	if (mActorId != INVALID_ACTOR_ID)
 	{

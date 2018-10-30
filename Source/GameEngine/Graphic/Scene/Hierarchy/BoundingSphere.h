@@ -12,7 +12,6 @@
 
 #include "Mathematic/Algebra/Transform.h"
 
-
 class GRAPHIC_ITEM BoundingSphere
 {
 public:

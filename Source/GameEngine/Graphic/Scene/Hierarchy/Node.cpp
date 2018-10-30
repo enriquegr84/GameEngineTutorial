@@ -264,7 +264,7 @@ void Node::UpdateWorldData()
     {
         if (child)
         {
-            child->Update(false);
+            child->UpdateWorldData();
         }
     }
 }
@@ -359,7 +359,7 @@ bool Node::OnLostDevice(Scene *pScene)
 //
 // Node::OnUpdate					- Chapter 16, page 532
 //
-bool Node::OnUpdate(Scene *pScene, unsigned long const elapsedMs)
+bool Node::OnUpdate(Scene *pScene, unsigned int timeMs, unsigned long const elapsedMs)
 {
 	// This is meant to be called from any class
 	// that inherits from SceneNode and overloads
@@ -369,12 +369,18 @@ bool Node::OnUpdate(Scene *pScene, unsigned long const elapsedMs)
 
 	while (i != end)
 	{
-		(*i)->OnUpdate(pScene, elapsedMs);
+		(*i)->OnUpdate(pScene, timeMs, elapsedMs);
 		++i;
 	}
 
 	// update spatial data
-	Update();
+	Spatial::UpdateWorldData();
+
+	// animate this node
+	OnAnimate(pScene, timeMs);
+
+	//update bounds
+	UpdateWorldBound();
 
 	return true;
 }
@@ -402,11 +408,6 @@ bool Node::OnAnimate(Scene* pScene, unsigned int timeMs)
 			++ait;
 			anim->AnimateNode(pScene, this, timeMs);
 		}
-
-		// perform the post render process on all children
-		SceneNodeList::iterator it = mChildren.begin();
-		for (; it != mChildren.end(); ++it)
-			(*it)->OnAnimate(pScene, timeMs);
 	}
 
 	return true;

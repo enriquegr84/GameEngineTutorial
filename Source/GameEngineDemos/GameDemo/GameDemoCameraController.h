@@ -85,7 +85,7 @@ public:
 	//! Gets whether or not the affector is currently enabled.
 	bool GetEnabled() const { return mEnabled; }
 
-	void OnUpdate(unsigned long const elapsedTime);
+	void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 
 	const eastl::shared_ptr<CameraNode>& GetTarget() { return mTarget; }
 	void SetTarget(const eastl::shared_ptr<CameraNode>& newTarget) { mTarget = newTarget; }

@@ -233,7 +233,7 @@ public:
 	bool OnRestore(Scene *pScene);
 	bool OnLostDevice(Scene *pScene);
 
-	bool OnUpdate(Scene *, unsigned long const elapsedMs);
+	bool OnUpdate(Scene *, unsigned int timeMs, unsigned long const elapsedMs);
 	virtual bool OnAnimate(Scene* pScene, unsigned int timeMs);
 
 	virtual bool PreRender(Scene *pScene);

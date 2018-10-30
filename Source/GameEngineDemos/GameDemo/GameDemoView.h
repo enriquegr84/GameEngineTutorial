@@ -67,7 +67,6 @@ public:
 	virtual bool OnLostDevice() { return true; }
 
 	virtual void OnUpdate(int deltaMilliseconds) { }
-	virtual void OnAnimate(unsigned int uTime) { }
 
 	//! draws all gui elements
 	virtual bool OnRender(double time, float elapsedTime);
@@ -93,7 +92,6 @@ public:
 	virtual bool OnLostDevice() { return true; }
 
 	virtual void OnUpdate(int deltaMilliseconds) { }
-	virtual void OnAnimate(unsigned int uTime) { }
 
 	//! draws all gui elements
 	virtual bool OnRender(double time, float elapsedTime);
@@ -122,7 +120,7 @@ public:
 	~MainMenuView(); 
 	virtual bool OnMsgProc( const Event& evt );
 	virtual void RenderText();	
-	virtual void OnUpdate(unsigned long deltaMs);
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 };
 
 
@@ -143,7 +141,7 @@ public:
 
 	virtual bool OnMsgProc( const Event& event );	
 	virtual void RenderText();	
-	virtual void OnUpdate(unsigned long deltaTime);
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 	virtual void OnAttach(GameViewId vid, ActorId aid);
 
 	virtual void SetControlledActor(ActorId actorId);
@@ -175,13 +173,12 @@ public:
 
 	virtual bool OnRestore() { return true; }
 	virtual void OnRender(double time, float elapsedTime) {}
-	virtual void OnAnimate(unsigned int uTime) {}
 	virtual bool OnLostDevice() { return true; }
 	virtual GameViewType GetType() { return GV_AI; }
 	virtual GameViewId GetId() const { return mViewId; }
 	virtual void OnAttach(GameViewId vid, ActorId actorId) { mViewId = vid; mPlayerActorId = actorId; }
 	virtual bool OnMsgProc( const Event& event ) {	return false; }
-	virtual void OnUpdate(unsigned long deltaMs) {}
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs) {}
 	
 	eastl::shared_ptr<PathingGraph> GetPathingGraph(void) const { return mPathingGraph; }
 };

@@ -83,7 +83,7 @@ public:
 	//! Gets whether or not the affector is currently enabled.
 	bool GetEnabled() const { return mEnabled; }
 
-	void OnUpdate(unsigned long const elapsedTime);
+	void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 
 	bool OnMouseMove(const Vector2<int> &mousePos, const int radius);
 	bool OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);

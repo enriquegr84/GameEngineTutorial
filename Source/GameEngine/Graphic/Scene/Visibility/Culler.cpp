@@ -169,7 +169,18 @@ void Culler::PushViewFrustumPlanes(eastl::shared_ptr<Camera> const& camera)
     N = a0*D + a1*R;
     c = -Dot(N, P);
     mPlane[Camera::VF_RMAX].Set(N, c);
+	/*
+	Matrix4x4<float> mat = Transpose(camera->GetProjectionViewMatrix());
+	mPlane[Camera::VF_DMIN].Set(Vector4<float>{mat[2], mat[7], mat[11], 0.f}, mat[14]);
+	mPlane[Camera::VF_DMAX].Set(Vector4<float>{mat[3] - mat[2], mat[7] - mat[6], mat[11] - mat[10], 0.f}, mat[15] - mat[14]);
+	mPlane[Camera::VF_UMIN].Set(Vector4<float>{mat[3] + mat[1], mat[7] + mat[5], mat[11] + mat[9], 0.f}, mat[15] + mat[13]);
+	mPlane[Camera::VF_UMAX].Set(Vector4<float>{mat[3] - mat[1], mat[7] - mat[5], mat[11] - mat[9], 0.f}, mat[15] - mat[13]);
+	mPlane[Camera::VF_RMIN].Set(Vector4<float>{mat[3] + mat[0], mat[7] + mat[4], mat[11] + mat[8], 0.f}, mat[15] + mat[12]);
+	mPlane[Camera::VF_RMAX].Set(Vector4<float>{mat[3] - mat[0], mat[7] - mat[4], mat[11] - mat[8], 0.f}, mat[15] - mat[12]);
 
+	for (unsigned int i = 0; i != Camera::VF_QUANTITY; ++i)
+		mPlane[i].Normalize();
+	*/
     // All planes are active initially.
     mPlaneState = 0xFFFFFFFFu;
 }

@@ -402,11 +402,11 @@ bool HumanView::OnMsgProc( const Event& evt )
 	can safely belong to the human view. The audio system is actually managed as a Process object that
 	is attached to the ProcessManager contained in the human view.
 */
-void HumanView::OnUpdate(const int deltaMilliseconds)
+void HumanView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
-	mProcessManager->UpdateProcesses(deltaMilliseconds);
+	mProcessManager->UpdateProcesses(deltaMs);
 
-	mConsole.OnUpdate(deltaMilliseconds);
+	mConsole.OnUpdate(timeMs, deltaMs);
 
 	// This section of code was added post-press. It runs through the screenlist
 	// and calls OnUpdate. Some screen elements need to update every frame, one 
@@ -415,28 +415,11 @@ void HumanView::OnUpdate(const int deltaMilliseconds)
 	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
 		mScreenElements.begin(); i!=mScreenElements.end(); ++i)
 	{
-		(*i)->OnUpdate(deltaMilliseconds);
+		(*i)->OnUpdate(timeMs, deltaMs);
 	}
 }
-
 //
-// HumanView::OnAnimate						- Chapter 10, page 277
-//
-void HumanView::OnAnimate(unsigned int uTime)
-{
-	// This section of code was added post-press. It runs through the screenlist
-	// and calls OnAnimate. Some screen elements need to update every frame, one 
-	// example of this is a 3D scene attached to the human view.
-	//
-	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator i =
-		mScreenElements.begin(); i!=mScreenElements.end(); ++i)
-	{
-		(*i)->OnAnimate(uTime);
-	}
-}
-
-//
-// HumanView::VPushElement						- Chapter 10, page 274
+// HumanView::PushElement						- Chapter 10, page 274
 //
 void HumanView::PushElement(const eastl::shared_ptr<BaseScreenElement>& pElement)
 {
@@ -444,7 +427,7 @@ void HumanView::PushElement(const eastl::shared_ptr<BaseScreenElement>& pElement
 }
 
 //
-// HumanView::VPopElement						- Chapter 10, page 274
+// HumanView::PopElement						- Chapter 10, page 274
 //
 //   
 //
@@ -576,7 +559,7 @@ bool HumanView::Console::OnInit( )
 	return true;
 }
 
-void HumanView::Console::OnUpdate( const int deltaTime )
+void HumanView::Console::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
 	//Don't do anything if not active.
 	if ( !mIsActive )
@@ -620,7 +603,7 @@ void HumanView::Console::OnUpdate( const int deltaTime )
 	}
 	*/
 	//Update the cursor blink timer...
-	mCursorBlinkTimer -= deltaTime;
+	mCursorBlinkTimer -= deltaMs;
 
 	if ( mCursorBlinkTimer < 0 )
 	{

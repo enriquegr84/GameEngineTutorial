@@ -87,8 +87,8 @@ float CullingPlane::GetConstant () const
 
 float CullingPlane::Normalize ()
 {
-    float length = sqrt(mTuple[0]*mTuple[0] + mTuple[1]*mTuple[1] +
-        mTuple[2]*mTuple[2]);
+    float length = sqrt(
+		mTuple[0]*mTuple[0] + mTuple[1]*mTuple[1] + mTuple[2]*mTuple[2]);
     mTuple /= length;
     return length;
 }
@@ -96,7 +96,7 @@ float CullingPlane::Normalize ()
 int CullingPlane::WhichSide (Vector4<float> const& P) const
 {
     float distance = Dot(mTuple, P);
-    return (distance > 0.0f ? +1 : (distance < 0.0f ? -1 : 0));
+    return (distance > GE_ROUNDING_ERROR ? +1 : (distance < -GE_ROUNDING_ERROR ? -1 : 0));
 }
 
 float CullingPlane::DistanceTo (Vector4<float> const& P) const

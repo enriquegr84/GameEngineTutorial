@@ -41,6 +41,7 @@ void Spatial::OnGetVisibleSet(Culler& culler,
         noCull = true;
 
     unsigned int savePlaneState = culler.GetPlaneState();
+
 	if (noCull || culler.IsVisible(mWorldBound))
 	{
 		culler.Insert(this);

@@ -103,7 +103,7 @@ public:
 	virtual bool IsVisible() { return mVisible; }
 	virtual void SetVisible(bool visible) { mVisible = visible; }
 
-	virtual void OnUpdate(int) { };
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs) { };
 
 	//! draws all gui elements
 	virtual bool OnRender(double time, float elapsedTime);

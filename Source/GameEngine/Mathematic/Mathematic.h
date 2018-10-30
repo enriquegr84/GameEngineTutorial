@@ -46,6 +46,7 @@
 //Geometric
 #include "Geometric/Frustum.h"
 #include "Geometric/Rectangle.h"
+#include "Geometric/Hyperplane.h"
 #include "Geometric/AlignedBox.h"
 
 //NumericalMethod

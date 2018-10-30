@@ -66,8 +66,7 @@ public:
 	virtual bool OnLostDevice() = 0;
 
 	virtual bool OnRender(double time, float elapsedTime) = 0;
-	virtual void OnUpdate(int deltaMilliseconds) = 0;
-	virtual void OnAnimate(unsigned int uTime) = 0;
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs) = 0;
 
 	virtual int GetZOrder() const = 0;
 	virtual void SetZOrder(int const zOrder) = 0;

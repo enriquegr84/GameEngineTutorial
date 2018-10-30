@@ -741,6 +741,7 @@
     <ClInclude Include="..\Mathematic\Function\Functions.h" />
     <ClInclude Include="..\Mathematic\Geometric\AlignedBox.h" />
     <ClInclude Include="..\Mathematic\Geometric\Frustum.h" />
+    <ClInclude Include="..\Mathematic\Geometric\Hyperplane.h" />
     <ClInclude Include="..\Mathematic\Geometric\Rectangle.h" />
     <ClInclude Include="..\Mathematic\Mathematic.h" />
     <ClInclude Include="..\Mathematic\MathematicStd.h" />

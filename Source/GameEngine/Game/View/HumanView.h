@@ -77,8 +77,7 @@ public:
 	virtual bool OnLostDevice();
 
 	virtual void OnRender(double time, float elapsedTime);
-	virtual void OnUpdate(const int deltaMilliseconds );
-	virtual void OnAnimate(unsigned int uTime);
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 
 	virtual GameViewType GetType() { return GV_HUMAN; }
 	virtual GameViewId GetId() const { return mViewId; }
@@ -146,8 +145,7 @@ public:
 		virtual bool OnRestore() { return true; };
 		virtual bool OnLostDevice() { return true; };
 
-		virtual void OnUpdate(int deltaMilliseconds);
-		virtual void OnAnimate(unsigned int uTime) { }
+		virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 
 		//! draws all gui elements
 		virtual bool OnRender(double time, float elapsedTime);

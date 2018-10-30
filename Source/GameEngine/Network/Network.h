@@ -368,13 +368,14 @@ public:
 	// BaseGameView Implementation - everything is stubbed out.
 	virtual bool OnRestore() { return true; }
 	virtual void OnRender(double time, float elapsedTime) { }
-	virtual void OnAnimate(unsigned int uTime) { }
+
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
+
 	virtual bool OnLostDevice() { return true; }
 	virtual GameViewType GetType() { return GV_REMOTE; }
 	virtual GameViewId GetId() const { return mViewId; }
 	virtual void OnAttach(GameViewId vid, ActorId aid);
 	virtual bool OnMsgProc( const Event& event ) { return false; }
-	virtual void OnUpdate(unsigned long deltaMs);
 
 	void NewActorDelegate(BaseEventDataPtr pEventData);
 

@@ -93,7 +93,7 @@ protected:
 
 	// called during the first update; responsible for setting the initial state (typically RUNNING)
 	virtual void OnInit(void) { mState = STATE_RUNNING; } 
-	virtual void OnUpdate(unsigned long deltaMs) = 0;  // called every frame
+	virtual void OnUpdate(unsigned long const deltaMs) = 0;  // called every frame
 	virtual void OnSuccess(void) { }  // called if the process succeeds (see below)
 	virtual void OnFail(void) { }  // called if the process fails (see below)
 	virtual void OnAbort(void) { }  // called if the process is aborted (see below)

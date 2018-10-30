@@ -22,7 +22,7 @@ CameraNode::CameraNode(const ActorId actorid)
 			(float)Renderer::Get()->GetScreenSize()[1];
 	}
 	mCamera->SetFrustum(60.0f, aspectRatio, 0.1f, 3000.0f);
-	Vector4<float> camPosition{ 0.0f, 50.0f, 0.0f, 1.0f };
+	Vector4<float> camPosition{ 0.0f, 10.0f, 10.0f, 1.0f };
 	Vector4<float> camDVector{ 0.0f, 1.0f, 0.0f, 0.0f };
 	Vector4<float> camUVector{ 0.0f, 0.0f, 1.0f, 0.0f };
 	Vector4<float> camRVector = Cross(camDVector, camUVector);

@@ -445,10 +445,7 @@ void GameApplication::OnRun()
 			OnUpdateGame(elapsedTime);
 
 			// update all game views
-			OnUpdateView(elapsedTime);
-
-			// animate all game views
-			OnAnimateView(Timer::GetTime());
+			OnUpdateView(Timer::GetTime(), elapsedTime);
 
 			// Render the scene
 			OnRender(elapsedTime);
@@ -460,23 +457,13 @@ void GameApplication::OnRun()
 	}
 }
 
-// animate all game views
-void GameApplication::OnAnimateView(unsigned int time)
-{
-	eastl::list<eastl::shared_ptr<BaseGameView>>::iterator it = mGameViews.begin();
-	for (; it != mGameViews.end(); ++it)
-	{
-		(*it)->OnAnimate(time);
-	}
-}
-
 // update all game views
-void GameApplication::OnUpdateView(unsigned int elapsedTime)
+void GameApplication::OnUpdateView(unsigned int timeMs, unsigned int elapsedTime)
 {
 	eastl::list<eastl::shared_ptr<BaseGameView>>::iterator it = mGameViews.begin();
 	for (; it != mGameViews.end(); ++it)
 	{
-		(*it)->OnUpdate(elapsedTime);
+		(*it)->OnUpdate(timeMs, elapsedTime);
 	}
 }
 

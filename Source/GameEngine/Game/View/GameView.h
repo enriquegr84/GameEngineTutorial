@@ -48,8 +48,7 @@ class BaseGameView
 public:
 	virtual bool OnRestore() = 0;
 	virtual void OnRender(double time, float elapsedTime) = 0;
-	virtual void OnUpdate(unsigned long deltaMs) = 0;
-	virtual void OnAnimate(unsigned int uTime) = 0;
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs) = 0;
 
 	virtual bool OnLostDevice() = 0;
 	virtual GameViewType GetType() = 0;

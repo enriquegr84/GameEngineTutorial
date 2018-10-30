@@ -135,7 +135,7 @@ protected:
 
 public:
 	FadeProcess(eastl::shared_ptr<SoundProcess> sound, int fadeTime, int endVolume);
-	virtual void OnUpdate(unsigned long deltaMs);	
+	virtual void OnUpdate(unsigned long deltaMs);
 };
 
 

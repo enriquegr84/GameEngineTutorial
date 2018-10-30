@@ -89,8 +89,7 @@ public:
 	Scene();
 	virtual ~Scene();
 
-	bool OnUpdate(unsigned long elapsedTime);
-	bool OnAnimate(unsigned int uTime);
+	bool OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 	bool OnRender();
 
 	bool OnRestore();
@@ -514,8 +513,7 @@ public:
 	virtual bool OnRestore() { Scene::OnRestore(); return true; }
 	virtual bool OnLostDevice() { Scene::OnLostDevice(); return true; } 
 
-	virtual void OnUpdate(int deltaMS) { Scene::OnUpdate(deltaMS); };
-	virtual void OnAnimate(unsigned int uTime) { Scene::OnAnimate(uTime); };
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs) { Scene::OnUpdate(timeMs, deltaMs); };
 	virtual bool OnRender(double time, float elapsedTime) { Scene::OnRender(); return true; }
 
 	virtual int GetZOrder() const { return 0; }

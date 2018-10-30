@@ -148,8 +148,7 @@ protected:
 	the logic
 	*/
 	void OnUpdateGame(unsigned int elapsedTime);
-	void OnUpdateView(unsigned int elapsedTime);
-	void OnAnimateView(unsigned int time);
+	void OnUpdateView(unsigned int timeMs, unsigned int elapsedTime);
 
 	/*
 	Reimplemented method by the child classes which draws the scene

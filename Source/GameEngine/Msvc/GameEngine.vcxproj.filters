@@ -1,74 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Core">
-      <UniqueIdentifier>{290384e2-defc-4863-940d-17b65c60b6f0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Graphic">
       <UniqueIdentifier>{d4c29b82-13c9-4a49-b238-19cd0bce7a5a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\IO">
-      <UniqueIdentifier>{49eccc66-1e3a-4f36-a4ea-35da25b3987b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\OS">
-      <UniqueIdentifier>{e7892ddc-7f3e-46a3-ab10-8e4307a2b1cd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Threading">
-      <UniqueIdentifier>{68d38653-eabb-4904-a4c8-eb78d41cea2e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Graphic\Renderer">
       <UniqueIdentifier>{48994a13-8cf0-4762-885e-29c9adcffd91}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\3rdParty">
-      <UniqueIdentifier>{0f4fe529-9c5f-4545-936b-0c94aa07612e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Graphic\3rdParty">
       <UniqueIdentifier>{f34ba84c-8d49-4668-837c-62ae871decb8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Logger">
-      <UniqueIdentifier>{18a134e6-cf05-46de-a31e-e329f0796a00}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL">
-      <UniqueIdentifier>{113e767e-c718-4924-b3b7-ec3ca3bde69f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\source">
-      <UniqueIdentifier>{59c29148-ee07-4428-8f29-468682952a14}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include">
-      <UniqueIdentifier>{aaf70dfc-c548-4da1-a8c1-0b9b262b9b1b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EASTL">
-      <UniqueIdentifier>{03f4c913-86f5-44ee-986b-7131606cbc78}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EASTL\bonus">
-      <UniqueIdentifier>{6ce58d83-c41f-4216-a65e-25557f96676e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EASTL\internal">
-      <UniqueIdentifier>{e0bd0980-9021-42e9-900e-542f4f2bea20}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EABase">
-      <UniqueIdentifier>{7ac8b162-d27a-4d81-a5de-76b497764bd2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EABase\config">
-      <UniqueIdentifier>{e42dfb48-471c-4471-b2b3-a3ab28d32524}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EAAssert">
-      <UniqueIdentifier>{8c3857a1-7267-474c-855f-854a52488f1f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EAMain">
-      <UniqueIdentifier>{6a3e48ab-3f7e-427d-b1d0-cba8a500b0c2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EAStdC">
-      <UniqueIdentifier>{a7776c3e-f8cc-49eb-b7c8-9603aba472b3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EAThread">
-      <UniqueIdentifier>{baecd70d-fbd2-4943-983f-da6fabcfc703}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\EASTL\include\EAStdC\source">
-      <UniqueIdentifier>{2cb36bf2-06e1-4151-b946-7d6822eed469}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Logger\Windows">
-      <UniqueIdentifier>{076334d5-ab3f-44b9-a023-758216dc7ea4}</UniqueIdentifier>
     </Filter>
     <Filter Include="Graphic\Effect">
       <UniqueIdentifier>{02cef402-0505-431e-a850-caecb44ca503}</UniqueIdentifier>
@@ -148,9 +88,6 @@
     <Filter Include="Graphic\3rdParty\assimp">
       <UniqueIdentifier>{afee0616-03d5-4628-9c62-53216aec825c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\3rdParty\tinyxml2">
-      <UniqueIdentifier>{bc86b628-39df-48f6-aa1b-5a139cc7ee70}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Game">
       <UniqueIdentifier>{478bd394-acf3-43cf-bdd5-4c78bed22aad}</UniqueIdentifier>
     </Filter>
@@ -163,12 +100,6 @@
     <Filter Include="Game\View">
       <UniqueIdentifier>{b9908e7e-b9ab-417a-b80a-a7d6a5d0e50c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Process">
-      <UniqueIdentifier>{f6b5c843-4046-452d-87b6-71f387c42540}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Event">
-      <UniqueIdentifier>{c5549a0e-5b7c-4098-94ea-d0cf32b4214d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="AI">
       <UniqueIdentifier>{38a0fda1-8c1b-42bd-81e3-c89a0c015554}</UniqueIdentifier>
     </Filter>
@@ -180,12 +111,6 @@
     </Filter>
     <Filter Include="Network">
       <UniqueIdentifier>{db25fdac-9f4c-434b-aff4-25917167a048}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\3rdParty\fastdelegate">
-      <UniqueIdentifier>{59300da9-2bb7-4124-bd60-b6ba478dab5d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Utility">
-      <UniqueIdentifier>{cf755c7d-d0ce-4bb9-8acd-1b6fc7043324}</UniqueIdentifier>
     </Filter>
     <Filter Include="Mathematic\Geometric">
       <UniqueIdentifier>{05df6e4f-cf5b-4cc4-b341-7d13604d9e07}</UniqueIdentifier>
@@ -246,6 +171,81 @@
     </Filter>
     <Filter Include="Graphic\3rdParty\assimp\include\assimp\Compiler">
       <UniqueIdentifier>{14adcd33-1286-46f3-a040-67f747833d3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{290384e2-defc-4863-940d-17b65c60b6f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\IO">
+      <UniqueIdentifier>{49eccc66-1e3a-4f36-a4ea-35da25b3987b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\OS">
+      <UniqueIdentifier>{e7892ddc-7f3e-46a3-ab10-8e4307a2b1cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Threading">
+      <UniqueIdentifier>{68d38653-eabb-4904-a4c8-eb78d41cea2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty">
+      <UniqueIdentifier>{0f4fe529-9c5f-4545-936b-0c94aa07612e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL">
+      <UniqueIdentifier>{113e767e-c718-4924-b3b7-ec3ca3bde69f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\source">
+      <UniqueIdentifier>{59c29148-ee07-4428-8f29-468682952a14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include">
+      <UniqueIdentifier>{aaf70dfc-c548-4da1-a8c1-0b9b262b9b1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EASTL">
+      <UniqueIdentifier>{03f4c913-86f5-44ee-986b-7131606cbc78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EASTL\bonus">
+      <UniqueIdentifier>{6ce58d83-c41f-4216-a65e-25557f96676e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EASTL\internal">
+      <UniqueIdentifier>{e0bd0980-9021-42e9-900e-542f4f2bea20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EABase">
+      <UniqueIdentifier>{7ac8b162-d27a-4d81-a5de-76b497764bd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EABase\config">
+      <UniqueIdentifier>{e42dfb48-471c-4471-b2b3-a3ab28d32524}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAAssert">
+      <UniqueIdentifier>{8c3857a1-7267-474c-855f-854a52488f1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAMain">
+      <UniqueIdentifier>{6a3e48ab-3f7e-427d-b1d0-cba8a500b0c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAStdC">
+      <UniqueIdentifier>{a7776c3e-f8cc-49eb-b7c8-9603aba472b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAStdC\source">
+      <UniqueIdentifier>{2cb36bf2-06e1-4151-b946-7d6822eed469}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\EASTL\include\EAThread">
+      <UniqueIdentifier>{baecd70d-fbd2-4943-983f-da6fabcfc703}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\tinyxml2">
+      <UniqueIdentifier>{bc86b628-39df-48f6-aa1b-5a139cc7ee70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\fastdelegate">
+      <UniqueIdentifier>{59300da9-2bb7-4124-bd60-b6ba478dab5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Logger">
+      <UniqueIdentifier>{18a134e6-cf05-46de-a31e-e329f0796a00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Logger\Windows">
+      <UniqueIdentifier>{076334d5-ab3f-44b9-a023-758216dc7ea4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Process">
+      <UniqueIdentifier>{f6b5c843-4046-452d-87b6-71f387c42540}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Event">
+      <UniqueIdentifier>{c5549a0e-5b7c-4098-94ea-d0cf32b4214d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Utility">
+      <UniqueIdentifier>{cf755c7d-d0ce-4bb9-8acd-1b6fc7043324}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -2442,6 +2442,9 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\Effect\SpotLightTextureEffect.h">
       <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Mathematic\Geometric\Hyperplane.h">
+      <Filter>Mathematic\Geometric</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -188,7 +188,7 @@ void LightNode::DoLightRecalc()
 void LightNode::DoLightBuffers(Scene* pScene)
 {
 	mVisual->mModelBound.SetCenter(Vector4<float>::Zero());
-	mVisual->mModelBound.SetRadius(eastl::max(mSize[0], mSize[1]));
+	mVisual->mModelBound.SetRadius(0.f);
 
 	const eastl::shared_ptr<CameraNode>& cameraNode = pScene->GetActiveCamera();
 	if (!cameraNode)

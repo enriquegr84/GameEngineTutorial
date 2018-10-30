@@ -625,9 +625,9 @@ void MainMenuView::RenderText()
 }
 
 
-void MainMenuView::OnUpdate(unsigned long deltaTime)
+void MainMenuView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
-	HumanView::OnUpdate( deltaTime );
+	HumanView::OnUpdate(deltaMs, deltaMs);
 }
 
 
@@ -871,22 +871,22 @@ void GameDemoHumanView::RenderText()
 //
 // GameDemoHumanView::OnUpdate				- Chapter 19, page 730
 //
-void GameDemoHumanView::OnUpdate(unsigned long deltaTime)
+void GameDemoHumanView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
-	HumanView::OnUpdate( deltaTime );
+	HumanView::OnUpdate( timeMs, deltaMs );
 
 	if (mGameCameraController)
 	{
-		mGameCameraController->OnUpdate(deltaTime);
+		mGameCameraController->OnUpdate(timeMs, deltaMs);
 	}
 
 	if (mGamePlayerController)
 	{
-		mGamePlayerController->OnUpdate(deltaTime);
+		mGamePlayerController->OnUpdate(timeMs, deltaMs);
 	}
 
 	//Send out a tick to listeners.
-	eastl::shared_ptr<EventDataUpdateTick> pTickEvent(new EventDataUpdateTick(deltaTime));
+	eastl::shared_ptr<EventDataUpdateTick> pTickEvent(new EventDataUpdateTick(timeMs));
     BaseEventManager::Get()->TriggerEvent(pTickEvent);
 }
 

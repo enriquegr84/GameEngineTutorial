@@ -104,25 +104,14 @@ Scene::~Scene()
 }
 
 //
-// Scene::OnUpdate					- Chapter 16, page 540
-//
-bool Scene::OnAnimate(unsigned int uTime)
-{
-	if (!mRoot)
-		return true;
-
-	return mRoot->OnAnimate(this, uTime);
-}
-
-//
 // OnUpdate					- Chapter 16, page 540
 //
-bool Scene::OnUpdate(unsigned long elapsedTime)
+bool Scene::OnUpdate(unsigned int timeMs, unsigned long elapsedTime)
 {
 	if (!mRoot)
 		return true;
 
-	return mRoot->OnUpdate(this, elapsedTime);
+	return mRoot->OnUpdate(this, timeMs, elapsedTime);
 }
 
 
@@ -131,12 +120,6 @@ bool Scene::OnUpdate(unsigned long elapsedTime)
 //
 bool Scene::OnRender()
 {
-	// The render passes usually go like this 
-	// 1. Static objects & terrain
-	// 2. Actors (dynamic objects that can move)
-	// 3. The Sky
-	// 4. Anything with Alpha
-	
 	if (mRoot && mPVWUpdater.GetCamera())
 	{
 		if (mRoot->PreRender(this)==true)
