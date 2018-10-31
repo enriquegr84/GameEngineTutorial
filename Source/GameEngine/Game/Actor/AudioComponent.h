@@ -50,7 +50,7 @@ class AudioComponent : public ActorComponent
 {
 	eastl::string mAudioResource;
 	bool mLooping;
-	float mFadeInTime;
+	int mFadeTime;
 	int mVolume;
 
 public:

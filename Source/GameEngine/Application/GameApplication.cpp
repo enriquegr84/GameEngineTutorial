@@ -241,73 +241,20 @@ bool GameApplication::OnInitialize()
 	
 	extern eastl::shared_ptr<BaseResourceLoader> CreateWAVResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateOGGResourceLoader();
-	/*
-	extern eastl::shared_ptr<BaseResourceLoader> CreateBMPResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateDDSResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateJPGResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreatePCXResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreatePNGResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreatePPMResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreatePSDResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateRGBResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateTGAResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateLMPResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateWALResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateWAL2ResourceLoader();
-
-	extern eastl::shared_ptr<BaseResourceLoader> CreateB3DMeshResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> Create3DSMeshResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateBSPMeshResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateLWOMeshResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateMD2MeshResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateMD3MeshResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateMS3DMeshResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateOCTResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateOgreMeshResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreatePLYMeshResourceLoader();
-	extern eastl::shared_ptr<BaseResourceLoader> CreateXMeshResourceLoader();
-	*/
 	extern eastl::shared_ptr<BaseResourceLoader> CreateMeshResourceLoader();
 
 	extern eastl::shared_ptr<BaseResourceLoader> CreateXmlResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateImageResourceLoader();
-	//extern eastl::shared_ptr<BaseResourceLoader> CreateScriptResourceLoader();
 
 	//	Note - register these in order from least specific to most specific! 
 	//	They get pushed onto a list.
 	mResCache->RegisterLoader(CreateWAVResourceLoader());
 	mResCache->RegisterLoader(CreateOGGResourceLoader());
-	/*
-	mResCache->RegisterLoader(CreateDDSResourceLoader());
-	mResCache->RegisterLoader(CreateBMPResourceLoader());
-	mResCache->RegisterLoader(CreateJPGResourceLoader());
-	mResCache->RegisterLoader(CreatePCXResourceLoader());
-	mResCache->RegisterLoader(CreatePNGResourceLoader());
-	mResCache->RegisterLoader(CreatePPMResourceLoader());
-	mResCache->RegisterLoader(CreatePSDResourceLoader());
-	mResCache->RegisterLoader(CreateRGBResourceLoader());
-	mResCache->RegisterLoader(CreateTGAResourceLoader());
-	mResCache->RegisterLoader(CreateLMPResourceLoader());
-	mResCache->RegisterLoader(CreateWALResourceLoader());
-	mResCache->RegisterLoader(CreateWAL2ResourceLoader());
-
-	mResCache->RegisterLoader(CreateB3DMeshResourceLoader());
-	mResCache->RegisterLoader(Create3DSMeshResourceLoader());
-	mResCache->RegisterLoader(CreateBSPMeshResourceLoader());
-	mResCache->RegisterLoader(CreateLWOMeshResourceLoader());
-	mResCache->RegisterLoader(CreateMD2MeshResourceLoader());
-	mResCache->RegisterLoader(CreateMD3MeshResourceLoader());
-	mResCache->RegisterLoader(CreateMS3DMeshResourceLoader());
-	mResCache->RegisterLoader(CreateOCTResourceLoader());
-	mResCache->RegisterLoader(CreateOgreMeshResourceLoader());
-	mResCache->RegisterLoader(CreatePLYMeshResourceLoader());
-	mResCache->RegisterLoader(CreateXMeshResourceLoader());
-	*/
 	mResCache->RegisterLoader(CreateMeshResourceLoader());
 
 	mResCache->RegisterLoader(CreateXmlResourceLoader());
 	mResCache->RegisterLoader(CreateImageResourceLoader());
-	//mResCache->RegisterLoader(CreateScriptResourceLoader());
+
 
 	mOption.Init(L"Config/PlayerOptions.xml");
 

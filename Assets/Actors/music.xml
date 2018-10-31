@@ -2,6 +2,6 @@
 	<AudioComponent>
 		<Sound>audio\spacegod7-level2.ogg</Sound>
 		<Looping>1</Looping>
-		<FadeIn>5.0</FadeIn>
+		<FadeIn>5</FadeIn>
 	</AudioComponent>	
 </Actor>

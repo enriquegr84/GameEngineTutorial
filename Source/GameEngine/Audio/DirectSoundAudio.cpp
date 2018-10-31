@@ -282,7 +282,7 @@ void *DirectSoundAudioBuffer::Get()
 //
 bool DirectSoundAudioBuffer::Play(int volume, bool looping)
 {
-   if(!Audio::AudioSystem->Active())
+   if(!Audio::Get()->Active())
       return false;
 
 	Stop();
@@ -309,7 +309,7 @@ bool DirectSoundAudioBuffer::Play(int volume, bool looping)
 //
 bool DirectSoundAudioBuffer::Stop()
 {
-	if(!Audio::AudioSystem->Active())
+	if(!Audio::Get()->Active())
 		return false;
 
 	LPDIRECTSOUNDBUFFER dsb = (LPDIRECTSOUNDBUFFER)Get();
@@ -329,7 +329,7 @@ bool DirectSoundAudioBuffer::Stop()
 //
 bool DirectSoundAudioBuffer::Pause()
 {
-	if(!Audio::AudioSystem->Active())
+	if(!Audio::Get()->Active())
 		return false;
 
 	LPDIRECTSOUNDBUFFER dsb = (LPDIRECTSOUNDBUFFER)Get();
@@ -358,7 +358,7 @@ bool DirectSoundAudioBuffer::Resume()
 //
 bool DirectSoundAudioBuffer::TogglePause()
 {
-	if(!Audio::AudioSystem->Active())
+	if(!Audio::Get()->Active())
 		return false;
 
 	if(mIsPaused)
@@ -383,7 +383,7 @@ bool DirectSoundAudioBuffer::TogglePause()
 //
 bool DirectSoundAudioBuffer::IsPlaying() 
 {
-	if(!Audio::AudioSystem->Active())
+	if(!Audio::Get()->Active())
 		return false;
 
 	unsigned long dwStatus = 0;
@@ -405,7 +405,7 @@ void DirectSoundAudioBuffer::SetVolume(int volume)
 	// This was contributed by BystanderKain!
 	int gccDSBVolumeMin = DSBVOLUME_MIN;
 
-	if(!Audio::AudioSystem->Active())
+	if(!Audio::Get()->Active())
 		return;
 
 	LPDIRECTSOUNDBUFFER pDSB = (LPDIRECTSOUNDBUFFER)Get();

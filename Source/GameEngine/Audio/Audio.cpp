@@ -45,7 +45,14 @@
 // Globals
 //////////////////////////////////////////////////////////////////////
 
-Audio* Audio::AudioSystem = NULL;
+Audio* Audio::mAudioSystem = NULL;
+
+Audio* Audio::Get(void)
+{
+	LogAssert(Audio::mAudioSystem, "Audio doesn't exist");
+	return Audio::mAudioSystem;
+}
+
 char *SoundExtentions[] = { ".mp3", ".wav", ".midi", ".ogg" };
 
 //////////////////////////////////////////////////////////////////////
@@ -56,6 +63,22 @@ Audio::Audio():
 	mInitialized(false),
 	mAllPaused(false)
 {
+	if (Audio::mAudioSystem)
+	{
+		LogError("Attempting to create two global audio system! \
+					The old one will be destroyed and overwritten with this one.");
+		delete Audio::mAudioSystem;
+	}
+
+	Audio::mAudioSystem = this;
+}
+
+Audio::~Audio() 
+{ 
+	Shutdown(); 
+
+	if (Audio::mAudioSystem == this)
+		Audio::mAudioSystem = nullptr;
 }
 
 //
@@ -132,7 +155,7 @@ void Audio::StopAllSounds()
 //
 bool Audio::HasSoundCard(void)
 {
-	return (Audio::AudioSystem && Audio::AudioSystem->Active());
+	return (Audio::mAudioSystem && Audio::mAudioSystem->Active());
 }
 
 

@@ -207,31 +207,34 @@ eastl::shared_ptr<ResHandle> ResCache::Load(BaseResource *r)
 		LogAssert(false, eastl::wstring("Resource not found ") + r->mName);
 		return nullptr;
 	}
-	/*
-	if (loader->UseRawFile())
-	{
-		rawBuffer = new char[rawSize];
-		memset(rawBuffer, 0, rawSize);
-	}
-	*/
 
 	void *buffer = rawBuffer;
 	unsigned int size = rawSize;
+	if (loader->UseRawFile())
+	{
+		BaseReadFile* file = (BaseReadFile*)rawBuffer;
 
+		rawBuffer = new char[file->GetSize()];
+		memset(rawBuffer, 0, file->GetSize());
+		rawSize = file->Read(rawBuffer, file->GetSize());
+
+		size = loader->GetLoadedResourceSize(rawBuffer, rawSize);
+		buffer = Allocate(size);
+	}
+
+	if (buffer)
 	{
 		handle = eastl::shared_ptr<ResHandle>(new ResHandle(*r, buffer, size, true, this));
-		bool success = loader->LoadResource(buffer, size, handle);
+		bool success = loader->LoadResource(rawBuffer, rawSize, handle);
 
 		// This was added after the chapter went to copy edit. It is used for those
-		// resoruces that are converted to a useable format upon load, such as a compressed
+		// resources that are converted to a useable format upon load, such as a compressed
 		// file. If the raw buffer from the resource file isn't needed, it shouldn't take up
 		// any additional memory, so we release it.
-		/*
 		if (loader->DiscardRawBufferAfterLoad())
 		{
-			delete[] buffer;
+			delete[] rawBuffer;
 		}
-		*/
 
 		if (!success)
 		{

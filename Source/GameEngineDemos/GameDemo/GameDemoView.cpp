@@ -875,8 +875,6 @@ void GameDemoHumanView::SetControlledActorDelegate(BaseEventDataPtr pEventData)
 
 void GameDemoHumanView::RegisterAllDelegates(void)
 {
-	// [mrmike] Move, New, and Destroy actor events are now handled by the HumanView, as are the PlaySound and GameState events
-
     BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
     pGlobalEventManager->AddListener(
 		MakeDelegate(this, &GameDemoHumanView::GameplayUiUpdateDelegate), 

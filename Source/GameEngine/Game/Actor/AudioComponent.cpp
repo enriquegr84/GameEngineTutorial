@@ -42,13 +42,15 @@
 
 #include "Application/GameApplication.h"
 
+#include "Audio/SoundProcess.h"
+
 const char* AudioComponent::Name = "AudioComponent";
 
 AudioComponent::AudioComponent()
 {
 	mAudioResource = "";
 	mLooping = false;
-	mFadeInTime = 0.0f;
+	mFadeTime = 0;
 	mVolume = 100;
 }
 
@@ -71,7 +73,7 @@ bool AudioComponent::Init(tinyxml2::XMLElement* pData)
 	if (pFadeIn)
 	{
 		eastl::string value = pFadeIn->FirstChild()->Value();
-		mFadeInTime = (float)atof(value.c_str());
+		mFadeTime = atoi(value.c_str());
 	}
 
 	tinyxml2::XMLElement* pVolume = pData->FirstChildElement("Volume");
@@ -102,7 +104,7 @@ tinyxml2::XMLElement* AudioComponent::GenerateXml(void)
     pBaseElement->LinkEndChild(pLoopingNode);
 
 	tinyxml2::XMLElement* pFadeInNode = doc.NewElement("FadeIn");
-	tinyxml2::XMLText* pFadeInText = doc.NewText(eastl::to_string(mFadeInTime).c_str());
+	tinyxml2::XMLText* pFadeInText = doc.NewText(eastl::to_string(mFadeTime).c_str());
     pFadeInNode->LinkEndChild(pFadeInText);
     pBaseElement->LinkEndChild(pFadeInNode);
 
@@ -134,18 +136,17 @@ void AudioComponent::PostInit()
 	if (!gameApp->IsEditorRunning())
 	{
 		// The editor can play sounds, but it shouldn't run them when AudioComponents are initialized.
-		/*
-		BaseResource resource(mAudioResource);
+
+		BaseResource resource(ToWideString(mAudioResource.c_str()));
 		eastl::shared_ptr<ResHandle> rh = ResCache::Get()->GetHandle(&resource);
-		eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, 0, true));
+		eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, mVolume, mLooping));
 		processManager->AttachProcess(sound);
 
 		// fade process
-		if (mFadeInTime > 0.0f)
+		if (mFadeTime > 0)
 		{
-			eastl::shared_ptr<FadeProcess> fadeProc(new FadeProcess(sound, 10000, 100));
+			eastl::shared_ptr<FadeProcess> fadeProc(new FadeProcess(sound, mFadeTime, mVolume));
 			processManager->AttachProcess(fadeProc);
 		}
-		*/
 	}
 }

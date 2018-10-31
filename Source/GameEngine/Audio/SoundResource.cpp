@@ -140,6 +140,18 @@ unsigned int WaveResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned
 	return false; 
 }
 
+//! returns true if the file maybe is able to be loaded by this class
+//! based on the file extension (e.g. ".wav")
+bool WaveResourceLoader::IsALoadableFileExtension(const eastl::wstring& fileName) const
+{
+	if (fileName.rfind('.') != eastl::string::npos)
+	{
+		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
+		return fileExtension.compare(L"wav") == 0;
+	}
+	else return false;
+}
+
 bool WaveResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)
 {
 	eastl::shared_ptr<SoundResourceExtraData> extra(new SoundResourceExtraData());
@@ -422,17 +434,25 @@ unsigned int OggResourceLoader::GetLoadedResourceSize(void *rawBuffer, unsigned 
 	return bytes;
 }
 
+//! returns true if the file maybe is able to be loaded by this class
+//! based on the file extension (e.g. ".ogg")
+bool OggResourceLoader::IsALoadableFileExtension(const eastl::wstring& fileName) const
+{
+	if (fileName.rfind('.') != eastl::string::npos)
+	{
+		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
+		return fileExtension.compare(L"ogg") == 0;
+	}
+	else return false;
+}
+
 bool OggResourceLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)
 {
 	eastl::shared_ptr<SoundResourceExtraData> extra = 
 		eastl::shared_ptr<SoundResourceExtraData>(new SoundResourceExtraData());
 	extra->mSoundType = SOUND_TYPE_OGG;
 	handle->SetExtra(eastl::shared_ptr<SoundResourceExtraData>(extra));
-	BaseReadFile* file = (BaseReadFile*)rawBuffer;
-	unsigned int size = file->GetSize();
-	eastl::vector<char> buffer(size);
-	file->Read(buffer.data(), size);
-	if (!ParseOgg(buffer.data(), size, handle))
+	if (!ParseOgg((char*)rawBuffer, rawSize, handle))
 	{
 		return false;
 	}
@@ -478,11 +498,31 @@ bool OggResourceLoader::ParseOgg(char *oggStream, size_t length, eastl::shared_p
     extra->mWavFormatEx.nBlockAlign = 2*extra->mWavFormatEx.nChannels;
     extra->mWavFormatEx.wFormatTag = 1;
 
-    int sec = 0;
-    int ret = 1;
-	while(ret)
+	DWORD   size = 4096 * 16;
+	DWORD   pos = 0;
+	int     sec = 0;
+	int     ret = 1;
+
+	DWORD bytes = (DWORD)ov_pcm_total(&vf, -1);
+	bytes *= 2 * vi->channels;
+
+	if (handle->Size() != bytes)
 	{
-		ret=ov_read(&vf, (char *)handle->WritableBuffer(), sizeof(handle->WritableBuffer()), 0, 2, 1, &sec);
+		LogAssert(0, "The Ogg size does not match the memory buffer size!");
+		ov_clear(&vf);
+		delete vorbisMemoryFile;
+		return false;
+	}
+
+	// now read in the bits
+	while (ret && pos<bytes)
+	{
+		ret = ov_read(&vf, (char*)handle->WritableBuffer() + pos, size, 0, 2, 1, &sec);
+		pos += ret;
+		if (bytes - pos < size)
+		{
+			size = bytes - pos;
+		}
 	}
 
 	extra->mLength = (int)(1000.f * ov_time_total(&vf, -1));

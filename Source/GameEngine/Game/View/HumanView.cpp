@@ -128,10 +128,9 @@ HumanView::~HumanView()
 		mScreenElements.pop_front();
 
 	delete mProcessManager;
-	delete Audio::AudioSystem;
+	delete Audio::Get();
 
 	mProcessManager = nullptr;
-	Audio::AudioSystem = nullptr;
 }
 
 
@@ -229,16 +228,15 @@ bool HumanView::OnLostDevice()
 //
 bool HumanView::InitAudio()
 {
-	if (!Audio::AudioSystem)
-	{
-		Audio::AudioSystem = new DirectSoundAudio();		// use this line for DirectSound
-	}
+	Audio* audioSystem = Audio::Get();
+	if (!audioSystem)
+		audioSystem = new DirectSoundAudio();		// use this line for DirectSound
 
-	if (!Audio::AudioSystem)
+	if (!audioSystem)
 		return false;
 
 	System* system = System::Get();
-	if (!Audio::AudioSystem->Initialize(system->GetID()))
+	if (!audioSystem->Initialize(system->GetID()))
 		return false;
 
 	return true;
@@ -251,13 +249,13 @@ void HumanView::TogglePause(bool active)
 	// Pause or resume audio	
 	if ( active )
 	{
-		if (Audio::AudioSystem)
-			Audio::AudioSystem->PauseAllSounds();
+		if (Audio::Get())
+			Audio::Get()->PauseAllSounds();
 	}
 	else
 	{
-		if (Audio::AudioSystem)
-			Audio::AudioSystem->ResumeAllSounds();
+		if (Audio::Get())
+			Audio::Get()->ResumeAllSounds();
 	}
 }
 
@@ -469,15 +467,15 @@ void HumanView::PlaySoundDelegate(BaseEventDataPtr pEventData)
 {
     eastl::shared_ptr<EventDataPlaySound> pCastEventData = 
 		eastl::static_pointer_cast<EventDataPlaySound>(pEventData);
-	/*
+
 	ResCache* resCache = ResCache::Get();
-    BaseResource resource(pCastEventData->GetResource().c_str());
+    BaseResource resource(ToWideString(pCastEventData->GetResource().c_str()));
     eastl::shared_ptr<ResHandle> srh = 
 		eastl::static_pointer_cast<ResHandle>(resCache->GetHandle(&resource));
-    shared_ptr<SoundProcess> sfx(new SoundProcess(srh, 100, false));
+    eastl::shared_ptr<SoundProcess> sfx(new SoundProcess(srh, 100, false));
     mProcessManager->AttachProcess(sfx);
-	*/
 }
+
 
 //
 // HumanView::GameStateDelegate							- Chapter X, page Y

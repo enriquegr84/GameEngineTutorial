@@ -58,7 +58,7 @@ public:
 class XmlResourceLoader : public BaseResourceLoader
 {
 public:
-    virtual bool UseRawFile() { return false; }
+    virtual bool UseRawFile() { return true; }
 	virtual bool DiscardRawBufferAfterLoad() { return false; }
     virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize) { return rawSize; }
     virtual bool LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
@@ -69,7 +69,7 @@ public:
 
 protected:
 
-	virtual bool IsALoadableFileExtension(const eastl::wstring& filename) const;
+	bool IsALoadableFileExtension(const eastl::wstring& filename) const;
 };
 
 

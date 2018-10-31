@@ -69,7 +69,7 @@ public:
 
 protected:
 
-	virtual bool IsALoadableFileExtension(const eastl::wstring& filename) const;
+	bool IsALoadableFileExtension(const eastl::wstring& filename) const;
 
 	// Support for loading from BMP, GIF, ICON, JPEG, PNG, and TIFF.
 	// The returned texture has a format that matches as close as possible

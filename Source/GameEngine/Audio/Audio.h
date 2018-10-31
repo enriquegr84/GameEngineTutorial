@@ -175,7 +175,8 @@ class Audio : public BaseAudio
 {
 public:
 	Audio();
-	~Audio() { Shutdown(); }
+	~Audio();
+
 	virtual void StopAllSounds();
 	virtual void PauseAllSounds();
 	virtual void ResumeAllSounds();
@@ -184,10 +185,15 @@ public:
 	static bool HasSoundCard(void);
 	bool IsPaused() { return mAllPaused; }
 
-	// The unique audio object.
-	static Audio* AudioSystem;
+	// Getter for the main global audio. This is the audio that is used by the majority of the 
+	// engine, though you are free to define your own as long as you instantiate it.
+	// It is not valid to have more than one global audio.
+	static Audio* Get(void);
 
 protected:
+
+	// The unique audio object.
+	static Audio* mAudioSystem;
 
 	typedef eastl::list<BaseAudioBuffer *> AudioBufferList;
 

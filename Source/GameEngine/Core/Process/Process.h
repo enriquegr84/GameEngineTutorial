@@ -129,13 +129,13 @@ private:
 //---------------------------------------------------------------------------------------------------------------------
 inline void Process::Succeed(void)
 {
-	LogAssert(mState == STATE_RUNNING || mState == STATE_PAUSED, "Fail");
+	LogAssert(mState == STATE_RUNNING || mState == STATE_PAUSED, "Not expected state");
 	mState = STATE_SUCCEEDED;
 }
 
 inline void Process::Fail(void)
 {
-	LogAssert(mState == STATE_RUNNING || mState == STATE_PAUSED, "Fail");
+	LogAssert(mState == STATE_RUNNING || mState == STATE_PAUSED, "Not expected state");
 	mState = STATE_FAILED;
 }
 

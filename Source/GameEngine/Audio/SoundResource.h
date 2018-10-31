@@ -109,17 +109,12 @@ public:
 	virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize);
 	virtual bool LoadResource(
 		void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
-	virtual bool MatchResourceFormat(eastl::wstring name) 
-	{
-		if (name.rfind('.') != eastl::string::npos)
-		{
-			eastl::wstring extension = name.substr(name.rfind('.') + 1);
-			return extension.compare(L"wav") == 0;
-		}
-		else return false;
-	}
+	virtual bool MatchResourceFormat(eastl::wstring name) { return IsALoadableFileExtension(name.c_str()); }
 
 protected:
+
+	bool IsALoadableFileExtension(const eastl::wstring& filename) const;
+
 	bool ParseWave(char *wavStream, size_t length, eastl::shared_ptr<ResHandle> handle);
 };
 
@@ -138,17 +133,12 @@ public:
 	virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize);
 	virtual bool LoadResource(
 		void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
-	virtual bool MatchResourceFormat(eastl::wstring name) 
-	{
-		if (name.rfind('.') != eastl::string::npos)
-		{
-			eastl::wstring extension = name.substr(name.rfind('.') + 1);
-			return extension.compare(L"ogg") == 0;
-		}
-		else return false;
-	}
+	virtual bool MatchResourceFormat(eastl::wstring name) { return IsALoadableFileExtension(name.c_str()); }
 
 protected:
+
+	bool IsALoadableFileExtension(const eastl::wstring& filename) const;
+
 	bool ParseOgg(char *oggStream, size_t length, eastl::shared_ptr<ResHandle> handle);
 };
 

@@ -36,13 +36,6 @@ eastl::shared_ptr<BaseResourceLoader> CreateMeshResourceLoader()
 	return eastl::shared_ptr<MeshFileLoader>(new MeshFileLoader());
 }
 
-// MD3MeshFileLoader::GetLoadedResourceSize
-unsigned int MeshFileLoader::GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize)
-{
-	// This will keep the resource cache from allocating memory for the texture, so DirectX can manage it on it's own.
-	return rawSize;
-}
-
 //
 // MeshFileLoader::LoadResource				- Chapter 14, page 492
 //
@@ -74,7 +67,33 @@ bool MeshFileLoader::IsALoadableFileExtension(const eastl::wstring& fileName) co
 	if (fileName.rfind('.') != eastl::string::npos)
 	{
 		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
-		return !fileExtension.empty();
+		return fileExtension.compare(L"3d") == 0 || fileExtension.compare(L"3ds") == 0 ||
+			fileExtension.compare(L"3mf") == 0 || fileExtension.compare(L"ac") == 0 ||
+			fileExtension.compare(L"ac3d") == 0 || fileExtension.compare(L"acc") == 0 ||
+			fileExtension.compare(L"amj") == 0 || fileExtension.compare(L"ase") == 0 ||
+			fileExtension.compare(L"b3d") == 0 || fileExtension.compare(L"blend") == 0 ||
+			fileExtension.compare(L"bvh") == 0 || fileExtension.compare(L"bsp") == 0 || 
+			fileExtension.compare(L"cms") == 0 || fileExtension.compare(L"cob") == 0 || 
+			fileExtension.compare(L"dae") == 0 || fileExtension.compare(L"dxf") == 0 || 
+			fileExtension.compare(L"enff") == 0 || fileExtension.compare(L"fbx") == 0 || 
+			fileExtension.compare(L"gltf") == 0 || fileExtension.compare(L"hmb") == 0 || 
+			fileExtension.compare(L"ifc") == 0 || fileExtension.compare(L"lwo") == 0 || 
+			fileExtension.compare(L"lws") == 0 || fileExtension.compare(L"lxo") == 0 || 
+			fileExtension.compare(L"md2") == 0 || fileExtension.compare(L"md3") == 0 || 
+			fileExtension.compare(L"md5") == 0 || fileExtension.compare(L"mdc") == 0 || 
+			fileExtension.compare(L"mdl") == 0 || fileExtension.compare(L"mesh") == 0 || 
+			fileExtension.compare(L"mot") == 0 || fileExtension.compare(L"ms3d") == 0 || 
+			fileExtension.compare(L"ndo") == 0 || fileExtension.compare(L"nff") == 0 || 
+			fileExtension.compare(L"obj") == 0 || fileExtension.compare(L"off") == 0 || 
+			fileExtension.compare(L"ogex") == 0 || fileExtension.compare(L"ply") == 0 || 
+			fileExtension.compare(L"pmx") == 0 || fileExtension.compare(L"prj") == 0 || 
+			fileExtension.compare(L"q3s") == 0 || fileExtension.compare(L"raw") == 0 || 
+			fileExtension.compare(L"scn") == 0 || fileExtension.compare(L"sib") == 0 || 
+			fileExtension.compare(L"smd") == 0 || fileExtension.compare(L"stp") == 0 || 
+			fileExtension.compare(L"stl") == 0 || fileExtension.compare(L"ter") == 0 || 
+			fileExtension.compare(L"uc") == 0 || fileExtension.compare(L"vta") == 0 || 
+			fileExtension.compare(L"x") == 0 || fileExtension.compare(L"x3d") == 0 || 
+			fileExtension.compare(L"xgl") == 0 || fileExtension.compare(L"zgl") == 0;
 	}
 	else return false;
 }

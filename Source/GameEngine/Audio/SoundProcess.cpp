@@ -65,7 +65,7 @@ SoundProcess::~SoundProcess()
         Stop();
 
 	if (mAudioBuffer)
-		Audio::AudioSystem->ReleaseAudioBuffer(mAudioBuffer.get());
+		Audio::Get()->ReleaseAudioBuffer(mAudioBuffer.get());
 }
 
 
@@ -108,7 +108,7 @@ void SoundProcess::OnInit()
 		return;
 
 	//This sound will manage it's own handle in the other thread
-	BaseAudioBuffer *buffer = Audio::AudioSystem->InitAudioBuffer(mHandle);
+	BaseAudioBuffer *buffer = Audio::Get()->InitAudioBuffer(mHandle);
 
 	if (!buffer)
 	{

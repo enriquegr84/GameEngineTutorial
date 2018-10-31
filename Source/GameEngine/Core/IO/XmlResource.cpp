@@ -62,12 +62,13 @@ bool XmlResourceLoader::LoadResource(
         return false;
 
     eastl::shared_ptr<XmlResourceExtraData> pExtraData(new XmlResourceExtraData());
-	BaseReadFile* file = (BaseReadFile*)rawBuffer;
-	unsigned int size = file->GetSize();
-	eastl::vector<char> buffer(size+1);
-	file->Read(buffer.data(), size);
-	buffer[size] = 0;
-    pExtraData->ParseXml(reinterpret_cast<char*> (buffer.data()));
+	
+	eastl::vector<char>* buffer = new eastl::vector<char>(rawSize + 1, 0);
+	memcpy(buffer->data(), rawBuffer, rawSize * sizeof(char));
+	delete[] rawBuffer;
+	rawBuffer = buffer->data();
+
+	pExtraData->ParseXml(reinterpret_cast<char*> (rawBuffer));
 
     handle->SetExtra(eastl::shared_ptr<XmlResourceExtraData>(pExtraData));
 

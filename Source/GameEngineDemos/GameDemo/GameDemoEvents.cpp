@@ -45,6 +45,5 @@ const BaseEventType EventDataStartThrust::skEventType(0x1d62d48c);
 const BaseEventType EventDataEndThrust::skEventType(0xe60f88a4);
 const BaseEventType EventDataStartSteer::skEventType(0xf0b5b4fd);
 const BaseEventType EventDataEndSteer::skEventType(0x176645ef);
-//const BaseEventType EventDataPlaySound::skEventType(0x3d8118ee);
 const BaseEventType EventDataGameplayUIUpdate::skEventType(0x1002ded2);
 const BaseEventType EventDataSetControlledActor::skEventType(0xbe5e3388);
