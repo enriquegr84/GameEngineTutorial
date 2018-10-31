@@ -14,44 +14,8 @@
 
 class Camera;
 
-//! An enumeration for all types of debug data for built-in scene nodes (flags)
-enum GRAPHIC_ITEM DebugSceneType
-{
-	//! No Debug Data ( Default )
-	DS_OFF = 0,
-
-	//! Show Bounding Boxes of SceneNode
-	DS_BBOX = 1,
-
-	//! Show Vertex Normals
-	DS_NORMALS = 2,
-
-	//! Shows Skeleton/Tags
-	DS_SKELETON = 4,
-
-	//! Overlays Mesh Wireframe
-	DS_MESH_WIRE_OVERLAY = 8,
-
-	//! Temporary use transparency Material Type
-	DS_HALF_TRANSPARENCY = 16,
-
-	//! Show Bounding Boxes of all MeshBuffers
-	DS_BBOX_BUFFERS = 32,
-
-	//! DS_BBOX | DS_BBOX_BUFFERS
-	DS_BBOX_ALL = DS_BBOX | DS_BBOX_BUFFERS,
-
-	//! Show all debug infos
-	DS_FULL = 0xffffffff
-};
-
 // Support for a spatial hierarchy of objects.  Class Spatial has a parent
 // pointer.  Class Node derives from Spatial has an array of child pointers.
-// The leaf nodes of the hierarchy are either graphical or audial.  Class
-// Visual derives from Spatial and represents graphical data.  Class Audial
-// derives from Spatial and represents sound data.
-
-
 class GRAPHIC_ITEM Spatial
 {
 public:
@@ -72,18 +36,10 @@ public:
 	bool IsVisible() const { return mIsVisible; }
 	void SetVisible(bool visible) { mIsVisible = visible; }
 
-	//! Enables or disables automatic culling based on the bounding box.
-	void SetAutomaticCulling(unsigned int state) { mAutomaticCullingState = state; }
-	//! Gets the automatic culling state.
-	unsigned int GetAutomaticCulling() const { return mAutomaticCullingState; }
-	//! Sets if debug data like bounding boxes should be drawn.
-	void SetDebugDataVisible(unsigned int state) { mDebugDataVisible = state; }
-	//! Returns if debug data like bounding boxes are drawn.
-	unsigned int DebugDataVisible() const { return mDebugDataVisible; }
-	//! Sets if this spatial node is a debug object.
-	void SetIsDebugObject(bool debugObject) { mIsDebugObject = debugObject; }
-	//! Returns if this spatial node is a debug object.
-	bool IsDebugObject() const { return mIsDebugObject; }
+	//! Enables or disables culling.
+	void SetCullingMode(CullingMode culling) { mCullMode = culling; }
+	//! Gets the culling state.
+	CullingMode GetCullingMode() const { return mCullMode; }
 
 	//! Returns the relative transformation of the spatial node.
 	/** The relative transformation is stored internally as 3
@@ -104,12 +60,8 @@ public:
 	hierarchy you might want to update the parents first.*/
 	void UpdateAbsoluteTransform();
 
-	void SetCurrentAbsoluteTransform(bool enable) { mWorldTransformIsCurrent = enable; }
-
 	//! Returns the absoulte bound of the spatial node
 	BoundingSphere& GetAbsoulteBound() { return mWorldBound; }
-
-	void SetCurrentAbsoluteBound(bool enable) { mWorldBoundIsCurrent = enable; }
 
     // Support for hierarchical culling.
     void OnGetVisibleSet(
@@ -136,19 +88,14 @@ protected:
 	// 'true'.
 	Transform mLocalTransform;
 	Transform mWorldTransform;
-	bool mWorldTransformIsCurrent;
 
 	// World bound access.  In some situations you might want to set the
 	// world bound directly and bypass the Spatial::Update() mechanism, in
 	// which case worldBoundIsCurrent flag should be set to 'true'.
 	BoundingSphere mWorldBound;
-	bool mWorldBoundIsCurrent;
 
-	CullingMode				mCulling;
-	bool					mIsVisible;
-	bool					mIsDebugObject;
-	unsigned int			mDebugDataVisible;
-	unsigned int			mAutomaticCullingState;
+	CullingMode		mCullMode;
+	bool			mIsVisible;
 
 private:
     // Support for a hierarchical scene graph.  Spatial provides the parent

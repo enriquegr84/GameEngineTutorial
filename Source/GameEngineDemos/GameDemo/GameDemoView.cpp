@@ -150,8 +150,8 @@ bool MainMenuUI::OnInit()
 	screenRectangle.mExtent[1] = (int)screenSize[1];
 
 	eastl::shared_ptr<BaseUIWindow> window = AddWindow(
-		screenRectangle, false, L"Demo Wars", 0, CID_DEMO_WINDOW);
-	window->GetCloseButton()->SetToolTipText(L"Quit Demo Wars");
+		screenRectangle, false, L"Demo", 0, CID_DEMO_WINDOW);
+	window->GetCloseButton()->SetToolTipText(L"Quit Demo");
 
 	// add a options line
 	RectangleShape<2, int> playerOptionsRectangle;
@@ -475,56 +475,13 @@ bool MainMenuUI::OnRestore()
 
 bool MainMenuUI::OnRender(double time, float elapsedTime)
 {
-    // If the resolution should be switched, do it now. This will delete the
-    // old device and create a new one.
-	/*
-    if (mResolutionChanging!=RES_CHANGE_NONE)
-    {
-        ApplyResolutionSettings();
-        if(mResolutionChanging==RES_CHANGE_YES)
-        new DialogConfirmResolution();
-        mResolutionChanging = RES_CHANGE_NONE;
-    }
-	*/
-
-    {
-		//g_SuperTuxKartApp.mRenderer->PreRender(
-		//	/*backBuffer clear*/ true, /*zBuffer*/ true, Color(255,100,101,140));
-
-		//float dt = gameApp->GetLimitedDt();
-		//UIEngine::Update(dt);
-		//UIEngine::Render(dt);
-
-		//SuperTuxKartApp.mRenderer->PostRender();
-    }
-
-    //if (mRequestScreenshot) doScreenShot();
-
-    // Enable this next print statement to get render information printed
-    // E.g. number of triangles rendered, culled etc. The stats is only
-    // printed while the race is running and not while the in-game menu
-    // is shown. This way the output can be studied by just opening the
-    // menu.
-    //if(World::GetWorld() && World::GetWorld()->IsRacePhase())
-    //    PrintRenderStats();
-	/*
-	HRESULT hr;
-	DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"DemoWarsHUD"); // These events are to help PIX identify what the code is doing
-	V(mSampleUI.OnRender(elapsedTime));
-	DXUT_EndPerfEvent();
-	return S_OK;
-	*/
 	GameApplication* gameApp = (GameApplication*)Application::App;
-	wchar_t msg[128];
-	swprintf(msg, 128,
-		L"%03d fps, F1 GUI on/off, F2 respawn, F3-F6 toggle Nodes, F7 Collision on/off"
-		L", F8 Gravity on/off, Right Mouse Toggle GUI", gameApp->GetFPS());
 
 	const eastl::shared_ptr<BaseUIElement>& root = GetRootUIElement();
 	const eastl::shared_ptr<BaseUIStaticText>& statusLabel =
 		eastl::static_pointer_cast<BaseUIStaticText>(root->GetElementFromId(CID_STATUS_LABEL));
 	if (statusLabel)
-		statusLabel->SetText(msg);
+		statusLabel->SetText(eastl::wstring("Press set button to change settings").c_str());
 
 	return BaseUI::OnRender(time, elapsedTime);
 };
@@ -730,6 +687,7 @@ GameDemoHumanView::GameDemoHumanView()
 	: HumanView()
 { 
 	mShowUI = true; 
+	mDebugMode = DM_OFF;
     RegisterAllDelegates();
 }
 
@@ -751,76 +709,34 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 		case ET_UI_EVENT:
 			// hey, why is the user sending gui events..?
 			break;
+
 		case ET_KEY_INPUT_EVENT:
 		{
 			if (evt.mKeyInput.mPressedDown)
 			{
 				switch (evt.mKeyInput.mKey)
 				{
-					case KEY_KEY_1:
+					case KEY_KEY_5:
 					{
 						mShowUI = !mShowUI;
 						//mStandardHUD->SetVisible(mShowUI);
 						return true;
 					}
 
-					case KEY_KEY_2:
-					{
-						// test the picking API
-						/*
-						POINT ptCursor;
-						GetCursorPos( &ptCursor );
-						ScreenToClient( System::Get()->GetHwnd(), &ptCursor );
-
-						RayCast rayCast(ptCursor);
-						mScene->Pick(&rayCast);
-						rayCast.Sort();
-
-						if (rayCast.mNumIntersections)
-						{
-							// You can iterate through the intersections on the raycast.
-							int a = 0;
-						}
-						*/
-					}
-					break;
-
-					case KEY_KEY_3:
-					{
-						//extern void CreateThreads();
-						//CreateThreads();
-					}
-					break;
-
-					case KEY_KEY_4:
-					{
-						/*
-						BaseResource resource(L"scripts\\test.lua");
-						// this actually loads the Lua file from the zip file
-						eastl::shared_ptr<ResHandle> pResourceHandle = 
-							ResCache::Get()->GetHandle(&resource);
-						*/
-					}
-					break;
-
-					case KEY_KEY_5:
-					{
-
-					}
-					break;
-
 					case KEY_KEY_6:
 					{
-
+						mDebugMode = mDebugMode ? DM_OFF : DM_WIREFRAME;
+						for (auto child : mScene->GetRootNode()->GetChildren())
+							child->SetDebugState(mDebugMode);
+						return true;
 					}
-					break;
 
 					case KEY_KEY_7:
 					{
 						GameDemoLogic* twg = static_cast<GameDemoLogic *>(GameLogic::Get());
 						twg->ToggleRenderDiagnostics();
+						return true;
 					}	
-					break;
 
 					case KEY_KEY_8:
 					{

@@ -48,7 +48,6 @@ bool SkinController::Update(double applicationTime)
         // so the visual's world transform must be the identity.
         Node* node = reinterpret_cast<Node*>(mObject);
 		node->GetAbsoluteTransform().MakeIdentity();
-		node->SetCurrentAbsoluteTransform(true);
 
         // Compute the skin vertex locations.
         char* current = mPosition;

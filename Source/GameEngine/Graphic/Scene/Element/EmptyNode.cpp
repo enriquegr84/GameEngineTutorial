@@ -13,7 +13,6 @@ EmptyNode::EmptyNode(const ActorId actorId, PVWUpdater* updater,
 :	Node(actorId, renderComponent, NT_UNKNOWN)
 {
 	mPVWUpdater = updater;
-	SetAutomaticCulling(AC_OFF);
 }
 
 

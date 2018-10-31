@@ -75,6 +75,7 @@ private:
 
 	eastl::shared_ptr<BlendState> mBlendState;
 	eastl::shared_ptr<DepthStencilState> mDepthStencilState;
+	eastl::shared_ptr<RasterizerState> mRasterizerState;
 
 	eastl::shared_ptr<VisualEffect> mEffect;
 	eastl::shared_ptr<MeshBuffer> mMeshBuffer;

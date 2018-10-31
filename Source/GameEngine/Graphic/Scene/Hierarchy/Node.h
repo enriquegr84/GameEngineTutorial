@@ -18,6 +18,25 @@
 
 #include "Application/System/EventSystem.h"
 
+//! An enumeration for all types of debug data for built-in scene nodes (flags)
+enum GRAPHIC_ITEM DebugMode
+{
+	//! No Debug Data ( Default )
+	DM_OFF = 0,
+
+	//! Show Bounding of SceneNode
+	DM_BOUND = 1,
+
+	//! Overlays Wireframe
+	DM_WIREFRAME = 2,
+
+	//! Transparent
+	DM_TRANSPARENCY = 4,
+
+	//! Show all debug infos
+	DM_FULL = 0xffffffff
+};
+
 //! An enumeration for all types of built-in scene node animators
 enum GRAPHIC_ITEM NodeAnimatorType
 {
@@ -323,6 +342,12 @@ public:
 
 	const SceneNodeAnimatorList& GetAnimators() const { return mAnimators; }
 
+	//! Enables or disables debug state.
+	void SetDebugState(unsigned int debug);
+
+	//! Gets the debug state.
+	unsigned int GetDebugState() const { return mDebugState; }
+
 	//! Returns the visual based on the zero based index i.
 	/** To get the amount of visuals used by this scene node, use
 	GetVisualCount(). This function is needed for inserting the
@@ -450,6 +475,7 @@ protected:
 
 	int mId;
 	eastl::string mName;
+	unsigned int mDebugState;
 
 	NodeType mType;
 	PVWUpdater* mPVWUpdater;

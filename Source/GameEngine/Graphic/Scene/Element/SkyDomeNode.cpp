@@ -23,13 +23,13 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 
 	mBlendState = eastl::make_shared<BlendState>();
 	mDepthStencilState = eastl::make_shared<DepthStencilState>();
+	mRasterizerState = eastl::make_shared<RasterizerState>();
 
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
 
-	//SetAutomaticCulling(AC_OFF);
 	mMeshBuffer = eastl::make_shared<MeshBuffer>(vformat, 
 		(mHorizontalResolution + 1) * (mVerticalResolution + 1), 
 		(2 * mVerticalResolution - 1) * mHorizontalResolution, sizeof(unsigned int));
@@ -152,51 +152,31 @@ bool SkyDomeNode::Render(Scene* pScene)
 	if (!camera || !Renderer::Get())
 		return false;
 
-	if ( camera->Get()->IsPerspective() )
+	if (camera->Get()->IsPerspective())
 	{
 		GetRelativeTransform().SetTranslation(camera->GetAbsoluteTransform().GetTranslation());
-		
+
 		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		{
-			GetMaterial(i)->Update(mBlendState);
-			GetMaterial(i)->Update(mDepthStencilState);
+			if (GetMaterial(i)->Update(mBlendState))
+				Renderer::Get()->Unbind(mBlendState);
+			if (GetMaterial(i)->Update(mDepthStencilState))
+				Renderer::Get()->Unbind(mDepthStencilState);
+			if (GetMaterial(i)->Update(mRasterizerState))
+				Renderer::Get()->Unbind(mRasterizerState);
 		}
 
 		Renderer::Get()->SetBlendState(mBlendState);
 		Renderer::Get()->SetDepthStencilState(mDepthStencilState);
+		Renderer::Get()->SetRasterizerState(mRasterizerState);
 
 		Renderer::Get()->Draw(mVisual);
 
 		Renderer::Get()->SetDefaultBlendState();
 		Renderer::Get()->SetDefaultDepthStencilState();
+		Renderer::Get()->SetDefaultRasterizerState();
 	}
-	/*
-	// for debug purposes only:
-	if (DebugDataVisible())
-	{
-		Material m;
-		m.mLighting = false;
-		Renderer::Get()->SetMaterial(m);
 
-		if (DebugDataVisible() & DS_NORMALS)
-		{
-			// draw normals
-			const float debugNormalLength = 1.f;
-			const eastl::array<float, 4> debugNormalColor{ 
-				255 / 255.f, 34 / 255.f, 221 / 255.f, 221 / 255.f };
-			Renderer::Get()->DrawMeshBufferNormals(mBuffer, debugNormalLength, debugNormalColor);
-		}
-
-		// show mesh
-		if (DebugDataVisible() & DS_MESH_WIRE_OVERLAY)
-		{
-			m.mWireframe = true;
-			Renderer::Get()->SetMaterial(m);
-
-			Renderer::Get()->DrawMeshBuffer(mBuffer);
-		}
-	}
-	*/
 	return Node::Render(pScene);
 }
 

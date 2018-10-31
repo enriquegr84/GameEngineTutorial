@@ -84,9 +84,9 @@ public:
 	void SetTexture(unsigned int i, eastl::shared_ptr<Texture2> tex);
 
 	// Update
-	void Update(eastl::shared_ptr<BlendState>& blendState) const;
-	void Update(eastl::shared_ptr<RasterizerState>& rasterizerState) const;
-	void Update(eastl::shared_ptr<DepthStencilState>& depthStencilState) const;
+	bool Update(eastl::shared_ptr<BlendState>& blendState) const;
+	bool Update(eastl::shared_ptr<RasterizerState>& rasterizerState) const;
+	bool Update(eastl::shared_ptr<DepthStencilState>& depthStencilState) const;
 
 	//! Texture layer array.
 	MaterialLayer mTextureLayer[MATERIAL_MAX_TEXTURES];

@@ -10,8 +10,7 @@
 #include "Core/OS/OS.h"
 
 Spatial::Spatial()
-    : mParent(nullptr), mWorldTransformIsCurrent(false), mWorldBoundIsCurrent(false),
-    mCulling(CULL_DYNAMIC), mAutomaticCullingState(AC_OFF), mDebugDataVisible(DS_OFF)
+    : mParent(nullptr), mCullMode(CULL_DYNAMIC)
 {
 }
 
@@ -34,10 +33,10 @@ void Spatial::Update(bool initiator)
 void Spatial::OnGetVisibleSet(Culler& culler, 
 	eastl::shared_ptr<Camera> const& camera, bool noCull)
 {
-    if (mCulling == CULL_ALWAYS)
+    if (mCullMode == CULL_ALWAYS)
         return;
 
-    if (mCulling == CULL_NEVER)
+    if (mCullMode == CULL_NEVER)
         noCull = true;
 
     unsigned int savePlaneState = culler.GetPlaneState();
@@ -70,8 +69,7 @@ void Spatial::UpdateAbsoluteTransform()
 void Spatial::UpdateWorldData()
 {
     // Update world transforms.
-    if (!mWorldTransformIsCurrent)
-		UpdateAbsoluteTransform();
+	UpdateAbsoluteTransform();
 }
 
 void Spatial::PropagateBoundToRoot ()

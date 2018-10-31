@@ -40,33 +40,6 @@ BoneAnimationMode BoneNode::GetAnimationMode() const
 	return mAnimationMode;
 }
 
-bool BoneNode::OnAnimate(Scene* pScene, unsigned int timeMs)
-{
-	if (IsVisible())
-	{
-		// animate this node with all animators
-
-		SceneNodeAnimatorList::iterator ait = mAnimators.begin();
-		while (ait != mAnimators.end())
-		{
-			// continue to the next node before calling animateNode()
-			// so that the animator may remove itself from the scene
-			// node without the iterator becoming invalid
-			const eastl::shared_ptr<NodeAnimator>& anim = *ait;
-			++ait;
-			anim->AnimateNode(pScene, this, timeMs);
-		}
-
-		// perform the post render process on all children
-		SceneNodeList::iterator it = mChildren.begin();
-		for (; it != mChildren.end(); ++it)
-			(*it)->OnAnimate(pScene, timeMs);
-	}
-
-	return true;
-}
-
-
 void BoneNode::UpdateAbsoluteTransformationChildren(eastl::shared_ptr<Node> node)
 {
 	node->UpdateAbsoluteTransform();

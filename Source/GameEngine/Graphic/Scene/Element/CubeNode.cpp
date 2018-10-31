@@ -18,6 +18,7 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderCom
 
 	mBlendState = eastl::make_shared<BlendState>();
 	mDepthStencilState = eastl::make_shared<DepthStencilState>();
+	mRasterizerState = eastl::make_shared<RasterizerState>();
 
 	struct Vertex
 	{
@@ -119,70 +120,26 @@ bool CubeNode::Render(Scene *pScene)
 	if (mShadow)
 		mShadow->UpdateShadowVolumes(pScene);
 
-	// overwrite half transparency
-	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
-		mMaterial->mType = MT_TRANSPARENT;
-	mEffect->SetMaterial(mMaterial);
-
 	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 	{
-		GetMaterial(i)->Update(mBlendState);
-		GetMaterial(i)->Update(mDepthStencilState);
+		if (GetMaterial(i)->Update(mBlendState))
+			Renderer::Get()->Unbind(mBlendState);
+		if (GetMaterial(i)->Update(mDepthStencilState))
+			Renderer::Get()->Unbind(mDepthStencilState);
+		if (GetMaterial(i)->Update(mRasterizerState))
+			Renderer::Get()->Unbind(mRasterizerState);
 	}
 
 	Renderer::Get()->SetBlendState(mBlendState);
 	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
+	Renderer::Get()->SetRasterizerState(mRasterizerState);
 
 	Renderer::Get()->Draw(mVisual);
 
 	Renderer::Get()->SetDefaultBlendState();
 	Renderer::Get()->SetDefaultDepthStencilState();
-	/*
-	// for debug purposes only:
-	if (DebugDataVisible())
-	{
-		Material m;
-		m.mLighting = false;
-		m.mAntiAliasing=0;
-		Renderer::Get()->SetMaterial(m);
+	Renderer::Get()->SetDefaultRasterizerState();
 
-		if (DebugDataVisible() & DS_BBOX)
-		{
-			Renderer::Get()->Draw3DBox(
-				mMesh->GetMeshBuffer(0)->GetBoundingBox(), eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});
-		}
-		if (DebugDataVisible() & DS_BBOX_BUFFERS)
-		{
-			Renderer::Get()->Draw3DBox(
-				mMesh->GetMeshBuffer(0)->GetBoundingBox(), eastl::array<float, 4>{255.f, 190.f, 128.f, 128.f});
-		}
-		if (DebugDataVisible() & DS_NORMALS)
-		{
-			// draw normals
-			//const f32 debugNormalLength = pScene->GetParameters()->GetAttributeAsFloat(DEBUG_NORMAL_LENGTH);
-			//const Color debugNormalColor = pScene->GetParameters()->GetAttributeAColor(DEBUG_NORMAL_COLOR);
-
-			// draw normals
-			const float debugNormalLength = 1.f;
-			const eastl::array<float, 4> debugNormalColor{ 255.f, 34.f, 221.f, 221.f };
-			const unsigned int count = mMesh->GetMeshBufferCount();
-
-			for (unsigned int i=0; i != count; ++i)
-			{
-				Renderer::Get()->DrawMeshBufferNormals(
-					mMesh->GetMeshBuffer(i), debugNormalLength, debugNormalColor);
-			}
-		}
-
-		// show mesh
-		if (DebugDataVisible() & DS_MESH_WIRE_OVERLAY)
-		{
-			m.mWireframe = true;
-			Renderer::Get()->SetMaterial(m);
-			Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(0));
-		}
-	}
-	*/
 	return true;
 }
 

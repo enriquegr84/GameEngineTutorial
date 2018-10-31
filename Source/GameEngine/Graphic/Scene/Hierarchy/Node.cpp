@@ -19,17 +19,9 @@
 ////////////////////////////////////////////////////
 
 Node::Node(int id, WeakBaseRenderComponentPtr renderComponent, NodeType nodeType)
-	: Spatial(), mId(id)
+	: Spatial(), mId(id), mDebugState(DM_OFF), mType(nodeType), mRenderComponent(renderComponent)
 {
-	//mName = (renderComponent) ? renderComponent->GetName() : "SceneNode";
-	mType = nodeType;
-	mRenderComponent = renderComponent;
 	mIsVisible = true;
-	//SetTransform(to, from);
-
-	// [mrmike] - these lines were moved to VOnRestore() post press
-	//Color color = (renderComponent) ? renderComponent->GetColor() : White;
-	//mMaterial.SetDiffuse(color);
 }
 
 
@@ -256,6 +248,31 @@ eastl::shared_ptr<NodeAnimator> Node::GetAnimator(int i)
 	return nullptr;
 }
 
+//! Enables or disables debug staet.
+void Node::SetDebugState(unsigned int debug)
+{
+	mDebugState = debug;
+
+	// overwrite transparency
+	if (mDebugState & DM_TRANSPARENCY)
+	{
+		for (unsigned int i = 0; i < GetMaterialCount(); i++)
+			GetMaterial(i)->mType = MT_TRANSPARENT;
+	}
+
+	if (mDebugState & DM_WIREFRAME)
+	{
+		for (unsigned int i = 0; i < GetMaterialCount(); i++)
+			GetMaterial(i)->mFillMode = RasterizerState::FILL_WIREFRAME;
+	}
+	else
+	{
+		for (unsigned int i = 0; i < GetMaterialCount(); i++)
+			GetMaterial(i)->mFillMode = RasterizerState::FILL_SOLID;
+	}
+}
+
+
 void Node::UpdateWorldData()
 {
     Spatial::UpdateWorldData();
@@ -271,30 +288,27 @@ void Node::UpdateWorldData()
 
 void Node::UpdateWorldBound()
 {
-    if (!mWorldBoundIsCurrent)
-    {
-        // Start with visual bound.
-        mWorldBound.SetCenter(Vector4<float>::Zero());
-		mWorldBound.SetRadius(0.f);
-		for (unsigned int v = 0; v < GetVisualCount(); v++)
-		{
-			BoundingSphere worldBound;
-			BoundingSphere modelBound = GetVisual(v)->mModelBound;
-			modelBound.TransformBy(mWorldTransform, worldBound);
-			mWorldBound.GrowToContain(worldBound);
-		}
+    // Start with visual bound.
+    mWorldBound.SetCenter(Vector4<float>::Zero());
+	mWorldBound.SetRadius(0.f);
+	for (unsigned int v = 0; v < GetVisualCount(); v++)
+	{
+		BoundingSphere worldBound;
+		BoundingSphere modelBound = GetVisual(v)->mModelBound;
+		modelBound.TransformBy(mWorldTransform, worldBound);
+		mWorldBound.GrowToContain(worldBound);
+	}
 
-        for (auto& child : mChildren)
+    for (auto& child : mChildren)
+    {
+        if (child)
         {
-            if (child)
-            {
-                // GrowToContain ignores invalid child bounds.  If the world
-                // bound is invalid and a child bound is valid, the child
-                // bound is copied to the world bound.  If the world bound and
-                // child bound are valid, the smallest bound containing both
-                // bounds is assigned to the world bound.
-				mWorldBound.GrowToContain(child->mWorldBound);
-            }
+            // GrowToContain ignores invalid child bounds.  If the world
+            // bound is invalid and a child bound is valid, the child
+            // bound is copied to the world bound.  If the world bound and
+            // child bound are valid, the smallest bound containing both
+            // bounds is assigned to the world bound.
+			mWorldBound.GrowToContain(child->mWorldBound);
         }
     }
 }

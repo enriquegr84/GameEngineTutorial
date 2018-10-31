@@ -53,8 +53,6 @@ public:
 	//! Gets the current animation mode of the bone
 	virtual BoneAnimationMode GetAnimationMode() const;
 
-	virtual bool OnAnimate(Scene* pScene, unsigned int timeMs);
-
 	virtual void UpdateAbsoluteTransformationChildren();
 
 	//! How the relative transformation of the bone is used

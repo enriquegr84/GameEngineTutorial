@@ -42,16 +42,6 @@ enum GRAPHIC_ITEM CullingMode
     CULL_NEVER
 };
 
-//! An enumeration for all types of automatic culling for built-in scene nodes
-enum GRAPHIC_ITEM CullingType
-{
-	AC_OFF = 0,
-	AC_BOX = 1,
-	AC_FRUSTUM_BOX = 2,
-	AC_FRUSTUM_SPHERE = 4,
-	AC_OCC_QUERY = 8
-};
-
 typedef eastl::vector<Spatial*> VisibleSet;
 
 class GRAPHIC_ITEM Culler

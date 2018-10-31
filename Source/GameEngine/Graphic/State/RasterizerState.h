@@ -35,16 +35,16 @@ public:
 
     // Member access.  The members are intended to be write-once before
     // you create an associated graphics state.
-    FillMode mFillMode;              // default: FILL_SOLID
-    CullMode mCullMode;              // default: CULL_BACK
-    bool mFrontCCW;                  // default: true
-    int mDepthBias;                  // default: 0
-    float mDepthBiasClamp;           // default: 0
-    float mSlopeScaledDepthBias;     // default: 0
-    bool mEnableDepthClip;           // default: true
-    bool mEnableScissor;             // default: false
-    bool mEnableMultisample;         // default: false
-    bool mAntiAliasing;     // default: false
+    FillMode mFillMode;
+    CullMode mCullMode;
+    bool mFrontCCW;
+    int mDepthBias;
+    float mDepthBiasClamp;
+    float mSlopeScaledDepthBias;
+    bool mEnableDepthClip;
+    bool mEnableScissor;
+    bool mEnableMultisample;
+    bool mAntiAliasing;
 };
 
 #endif

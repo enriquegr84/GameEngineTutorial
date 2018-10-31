@@ -22,6 +22,9 @@ AnimatedMeshNode::AnimatedMeshNode(const ActorId actorId, PVWUpdater* updater,
 	mLoopCallBack(0), mPassCount(0), mShadow(0)
 {
 	mPVWUpdater = updater;
+
+	mRasterizerState = eastl::make_shared<RasterizerState>();
+
 	SetMesh(mesh);
 }
 
@@ -278,129 +281,38 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
 
-	// for debug purposes only:
-	bool renderMeshes = true;
-	if (DebugDataVisible() && mPassCount==1)
+	for (unsigned int i=0; i<mCurrentFrameMesh->GetMeshBufferCount(); ++i)
 	{
-		// overwrite half transparency
-		if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
+		const eastl::shared_ptr<SkinMeshBuffer>& mb =
+			eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mCurrentFrameMesh->GetMeshBuffer(i));
+		eastl::shared_ptr<Material> material = mb->GetMaterial();
+
+		// only render transparent buffer if this is the transparent render pass
+		// and solid only in solid pass
+		bool transparent = (material->IsTransparent());
+		if (transparent == isTransparentPass)
 		{
-			for (unsigned int i=0; i<mCurrentFrameMesh->GetMeshBufferCount(); ++i)
-			{
-				const eastl::shared_ptr<SkinMeshBuffer>& mb = 
-					eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mCurrentFrameMesh->GetMeshBuffer(i));
-				eastl::shared_ptr<Material> material = mb->GetMaterial();
+			if (material->Update(mBlendStates[i]))
+				Renderer::Get()->Unbind(mBlendStates[i]);
+			if (material->Update(mDepthStencilStates[i]))
+				Renderer::Get()->Unbind(mDepthStencilStates[i]);
+			if (material->Update(mRasterizerState))
+				Renderer::Get()->Unbind(mRasterizerState);
 
-				material->Update(mBlendStates[i]);
-				material->Update(mDepthStencilStates[i]);
+			Renderer::Get()->SetBlendState(mBlendStates[i]);
+			Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
+			Renderer::Get()->SetRasterizerState(mRasterizerState);
 
-				Renderer::Get()->SetBlendState(mBlendStates[i]);
-				Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
+			Renderer* renderer = Renderer::Get();
+			renderer->Update(mb->GetVertice());
+			renderer->Draw(mVisuals[i]);
 
-				Renderer* renderer = Renderer::Get();
-				renderer->Update(mb->GetVertice());
-				renderer->Draw(mVisuals[i]);
-
-				Renderer::Get()->SetDefaultBlendState();
-				Renderer::Get()->SetDefaultDepthStencilState();
-			}
-			renderMeshes = false;
+			Renderer::Get()->SetDefaultBlendState();
+			Renderer::Get()->SetDefaultDepthStencilState();
+			Renderer::Get()->SetDefaultRasterizerState();
 		}
 	}
 
-	// render original meshes
-	if (renderMeshes)
-	{
-		for (unsigned int i=0; i<mCurrentFrameMesh->GetMeshBufferCount(); ++i)
-		{
-			const eastl::shared_ptr<SkinMeshBuffer>& mb =
-				eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mCurrentFrameMesh->GetMeshBuffer(i));
-			eastl::shared_ptr<Material> material = mb->GetMaterial();
-			bool transparent = (material->IsTransparent());
-
-			// only render transparent buffer if this is the transparent render pass
-			// and solid only in solid pass
-			if (transparent == isTransparentPass)
-			{
-				material->Update(mBlendStates[i]);
-				material->Update(mDepthStencilStates[i]);
-
-				Renderer::Get()->SetBlendState(mBlendStates[i]);
-				Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
-
-				Renderer* renderer = Renderer::Get();
-				renderer->Update(mb->GetVertice());
-				renderer->Draw(mVisuals[i]);
-
-				Renderer::Get()->SetDefaultBlendState();
-				Renderer::Get()->SetDefaultDepthStencilState();
-			}
-		}
-	}
-
-	/*
-	// for debug purposes only:
-	if (DebugDataVisible() && mPassCount==1)
-	{
-		Material debugMat;
-		debugMat.mLighting = false;
-		debugMat.mAntiAliasing=0;
-		Renderer::Get()->SetMaterial(debugMat);
-		// show normals
-		if (DebugDataVisible() & DS_NORMALS)
-		{
-			// draw normals
-			//const float debugNormalLength = pScene->GetParameters()->GetAttributeAsFloat(DEBUG_NORMAL_LENGTH);
-			//const eastl::array<float, 4> debugNormalColor = pScene->GetParameters()->GetAttributeAColor(DEBUG_NORMAL_COLOR);
-
-			// draw normals
-			const float debugNormalLength = 1.f;
-			const eastl::array<float, 4> debugNormalColor{ 255.f, 34.f, 221.f, 221.f };
-			const unsigned int count = mesh->GetMeshBufferCount();
-
-			// draw normals
-			for (unsigned int g=0; g < count; ++g)
-			{
-				Renderer::Get()->DrawMeshBufferNormals(mesh->GetMeshBuffer(g), debugNormalLength, debugNormalColor);
-			}
-		}
-
-		debugMat.mZBuffer = CFN_DISABLED;
-		debugMat.mLighting = false;
-		Renderer::Get()->SetMaterial(debugMat);
-
-		if (DebugDataVisible() & DS_BBOX)
-			Renderer::Get()->Draw3DBox(mBox, eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});
-
-		// show bounding box
-		if (DebugDataVisible() & DS_BBOX_BUFFERS)
-		{
-			for (unsigned int g=0; g< mesh->GetMeshBufferCount(); ++g)
-			{
-				const eastl::shared_ptr<BaseMeshBuffer>& mb = mesh->GetMeshBuffer(g);
-
-				Renderer::Get()->Draw3DBox(mb->GetBoundingBox(), eastl::array<float, 4>{255.f, 190.f, 128.f, 128.f});
-			}
-		}
-
-		// show mesh
-		if (DebugDataVisible() & DS_MESH_WIRE_OVERLAY)
-		{
-			debugMat.mLighting = false;
-			debugMat.mWireframe = true;
-			debugMat.mZBuffer = CFN_DISABLED;
-			Renderer::Get()->SetMaterial(debugMat);
-
-			for (unsigned int g=0; g<mesh->GetMeshBufferCount(); ++g)
-			{
-				const eastl::shared_ptr<BaseMeshBuffer>& mb = mesh->GetMeshBuffer(g);
-				if (mRenderFromIdentity)
-					Renderer::Get()->SetTransform(TS_WORLD, Matrix4x4<float>::Identity );
-				Renderer::Get()->DrawMeshBuffer(mb);
-			}
-		}
-	}
-	*/
 	return true;
 }
 

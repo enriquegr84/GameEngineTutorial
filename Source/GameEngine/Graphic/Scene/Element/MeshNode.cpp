@@ -16,6 +16,9 @@ MeshNode::MeshNode(const ActorId actorId, PVWUpdater* updater,
 :	Node(actorId, renderComponent, NT_MESH), mMesh(0), mShadow(0), mPassCount(0)
 {
 	mPVWUpdater = updater;
+
+	mRasterizerState = eastl::make_shared<RasterizerState>();
+
 	SetMesh(mesh);
 }
 
@@ -114,113 +117,35 @@ bool MeshNode::Render(Scene *pScene)
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
 
-	// for debug purposes only:
-
-	bool renderMeshes = true;
-	if (DebugDataVisible() && mPassCount==1)
+	for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 	{
-		// overwrite half transparency
-		if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
+		const eastl::shared_ptr<BaseMeshBuffer>& mb = mMesh->GetMeshBuffer(i);
+		eastl::shared_ptr<Material> material = mb->GetMaterial();
+
+		// only render transparent buffer if this is the transparent render pass
+		// and solid only in solid pass
+		bool transparent = (material->IsTransparent());
+		if (transparent == isTransparentPass)
 		{
-			for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
-			{
-				const eastl::shared_ptr<BaseMeshBuffer>& mb = mMesh->GetMeshBuffer(i);
-				eastl::shared_ptr<Material> material = mb->GetMaterial();
+			if (material->Update(mBlendStates[i]))
+				Renderer::Get()->Unbind(mBlendStates[i]);
+			if (material->Update(mDepthStencilStates[i]))
+				Renderer::Get()->Unbind(mDepthStencilStates[i]);
+			if (material->Update(mRasterizerState))
+				Renderer::Get()->Unbind(mRasterizerState);
 
-				material->Update(mBlendStates[i]);
-				material->Update(mDepthStencilStates[i]);
+			Renderer::Get()->SetBlendState(mBlendStates[i]);
+			Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
+			Renderer::Get()->SetRasterizerState(mRasterizerState);
 
-				Renderer::Get()->SetBlendState(mBlendStates[i]);
-				Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
+			Renderer::Get()->Draw(mVisuals[i]);
 
-				Renderer::Get()->Draw(mVisuals[i]);
-
-				Renderer::Get()->SetDefaultBlendState();
-				Renderer::Get()->SetDefaultDepthStencilState();
-			}
-			renderMeshes = false;
+			Renderer::Get()->SetDefaultBlendState();
+			Renderer::Get()->SetDefaultDepthStencilState();
+			Renderer::Get()->SetDefaultRasterizerState();
 		}
 	}
-
-	// render original meshes
-	if (renderMeshes)
-	{
-		for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
-		{
-			const eastl::shared_ptr<BaseMeshBuffer>& mb = mMesh->GetMeshBuffer(i);
-			eastl::shared_ptr<Material> material = mb->GetMaterial();
-			bool transparent = (material->IsTransparent());
-
-			// only render transparent buffer if this is the transparent render pass
-			// and solid only in solid pass
-			if (transparent == isTransparentPass)
-			{
-				material->Update(mBlendStates[i]);
-				material->Update(mDepthStencilStates[i]);
-
-				Renderer::Get()->SetBlendState(mBlendStates[i]);
-				Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
-
-				Renderer::Get()->Draw(mVisuals[i]);
-
-				Renderer::Get()->SetDefaultBlendState();
-				Renderer::Get()->SetDefaultDepthStencilState();
-			}
-		}
-	}
-
-	//Renderer::Get()->SetTransform(TS_WORLD, toWorld);
-	/*
-	// for debug purposes only:
-	if (DebugDataVisible() && mPassCount==1)
-	{
-		Material m;
-		m.mLighting = false;
-		m.mAntiAliasing=0;
-		Renderer::Get()->SetMaterial(m);
-
-		if (DebugDataVisible() & DS_BBOX)
-		{
-			Renderer::Get()->Draw3DBox(mBBox, Vector4<float>{1.f,1.f,1.f,1.f});
-		}
-		if (DebugDataVisible() & DS_BBOX_BUFFERS)
-		{
-			for (unsigned int g=0; g<mMesh->GetMeshBufferCount(); ++g)
-			{
-				Renderer::Get()->Draw3DBox(
-					mMesh->GetMeshBuffer(g)->GetBoundingBox(),
-					eastl::array<float, 4>{255.f, 190.f, 128.f, 128.f});
-			}
-		}
-
-		if (DebugDataVisible() & DS_NORMALS)
-		{
-			// draw normals
-			//const float debugNormalLength = GetParameters()->GetAttributeAsFloat(DEBUG_NORMAL_LENGTH);
-			//const eastl::array<float, 4> debugNormalColor = GetParameters()->GetAttributeAColor(DEBUG_NORMAL_COLOR);
-
-			// draw normals
-			const float debugNormalLength = 1.f;
-			const eastl::array<float, 4> debugNormalColor{ 255.f, 34.f, 221.f, 221.f };
-			const unsigned int count = mMesh->GetMeshBufferCount();
-
-			for (unsigned int i=0; i != count; ++i)
-				Renderer::Get()->DrawMeshBufferNormals(mMesh->GetMeshBuffer(i), debugNormalLength, debugNormalColor);
-		}
-
-		// show mesh
-		if (DebugDataVisible() & DS_MESH_WIRE_OVERLAY)
-		{
-			m.mWireframe = true;
-			Renderer::Get()->SetMaterial(m);
-
-			for (unsigned int g=0; g<mMesh->GetMeshBufferCount(); ++g)
-			{
-				Renderer::Get()->DrawMeshBuffer(mMesh->GetMeshBuffer(g));
-			}
-		}
-	}
-	*/
+	
 	return true;
 }
 

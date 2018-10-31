@@ -80,21 +80,41 @@ void Material::SetTexture(unsigned int i, eastl::shared_ptr<Texture2> tex)
 	mTextureLayer[i].mTexture = tex;
 }
 
-void Material::Update(eastl::shared_ptr<BlendState>& blendState) const
+bool Material::Update(eastl::shared_ptr<BlendState>& blendState) const
 {
-	blendState->mTarget[0] = mBlendTarget;
+	if (blendState->mTarget[0] != mBlendTarget)
+	{
+		blendState->mTarget[0] = mBlendTarget;
+		return true;
+	}
+	return false;
+
 }
 
-void Material::Update(eastl::shared_ptr<RasterizerState>& rasterizerState) const
+bool Material::Update(eastl::shared_ptr<RasterizerState>& rasterizerState) const
 {
-	rasterizerState->mCullMode = mCullMode;
-	rasterizerState->mFillMode = mFillMode;
-	rasterizerState->mAntiAliasing = mAntiAliasing;
-	rasterizerState->mEnableMultisample = mMultisampling;
+	if (rasterizerState->mCullMode != mCullMode ||
+		rasterizerState->mFillMode != mFillMode ||
+		rasterizerState->mAntiAliasing != mAntiAliasing ||
+		rasterizerState->mEnableMultisample != mMultisampling)
+	{
+		rasterizerState->mCullMode = mCullMode;
+		rasterizerState->mFillMode = mFillMode;
+		rasterizerState->mAntiAliasing = mAntiAliasing;
+		rasterizerState->mEnableMultisample = mMultisampling;
+		return true;
+	}
+	return false;
 }
 
-void Material::Update(eastl::shared_ptr<DepthStencilState>& depthStencilState) const
+bool Material::Update(eastl::shared_ptr<DepthStencilState>& depthStencilState) const
 {
-	depthStencilState->mDepthEnable = mDepthBuffer;
-	depthStencilState->mWriteMask = mDepthMask;
+	if (depthStencilState->mDepthEnable != mDepthBuffer ||
+		depthStencilState->mWriteMask != mDepthMask)
+	{
+		depthStencilState->mDepthEnable = mDepthBuffer;
+		depthStencilState->mWriteMask = mDepthMask;
+		return true;
+	}
+	return false;
 }

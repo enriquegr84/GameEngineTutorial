@@ -128,6 +128,7 @@ class GameDemoHumanView : public HumanView
 {
 protected:
 	bool  mShowUI;					// If true, it renders the UI control text
+	DebugMode mDebugMode;
     eastl::string mGameplayText;
 
 	eastl::shared_ptr<GameDemoPlayerController> mGamePlayerController;

@@ -27,6 +27,7 @@ BillboardNode::BillboardNode(const ActorId actorId,
 
 	mBlendState = eastl::make_shared<BlendState>();
 	mDepthStencilState = eastl::make_shared<DepthStencilState>();
+	mRasterizerState = eastl::make_shared<RasterizerState>();
 
 	struct Vertex
 	{
@@ -73,11 +74,13 @@ BillboardNode::BillboardNode(const ActorId actorId,
 	}
 
 	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl");
-	mEffect = eastl::make_shared<Texture2ColorEffect>(
+	eastl::shared_ptr<Texture2ColorEffect> effect = eastl::make_shared<Texture2ColorEffect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
 		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
+	mEffect = effect;
 	mVisual = eastl::make_shared<Visual>(
 		mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect);
+	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 
 }
 
@@ -132,52 +135,27 @@ bool BillboardNode::Render(Scene *pScene)
 	if (!cameraNode || !Renderer::Get())
 		return false;
 
-	eastl::shared_ptr<ConstantBuffer> cbuffer;
-	cbuffer = mEffect->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
-	*cbuffer->Get<Matrix4x4<float>>() = cameraNode->Get()->GetProjectionViewMatrix();
-
 	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 	{
-		GetMaterial(i)->Update(mBlendState);
-		GetMaterial(i)->Update(mDepthStencilState);
+		if (GetMaterial(i)->Update(mBlendState))
+			Renderer::Get()->Unbind(mBlendState);
+		if (GetMaterial(i)->Update(mDepthStencilState))
+			Renderer::Get()->Unbind(mDepthStencilState);
+		if (GetMaterial(i)->Update(mRasterizerState))
+			Renderer::Get()->Unbind(mRasterizerState);
 	}
 
 	Renderer::Get()->SetBlendState(mBlendState);
 	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
+	Renderer::Get()->SetRasterizerState(mRasterizerState);
 
 	Renderer* renderer = Renderer::Get();
 	renderer->Update(mMeshBuffer->GetVertice());
-	renderer->Update(cbuffer);
 	renderer->Draw(mVisual);
 
 	Renderer::Get()->SetDefaultBlendState();
 	Renderer::Get()->SetDefaultDepthStencilState();
-
-	/*
-	if (DebugDataVisible() & DS_BBOX )
-	{
-		Renderer::Get()->SetTransform(TS_WORLD, toWorld);
-		Material m;
-		m.mLighting = false;
-		Renderer::Get()->SetMaterial(m);
-
-		switch ( mLightData.mType )
-		{
-			case LT_POINT:
-			case LT_SPOT:
-				Renderer::Get()->Draw3DBox(mBBox, mLightData.mLighting->mDiffuse.ToColor());
-				break;
-
-			case LT_DIRECTIONAL:
-				Renderer::Get()->Draw3DLine(Vector3<float>{0.f, 0.f, 0.f},
-				mLightData.mLighting->mDirection * mLightData.mRadius,
-				mLightData.mLighting.>mDiffuse.ToColor());
-				break;
-			default:
-				break;
-		}
-	}
-	*/
+	Renderer::Get()->SetDefaultRasterizerState();
 
 	return true;
 }

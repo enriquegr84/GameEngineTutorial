@@ -20,8 +20,10 @@ ShadowVolumeNode::ShadowVolumeNode(const ActorId actorId, PVWUpdater* updater,
 	mVertexCount(0), mShadowVolumesUsed(0), mInfinity(infinity), mUseZFailMethod(zfailmethod)
 {
 	mPVWUpdater = updater;
+
+	mRasterizerState = eastl::make_shared<RasterizerState>();
+
 	SetShadowMesh(shadowMesh);
-	//SetAutomaticCulling(AC_OFF);
 }
 
 void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)

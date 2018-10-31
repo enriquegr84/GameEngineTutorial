@@ -26,6 +26,7 @@ LightNode::LightNode(const ActorId actorId, PVWUpdater* updater,
 
 	mBlendState = eastl::make_shared<BlendState>();
 	mDepthStencilState = eastl::make_shared<DepthStencilState>();
+	mRasterizerState = eastl::make_shared<RasterizerState>();
 
 	struct Vertex
 	{
@@ -105,12 +106,17 @@ bool LightNode::Render(Scene *pScene)
 
 	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 	{
-		GetMaterial(i)->Update(mBlendState);
-		GetMaterial(i)->Update(mDepthStencilState);
+		if (GetMaterial(i)->Update(mBlendState))
+			Renderer::Get()->Unbind(mBlendState);
+		if (GetMaterial(i)->Update(mDepthStencilState))
+			Renderer::Get()->Unbind(mDepthStencilState);
+		if (GetMaterial(i)->Update(mRasterizerState))
+			Renderer::Get()->Unbind(mRasterizerState);
 	}
 
 	Renderer::Get()->SetBlendState(mBlendState);
 	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
+	Renderer::Get()->SetRasterizerState(mRasterizerState);
 
 	Renderer* renderer = Renderer::Get();
 	renderer->Update(mMeshBuffer->GetVertice());
@@ -118,32 +124,7 @@ bool LightNode::Render(Scene *pScene)
 
 	Renderer::Get()->SetDefaultBlendState();
 	Renderer::Get()->SetDefaultDepthStencilState();
-
-	/*
-	if (DebugDataVisible() & DS_BBOX )
-	{
-		Renderer::Get()->SetTransform(TS_WORLD, toWorld);
-		Material m;
-		m.mLighting = false;
-		Renderer::Get()->SetMaterial(m);
-
-		switch ( mLightData.mType )
-		{
-			case LT_POINT:
-			case LT_SPOT:
-				Renderer::Get()->Draw3DBox(mBBox, mLightData.mLighting->mDiffuse.ToColor());
-				break;
-
-			case LT_DIRECTIONAL:
-				Renderer::Get()->Draw3DLine(Vector3<float>{0.f, 0.f, 0.f},
-						mLightData.mLighting->mDirection * mLightData.mRadius,
-						mLightData.mLighting.>mDiffuse.ToColor());
-				break;
-			default:
-				break;
-		}
-	}
-	*/
+	Renderer::Get()->SetDefaultRasterizerState();
 
 	return true;
 }

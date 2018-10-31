@@ -81,6 +81,7 @@ protected:
 
 	eastl::vector<eastl::shared_ptr<BlendState>> mBlendStates;
 	eastl::vector<eastl::shared_ptr<DepthStencilState>> mDepthStencilStates;
+	eastl::shared_ptr<RasterizerState> mRasterizerState;
 
 	eastl::vector<eastl::shared_ptr<Visual>> mVisuals;
 	eastl::shared_ptr<BaseMesh> mMesh;

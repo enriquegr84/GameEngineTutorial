@@ -18,6 +18,7 @@ SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 
 	mBlendState = eastl::make_shared<BlendState>();
 	mDepthStencilState = eastl::make_shared<DepthStencilState>();
+	mRasterizerState = eastl::make_shared<RasterizerState>();
 
 	struct Vertex
 	{
@@ -108,35 +109,26 @@ bool SphereNode::Render(Scene *pScene)
 	if (mShadow)
 		mShadow->UpdateShadowVolumes(pScene);
 
-	// overwrite half transparency
-	if (DebugDataVisible() & DS_HALF_TRANSPARENCY)
-		mMaterial->mType = MT_TRANSPARENT;
-	mEffect->SetMaterial(mMaterial);
-
 	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 	{
-		GetMaterial(i)->Update(mBlendState);
-		GetMaterial(i)->Update(mDepthStencilState);
+		if (GetMaterial(i)->Update(mBlendState))
+			Renderer::Get()->Unbind(mBlendState);
+		if (GetMaterial(i)->Update(mDepthStencilState))
+			Renderer::Get()->Unbind(mDepthStencilState);
+		if (GetMaterial(i)->Update(mRasterizerState))
+			Renderer::Get()->Unbind(mRasterizerState);
 	}
 
 	Renderer::Get()->SetBlendState(mBlendState);
 	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
+	Renderer::Get()->SetRasterizerState(mRasterizerState);
 
 	Renderer::Get()->Draw(mVisual);
 
 	Renderer::Get()->SetDefaultBlendState();
 	Renderer::Get()->SetDefaultDepthStencilState();
-	/*
-	if (DebugDataVisible() & DS_BBOX )
-	{
-		Material m;
-		m.mLighting = false;
-		Renderer::Get()->SetMaterial(m);
-		Renderer::Get()->Draw3DBox(
-			mMesh->GetMeshBuffer(0)->GetBoundingBox(), 
-			eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f});
-	}
-	*/
+	Renderer::Get()->SetDefaultRasterizerState();
+
 	return Node::Render(pScene);
 }
 
