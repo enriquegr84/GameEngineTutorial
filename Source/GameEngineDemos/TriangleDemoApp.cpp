@@ -12,72 +12,6 @@
 #include "Graphic/GraphicStd.h"
 
 #include "TriangleDemoApp.h"
-/*
-//----------------------------------------------------------------------------
-int main(int numArguments, char* arguments[])
-{
-#if defined(_DEBUG)
-	LogReporter reporter(
-		"",
-		Logger::Listener::LISTEN_FOR_NOTHING,
-		Logger::Listener::LISTEN_FOR_NOTHING,
-		Logger::Listener::LISTEN_FOR_NOTHING,
-		Logger::Listener::LISTEN_FOR_ALL);
-#endif
-
-	// Application entry point. It is the startup function used for initialization
-	// The application layer depends on the directory structure that ships with the 
-	// libraries. You need to create the APP_PATH environment variable in order for 
-	// the applications to find various data files.
-#ifndef __APPLE__
-	Application::ApplicationPath = Environment::GetAbsolutePath("../../../");
-#else
-	// Mac OS X Lion returns NULL on any getenv call (such as the one in
-	// Environment::GetVariable).  This hack works around the problem.
-	if (system("cp ~/.MacOSX/apppath.txt tempapppath.txt") == 0)
-	{
-		std::ifstream inFile("tempapppath.txt");
-		if (inFile)
-		{
-			getline(inFile, Application::AppPath);
-			inFile.close();
-			system("rm tempapppath.txt");
-		}
-	}
-#endif
-	if (Application::ApplicationPath == "")
-	{
-		LogError("Please set the APP_PATH environment variable.\n");
-		return INT_MAX;
-	}
-	Application::ApplicationPath += "/";
-
-	// Initialization
-	TriangleDemoApplication* demoApp = new TriangleDemoApplication();
-	Application::App = demoApp;
-
-	int exitCode = -1;
-	try
-	{
-		Application::App->OnRun();
-		exitCode = 0;
-	}
-	catch (...)
-	{
-		// Catch all exceptions – dangerous!!!  
-		// Respond (perhaps only partially) to the exception, then  
-		// re-throw to pass the exception to some other handler  
-		// throw;
-		LogError("An error happend during execution.\n");
-	}
-	//delete0(Application::TheCommand);
-
-	// Termination
-	delete Application::App;
-
-	return exitCode;
-}
-*/
 
 //----------------------------------------------------------------------------
 TriangleDemoApplication::TriangleDemoApplication()
@@ -136,14 +70,7 @@ bool TriangleDemoApplication::CreateScene()
 	mTriangle = mf.CreateTriangle(numSamples, 1.0f, 1.0f);
 	auto vbuffer = mTriangle->GetVertexBuffer().get();
 	Vertex* vertex = vbuffer->Get<Vertex>();
-	//mTriangle->culling = CULL_NEVER;
 	mTriangle->SetEffect(effect);
-	//mPVWMatrices.Subscribe(
-	//mRectangle[i]->worldTransform, mVCEffect[i]->GetPVWMatrixConstant());
-
-	//mScene->AttachChild(mTriangle);
-	//mTriangle->Update();
-
 	return true;
 }
 
