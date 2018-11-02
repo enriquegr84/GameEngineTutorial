@@ -96,13 +96,7 @@ unsigned int GameApplication::UpdateTime()
 	const unsigned int elapsedTime = currentTime - mTimer;
 	mTimer = currentTime;
 
-	// note: max frame time to avoid spiral of death
-	if (elapsedTime > 250)
-	{
-		mFramesPerSecond = 1000 / 250;
-		return 250;
-	}
-	else if (elapsedTime > 0)
+	if (elapsedTime > 0)
 		mFramesPerSecond = 1000 / elapsedTime;
 
 	return elapsedTime;

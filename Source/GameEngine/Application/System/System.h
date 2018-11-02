@@ -156,10 +156,10 @@ public:
 
 	virtual void GetSystemVersion(eastl::string& out) { }
 
-	//Window properties
-	//! Checks if the GameEngine window is running in fullscreen mode
-	/** \return True if window is fullscreen. */
-	bool IsFullscreen() const;
+	//! Checks if the window is running in fullscreen mode
+	bool IsFullscreen() const { return mFullscreen; }
+
+	void SetFullscreen(bool fullscreen) { mFullscreen = fullscreen; }
 
 	int GetWidth() const { return mWidth; }
 	int GetHeight() const { return mHeight; }

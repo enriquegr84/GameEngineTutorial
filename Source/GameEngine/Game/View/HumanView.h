@@ -206,7 +206,6 @@ protected:
 		to accomplish, such as playing a sound effect or running an animation
 	*/
 	ProcessManager* mProcessManager;
-	bool mRunFullSpeed; // set to true if you want to run full speed
 
 	BaseGameState mGameState;	// Added post-press - what is the current game state
 	

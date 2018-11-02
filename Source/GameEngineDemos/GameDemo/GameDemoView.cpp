@@ -78,25 +78,23 @@
 
 #define CID_DEMO_WINDOW					(1)
 #define CID_CREATE_GAME_RADIO			(2)
-#define CID_SET_GAME_RADIO				(3)
-#define CID_NUM_AI_SLIDER				(4)
-#define CID_NUM_PLAYER_SLIDER			(5)
-#define CID_HOST_LISTEN_PORT			(6)
-#define CID_CLIENT_ATTACH_PORT			(7)
-#define CID_START_BUTTON				(8)
-#define CID_HOST_NAME					(9)
-#define CID_NUM_AI_LABEL				(10)
-#define CID_NUM_PLAYER_LABEL			(11)
-#define CID_HOST_LISTEN_PORT_LABEL		(12)
-#define CID_CLIENT_ATTACH_PORT_LABEL	(13)
-#define CID_HOST_NAME_LABEL				(14)
-#define CID_LEVEL_LABEL					(15)
-#define CID_LEVEL_LISTBOX				(16)
-#define CID_STATUS_LABEL				(17)
-
-
-const int SampleUIWidth = 600;
-const int SampleUIHeight = 600;
+#define CID_NUM_AI_SLIDER				(3)
+#define CID_NUM_PLAYER_SLIDER			(4)
+#define CID_HOST_LISTEN_PORT			(5)
+#define CID_CLIENT_ATTACH_PORT			(6)
+#define CID_START_BUTTON				(7)
+#define CID_HOST_NAME					(8)
+#define CID_NUM_AI_LABEL				(9)
+#define CID_NUM_PLAYER_LABEL			(10)
+#define CID_HOST_LISTEN_PORT_LABEL		(11)
+#define CID_CLIENT_ATTACH_PORT_LABEL	(12)
+#define CID_HOST_NAME_LABEL				(13)
+#define CID_LEVEL_LABEL					(14)
+#define CID_LEVEL_LISTBOX				(15)
+#define CID_STATUS_LABEL				(16)
+#define CID_DRIVER_LABEL				(17)
+#define CID_FULLSCREEN_MODE				(18)
+#define CID_SET_GAME_RADIO				(19)
 
 MainMenuUI::MainMenuUI()
 {
@@ -240,14 +238,15 @@ bool MainMenuUI::OnInit()
 	
 	videoRectangle.mCenter[0] = screenSize[0] - 155;
 	videoRectangle.mExtent[0] = 290;
-	videoRectangle.mCenter[1] = 40;
-	videoRectangle.mExtent[1] = 20;
-	eastl::shared_ptr<BaseUIComboBox> videoDriver = AddComboBox(videoRectangle, window);
-	videoDriver->AddItem(L"Direct3D 11", RT_DIRECT3D11);
-	videoDriver->AddItem(L"OpenGL", RT_OPENGL);
-	videoDriver->AddItem(L"Software Renderer", RT_SOFTWARE);
-	videoDriver->SetSelected(videoDriver->GetIndexForItemData(gameApp->mOption.mRendererType));
-	videoDriver->SetToolTipText(L"Use a VideoDriver");
+	videoRectangle.mCenter[1] = 42;
+	videoRectangle.mExtent[1] = 16;
+	eastl::shared_ptr<BaseUIStaticText> videoDriver;
+#if defined(_OPENGL_)
+	videoDriver = AddStaticText(L"OPENGL", videoRectangle, false, false, window, CID_DRIVER_LABEL, true);
+#else
+	videoDriver = AddStaticText(L"DIRECTX", videoRectangle, false, false, window, CID_DRIVER_LABEL, true);
+#endif
+	videoDriver->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	videoRectangle.mCenter[0] = screenSize[0] - 355;
 	videoRectangle.mExtent[0] = 90;
@@ -293,7 +292,7 @@ bool MainMenuUI::OnInit()
 	screenRectangle.mCenter[1] = 120;
 	screenRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUICheckBox> fullScreen = AddCheckBox(
-		gameApp->mOption.mFullScreen, screenRectangle, window, -1, L"Fullscreen");
+		gameApp->mOption.mFullScreen, screenRectangle, window, CID_FULLSCREEN_MODE, L"Fullscreen");
 	fullScreen->SetToolTipText(L"Set Fullscreen or Window Mode");
 
 	screenRectangle.mCenter[0] = screenSize[0] - 250;
@@ -301,7 +300,7 @@ bool MainMenuUI::OnInit()
 	screenRectangle.mCenter[1] = 122;
 	screenRectangle.mExtent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> videoMultiSampleLine =
-		AddStaticText(L"MultiSample:", screenRectangle, false, false, window, -1, false);
+		AddStaticText(L"Multisample:", screenRectangle, false, false, window, -1, false);
 	videoMultiSampleLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.mCenter[0] = screenSize[0] - 130;
@@ -327,38 +326,46 @@ bool MainMenuUI::OnInit()
 	screenRectangle.mExtent[0] = 90;
 	screenRectangle.mCenter[1] = screenSize[1] - 390;
 	screenRectangle.mExtent[1] = 20;
-	eastl::shared_ptr<BaseUIStaticText> mapsLine =
-		AddStaticText(L"Maps:", screenRectangle, false, false, window, CID_LEVEL_LABEL, false);
-	mapsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+	eastl::shared_ptr<BaseUIStaticText> levelLine =
+		AddStaticText(L"Levels:", screenRectangle, false, false, window, CID_LEVEL_LABEL, false);
+	levelLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.mCenter[0] = 190;
 	screenRectangle.mExtent[0] = 380;
 	screenRectangle.mCenter[1] = screenSize[1] - 210;
 	screenRectangle.mExtent[1] = 340;
-	eastl::shared_ptr<BaseUIListBox> maps = AddListBox(screenRectangle, window, CID_LEVEL_LISTBOX, true);
-	maps->SetToolTipText(L"Show the current maps.\n Double-Click the map to start the level");
+	eastl::shared_ptr<BaseUIListBox> level = AddListBox(screenRectangle, window, CID_LEVEL_LISTBOX, true);
+	level->SetToolTipText(L"Select the current level.\n Press button to start the level");
 
 	eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
 	for (eastl::vector<Level*>::iterator it = levels.begin(); it != levels.end(); ++it)
-		maps->AddItem((*it)->GetName().c_str());
+		level->AddItem((*it)->GetName().c_str());
 
-	// create a visible Scene Tree
+	// create a setting panel
 	screenRectangle.mCenter[0] = screenSize[0] - 350;
 	screenRectangle.mExtent[0] = 90;
 	screenRectangle.mCenter[1] = screenSize[1] - 390;
 	screenRectangle.mExtent[1] = 20;
-	eastl::shared_ptr<BaseUIStaticText> sceneGraphLine =
-		AddStaticText(L"Scenegraph:", screenRectangle, false, false, window, -1, false);
-	sceneGraphLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+	eastl::shared_ptr<BaseUIStaticText> settingsLine =
+		AddStaticText(L"Settings:", screenRectangle, false, false, window, -1, false);
+	settingsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	screenRectangle.mCenter[0] = screenSize[0] - 200;
 	screenRectangle.mExtent[0] = 400;
 	screenRectangle.mCenter[1] = screenSize[1] - 210;
 	screenRectangle.mExtent[1] = 340;
-	eastl::shared_ptr<BaseUITreeView> scenes = AddTreeView(screenRectangle, window, -1, true, true, false);
-	scenes->SetToolTipText(L"Show the current scenegraph");
-
-	scenes->GetRoot()->ClearChildren();
+	eastl::shared_ptr<BaseUIListBox> settings = AddListBox(screenRectangle, window, -1, true);
+	settings->SetToolTipText(L"Show the current key settings");
+	settings->AddItem(L"KEY W - MOVE FORWARD");
+	settings->AddItem(L"KEY S - MOVE BACKWARD");
+	settings->AddItem(L"KEY A - MOVE LEFT");
+	settings->AddItem(L"KEY D - MOVE RIGHT");
+	settings->AddItem(L"KEY C - MOVE DOWN");
+	settings->AddItem(L"KEY SPACE - MOVE UP");
+	settings->AddItem(L"KEY 6 - SHOW WIREFRAME");
+	settings->AddItem(L"KEY 7 - SHOW PHYSICS BOX");
+	settings->AddItem(L"KEY 8 - CONTROL PLAYER");
+	settings->AddItem(L"KEY 9 - CONTROL CAMERA");
 
 	/*
 
@@ -395,7 +402,7 @@ void MainMenuUI::Set()
 	const eastl::shared_ptr<BaseUIElement>& window = root->GetElementFromId(CID_DEMO_WINDOW);
 	const eastl::shared_ptr<BaseUIButton>& createGame = 
 		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_CREATE_GAME_RADIO, true));
-	const eastl::shared_ptr<BaseUIButton>& setGame = 
+	const eastl::shared_ptr<BaseUIButton>& setGame =
 		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_SET_GAME_RADIO, true));
 	const eastl::shared_ptr<BaseUIScrollBar>& numAI = 
 		eastl::static_pointer_cast<BaseUIScrollBar>(root->GetElementFromId(CID_NUM_AI_SLIDER, true));
@@ -466,10 +473,6 @@ void MainMenuUI::SetUIActive(int command)
 
 bool MainMenuUI::OnRestore()
 {
-    //mSampleUI.SetLocation( 
-	//	(System::Get()->GetScreenSize().x - SampleUIWidth)/2, 
-	//	(System::Get()->GetScreenSize().y - SampleUIHeight) / 2  );
-    //mSampleUI.SetSize( SampleUIWidth, SampleUIHeight );
 	return true;
 }
 
@@ -512,8 +515,21 @@ bool MainMenuUI::OnEvent(const Event& evt)
 			}
 
 			case CID_DEMO_WINDOW:
+				break;
 			case CID_SET_GAME_RADIO:
 			{
+				/*
+				if (evt.mUIEvent.mEventType == UIEVT_BUTTON_CLICKED)
+				{
+					const eastl::shared_ptr<BaseUIElement>& root = GetRootUIElement();
+					const eastl::shared_ptr<BaseUICheckBox>& fullscreen =
+						eastl::static_pointer_cast<BaseUICheckBox>(root->GetElementFromId(CID_FULLSCREEN_MODE, true));
+					if (!System::Get()->IsFullscreen() && fullscreen->IsChecked())
+						System::Get()->SetFullscreen(true);
+					else if (System::Get()->IsFullscreen() && !fullscreen->IsChecked())
+						System::Get()->SetFullscreen(false);
+				}
+				*/
 				break;
 			}
 
@@ -656,19 +672,6 @@ bool StandardHUD::OnEvent(const Event& evt)
 	if (evt.mEventType == ET_UI_EVENT)
 	{
 		int id = evt.mUIEvent.mCaller->GetID();
-
-		switch(evt.mUIEvent.mEventType)
-		{
-			case UIEVT_BUTTON_CLICKED:
-				switch (id)
-				{
-				case IDC_TOGGLEFULLSCREEN: 
-					System::Get()->SwitchToFullScreen(); break;
-				case IDC_TOGGLEREF:        
-					System::Get()->SetResizable(); break;
-				}
-				break;
-		}
 	}
 
 	return false;

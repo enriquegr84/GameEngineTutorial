@@ -76,7 +76,6 @@ HumanView::HumanView()
 
 	mProcessManager = new ProcessManager();
 
-	mRunFullSpeed = true;
 	mViewId = INVALID_GAME_VIEW_ID;
 
 	// Added post press for move, new, and destroy actor events and others
@@ -86,19 +85,6 @@ HumanView::HumanView()
 	Renderer* renderer = Renderer::Get();
 	if (renderer)
 	{
-		// Graphics engine state.
-		/*mEngine->SetClearColor({ 0.6f, 0.851f, 0.918f, 1.0f });
-
-		mBlendState = std::make_shared<BlendState>();
-		mBlendState->target[0].enable = true;
-		mBlendState->target[0].srcColor = BlendState::BM_SRC_ALPHA;
-		mBlendState->target[0].dstColor = BlendState::BM_INV_SRC_ALPHA;
-		mBlendState->target[0].srcAlpha = BlendState::BM_SRC_ALPHA;
-		mBlendState->target[0].dstAlpha = BlendState::BM_INV_SRC_ALPHA;
-
-		mWireState = std::make_shared<RasterizerState>();
-		mWireState->fillMode = RasterizerState::FILL_WIREFRAME;*/
-
 		// Create the scene and camera rig.
 		// Moved to the HumanView class post press
 		mScene.reset(new ScreenElementScene());
@@ -107,13 +93,9 @@ HumanView::HumanView()
 		mCamera->AttachAnimator(eastl::make_shared<NodeAnimatorFollowCamera>());
 
 		LogAssert(mScene && mCamera, "Out of memory");
-		//mCamera->SetFarValue(20000.f); // this increase a shadow visible range.
 		mScene->SetActiveCamera(mCamera);
 
 		mScene->AddChild(mCamera->GetId(), mCamera);
-		//InitializeFixedHeightRig();
-		//mFixedHeightRig.SetPicker(mScene, mPicker);
-
 		mScene->GetRootNode()->Update();
 	}
 }
@@ -162,28 +144,24 @@ void HumanView::OnRender(double time, float elapsedTime )
 
 	// It is time to draw ?
 	Renderer* renderer = Renderer::Get();
-	//if (renderer->PreRender())
+	if( deltaTime > SCREEN_REFRESH_RATE)
 	{
-		if( mRunFullSpeed || ( deltaTime > SCREEN_REFRESH_RATE) )
+		mScreenElements.sort(SortBy_SharedPtr_Content<BaseScreenElement>());
+
+		for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator it =
+			mScreenElements.begin(); it!=mScreenElements.end(); ++it)
 		{
-			mScreenElements.sort(SortBy_SharedPtr_Content<BaseScreenElement>());
-
-			for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator it =
-				mScreenElements.begin(); it!=mScreenElements.end(); ++it)
+			if ((*it)->IsVisible())
 			{
-				if ((*it)->IsVisible())
-				{
-					(*it)->OnRender(time, elapsedTime);
-				}
+				(*it)->OnRender(time, elapsedTime);
 			}
-
-            RenderText();
-
-			// Let the console render.
-			mConsole.OnRender(time, elapsedTime);
 		}
-    }
-	//renderer->PostRender();
+
+        RenderText();
+
+		// Let the console render.
+		mConsole.OnRender(time, elapsedTime);
+	}
 }
 
 /*

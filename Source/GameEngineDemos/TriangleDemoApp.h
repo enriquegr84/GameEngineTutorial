@@ -11,15 +11,13 @@
 
 #include "Application/WindowApplication.h"
 
-#include "CameraRig.h"
-
-class TriangleDemoApplication : public WindowApplication
+class TriangleDemoApp : public WindowApplication
 {
 
 public:
     // Abstract base class.
-    TriangleDemoApplication();
-    virtual ~TriangleDemoApplication();
+    TriangleDemoApp();
+    virtual ~TriangleDemoApp();
 
 	// Event callbacks.
     virtual bool OnInitialize();
@@ -61,11 +59,8 @@ protected:
 	bool OnMouseClick(MouseInputEvent button, unsigned int state, int x, int y);
 	bool OnMouseMotion(MouseInputEvent button, unsigned int state, int x, int y);
 
-	Culler mCuller;
-	eastl::shared_ptr<Node> mScene;
 	eastl::shared_ptr<Visual> mTriangle;
 	eastl::shared_ptr<Camera> mCamera;
-	CameraRig mCameraRig;
 };
 
 #endif

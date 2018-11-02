@@ -12,7 +12,7 @@
 #include "Graphic/GraphicStd.h"
 
 #include "TriangleDemoApp.h"
-/*
+
 //----------------------------------------------------------------------------
 int main(int numArguments, char* arguments[])
 {
@@ -53,7 +53,7 @@ int main(int numArguments, char* arguments[])
 	Application::ApplicationPath += "/";
 
 	// Initialization
-	TriangleDemoApplication* demoApp = new TriangleDemoApplication();
+	TriangleDemoApp* demoApp = new TriangleDemoApp();
 	Application::App = demoApp;
 
 	int exitCode = -1;
@@ -77,10 +77,9 @@ int main(int numArguments, char* arguments[])
 
 	return exitCode;
 }
-*/
 
 //----------------------------------------------------------------------------
-TriangleDemoApplication::TriangleDemoApplication()
+TriangleDemoApp::TriangleDemoApp()
 :	WindowApplication("TriangleDemo", 0, 0, 800, 600, { 0.392f, 0.584f, 0.929f, 1.0f }),
 #if defined(_OPENGL_)
 	mCamera(eastl::make_shared<Camera>(true, false))
@@ -92,13 +91,13 @@ TriangleDemoApplication::TriangleDemoApplication()
 }
 
 //----------------------------------------------------------------------------
-TriangleDemoApplication::~TriangleDemoApplication()
+TriangleDemoApp::~TriangleDemoApp()
 {
 
 }
 
 //----------------------------------------------------------------------------
-void TriangleDemoApplication::InitializeCamera(
+void TriangleDemoApp::InitializeCamera(
 	float upFovDegrees, float aspectRatio, float dmin, float dmax, float translationSpeed, float rotationSpeed,
 	eastl::array<float, 3> const& pos, eastl::array<float, 3> const& dir, eastl::array<float, 3> const& up)
 {
@@ -108,27 +107,27 @@ void TriangleDemoApplication::InitializeCamera(
 	Vector4<float> camUVector{ up[0], up[1], up[2], 0.0f };
 	Vector4<float> camRVector = Cross(camDVector, camUVector);
 	mCamera->SetFrame(camPosition, camDVector, camUVector, camRVector);
-
-	mCameraRig.ComputeWorldAxes();
-	mCameraRig.SetTranslationSpeed(translationSpeed);
-	mCameraRig.SetRotationSpeed(rotationSpeed);
 }
 
 //----------------------------------------------------------------------------
-bool TriangleDemoApplication::CreateScene()
+bool TriangleDemoApp::CreateScene()
 {
-	//mScene = eastl::make_shared<Node>();
+	//LoadBuiltInFont
+	eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+	path.push_back(FileSystem::Get()->GetPath("Effects/TextEffectVS.glsl"));
+	path.push_back(FileSystem::Get()->GetPath("Effects/TextEffectPS.glsl"));
+#else
+	path.push_back(FileSystem::Get()->GetPath("Effects/TextEffect.hlsl"));
+#endif
+	eastl::shared_ptr<Font> builtInFont = eastl::make_shared<FontArialW400H18>(ProgramFactory::Get(), path, 256);
+	Renderer::Get()->SetDefaultFont(builtInFont);
 
-	struct Vertex
-	{
-		Vector3<float> position;
-		Vector4<float> color;
-	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 
-	eastl::vector<eastl::string> path; 
+	path.clear(); 
 #if defined(_OPENGL_)
 	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectVS.glsl"));
 	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectPS.glsl"));
@@ -142,16 +141,25 @@ bool TriangleDemoApplication::CreateScene()
 	mf.SetVertexFormat(vformat);
 
 	// Create the rectangle representation of the model triangle
-	int const numSamples = 64;
+	int const numSamples = 2;
 	mTriangle = mf.CreateTriangle(numSamples, 1.0f, 1.0f);
-	auto vbuffer = mTriangle->GetVertexBuffer().get();
-	Vertex* vertex = vbuffer->Get<Vertex>();
 	mTriangle->SetEffect(effect);
+
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector4<float> color;
+	};
+	Vertex* vertex = mTriangle->GetVertexBuffer()->Get<Vertex>();
+	vertex[0].color = Vector4<float>{ 1.0f, 0.0f, 0.0f, 1.0f };
+	vertex[1].color = Vector4<float>{ 0.0f, 1.0f, 0.0f, 1.0f };
+	vertex[2].color = Vector4<float>{ 0.0f, 0.0f, 1.0f, 1.0f };
+
 	return true;
 }
 
 //----------------------------------------------------------------------------
-bool TriangleDemoApplication::OnInitialize()
+bool TriangleDemoApp::OnInitialize()
 {
     if (!WindowApplication::OnInitialize())
     {
@@ -168,27 +176,17 @@ bool TriangleDemoApplication::OnInitialize()
 		{ 0.0f, -1.0f, 0.25f }, { 0.0f, 1.0f, 0.0f },  { 0.0f, 0.0f, 1.0f });
 	
 	CreateScene();
-	mCuller.ComputeVisibleSet(mCamera, mScene);
 
     return true;
 }
 
 //----------------------------------------------------------------------------
-void TriangleDemoApplication::OnIdle()
+void TriangleDemoApp::OnIdle()
 {
-	// lear the buffers before rendering
+	// clear the buffers before rendering
 	mRenderer->ClearBuffers();
-
-	if (mCameraRig.Move())
-		mCuller.ComputeVisibleSet(mCamera, mScene);
-
-	mRenderer->ClearBuffers();
-	for (auto const& spatial : mCuller.GetVisibleSet())
-	{
-		Node* node = dynamic_cast<Node*>(spatial);
-		for (unsigned int v = 0; v < node->GetVisualCount(); v++)
-			mRenderer->Draw(node->GetVisual(v));
-	}
+	
+	mRenderer->Draw(mTriangle);
 
 	wchar_t message[256];
 	wsprintf(message, L"fps: %i", mFramesPerSecond);
@@ -198,7 +196,7 @@ void TriangleDemoApplication::OnIdle()
 }
 
 //----------------------------------------------------------------------------
-void TriangleDemoApplication::OnTerminate()
+void TriangleDemoApp::OnTerminate()
 {
 	mCamera = 0;
 
@@ -206,25 +204,18 @@ void TriangleDemoApplication::OnTerminate()
 }
 
 //----------------------------------------------------------------------------
-void TriangleDemoApplication::OnRun()
+void TriangleDemoApp::OnRun()
 {
 	WindowApplication::OnRun();
 }
 
 //----------------------------------------------------------------------------
-bool TriangleDemoApplication::OnResize(int width, int height)
+bool TriangleDemoApp::OnResize(int width, int height)
 {
 	return true;
-	/*
-		float upFovDegrees, aspectRatio, dMin, dMax;
-		mCamera->GetFrustum(upFovDegrees, aspectRatio, dMin, dMax);
-		mCamera->SetFrustum(upFovDegrees, GetAspectRatio(), dMin, dMax);
-		mPVWMatrices.Update();
-		return true;
-	*/
 }
 //----------------------------------------------------------------------------
-bool TriangleDemoApplication::OnEvent(const Event& event)
+bool TriangleDemoApp::OnEvent(const Event& event)
 {
 	bool result = 0;
 	switch (event.mEventType) 
@@ -276,92 +267,22 @@ bool TriangleDemoApplication::OnEvent(const Event& event)
 
 //----------------------------------------------------------------------------
 
-bool TriangleDemoApplication::OnKeyDown(KeyCode key)
-{
-	switch (key)
-	{
-	case KEY_KEY_T:  // Slower camera translation.
-		mCameraRig.SetTranslationSpeed(0.5f * mCameraRig.GetTranslationSpeed());
-		return true;
-
-	case KEY_KEY_Y:  // Faster camera translation.
-		mCameraRig.SetTranslationSpeed(2.0f * mCameraRig.GetTranslationSpeed());
-		return true;
-
-	case KEY_KEY_R:  // Slower camera rotation.
-		mCameraRig.SetRotationSpeed(0.5f * mCameraRig.GetRotationSpeed());
-		return true;
-
-	case KEY_KEY_E:  // Faster camera rotation.
-		mCameraRig.SetRotationSpeed(2.0f * mCameraRig.GetRotationSpeed());
-		return true;
-
-	case KEY_KEY_P:
-		/*
-		if (mRenderer->GetRasterizerState() != mCullCWState)
-		{
-			Matrix4x4<float> xReflect = Matrix4x4<float>::Identity();
-			xReflect(0, 0) = -1.0f;
-			mCamera->SetPostProjectionMatrix(xReflect);
-			mRenderer->SetRasterizerState(mCullCWState);
-		}
-		else
-		{
-			mCamera->SetPostProjectionMatrix(Matrix4x4<float>::Identity());
-			mRenderer->SetDefaultRasterizerState();
-		}
-		mPVWMatrices.Update();
-		*/
-		return true;
-	}
-
-	return mCameraRig.PushMotion(key);
-}
-
-bool TriangleDemoApplication::OnKeyUp(KeyCode key)
-{
-	return mCameraRig.PopMotion(key);
-}
-
-bool TriangleDemoApplication::OnMouseMotion(MouseInputEvent button, unsigned int state, int x, int y)
-{
-	mCuller.ComputeVisibleSet(mCamera, mScene);
-	return true;
-	/*
-	mPVWMatrices.Update();
-	mCuller.ComputeVisibleSet(mCamera, mScene);
-
-	bool leftPressed = (0 != (state & MBSM_LEFT));
-	if (leftPressed && mTrackball.GetActive())
-	{
-		mTrackball.SetFinalPoint(x, mYSize - 1 - y);
-		mPVWMatrices.Update();
-		return true;
-	}
-	return false;
-	*/
-}
-
-bool TriangleDemoApplication::OnMouseClick(MouseInputEvent button, unsigned int state, int x, int y)
+bool TriangleDemoApp::OnKeyDown(KeyCode key)
 {
 	return true;
-	/*
-	bool leftPressed = (0 != (state & MBSM_LEFT));
-	if (leftPressed)
-	{
-		if (button == MIE_LMOUSE_PRESSED_DOWN)
-		{
-			mTrackball.SetActive(true);
-			mTrackball.SetInitialPoint(x, mHeight - 1 - y);
-		}
-		else
-		{
-			mTrackball.SetActive(false);
-		}
+}
 
-		return true;
-	}
+bool TriangleDemoApp::OnKeyUp(KeyCode key)
+{
+	return true;
+}
 
-	return false;
-	*/
+bool TriangleDemoApp::OnMouseMotion(MouseInputEvent button, unsigned int state, int x, int y)
+{
+	return true;
+}
+
+bool TriangleDemoApp::OnMouseClick(MouseInputEvent button, unsigned int state, int x, int y)
+{
+	return true;
 }

@@ -93,71 +93,67 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 		WeakBaseRenderComponentPtr wbrcp(
 			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
-		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
+		eastl::shared_ptr<ResHandle>& resHandle =
+			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshModelFile.c_str())));
+		if (resHandle)
 		{
-			eastl::shared_ptr<ResHandle>& resHandle =
-				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshModelFile.c_str())));
-			if (resHandle)
+			const eastl::shared_ptr<MeshResourceExtraData>& extra =
+				eastl::static_pointer_cast<MeshResourceExtraData>(resHandle->GetExtra());
+			eastl::shared_ptr<BaseMesh> mesh(extra->GetMesh());
+
+			if (!mMeshModelTexture.empty())
 			{
-				const eastl::shared_ptr<MeshResourceExtraData>& extra =
-					eastl::static_pointer_cast<MeshResourceExtraData>(resHandle->GetExtra());
-				eastl::shared_ptr<BaseMesh> mesh(extra->GetMesh());
-
-				if (!mMeshModelTexture.empty())
+				resHandle =
+					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshModelTexture.c_str())));
+				if (resHandle)
 				{
-					resHandle =
-						ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshModelTexture.c_str())));
-					if (resHandle)
+					const eastl::shared_ptr<ImageResourceExtraData>& extra =
+						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+					extra->GetImage()->AutogenerateMipmaps();
+					if (mMaterialType == MaterialType::MT_TRANSPARENT)
 					{
-						const eastl::shared_ptr<ImageResourceExtraData>& extra =
-							eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-						extra->GetImage()->AutogenerateMipmaps();
-						if (mMaterialType == MaterialType::MT_TRANSPARENT)
+						for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
 						{
-							for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
-							{
-								eastl::shared_ptr<Material> material = mesh->GetMeshBuffer(i)->GetMaterial();
-								material->mBlendTarget.enable = true;
-								material->mBlendTarget.srcColor = BlendState::BM_ONE;
-								material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
-								material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
-								material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+							eastl::shared_ptr<Material> material = mesh->GetMeshBuffer(i)->GetMaterial();
+							material->mBlendTarget.enable = true;
+							material->mBlendTarget.srcColor = BlendState::BM_ONE;
+							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
 							
-								material->mDepthBuffer = true;
-								material->mDepthMask = DepthStencilState::MASK_ZERO;
+							material->mDepthBuffer = true;
+							material->mDepthMask = DepthStencilState::MASK_ZERO;
 
-								material->mFillMode = RasterizerState::FILL_SOLID;
-								material->mCullMode = RasterizerState::CULL_NONE;
-							}
+							material->mFillMode = RasterizerState::FILL_SOLID;
+							material->mCullMode = RasterizerState::CULL_NONE;
 						}
-
-						for (unsigned int i = 0; i<mesh->GetMeshBufferCount(); ++i)
-							mesh->GetMeshBuffer(i)->GetMaterial()->SetTexture(0, extra->GetImage());
 					}
-				}
 
-				eastl::shared_ptr<Node> meshNode = nullptr;
-				if (mesh->GetMeshType() == MT_STANDARD)
-				{
-					// create an mesh scene node with specified mesh.
-					meshNode = pScene->AddMeshNode(wbrcp, 0, mesh, mOwner->GetId());
-					if (meshNode)
-						meshNode->GetRelativeTransform() = transform;
+					for (unsigned int i = 0; i<mesh->GetMeshBufferCount(); ++i)
+						mesh->GetMeshBuffer(i)->GetMaterial()->SetTexture(0, extra->GetImage());
 				}
-				else
-				{
-					// create an animated mesh scene node with specified animated mesh.
-					meshNode = pScene->AddAnimatedMeshNode(
-						wbrcp, 0, eastl::dynamic_shared_pointer_cast<BaseAnimatedMesh>(mesh), mOwner->GetId());
-					if (meshNode)
-						meshNode->GetRelativeTransform() = transform;
-				}
-				meshNode->SetMaterialType((MaterialType)mMaterialType);
-
-				return meshNode;
 			}
+
+			eastl::shared_ptr<Node> meshNode = nullptr;
+			if (mesh->GetMeshType() == MT_STANDARD)
+			{
+				// create an mesh scene node with specified mesh.
+				meshNode = pScene->AddMeshNode(wbrcp, 0, mesh, mOwner->GetId());
+				if (meshNode)
+					meshNode->GetRelativeTransform() = transform;
+			}
+			else
+			{
+				// create an animated mesh scene node with specified animated mesh.
+				meshNode = pScene->AddAnimatedMeshNode(
+					wbrcp, 0, eastl::dynamic_shared_pointer_cast<BaseAnimatedMesh>(mesh), mOwner->GetId());
+				if (meshNode)
+					meshNode->GetRelativeTransform() = transform;
+			}
+			meshNode->SetMaterialType((MaterialType)mMaterialType);
+
+			return meshNode;
 		}
-		else LogAssert(nullptr, "Unknown Renderer Implementation in MeshRenderComponent::CreateSceneNode");
 	}
 	return eastl::shared_ptr<Node>();
 }
@@ -229,51 +225,47 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 		WeakBaseRenderComponentPtr wbrcp(
 			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
-		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
+		eastl::shared_ptr<ResHandle>& resHandle =
+			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
+		if (resHandle)
 		{
-			eastl::shared_ptr<ResHandle>& resHandle =
-				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
-			if (resHandle)
+			const eastl::shared_ptr<ImageResourceExtraData>& extra =
+				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			extra->GetImage()->AutogenerateMipmaps();
+
+			// create a sphere node with specified radius and poly count.
+			eastl::shared_ptr<Node> sphereNode =
+				pScene->AddSphereNode(wbrcp, nullptr, extra->GetImage(), mRadius, mSegments, mOwner->GetId());
+			if (sphereNode)
 			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				extra->GetImage()->AutogenerateMipmaps();
+				sphereNode->GetRelativeTransform() = transform;
 
-				// create a sphere node with specified radius and poly count.
-				eastl::shared_ptr<Node> sphereNode =
-					pScene->AddSphereNode(wbrcp, nullptr, extra->GetImage(), mRadius, mSegments, mOwner->GetId());
-				if (sphereNode)
+				if (mMaterialType == MaterialType::MT_TRANSPARENT)
 				{
-					sphereNode->GetRelativeTransform() = transform;
-
-					if (mMaterialType == MaterialType::MT_TRANSPARENT)
-					{
-						for (unsigned int i = 0; i < sphereNode->GetMaterialCount(); ++i)
-						{
-							eastl::shared_ptr<Material> material = sphereNode->GetMaterial(i);
-							material->mBlendTarget.enable = true;
-							material->mBlendTarget.srcColor = BlendState::BM_ONE;
-							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
-							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
-							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
-
-							material->mDepthBuffer = true;
-							material->mDepthMask = DepthStencilState::MASK_ZERO;
-
-							material->mFillMode = RasterizerState::FILL_SOLID;
-							material->mCullMode = RasterizerState::CULL_NONE;
-						}
-					}
-
 					for (unsigned int i = 0; i < sphereNode->GetMaterialCount(); ++i)
-						sphereNode->GetMaterial(i)->mLighting = false;
-					sphereNode->SetMaterialTexture(0, extra->GetImage());
-					sphereNode->SetMaterialType((MaterialType)mMaterialType);
+					{
+						eastl::shared_ptr<Material> material = sphereNode->GetMaterial(i);
+						material->mBlendTarget.enable = true;
+						material->mBlendTarget.srcColor = BlendState::BM_ONE;
+						material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+						material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+						material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+						material->mDepthBuffer = true;
+						material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+						material->mFillMode = RasterizerState::FILL_SOLID;
+						material->mCullMode = RasterizerState::CULL_NONE;
+					}
 				}
-				return sphereNode;
+
+				for (unsigned int i = 0; i < sphereNode->GetMaterialCount(); ++i)
+					sphereNode->GetMaterial(i)->mLighting = false;
+				sphereNode->SetMaterialTexture(0, extra->GetImage());
+				sphereNode->SetMaterialType((MaterialType)mMaterialType);
 			}
+			return sphereNode;
 		}
-		else LogAssert(nullptr, "Unknown Renderer Implementation in SphereRenderComponent::CreateSceneNode");
 	}
 	return eastl::shared_ptr<Node>();
 }
@@ -349,58 +341,54 @@ eastl::shared_ptr<Node> CubeRenderComponent::CreateSceneNode(void)
 		WeakBaseRenderComponentPtr wbrcp(
 			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
-		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
+		eastl::shared_ptr<ResHandle>& resHandle =
+			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
+		if (resHandle)
 		{
-			eastl::shared_ptr<ResHandle>& resHandle =
-				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
-			if (resHandle)
+			const eastl::shared_ptr<ImageResourceExtraData>& extra =
+				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			extra->GetImage()->AutogenerateMipmaps();
+
+			// create an animated mesh scene node with specified mesh.
+			eastl::shared_ptr<Node> cubeNode = pScene->AddCubeNode(wbrcp, 0, 
+				extra->GetImage(), mTextureScale[0], mTextureScale[1], mSize, mOwner->GetId());
+
+			//To let the mesh look a little bit nicer, we change its material. We
+			//disable lighting because we do not have a dynamic light in here, and
+			//the mesh would be totally black otherwise. And last, we apply a
+			//texture to the mesh. Without it the mesh would be drawn using only a
+			//color.
+			if (cubeNode)
 			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				extra->GetImage()->AutogenerateMipmaps();
+				cubeNode->GetRelativeTransform() = transform;
 
-				// create an animated mesh scene node with specified mesh.
-				eastl::shared_ptr<Node> cubeNode = pScene->AddCubeNode(wbrcp, 0, 
-					extra->GetImage(), mTextureScale[0], mTextureScale[1], mSize, mOwner->GetId());
-
-				//To let the mesh look a little bit nicer, we change its material. We
-				//disable lighting because we do not have a dynamic light in here, and
-				//the mesh would be totally black otherwise. And last, we apply a
-				//texture to the mesh. Without it the mesh would be drawn using only a
-				//color.
-				if (cubeNode)
+				if (mMaterialType == MaterialType::MT_TRANSPARENT)
 				{
-					cubeNode->GetRelativeTransform() = transform;
-
-					if (mMaterialType == MaterialType::MT_TRANSPARENT)
-					{
-						for (unsigned int i = 0; i<cubeNode->GetMaterialCount(); ++i)
-						{
-							eastl::shared_ptr<Material> material = cubeNode->GetMaterial(i);
-							material->mBlendTarget.enable = true;
-							material->mBlendTarget.srcColor = BlendState::BM_ONE;
-							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
-							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
-							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
-
-							material->mDepthBuffer = true;
-							material->mDepthMask = DepthStencilState::MASK_ZERO;
-
-							material->mFillMode = RasterizerState::FILL_SOLID;
-							material->mCullMode = RasterizerState::CULL_NONE;
-						}
-					}
-
 					for (unsigned int i = 0; i<cubeNode->GetMaterialCount(); ++i)
-						cubeNode->GetMaterial(i)->mLighting = false;
-					cubeNode->SetMaterialTexture(0, extra->GetImage());
-					cubeNode->SetMaterialType((MaterialType)mMaterialType);
+					{
+						eastl::shared_ptr<Material> material = cubeNode->GetMaterial(i);
+						material->mBlendTarget.enable = true;
+						material->mBlendTarget.srcColor = BlendState::BM_ONE;
+						material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+						material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+						material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+						material->mDepthBuffer = true;
+						material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+						material->mFillMode = RasterizerState::FILL_SOLID;
+						material->mCullMode = RasterizerState::CULL_NONE;
+					}
 				}
 
-				return cubeNode;
+				for (unsigned int i = 0; i<cubeNode->GetMaterialCount(); ++i)
+					cubeNode->GetMaterial(i)->mLighting = false;
+				cubeNode->SetMaterialTexture(0, extra->GetImage());
+				cubeNode->SetMaterialType((MaterialType)mMaterialType);
 			}
+
+			return cubeNode;
 		}
-		else LogError("Unknown Renderer Implementation in CubeRenderComponent");
 	}
 
 	return eastl::shared_ptr<Node>();
@@ -488,59 +476,55 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 		WeakBaseRenderComponentPtr wbrcp(
 			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
-		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
+		eastl::shared_ptr<ResHandle>& resHandle =
+			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
+		if (resHandle)
 		{
-			eastl::shared_ptr<ResHandle>& resHandle =
-				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
-			if (resHandle)
+			const eastl::shared_ptr<ImageResourceExtraData>& extra =
+				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			extra->GetImage()->AutogenerateMipmaps();
+
+			// create an animated mesh scene node with specified mesh.
+			eastl::shared_ptr<Node> gridNode = pScene->AddRectangleNode(
+				wbrcp, 0, extra->GetImage(), mTextureScale[0], mTextureScale[1],
+				mExtent[0], mExtent[1], mSegments[0], mSegments[1], mOwner->GetId());
+
+			//To let the mesh look a little bit nicer, we change its material. We
+			//disable lighting because we do not have a dynamic light in here, and
+			//the mesh would be totally black otherwise. And last, we apply a
+			//texture to the mesh. Without it the mesh would be drawn using only a
+			//color.
+			if (gridNode)
 			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				extra->GetImage()->AutogenerateMipmaps();
+				gridNode->GetRelativeTransform() = transform;
 
-				// create an animated mesh scene node with specified mesh.
-				eastl::shared_ptr<Node> gridNode = pScene->AddRectangleNode(
-					wbrcp, 0, extra->GetImage(), mTextureScale[0], mTextureScale[1],
-					mExtent[0], mExtent[1], mSegments[0], mSegments[1], mOwner->GetId());
-
-				//To let the mesh look a little bit nicer, we change its material. We
-				//disable lighting because we do not have a dynamic light in here, and
-				//the mesh would be totally black otherwise. And last, we apply a
-				//texture to the mesh. Without it the mesh would be drawn using only a
-				//color.
-				if (gridNode)
+				if (mMaterialType == MaterialType::MT_TRANSPARENT)
 				{
-					gridNode->GetRelativeTransform() = transform;
-
-					if (mMaterialType == MaterialType::MT_TRANSPARENT)
-					{
-						for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
-						{
-							eastl::shared_ptr<Material> material = gridNode->GetMaterial(i);
-							material->mBlendTarget.enable = true;
-							material->mBlendTarget.srcColor = BlendState::BM_ONE;
-							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
-							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
-							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
-
-							material->mDepthBuffer = true;
-							material->mDepthMask = DepthStencilState::MASK_ZERO;
-
-							material->mFillMode = RasterizerState::FILL_SOLID;
-							material->mCullMode = RasterizerState::CULL_NONE;
-						}
-					}
-
 					for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
-						gridNode->GetMaterial(i)->mLighting = false;
-					gridNode->SetMaterialTexture(0, extra->GetImage());
-					gridNode->SetMaterialType((MaterialType)mMaterialType);
+					{
+						eastl::shared_ptr<Material> material = gridNode->GetMaterial(i);
+						material->mBlendTarget.enable = true;
+						material->mBlendTarget.srcColor = BlendState::BM_ONE;
+						material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+						material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+						material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+						material->mDepthBuffer = true;
+						material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+						material->mFillMode = RasterizerState::FILL_SOLID;
+						material->mCullMode = RasterizerState::CULL_NONE;
+					}
 				}
 
-				return gridNode;
+				for (unsigned int i = 0; i<gridNode->GetMaterialCount(); ++i)
+					gridNode->GetMaterial(i)->mLighting = false;
+				gridNode->SetMaterialTexture(0, extra->GetImage());
+				gridNode->SetMaterialType((MaterialType)mMaterialType);
 			}
+
+			return gridNode;
 		}
-		else LogError("Unknown Renderer Implementation in GridRenderComponent");
     }
 
 	return eastl::shared_ptr<Node>();
@@ -739,61 +723,57 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 		WeakBaseRenderComponentPtr wbrcp(
 			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
-		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
+		eastl::shared_ptr<ResHandle>& resHandle =
+			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
+		if (resHandle)
 		{
-			eastl::shared_ptr<ResHandle>& resHandle =
-				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
-			if (resHandle)
+			const eastl::shared_ptr<ImageResourceExtraData>& extra =
+				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			extra->GetImage()->AutogenerateMipmaps();
+
+			// Add light
+			eastl::shared_ptr<Node> lightNode =
+				pScene->AddLightNode(wbrcp, 0, extra->GetImage(), mLightData, mTextureScale, mOwner->GetId());
+			if (lightNode)
 			{
-				const eastl::shared_ptr<ImageResourceExtraData>& extra =
-					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-				extra->GetImage()->AutogenerateMipmaps();
+				lightNode->GetRelativeTransform() = transform;
 
-				// Add light
-				eastl::shared_ptr<Node> lightNode =
-					pScene->AddLightNode(wbrcp, 0, extra->GetImage(), mLightData, mTextureScale, mOwner->GetId());
-				if (lightNode)
+				switch(mAnimatorType)
 				{
-					lightNode->GetRelativeTransform() = transform;
-
-					switch(mAnimatorType)
+					case NAT_FLY_CIRCLE:
 					{
-						case NAT_FLY_CIRCLE:
-						{
-							eastl::shared_ptr<NodeAnimator> anim = 0;
-							anim = pScene->CreateFlyCircleAnimator(mAnimatorCenter, mAnimatorRadius);
-							lightNode->AttachAnimator(anim);
-							break;
-						}
-
-						default:
-							break;
+						eastl::shared_ptr<NodeAnimator> anim = 0;
+						anim = pScene->CreateFlyCircleAnimator(mAnimatorCenter, mAnimatorRadius);
+						lightNode->AttachAnimator(anim);
+						break;
 					}
 
-					for (unsigned int i = 0; i < lightNode->GetMaterialCount(); ++i)
-						lightNode->GetMaterial(i)->mLighting = false;
-					lightNode->SetMaterialType(MT_TRANSPARENT);
-
-					for (unsigned int i = 0; i < lightNode->GetMaterialCount(); ++i)
-					{
-						eastl::shared_ptr<Material> material = lightNode->GetMaterial(i);
-						material->mBlendTarget.enable = true;
-						material->mBlendTarget.srcColor = BlendState::BM_ONE;
-						material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
-						material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
-						material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
-
-						material->mDepthBuffer = true;
-						material->mDepthMask = DepthStencilState::MASK_ZERO;
-
-						material->mFillMode = RasterizerState::FILL_SOLID;
-						material->mCullMode = RasterizerState::CULL_NONE;
-					}
+					default:
+						break;
 				}
-				return lightNode;
+
+				for (unsigned int i = 0; i < lightNode->GetMaterialCount(); ++i)
+					lightNode->GetMaterial(i)->mLighting = false;
+				lightNode->SetMaterialType(MT_TRANSPARENT);
+
+				for (unsigned int i = 0; i < lightNode->GetMaterialCount(); ++i)
+				{
+					eastl::shared_ptr<Material> material = lightNode->GetMaterial(i);
+					material->mBlendTarget.enable = true;
+					material->mBlendTarget.srcColor = BlendState::BM_ONE;
+					material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+					material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+					material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+					material->mDepthBuffer = true;
+					material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+					material->mFillMode = RasterizerState::FILL_SOLID;
+					material->mCullMode = RasterizerState::CULL_NONE;
+				}
 			}
+			return lightNode;
 		}
-		else LogError("Unknown Renderer Implementation in LightRenderComponent");
 	}
 	return eastl::shared_ptr<Node>();
 }
@@ -1060,161 +1040,158 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 		WeakBaseRenderComponentPtr wbrcp(
 			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
-		if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
+		// create a particle system
+		eastl::shared_ptr<Node> node = 
+			pScene->AddParticleSystemNode(wbrcp, 0, mOwner->GetId(), false);
+
+		if (node)
 		{
-			// create a particle system
-			eastl::shared_ptr<Node> node = 
-				pScene->AddParticleSystemNode(wbrcp, 0, mOwner->GetId(), false);
+			eastl::shared_ptr<ParticleSystemNode> particleSystem = 
+				eastl::dynamic_shared_pointer_cast<ParticleSystemNode>(node);
+			particleSystem->GetRelativeTransform() = transform;
 
-			if (node)
+			switch (mEmitterType)
 			{
-				eastl::shared_ptr<ParticleSystemNode> particleSystem = 
-					eastl::dynamic_shared_pointer_cast<ParticleSystemNode>(node);
-				particleSystem->GetRelativeTransform() = transform;
-
-				switch (mEmitterType)
+				case PET_POINT:
 				{
-					case PET_POINT:
-					{
-						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreatePointEmitter(
-							mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
-							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMinStartSize, mMaxStartSize));
-						particleSystem->SetEmitter(em); // this grabs the emitter
-						break;
-					}
-					case PET_BOX:
-					{
-						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateBoxEmitter(
-							mEmitter, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
-							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMinStartSize, mMaxStartSize));
-						particleSystem->SetEmitter(em); // this grabs the emitter
-						break;
-					}
-					case PET_CYLINDER:
-					{
-						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateCylinderEmitter(
-							Vector3<float>(), 0.0f, Vector3<float>(), 0.0f, true,
-							mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
-							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMinStartSize, mMaxStartSize));
-						particleSystem->SetEmitter(em); // this grabs the emitter
-						break;
-					}
-					case PET_MESH:
-					{
-						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateMeshEmitter(
-							eastl::shared_ptr<BaseMesh>(), false, mDirection, 0, 0, false,
-							mMinParticlesPerSecond, mMaxParticlesPerSecond,
-							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMinStartSize, mMaxStartSize));
-						particleSystem->SetEmitter(em); // this grabs the emitter;
-						break;
-					}
-					case PET_RING:
-					{
-						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateRingEmitter(
-							Vector3<float>(), 0.0f, 0.0f, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
-							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMinStartSize, mMaxStartSize));
-						particleSystem->SetEmitter(em); // this grabs the emitter
-						break;
-					}
-					case PET_SPHERE:
-					{
-						eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateSphereEmitter(
-							Vector3<float>(), 0.0f, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
-							mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
-							mMaxAngle, mMinStartSize, mMaxStartSize));
-						particleSystem->SetEmitter(em); // this grabs the emitter
-						break;
-					}
-					default:
-						break;
+					eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreatePointEmitter(
+						mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+						mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+						mMaxAngle, mMinStartSize, mMaxStartSize));
+					particleSystem->SetEmitter(em); // this grabs the emitter
+					break;
 				}
-
-				switch (mAffectorType)
+				case PET_BOX:
 				{
-					case PAT_ATTRACT:
-					{
-						eastl::shared_ptr<BaseParticleAffector> particleAffector(
-							particleSystem->CreateAttractionAffector());
-						particleSystem->AddAffector(particleAffector);
-						break;
-					}
-					case PAT_FADE_OUT:
-					{
-						eastl::shared_ptr<BaseParticleAffector> particleAffector(
-							particleSystem->CreateFadeOutParticleAffector());
-						particleSystem->AddAffector(particleAffector);
-						break;
-					}
-					case PAT_GRAVITY:
-					{
-						eastl::shared_ptr<BaseParticleAffector> particleAffector(
-							particleSystem->CreateGravityAffector());
-						particleSystem->AddAffector(particleAffector);
-						break;
-					}
-					case PAT_ROTATE:
-					{
-						eastl::shared_ptr<BaseParticleAffector> particleAffector(
-							particleSystem->CreateRotationAffector());
-						particleSystem->AddAffector(particleAffector);
-						break;
-					}
-					case PAT_SCALE:
-					{
-						eastl::shared_ptr<BaseParticleAffector> particleAffector(
-							particleSystem->CreateScaleParticleAffector());
-						particleSystem->AddAffector(particleAffector);
-						break;
-					}
-					default:
-						break;
+					eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateBoxEmitter(
+						mEmitter, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+						mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+						mMaxAngle, mMinStartSize, mMaxStartSize));
+					particleSystem->SetEmitter(em); // this grabs the emitter
+					break;
 				}
-
-				eastl::shared_ptr<ResHandle>& resHandle =
-					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
-				if (resHandle)
+				case PET_CYLINDER:
 				{
-					const eastl::shared_ptr<ImageResourceExtraData>& extra =
-						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-					extra->GetImage()->AutogenerateMipmaps();
-
-					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
-						particleSystem->GetMaterial(i)->mLighting = false;
-					if (mMaterialType == MaterialType::MT_TRANSPARENT)
-					{
-						for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
-						{
-							eastl::shared_ptr<Material> material = particleSystem->GetMaterial(i);
-
-							material->mBlendTarget.enable = true;
-							material->mBlendTarget.srcColor = BlendState::BM_ONE;
-							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
-							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
-							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
-
-							material->mDepthBuffer = true;
-							material->mDepthMask = DepthStencilState::MASK_ZERO;
-
-							material->mFillMode = RasterizerState::FILL_SOLID;
-							material->mCullMode = RasterizerState::CULL_NONE;
-						}
-					}
-
-					particleSystem->SetMaterialTexture(0, extra->GetImage());
-					particleSystem->SetMaterialType((MaterialType)mMaterialType);
+					eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateCylinderEmitter(
+						Vector3<float>(), 0.0f, Vector3<float>(), 0.0f, true,
+						mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+						mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+						mMaxAngle, mMinStartSize, mMaxStartSize));
+					particleSystem->SetEmitter(em); // this grabs the emitter
+					break;
 				}
-
-				particleSystem->SetEffect(0);
+				case PET_MESH:
+				{
+					eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateMeshEmitter(
+						eastl::shared_ptr<BaseMesh>(), false, mDirection, 0, 0, false,
+						mMinParticlesPerSecond, mMaxParticlesPerSecond,
+						mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+						mMaxAngle, mMinStartSize, mMaxStartSize));
+					particleSystem->SetEmitter(em); // this grabs the emitter;
+					break;
+				}
+				case PET_RING:
+				{
+					eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateRingEmitter(
+						Vector3<float>(), 0.0f, 0.0f, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+						mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+						mMaxAngle, mMinStartSize, mMaxStartSize));
+					particleSystem->SetEmitter(em); // this grabs the emitter
+					break;
+				}
+				case PET_SPHERE:
+				{
+					eastl::shared_ptr<BaseParticleEmitter> em(particleSystem->CreateSphereEmitter(
+						Vector3<float>(), 0.0f, mDirection, mMinParticlesPerSecond, mMaxParticlesPerSecond,
+						mMinStartColor, mMaxStartColor, mMinLifeTime, mMaxLifeTime,
+						mMaxAngle, mMinStartSize, mMaxStartSize));
+					particleSystem->SetEmitter(em); // this grabs the emitter
+					break;
+				}
+				default:
+					break;
 			}
-			return node;
+
+			switch (mAffectorType)
+			{
+				case PAT_ATTRACT:
+				{
+					eastl::shared_ptr<BaseParticleAffector> particleAffector(
+						particleSystem->CreateAttractionAffector());
+					particleSystem->AddAffector(particleAffector);
+					break;
+				}
+				case PAT_FADE_OUT:
+				{
+					eastl::shared_ptr<BaseParticleAffector> particleAffector(
+						particleSystem->CreateFadeOutParticleAffector());
+					particleSystem->AddAffector(particleAffector);
+					break;
+				}
+				case PAT_GRAVITY:
+				{
+					eastl::shared_ptr<BaseParticleAffector> particleAffector(
+						particleSystem->CreateGravityAffector());
+					particleSystem->AddAffector(particleAffector);
+					break;
+				}
+				case PAT_ROTATE:
+				{
+					eastl::shared_ptr<BaseParticleAffector> particleAffector(
+						particleSystem->CreateRotationAffector());
+					particleSystem->AddAffector(particleAffector);
+					break;
+				}
+				case PAT_SCALE:
+				{
+					eastl::shared_ptr<BaseParticleAffector> particleAffector(
+						particleSystem->CreateScaleParticleAffector());
+					particleSystem->AddAffector(particleAffector);
+					break;
+				}
+				default:
+					break;
+			}
+
+			eastl::shared_ptr<ResHandle>& resHandle =
+				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
+			if (resHandle)
+			{
+				const eastl::shared_ptr<ImageResourceExtraData>& extra =
+					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+				extra->GetImage()->AutogenerateMipmaps();
+
+				for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
+					particleSystem->GetMaterial(i)->mLighting = false;
+				if (mMaterialType == MaterialType::MT_TRANSPARENT)
+				{
+					for (unsigned int i = 0; i<particleSystem->GetMaterialCount(); ++i)
+					{
+						eastl::shared_ptr<Material> material = particleSystem->GetMaterial(i);
+
+						material->mBlendTarget.enable = true;
+						material->mBlendTarget.srcColor = BlendState::BM_ONE;
+						material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+						material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+						material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+						material->mDepthBuffer = true;
+						material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+						material->mFillMode = RasterizerState::FILL_SOLID;
+						material->mCullMode = RasterizerState::CULL_NONE;
+					}
+				}
+
+				particleSystem->SetMaterialTexture(0, extra->GetImage());
+				particleSystem->SetMaterialType((MaterialType)mMaterialType);
+			}
+
+			particleSystem->SetEffect(0);
 		}
-		else LogError("Unknown Renderer Implementation in ParticleEffectRenderComponent");
+		return node;
 	}
+
 	return eastl::shared_ptr<Node>();
 }
 
@@ -1334,26 +1311,20 @@ eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 	WeakBaseRenderComponentPtr wbrcp(
 		eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
-	if (gameApp->mOption.mRendererType == RT_DIRECT3D11)
+	eastl::shared_ptr<Texture2> skyDome;
+	eastl::shared_ptr<ResHandle>& resHandle = ResCache::Get()->GetHandle(
+		&BaseResource(ToWideString(eastl::string(mTextureResource).c_str())));
+	if (resHandle)
 	{
-		eastl::shared_ptr<Texture2> skyDome;
-		eastl::shared_ptr<ResHandle>& resHandle = ResCache::Get()->GetHandle(
-			&BaseResource(ToWideString(eastl::string(mTextureResource).c_str())));
-		if (resHandle)
-		{
-			const eastl::shared_ptr<ImageResourceExtraData>& extra =
-				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-			skyDome = extra->GetImage();
-		}
-
-		// add skydome
-		eastl::shared_ptr<Node> sky = pScene->AddSkyDomeNode(wbrcp, 0,
-			skyDome, mHoriRes, mVertRes, mTexturePercentage, mSpherePercentage, mRadius, mOwner->GetId());
-		return sky;
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		skyDome = extra->GetImage();
 	}
-	else LogError("Unknown Renderer Implementation in SkyRenderComponent");
 
-	return eastl::shared_ptr<Node>();
+	// add skydome
+	eastl::shared_ptr<Node> sky = pScene->AddSkyDomeNode(wbrcp, 0,
+		skyDome, mHoriRes, mVertRes, mTexturePercentage, mSpherePercentage, mRadius, mOwner->GetId());
+	return sky;
 }
 
 void SkyRenderComponent::CreateInheritedXMLElements(

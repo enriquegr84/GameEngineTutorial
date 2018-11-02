@@ -45,7 +45,6 @@ GameOption::GameOption()
 	// set all the options to decent default valu
 	mLevel = "";
 
-	mRendererType = RendererType::RT_DIRECT3D11;
 	mScreenSize = Vector2<int>{ 800,600 };
 	mFullScreen = false;
 	mAntiAlias = 0;
@@ -82,17 +81,6 @@ void GameOption::Init(const wchar_t* xmlFileName)
 		pNode = mRoot->FirstChildElement("Graphics"); 
 		if (pNode)
 		{
-			eastl::string attribute;
-			attribute = pNode->Attribute("Renderer");
-			if (attribute != "Direct3D 11")
-			{
-				LogError("Bad Renderer setting in Graphics options.");
-			}
-			else
-			{
-				mRendererType = RendererType::RT_DIRECT3D11;
-			}
-
 			if (pNode->Attribute("Width"))
 			{
 				mScreenSize[0] = pNode->IntAttribute("Width", mScreenSize[0]);

@@ -116,7 +116,7 @@ WindowsSystem::~WindowsSystem()
 	// Just remember to call ChangeDisplaySettings() again before you close the program or
 	// else you will be stuck in the changed mode until you manually change it in your
 	// display settings from control panels.
-	SwitchToFullScreen(true);
+	SwitchToFullScreen();
 }
 
 HWND WindowsSystem::GetHandleFromSystem(System* system)
@@ -377,7 +377,7 @@ LRESULT CALLBACK WindowsSystem::WndProc (HWND hWnd, UINT iMsg, WPARAM wParam, LP
 					// If losing focus we minimize the app to show other one
 					ShowWindow(hWnd,SW_MINIMIZE);
 					// and switch back to default resolution
-					dev->SwitchToFullScreen(true);
+					dev->SwitchToFullScreen();
 				}
 				else
 				{

@@ -57,7 +57,7 @@
 
 #include "GameDemoApp.h"
 
-
+/*
 //========================================================================
 // main - Defines the entry point to the application, the GameApplication handles the 
 // initialization. This allows the GameEngine function to live in a library, 
@@ -126,7 +126,7 @@ int main()
 
 	return exitCode;
 }
-
+*/
 //========================================================================
 //
 // GameDemoApp Implementation     - Chapter 21, page 722

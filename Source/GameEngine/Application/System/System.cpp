@@ -99,13 +99,6 @@ void System::SetEventListener(EventListener* listener)
 	mEventListener = listener;
 }
 
-
-//! Checks if the window is running in fullscreen mode
-bool System::IsFullscreen() const
-{
-	return mFullscreen;
-}
-
 //	Set the maximal elapsed time between 2 clicks to generate doubleclicks for the mouse. 
 //	It also affects tripleclick behavior.
 void System::SetMouseDoubleClickTime( unsigned int timeMs )

@@ -42,8 +42,6 @@
 
 #include "GameEngineStd.h"
 
-#include "Graphic/Renderer/Renderer.h"
-
 #include "Mathematic/Algebra/Vector2.h"
 
 struct GameOption
@@ -53,8 +51,6 @@ struct GameOption
 
 	// Rendering options
 
-	//! Type of video driver used to render graphics.
-	RendererType mRendererType;
 	//! Size of the window or the video mode in fullscreen mode. Default: 800x600
 	Vector2<int> mScreenSize;
 	//! Should be set to true if the device should run in fullscreen.

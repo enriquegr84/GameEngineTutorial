@@ -73,13 +73,7 @@ unsigned int WindowApplication::UpdateTime()
 	const unsigned int elapsedTime = currentTime - mTimer;
 	mTimer = currentTime;
 
-	// note: max frame time to avoid spiral of death
-	if (elapsedTime > 250)
-	{
-		mFramesPerSecond = 1000 / 250;
-		return 250;
-	}
-	else if (elapsedTime > 0)
+	if (elapsedTime > 0)
 		mFramesPerSecond = 1000 / elapsedTime;
 
 	return elapsedTime;
@@ -172,6 +166,9 @@ bool WindowApplication::OnInitialize()
 	mRenderer->SetClearColor(mClearColor);
 
 	mFileSystem = eastl::shared_ptr<FileSystem>(new FileSystem());
+	// Always check the application directory.
+	mFileSystem->InsertDirectory(Application::ApplicationPath);
+	mFileSystem->InsertDirectory(ProjectApplicationPath + "../../../Assets/");
 
 	InitTime();
 
@@ -183,7 +180,9 @@ bool WindowApplication::OnInitialize()
 //----------------------------------------------------------------------------
 void WindowApplication::OnTerminate()
 {
-
+	//Destroy the logging system at the last possible moment
+	//Logger::Destroy();
+	mFileSystem->RemoveAllDirectories();
 }
 
 //----------------------------------------------------------------------------
