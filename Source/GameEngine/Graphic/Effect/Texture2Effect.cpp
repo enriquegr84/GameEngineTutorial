@@ -8,14 +8,16 @@
 #include "Texture2Effect.h"
 
 Texture2Effect::Texture2Effect(eastl::shared_ptr<ProgramFactory> const& factory,
-	eastl::string path, eastl::shared_ptr<Texture2> const& texture, SamplerState::Filter filter,
-    SamplerState::Mode mode0, SamplerState::Mode mode1)
+	eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2> const& texture, 
+	SamplerState::Filter filter, SamplerState::Mode mode0, SamplerState::Mode mode1)
     :
     mTexture(texture),
     mPVWMatrix(nullptr)
 {
-
-	mProgram = factory->CreateFromFiles(path, path, "");
+	eastl::string vsPath = path.front();
+	eastl::string psPath = path.size() > 1 ? path[1] : path.front();
+	eastl::string gsPath = path.size() > 2 ? path[2] : "";
+	mProgram = factory->CreateFromFiles(vsPath, psPath, gsPath);
     if (mProgram)
     {
         mPVWMatrixConstant = eastl::make_shared<ConstantBuffer>(sizeof(Matrix4x4<float>), true);

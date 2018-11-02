@@ -135,16 +135,31 @@ Dx11Renderer::~Dx11Renderer()
 
 	if (mGraphicObjects.HasElements())
 	{
+		if (mWarnOnNonemptyBridges)
+		{
+			LogWarning("Bridge map is nonempty on destruction.");
+		}
+
 		mGraphicObjects.RemoveAll();
 	}
 
 	if (mDrawTargets.HasElements())
 	{
+		if (mWarnOnNonemptyBridges)
+		{
+			LogWarning("Draw target map nonempty on destruction.");
+		}
+
 		mDrawTargets.RemoveAll();
 	}
 
 	if (mInputLayouts->HasElements())
 	{
+		if (mWarnOnNonemptyBridges)
+		{
+			LogWarning("Input layout map nonempty on destruction.");
+		}
+
 		mInputLayouts->UnbindAll();
 	}
 	mInputLayouts = nullptr;

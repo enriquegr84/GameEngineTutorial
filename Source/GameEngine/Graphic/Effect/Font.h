@@ -19,8 +19,9 @@ class GRAPHIC_ITEM Font
 {
 public:
     // Construction.
-    Font(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path, 
-		unsigned int width, unsigned int height, char const* texels, float const* characterData, 
+    Font(eastl::shared_ptr<ProgramFactory> const& factory, 
+		eastl::vector<eastl::string> const& path, unsigned int width, 
+		unsigned int height, char const* texels, float const* characterData, 
 		unsigned int maxMessageLength);
 
     // Member access.

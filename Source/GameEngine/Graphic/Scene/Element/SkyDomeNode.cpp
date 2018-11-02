@@ -27,8 +27,8 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
 
 	mMeshBuffer = eastl::make_shared<MeshBuffer>(vformat, 
 		(mHorizontalResolution + 1) * (mVerticalResolution + 1), 
@@ -48,7 +48,13 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	// regenerate the mesh
 	GenerateMesh(sky);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+	eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
+	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
+#else
+	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
+#endif
 	eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
 		mMeshBuffer->GetMaterial()->mTextureLayer[0].mFilter,
@@ -78,8 +84,8 @@ void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
 	struct Vertex
 	{
 		Vector3<float> position;
-		Vector3<float> normal;
 		Vector2<float> tcoord;
+		Vector3<float> normal;
 	};
 
 	unsigned int numVertices = mMeshBuffer->GetVertice()->GetNumElements();
@@ -98,7 +104,8 @@ void SkyDomeNode::GenerateMesh(const eastl::shared_ptr<Texture2>& sky)
 			Vertex vertice;
 
 			const float cosEr = mRadius * Function<float>::Cos(elevation);
-			vertice.position = Vector3<float>{ cosEr*sinA, cosEr*cosA, mRadius*Function<float>::Sin(elevation) };
+			vertice.position = Vector3<float>{ 
+				cosEr*sinA, cosEr*cosA, mRadius*Function<float>::Sin(elevation) };
 			vertice.tcoord = Vector2<float>{ tcU, j*tcV };
 			vertice.normal = -vertice.position;
 			Normalize(vertice.normal);

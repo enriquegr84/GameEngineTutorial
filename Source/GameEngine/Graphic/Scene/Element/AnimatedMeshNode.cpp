@@ -46,7 +46,13 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 			mBlendStates.push_back(eastl::make_shared<BlendState>());
 			mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
 
-			eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+			eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+			path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
+			path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
+#else
+			path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
+#endif
 			eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 				ProgramFactory::Get(), path, meshBuffer->GetMaterial()->GetTexture(0),
 				meshBuffer->GetMaterial()->mTextureLayer[0].mFilter,

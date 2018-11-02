@@ -9,12 +9,15 @@
 
 
 ConstantColorEffect::ConstantColorEffect(eastl::shared_ptr<ProgramFactory> const& factory,
-	eastl::string path, Vector4<float> const& color)
+	eastl::vector<eastl::string> path, Vector4<float> const& color)
     :
     mPVWMatrix(nullptr),
     mColor(nullptr)
 {
-	mProgram = factory->CreateFromFiles(path, path, "");
+	eastl::string vsPath = path.front();
+	eastl::string psPath = path.size() > 1 ? path[1] : path.front();
+	eastl::string gsPath = path.size() > 2 ? path[2] : "";
+	mProgram = factory->CreateFromFiles(vsPath, psPath, gsPath);
 	if (mProgram)
 	{
 		mPVWMatrixConstant = eastl::make_shared<ConstantBuffer>(sizeof(Matrix4x4<float>), true);

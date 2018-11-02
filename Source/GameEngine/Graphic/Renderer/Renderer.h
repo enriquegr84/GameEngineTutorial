@@ -141,6 +141,12 @@ public:
 	// Draw 2D text
 	uint64_t Draw(int x, int y, eastl::array<float, 4> const& color, eastl::wstring const& message);
 
+	// Set the warning to 'true' if you want the DX11Engine destructor to
+	// report that the bridge maps are nonempty.  If they are, the application
+	// did not destroy GraphicsObject items before the engine was destroyed.
+	// The default values is 'true'.
+	inline void WarnOnNonemptyBridges(bool warn);
+
 	inline const Vector2<unsigned int>& GetScreenSize() const;
 
 	// Support for clearing the color, depth, and stencil back buffers.
@@ -238,7 +244,7 @@ protected:
 		eastl::vector<GraphicObject*>&, GraphicObject*);
 	CreateGEDrawTarget mCreateDrawTarget;
 
-	// Track GraphicsObject destruction and delete to-be-destroyed objects
+	// Track GraphicObject destruction and delete to-be-destroyed objects
 	// from the bridge map.
 	class GOListener : public GraphicObject::ListenerForDestruction
 	{
@@ -266,6 +272,7 @@ protected:
 
 	eastl::shared_ptr<DTListener> mDTListener;
 
+	bool mWarnOnNonemptyBridges;
 
 	// Helpers for construction and destruction.
 	void CreateDefaultGlobalState();
@@ -394,6 +401,11 @@ inline void Renderer::SetDefaultRasterizerState()
 inline eastl::shared_ptr<RasterizerState> const& Renderer::GetDefaultRasterizerState() const
 {
 	return mDefaultRasterizerState;
+}
+//----------------------------------------------------------------------------
+inline void Renderer::WarnOnNonemptyBridges(bool warn)
+{
+	mWarnOnNonemptyBridges = warn;
 }
 
 #endif

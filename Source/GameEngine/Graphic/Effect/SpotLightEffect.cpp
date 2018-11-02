@@ -8,8 +8,9 @@
 #include "SpotLightEffect.h"
 
 SpotLightEffect::SpotLightEffect(eastl::shared_ptr<ProgramFactory> const& factory,
-    BufferUpdater const& updater, eastl::string path, int select, eastl::shared_ptr<Material> const& material,
-	eastl::shared_ptr<Lighting> const& lighting, eastl::shared_ptr<LightCameraGeometry> const& geometry)
+    BufferUpdater const& updater, eastl::vector<eastl::string> const& path, int select, 
+	eastl::shared_ptr<Material> const& material, eastl::shared_ptr<Lighting> const& lighting, 
+	eastl::shared_ptr<LightCameraGeometry> const& geometry)
     :
     LightingEffect(factory, updater, path, material, lighting, geometry)
 {

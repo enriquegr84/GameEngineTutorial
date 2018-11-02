@@ -130,12 +130,12 @@ public:
 
     // Naming support, used in the DX11 debug layer.  The default name is "".
     // If you want the name to show up in the DX11 destruction messages when
-    // the associated DX11GraphicsObject is destroyed, set the name to
+    // the associated DX11GraphicObject is destroyed, set the name to
     // something other than "".
     inline void SetName(eastl::wstring const& name);
     inline eastl::wstring const& GetName() const;
 
-    // Listeners subscribe to receive notification when a GraphicsObject is
+    // Listeners subscribe to receive notification when a GraphicObject is
     // about to be destroyed.  The intended use is for the DX11Engine objects
     // to destroy corresponding ID3D11DeviceChild objects.
     class GRAPHIC_ITEM ListenerForDestruction

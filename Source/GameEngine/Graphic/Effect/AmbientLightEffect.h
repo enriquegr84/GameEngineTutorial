@@ -16,7 +16,7 @@ class GRAPHIC_ITEM AmbientLightEffect : public LightingEffect
 public:
     // Construction.
     AmbientLightEffect(eastl::shared_ptr<ProgramFactory> const& factory,
-        BufferUpdater const& updater, eastl::string path, 
+        BufferUpdater const& updater, eastl::vector<eastl::string> const& path,
 		eastl::shared_ptr<Material> const& material,
         eastl::shared_ptr<Lighting> const& lighting);
 

@@ -10,7 +10,12 @@
 //! constructor
 CameraNode::CameraNode(const ActorId actorid)
 	: Node(actorid, WeakBaseRenderComponentPtr(), NT_CAMERA), 
-	mActive(true), mTarget(0), mCamera(eastl::make_shared<Camera>(true, true))
+	mActive(true), mTarget(0),
+#if defined(_OPENGL_)
+	mCamera(eastl::make_shared<Camera>(true, false))
+#else
+	mCamera(eastl::make_shared<Camera>(true, true))
+#endif
 {
 	mAffector = Matrix4x4<float>::Identity();
 

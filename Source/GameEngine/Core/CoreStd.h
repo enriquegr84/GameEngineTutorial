@@ -22,7 +22,6 @@
 #if defined(_WIN32) || defined(_WIN64) || defined(WIN32)  || defined(WIN64)
 
 #define _WINDOWS_API_
-#define USE_WINDOWS
 
 #define WIN32_LEAN_AND_MEAN
 

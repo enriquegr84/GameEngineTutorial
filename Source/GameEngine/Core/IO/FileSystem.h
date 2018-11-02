@@ -43,6 +43,12 @@ public:
 	virtual BaseReadFile* CreateLimitReadFile(const eastl::wstring& fileName, 
 		BaseReadFile* alreadyOpenedFile, long pos, long areaSize);
 
+	//! Creates an ReadFile interface for accessing files.
+	/** This is useful e.g. for archives.
+	\param fileName: The name given to this file
+	\return A pointer to the created file interface.*/
+	virtual BaseReadFile* CreateReadFile(const eastl::wstring& fileName);
+
 	//! Creates an empty filelist
 	/** \return a Pointer to the created FileList is returned. */
 	virtual BaseFileList* CreateFileList();

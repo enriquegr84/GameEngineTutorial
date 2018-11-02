@@ -7,8 +7,9 @@
 
 #include "DirectionalLightTextureEffect.h"
 
-DirectionalLightTextureEffect::DirectionalLightTextureEffect(eastl::shared_ptr<ProgramFactory> const& factory,
-    BufferUpdater const& updater, eastl::string path, eastl::shared_ptr<Material> const& material, 
+DirectionalLightTextureEffect::DirectionalLightTextureEffect(
+	eastl::shared_ptr<ProgramFactory> const& factory, BufferUpdater const& updater, 
+	eastl::vector<eastl::string> const& path, eastl::shared_ptr<Material> const& material,
 	eastl::shared_ptr<Lighting> const& lighting, eastl::shared_ptr<LightCameraGeometry> const& geometry, 
 	eastl::shared_ptr<Texture2> const& texture, SamplerState::Filter filter, 
 	SamplerState::Mode mode0, SamplerState::Mode mode1)

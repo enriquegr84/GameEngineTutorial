@@ -25,7 +25,7 @@
 #include "Graphic/State/SamplerState.h"
 
 #if defined(_OPENGL_)
-#include "Graphic/Renderer/GL4/GLSL/GLSLReflection.h"
+#include "Graphic/Renderer/OpenGL4/Shader/GLSLReflection.h"
 #else
 #include "Graphic/Renderer/DirectX11/HLSL/HLSLShader.h"
 #endif
@@ -163,12 +163,12 @@ protected:
     // TODO: find more meaningful names for fields like extra, isGpuWritable based on usage
     struct Data
     {
-        Data(GraphicsObjectType inType, eastl::string const& inName,
+        Data(GraphicObjectType inType, eastl::string const& inName,
             int inBindPoint, int inNumBytes, unsigned int inExtra,
             bool inIsGpuWritable);
 
-		eastl::shared_ptr<GraphicsObject> object; // CB, TB, SB, RB, TX, TA, SS
-        GraphicsObjectType type;                // CB, TB, SB, RB, TX, TA, SS
+		eastl::shared_ptr<GraphicObject> object; // CB, TB, SB, RB, TX, TA, SS
+        GraphicObjectType type;                // CB, TB, SB, RB, TX, TA, SS
 		eastl::string name;                       // CB, TB, SB, RB, TX, TA, SS, AC
         int bindPoint;                          // CB, TB, SB, RB, TX, TA, SS, AB, AC (atomic counter buffer index)
         int numBytes;                           // CB, TB, SB, RB, AB, AC (always 4)

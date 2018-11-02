@@ -53,7 +53,13 @@ void ParticleSystemNode::SetEffect(int size)
 		meshBuffer->GetMaterial() = GetMaterial(i);
 	mMeshBuffer.reset(meshBuffer);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl");
+	eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ColorEffectVS.glsl"));
+	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ColorEffectPS.glsl"));
+#else
+	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl"));
+#endif
 	eastl::shared_ptr<Texture2ColorEffect> effect = eastl::make_shared<Texture2ColorEffect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
 		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);

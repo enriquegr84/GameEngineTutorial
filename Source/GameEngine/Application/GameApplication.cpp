@@ -33,6 +33,11 @@
 #include "Graphic/Renderer/DirectX11/Dx11Renderer.h"
 #include "Graphic/Renderer/DirectX11/HLSL/HLSLProgramFactory.h"
 
+#elif _OPENGL_
+
+#include "Graphic/Renderer/OpenGL4/WGL/WGLRenderer.h"
+#include "Graphic/Renderer/OpenGL4/Shader/GLSLProgramFactory.h"
+
 #endif
 
 #endif
@@ -176,10 +181,16 @@ bool GameApplication::OnInitialize()
 
 #ifdef USE_DX11
 
-	mProgramFactory = eastl::make_shared<HLSLProgramFactory>();
-
 	mRenderer = eastl::shared_ptr<Renderer>(new Dx11Renderer(
 		handle, mWidth, mHeight, D3D_FEATURE_LEVEL_11_0));
+	mProgramFactory = eastl::make_shared<HLSLProgramFactory>();
+
+	if (mRenderer == 0) return false; // initialization failed
+
+#elif _OPENGL_
+
+	mRenderer = eastl::shared_ptr<Renderer>(new WGLRenderer(handle));
+	mProgramFactory = eastl::make_shared<GLSLProgramFactory>();
 
 	if (mRenderer == 0) return false; // initialization failed
 

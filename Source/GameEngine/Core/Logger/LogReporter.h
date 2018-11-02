@@ -11,7 +11,7 @@
 #include "LogToFile.h"
 #include "LogToStdout.h"
 
-#if defined(USE_WINDOWS)
+#if defined(_WINDOWS_API_)
 #include "Windows/LogToMessageBox.h"
 #include "Windows/LogToOutputWindow.h"
 #endif
@@ -32,7 +32,7 @@ private:
     eastl::unique_ptr<LogToFile> mLogToFile;
     eastl::unique_ptr<LogToStdout> mLogToStdout;
 
-#if defined(USE_WINDOWS)
+#if defined(_WINDOWS_API_)
 	eastl::unique_ptr<LogToMessageBox> mLogToMessageBox;
 	eastl::unique_ptr<LogToOutputWindow> mLogToOutputWindow;
 #endif

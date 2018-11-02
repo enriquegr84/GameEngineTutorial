@@ -15,9 +15,10 @@ class GRAPHIC_ITEM DirectionalLightEffect : public LightingEffect
 {
 public:
     // Construction.  Set 'select' to 0 for per-vertex effects or to 1 for per-pixel effects.
-    DirectionalLightEffect(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path,
-        BufferUpdater const& bufferUpdater, int select, eastl::shared_ptr<Material> const& material,
-		eastl::shared_ptr<Lighting> const& lighting, eastl::shared_ptr<LightCameraGeometry> const& geometry);
+    DirectionalLightEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
+		eastl::vector<eastl::string> const& path, BufferUpdater const& bufferUpdater, int select,
+		eastl::shared_ptr<Material> const& material, eastl::shared_ptr<Lighting> const& lighting, 
+		eastl::shared_ptr<LightCameraGeometry> const& geometry);
 
     // After you set or modify 'material', 'light', or 'geometry', call the update
     // to inform any listener that the corresponding constant buffer has changed.

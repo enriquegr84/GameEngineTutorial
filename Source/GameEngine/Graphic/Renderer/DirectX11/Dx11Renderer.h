@@ -67,8 +67,8 @@ public:
 	// level) without debugging support; it is equivalent to the second
 	// constructor call:
 	Dx11Renderer(D3D_FEATURE_LEVEL minFeatureLevel);
-	Dx11Renderer(D3D_DRIVER_TYPE driverType,
-		HMODULE softwareModule, UINT flags, D3D_FEATURE_LEVEL minFeatureLevel);
+	Dx11Renderer(D3D_DRIVER_TYPE driverType, HMODULE softwareModule, 
+		UINT flags, D3D_FEATURE_LEVEL minFeatureLevel);
 
 	// Constructors for graphics (automatically get computing capabilities).
 	// The first constructor uses the default adapter and tries for DX11.0

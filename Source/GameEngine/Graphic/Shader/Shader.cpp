@@ -176,7 +176,7 @@ Shader::Shader(GLSLReflection const& reflector, int type)
     {
         mCBufferLayouts.resize(numUniformBlockReferences);
 
-        // Store information needed by GL4Engine for enabling/disabling the
+        // Store information needed by GL4Renderer for enabling/disabling the
         // constant buffers.
         int blockIndex = 0;
         int layoutIndex = 0;
@@ -248,7 +248,7 @@ Shader::Shader(GLSLReflection const& reflector, int type)
                 }
 
                 mData[AtomicCounterBufferShaderDataLookup].push_back(
-                    Data(RESOURCE, "atomicCounterBuffer" + eastl::to_string(blockIndex),
+                    Data(GE_RESOURCE, "atomicCounterBuffer" + eastl::to_string(blockIndex),
                     block.bufferBinding, bufferDataSize, 0, true));
             }
             ++blockIndex;
@@ -270,7 +270,7 @@ Shader::Shader(GLSLReflection const& reflector, int type)
         auto const& bufferVariables = reflector.GetBufferVariables();
         mSBufferLayouts.resize(numBufferBlockReferences);
 
-        // Store information needed by GL4Engine for enabling/disabling the
+        // Store information needed by GL4Renderer for enabling/disabling the
         // structured buffers.
         int blockIndex = 0;
         int layoutIndex = 0;
@@ -352,7 +352,7 @@ Shader::Shader(GLSLReflection const& reflector, int type)
 
     // The conversion depends on the 'type' of the ordering:  {vertex = 0,
     // geometry = 1, pixel = 2, compute = 3}.
-    mType = static_cast<GraphicsObjectType>(GE_SHADER + 1 + type);
+    mType = static_cast<GraphicObjectType>(GE_SHADER + 1 + type);
 }
 #else
 Shader::Shader(HLSLShader const& program)
@@ -442,7 +442,7 @@ Shader::Shader(HLSLShader const& program)
 	}
 
 	// The conversion depends on the HLSLShader::Type ordering to be the
-	// same as GraphicsObjectType for GL_SHADER through GL_COMPUTE_SHADER.
+	// same as GraphicObjectType for GL_SHADER through GL_COMPUTE_SHADER.
 	int index = program.GetShaderTypeIndex();
 	mType = static_cast<GraphicObjectType>(GE_SHADER + 1 + index);
 }

@@ -5,6 +5,7 @@
 #include "FileSystem.h"
 #include "FileList.h"
 
+#include "ReadFile.h"
 #include "MemoryFile.h"
 #include "LimitReadFile.h"
 #include "MountPointReader.h"
@@ -78,7 +79,6 @@ BaseReadFile* FileSystem::CreateMemoryReadFile(const void* memory, int len,
 	return nullptr;
 }
 
-
 //! Creates an ReadFile interface for reading files inside files
 BaseReadFile* FileSystem::CreateLimitReadFile(const eastl::wstring& fileName, 
 	BaseReadFile* alreadyOpenedFile, long pos, long areaSize)
@@ -87,6 +87,12 @@ BaseReadFile* FileSystem::CreateLimitReadFile(const eastl::wstring& fileName,
 		return new LimitReadFile(alreadyOpenedFile, pos, areaSize, fileName);
 
 	return nullptr;
+}
+
+//! Creates an ReadFile interface for reading files
+BaseReadFile* FileSystem::CreateReadFile(const eastl::wstring& fileName)
+{
+	return ReadFile::CreateReadFile(fileName);
 }
 
 //! Creates a list of files and directories in the current working directory

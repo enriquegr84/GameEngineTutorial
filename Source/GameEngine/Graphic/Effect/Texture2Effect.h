@@ -19,7 +19,7 @@ class GRAPHIC_ITEM Texture2Effect : public VisualEffect
 public:
     // Constructionn.
     Texture2Effect(eastl::shared_ptr<ProgramFactory> const& factory,
-		eastl::string path, eastl::shared_ptr<Texture2> const& texture, 
+		eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2> const& texture,
 		SamplerState::Filter filter, SamplerState::Mode mode0, SamplerState::Mode mode1);
 
     // Member access.
@@ -57,8 +57,7 @@ inline Matrix4x4<float> const& Texture2Effect::GetPVWMatrix() const
     return *mPVWMatrix;
 }
 
-inline eastl::shared_ptr<ConstantBuffer> const&
-Texture2Effect::GetPVWMatrixConstant() const
+inline eastl::shared_ptr<ConstantBuffer> const& Texture2Effect::GetPVWMatrixConstant() const
 {
     return mPVWMatrixConstant;
 }

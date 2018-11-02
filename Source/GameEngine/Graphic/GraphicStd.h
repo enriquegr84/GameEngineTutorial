@@ -23,29 +23,7 @@ and this to the linker settings: -ld3dx11
 
 #define USE_DX11
 
-#include <D3D11.h>
-#include <D3Dcompiler.h>
-#include <DXGI.h>
-
-// Fake enumerations to have human-readable names that D3D11 did not provide.
-
-// D3D11_BIND_FLAG
-#define D3D11_BIND_NONE 0
-
-// D3D11_RESOURCE_MISC_FLAG
-#define D3D11_RESOURCE_MISC_NONE 0
-
-// D3D11_BUFFER_UAV_FLAG
-#define D3D11_BUFFER_UAV_FLAG_BASIC 0
-
-// D3D11_CPU_ACCESS_FLAG
-#define D3D11_CPU_ACCESS_NONE 0
-#define D3D11_CPU_ACCESS_READ_WRITE (D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE)
-
-// D3D11_QUERY_MISC_FLAG
-#define D3D11_QUERY_MISC_NONE 0
-
-#ifdef NO_USE_DX11
+#ifdef _OPENGL_
 #undef USE_DX11
 #endif
 
@@ -115,6 +93,29 @@ and this to the linker settings: -ld3dx11
     #ifdef _DEBUG
         #define PDR_DEBUG
     #endif
+
+#include <D3D11.h>
+#include <D3Dcompiler.h>
+#include <DXGI.h>
+
+// Fake enumerations to have human-readable names that D3D11 did not provide.
+
+// D3D11_BIND_FLAG
+#define D3D11_BIND_NONE 0
+
+// D3D11_RESOURCE_MISC_FLAG
+#define D3D11_RESOURCE_MISC_NONE 0
+
+// D3D11_BUFFER_UAV_FLAG
+#define D3D11_BUFFER_UAV_FLAG_BASIC 0
+
+// D3D11_CPU_ACCESS_FLAG
+#define D3D11_CPU_ACCESS_NONE 0
+#define D3D11_CPU_ACCESS_READ_WRITE (D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE)
+
+// D3D11_QUERY_MISC_FLAG
+#define D3D11_QUERY_MISC_NONE 0
+
 #endif
 
 

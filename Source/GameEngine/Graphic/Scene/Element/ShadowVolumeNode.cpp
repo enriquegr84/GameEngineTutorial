@@ -56,7 +56,13 @@ void ShadowVolumeNode::SetShadowMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 				eastl::shared_ptr<Lighting> lighting = eastl::make_shared<Lighting>();
 				eastl::shared_ptr<LightCameraGeometry> geometry = eastl::make_shared<LightCameraGeometry>();
 
-				eastl::string path = FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl");
+				eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+				path.push_back(FileSystem::Get()->GetPath("Effects/PointLightTextureEffectVS.glsl"));
+				path.push_back(FileSystem::Get()->GetPath("Effects/PointLightTextureEffectPS.glsl"));
+#else
+				path.push_back(FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl"));
+#endif
 				mEffect = eastl::make_shared<PointLightTextureEffect>(ProgramFactory::Get(), 
 					mPVWUpdater->GetUpdater(), path, meshBuffer->GetMaterial(), lighting,
 					geometry, eastl::make_shared<Texture2>(DF_UNKNOWN, 0, 0, true), 

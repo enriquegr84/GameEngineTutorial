@@ -247,14 +247,38 @@
     <Filter Include="Core\Utility">
       <UniqueIdentifier>{cf755c7d-d0ce-4bb9-8acd-1b6fc7043324}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphic\Renderer\OpenGL4">
+      <UniqueIdentifier>{aee55fcb-229d-4fb8-bd07-c74c1a10b458}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\OpenGL4\InputLayout">
+      <UniqueIdentifier>{3a0c06be-fa07-4082-ab1a-209b6bf4cf7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\OpenGL4\State">
+      <UniqueIdentifier>{e2488005-e66a-4ac8-a634-c145373f6e05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\OpenGL4\WGL">
+      <UniqueIdentifier>{36fefc42-ac4c-43ef-a271-1b6d2bf7029a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\OpenGL4\GL">
+      <UniqueIdentifier>{4f65f6f6-7435-4b08-90cc-e4305aea9eba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\OpenGL4\Shader">
+      <UniqueIdentifier>{90fc9be8-5265-420c-8360-307b40cb5fc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\OpenGL4\Resource">
+      <UniqueIdentifier>{979572e3-1782-4de4-8cd7-0e801979e19f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\OpenGL4\Resource\Buffer">
+      <UniqueIdentifier>{caf3eb76-9db9-4644-8224-aca049de670c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphic\Renderer\OpenGL4\Resource\Texture">
+      <UniqueIdentifier>{be8329dc-e4ba-477f-b868-2508bb8cffa7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
     <ClCompile Include="..\Graphic\Renderer\Renderer.cpp">
       <Filter>Graphic\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Core\IO\FileIO.cpp">
-      <Filter>Core\IO</Filter>
     </ClCompile>
     <ClCompile Include="..\Core\3rdParty\EASTL\source\allocator_eastl.cpp">
       <Filter>Core\3rdParty\EASTL\source</Filter>
@@ -1012,6 +1036,117 @@
     <ClCompile Include="..\Graphic\Effect\SpotLightTextureEffect.cpp">
       <Filter>Graphic\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\InputLayout\GL4InputLayout.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\InputLayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\InputLayout\GL4InputLayoutManager.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\InputLayout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4AtomicCounterBuffer.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4Buffer.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4ConstantBuffer.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4IndexBuffer.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4StructuredBuffer.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4VertexBuffer.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4DrawTarget.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture1.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture1Array.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture2.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture2Array.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture3.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureArray.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureCube.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureCubeArray.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureDS.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureRT.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureSingle.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\GL4GraphicObject.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Resource\GL4Resource.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLComputeProgram.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLProgramFactory.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLReflection.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLVisualProgram.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\State\GL4BlendState.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\State\GL4DepthStencilState.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\State\GL4DrawingState.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\State\GL4RasterizerState.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\State\GL4SamplerState.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\WGL\WGLExtensions.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\WGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\WGL\WGLRenderer.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\WGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\GL4Renderer.cpp">
+      <Filter>Graphic\Renderer\OpenGL4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\OpenGL.cpp">
+      <Filter>Graphic\Renderer\OpenGL4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\OpenGLHelper.cpp">
+      <Filter>Graphic\Renderer\OpenGL4</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -1029,9 +1164,6 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\GraphicStd.h">
       <Filter>Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Core\IO\FileIO.h">
-      <Filter>Core\IO</Filter>
     </ClInclude>
     <ClInclude Include="..\Core\Threading\ThreadSafeMap.h">
       <Filter>Core\Threading</Filter>
@@ -2445,6 +2577,126 @@
     </ClInclude>
     <ClInclude Include="..\Mathematic\Geometric\Hyperplane.h">
       <Filter>Mathematic\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\GL\glcorearb.h">
+      <Filter>Graphic\Renderer\OpenGL4\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\GL\glext.h">
+      <Filter>Graphic\Renderer\OpenGL4\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\GL\glxext.h">
+      <Filter>Graphic\Renderer\OpenGL4\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\GL\wglext.h">
+      <Filter>Graphic\Renderer\OpenGL4\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\InputLayout\GL4InputLayout.h">
+      <Filter>Graphic\Renderer\OpenGL4\InputLayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\InputLayout\GL4InputLayoutManager.h">
+      <Filter>Graphic\Renderer\OpenGL4\InputLayout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4AtomicCounterBuffer.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4Buffer.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4ConstantBuffer.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4IndexBuffer.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4StructuredBuffer.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Buffer\GL4VertexBuffer.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4DrawTarget.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture1.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture1Array.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture2.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture2Array.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4Texture3.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureArray.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureCube.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureCubeArray.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureDS.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureRT.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\Texture\GL4TextureSingle.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\GL4GraphicObject.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Resource\GL4Resource.h">
+      <Filter>Graphic\Renderer\OpenGL4\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLComputeProgram.h">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLProgramFactory.h">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLReflection.h">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLVisualProgram.h">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\State\GL4BlendState.h">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\State\GL4DepthStencilState.h">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\State\GL4DrawingState.h">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\State\GL4RasterizerState.h">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\State\GL4SamplerState.h">
+      <Filter>Graphic\Renderer\OpenGL4\State</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\WGL\WGLRenderer.h">
+      <Filter>Graphic\Renderer\OpenGL4\WGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\GL4Renderer.h">
+      <Filter>Graphic\Renderer\OpenGL4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\OpenGL.h">
+      <Filter>Graphic\Renderer\OpenGL4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\OpenGLHelper.h">
+      <Filter>Graphic\Renderer\OpenGL4</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

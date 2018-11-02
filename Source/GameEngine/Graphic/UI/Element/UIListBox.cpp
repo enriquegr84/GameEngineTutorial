@@ -21,7 +21,13 @@ UIListBox::UIListBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle, bool 
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl");
+	eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectVS.glsl"));
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectPS.glsl"));
+#else
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl"));
+#endif
 	mEffect = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
 
 	eastl::shared_ptr<VertexBuffer> vbuffer = eastl::make_shared<VertexBuffer>(vformat, 4);

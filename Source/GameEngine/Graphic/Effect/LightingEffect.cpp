@@ -10,14 +10,18 @@
 #include "Mathematic/Algebra/Matrix4x4.h"
 
 LightingEffect::LightingEffect(eastl::shared_ptr<ProgramFactory> const& factory,
-    BufferUpdater const& updater, eastl::string path, eastl::shared_ptr<Material> const& material, 
-	eastl::shared_ptr<Lighting> const& lighting, eastl::shared_ptr<LightCameraGeometry> const& geometry)
+    BufferUpdater const& updater, eastl::vector<eastl::string> const& path, 
+	eastl::shared_ptr<Material> const& material, eastl::shared_ptr<Lighting> const& lighting,
+	eastl::shared_ptr<LightCameraGeometry> const& geometry)
     :
     mMaterial(material),
     mLighting(lighting),
     mGeometry(geometry)
 {
-	mProgram = factory->CreateFromFiles(path, path, "");
+	eastl::string vsPath = path.front();
+	eastl::string psPath = path.size() > 1 ? path[1] : path.front();
+	eastl::string gsPath = path.size() > 2 ? path[2] : "";
+	mProgram = factory->CreateFromFiles(vsPath, psPath, gsPath);
     if (mProgram)
     {
         mBufferUpdater = updater;

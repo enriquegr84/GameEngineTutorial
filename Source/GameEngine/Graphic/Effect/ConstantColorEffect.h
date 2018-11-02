@@ -17,7 +17,8 @@ class GRAPHIC_ITEM ConstantColorEffect : public VisualEffect
 {
 public:
     // Construction.
-    ConstantColorEffect(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path, Vector4<float> const& color);
+    ConstantColorEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
+		eastl::vector<eastl::string> path, Vector4<float> const& color);
 
     // Member access.
     inline void SetPVWMatrix(Matrix4x4<float> const& pvwMatrix);

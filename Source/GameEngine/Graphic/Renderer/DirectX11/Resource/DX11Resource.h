@@ -32,7 +32,7 @@ public:
     D3D11_MAPPED_SUBRESOURCE MapForWrite(ID3D11DeviceContext* context, unsigned int sri);
     void Unmap(ID3D11DeviceContext* context, unsigned int sri);
 
-    // Copy from CPU (mGTObject memory) to GPU (mDXObject memory).  The first
+    // Copy from CPU (mGObject memory) to GPU (mDXObject memory).  The first
     // function copies the specified subresource.  The second function copies
     // all subresources.
     virtual bool Update(ID3D11DeviceContext* context, unsigned int sri) = 0;

@@ -45,7 +45,13 @@
 
 BulletDebugDrawer::BulletDebugDrawer()
 {
-	eastl::string path = FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl");
+	eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectVS.glsl"));
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectPS.glsl"));
+#else
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl"));
+#endif
 	mEffect = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
 }
 

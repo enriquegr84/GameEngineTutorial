@@ -21,7 +21,7 @@ class GRAPHIC_ITEM TextEffect : public VisualEffect
 public:
     // Construction.
     TextEffect(eastl::shared_ptr<ProgramFactory> const& factory,
-		eastl::string path, eastl::shared_ptr<Texture2> const& texture);
+		eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2> const& texture);
 
     // Support for typesetting.
 	eastl::shared_ptr<ConstantBuffer> const& GetTranslate() const;

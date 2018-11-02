@@ -14,7 +14,7 @@
 LightManager::LightManager()
 	:	mMode(NO_MANAGEMENT), mSceneLightList(0), mCurrentRenderPass(RP_NONE), mCurrentSceneNode(0)
 { 
-#if defined(GE_DEV_OPENGL)
+#if defined(_OPENGL_)
 	mLight = eastl::make_shared<Light>(true, false);
 #else
 	mLight = eastl::make_shared<Light>(true, true);

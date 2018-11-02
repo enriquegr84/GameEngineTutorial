@@ -7,8 +7,8 @@
 
 #include "FontArialW400H18.h"
 
-FontArialW400H18::FontArialW400H18(eastl::shared_ptr<ProgramFactory> const& factory, eastl::string path,
-    int maxMessageLength)
+FontArialW400H18::FontArialW400H18(eastl::shared_ptr<ProgramFactory> const& factory, 
+	eastl::vector<eastl::string> path, int maxMessageLength)
     :
     Font(factory, path, msWidth, msHeight, reinterpret_cast<char const*>(msTexels), msCharacterData, maxMessageLength)
 {

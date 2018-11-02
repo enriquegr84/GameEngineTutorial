@@ -16,8 +16,7 @@ class GRAPHIC_ITEM SpotLightEffect : public LightingEffect
 public:
     // Construction.  Set 'select' to 0 for per-vertex effects or to 1 for per-pixel effects.
     SpotLightEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
-		BufferUpdater const& updater, 
-		eastl::string path, int select, 
+		BufferUpdater const& updater, eastl::vector<eastl::string> const& path, int select,
 		eastl::shared_ptr<Material> const& material,
 		eastl::shared_ptr<Lighting> const& lighting,
 		eastl::shared_ptr<LightCameraGeometry> const& geometry);

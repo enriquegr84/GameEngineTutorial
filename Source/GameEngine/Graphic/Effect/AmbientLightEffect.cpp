@@ -8,7 +8,8 @@
 #include "AmbientLightEffect.h"
 
 AmbientLightEffect::AmbientLightEffect(eastl::shared_ptr<ProgramFactory> const& factory,
-    BufferUpdater const& updater, eastl::string path, eastl::shared_ptr<Material> const& material,
+    BufferUpdater const& updater, eastl::vector<eastl::string> const& path, 
+	eastl::shared_ptr<Material> const& material,
 	eastl::shared_ptr<Lighting> const& lighting)
     :
     LightingEffect(factory, updater, path, material, lighting, nullptr)

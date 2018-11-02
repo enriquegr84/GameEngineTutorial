@@ -578,7 +578,7 @@ LightRenderComponent::LightRenderComponent(void)
 	mAnimatorType = -1;
 	mTextureResource = "";
 
-#if defined(GE_DEV_OPENGL)
+#if defined(_OPENGL_)
 	mLightData = eastl::make_shared<Light>(true, false);
 #else
 	mLightData = eastl::make_shared<Light>(true, true);

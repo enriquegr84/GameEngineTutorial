@@ -25,7 +25,8 @@ Renderer::Renderer()
 	mClearDepth(1.0f),
 	mClearStencil(0),
 	mCreateDrawTarget(nullptr),
-	mGraphicObjectCreator(nullptr)
+	mGraphicObjectCreator(nullptr),
+	mWarnOnNonemptyBridges(true)
 {
 	mClearColor.fill(1.0f);
 	mCreateGraphicObject.fill(nullptr);
@@ -218,7 +219,7 @@ GraphicObject* Renderer::Bind(eastl::shared_ptr<GraphicObject> const& object)
 	{
 		// The 'create' function is not null with the current engine design.
 		// If the assertion is triggered, someone changed the hierarchy of
-		// GraphicsObjectType but did not change msCreateFunctions[] to match.
+		// GraphicObjectType but did not change msCreateFunctions[] to match.
 		CreateGraphicObject create = mCreateGraphicObject[object->GetType()];
 		if (!create)
 		{

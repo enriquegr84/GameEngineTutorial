@@ -30,7 +30,13 @@ UIScrollBar::UIScrollBar(BaseUI* ui, int id, RectangleShape<2, int> rectangle, b
 	eastl::shared_ptr<IndexBuffer> ibuffer = eastl::make_shared<IndexBuffer>(IP_TRISTRIP, 2);
 	vbuffer->SetUsage(Resource::DYNAMIC_UPDATE);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl");
+	eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectVS.glsl"));
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectPS.glsl"));
+#else
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl"));
+#endif
 	mEffect = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
 
 	// Create the geometric object for drawing.

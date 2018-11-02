@@ -15,7 +15,6 @@
 
 // IO
 #include "IO/Environment.h"
-#include "IO/FileIO.h"
 #include "IO/FileList.h"
 #include "IO/FileSystem.h"
 #include "IO/MountPointReader.h"
@@ -29,7 +28,7 @@
 #include "Logger/LogToStdout.h"
 #include "Logger/LogToStringArray.h"
 
-#if defined(USE_WINDOWS)
+#if defined(_WINDOWS_API_)
 
 #include "Logger/Windows/LogToMessageBox.h"
 #include "Logger/Windows/LogToOutputWindow.h"

@@ -19,7 +19,7 @@ LogReporter::~LogReporter()
         Logger::Unsubscribe(mLogToFile.get());
     }
 
-#if defined(USE_WINDOWS)
+#if defined(_WINDOWS_API_)
     if (mLogToOutputWindow)
     {
         Logger::Unsubscribe(mLogToOutputWindow.get());
@@ -37,7 +37,7 @@ LogReporter::LogReporter(eastl::string const& logFile, int logFileFlags,
     :
     mLogToFile(nullptr),
     mLogToStdout(nullptr)
-#if defined(USE_WINDOWS)
+#if defined(_WINDOWS_API_)
     ,
     mLogToMessageBox(nullptr),
     mLogToOutputWindow(nullptr)
@@ -55,7 +55,7 @@ LogReporter::LogReporter(eastl::string const& logFile, int logFileFlags,
         Logger::Subscribe(mLogToStdout.get());
     }
 
-#if defined(USE_WINDOWS)
+#if defined(_WINDOWS_API_)
     if (logMessageBoxFlags != Logger::Listener::LISTEN_FOR_NOTHING)
     {
         mLogToMessageBox = eastl::make_unique<LogToMessageBox>(logMessageBoxFlags);

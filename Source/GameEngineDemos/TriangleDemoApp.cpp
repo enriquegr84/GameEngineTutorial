@@ -82,7 +82,11 @@ int main(int numArguments, char* arguments[])
 //----------------------------------------------------------------------------
 TriangleDemoApplication::TriangleDemoApplication()
 :	WindowApplication("TriangleDemo", 0, 0, 800, 600, { 0.392f, 0.584f, 0.929f, 1.0f }),
+#if defined(_OPENGL_)
+	mCamera(eastl::make_shared<Camera>(true, false))
+#else
 	mCamera(eastl::make_shared<Camera>(true, true))
+#endif
 {
 
 }
@@ -124,7 +128,13 @@ bool TriangleDemoApplication::CreateScene()
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 
-	eastl::string path = FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl");
+	eastl::vector<eastl::string> path; 
+#if defined(_OPENGL_)
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectVS.glsl"));
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectPS.glsl"));
+#else
+	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl"));
+#endif
 	eastl::shared_ptr<ColorEffect> effect =
 		eastl::make_shared<ColorEffect>(mProgramFactory, path);
 

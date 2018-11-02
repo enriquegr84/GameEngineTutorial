@@ -73,7 +73,13 @@ BaseUI::~BaseUI()
 bool BaseUI::OnInit()
 {
 	//LoadBuiltInFont
-	eastl::string path = FileSystem::Get()->GetPath("Effects/TextEffect.hlsl");
+	eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+	path.push_back(FileSystem::Get()->GetPath("Effects/TextEffectVS.glsl"));
+	path.push_back(FileSystem::Get()->GetPath("Effects/TextEffectPS.glsl"));
+#else
+	path.push_back(FileSystem::Get()->GetPath("Effects/TextEffect.hlsl"));
+#endif
 	eastl::shared_ptr<Font> builtInFont = eastl::make_shared<FontArialW400H18>(ProgramFactory::Get(), path, 256);
 	Renderer::Get()->SetDefaultFont(builtInFont);
 	mFonts[L"DefaultFont"] = eastl::shared_ptr<BaseUIFont>(new UIFont(this, L"DefaultFont", builtInFont));

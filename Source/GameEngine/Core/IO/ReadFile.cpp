@@ -25,7 +25,7 @@ int ReadFile::Read(void* buffer, unsigned int sizeToRead)
 	if (!IsOpen())
 		return 0;
 
-	return (int)fread(buffer, 1, sizeToRead, mFile);
+	return fread(buffer, 1, sizeToRead, mFile);
 }
 
 

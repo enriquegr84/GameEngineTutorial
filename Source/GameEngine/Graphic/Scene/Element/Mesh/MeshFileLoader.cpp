@@ -222,18 +222,18 @@ BaseMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 		VertexFormat vformat;
 		if (pScene->mMeshes[m]->HasPositions())
 			vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-		if (pScene->mMeshes[m]->HasNormals())
-			vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
-		if (pScene->mMeshes[m]->HasTangentsAndBitangents())
-			vformat.Bind(VA_TANGENT, DF_R32G32B32_FLOAT, 0);
-		if (pScene->mMeshes[m]->HasTangentsAndBitangents())
-			vformat.Bind(VA_BINORMAL, DF_R32G32B32_FLOAT, 0);
 		for (unsigned int ch = 0; ch < pScene->mMeshes[m]->GetNumColorChannels(); ch++)
 			if (pScene->mMeshes[m]->HasVertexColors(ch))
 				vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, ch);
 		for (unsigned int ch = 0; ch < pScene->mMeshes[m]->GetNumUVChannels(); ch++)
 			if (pScene->mMeshes[m]->HasTextureCoords(ch))
 				vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, ch);
+		if (pScene->mMeshes[m]->HasNormals())
+			vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+		if (pScene->mMeshes[m]->HasTangentsAndBitangents())
+			vformat.Bind(VA_TANGENT, DF_R32G32B32_FLOAT, 0);
+		if (pScene->mMeshes[m]->HasTangentsAndBitangents())
+			vformat.Bind(VA_BINORMAL, DF_R32G32B32_FLOAT, 0);
 
 		BaseMeshBuffer* meshBuffer = NULL;
 		if (pScene->HasAnimations())

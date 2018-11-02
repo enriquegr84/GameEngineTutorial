@@ -10,10 +10,13 @@
 #include "Mathematic/Algebra/Vector2.h"
 
 TextEffect::TextEffect(eastl::shared_ptr<ProgramFactory> const& factory,
-	eastl::string path, eastl::shared_ptr<Texture2> const& texture)
+	eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2> const& texture)
 {
 
-	mProgram = factory->CreateFromFiles(path, path, "");
+	eastl::string vsPath = path.front();
+	eastl::string psPath = path.size() > 1 ? path[1] : path.front();
+	eastl::string gsPath = path.size() > 2 ? path[2] : "";
+	mProgram = factory->CreateFromFiles(vsPath, psPath, gsPath);
     if (mProgram)
     {
         mTranslate = eastl::make_shared<ConstantBuffer>(sizeof(Vector2<float>), true);

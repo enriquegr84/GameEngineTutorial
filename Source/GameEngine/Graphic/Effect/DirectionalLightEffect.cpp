@@ -8,7 +8,7 @@
 #include "DirectionalLightEffect.h"
 
 DirectionalLightEffect::DirectionalLightEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
-	eastl::string path, BufferUpdater const& updater, int select, eastl::shared_ptr<Material> const& material,
+	eastl::vector<eastl::string> const& path, BufferUpdater const& updater, int select, eastl::shared_ptr<Material> const& material,
     eastl::shared_ptr<Lighting> const& lighting, eastl::shared_ptr<LightCameraGeometry> const& geometry)
     :
     LightingEffect(factory, updater, path, material, lighting, geometry)

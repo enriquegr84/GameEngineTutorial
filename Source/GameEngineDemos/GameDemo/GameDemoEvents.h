@@ -436,7 +436,7 @@ public:
 
     virtual void Serialize(std::ostrstream& out) const
     {
-		out << std::string(mGameplayUiString.c_str());
+		out << mGameplayUiString.c_str();
     }
 
     virtual void Deserialize(std::istrstream& in)

@@ -35,7 +35,13 @@ UIImage::UIImage(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 
 		// Create an effect for the vertex and pixel shaders. The texture is
 		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
-		eastl::string path = FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl");
+		eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
+		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
+#else
+		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
+#endif
 		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
 			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
 

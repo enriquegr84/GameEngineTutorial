@@ -720,7 +720,7 @@ public:
 
 	virtual void Serialize( std::ostrstream & out ) const
 	{
-		out << std::string(mActorResource.c_str()) << " ";
+		out << mActorResource.c_str() << " ";
 		out << mIsInitialTransform << " ";
 		if (mIsInitialTransform)
 		{
@@ -822,7 +822,7 @@ public:
 
     virtual void Serialize(std::ostrstream& out) const
     {
-        out << std::string(mSoundResource.c_str());
+        out << mSoundResource.c_str();
     }
 
     virtual void Deserialize(std::istrstream& in)
