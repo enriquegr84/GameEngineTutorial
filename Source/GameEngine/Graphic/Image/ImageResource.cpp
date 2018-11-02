@@ -74,6 +74,7 @@ bool ImageResourceLoader::IsALoadableFileExtension(const eastl::wstring& fileNam
 		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
 		return fileExtension.compare(L"bmp") == 0 || fileExtension.compare(L"gif") == 0 ||
 			fileExtension.compare(L"icon") == 0 || fileExtension.compare(L"jpeg") == 0 || 
+			fileExtension.compare(L"jpg") == 0 || fileExtension.compare(L"pic") == 0 ||
 			fileExtension.compare(L"png") == 0 || fileExtension.compare(L"tiff") == 0;
 	}
 	else return false;

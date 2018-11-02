@@ -16,7 +16,7 @@
     <SphereRenderComponent>
         <Sphere radius="20" segments="25"/>
 		<Material type="0" />
-		<Texture file="art\water.bmp" />
+		<Texture file="art\water.jpg" />
 	</SphereRenderComponent>
 
 </Actor>
