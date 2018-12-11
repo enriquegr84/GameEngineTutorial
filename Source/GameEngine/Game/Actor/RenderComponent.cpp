@@ -130,7 +130,7 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 					}
 
 					for (unsigned int i = 0; i<mesh->GetMeshBufferCount(); ++i)
-						mesh->GetMeshBuffer(i)->GetMaterial()->SetTexture(0, extra->GetImage());
+						mesh->GetMeshBuffer(i)->GetMaterial()->SetTexture(TT_DIFFUSE, extra->GetImage());
 				}
 			}
 

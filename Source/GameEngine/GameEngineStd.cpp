@@ -2,6 +2,9 @@
 
 #include "GameEngineStd.h" 
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "Graphic/3rdParty/stb/stb_image.h"
+
 #include <malloc.h>
 #include <EAStdC/EASprintf.h>
 #include <EASTL/internal/config.h>

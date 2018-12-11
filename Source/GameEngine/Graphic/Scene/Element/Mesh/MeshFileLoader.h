@@ -33,7 +33,6 @@ protected:
 	//! creates/loads an animated mesh from the file.
 	//! \return Pointer to the created mesh. Returns 0 if loading failed.
 	BaseMesh* CreateMesh(BaseReadFile* file);
-
 };
 
 #endif

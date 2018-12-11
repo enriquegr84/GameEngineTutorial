@@ -77,41 +77,6 @@ protected:
 	// returns a null object.
 	eastl::shared_ptr<Texture2> Load(eastl::wstring const& filename, bool wantMipmaps);
 
-private:
-
-	struct LoadFormatMap
-	{
-		DFType mGTFormat;
-		GUID const* mWicInputGUID;
-		GUID const* mWicConvertGUID;
-	};
-	enum { NUM_LOAD_FORMATS = 14 };
-	static LoadFormatMap const mLoadFormatMap[NUM_LOAD_FORMATS];
-
-	class ComInitializer
-	{
-	public:
-		~ComInitializer();
-		ComInitializer();
-		bool IsInitialized() const;
-	private:
-		bool mInitialized;
-	};
-
-	template <typename T>
-	class ComObject
-	{
-	public:
-		ComObject();
-		ComObject(T* inObject);
-		~ComObject();
-		operator T*() const;
-		T& operator*() const;
-		T** operator&();
-		T* operator->() const;
-	private:
-		T* object;
-	};
 };
 
 

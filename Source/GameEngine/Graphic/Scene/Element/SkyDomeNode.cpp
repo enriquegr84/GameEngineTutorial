@@ -43,7 +43,7 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	mMeshBuffer->GetMaterial()->mLighting = false;
 	mMeshBuffer->GetMaterial()->mDepthBuffer = false;
 	mMeshBuffer->GetMaterial()->mAntiAliasing = false;
-	mMeshBuffer->GetMaterial()->SetTexture(0, sky);
+	mMeshBuffer->GetMaterial()->SetTexture(TT_DIFFUSE, sky);
 
 	// regenerate the mesh
 	GenerateMesh(sky);
@@ -56,10 +56,10 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
 #endif
 	eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
-		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
-		mMeshBuffer->GetMaterial()->mTextureLayer[0].mFilter,
-		mMeshBuffer->GetMaterial()->mTextureLayer[0].mModeU,
-		mMeshBuffer->GetMaterial()->mTextureLayer[0].mModeV);
+		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE),
+		mMeshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mFilter,
+		mMeshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeU,
+		mMeshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeV);
 
 	mVisual = eastl::make_shared<Visual>(mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), effect);
 	mVisual->SetEffect(effect);

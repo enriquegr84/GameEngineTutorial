@@ -11,8 +11,7 @@ Texture2Array::Texture2Array(unsigned int numItems, DFType format,
     unsigned int width, unsigned int height, bool hasMipmaps,
     bool createStorage)
     :
-    TextureArray(numItems, format, 2, width, height, 1, hasMipmaps,
-        createStorage)
+    TextureArray(numItems, format, 2, width, height, 1, hasMipmaps, createStorage)
 {
     mType = GE_TEXTURE2_ARRAY;
 }

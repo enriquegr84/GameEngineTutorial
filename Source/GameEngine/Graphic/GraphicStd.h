@@ -118,8 +118,7 @@ and this to the linker settings: -ld3dx11
 
 #endif
 
-
 #define MAXIMUM_LIGHTS_SUPPORTED (8)
-#define MATERIAL_MAX_TEXTURES (8)
+#define MATERIAL_MAX_TEXTURES (12)
 
 #endif

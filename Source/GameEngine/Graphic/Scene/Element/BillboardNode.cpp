@@ -81,7 +81,7 @@ BillboardNode::BillboardNode(const ActorId actorId,
 	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl"));
 #endif
 	eastl::shared_ptr<Texture2ColorEffect> effect = eastl::make_shared<Texture2ColorEffect>(
-		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(0),
+		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE),
 		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
 	mEffect = effect;
 	mVisual = eastl::make_shared<Visual>(

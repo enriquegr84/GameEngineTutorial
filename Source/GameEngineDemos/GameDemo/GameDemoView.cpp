@@ -356,16 +356,16 @@ bool MainMenuUI::OnInit()
 	screenRectangle.mExtent[1] = 340;
 	eastl::shared_ptr<BaseUIListBox> settings = AddListBox(screenRectangle, window, -1, true);
 	settings->SetToolTipText(L"Show the current key settings");
-	settings->AddItem(L"KEY W - MOVE FORWARD");
-	settings->AddItem(L"KEY S - MOVE BACKWARD");
-	settings->AddItem(L"KEY A - MOVE LEFT");
-	settings->AddItem(L"KEY D - MOVE RIGHT");
-	settings->AddItem(L"KEY C - MOVE DOWN");
-	settings->AddItem(L"KEY SPACE - MOVE UP");
-	settings->AddItem(L"KEY 6 - SHOW WIREFRAME");
-	settings->AddItem(L"KEY 7 - SHOW PHYSICS BOX");
-	settings->AddItem(L"KEY 8 - CONTROL PLAYER");
-	settings->AddItem(L"KEY 9 - CONTROL CAMERA");
+	settings->AddItem(L"Key W - Move forward");
+	settings->AddItem(L"Key S - Move backward");
+	settings->AddItem(L"Key A - Move left");
+	settings->AddItem(L"Key D - Move right");
+	settings->AddItem(L"Key C - Move down");
+	settings->AddItem(L"Key Space - Move up");
+	settings->AddItem(L"Key 6 - Show wireframe");
+	settings->AddItem(L"Key 7 - Show physics box");
+	settings->AddItem(L"Key 8 - Control player");
+	settings->AddItem(L"Key 9 - Control camera");
 
 	/*
 

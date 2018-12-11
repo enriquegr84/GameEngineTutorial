@@ -33,6 +33,7 @@
 #include "Effect/SpotLightEffect.h"
 #include "Effect/SpotLightTextureEffect.h"
 #include "Effect/Texture2ColorEffect.h"
+#include "Effect/MultiTexture2Effect.h"
 #include "Effect/Texture2Effect.h"
 #include "Effect/TextEffect.h"
 #include "Effect/ColorEffect.h"
@@ -96,6 +97,7 @@
 #include "Scene/Element/Animator/NodeAnimatorTexture.h"
 
 #include "Scene/Element/Mesh/Mesh.h"
+#include "Scene/Element/Mesh/MeshMD3.h"
 #include "Scene/Element/Mesh/SkinnedMesh.h"
 #include "Scene/Element/Mesh/StandardMesh.h"
 #include "Scene/Element/Mesh/MeshCache.h"

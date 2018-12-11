@@ -34,7 +34,8 @@ VS_OUTPUT VSMain(VS_INPUT input)
     return output;
 }
 
-Texture2D baseTexture;
+Texture2D baseTexture1;
+Texture2D baseTexture2;
 SamplerState baseSampler;
 
 struct PS_INPUT
@@ -50,6 +51,22 @@ struct PS_OUTPUT
 PS_OUTPUT PSMain(PS_INPUT input)
 {
     PS_OUTPUT output;
-    output.pixelColor0 = baseTexture.Sample(baseSampler, input.vertexTCoord);
+	output.pixelColor0 = 0.0f;
+
+	float4 tcd;
+
+	// Sample first 2D texture.
+	tcd.xyz = float3(input.vertexTCoord, 0);
+	output.pixelColor0 += baseTexture1.Sample(baseSampler, tcd.xyz);
+	tcd.xyz = float3(input.vertexTCoord, 1);
+	output.pixelColor0 += baseTexture1.Sample(baseSampler, tcd.xyz);
+
+	// Sample second 2D texture.
+	tcd.xyz = float3(input.vertexTCoord, 0);
+	output.pixelColor0 += baseTexture2.Sample(baseSampler, tcd.xyz);
+	tcd.xyz = float3(input.vertexTCoord, 1);
+	output.pixelColor0 += baseTexture2.Sample(baseSampler, tcd.xyz);
+
+	output.pixelColor0 *= 0.25f;
     return output;
 }

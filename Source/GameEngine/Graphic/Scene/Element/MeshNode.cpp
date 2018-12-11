@@ -47,24 +47,47 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 			mBlendStates.push_back(eastl::make_shared<BlendState>());
 			mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
 
-			eastl::vector<eastl::string> path;
+			eastl::shared_ptr<Texture2> textureDiffuse = meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
+			if (textureDiffuse)
+			{
+				eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-			path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
-			path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
+				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
+				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
 #else
-			path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
+				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
 #endif
-			eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
-				ProgramFactory::Get(), path, meshBuffer->GetMaterial()->GetTexture(0),
-				meshBuffer->GetMaterial()->mTextureLayer[0].mFilter,
-				meshBuffer->GetMaterial()->mTextureLayer[0].mModeU,
-				meshBuffer->GetMaterial()->mTextureLayer[0].mModeV);
 
-			eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
-				meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
-			visual->UpdateModelBound();
-			mVisuals.push_back(visual);
-			mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+				eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
+					ProgramFactory::Get(), path, textureDiffuse,
+					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mFilter,
+					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeU,
+					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeV);
+
+				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
+					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
+				visual->UpdateModelBound();
+				mVisuals.push_back(visual);
+				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+			}
+			else
+			{
+				eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectVS.glsl"));
+				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectPS.glsl"));
+#else
+				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffect.hlsl"));
+#endif
+				eastl::shared_ptr<ConstantColorEffect> effect =
+					eastl::make_shared<ConstantColorEffect>(ProgramFactory::Get(), path, Vector4<float>::Zero());
+
+				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
+					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
+				visual->UpdateModelBound();
+				mVisuals.push_back(visual);
+				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+			}
 		}
 	}
 }
@@ -117,7 +140,8 @@ bool MeshNode::Render(Scene *pScene)
 	if (!mMesh || !Renderer::Get())
 		return false;
 
-	bool isTransparentPass = pScene->GetCurrentRenderPass() && RP_TRANSPARENT;
+	bool isTransparentPass = 
+		pScene->GetCurrentRenderPass() == RP_TRANSPARENT;
 	++mPassCount;
 
 	if (mShadow && mPassCount==1)

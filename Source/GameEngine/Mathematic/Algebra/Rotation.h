@@ -324,8 +324,7 @@ Rotation<N, Real>::operator AxisAngle<N, Real>() const
 }
 
 template <int N, typename Real>
-EulerAngles<Real> const& Rotation<N, Real>::operator()(int i0, int i1,
-    int i2) const
+EulerAngles<Real> const& Rotation<N, Real>::operator()(int i0, int i1, int i2) const
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
@@ -352,8 +351,7 @@ EulerAngles<Real> const& Rotation<N, Real>::operator()(int i0, int i1,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
-    Quaternion<Real>& q)
+void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r, Quaternion<Real>& q)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 	Real const* rot = reinterpret_cast<Real const*>(&r);
@@ -470,8 +468,7 @@ void Rotation<N, Real>::Convert(Quaternion<Real> const& q, Matrix<N, N, Real>& r
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
-    AxisAngle<N, Real>& a)
+void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r, AxisAngle<N, Real>& a)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 	Real const* rot = reinterpret_cast<Real const*>(&r);
@@ -555,8 +552,7 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
-    Matrix<N, N, Real>& r)
+void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a, Matrix<N, N, Real>& r)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 	Real* rot = reinterpret_cast<Real*>(&r);
@@ -600,8 +596,7 @@ void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
-    EulerAngles<Real>& e)
+void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r, EulerAngles<Real>& e)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 	Real const* rot = reinterpret_cast<Real const*>(&r);
@@ -784,8 +779,7 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(EulerAngles<Real> const& e,
-    Matrix<N, N, Real>& r)
+void Rotation<N, Real>::Convert(EulerAngles<Real> const& e, Matrix<N, N, Real>& r)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
@@ -816,8 +810,7 @@ void Rotation<N, Real>::Convert(EulerAngles<Real> const& e,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(Quaternion<Real> const& q,
-    AxisAngle<N, Real>& a)
+void Rotation<N, Real>::Convert(Quaternion<Real> const& q, AxisAngle<N, Real>& a)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
@@ -847,8 +840,7 @@ void Rotation<N, Real>::Convert(Quaternion<Real> const& q,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
-    Quaternion<Real>& q)
+void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a, Quaternion<Real>& q)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
@@ -865,8 +857,7 @@ void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(Quaternion<Real> const& q,
-    EulerAngles<Real>& e)
+void Rotation<N, Real>::Convert(Quaternion<Real> const& q, EulerAngles<Real>& e)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
@@ -876,8 +867,7 @@ void Rotation<N, Real>::Convert(Quaternion<Real> const& q,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(EulerAngles<Real> const& e,
-    Quaternion<Real>& q)
+void Rotation<N, Real>::Convert(EulerAngles<Real> const& e, Quaternion<Real>& q)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
@@ -887,8 +877,7 @@ void Rotation<N, Real>::Convert(EulerAngles<Real> const& e,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
-    EulerAngles<Real>& e)
+void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a, EulerAngles<Real>& e)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 
@@ -898,8 +887,7 @@ void Rotation<N, Real>::Convert(AxisAngle<N, Real> const& a,
 }
 
 template <int N, typename Real>
-void Rotation<N, Real>::Convert(EulerAngles<Real> const& e,
-    AxisAngle<N, Real>& a)
+void Rotation<N, Real>::Convert(EulerAngles<Real> const& e, AxisAngle<N, Real>& a)
 {
     static_assert(N == 3 || N == 4, "Dimension must be 3 or 4.");
 

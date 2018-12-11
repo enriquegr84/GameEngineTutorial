@@ -28,7 +28,6 @@ AnimatedMeshNode::AnimatedMeshNode(const ActorId actorId, PVWUpdater* updater,
 	SetMesh(mesh);
 }
 
-
 //! Sets a new mesh
 void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 {
@@ -36,33 +35,74 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 		return; // won't set null mesh
 
 	mMesh = mesh;
-
-	mVisuals.clear();
-	for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
+	eastl::vector<eastl::shared_ptr<BaseMeshBuffer>> meshBuffers;
+	if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
 	{
-		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
+		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+			for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
+				meshBuffers.push_back(mesh->GetMeshBuffer(i));
+	}
+	else
+	{
+		for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
+			meshBuffers.push_back(mMesh->GetMeshBuffer(i));
+	}
+		
+	mVisuals.clear();
+	for (unsigned int i = 0; i < meshBuffers.size(); ++i)
+	{
+		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = meshBuffers[i];
 		if (meshBuffer)
 		{
 			mBlendStates.push_back(eastl::make_shared<BlendState>());
 			mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
 
-			eastl::vector<eastl::string> path;
+			eastl::shared_ptr<Texture2> textureDiffuse = meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
+			if (textureDiffuse)
+			{
+				eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-			path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
-			path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
+				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
+				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
 #else
-			path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
+				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
 #endif
-			eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
-				ProgramFactory::Get(), path, meshBuffer->GetMaterial()->GetTexture(0),
-				meshBuffer->GetMaterial()->mTextureLayer[0].mFilter,
-				meshBuffer->GetMaterial()->mTextureLayer[0].mModeU,
-				meshBuffer->GetMaterial()->mTextureLayer[0].mModeV);
 
-			eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
-				meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
-			mVisuals.push_back(visual);
-			mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+				eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
+					ProgramFactory::Get(), path, textureDiffuse,
+					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mFilter,
+					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeU,
+					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeV);
+
+				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
+					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
+				visual->UpdateModelBound();
+				mVisuals.push_back(visual);
+				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+			}
+			else
+			{
+				eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectVS.glsl"));
+				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectPS.glsl"));
+#else
+				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffect.hlsl"));
+#endif
+				eastl::shared_ptr<ConstantColorEffect> effect =
+					eastl::make_shared<ConstantColorEffect>(ProgramFactory::Get(), path, Vector4<float>::Zero());
+
+				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
+					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
+				visual->UpdateModelBound();
+				mVisuals.push_back(visual);
+				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+			}
 		}
 	}
 
@@ -73,18 +113,27 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 		CheckJoints();
 	}
 
+	if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
+	{
+		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+			for (FrameInfo frame : mesh->GetFrames())
+				frame.SetFrameLoop(mesh->GetFrameCount(), 0, frame.GetEndFrame());
+	}
+
 	// get start and begin time
 	//SetAnimationSpeed(mMesh->GetAnimationSpeed());
 	SetFrameLoop(0, mMesh->GetFrameCount());
 }
-
 
 //! Get a mesh
 const eastl::shared_ptr<BaseAnimatedMesh>& AnimatedMeshNode::GetMesh(void)
 {
 	return mMesh;
 }
-
 
 //! Sets the current frame. From now on the animation is played from this frame.
 void AnimatedMeshNode::SetCurrentFrame(float frame)
@@ -95,13 +144,11 @@ void AnimatedMeshNode::SetCurrentFrame(float frame)
 	BeginTransition(); //transit to this frame if enabled
 }
 
-
 //! Returns the currently displayed frame number.
 float AnimatedMeshNode::GetFrameNr() const
 {
 	return mCurrentFrameNr;
 }
-
 
 //! Get CurrentFrameNr and update transiting settings
 void AnimatedMeshNode::BuildFrameNr(unsigned int timeMs)
@@ -207,19 +254,47 @@ eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 	}
 	else
 	{
-		int frameNr = (int)GetFrameNr();
-		int frameBlend = (int)(Function<float>::Fract(GetFrameNr()) * 1000.f);
+		int frameNr, frameBlend;
+		if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
+		{
+			AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
+
+			eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+			animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+			for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+			{
+				for (FrameInfo frame : mesh->GetFrames())
+				{
+					frameNr = (int)frame.GetFrameNr();
+					frameBlend = (int)(Function<float>::Fract(frame.GetFrameNr()) * 1000.f);
+					mesh->UpdateMesh(frameNr, frameBlend, frame.GetBeginFrame(), frame.GetEndFrame());
+				}
+			}
+		}
+		
+		frameNr = (int)GetFrameNr();
+		frameBlend = (int)(Function<float>::Fract(GetFrameNr()) * 1000.f);
 
 		return mMesh->GetMesh(frameNr, frameBlend, mStartFrame, mEndFrame);
 	}
 }
-
 
 //! OnAnimate() is called just before rendering the whole scene.
 bool AnimatedMeshNode::OnAnimate(Scene* pScene, unsigned int time)
 {
 	if (mLastTime==0)	// first frame
 		mLastTime = time;
+
+	if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
+	{
+		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+			for (FrameInfo frame : mesh->GetFrames())
+				frame.BuildFrameNr(time - mLastTime);
+	}
 
 	// set CurrentFrameNr
 	BuildFrameNr(time - mLastTime);
@@ -248,10 +323,28 @@ bool AnimatedMeshNode::PreRender(Scene* pScene)
 		int transparentCount = 0;
 		int solidCount = 0;
 
-		// count transparent and solid materials in this scene node
-		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
+		eastl::vector<eastl::shared_ptr<Material>> materials;
+		if (dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get()))
 		{
-			if (GetMaterial(i)->IsTransparent())
+			AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get());
+
+			eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+			animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+
+			for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+				for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
+					materials.push_back(mesh->GetMeshBuffer(i)->GetMaterial());
+		}
+		else
+		{
+			for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+				materials.push_back(GetMaterial(i));
+		}
+
+		// count transparent and solid materials in this scene node
+		for (unsigned int i = 0; i < materials.size(); ++i)
+		{
+			if (materials[i]->IsTransparent())
 				++transparentCount;
 			else
 				++solidCount;
@@ -287,41 +380,60 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
 
-	for (unsigned int i=0; i<mCurrentFrameMesh->GetMeshBufferCount(); ++i)
+	eastl::vector<eastl::shared_ptr<BaseMeshBuffer>> meshBuffers;
+	if (dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get()))
 	{
-		const eastl::shared_ptr<SkinMeshBuffer>& mb =
-			eastl::dynamic_shared_pointer_cast<SkinMeshBuffer>(mCurrentFrameMesh->GetMeshBuffer(i));
-		eastl::shared_ptr<Material> material = mb->GetMaterial();
+		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get());
 
-		// only render transparent buffer if this is the transparent render pass
-		// and solid only in solid pass
-		bool transparent = (material->IsTransparent());
-		if (transparent == isTransparentPass)
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+			for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
+				meshBuffers.push_back(mesh->GetMeshBuffer(i));
+	}
+	else
+	{
+		for (unsigned int i = 0; i<mCurrentFrameMesh->GetMeshBufferCount(); ++i)
+			meshBuffers.push_back(mCurrentFrameMesh->GetMeshBuffer(i));
+	}
+
+	for (unsigned int i = 0; i < meshBuffers.size(); ++i)
+	{
+		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = meshBuffers[i];
+		if (meshBuffer)
 		{
-			if (material->Update(mBlendStates[i]))
-				Renderer::Get()->Unbind(mBlendStates[i]);
-			if (material->Update(mDepthStencilStates[i]))
-				Renderer::Get()->Unbind(mDepthStencilStates[i]);
-			if (material->Update(mRasterizerState))
-				Renderer::Get()->Unbind(mRasterizerState);
+			eastl::shared_ptr<Material> material = meshBuffer->GetMaterial();
 
-			Renderer::Get()->SetBlendState(mBlendStates[i]);
-			Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
-			Renderer::Get()->SetRasterizerState(mRasterizerState);
+			// only render transparent buffer if this is the transparent render pass
+			// and solid only in solid pass
+			bool transparent = (material->IsTransparent());
+			if (transparent == isTransparentPass)
+			{
+				if (material->Update(mBlendStates[i]))
+					Renderer::Get()->Unbind(mBlendStates[i]);
+				if (material->Update(mDepthStencilStates[i]))
+					Renderer::Get()->Unbind(mDepthStencilStates[i]);
+				if (material->Update(mRasterizerState))
+					Renderer::Get()->Unbind(mRasterizerState);
 
-			Renderer* renderer = Renderer::Get();
-			renderer->Update(mb->GetVertice());
-			renderer->Draw(mVisuals[i]);
+				Renderer::Get()->SetBlendState(mBlendStates[i]);
+				Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
+				Renderer::Get()->SetRasterizerState(mRasterizerState);
 
-			Renderer::Get()->SetDefaultBlendState();
-			Renderer::Get()->SetDefaultDepthStencilState();
-			Renderer::Get()->SetDefaultRasterizerState();
+				Renderer* renderer = Renderer::Get();
+				renderer->Update(meshBuffer->GetVertice());
+				renderer->Draw(mVisuals[i]);
+
+				Renderer::Get()->SetDefaultBlendState();
+				Renderer::Get()->SetDefaultDepthStencilState();
+				Renderer::Get()->SetDefaultRasterizerState();
+			}
 		}
 	}
 
 	return true;
 }
-
 
 //! Returns the current start frame number.
 int AnimatedMeshNode::GetStartFrame() const
@@ -329,13 +441,11 @@ int AnimatedMeshNode::GetStartFrame() const
 	return mStartFrame;
 }
 
-
 //! Returns the current start frame number.
 int AnimatedMeshNode::GetEndFrame() const
 {
 	return mEndFrame;
 }
-
 
 //! sets the frames between the animation is looped.
 //! the default is 0 - MaximalFrameCount of the mesh.
@@ -360,13 +470,11 @@ bool AnimatedMeshNode::SetFrameLoop(int begin, int end)
 	return true;
 }
 
-
 //! sets the speed with witch the animation is played
 void AnimatedMeshNode::SetAnimationSpeed(float framesPerSecond)
 {
 	mFramesPerSecond = framesPerSecond * 0.001f;
 }
-
 
 float AnimatedMeshNode::GetAnimationSpeed() const
 {
@@ -427,7 +535,6 @@ eastl::shared_ptr<BoneNode> AnimatedMeshNode::GetJointNode(const char* jointName
 
 	return mJointChildSceneNodes[number];
 }
-
 
 //! Returns a pointer to a child node, which has the same transformation as
 //! the corresponding joint, if the mesh in this scene node is a skinned mesh.
@@ -584,7 +691,7 @@ void AnimatedMeshNode::BeginTransition()
 		for (unsigned int n = 0; n<mJointChildSceneNodes.size(); ++n)
 			mPretransitingSave[n] = mJointChildSceneNodes[n]->GetRelativeTransform();
 
-		mTransiting = mTransitionTime != 0 ? 1 / (float)mTransitionTime : 0;
+		mTransiting = mTransitionTime != 0 ? 1.f / (float)mTransitionTime : 0;
 	}
 	mTransitingBlend = 0.f;
 }
@@ -610,13 +717,11 @@ void AnimatedMeshNode::SetTransitionTime(float time)
 		SetJointMode(JUOR_NONE);
 }
 
-
 //! render mesh ignoring its transformation. Used with ragdolls. (culling is unaffected)
 void AnimatedMeshNode::SetRenderFromIdentity(bool enable)
 {
 	mRenderFromIdentity = enable;
 }
-
 
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.

@@ -274,6 +274,9 @@
     <Filter Include="Graphic\Renderer\OpenGL4\Resource\Texture">
       <UniqueIdentifier>{be8329dc-e4ba-477f-b868-2508bb8cffa7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphic\3rdParty\stb">
+      <UniqueIdentifier>{cfb9f0ac-e855-448c-b8fa-366aef30a589}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -1146,6 +1149,12 @@
     </ClCompile>
     <ClCompile Include="..\Graphic\Renderer\OpenGL4\OpenGLHelper.cpp">
       <Filter>Graphic\Renderer\OpenGL4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\MultiTexture2Effect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshMD3.cpp">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2698,6 +2707,15 @@
     <ClInclude Include="..\Graphic\Renderer\OpenGL4\OpenGLHelper.h">
       <Filter>Graphic\Renderer\OpenGL4</Filter>
     </ClInclude>
+    <ClInclude Include="..\Graphic\3rdParty\stb\stb_image.h">
+      <Filter>Graphic\3rdParty\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\MultiTexture2Effect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshMD3.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl">
@@ -2826,6 +2844,12 @@
     <None Include="..\..\..\Assets\Effects\SpotLightTextureEffectVS.glsl">
       <Filter>Assets\Effects</Filter>
     </None>
+    <None Include="..\..\..\Assets\Effects\MultiTexture2EffectPS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
+    <None Include="..\..\..\Assets\Effects\MultiTexture2EffectVS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\..\Assets\Effects\AmbientLightEffect.hlsl">
@@ -2874,6 +2898,9 @@
       <Filter>Assets\Effects</Filter>
     </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\SpotLightTextureEffect.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\MultiTexture2Effect.hlsl">
       <Filter>Assets\Effects</Filter>
     </FxCompile>
   </ItemGroup>

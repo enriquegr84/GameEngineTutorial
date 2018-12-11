@@ -103,6 +103,7 @@
     <ClCompile Include="..\Graphic\Effect\Lighting.cpp" />
     <ClCompile Include="..\Graphic\Effect\LightingEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\Material.cpp" />
+    <ClCompile Include="..\Graphic\Effect\MultiTexture2Effect.cpp" />
     <ClCompile Include="..\Graphic\Effect\PointLightEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\PointLightTextureEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\SpotLightEffect.cpp" />
@@ -703,6 +704,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\MeshNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshCache.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshMD3.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\SkinnedMesh.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ParticleSystemNode.cpp" />
@@ -1012,6 +1014,7 @@
     <ClInclude Include="..\Graphic\3rdParty\assimp\include\assimp\vector2.h" />
     <ClInclude Include="..\Graphic\3rdParty\assimp\include\assimp\vector3.h" />
     <ClInclude Include="..\Graphic\3rdParty\assimp\include\assimp\version.h" />
+    <ClInclude Include="..\Graphic\3rdParty\stb\stb_image.h" />
     <ClInclude Include="..\Graphic\Effect\Font.h" />
     <ClInclude Include="..\Graphic\Effect\FontArialW400H18.h" />
     <ClInclude Include="..\Graphic\Effect\AmbientLightEffect.h" />
@@ -1023,6 +1026,7 @@
     <ClInclude Include="..\Graphic\Effect\LightingEffect.h" />
     <ClInclude Include="..\Graphic\Effect\Material.h" />
     <ClInclude Include="..\Graphic\Effect\MaterialLayer.h" />
+    <ClInclude Include="..\Graphic\Effect\MultiTexture2Effect.h" />
     <ClInclude Include="..\Graphic\Effect\Particle.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightEffect.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightTextureEffect.h" />
@@ -1652,6 +1656,7 @@
     <ClInclude Include="..\Graphic\Scene\Element\LightNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\MeshNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\Mesh.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshMD3.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\SkinnedMesh.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshLoader.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.h" />
@@ -1886,6 +1891,26 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\Assets\Effects\MultiTexture2EffectPS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\Assets\Effects\MultiTexture2EffectVS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="..\..\..\Assets\Effects\PointLightEffectPerPixelPS.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -2159,6 +2184,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\MultiTexture2Effect.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerPixel.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
@@ -2430,6 +2465,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <SubType>Designer</SubType>
     </Xml>
     <Xml Include="..\..\..\Assets\World\World.xml">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
