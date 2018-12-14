@@ -5,7 +5,7 @@
 #include "MeshMD3.h"
 
 #include "Core/OS/OS.h"
-
+#include "Core/IO/Filesystem.h"
 #include "Core/Utility/StringUtil.h"
 
 void MD3Mesh::SetInterpolationShift(unsigned int shift, unsigned int loopMode)
@@ -17,14 +17,14 @@ void MD3Mesh::SetInterpolationShift(unsigned int shift, unsigned int loopMode)
 //! returns amount of mesh buffers.
 unsigned int MD3Mesh::GetMeshBufferCount() const
 {
-	return mMeshInterPol.size();
+	return mBufferInterPol.size();
 }
 
 //! returns pointer to a mesh buffer
 eastl::shared_ptr<BaseMeshBuffer> MD3Mesh::GetMeshBuffer(unsigned int nr) const
 {
-	if (nr < mMeshInterPol.size())
-		return mMeshInterPol[nr];
+	if (nr < mBufferInterPol.size())
+		return mBufferInterPol[nr];
 
 	return 0;
 }
@@ -32,9 +32,9 @@ eastl::shared_ptr<BaseMeshBuffer> MD3Mesh::GetMeshBuffer(unsigned int nr) const
 //! Returns pointer to a mesh buffer which fits a material
 eastl::shared_ptr<BaseMeshBuffer> MD3Mesh::GetMeshBuffer(const Material &material) const
 {
-	for (unsigned int i = 0; i<mMeshInterPol.size(); ++i)
-		if (&material == mMeshInterPol[i]->GetMaterial().get())
-			return mMeshInterPol[i];
+	for (unsigned int i = 0; i<mBufferInterPol.size(); ++i)
+		if (&material == mBufferInterPol[i]->GetMaterial().get())
+			return mBufferInterPol[i];
 
 	return 0;
 }
@@ -43,17 +43,45 @@ eastl::shared_ptr<BaseMeshBuffer> MD3Mesh::GetMeshBuffer(const Material &materia
 void MD3Mesh::AddMeshBuffer(BaseMeshBuffer* meshBuffer)
 {
 	eastl::shared_ptr<MeshBuffer> buffer((MeshBuffer*)meshBuffer);
-
-	mMesh.push_back(buffer);
-	mMeshInterPol.push_back(CreateMeshBuffer(buffer));
+	mBufferInterPol.push_back(buffer);
 }
 
+//! create a Irrlicht MeshBuffer for a MD3 MeshBuffer
+eastl::shared_ptr<MeshBuffer> MD3Mesh::CreateMeshBuffer(const eastl::shared_ptr<MD3MeshBuffer>& source)
+{
+	VertexFormat vformat;
+	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+	vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+
+	eastl::shared_ptr<MeshBuffer> dest = eastl::make_shared<MeshBuffer>(vformat, 
+		source->mMeshHeader.numVertices, source->mMeshHeader.numTriangles, sizeof(unsigned int));
+
+	// fill in buffer info
+	dest->SetName(ToWideString(source->mMeshHeader.meshName));
+	for (unsigned int i = 0; i < source->mMeshHeader.numVertices; ++i)
+	{
+		dest->Position(i) = source->mPositions[i];
+		dest->Normal(i) = source->mNormals[i];
+		dest->TCoord(0, i) = Vector2<float>{ source->mTexCoords[i].u, source->mTexCoords[i].v };
+	}
+
+	// Fill in all triangles
+	unsigned int iCurrent = 0;
+	unsigned int* destIndices = dest->GetIndice()->Get<unsigned int>();
+	for (unsigned int i = 0; i < source->mMeshHeader.numTriangles; ++i)
+	{
+		destIndices[iCurrent + 0] = source->mFaces[i].index[0];
+		destIndices[iCurrent + 1] = source->mFaces[i].index[1];
+		destIndices[iCurrent + 2] = source->mFaces[i].index[2];
+		iCurrent += 3;
+	}
+
+	return dest;
+}
 
 void MD3Mesh::DetachAllChildren()
 {
-	eastl::vector<eastl::shared_ptr<MD3Mesh>>::const_iterator it;
-	for (it = mChildren.begin(); it != mChildren.end(); ++it)
-		(*it)->mParent = nullptr;
 	mChildren.clear();
 }
 
@@ -96,7 +124,7 @@ eastl::shared_ptr<MD3Mesh> MD3Mesh::CreateMesh(eastl::string parentMesh, eastl::
 //! update mesh based on a detail level. 0 is the lowest, 255 the highest detail.
 bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int endFrameLoop)
 {
-	if (0 == mMeshInterPol.size())
+	if (0 == mBufferInterPol.size())
 		return false;
 
 	//! check if we have the mesh in our private cache
@@ -105,7 +133,7 @@ bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int end
 		return true;
 
 	startFrameLoop = eastl::max(0, startFrameLoop >> mInterPolShift);
-	endFrameLoop = Conditional(endFrameLoop < 0, mNumFrames - 1, endFrameLoop >> mInterPolShift);
+	endFrameLoop = Conditional(endFrameLoop < 0, mHeader.numFrames - 1, endFrameLoop >> mInterPolShift);
 
 	const unsigned int mask = 1 << mInterPolShift;
 
@@ -141,10 +169,8 @@ bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int end
 	}
 
 	// build current vertex
-	for (unsigned int i = 0; i != mMesh.size(); ++i)
-	{
-		BuildVertexArray(frameA, frameB, iPol, mMesh[i], mMeshInterPol[i]);
-	}
+	for (unsigned int i = 0; i != mBufferInterPol.size(); ++i)
+		BuildVertexArray(i, frameA, frameB, iPol);
 
 	// build current tags
 	BuildTagArray(frameA, frameB, iPol);
@@ -153,60 +179,35 @@ bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int end
 	return true;
 }
 
-//! create a Irrlicht MeshBuffer for a MD3 MeshBuffer
-eastl::shared_ptr<MeshBuffer> MD3Mesh::CreateMeshBuffer(const eastl::shared_ptr<MeshBuffer>& source)
-{
-	eastl::shared_ptr<MeshBuffer> dest = eastl::make_shared<MeshBuffer>(source->GetVertice()->GetFormat(),
-		source->GetVertice()->GetNumElements(), source->GetIndice()->GetNumPrimitives(), sizeof(unsigned int));
-
-	// fill in static face info
-	unsigned int numIndices = source->GetIndice()->GetNumElements();
-	unsigned int* sourceIndices = source->GetIndice()->Get<unsigned int>();
-	unsigned int* destIndices = dest->GetIndice()->Get<unsigned int>();
-	for (unsigned int i = 0; i < numIndices; i += 3)
-	{
-		destIndices[i + 0] = sourceIndices[i + 0];
-		destIndices[i + 1] = sourceIndices[i + 1];
-		destIndices[i + 2] = sourceIndices[i + 2];
-	}
-
-	// fill in static vertex info
-	unsigned int numVertices = source->GetVertice()->GetNumElements();
-	for (unsigned int i = 0; i != numVertices; ++i)
-		dest->TCoord(0, i) = source->TCoord(0, i);
-	dest->GetMaterial() = source->GetMaterial();
-
-	return dest;
-}
-
 //! build final mesh's vertices from frames frameA and frameB with linear interpolation.
-void MD3Mesh::BuildVertexArray(unsigned int frameA, unsigned int frameB, float interpolate,
-	eastl::shared_ptr<MeshBuffer>& source, eastl::shared_ptr<MeshBuffer>& dest)
+void MD3Mesh::BuildVertexArray(unsigned int meshId,
+	unsigned int frameA, unsigned int frameB, float interpolate)
 {
-	const unsigned int frameOffsetA = frameA * source->GetVertice()->GetNumElements();
-	const unsigned int frameOffsetB = frameB * source->GetVertice()->GetNumElements();
-	const float scale = (1.f / 64.f);
+	const unsigned int frameOffsetA = frameA * mBufferInterPol[meshId]->GetVertice()->GetNumElements();
+	const unsigned int frameOffsetB = frameB * mBufferInterPol[meshId]->GetVertice()->GetNumElements();
 
-	for (unsigned int i = 0; i != source->GetVertice()->GetNumElements(); ++i)
+	for (unsigned int i = 0; i != mBuffer[meshId]->mMeshHeader.numTriangles; ++i)
 	{
-		const Vector3<float> &vA = source->Position(frameOffsetA + i);
-		const Vector3<float> &vB = source->Position(frameOffsetB + i);
+		for (unsigned int idx = 0; idx < 3; idx++)
+		{
+			int index = mBuffer[meshId]->mFaces[i].index[idx];
 
-		const Vector3<float> &nA = source->Normal(frameOffsetA + i);
-		const Vector3<float> &nB = source->Normal(frameOffsetB + i);
+			const Vector3<float> &vA = mBuffer[meshId]->mPositions[frameOffsetA + index];
+			const Vector3<float> &vB = mBuffer[meshId]->mPositions[frameOffsetB + index];
 
-		// position
-		dest->Position(i)[0] = scale * (vA[0] + interpolate * (vB[0] - vA[0]));
-		dest->Position(i)[1] = scale * (vA[2] + interpolate * (vB[2] - vA[2]));
-		dest->Position(i)[2] = scale * (vA[1] + interpolate * (vB[1] - vA[1]));
+			// position
+			mBufferInterPol[meshId]->Position(index)[0] = vA[0] + interpolate * (vB[0] - vA[0]);
+			mBufferInterPol[meshId]->Position(index)[1] = vA[2] + interpolate * (vB[2] - vA[2]);
+			mBufferInterPol[meshId]->Position(index)[2] = vA[1] + interpolate * (vB[1] - vA[1]);
 
-		// normal
-		const Vector3<float> nMD3A(GetMD3Normal(nA[0], nA[1]));
-		const Vector3<float> nMD3B(GetMD3Normal(nB[0], nB[1]));
+			// normal
+			const Vector3<float> &nA = mBuffer[meshId]->mNormals[frameOffsetA + index];
+			const Vector3<float> &nB = mBuffer[meshId]->mNormals[frameOffsetB + index];
 
-		dest->Normal(i)[0] = nMD3A[0] + interpolate * (nMD3B[0] - nMD3A[0]);
-		dest->Normal(i)[1] = nMD3A[2] + interpolate * (nMD3B[2] - nMD3A[2]);
-		dest->Normal(i)[2] = nMD3A[1] + interpolate * (nMD3B[1] - nMD3A[1]);
+			mBufferInterPol[meshId]->Normal(index)[0] = nA[0] + interpolate * (nB[0] - nA[0]);
+			mBufferInterPol[meshId]->Normal(index)[1] = nA[2] + interpolate * (nB[2] - nA[2]);
+			mBufferInterPol[meshId]->Normal(index)[2] = nA[1] + interpolate * (nB[1] - nA[1]);
+		}
 	}
 
 	//dest->recalculateBoundingBox();
@@ -215,10 +216,10 @@ void MD3Mesh::BuildVertexArray(unsigned int frameA, unsigned int frameB, float i
 //! build final mesh's tag from frames frameA and frameB with linear interpolation.
 void MD3Mesh::BuildTagArray(unsigned int frameA, unsigned int frameB, float interpolate)
 {
-	const unsigned int frameOffsetA = frameA * mNumTags;
-	const unsigned int frameOffsetB = frameB * mNumTags;
+	const unsigned int frameOffsetA = frameA * mHeader.numTags;
+	const unsigned int frameOffsetB = frameB * mHeader.numTags;
 
-	for (int i = 0; i != mNumTags; ++i)
+	for (unsigned int i = 0; i != mHeader.numTags; ++i)
 	{
 		MD3QuaternionTag &d = mTagInterPol[i];
 
@@ -236,26 +237,112 @@ void MD3Mesh::BuildTagArray(unsigned int frameA, unsigned int frameB, float inte
 }
 
 /*!
-load tag
+load model
 */
-bool MD3Mesh::LoadTag(MD3Tag& import)
+bool MD3Mesh::LoadModel(eastl::wstring& path)
 {
-	MD3QuaternionTag exp(import.mName);
+	BaseReadFile* file = FileSystem::Get()->CreateReadFile(path);
+	if (!file)
+		return false;
 
-	//! position
-	exp.mPosition[0] = import.mPosition[0];
-	exp.mPosition[1] = import.mPosition[2];
-	exp.mPosition[2] = import.mPosition[1];
+	//! Check MD3Header
+	{
+		file->Read(&mHeader, sizeof(MD3Header));
 
-	//! construct quaternion from a RH 3x3 Matrix
-	exp.mRotation.Set(import.mRotationMatrix[7],
-		0.f,
-		-import.mRotationMatrix[6],
-		1 + import.mRotationMatrix[8]);
-	Normalize(exp.mRotation);
+		if (strncmp(mHeader.headerID, "IDP3", 4))
+		{
+			LogError("MD3 Loader: invalid header");
+			return false;
+		}
+	}
 
-	mTag.Pushback(exp);
-	mTagInterPol.Pushback(exp);
+	LogInformation(L"Loading Quake3 model file " + path);
+
+	//! Tag Data
+	const unsigned int totalTags = mHeader.numTags * mHeader.numFrames;
+
+	MD3Tag import;
+
+	file->Seek(mHeader.tagStart);
+	for (unsigned int i = 0; i != totalTags; ++i)
+	{
+		file->Read(&import, sizeof(import));
+
+		MD3QuaternionTag exp(import.name);
+
+		//! position
+		exp.mPosition[0] = import.position[0];
+		exp.mPosition[1] = import.position[2];
+		exp.mPosition[2] = import.position[1];
+
+		//! construct quaternion from a RH 3x3 Matrix
+		exp.mRotation.Set(import.rotationMatrix[7],
+			0.f,
+			-import.rotationMatrix[6],
+			1 + import.rotationMatrix[8]);
+		Normalize(exp.mRotation);
+
+		mTag.Pushback(exp);
+		mTagInterPol.Pushback(exp);
+	}
+
+	//! Meshes
+	unsigned int offset = mHeader.tagEnd;
+	for (unsigned int i = 0; i != mHeader.numMeshes; ++i)
+	{
+		//! construct a new mesh buffer
+		eastl::shared_ptr<MD3MeshBuffer> buf(new MD3MeshBuffer());
+
+		// !read mesh header info
+		MD3MeshHeader &meshHeader = buf->mMeshHeader;
+
+		//! read mesh info
+		file->Seek(offset);
+		file->Read(&meshHeader, sizeof(MD3MeshHeader));
+
+		//! prepare memory
+		eastl::vector<MD3Vertex> vertices = eastl::vector<MD3Vertex>(meshHeader.numVertices * meshHeader.numFrames);
+		buf->mTexCoords = eastl::vector<MD3TexCoord>(meshHeader.numVertices);
+		buf->mFaces = eastl::vector<MD3Face>(meshHeader.numTriangles);
+
+		//! read vertices
+		file->Seek(offset + meshHeader.vertexStart);
+		file->Read(vertices.data(), mHeader.numFrames * meshHeader.numVertices * sizeof(MD3Vertex));
+
+		//! read texture coordinates
+		file->Seek(offset + meshHeader.offsetSt);
+		file->Read(buf->mTexCoords.data(), meshHeader.numVertices * sizeof(MD3TexCoord));
+
+		//! read indices
+		file->Seek(offset + buf->mMeshHeader.offsetTriangles);
+		file->Read(buf->mFaces.data(), meshHeader.numTriangles * sizeof(MD3Face));
+
+		//! prepare memory
+		buf->mNormals = eastl::vector<Vector3<float>>(meshHeader.numVertices * meshHeader.numFrames);
+		buf->mPositions = eastl::vector<Vector3<float>>(meshHeader.numVertices * meshHeader.numFrames);
+
+		// Fill in all triangles
+		const float scale = (1.f / 64.f);
+		for (unsigned int i = 0; i < meshHeader.numVertices * meshHeader.numFrames; ++i)
+		{
+			// Read vertices
+			Vector3<float>& position = buf->mPositions[i];
+			position[0] = vertices[i].position[0] * scale;
+			position[1] = vertices[i].position[1] * scale;
+			position[2] = vertices[i].position[2] * scale;
+
+			// Convert the normal vector to uncompressed float3 format
+			Vector3<float>& normal = buf->mNormals[i];
+			LatLngNormalToVec3(vertices[i].normal, (float*)&normal);
+		}
+
+		//! store meshBuffer
+		mBuffer.push_back(buf);
+		mBufferInterPol.push_back(CreateMeshBuffer(buf));
+
+		offset += meshHeader.offsetEnd;
+	}
+
 	return true;
 }
 
@@ -263,13 +350,12 @@ bool MD3Mesh::LoadTag(MD3Tag& import)
 MD3QuaternionTagList* MD3Mesh::GetTagList(
 	int frame, int detailLevel, int startFrameLoop, int endFrameLoop)
 {
-	if (0 == mMeshInterPol.size())
+	if (0 == mBufferInterPol.size())
 		return 0;
 
 	UpdateMesh(frame, detailLevel, startFrameLoop, endFrameLoop);
 	return &mTagInterPol;
 }
-
 
 //! Constructor
 AnimateMeshMD3::AnimateMeshMD3() //: mFPS(25.f)
@@ -318,11 +404,7 @@ eastl::shared_ptr<BaseMeshBuffer> AnimateMeshMD3::GetMeshBuffer(const Material &
 //! Adds a new meshbuffer to the mesh, access it as last one
 void AnimateMeshMD3::AddMeshBuffer(BaseMeshBuffer* meshBuffer)
 {
-	eastl::shared_ptr<MD3Mesh> md3Mesh =
-		mRootMesh->GetMesh(ToString(meshBuffer->GetName().c_str()));
-
-	if (md3Mesh)
-		md3Mesh->AddMeshBuffer(meshBuffer);
+	mRootMesh->AddMeshBuffer(meshBuffer);
 }
 
 //! Returns the animated mesh based on a detail level. 0 is the lowest, 255 the highest detail.

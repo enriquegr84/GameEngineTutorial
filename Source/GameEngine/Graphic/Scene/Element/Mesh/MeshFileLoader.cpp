@@ -547,44 +547,12 @@ void ReadNodeMesh(const aiScene* pScene,
 
 		if (pNode->mMetaData != NULL)
 		{
-			aiString numFrames, numTags, numAnimations;
-			if (pNode->mMetaData->Get("numanimations", numAnimations) == true &&
-				pNode->mMetaData->Get("numframes", numFrames) == true &&
-				pNode->mMetaData->Get("numtags", numTags) == true)
+			aiString path, numAnimations;
+			if (pNode->mMetaData->Get("path", path) == true &&
+				pNode->mMetaData->Get("numanimations", numAnimations) == true)
 			{
-				meshMD3->SetFrameCount(atoi(numFrames.C_Str()));
-				meshMD3->SetTagCount(atoi(numTags.C_Str()));
-
-				unsigned int index = 3;
-				for (unsigned int t = 0; t < meshMD3->GetTagCount(); t++)
-				{
-					aiString originx, originy, originz;
-					pNode->mMetaData->Get(index++, originx);
-					pNode->mMetaData->Get(index++, originy);
-					pNode->mMetaData->Get(index++, originz);
-
-					aiString rotation[9];
-					for (unsigned int row = 0; row < 3; ++row)
-						for (unsigned int column = 0; column < 3; ++column)
-							pNode->mMetaData->Get(index++, rotation[row * 3 + column]);
-
-					MD3Tag md3Tag;
-					md3Tag.mName = pNode->mName.C_Str();
-					md3Tag.mPosition[0] = (float)atof(originx.C_Str());
-					md3Tag.mPosition[1] = (float)atof(originy.C_Str());
-					md3Tag.mPosition[2] = (float)atof(originz.C_Str());
-					for (unsigned int row = 0; row < 3; ++row)
-					{
-						for (unsigned int column = 0; column < 3; ++column)
-						{
-							md3Tag.mRotationMatrix[row * 3 + column] =
-								(float)atof(rotation[row * 3 + column].C_Str());
-						}
-					}
-					meshMD3->LoadTag(md3Tag);
-				}
-
-				eastl::map<MD3AnimationType, AnimationInfo> animations;
+				unsigned int index = 2;
+				eastl::map<MD3AnimationType, AnimationData> animations;
 				for (int anim = 0; anim < atoi(numAnimations.C_Str()); anim++)
 				{
 					aiString type, start, end, loop, fps;
@@ -594,11 +562,11 @@ void ReadNodeMesh(const aiScene* pScene,
 					pNode->mMetaData->Get(index++, loop);
 					pNode->mMetaData->Get(index++, fps);
 
-					AnimationInfo md3Animation;
+					AnimationData md3Animation;
 					md3Animation.mBeginFrame = atoi(start.C_Str());
-					md3Animation.mEndFrame = md3Animation.mBeginFrame + atoi(end.C_Str());
+					md3Animation.mEndFrame = atoi(end.C_Str());
 					md3Animation.mLoopFrame = atoi(loop.C_Str());
-					md3Animation.mFramesPerSecond = atoi(fps.C_Str());
+					md3Animation.mFramesPerSecond = (float)atoi(fps.C_Str());
 
 					MD3AnimationType animationType = (MD3AnimationType)atoi(type.C_Str());
 					animations[animationType] = md3Animation;
@@ -606,175 +574,197 @@ void ReadNodeMesh(const aiScene* pScene,
 
 				if (animations.size())
 				{
-					FrameInfo frame;
+					FrameData frame;
 					frame.mAnimations = animations;
-					meshMD3->AddFrame(frame);
+					meshMD3->mFrames.push_back(frame);
+				}
+				meshMD3->LoadModel(ToWideString(path.C_Str()));
+
+				if (pScene->HasMaterials())
+				{
+					for (unsigned int m = 0; m < pNode->mNumMeshes; m++)
+					{
+						unsigned int* meshIndex = &(pNode->mMeshes[m]);
+						aiMesh* mesh = pScene->mMeshes[*meshIndex];
+
+						for (unsigned int mb = 0; mb < meshMD3->GetMeshBufferCount(); mb++)
+						{
+							eastl::shared_ptr<BaseMeshBuffer> meshBuffer = meshMD3->GetMeshBuffer(mb);
+							if (meshBuffer->GetName() == ToWideString(mesh->mName.C_Str()))
+							{
+								CreateMaterial(pScene, mesh, meshBuffer.get());
+								break;
+							}
+						}
+					}
 				}
 			}
 		}
 	}
-
-	for (unsigned int m = 0; m<pNode->mNumMeshes; m++)
+	else
 	{
-		unsigned int* meshIndex = &(pNode->mMeshes[m]);
-
-		VertexFormat vformat;
-		if (pScene->mMeshes[*meshIndex]->HasPositions())
-			vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-		for (unsigned int ch = 0; ch < pScene->mMeshes[*meshIndex]->GetNumColorChannels(); ch++)
-			if (pScene->mMeshes[*meshIndex]->HasVertexColors(ch))
-				vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, ch);
-		for (unsigned int ch = 0; ch < pScene->mMeshes[*meshIndex]->GetNumUVChannels(); ch++)
-			if (pScene->mMeshes[*meshIndex]->HasTextureCoords(ch))
-				vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, ch);
-		if (pScene->mMeshes[*meshIndex]->HasNormals())
-			vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
-		if (pScene->mMeshes[*meshIndex]->HasTangentsAndBitangents())
-			vformat.Bind(VA_TANGENT, DF_R32G32B32_FLOAT, 0);
-		if (pScene->mMeshes[*meshIndex]->HasTangentsAndBitangents())
-			vformat.Bind(VA_BINORMAL, DF_R32G32B32_FLOAT, 0);
-
-		BaseMeshBuffer* meshBuffer = NULL;
-		if (pScene->HasAnimations())
+		for (unsigned int m = 0; m < pNode->mNumMeshes; m++)
 		{
-			meshBuffer = new SkinMeshBuffer(
-				vformat, pScene->mMeshes[*meshIndex]->mNumVertices,
-				pScene->mMeshes[*meshIndex]->mNumFaces, sizeof(unsigned int));
-		}
-		else
-		{
-			meshBuffer = new MeshBuffer(
-				vformat, pScene->mMeshes[*meshIndex]->mNumVertices,
-				pScene->mMeshes[*meshIndex]->mNumFaces, sizeof(unsigned int));
-		}
-		meshBuffer->SetName(ToWideString(pNode->mName.C_Str()));
+			unsigned int* meshIndex = &(pNode->mMeshes[m]);
 
-		for (unsigned int v = 0; v < pScene->mMeshes[*meshIndex]->mNumVertices; v++)
-		{
+			VertexFormat vformat;
 			if (pScene->mMeshes[*meshIndex]->HasPositions())
-			{
-				const aiVector3D& position = pScene->mMeshes[*meshIndex]->mVertices[v];
-				if (fileExtension == L"pk3")
-					meshBuffer->Position(v) = Vector3<float>{ position.x, -position.z, position.y };
-				else if (fileExtension == L"md3")
-					meshBuffer->Position(v) = Vector3<float>{ position.y, position.x, -position.z };
-				else
-					meshBuffer->Position(v) = Vector3<float>{ position.x, position.z, position.y };
-			}
-			if (pScene->mMeshes[*meshIndex]->HasNormals())
-			{
-				const aiVector3D& normal = pScene->mMeshes[*meshIndex]->mNormals[v];
-				if (fileExtension == L"pk3")
-					meshBuffer->Normal(v) = Vector3<float>{ normal.x, -normal.z , normal.y };
-				else if (fileExtension == L"md3")
-					meshBuffer->Normal(v) = Vector3<float>{ normal.y, normal.x , -normal.z };
-				else
-					meshBuffer->Normal(v) = Vector3<float>{ normal.x, normal.z , normal.y };
-			}
-			if (pScene->mMeshes[*meshIndex]->HasTangentsAndBitangents())
-			{
-				const aiVector3D& tangent = pScene->mMeshes[*meshIndex]->mTangents[v];
-				if (fileExtension == L"pk3")
-					meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, -tangent.z , tangent.y };
-				else if (fileExtension == L"md3")
-					meshBuffer->Tangent(v) = Vector3<float>{ tangent.y, tangent.x , -tangent.z };
-				else
-					meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, tangent.z , tangent.y };
-			}
-			if (pScene->mMeshes[*meshIndex]->HasTangentsAndBitangents())
-			{
-				const aiVector3D& bitangent = pScene->mMeshes[*meshIndex]->mBitangents[v];
-				if (fileExtension == L"pk3")
-					meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, -bitangent.z, bitangent.y };
-				else if (fileExtension == L"md3")
-					meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.y, bitangent.x, -bitangent.z };
-				else
-					meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, bitangent.z, bitangent.y };
-			}
+				vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
 			for (unsigned int ch = 0; ch < pScene->mMeshes[*meshIndex]->GetNumColorChannels(); ch++)
-			{
 				if (pScene->mMeshes[*meshIndex]->HasVertexColors(ch))
-				{
-					const aiColor4D& color = pScene->mMeshes[*meshIndex]->mColors[ch][v];
-					meshBuffer->Color(ch, v) = Vector4<float>{ color.r, color.g, color.b, color.a };
-				}
-			}
+					vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, ch);
 			for (unsigned int ch = 0; ch < pScene->mMeshes[*meshIndex]->GetNumUVChannels(); ch++)
-			{
 				if (pScene->mMeshes[*meshIndex]->HasTextureCoords(ch))
+					vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, ch);
+			if (pScene->mMeshes[*meshIndex]->HasNormals())
+				vformat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+			if (pScene->mMeshes[*meshIndex]->HasTangentsAndBitangents())
+				vformat.Bind(VA_TANGENT, DF_R32G32B32_FLOAT, 0);
+			if (pScene->mMeshes[*meshIndex]->HasTangentsAndBitangents())
+				vformat.Bind(VA_BINORMAL, DF_R32G32B32_FLOAT, 0);
+
+			BaseMeshBuffer* meshBuffer = NULL;
+			if (pScene->HasAnimations())
+			{
+				meshBuffer = new SkinMeshBuffer(
+					vformat, pScene->mMeshes[*meshIndex]->mNumVertices,
+					pScene->mMeshes[*meshIndex]->mNumFaces, sizeof(unsigned int));
+			}
+			else
+			{
+				meshBuffer = new MeshBuffer(
+					vformat, pScene->mMeshes[*meshIndex]->mNumVertices,
+					pScene->mMeshes[*meshIndex]->mNumFaces, sizeof(unsigned int));
+			}
+			meshBuffer->SetName(ToWideString(pScene->mMeshes[*meshIndex]->mName.C_Str()));
+
+			for (unsigned int v = 0; v < pScene->mMeshes[*meshIndex]->mNumVertices; v++)
+			{
+				if (pScene->mMeshes[*meshIndex]->HasPositions())
 				{
-					const aiVector3D& texCoord = pScene->mMeshes[*meshIndex]->mTextureCoords[ch][v];
-					meshBuffer->TCoord(ch, v) = Vector2<float>{ texCoord.x, texCoord.y };
+					const aiVector3D& position = pScene->mMeshes[*meshIndex]->mVertices[v];
+					if (fileExtension == L"pk3")
+						meshBuffer->Position(v) = Vector3<float>{ position.x, -position.z, position.y };
+					else if (fileExtension == L"md3")
+						meshBuffer->Position(v) = Vector3<float>{ position.y, position.x, -position.z };
+					else
+						meshBuffer->Position(v) = Vector3<float>{ position.x, position.z, position.y };
+				}
+				if (pScene->mMeshes[*meshIndex]->HasNormals())
+				{
+					const aiVector3D& normal = pScene->mMeshes[*meshIndex]->mNormals[v];
+					if (fileExtension == L"pk3")
+						meshBuffer->Normal(v) = Vector3<float>{ normal.x, -normal.z , normal.y };
+					else if (fileExtension == L"md3")
+						meshBuffer->Normal(v) = Vector3<float>{ normal.y, normal.x , -normal.z };
+					else
+						meshBuffer->Normal(v) = Vector3<float>{ normal.x, normal.z , normal.y };
+				}
+				if (pScene->mMeshes[*meshIndex]->HasTangentsAndBitangents())
+				{
+					const aiVector3D& tangent = pScene->mMeshes[*meshIndex]->mTangents[v];
+					if (fileExtension == L"pk3")
+						meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, -tangent.z , tangent.y };
+					else if (fileExtension == L"md3")
+						meshBuffer->Tangent(v) = Vector3<float>{ tangent.y, tangent.x , -tangent.z };
+					else
+						meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, tangent.z , tangent.y };
+				}
+				if (pScene->mMeshes[*meshIndex]->HasTangentsAndBitangents())
+				{
+					const aiVector3D& bitangent = pScene->mMeshes[*meshIndex]->mBitangents[v];
+					if (fileExtension == L"pk3")
+						meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, -bitangent.z, bitangent.y };
+					else if (fileExtension == L"md3")
+						meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.y, bitangent.x, -bitangent.z };
+					else
+						meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, bitangent.z, bitangent.y };
+				}
+				for (unsigned int ch = 0; ch < pScene->mMeshes[*meshIndex]->GetNumColorChannels(); ch++)
+				{
+					if (pScene->mMeshes[*meshIndex]->HasVertexColors(ch))
+					{
+						const aiColor4D& color = pScene->mMeshes[*meshIndex]->mColors[ch][v];
+						meshBuffer->Color(ch, v) = Vector4<float>{ color.r, color.g, color.b, color.a };
+					}
+				}
+				for (unsigned int ch = 0; ch < pScene->mMeshes[*meshIndex]->GetNumUVChannels(); ch++)
+				{
+					if (pScene->mMeshes[*meshIndex]->HasTextureCoords(ch))
+					{
+						const aiVector3D& texCoord = pScene->mMeshes[*meshIndex]->mTextureCoords[ch][v];
+						meshBuffer->TCoord(ch, v) = Vector2<float>{ texCoord.x, texCoord.y };
+					}
 				}
 			}
-		}
 
-		for (unsigned int f = 0; f < pScene->mMeshes[*meshIndex]->mNumFaces; f++)
-		{
-			const aiFace& face = pScene->mMeshes[*meshIndex]->mFaces[f];
-			LogAssert(face.mNumIndices == 3, "Invalid number of indices");
-			meshBuffer->GetIndice()->SetTriangle(f, face.mIndices[0], face.mIndices[1], face.mIndices[2]);
-		}
-
-		if (pScene->mMeshes[*meshIndex]->HasBones())
-		{
-			SkinnedMesh* skinnedMesh = dynamic_cast<SkinnedMesh*>(mesh);
-			for (unsigned int b = 0; b < pScene->mMeshes[*meshIndex]->mNumBones; b++)
+			for (unsigned int f = 0; f < pScene->mMeshes[*meshIndex]->mNumFaces; f++)
 			{
-				aiBone* bone = pScene->mMeshes[*meshIndex]->mBones[b];
-				aiNode* node = pScene->mRootNode->FindNode(bone->mName);
+				const aiFace& face = pScene->mMeshes[*meshIndex]->mFaces[f];
+				LogAssert(face.mNumIndices == 3, "Invalid number of indices");
+				meshBuffer->GetIndice()->SetTriangle(f, face.mIndices[0], face.mIndices[1], face.mIndices[2]);
+			}
 
-				BaseSkinnedMesh::Joint* joint = skinnedMesh->AddJoint();
-				joint->mName = bone->mName.C_Str();
-
-				// copy rotation matrix
-				Matrix4x4<float> transformMatrix = Matrix4x4<float>::Identity();
-				for (int row = 0; row < 3; ++row)
-					for (int column = 0; column < 3; ++column)
-						transformMatrix(row, column) = node->mTransformation[column][row];
-
-				// copy position
-				Vector3<float> translationVector = Vector3<float>::Zero();
-				for (int row = 0; row < 3; ++row)
-					translationVector[row] = node->mTransformation[row][3];
-
-				// transforms the mesh vertices to the space of the node
-				joint->mLocalTransform.SetRotation(transformMatrix);
-				joint->mLocalTransform.SetTranslation(translationVector);
-
-				if (!bone->mOffsetMatrix.IsIdentity())
+			if (pScene->mMeshes[*meshIndex]->HasBones())
+			{
+				SkinnedMesh* skinnedMesh = dynamic_cast<SkinnedMesh*>(mesh);
+				for (unsigned int b = 0; b < pScene->mMeshes[*meshIndex]->mNumBones; b++)
 				{
-					transformMatrix = Matrix4x4<float>::Identity();
+					aiBone* bone = pScene->mMeshes[*meshIndex]->mBones[b];
+					aiNode* node = pScene->mRootNode->FindNode(bone->mName);
+
+					BaseSkinnedMesh::Joint* joint = skinnedMesh->AddJoint();
+					joint->mName = bone->mName.C_Str();
+
+					// copy rotation matrix
+					Matrix4x4<float> transformMatrix = Matrix4x4<float>::Identity();
 					for (int row = 0; row < 3; ++row)
 						for (int column = 0; column < 3; ++column)
-							transformMatrix(row, column) = bone->mOffsetMatrix[column][row];
+							transformMatrix(row, column) = node->mTransformation[column][row];
 
-					translationVector = Vector3<float>::Zero();
+					// copy position
+					Vector3<float> translationVector = Vector3<float>::Zero();
 					for (int row = 0; row < 3; ++row)
-						translationVector[row] = bone->mOffsetMatrix[row][3];
+						translationVector[row] = node->mTransformation[row][3];
 
-					joint->mGlobalInversedTransform.SetRotation(transformMatrix);
-					joint->mGlobalInversedTransform.SetTranslation(translationVector);
-				}
+					// transforms the mesh vertices to the space of the node
+					joint->mLocalTransform.SetRotation(transformMatrix);
+					joint->mLocalTransform.SetTranslation(translationVector);
 
-				joint->mAttachedMeshes.push_back(mesh->GetMeshBufferCount());
-				for (unsigned int w = 0; w < bone->mNumWeights; w++)
-				{
-					BaseSkinnedMesh::Weight weight;
-					weight.mBufferId = mesh->GetMeshBufferCount();
-					weight.mVertexId = bone->mWeights[w].mVertexId;
-					weight.mStrength = bone->mWeights[w].mWeight;
-					joint->mWeights.push_back(weight);
+					if (!bone->mOffsetMatrix.IsIdentity())
+					{
+						transformMatrix = Matrix4x4<float>::Identity();
+						for (int row = 0; row < 3; ++row)
+							for (int column = 0; column < 3; ++column)
+								transformMatrix(row, column) = bone->mOffsetMatrix[column][row];
+
+						translationVector = Vector3<float>::Zero();
+						for (int row = 0; row < 3; ++row)
+							translationVector[row] = bone->mOffsetMatrix[row][3];
+
+						joint->mGlobalInversedTransform.SetRotation(transformMatrix);
+						joint->mGlobalInversedTransform.SetTranslation(translationVector);
+					}
+
+					joint->mAttachedMeshes.push_back(mesh->GetMeshBufferCount());
+					for (unsigned int w = 0; w < bone->mNumWeights; w++)
+					{
+						BaseSkinnedMesh::Weight weight;
+						weight.mBufferId = mesh->GetMeshBufferCount();
+						weight.mVertexId = bone->mWeights[w].mVertexId;
+						weight.mStrength = bone->mWeights[w].mWeight;
+						joint->mWeights.push_back(weight);
+					}
 				}
 			}
+
+			if (pScene->HasMaterials())
+				CreateMaterial(pScene, pScene->mMeshes[*meshIndex], meshBuffer);
+
+			mesh->AddMeshBuffer(meshBuffer);
 		}
-
-		if (pScene->HasMaterials())
-			CreateMaterial(pScene, pScene->mMeshes[*meshIndex], meshBuffer);
-
-		mesh->AddMeshBuffer(meshBuffer);
 	}
-
+	
 	for (unsigned int n = 0; n < pNode->mNumChildren; n++)
 		ReadNodeMesh(pScene, pNode->mChildren[n], mesh, fileExtension);
 }

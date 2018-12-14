@@ -9,6 +9,120 @@
 
 #include "Mathematic/Algebra/Rotation.h"
 
+// include this file right before the data structures to be 1-aligned
+// and add to each structure the PACK_STRUCT define just like this:
+// struct mystruct
+// {
+//	...
+// } PACK_STRUCT;
+// Always declare unpack right after the last type declared
+// like this, and do not put any other types with different alignment
+// in between!
+
+// byte-align structures
+#if defined(_MSC_VER) || defined(__BORLANDC__) || defined (__BCPLUSPLUS__)
+#	pragma warning(disable: 4103)
+#	pragma pack( push, packing )
+#	pragma pack( 1 )
+#	define PACK_STRUCT
+#elif defined( __DMC__ )
+#	pragma pack( push, 1 )
+#	define PACK_STRUCT
+#elif defined( __GNUC__ )
+// Using pragma pack might work with earlier gcc versions already, but
+// it started to be necessary with gcc 4.7 on mingw unless compiled with -mno-ms-bitfields.
+// And I found some hints on the web that older gcc versions on the other hand had sometimes
+// trouble with pragma pack while they worked with __attribute__((packed)).
+#	if (__GNUC__ > 4 ) || ((__GNUC__ == 4 ) && (__GNUC_MINOR__ >= 7))
+#		pragma pack( push, packing )
+#		pragma pack( 1 )
+#		define PACK_STRUCT
+#	else
+#		define PACK_STRUCT	__attribute__((packed))
+#endif
+#else
+#	error compiler not supported
+#endif
+
+// master scale factor for all vertices in a MD3 model
+#define MD3_XYZ_SCALE        (1.0f/64.0f)
+
+//! this holds the header info of the MD3 file
+struct MD3Header
+{
+	char headerID[4];	//id of file, always "IDP3"
+	unsigned int	version;	//this is a version number, always 15
+	char fileName[68];	//sometimes left Blank... 65 chars, 32bit aligned == 68 chars
+	int	numFrames;	//number of KeyFrames
+	unsigned int	numTags;	//number of 'tags' per frame
+	unsigned int	numMeshes;	//number of meshes/skins
+	unsigned int	numMaxSkins;	//maximum number of unique skins used in md3 file. artefact md2
+	unsigned int	frameStart;	//starting position of frame-structur
+	unsigned int	tagStart;	//starting position of tag-structures
+	unsigned int	tagEnd;		//ending position of tag-structures/starting position of mesh-structures
+	unsigned int	fileSize;
+} PACK_STRUCT;
+
+//! this holds the header info of an MD3 mesh section
+struct MD3MeshHeader
+{
+	char meshID[4];		//id, must be IDP3
+	char meshName[68];	//name of mesh 65 chars, 32 bit aligned == 68 chars
+
+	unsigned int numFrames;		//number of meshframes in mesh
+	unsigned int numShader;		//number of skins in mesh
+	unsigned int numVertices;	//number of vertices
+	unsigned int numTriangles;	//number of Triangles
+
+	unsigned int offsetTriangles;	//starting position of Triangle data, relative to start of Mesh_Header
+	unsigned int offsetShaders;	//size of header
+	unsigned int offsetSt;		//starting position of texvector data, relative to start of Mesh_Header
+	unsigned int vertexStart;	//starting position of vertex data,relative to start of Mesh_Header
+	int offsetEnd;
+} PACK_STRUCT;
+
+//! Compressed Vertex Data
+struct MD3Vertex
+{
+	short position[3];
+	unsigned short normal;
+} PACK_STRUCT;
+
+//! Texture Coordinate
+struct MD3TexCoord
+{
+	float u;
+	float v;
+} PACK_STRUCT;
+
+//! Triangle Index
+struct MD3Face
+{
+	int index[3];
+} PACK_STRUCT;
+
+//! An attachment point for another MD3 model.
+struct MD3Tag
+{
+	char name[64];		//name of 'tag' as it's usually called in the md3 files 
+						//try to see it as a sub-mesh/seperate mesh-part.
+	float position[3];			//relative position of tag
+	float rotationMatrix[9];	//3x3 rotation direction of tag
+} PACK_STRUCT;
+
+// Default alignment
+#if defined(_MSC_VER) || defined(__BORLANDC__) || defined (__BCPLUSPLUS__)
+#	pragma pack( pop, packing )
+#elif defined (__DMC__)
+#	pragma pack( pop )
+#elif defined( __GNUC__ )
+#   if (__GNUC__ > 4 ) || ((__GNUC__ == 4 ) && (__GNUC_MINOR__ >= 7))
+#	    pragma pack( pop, packing )
+#   endif
+#endif
+
+#undef PACK_STRUCT
+
 enum MD3Model
 {
 	MD3_HEAD = 0,
@@ -67,9 +181,9 @@ enum MD3AnimationType
 	ANIMATION_COUNT
 };
 
-struct AnimationInfo
+struct AnimationData
 {
-	AnimationInfo() :
+	AnimationData() :
 		mBeginFrame(0), mEndFrame(0), mLoopFrame(0),
 		mCurrentFrameNr(0.f), mFramesPerSecond(0.f)
 	{
@@ -83,13 +197,15 @@ struct AnimationInfo
 	float mFramesPerSecond;
 };
 
-//! An attachment point for another MD3 model.
-struct MD3Tag
+//! Holding Frame Data for a Mesh
+struct MD3MeshBuffer
 {
-	eastl::string mName;		//name of 'tag' as it's usually called in the md3 files 
-								//try to see it as a sub-mesh/seperate mesh-part.
-	float mPosition[3];			//relative position of tag
-	float mRotationMatrix[9];	//3x3 rotation direction of tag
+	MD3MeshHeader mMeshHeader;
+
+	eastl::vector<MD3Face> mFaces;
+	eastl::vector<MD3TexCoord> mTexCoords;
+	eastl::vector<Vector3<float>> mNormals;
+	eastl::vector<Vector3<float>> mPositions;
 };
 
 //! hold a tag info for connecting meshes
@@ -199,17 +315,16 @@ private:
 	eastl::vector<MD3QuaternionTag> mContainer;
 };
 
-
-struct FrameInfo
+struct FrameData
 {
-	FrameInfo() : mAnimType(BOTH_DEATH1)
+	FrameData() : mAnimType(BOTH_DEATH1)
 	{
 
 	}
 
-	bool operator == (const FrameInfo &other) const
+	bool operator == (const FrameData &other) const
 	{
-		return 0 == memcmp(this, &other, sizeof(FrameInfo));
+		return 0 == memcmp(this, &other, sizeof(FrameData));
 	}
 
 	//! Sets the current frame. From now on the animation is played from this frame.
@@ -319,27 +434,26 @@ struct FrameInfo
 	}
 
 	MD3AnimationType mAnimType;
-	eastl::map<MD3AnimationType, AnimationInfo> mAnimations;
+	eastl::map<MD3AnimationType, AnimationData> mAnimations;
 };
 
 //! md3 mesh data
 struct MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
 {
-	MD3Mesh() : mInterPolShift(0), mLoopMode(0), mNumFrames(0), mNumTags(0)
+	MD3Mesh() : mInterPolShift(0), mLoopMode(0)
 	{
 
 	}
 
 	MD3Mesh(eastl::string name) : 
-		mName(name), mInterPolShift(0), mLoopMode(0), mNumFrames(0), mNumTags(0)
+		mName(name), mInterPolShift(0), mLoopMode(0)
 	{
 
 	}
 
 	virtual ~MD3Mesh()
 	{
-		mMesh.clear();
-		mMeshInterPol.clear();
+		mBufferInterPol.clear();
 
 		// delete all children
 		DetachAllChildren();
@@ -368,65 +482,40 @@ struct MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
 	//! Adds a new meshbuffer to the mesh, access it as last one
 	void AddMeshBuffer(BaseMeshBuffer* meshBuffer);
 
-	eastl::shared_ptr<MeshBuffer> CreateMeshBuffer(const eastl::shared_ptr<MeshBuffer>& source);
+	eastl::shared_ptr<MeshBuffer> CreateMeshBuffer(const eastl::shared_ptr<MD3MeshBuffer>& source);
 
-	void BuildVertexArray(unsigned int frameA, unsigned int frameB, float interpolate,
-		eastl::shared_ptr<MeshBuffer>& source, eastl::shared_ptr<MeshBuffer>& dest);
+	void BuildVertexArray(unsigned int meshId, 
+		unsigned int frameA, unsigned int frameB, float interpolate);
 
 	void BuildTagArray(unsigned int frameA, unsigned int frameB, float interpolate);
 
 	//! tags
-	bool LoadTag(MD3Tag& import);
-
 	MD3QuaternionTagList* GetTagList(int frame, int detailLevel, int startFrameLoop, int endFrameLoop);
 
-	//! Gets the tag count of the mesh.
-	unsigned int GetTagCount()
-	{
-		return mNumTags;
-	}
-
-	//! Set the tag count of the animated mesh.
-	void SetTagCount(unsigned int tagCount)
-	{
-		mNumTags = tagCount;
-	}
-
-	//! Gets the frame count of the mesh.
-	unsigned int GetFrameCount() const
-	{
-		return mNumFrames << mInterPolShift;
-	}
-
-	//! Set the frame count of the animated mesh.
-	void SetFrameCount(unsigned int frameCount)
-	{
-		mNumFrames = frameCount;
-	}
-
-	//! Adds a new meshbuffer to the mesh, access it as last one
-	void AddFrame(FrameInfo frame)
-	{
-		mFrames.push_back(frame);
-	}
-
-	const eastl::vector<FrameInfo>& GetFrames()
-	{
-		return mFrames;
-	}
+	//! model
+	bool LoadModel(eastl::wstring& path);
 
 	inline unsigned int Conditional(const int condition, const unsigned int a, const unsigned int b)
 	{
 		return ((-condition >> 31) & (a ^ b)) ^ b;
 	}
 
-	//! md3 normal
-	inline Vector3<float> GetMD3Normal(float i, float j)
+	// -------------------------------------------------------------------------------
+	/** @brief
+	*  @param iNormal Input normal vector in latitude/longitude form
+	*  @param afOut Pointer to an array of three floats to receive the result
+	*/
+	inline void LatLngNormalToVec3(short iNormal, float* afOut)
 	{
-		const float lng = i * 2.0f * (float)GE_C_PI / 255.0f;
-		const float lat = j * 2.0f * (float)GE_C_PI / 255.0f;
-		return Vector3<float>{
-			cosf(lat) * sinf(lng), sinf(lat) * sinf(lng), cosf(lng)};
+		float lat = (float)((iNormal >> 8u) & 0xff);
+		float lng = (float)((iNormal & 0xff));
+		const float invVal(float(1.0) / float(128.0));
+		lat *= float(3.141926) * invVal;
+		lng *= float(3.141926) * invVal;
+
+		afOut[0] = cos(lat) * sin(lng);
+		afOut[1] = sin(lat) * sin(lng);
+		afOut[2] = cos(lng);
 	}
 
 	//! Cache Animation Info
@@ -449,23 +538,19 @@ struct MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
 	CacheAnimationInfo mCurrent;
 
 	eastl::string mName;
-	eastl::shared_ptr<MD3Mesh> mParent;
 	eastl::vector<eastl::shared_ptr<MD3Mesh>> mChildren;
 
 	unsigned int mLoopMode;
 	unsigned int mInterPolShift;	// The next frame of animation to interpolate too
-	unsigned int mNumFrames;
-	unsigned int mNumTags;
-
-	eastl::vector<FrameInfo> mFrames;
 
 	//! interpolated data
-	MD3QuaternionTagList mTagInterPol;
-	eastl::vector<eastl::shared_ptr<MeshBuffer>> mMeshInterPol;
-
-	//! original data
 	MD3QuaternionTagList mTag;
-	eastl::vector<eastl::shared_ptr<MeshBuffer>> mMesh;
+	MD3QuaternionTagList mTagInterPol;
+	eastl::vector<eastl::shared_ptr<MeshBuffer>> mBufferInterPol;
+
+	MD3Header mHeader;
+	eastl::vector<FrameData> mFrames;
+	eastl::vector<eastl::shared_ptr<MD3MeshBuffer>> mBuffer;
 };
 
 class AnimateMeshMD3 : public BaseAnimatedMesh

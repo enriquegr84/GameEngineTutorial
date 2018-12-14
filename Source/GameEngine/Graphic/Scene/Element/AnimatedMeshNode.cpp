@@ -120,8 +120,8 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
 		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
 		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
-			for (FrameInfo frame : mesh->GetFrames())
-				frame.SetFrameLoop(mesh->GetFrameCount(), 0, frame.GetEndFrame());
+			for (FrameData frame : mesh->mFrames)
+				frame.SetFrameLoop(mesh->mHeader.numFrames, 0, frame.GetEndFrame());
 	}
 
 	// get start and begin time
@@ -263,7 +263,7 @@ eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 			animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
 			for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
 			{
-				for (FrameInfo frame : mesh->GetFrames())
+				for (FrameData frame : mesh->mFrames)
 				{
 					frameNr = (int)frame.GetFrameNr();
 					frameBlend = (int)(Function<float>::Fract(frame.GetFrameNr()) * 1000.f);
@@ -292,7 +292,7 @@ bool AnimatedMeshNode::OnAnimate(Scene* pScene, unsigned int time)
 		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
 		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
 		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
-			for (FrameInfo frame : mesh->GetFrames())
+			for (FrameData frame : mesh->mFrames)
 				frame.BuildFrameNr(time - mLastTime);
 	}
 
