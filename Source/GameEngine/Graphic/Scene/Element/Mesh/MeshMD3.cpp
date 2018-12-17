@@ -320,16 +320,16 @@ void MD3Mesh::BuildVertexArray(unsigned int meshId,
 
 			// position
 			mBufferInterpol[meshId]->Position(index)[0] = vA[0] + interpolate * (vB[0] - vA[0]);
-			mBufferInterpol[meshId]->Position(index)[1] = vA[2] + interpolate * (vB[2] - vA[2]);
-			mBufferInterpol[meshId]->Position(index)[2] = vA[1] + interpolate * (vB[1] - vA[1]);
+			mBufferInterpol[meshId]->Position(index)[1] = vA[1] + interpolate * (vB[1] - vA[1]);
+			mBufferInterpol[meshId]->Position(index)[2] = vA[2] + interpolate * (vB[2] - vA[2]);
 
 			// normal
 			const Vector3<float> &nA = mBuffer[meshId]->mNormals[frameOffsetA + index];
 			const Vector3<float> &nB = mBuffer[meshId]->mNormals[frameOffsetB + index];
 
 			mBufferInterpol[meshId]->Normal(index)[0] = nA[0] + interpolate * (nB[0] - nA[0]);
-			mBufferInterpol[meshId]->Normal(index)[1] = nA[2] + interpolate * (nB[2] - nA[2]);
-			mBufferInterpol[meshId]->Normal(index)[2] = nA[1] + interpolate * (nB[1] - nA[1]);
+			mBufferInterpol[meshId]->Normal(index)[1] = nA[1] + interpolate * (nB[1] - nA[1]);
+			mBufferInterpol[meshId]->Normal(index)[2] = nA[2] + interpolate * (nB[2] - nA[2]);
 		}
 	}
 
@@ -456,21 +456,18 @@ bool MD3Mesh::LoadModel(eastl::wstring& path)
 
 		//! position
 		exp.mPosition[0] = import.position[0];
-		exp.mPosition[1] = import.position[2];
-		exp.mPosition[2] = import.position[1];
+		exp.mPosition[1] = import.position[1];
+		exp.mPosition[2] = import.position[2];
 
 		//! construct quaternion from a RH 3x3 Matrix
 		Matrix4x4<float> rotation = Matrix4x4<float>::Identity();
 		rotation.SetRow(0, Vector4<float>{
-			import.rotation[0], import.rotation[1], import.rotation[2], 0.f});
+			import.rotation[0], import.rotation[3], import.rotation[6], 0.f});
 		rotation.SetRow(1, Vector4<float>{
-			import.rotation[3], import.rotation[4], import.rotation[5], 0.f});
+			import.rotation[1], import.rotation[4], import.rotation[7], 0.f});
 		rotation.SetRow(2, Vector4<float>{
-			import.rotation[6], import.rotation[7], import.rotation[8], 0.f});
+			import.rotation[2], import.rotation[5], import.rotation[8], 0.f});
 		exp.mRotation = Rotation<4, float>(rotation);
-
-		//swapping Y and Z axis
-		eastl::swap(exp.mRotation[2], exp.mRotation[1]);
 
 		tags.Pushback(exp);
 	}
@@ -486,7 +483,7 @@ bool MD3Mesh::LoadModel(eastl::wstring& path)
 		if (!meshMD3->IsTagMesh())
 		{
 			meshMD3->mTags = tags;
-			meshMD3->mNumFrames = mNumFrames;
+			meshMD3->mNumFrames = header.numFrames;
 			meshMD3->mNumTags = header.numTags;
 		}
 	}

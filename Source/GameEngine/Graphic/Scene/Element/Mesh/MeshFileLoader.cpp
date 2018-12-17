@@ -575,7 +575,7 @@ void ReadNodeMesh(const aiScene* pScene,
 
 				if (meshMD3->GetAnimationCount())
 				{
-					unsigned int currentAnim = 7;
+					unsigned int currentAnim = 0;
 					meshMD3->SetCurrentAnimation(currentAnim);
 					meshMD3->SetCurrentFrame(meshMD3->GetAnimation(currentAnim).mBeginFrame);
 				}

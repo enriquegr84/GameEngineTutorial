@@ -394,18 +394,22 @@ void AnimatedMeshNode::Render(unsigned int& visual, bool isTransparentPass,
 				Matrix4x4<float> pvMatrix = pScene->GetActiveCamera()->Get()->GetProjectionViewMatrix();
 				cbuffer = mVisuals[visual]->GetEffect()->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
 
-				Matrix4x4<float> interpolation = Rotation<4, float>(
-					AxisAngle<4, float>(Vector4<float>::Unit(0), 90.f * (float)GE_C_DEG_TO_RAD));
-				interpolation = pvMatrix * interpolation;
-				for (unsigned int i = 0; i < interpolations.size(); i++)
+				Matrix4x4<float> interpolation = Matrix4x4<float>::Identity();
+				eastl::vector<Transform>::reverse_iterator it;
+				for (it = interpolations.rbegin(); it != interpolations.rend(); it++)
 				{
 #if defined(GE_USE_MAT_VEC)
-					interpolation = interpolation * interpolations[i];
+					interpolation = (*it) * interpolation;
 #else
-					interpolation = interpolations[i] * interpolation;
+					interpolation = interpolation * (*it);
 #endif
 				}
-				*cbuffer->Get<Matrix4x4<float>>() = interpolation;
+
+#if defined(GE_USE_MAT_VEC)
+				*cbuffer->Get<Matrix4x4<float>>() = pvMatrix * interpolation;
+#else
+				*cbuffer->Get<Matrix4x4<float>>() = interpolation * pvMatrix;
+#endif
 
 				Renderer* renderer = Renderer::Get();
 				renderer->Update(cbuffer);
@@ -444,16 +448,7 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		unsigned int visual = 0;
 		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get());
 
-		Quaternion<float> rotation = Rotation<4, float>(mWorldTransform.GetRotation());
-		Vector3<float> translation = mWorldTransform.GetTranslation();
-		//swapping Y and Z axis
-		eastl::swap(rotation[1], rotation[2]);
-		eastl::swap(translation[1], translation[2]);
-
-		Transform interpolation;
-		interpolation.SetRotation(rotation);
-		interpolation.SetTranslation(translation);
-		eastl::vector<Transform> interpolations{ interpolation };
+		eastl::vector<Transform> interpolations{ mWorldTransform };
 		Render(visual, isTransparentPass, pScene, interpolations, animMeshMD3->GetMD3Mesh());
 	}
 	else

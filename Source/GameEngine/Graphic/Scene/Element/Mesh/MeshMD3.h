@@ -343,6 +343,8 @@ public:
 	void SetInterpolationShift(unsigned int shift, unsigned int loopMode);
 
 	// MD3 Mesh
+	eastl::string GetName() { return mName; }
+
 	eastl::shared_ptr<MD3Mesh> GetRootMesh();
 	eastl::shared_ptr<MD3Mesh> GetMesh(eastl::string meshName);
 	void GetMeshes(eastl::vector<eastl::shared_ptr<MD3Mesh>>& meshes);
