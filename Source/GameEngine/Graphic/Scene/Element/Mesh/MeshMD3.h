@@ -106,8 +106,8 @@ struct MD3Tag
 {
 	char name[64];		//name of 'tag' as it's usually called in the md3 files 
 						//try to see it as a sub-mesh/seperate mesh-part.
-	float position[3];			//relative position of tag
-	float rotationMatrix[9];	//3x3 rotation direction of tag
+	float position[3];	//relative position of tag
+	float rotation[9];	//3x3 rotation direction of tag
 } PACK_STRUCT;
 
 // Default alignment
@@ -183,9 +183,8 @@ enum MD3AnimationType
 
 struct AnimationData
 {
-	AnimationData() :
-		mBeginFrame(0), mEndFrame(0), mLoopFrame(0),
-		mCurrentFrameNr(0.f), mFramesPerSecond(0.f)
+	AnimationData() : mAnimationType(BOTH_DEATH1), 
+		mBeginFrame(0), mEndFrame(0), mLoopFrame(0), mFramesPerSecond(0.f)
 	{
 
 	}
@@ -193,8 +192,8 @@ struct AnimationData
 	int mBeginFrame;
 	int mEndFrame;
 	int mLoopFrame;
-	float mCurrentFrameNr;
 	float mFramesPerSecond;
+	MD3AnimationType mAnimationType;
 };
 
 //! Holding Frame Data for a Mesh
@@ -223,9 +222,15 @@ struct MD3QuaternionTag
 		*this = copyMe;
 	}
 
+	// default constructor
+	MD3QuaternionTag() {}
+
 	// construct for searching
 	MD3QuaternionTag(const eastl::string& name)
-		: mName(name) {}
+		: mName(name) 
+	{
+	
+	}
 
 	// construct from a position and euler angles in degrees
 	MD3QuaternionTag(const Vector3<float> &pos, Vector3<float> &angle)
@@ -275,16 +280,6 @@ struct MD3QuaternionTagList
 
 	virtual ~MD3QuaternionTagList() {}
 
-	const MD3QuaternionTag* Get(const eastl::string& name)
-	{
-		eastl::vector<MD3QuaternionTag>::const_iterator itContainer;
-		for (itContainer = mContainer.begin(); itContainer != mContainer.end(); itContainer++)
-			if ((*itContainer).mName == name)
-				return &(*itContainer);
-
-		return 0;
-	}
-
 	unsigned int Size() const
 	{
 		return mContainer.size();
@@ -315,145 +310,31 @@ private:
 	eastl::vector<MD3QuaternionTag> mContainer;
 };
 
-struct FrameData
-{
-	FrameData() : mAnimType(BOTH_DEATH1)
-	{
+// Forward declarations
+class MD3Mesh;
 
-	}
-
-	bool operator == (const FrameData &other) const
-	{
-		return 0 == memcmp(this, &other, sizeof(FrameData));
-	}
-
-	//! Sets the current frame. From now on the animation is played from this frame.
-	void SetCurrentFrame(float frame)
-	{
-		// if you pass an out of range value, we just clamp it
-		mAnimations[mAnimType].mCurrentFrameNr = eastl::clamp(frame,
-			(float)mAnimations[mAnimType].mBeginFrame, (float)mAnimations[mAnimType].mEndFrame);
-	}
-
-	//! Returns the currently displayed frame number.
-	float GetFrameNr()
-	{
-		return mAnimations[mAnimType].mCurrentFrameNr;
-	}
-
-	//! Returns the current start frame number.
-	int GetBeginFrame()
-	{
-		return mAnimations[mAnimType].mBeginFrame;
-	}
-
-	//! Returns the current start frame number.
-	int GetEndFrame()
-	{
-		return mAnimations[mAnimType].mEndFrame;
-	}
-
-	//! sets the frames between the animation is looped.
-	//! the default is 0 - MaximalFrameCount of the mesh.
-	bool SetFrameLoop(int frames, int begin, int end)
-	{
-		const int maxFrameCount = frames - 1;
-		if (end < begin)
-		{
-			mAnimations[mAnimType].mBeginFrame = eastl::clamp(end, 0, maxFrameCount);
-			mAnimations[mAnimType].mEndFrame = eastl::clamp(begin,
-				mAnimations[mAnimType].mBeginFrame, maxFrameCount);
-		}
-		else
-		{
-			mAnimations[mAnimType].mBeginFrame = eastl::clamp(begin, 0, maxFrameCount);
-			mAnimations[mAnimType].mEndFrame = eastl::clamp(end,
-				mAnimations[mAnimType].mBeginFrame, maxFrameCount);
-		}
-		if (mAnimations[mAnimType].mFramesPerSecond < 0)
-			SetCurrentFrame((float)mAnimations[mAnimType].mEndFrame);
-		else
-			SetCurrentFrame((float)mAnimations[mAnimType].mBeginFrame);
-
-		return true;
-	}
-
-	//! Get CurrentFrameNr and update transiting settings
-	void BuildFrameNr(unsigned int timeMs)
-	{
-		if (mAnimations[mAnimType].mBeginFrame == mAnimations[mAnimType].mEndFrame)
-		{
-			mAnimations[mAnimType].mCurrentFrameNr =
-				(float)mAnimations[mAnimType].mBeginFrame; //Support for non animated meshes
-		}
-		else if (mAnimations[mAnimType].mLoopFrame)
-		{
-			// play animation looped
-			mAnimations[mAnimType].mCurrentFrameNr += timeMs * mAnimations[mAnimType].mFramesPerSecond;
-
-			// We have no interpolation between EndFrame and StartFrame,
-			// the last frame must be identical to first one with our current solution.
-			if (mAnimations[mAnimType].mFramesPerSecond > 0.f) //forwards...
-			{
-				if (mAnimations[mAnimType].mCurrentFrameNr > mAnimations[mAnimType].mEndFrame)
-				{
-					mAnimations[mAnimType].mCurrentFrameNr = mAnimations[mAnimType].mBeginFrame +
-						fmod(mAnimations[mAnimType].mCurrentFrameNr - mAnimations[mAnimType].mBeginFrame,
-						(float)(mAnimations[mAnimType].mEndFrame - mAnimations[mAnimType].mBeginFrame));
-				}
-			}
-			else //backwards...
-			{
-				if (mAnimations[mAnimType].mCurrentFrameNr < mAnimations[mAnimType].mBeginFrame)
-				{
-					mAnimations[mAnimType].mCurrentFrameNr = mAnimations[mAnimType].mEndFrame -
-						fmod(mAnimations[mAnimType].mEndFrame - mAnimations[mAnimType].mCurrentFrameNr,
-						(float)(mAnimations[mAnimType].mEndFrame - mAnimations[mAnimType].mBeginFrame));
-				}
-			}
-		}
-		else
-		{
-			// play animation non looped
-			mAnimations[mAnimType].mCurrentFrameNr += timeMs * mAnimations[mAnimType].mFramesPerSecond;
-			if (mAnimations[mAnimType].mFramesPerSecond > 0.f) //forwards...
-			{
-				if (mAnimations[mAnimType].mCurrentFrameNr > (float)mAnimations[mAnimType].mEndFrame)
-				{
-					mAnimations[mAnimType].mCurrentFrameNr = (float)mAnimations[mAnimType].mEndFrame;
-				}
-			}
-			else //backwards...
-			{
-				if (mAnimations[mAnimType].mCurrentFrameNr < (float)mAnimations[mAnimType].mBeginFrame)
-				{
-					mAnimations[mAnimType].mCurrentFrameNr = (float)mAnimations[mAnimType].mBeginFrame;
-				}
-			}
-		}
-	}
-
-	MD3AnimationType mAnimType;
-	eastl::map<MD3AnimationType, AnimationData> mAnimations;
-};
+typedef eastl::vector<eastl::shared_ptr<MD3Mesh>> MD3MeshList;
 
 //! md3 mesh data
-struct MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
+class MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
 {
-	MD3Mesh() : mInterPolShift(0), mLoopMode(0)
+public:
+	MD3Mesh() : mInterPolShift(0), mLoopMode(0), mParent(nullptr),
+		mNumTags(0), mNumFrames(0), mCurrentFrame(0), mCurrentAnimation(0)
 	{
 
 	}
 
 	MD3Mesh(eastl::string name) : 
-		mName(name), mInterPolShift(0), mLoopMode(0)
+		mName(name), mInterPolShift(0), mLoopMode(0), mParent(nullptr),
+		mNumTags(0), mNumFrames(0), mCurrentFrame(0), mCurrentAnimation(0)
 	{
 
 	}
 
 	virtual ~MD3Mesh()
 	{
-		mBufferInterPol.clear();
+		mBufferInterpol.clear();
 
 		// delete all children
 		DetachAllChildren();
@@ -462,13 +343,22 @@ struct MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
 	void SetInterpolationShift(unsigned int shift, unsigned int loopMode);
 
 	// MD3 Mesh
+	eastl::shared_ptr<MD3Mesh> GetRootMesh();
 	eastl::shared_ptr<MD3Mesh> GetMesh(eastl::string meshName);
 	void GetMeshes(eastl::vector<eastl::shared_ptr<MD3Mesh>>& meshes);
 
 	bool UpdateMesh(int frame, int detailLevel, int startFrameLoop, int endFrameLoop);
 	eastl::shared_ptr<MD3Mesh> CreateMesh(eastl::string parentMesh, eastl::string newMesh);
 
+	eastl::shared_ptr<MD3Mesh> GetParent() { return mParent; }
+	void SetParent(eastl::shared_ptr<MD3Mesh> parent){ mParent = parent; }
+
+	int AttachChild(eastl::shared_ptr<MD3Mesh> const& child);
+	int DetachChild(eastl::shared_ptr<MD3Mesh> const& child);
+	eastl::shared_ptr<MD3Mesh> DetachChildAt(int i);
 	void DetachAllChildren();
+
+	MD3MeshList& GetChildren() { return mChildren; }
 
 	//! returns amount of mesh buffers.
 	unsigned int GetMeshBufferCount() const;
@@ -484,16 +374,28 @@ struct MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
 
 	eastl::shared_ptr<MeshBuffer> CreateMeshBuffer(const eastl::shared_ptr<MD3MeshBuffer>& source);
 
-	void BuildVertexArray(unsigned int meshId, 
-		unsigned int frameA, unsigned int frameB, float interpolate);
-
+	void BuildFrameNr(bool loop, unsigned int timeMs);
+	void BuildVertexArray(unsigned int meshId, unsigned int frameA, unsigned int frameB, float interpolate);
 	void BuildTagArray(unsigned int frameA, unsigned int frameB, float interpolate);
 
 	//! tags
-	MD3QuaternionTagList* GetTagList(int frame, int detailLevel, int startFrameLoop, int endFrameLoop);
+	bool IsTagMesh();
+	MD3QuaternionTag& GetTagInterpolation();
+	eastl::shared_ptr<MD3Mesh> GetTagMesh(eastl::string tagName);
+
+	//! animations
+	float GetCurrentFrame() { return mCurrentFrame; }
+	void SetCurrentFrame(float currentFrame) { mCurrentFrame = currentFrame; }
+	void SetCurrentAnimation( unsigned int currentAnim) { mCurrentAnimation = currentAnim; }
+	unsigned int GetCurrentAnimation() { return mCurrentAnimation; }
+	unsigned int GetAnimationCount();
+	AnimationData& GetAnimation(unsigned int nr);
+	void AddAnimation(AnimationData& animation);
 
 	//! model
 	bool LoadModel(eastl::wstring& path);
+
+protected:
 
 	inline unsigned int Conditional(const int condition, const unsigned int a, const unsigned int b)
 	{
@@ -518,6 +420,8 @@ struct MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
 		afOut[2] = cos(lng);
 	}
 
+private:
+
 	//! Cache Animation Info
 	struct CacheAnimationInfo
 	{
@@ -538,19 +442,24 @@ struct MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
 	CacheAnimationInfo mCurrent;
 
 	eastl::string mName;
-	eastl::vector<eastl::shared_ptr<MD3Mesh>> mChildren;
+	MD3MeshList mChildren;
+	eastl::shared_ptr<MD3Mesh> mParent;
+
+	int mNumFrames;
+	float mCurrentFrame;
+	unsigned int mCurrentAnimation;
+	eastl::vector<AnimationData> mAnimations;
 
 	unsigned int mLoopMode;
 	unsigned int mInterPolShift;	// The next frame of animation to interpolate too
 
-	//! interpolated data
-	MD3QuaternionTagList mTag;
-	MD3QuaternionTagList mTagInterPol;
-	eastl::vector<eastl::shared_ptr<MeshBuffer>> mBufferInterPol;
+	//! tag data
+	unsigned int mNumTags;
+	MD3QuaternionTagList mTags;
+	MD3QuaternionTag mTagInterpol;
 
-	MD3Header mHeader;
-	eastl::vector<FrameData> mFrames;
 	eastl::vector<eastl::shared_ptr<MD3MeshBuffer>> mBuffer;
+	eastl::vector<eastl::shared_ptr<MeshBuffer>> mBufferInterpol;
 };
 
 class AnimateMeshMD3 : public BaseAnimatedMesh
@@ -594,9 +503,6 @@ public:
 	{
 		return mRootMesh->GetMesh(meshName);
 	}
-
-	MD3QuaternionTagList* GetTagList(
-		int frame, int detailLevel, int startFrameLoop, int endFrameLoop);
 
 	//! Gets the default animation speed of the animated mesh.
 	/** \return Amount of frames per second. If the amount is 0, it is a static, non animated mesh. */

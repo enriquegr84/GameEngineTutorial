@@ -195,6 +195,7 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 		// Create the 2D texture and compute the stride and image size.
 		eastl::shared_ptr<Texture2> meshTexture =
 			eastl::make_shared<Texture2>(gtformat, width, height, true);
+		meshTexture->SetName(ToWideString(textureName->C_Str()));
 		UINT const stride = width * meshTexture->GetElementSize();
 		UINT const imageSize = stride * height;
 
@@ -551,8 +552,9 @@ void ReadNodeMesh(const aiScene* pScene,
 			if (pNode->mMetaData->Get("path", path) == true &&
 				pNode->mMetaData->Get("numanimations", numAnimations) == true)
 			{
+				meshMD3->LoadModel(ToWideString(path.C_Str()));
+
 				unsigned int index = 2;
-				eastl::map<MD3AnimationType, AnimationData> animations;
 				for (int anim = 0; anim < atoi(numAnimations.C_Str()); anim++)
 				{
 					aiString type, start, end, loop, fps;
@@ -567,18 +569,16 @@ void ReadNodeMesh(const aiScene* pScene,
 					md3Animation.mEndFrame = atoi(end.C_Str());
 					md3Animation.mLoopFrame = atoi(loop.C_Str());
 					md3Animation.mFramesPerSecond = (float)atoi(fps.C_Str());
-
-					MD3AnimationType animationType = (MD3AnimationType)atoi(type.C_Str());
-					animations[animationType] = md3Animation;
+					md3Animation.mAnimationType = (MD3AnimationType)atoi(type.C_Str());
+					meshMD3->AddAnimation(md3Animation);
 				}
 
-				if (animations.size())
+				if (meshMD3->GetAnimationCount())
 				{
-					FrameData frame;
-					frame.mAnimations = animations;
-					meshMD3->mFrames.push_back(frame);
+					unsigned int currentAnim = 7;
+					meshMD3->SetCurrentAnimation(currentAnim);
+					meshMD3->SetCurrentFrame(meshMD3->GetAnimation(currentAnim).mBeginFrame);
 				}
-				meshMD3->LoadModel(ToWideString(path.C_Str()));
 
 				if (pScene->HasMaterials())
 				{
@@ -645,8 +645,6 @@ void ReadNodeMesh(const aiScene* pScene,
 					const aiVector3D& position = pScene->mMeshes[*meshIndex]->mVertices[v];
 					if (fileExtension == L"pk3")
 						meshBuffer->Position(v) = Vector3<float>{ position.x, -position.z, position.y };
-					else if (fileExtension == L"md3")
-						meshBuffer->Position(v) = Vector3<float>{ position.y, position.x, -position.z };
 					else
 						meshBuffer->Position(v) = Vector3<float>{ position.x, position.z, position.y };
 				}
@@ -655,8 +653,6 @@ void ReadNodeMesh(const aiScene* pScene,
 					const aiVector3D& normal = pScene->mMeshes[*meshIndex]->mNormals[v];
 					if (fileExtension == L"pk3")
 						meshBuffer->Normal(v) = Vector3<float>{ normal.x, -normal.z , normal.y };
-					else if (fileExtension == L"md3")
-						meshBuffer->Normal(v) = Vector3<float>{ normal.y, normal.x , -normal.z };
 					else
 						meshBuffer->Normal(v) = Vector3<float>{ normal.x, normal.z , normal.y };
 				}
@@ -665,8 +661,6 @@ void ReadNodeMesh(const aiScene* pScene,
 					const aiVector3D& tangent = pScene->mMeshes[*meshIndex]->mTangents[v];
 					if (fileExtension == L"pk3")
 						meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, -tangent.z , tangent.y };
-					else if (fileExtension == L"md3")
-						meshBuffer->Tangent(v) = Vector3<float>{ tangent.y, tangent.x , -tangent.z };
 					else
 						meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, tangent.z , tangent.y };
 				}
@@ -675,8 +669,6 @@ void ReadNodeMesh(const aiScene* pScene,
 					const aiVector3D& bitangent = pScene->mMeshes[*meshIndex]->mBitangents[v];
 					if (fileExtension == L"pk3")
 						meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, -bitangent.z, bitangent.y };
-					else if (fileExtension == L"md3")
-						meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.y, bitangent.x, -bitangent.z };
 					else
 						meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, bitangent.z, bitangent.y };
 				}

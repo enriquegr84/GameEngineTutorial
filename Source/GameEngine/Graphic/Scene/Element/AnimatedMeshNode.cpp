@@ -113,17 +113,6 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 		CheckJoints();
 	}
 
-	if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
-	{
-		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
-
-		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
-		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
-		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
-			for (FrameData frame : mesh->mFrames)
-				frame.SetFrameLoop(mesh->mHeader.numFrames, 0, frame.GetEndFrame());
-	}
-
 	// get start and begin time
 	//SetAnimationSpeed(mMesh->GetAnimationSpeed());
 	SetFrameLoop(0, mMesh->GetFrameCount());
@@ -178,16 +167,14 @@ void AnimatedMeshNode::BuildFrameNr(unsigned int timeMs)
 		{
 			if (mCurrentFrameNr > mEndFrame)
 			{
-				mCurrentFrameNr = mStartFrame +
-					fmod(mCurrentFrameNr - mStartFrame, (float)(mEndFrame - mStartFrame));
+				mCurrentFrameNr = mStartFrame;
 			}
 		}
 		else //backwards...
 		{
 			if (mCurrentFrameNr < mStartFrame)
 			{
-				mCurrentFrameNr = mEndFrame -
-					fmod(mEndFrame - mCurrentFrameNr, (float)(mEndFrame - mStartFrame));
+				mCurrentFrameNr = mEndFrame;
 			}
 		}
 	}
@@ -195,6 +182,7 @@ void AnimatedMeshNode::BuildFrameNr(unsigned int timeMs)
 	{
 		// play animation non looped
 		mCurrentFrameNr += timeMs * mFramesPerSecond;
+
 		if (mFramesPerSecond > 0.f) //forwards...
 		{
 			if (mCurrentFrameNr > (float)mEndFrame)
@@ -254,7 +242,7 @@ eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 	}
 	else
 	{
-		int frameNr, frameBlend;
+		int frameNr, frameBlend, beginFrame, endFrame;
 		if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
 		{
 			AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
@@ -263,11 +251,13 @@ eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 			animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
 			for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
 			{
-				for (FrameData frame : mesh->mFrames)
+				if (mesh->GetAnimationCount())
 				{
-					frameNr = (int)frame.GetFrameNr();
-					frameBlend = (int)(Function<float>::Fract(frame.GetFrameNr()) * 1000.f);
-					mesh->UpdateMesh(frameNr, frameBlend, frame.GetBeginFrame(), frame.GetEndFrame());
+					frameNr = mesh->GetCurrentFrame();
+					frameBlend = (int)(Function<float>::Fract(mesh->GetCurrentFrame() * 1000.f));
+					beginFrame = mesh->GetAnimation(mesh->GetCurrentAnimation()).mBeginFrame;
+					endFrame = mesh->GetAnimation(mesh->GetCurrentAnimation()).mEndFrame;
+					mesh->UpdateMesh(frameNr, frameBlend, beginFrame, endFrame);
 				}
 			}
 		}
@@ -292,8 +282,7 @@ bool AnimatedMeshNode::OnAnimate(Scene* pScene, unsigned int time)
 		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
 		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
 		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
-			for (FrameData frame : mesh->mFrames)
-				frame.BuildFrameNr(time - mLastTime);
+			mesh->BuildFrameNr(mLooping, time - mLastTime);
 	}
 
 	// set CurrentFrameNr
@@ -367,40 +356,20 @@ bool AnimatedMeshNode::PreRender(Scene* pScene)
 	return Node::PreRender(pScene);
 }
 
-//! renders the node.
-bool AnimatedMeshNode::Render(Scene* pScene)
+void AnimatedMeshNode::Render(unsigned int& visual, bool isTransparentPass,
+	Scene *pScene, eastl::vector<Transform> interpolations, eastl::shared_ptr<MD3Mesh> pMesh)
 {
-	if (!mMesh || !Renderer::Get())
-		return false;
-
-	bool isTransparentPass = 
-		pScene->GetCurrentRenderPass() == RP_TRANSPARENT;
-	++mPassCount;
-
-	if (mShadow && mPassCount==1)
-		mShadow->UpdateShadowVolumes(pScene);
-
-	eastl::vector<eastl::shared_ptr<BaseMeshBuffer>> meshBuffers;
-	if (dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get()))
+	if (pMesh->IsTagMesh())
 	{
-		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get());
-
-		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
-		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
-
-		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
-			for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
-				meshBuffers.push_back(mesh->GetMeshBuffer(i));
-	}
-	else
-	{
-		for (unsigned int i = 0; i<mCurrentFrameMesh->GetMeshBufferCount(); ++i)
-			meshBuffers.push_back(mCurrentFrameMesh->GetMeshBuffer(i));
+		Transform tagInterpolation;
+		tagInterpolation.SetRotation(pMesh->GetTagInterpolation().mRotation);
+		tagInterpolation.SetTranslation(pMesh->GetTagInterpolation().mPosition);
+		interpolations.push_back(tagInterpolation);
 	}
 
-	for (unsigned int i = 0; i < meshBuffers.size(); ++i)
+	for (unsigned int i = 0; i < pMesh->GetMeshBufferCount(); ++i, ++visual)
 	{
-		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = meshBuffers[i];
+		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = pMesh->GetMeshBuffer(i);
 		if (meshBuffer)
 		{
 			eastl::shared_ptr<Material> material = meshBuffer->GetMaterial();
@@ -421,13 +390,105 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 				Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
 				Renderer::Get()->SetRasterizerState(mRasterizerState);
 
+				eastl::shared_ptr<ConstantBuffer> cbuffer;
+				Matrix4x4<float> pvMatrix = pScene->GetActiveCamera()->Get()->GetProjectionViewMatrix();
+				cbuffer = mVisuals[visual]->GetEffect()->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
+
+				Matrix4x4<float> interpolation = Rotation<4, float>(
+					AxisAngle<4, float>(Vector4<float>::Unit(0), 90.f * (float)GE_C_DEG_TO_RAD));
+				interpolation = pvMatrix * interpolation;
+				for (unsigned int i = 0; i < interpolations.size(); i++)
+				{
+#if defined(GE_USE_MAT_VEC)
+					interpolation = interpolation * interpolations[i];
+#else
+					interpolation = interpolations[i] * interpolation;
+#endif
+				}
+				*cbuffer->Get<Matrix4x4<float>>() = interpolation;
+
 				Renderer* renderer = Renderer::Get();
+				renderer->Update(cbuffer);
 				renderer->Update(meshBuffer->GetVertice());
-				renderer->Draw(mVisuals[i]);
+				renderer->Draw(mVisuals[visual]);
 
 				Renderer::Get()->SetDefaultBlendState();
 				Renderer::Get()->SetDefaultDepthStencilState();
 				Renderer::Get()->SetDefaultRasterizerState();
+			}
+		}
+	}
+
+	for (unsigned int n = 0; n < pMesh->GetChildren().size(); n++)
+	{
+		eastl::shared_ptr<MD3Mesh> pChild = pMesh->GetChildren()[n];
+		Render(visual, isTransparentPass, pScene, interpolations, pChild);
+	}
+}
+
+//! renders the node.
+bool AnimatedMeshNode::Render(Scene* pScene)
+{
+	if (!mMesh || !Renderer::Get())
+		return false;
+
+	bool isTransparentPass = 
+		pScene->GetCurrentRenderPass() == RP_TRANSPARENT;
+	++mPassCount;
+
+	if (mShadow && mPassCount==1)
+		mShadow->UpdateShadowVolumes(pScene);
+
+	if (dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get()))
+	{
+		unsigned int visual = 0;
+		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get());
+
+		Quaternion<float> rotation = Rotation<4, float>(mWorldTransform.GetRotation());
+		Vector3<float> translation = mWorldTransform.GetTranslation();
+		//swapping Y and Z axis
+		eastl::swap(rotation[1], rotation[2]);
+		eastl::swap(translation[1], translation[2]);
+
+		Transform interpolation;
+		interpolation.SetRotation(rotation);
+		interpolation.SetTranslation(translation);
+		eastl::vector<Transform> interpolations{ interpolation };
+		Render(visual, isTransparentPass, pScene, interpolations, animMeshMD3->GetMD3Mesh());
+	}
+	else
+	{
+		for (unsigned int i = 0; i < mCurrentFrameMesh->GetMeshBufferCount(); ++i)
+		{
+			const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mCurrentFrameMesh->GetMeshBuffer(i);
+			if (meshBuffer)
+			{
+				eastl::shared_ptr<Material> material = meshBuffer->GetMaterial();
+
+				// only render transparent buffer if this is the transparent render pass
+				// and solid only in solid pass
+				bool transparent = (material->IsTransparent());
+				if (transparent == isTransparentPass)
+				{
+					if (material->Update(mBlendStates[i]))
+						Renderer::Get()->Unbind(mBlendStates[i]);
+					if (material->Update(mDepthStencilStates[i]))
+						Renderer::Get()->Unbind(mDepthStencilStates[i]);
+					if (material->Update(mRasterizerState))
+						Renderer::Get()->Unbind(mRasterizerState);
+
+					Renderer::Get()->SetBlendState(mBlendStates[i]);
+					Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
+					Renderer::Get()->SetRasterizerState(mRasterizerState);
+
+					Renderer* renderer = Renderer::Get();
+					renderer->Update(meshBuffer->GetVertice());
+					renderer->Draw(mVisuals[i]);
+
+					Renderer::Get()->SetDefaultBlendState();
+					Renderer::Get()->SetDefaultDepthStencilState();
+					Renderer::Get()->SetDefaultRasterizerState();
+				}
 			}
 		}
 	}

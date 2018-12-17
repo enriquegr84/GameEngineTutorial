@@ -20,6 +20,7 @@ enum GRAPHIC_ITEM JointUpdateOnRender
 	JUOR_CONTROL
 };
 
+class MD3Mesh;
 class AnimatedMeshNode;
 
 //! Callback interface for catching events of ended animations.
@@ -120,7 +121,6 @@ public:
 	//! render mesh ignoring its transformation. Used with ragdolls. (culling is unaffected)
 	void SetRenderFromIdentity(bool on);
 
-
 	virtual bool PreRender(Scene *pScene);
 	virtual bool Render(Scene *pScene);
 	
@@ -199,6 +199,9 @@ public:
 	bool IsReadOnlyMaterials() const;
 
 private:
+
+	void Render(unsigned int& visual, bool isTransparentPass, Scene *pScene, 
+		eastl::vector<Transform> interpolations, eastl::shared_ptr<MD3Mesh> pMesh);
 
 	//! Get a static mesh for the current frame of this animated mesh
 	eastl::shared_ptr<BaseMesh> GetMeshForCurrentFrame();

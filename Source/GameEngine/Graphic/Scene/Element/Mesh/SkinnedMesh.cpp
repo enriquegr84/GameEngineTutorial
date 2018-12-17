@@ -529,9 +529,8 @@ void SkinnedMesh::SkinJoint(Joint *joint, Joint *parentJoint)
 			vertexMove[1] += vertexPostion[1];
 			vertexMove[2] += vertexPostion[2];
 
-			float temp = vertexMove[2];
-			vertexMove[2] = vertexMove[1];
-			vertexMove[1] = temp;
+			//swapping Y and Z axis
+			eastl::swap(vertexMove[2], vertexMove[1]);
 
 			if (mAnimateNormals)
 			{
@@ -543,9 +542,8 @@ void SkinnedMesh::SkinJoint(Joint *joint, Joint *parentJoint)
 
 				jointVertexPull.Transformation(jointWeightNormal, jointNormalMove);
 
-				temp = normalMove[2];
-				normalMove[2] = normalMove[1];
-				normalMove[1] = temp;
+				//swapping Y and Z axis
+				eastl::swap(normalMove[2], normalMove[1]);
 			}
 
 			if (! (*(weight.mMoved)) )

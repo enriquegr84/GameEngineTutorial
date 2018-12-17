@@ -11,7 +11,7 @@
 		<PhysicsMaterial>Normal</PhysicsMaterial>
 		
 		<RigidBodyTransform>
-			<Scale x="12" y="12" z="36" />  
+			<Scale x="12" y="12" z="30" />  
 		</RigidBodyTransform>
 	</PhysicsComponent>
 

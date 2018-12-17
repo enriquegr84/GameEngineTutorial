@@ -17,14 +17,14 @@ void MD3Mesh::SetInterpolationShift(unsigned int shift, unsigned int loopMode)
 //! returns amount of mesh buffers.
 unsigned int MD3Mesh::GetMeshBufferCount() const
 {
-	return mBufferInterPol.size();
+	return mBufferInterpol.size();
 }
 
 //! returns pointer to a mesh buffer
 eastl::shared_ptr<BaseMeshBuffer> MD3Mesh::GetMeshBuffer(unsigned int nr) const
 {
-	if (nr < mBufferInterPol.size())
-		return mBufferInterPol[nr];
+	if (nr < mBufferInterpol.size())
+		return mBufferInterpol[nr];
 
 	return 0;
 }
@@ -32,9 +32,9 @@ eastl::shared_ptr<BaseMeshBuffer> MD3Mesh::GetMeshBuffer(unsigned int nr) const
 //! Returns pointer to a mesh buffer which fits a material
 eastl::shared_ptr<BaseMeshBuffer> MD3Mesh::GetMeshBuffer(const Material &material) const
 {
-	for (unsigned int i = 0; i<mBufferInterPol.size(); ++i)
-		if (&material == mBufferInterPol[i]->GetMaterial().get())
-			return mBufferInterPol[i];
+	for (unsigned int i = 0; i<mBufferInterpol.size(); ++i)
+		if (&material == mBufferInterpol[i]->GetMaterial().get())
+			return mBufferInterpol[i];
 
 	return 0;
 }
@@ -43,7 +43,7 @@ eastl::shared_ptr<BaseMeshBuffer> MD3Mesh::GetMeshBuffer(const Material &materia
 void MD3Mesh::AddMeshBuffer(BaseMeshBuffer* meshBuffer)
 {
 	eastl::shared_ptr<MeshBuffer> buffer((MeshBuffer*)meshBuffer);
-	mBufferInterPol.push_back(buffer);
+	mBufferInterpol.push_back(buffer);
 }
 
 //! create a Irrlicht MeshBuffer for a MD3 MeshBuffer
@@ -80,9 +80,127 @@ eastl::shared_ptr<MeshBuffer> MD3Mesh::CreateMeshBuffer(const eastl::shared_ptr<
 	return dest;
 }
 
+int MD3Mesh::AttachChild(eastl::shared_ptr<MD3Mesh> const& child)
+{
+	if (!child)
+	{
+		LogError("You cannot attach null children to a node.");
+		return -1;
+	}
+
+	if (child->GetParent())
+	{
+		LogError("The child already has a parent.");
+		return -1;
+	}
+
+	child->SetParent(shared_from_this());
+
+	// Insert the child in the first available slot (if any).
+	int i = 0;
+	for (auto& current : mChildren)
+	{
+		if (!current)
+		{
+			current = child;
+			return i;
+		}
+		++i;
+	}
+
+	// All slots are used, so append the child to the array.
+	int const numChildren = static_cast<int>(mChildren.size());
+	mChildren.push_back(child);
+	return numChildren;
+}
+
+int MD3Mesh::DetachChild(eastl::shared_ptr<MD3Mesh> const& child)
+{
+	if (child)
+	{
+		int i = 0;
+		for (MD3MeshList::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+		{
+			if ((*it) == child)
+			{
+				(*it)->SetParent(nullptr);
+				mChildren.erase(it);
+				return i;
+			}
+			++i;
+		}
+	}
+	return -1;
+}
+
+eastl::shared_ptr<MD3Mesh> MD3Mesh::DetachChildAt(int i)
+{
+	if (0 <= i && i < static_cast<int>(mChildren.size()))
+	{
+		MD3MeshList::iterator itChild = mChildren.begin() + i;
+		if (itChild != mChildren.end())
+		{
+			(*itChild)->SetParent(nullptr);
+			mChildren.erase(itChild);
+		}
+		return (*itChild);
+	}
+	return nullptr;
+}
+
 void MD3Mesh::DetachAllChildren()
 {
+	for (MD3MeshList::iterator it = mChildren.begin(); it != mChildren.end(); ++it)
+		(*it)->SetParent(nullptr);
 	mChildren.clear();
+}
+
+eastl::shared_ptr<MD3Mesh> MD3Mesh::GetTagMesh(eastl::string tagName)
+{
+	if (mTagInterpol.mName == tagName)
+		return shared_from_this();
+
+	for (unsigned int n = 0; n < mChildren.size(); n++)
+	{
+		eastl::shared_ptr<MD3Mesh> const mesh = mChildren[n]->GetTagMesh(tagName);
+		if (mesh) return mesh;
+	}
+
+	return nullptr;
+}
+
+bool MD3Mesh::IsTagMesh()
+{
+	return mTags.Size();
+}
+
+//! Returns the animated tag
+MD3QuaternionTag& MD3Mesh::GetTagInterpolation()
+{
+	return mTagInterpol;
+}
+
+AnimationData& MD3Mesh::GetAnimation(unsigned int nr)
+{
+	return mAnimations[nr];
+}
+
+void MD3Mesh::AddAnimation(AnimationData& animation)
+{
+	mAnimations.push_back(animation);
+}
+
+unsigned int MD3Mesh::GetAnimationCount()
+{
+	return mAnimations.size();
+}
+
+eastl::shared_ptr<MD3Mesh> MD3Mesh::GetRootMesh()
+{
+	if (mParent == nullptr)
+		return shared_from_this();
+
+	return mParent->GetRootMesh();
 }
 
 eastl::shared_ptr<MD3Mesh> MD3Mesh::GetMesh(eastl::string meshName)
@@ -107,14 +225,18 @@ void MD3Mesh::GetMeshes(eastl::vector<eastl::shared_ptr<MD3Mesh>>& meshes)
 }
 
 
-eastl::shared_ptr<MD3Mesh> MD3Mesh::CreateMesh(eastl::string parentMesh, eastl::string newMesh)
+eastl::shared_ptr<MD3Mesh> MD3Mesh::CreateMesh(eastl::string parentName, eastl::string name)
 {
-	if (!parentMesh.empty())
+	eastl::shared_ptr<MD3Mesh> rootMesh = GetRootMesh();
+	eastl::shared_ptr<MD3Mesh> mesh = rootMesh->GetMesh(name);
+	if (mesh) return mesh;
+
+	if (!parentName.empty())
 	{
-		eastl::shared_ptr<MD3Mesh> meshParent = GetMesh(parentMesh);
-		eastl::shared_ptr<MD3Mesh> newMesh(new MD3Mesh(newMesh));
-		meshParent->mChildren.push_back(newMesh);
-		return newMesh;
+		eastl::shared_ptr<MD3Mesh> meshParent = GetMesh(parentName);
+		eastl::shared_ptr<MD3Mesh> meshChild(new MD3Mesh(name));
+		meshParent->AttachChild(meshChild);
+		return meshChild;
 	}
 
 	return shared_from_this();
@@ -124,7 +246,7 @@ eastl::shared_ptr<MD3Mesh> MD3Mesh::CreateMesh(eastl::string parentMesh, eastl::
 //! update mesh based on a detail level. 0 is the lowest, 255 the highest detail.
 bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int endFrameLoop)
 {
-	if (0 == mBufferInterPol.size())
+	if (0 == mBufferInterpol.size())
 		return false;
 
 	//! check if we have the mesh in our private cache
@@ -133,20 +255,21 @@ bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int end
 		return true;
 
 	startFrameLoop = eastl::max(0, startFrameLoop >> mInterPolShift);
-	endFrameLoop = Conditional(endFrameLoop < 0, mHeader.numFrames - 1, endFrameLoop >> mInterPolShift);
+	endFrameLoop = Conditional(
+		endFrameLoop < 0, mNumFrames - 1, endFrameLoop >> mInterPolShift);
 
 	const unsigned int mask = 1 << mInterPolShift;
 
 	int frameA;
 	int frameB;
-	float iPol;
+	float interpolation;
 	if (mLoopMode)
 	{
 		// correct frame to "pixel center"
 		frame -= mask >> 1;
 
 		// interpolation
-		iPol = float(frame & (mask - 1)) * (1.0f / (float(mask)));
+		interpolation = float(frame & (mask - 1)) * (1.0f / (float(mask)));
 
 		// wrap anim
 		frame >>= mInterPolShift;
@@ -158,7 +281,7 @@ bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int end
 		// correct frame to "pixel center"
 		frame -= mask >> 1;
 
-		iPol = float(frame & (mask - 1)) * (1.0f / (float(mask)));
+		interpolation = float(frame & (mask - 1)) * (1.0f / (float(mask)));
 
 		// clamp anim
 		frame >>= mInterPolShift;
@@ -169,11 +292,11 @@ bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int end
 	}
 
 	// build current vertex
-	for (unsigned int i = 0; i != mBufferInterPol.size(); ++i)
-		BuildVertexArray(i, frameA, frameB, iPol);
+	for (unsigned int i = 0; i != mBufferInterpol.size(); ++i)
+		BuildVertexArray(i, frameA, frameB, interpolation);
 
 	// build current tags
-	BuildTagArray(frameA, frameB, iPol);
+	BuildTagArray(frameA, frameB, interpolation);
 
 	mCurrent = candidate;
 	return true;
@@ -183,8 +306,8 @@ bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int end
 void MD3Mesh::BuildVertexArray(unsigned int meshId,
 	unsigned int frameA, unsigned int frameB, float interpolate)
 {
-	const unsigned int frameOffsetA = frameA * mBufferInterPol[meshId]->GetVertice()->GetNumElements();
-	const unsigned int frameOffsetB = frameB * mBufferInterPol[meshId]->GetVertice()->GetNumElements();
+	const unsigned int frameOffsetA = frameA * mBufferInterpol[meshId]->GetVertice()->GetNumElements();
+	const unsigned int frameOffsetB = frameB * mBufferInterpol[meshId]->GetVertice()->GetNumElements();
 
 	for (unsigned int i = 0; i != mBuffer[meshId]->mMeshHeader.numTriangles; ++i)
 	{
@@ -196,17 +319,17 @@ void MD3Mesh::BuildVertexArray(unsigned int meshId,
 			const Vector3<float> &vB = mBuffer[meshId]->mPositions[frameOffsetB + index];
 
 			// position
-			mBufferInterPol[meshId]->Position(index)[0] = vA[0] + interpolate * (vB[0] - vA[0]);
-			mBufferInterPol[meshId]->Position(index)[1] = vA[2] + interpolate * (vB[2] - vA[2]);
-			mBufferInterPol[meshId]->Position(index)[2] = vA[1] + interpolate * (vB[1] - vA[1]);
+			mBufferInterpol[meshId]->Position(index)[0] = vA[0] + interpolate * (vB[0] - vA[0]);
+			mBufferInterpol[meshId]->Position(index)[1] = vA[2] + interpolate * (vB[2] - vA[2]);
+			mBufferInterpol[meshId]->Position(index)[2] = vA[1] + interpolate * (vB[1] - vA[1]);
 
 			// normal
 			const Vector3<float> &nA = mBuffer[meshId]->mNormals[frameOffsetA + index];
 			const Vector3<float> &nB = mBuffer[meshId]->mNormals[frameOffsetB + index];
 
-			mBufferInterPol[meshId]->Normal(index)[0] = nA[0] + interpolate * (nB[0] - nA[0]);
-			mBufferInterPol[meshId]->Normal(index)[1] = nA[2] + interpolate * (nB[2] - nA[2]);
-			mBufferInterPol[meshId]->Normal(index)[2] = nA[1] + interpolate * (nB[1] - nA[1]);
+			mBufferInterpol[meshId]->Normal(index)[0] = nA[0] + interpolate * (nB[0] - nA[0]);
+			mBufferInterpol[meshId]->Normal(index)[1] = nA[2] + interpolate * (nB[2] - nA[2]);
+			mBufferInterpol[meshId]->Normal(index)[2] = nA[1] + interpolate * (nB[1] - nA[1]);
 		}
 	}
 
@@ -216,23 +339,81 @@ void MD3Mesh::BuildVertexArray(unsigned int meshId,
 //! build final mesh's tag from frames frameA and frameB with linear interpolation.
 void MD3Mesh::BuildTagArray(unsigned int frameA, unsigned int frameB, float interpolate)
 {
-	const unsigned int frameOffsetA = frameA * mHeader.numTags;
-	const unsigned int frameOffsetB = frameB * mHeader.numTags;
-
-	for (unsigned int i = 0; i != mHeader.numTags; ++i)
+	for (unsigned int i = 0; i < GetChildren().size(); i++)
 	{
-		MD3QuaternionTag &d = mTagInterPol[i];
+		eastl::shared_ptr<MD3Mesh> mesh = GetChildren()[i];
+		if (mesh->IsTagMesh())
+		{
+			const unsigned int frameOffsetA = frameA * mesh->mNumTags;
+			const unsigned int frameOffsetB = frameB * mesh->mNumTags;
 
-		const MD3QuaternionTag &qA = mTag[frameOffsetA + i];
-		const MD3QuaternionTag &qB = mTag[frameOffsetB + i];
+			const MD3QuaternionTag &qA = mesh->mTags[frameOffsetA + i];
+			const MD3QuaternionTag &qB = mesh->mTags[frameOffsetB + i];
 
-		// rotation
-		d.mRotation = Slerp(interpolate, qA.mRotation, qB.mRotation);
+			MD3QuaternionTag &q = mesh->GetTagInterpolation();
+			// rotation
+			q.mRotation = Slerp(interpolate, qA.mRotation, qB.mRotation);
 
-		// position
-		d.mPosition[0] = qA.mPosition[0] + interpolate * (qB.mPosition[0] - qA.mPosition[0]);
-		d.mPosition[1] = qA.mPosition[1] + interpolate * (qB.mPosition[1] - qA.mPosition[1]);
-		d.mPosition[2] = qA.mPosition[2] + interpolate * (qB.mPosition[2] - qA.mPosition[2]);
+			// position
+			q.mPosition[0] = qA.mPosition[0] + interpolate * (qB.mPosition[0] - qA.mPosition[0]);
+			q.mPosition[1] = qA.mPosition[1] + interpolate * (qB.mPosition[1] - qA.mPosition[1]);
+			q.mPosition[2] = qA.mPosition[2] + interpolate * (qB.mPosition[2] - qA.mPosition[2]);
+		}
+	}
+}
+
+//! Get CurrentFrameNr and update transiting settings
+void MD3Mesh::BuildFrameNr(bool loop, unsigned int elapsedTimeMs)
+{
+	if (mAnimations.size())
+	{
+		if (mAnimations[mCurrentAnimation].mBeginFrame == mAnimations[mCurrentAnimation].mEndFrame)
+		{
+			//Support for non animated meshes
+			mCurrentFrame = mAnimations[mCurrentAnimation].mBeginFrame;
+		}
+		else if (loop)
+		{
+			// play animation looped
+			mCurrentFrame += elapsedTimeMs * mAnimations[mCurrentAnimation].mFramesPerSecond * 0.001f;
+
+			// We have no interpolation between EndFrame and StartFrame,
+			// the last frame must be identical to first one with our current solution.
+			if (mAnimations[mCurrentAnimation].mFramesPerSecond > 0.f) //forwards...
+			{
+				if (mCurrentFrame > mAnimations[mCurrentAnimation].mEndFrame)
+				{
+					mCurrentFrame = mAnimations[mCurrentAnimation].mBeginFrame;
+				}
+			}
+			else //backwards...
+			{
+				if (mCurrentFrame < mAnimations[mCurrentAnimation].mBeginFrame)
+				{
+					mCurrentFrame = mAnimations[mCurrentAnimation].mEndFrame;
+				}
+			}
+		}
+		else
+		{
+			// play animation non looped
+			mCurrentFrame += elapsedTimeMs * mAnimations[mCurrentAnimation].mFramesPerSecond * 0.001f;
+
+			if (mAnimations[mCurrentAnimation].mFramesPerSecond > 0.f) //forwards...
+			{
+				if (mCurrentFrame > mAnimations[mCurrentAnimation].mEndFrame)
+				{
+					mCurrentFrame = mAnimations[mCurrentAnimation].mEndFrame;
+				}
+			}
+			else //backwards...
+			{
+				if (mCurrentFrame < mAnimations[mCurrentAnimation].mBeginFrame)
+				{
+					mCurrentFrame = mAnimations[mCurrentAnimation].mBeginFrame;
+				}
+			}
+		}
 	}
 }
 
@@ -245,11 +426,12 @@ bool MD3Mesh::LoadModel(eastl::wstring& path)
 	if (!file)
 		return false;
 
+	MD3Header header;
 	//! Check MD3Header
 	{
-		file->Read(&mHeader, sizeof(MD3Header));
+		file->Read(&header, sizeof(MD3Header));
 
-		if (strncmp(mHeader.headerID, "IDP3", 4))
+		if (strncmp(header.headerID, "IDP3", 4))
 		{
 			LogError("MD3 Loader: invalid header");
 			return false;
@@ -259,11 +441,13 @@ bool MD3Mesh::LoadModel(eastl::wstring& path)
 	LogInformation(L"Loading Quake3 model file " + path);
 
 	//! Tag Data
-	const unsigned int totalTags = mHeader.numTags * mHeader.numFrames;
+	mNumFrames = header.numFrames;
+	const unsigned int totalTags = header.numTags * header.numFrames;
 
 	MD3Tag import;
 
-	file->Seek(mHeader.tagStart);
+	file->Seek(header.tagStart);
+	MD3QuaternionTagList tags;
 	for (unsigned int i = 0; i != totalTags; ++i)
 	{
 		file->Read(&import, sizeof(import));
@@ -276,19 +460,40 @@ bool MD3Mesh::LoadModel(eastl::wstring& path)
 		exp.mPosition[2] = import.position[1];
 
 		//! construct quaternion from a RH 3x3 Matrix
-		exp.mRotation.Set(import.rotationMatrix[7],
-			0.f,
-			-import.rotationMatrix[6],
-			1 + import.rotationMatrix[8]);
-		Normalize(exp.mRotation);
+		Matrix4x4<float> rotation = Matrix4x4<float>::Identity();
+		rotation.SetRow(0, Vector4<float>{
+			import.rotation[0], import.rotation[1], import.rotation[2], 0.f});
+		rotation.SetRow(1, Vector4<float>{
+			import.rotation[3], import.rotation[4], import.rotation[5], 0.f});
+		rotation.SetRow(2, Vector4<float>{
+			import.rotation[6], import.rotation[7], import.rotation[8], 0.f});
+		exp.mRotation = Rotation<4, float>(rotation);
 
-		mTag.Pushback(exp);
-		mTagInterPol.Pushback(exp);
+		//swapping Y and Z axis
+		eastl::swap(exp.mRotation[2], exp.mRotation[1]);
+
+		tags.Pushback(exp);
+	}
+
+	// Init Tag Interpolation
+	eastl::shared_ptr<MD3Mesh> rootMesh = GetRootMesh();
+	for (unsigned int i = 0; i != header.numTags; i++)
+	{
+		eastl::shared_ptr<MD3Mesh> meshMD3 = rootMesh->GetTagMesh(tags[i].mName);
+		if (!meshMD3)
+			meshMD3 = CreateMesh(mName, tags[i].mName);
+
+		if (!meshMD3->IsTagMesh())
+		{
+			meshMD3->mTags = tags;
+			meshMD3->mNumFrames = mNumFrames;
+			meshMD3->mNumTags = header.numTags;
+		}
 	}
 
 	//! Meshes
-	unsigned int offset = mHeader.tagEnd;
-	for (unsigned int i = 0; i != mHeader.numMeshes; ++i)
+	unsigned int offset = header.tagEnd;
+	for (unsigned int i = 0; i != header.numMeshes; ++i)
 	{
 		//! construct a new mesh buffer
 		eastl::shared_ptr<MD3MeshBuffer> buf(new MD3MeshBuffer());
@@ -307,7 +512,7 @@ bool MD3Mesh::LoadModel(eastl::wstring& path)
 
 		//! read vertices
 		file->Seek(offset + meshHeader.vertexStart);
-		file->Read(vertices.data(), mHeader.numFrames * meshHeader.numVertices * sizeof(MD3Vertex));
+		file->Read(vertices.data(), header.numFrames * meshHeader.numVertices * sizeof(MD3Vertex));
 
 		//! read texture coordinates
 		file->Seek(offset + meshHeader.offsetSt);
@@ -338,23 +543,12 @@ bool MD3Mesh::LoadModel(eastl::wstring& path)
 
 		//! store meshBuffer
 		mBuffer.push_back(buf);
-		mBufferInterPol.push_back(CreateMeshBuffer(buf));
+		mBufferInterpol.push_back(CreateMeshBuffer(buf));
 
 		offset += meshHeader.offsetEnd;
 	}
 
 	return true;
-}
-
-//! Returns the animated tag list based on a detail level. 0 is the lowest, 255 the highest detail.
-MD3QuaternionTagList* MD3Mesh::GetTagList(
-	int frame, int detailLevel, int startFrameLoop, int endFrameLoop)
-{
-	if (0 == mBufferInterPol.size())
-		return 0;
-
-	UpdateMesh(frame, detailLevel, startFrameLoop, endFrameLoop);
-	return &mTagInterPol;
 }
 
 //! Constructor
@@ -367,16 +561,6 @@ AnimateMeshMD3::AnimateMeshMD3() //: mFPS(25.f)
 AnimateMeshMD3::~AnimateMeshMD3()
 {
 
-}
-
-//! Returns the animated tag list based on a detail level. 0 is the lowest, 255 the highest detail.
-MD3QuaternionTagList* AnimateMeshMD3::GetTagList(
-	int frame, int detailLevel, int startFrameLoop, int endFrameLoop)
-{
-	MD3QuaternionTagList* meshTagList = mRootMesh->GetTagList(
-		frame, detailLevel, startFrameLoop, endFrameLoop);
-
-	return meshTagList;
 }
 
 //! returns amount of mesh buffers.

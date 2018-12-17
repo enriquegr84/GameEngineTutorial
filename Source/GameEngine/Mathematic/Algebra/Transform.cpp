@@ -602,7 +602,7 @@ Transform operator*(Transform const& A, Transform const& B)
         matMB = B.GetMatrix();
     }
 
-    product.SetMatrix(MultiplyAB(matMA, matMB));
+	product.SetMatrix(MultiplyAB(matMA, matMB));
 #if defined(GE_USE_MAT_VEC)
 	Vector4<float> transform;
 	matMA.Transformation(B.GetTranslationW0(), transform);
