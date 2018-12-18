@@ -1,7 +1,4 @@
 //
-//  SuperTuxKart - a fun racing game with go-kart
-//  Copyright (C) 2006-2013 SuperTuxKart-Team
-//
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
 //  as published by the Free Software Foundation; either version 3
@@ -20,16 +17,10 @@
 #include "GameDemoApp.h"
 
 #include "Game/Game.h"
-/*
-#include "audio/music_manager.hpp"
-#include "config/stk_config.hpp"
-#include "io/file_manager.hpp"
-#include "tracks/track.hpp"
-*/
 
 eastl::vector<eastl::wstring>  GameDemoManager::mGameDemoSearchPath;
 
-/** Constructor (currently empty). The real work happens in loadTrackList.
+/*
  */
 GameDemoManager::GameDemoManager()
 {
@@ -125,7 +116,7 @@ eastl::vector<eastl::wstring> GameDemoManager::GetAllGameDemoIdentifiers()
 }   // GetAllGameDemoIdentifiers
 
 //-----------------------------------------------------------------------------
-/** Loads all demos from the track directory (data/demo).
+/*
  */
 void GameDemoManager::LoadGameDemosList()
 {
@@ -139,15 +130,14 @@ void GameDemoManager::LoadGameDemosList()
     {
         const eastl::wstring &dir = mGameDemoSearchPath[i];
 
-        // First test if the directory itself contains a track:
         // ----------------------------------------------------
-        if(LoadGameDemo(dir)) continue;  // track found, no more tests
+        if(LoadGameDemo(dir)) continue;  // found, no more tests
 
-        // Then see if a subdir of this dir contains tracks
+
         // ------------------------------------------------
         eastl::set<eastl::wstring> dirs;
 		FileSystem::Get()->ListFiles(
-			dirs, eastl::wstring("../../../Assets/SuperTuxKart/") + dir);
+			dirs, eastl::wstring("../../../Assets/Demo/") + dir);
         for(eastl::set<eastl::wstring>::iterator subdir = dirs.begin();
             subdir != dirs.end(); subdir++)
         {
@@ -179,20 +169,7 @@ bool GameDemoManager::LoadGameDemo(const eastl::wstring& dirname)
                 dirname.c_str(), e.what());
         return false;
     }
-	/*
-    if (gameDemo->getVersion()<stk_config->mMinTrackVersion ||
-        gameDemo->getVersion()>stk_config->mMaxTrackVersion)
-    {
-        fprintf(stderr, "[TrackManager] Warning: track '%s' is not supported "
-                        "by this binary, ignored. (Track is version %i, this "
-                        "executable supports from %i to %i)\n",
-                track->GetIdent().c_str(), track->GetVersion(),
-                stkConfig->mMinTrackVersion,
-                stkConfig->mMaxTrackVersion);
-        delete track;
-        return false;
-    }
-	*/
+	
     mAllGameDemoDirs.push_back(dirname);
     mGameDemos.push_back(gameDemo);
     mGameDemosAvailable.push_back(true);
@@ -209,65 +186,9 @@ void GameDemoManager::RemoveGameDemo(const eastl::wstring& ident)
     GameDemo* gameDemo = GetGameDemo(ident);
     if (NULL == NULL)
     {
-        fprintf(stderr, "[TrackManager] ERROR: There is no demo named '%ws'!!\n", ident.c_str());
+        fprintf(stderr, "There is no demo named '%ws'!!\n", ident.c_str());
         return;
     }
-	/*
-    if (gameDemo->IsInternal()) return;
-
-    eastl::vector<GameDemo*>::iterator it = eastl::find(mGameDemos.begin(), mGameDemos.end(), gameDemo);
-    if (it == mGameDemos.end())
-    {
-        fprintf(stderr, "[DemosManager] INTERNAL ERROR: Cannot find demo '%s' in map!!\n", ident.c_str());
-        return;
-    }
-    int index = it - mGameDemos.begin();
-
-    // Remove the demo from all groups it belongs to
-    GroupToIndices &groupToIndices = mGameDemoGroups;
-
-    eastl::vector<eastl::wstring> &groupNames = mGameDemoGroupNames;
-
-    const eastl::vector<eastl::wstring>& groups= gameDemo->GetGroups();
-    for(unsigned int i=0; i<groups.size(); i++)
-    {
-        eastl::vector<int> &indices = groupToIndices[groups[i]];
-        eastl::vector<int>::iterator j;
-        j = eastl::find(indices.begin(), indices.end(), index);
-        LogAssert(j!=indices.end(), "group out of range");
-        indices.erase(j);
-
-        // If the demo was the last member of a group,
-        // completely remove the group
-        if(indices.size()==0)
-        {
-			groupToIndices.erase(groups[i]);
-            eastl::vector<eastl::wstring>::iterator itg;
-            itg = eastl::find(groupNames.begin(), groupNames.end(), groups[i]);
-            LogAssert(itg != groupNames.end(), "group out of range");
-            groupNames.erase(itg);
-        }   // if complete group must be removed
-    }   // for i in groups
-
-    // Adjust all indices of demos with an index number higher than
-    // the removed demo, since they have been moved down. This must
-    // be done for all demos
-    unsigned int i=2; // i=2: demos
-    {
-        GroupToIndices &gToi = mGameDemoGroups;
-		GroupToIndices::iterator j;
-        for(j=gToi.begin(); j!=gToi.end(); j++)
-        {
-            for(unsigned int i=0; i<(*j).second.size(); i++)
-                if((*j).second[i]>index) (*j).second[i]--;
-        }   // for j in group_2_indices
-    }   // for i in arenas, demos
-
-    mGameDemos.erase(it);
-    mAllGameDemoDirs.erase(mAllGameDemoDirs.begin()+index);
-    mGameDemosAvailable.erase(mGameDemosAvailable.begin()+index);
-    delete gameDemo;
-	*/
 }   // removeDemo
 
 // ----------------------------------------------------------------------------

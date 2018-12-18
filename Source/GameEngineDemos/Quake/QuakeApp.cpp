@@ -1,5 +1,5 @@
 //========================================================================
-// Demos.cpp : source file for the sample game
+// Quake.cpp : source file for the sample game
 //
 // Part of the GameEngine Application
 //
@@ -36,7 +36,7 @@
 //
 //========================================================================
 
-#include "GameDemoStd.h"
+#include "QuakeStd.h"
 
 #include "Game/Game.h"
 
@@ -49,20 +49,19 @@
 #include "Core/Event/Event.h"
 #include "Core/Event/EventManager.h"
 
-#include "GameDemo.h"
-#include "GameDemoView.h"
-#include "GameDemoNetwork.h"
-#include "GameDemoEvents.h"
-#include "GameDemoResources.h"
+#include "Quake.h"
+#include "QuakeView.h"
+#include "QuakeNetwork.h"
+#include "QuakeEvents.h"
+#include "QuakeResources.h"
 
-#include "GameDemoApp.h"
+#include "QuakeApp.h"
 
 //========================================================================
 // main - Defines the entry point to the application, the GameApplication handles the 
 // initialization. This allows the GameEngine function to live in a library, 
-// separating the game engine from game specific code, in this case Demos.
+// separating the game engine from game specific code, in this case Quake.
 //========================================================================
-/*
 int main()
 {
 #if defined(_DEBUG)
@@ -102,8 +101,8 @@ int main()
 	Application::ApplicationPath += "/";
 
 	// Initialization
-	GameDemoApp* gameDemoApp = new GameDemoApp();
-	Application::App = gameDemoApp;
+	QuakeApp* quakeApp = new QuakeApp();
+	Application::App = quakeApp;
 
 	int exitCode = -1;
 	try
@@ -126,60 +125,60 @@ int main()
 
 	return exitCode;
 }
-*/
+
 //========================================================================
 //
-// GameDemoApp Implementation     - Chapter 21, page 722
+// QuakeApp Implementation     - Chapter 21, page 722
 //
 //========================================================================
 
 //----------------------------------------------------------------------------
-GameDemoApp::GameDemoApp()
-	: GameApplication("GameDemo", 0, 0, 800, 600, { 0.392f, 0.584f, 0.929f, 1.0f })
+QuakeApp::QuakeApp()
+	: GameApplication("Quake", 0, 0, 800, 600, { 0.392f, 0.584f, 0.929f, 1.0f })
 {
 }
 
 //----------------------------------------------------------------------------
-GameDemoApp::~GameDemoApp()
+QuakeApp::~QuakeApp()
 {
 }
 
 //
-// GameDemoApp::CreateGameAndView
+// QuakeApp::CreateGameAndView
 //
-void GameDemoApp::CreateGameAndView()
+void QuakeApp::CreateGameAndView()
 {
-	GameDemoLogic* game = new GameDemoLogic();
+	QuakeLogic* game = new QuakeLogic();
 	game->Init();
 }
 
 //
-// GameDemoLogic::AddView
+// QuakeLogic::AddView
 //
-void GameDemoApp::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actor)
+void QuakeApp::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actor)
 {
 	GameApplication::AddView(pView, actor);
 	GameLogic::Get()->UpdateViewType(pView, true);
 }
 
 //
-// GameDemoLogic::RemoveView
+// QuakeLogic::RemoveView
 //
-void GameDemoApp::RemoveView(const eastl::shared_ptr<BaseGameView>& pView)
+void QuakeApp::RemoveView(const eastl::shared_ptr<BaseGameView>& pView)
 {
 	GameApplication::RemoveView(pView);
 	GameLogic::Get()->UpdateViewType(pView, false);
 }
 
 //remove game view
-void GameDemoApp::RemoveView()
+void QuakeApp::RemoveView()
 {
 	GameLogic::Get()->UpdateViewType(mGameViews.front(), false);
 	GameApplication::RemoveView();
 }
 
 // Added this to explicitly remove views from the game logic list.
-void GameDemoApp::RemoveViews()
+void QuakeApp::RemoveViews()
 {
 	GameLogic::Get()->ResetViewType();
 	while (!mGameViews.empty())
@@ -187,22 +186,22 @@ void GameDemoApp::RemoveViews()
 }
 
 /*
-HICON DemosApp::VGetIcon()
+HICON QuakeApp::VGetIcon()
 {
 	return LoadIcon(GetInstance(), MAKEINTRESOURCE(IDI_ICON1));
 }
 */
 
-void GameDemoApp::RegisterGameEvents(void)
+void QuakeApp::RegisterGameEvents(void)
 {
-	REGISTER_EVENT(EventDataMoveActor);
-    REGISTER_EVENT(EventDataStartThrust);
-    REGISTER_EVENT(EventDataEndThrust);
-    REGISTER_EVENT(EventDataStartSteer);
-    REGISTER_EVENT(EventDataEndSteer);
+	REGISTER_EVENT(QuakeEventDataMoveActor);
+    REGISTER_EVENT(QuakeEventDataStartThrust);
+    REGISTER_EVENT(QuakeEventDataEndThrust);
+    REGISTER_EVENT(QuakeEventDataStartSteer);
+    REGISTER_EVENT(QuakeEventDataEndSteer);
 }
 
-void GameDemoApp::CreateNetworkEventForwarder(void)
+void QuakeApp::CreateNetworkEventForwarder(void)
 {
 	GameApplication::CreateNetworkEventForwarder();
     if (mNetworkEventForwarder != NULL)
@@ -215,54 +214,56 @@ void GameDemoApp::CreateNetworkEventForwarder(void)
 
 	    pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), 
-			EventDataFireWeapon::skEventType);
+			QuakeEventDataFireWeapon::skEventType);
 		pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataMoveActor::skEventType);
+			QuakeEventDataMoveActor::skEventType);
         pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), 
-			EventDataStartThrust::skEventType);
+			QuakeEventDataStartThrust::skEventType);
         pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataEndThrust::skEventType);
+			QuakeEventDataEndThrust::skEventType);
         pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataStartSteer::skEventType);
+			QuakeEventDataStartSteer::skEventType);
         pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataEndSteer::skEventType);
+			QuakeEventDataEndSteer::skEventType);
 
 	}
 }
 
-void GameDemoApp::DestroyNetworkEventForwarder(void)
+void QuakeApp::DestroyNetworkEventForwarder(void)
 {
 	GameApplication::DestroyNetworkEventForwarder();
     if (mNetworkEventForwarder)
     {
         BaseEventManager* eventManager = BaseEventManager::Get();
 
-        eventManager->RemoveListener(
-			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataFireWeapon::skEventType);
-		eventManager->RemoveListener(
-			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataMoveActor::skEventType);
-        eventManager->RemoveListener(
-			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataStartThrust::skEventType);
-        eventManager->RemoveListener(
-			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataEndThrust::skEventType);
-        eventManager->RemoveListener(
-			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataStartSteer::skEventType);
-        eventManager->RemoveListener(
-			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataEndSteer::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataEnvironmentLoaded::skEventType);
+
+        eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataFireWeapon::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataMoveActor::skEventType);
+        eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataStartThrust::skEventType);
+        eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataEndThrust::skEventType);
+        eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataStartSteer::skEventType);
+        eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataEndSteer::skEventType);
+
         delete mNetworkEventForwarder.get();
     }
 }

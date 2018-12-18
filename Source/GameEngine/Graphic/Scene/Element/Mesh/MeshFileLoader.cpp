@@ -573,13 +573,6 @@ void ReadNodeMesh(const aiScene* pScene,
 					meshMD3->AddAnimation(md3Animation);
 				}
 
-				if (meshMD3->GetAnimationCount())
-				{
-					unsigned int currentAnim = 0;
-					meshMD3->SetCurrentAnimation(currentAnim);
-					meshMD3->SetCurrentFrame(meshMD3->GetAnimation(currentAnim).mBeginFrame);
-				}
-
 				if (pScene->HasMaterials())
 				{
 					for (unsigned int m = 0; m < pNode->mNumMeshes; m++)

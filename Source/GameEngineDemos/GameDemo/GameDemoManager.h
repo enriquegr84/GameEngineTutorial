@@ -1,7 +1,4 @@
 //
-//  SuperTuxKart - a fun racing game with go-kart
-//  Copyright (C) 2006-2013 SuperTuxKart-Team
-//
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
 //  as published by the Free Software Foundation; either version 3
@@ -25,37 +22,30 @@
 
 class GameDemo;
 
-/**
-  * \brief Simple class to load and manage track data, track names and such
-  * \ingroup tracks
-  */
 class GameDemoManager
 {
 private:
-    /** All directories in which tracks are searched. */
+    /** All directories */
     static eastl::vector<eastl::wstring> mGameDemoSearchPath;
 
-    /** All directories in which tracks were found. */
+    /** All directories */
     eastl::vector<eastl::wstring> mAllGameDemoDirs;
 
     typedef eastl::vector<GameDemo*> GameDemoList;
 
-    /** All track objects. */
+    /** All objects. */
     GameDemoList mGameDemos;
 
     typedef eastl::map<eastl::wstring, eastl::vector<int> > GroupToIndices;
-    /** List of all racing track groups. */
+    /** List of all groups. */
     GroupToIndices mGameDemoGroups;
 
-    /** List of all groups (for both normal tracks and arenas) */
+    /** List of all groups (for both normal and arenas) */
     eastl::vector<eastl::wstring> mAllGameDemoGroupNames;
 
-    /** List of the names of all groups containing tracks */
+    /** List of the names of all groups */
     eastl::vector<eastl::wstring> mGameDemoGroupNames;
 
-    /** Flag if this track is available or not. Tracks are set unavailable
-     *  if they are not available on all clients (applies only to network mode)
-     */
     eastl::vector<bool> mGameDemosAvailable;
 
     void UpdateGroups(const GameDemo* demo);
@@ -108,8 +98,8 @@ public:
     const eastl::vector<int>& GetGameDemosInGroup(const eastl::wstring& g)
     {
         return mGameDemoGroups[g];
-    }   // getTracksInGroup
+    }
 
 };   // DemosManager
 
-#endif   // HEADER_TRACK_MANAGER_HPP
+#endif

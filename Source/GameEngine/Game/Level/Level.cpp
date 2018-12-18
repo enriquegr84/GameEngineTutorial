@@ -1,7 +1,3 @@
-//  SuperTuxKart - a fun racing game with go-kart
-//
-//  Copyright (C) 2004-2013  Steve Baker <sjbaker1@airmail.net>
-//  Copyright (C) 2009-2013  Joerg Henrichs, Steve Baker
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -69,7 +65,7 @@ void Level::LoadLevelInfo()
 }   // loadLevelInfo
 
 // ----------------------------------------------------------------------------
-/** Loads the main track model (i.e. all other objects contained in the
+/** Loads the main model (i.e. all other objects contained in the
  *  scene might use raycast on this track model to determine the actual
  *  height of the terrain.
  */
@@ -77,7 +73,7 @@ bool Level::LoadMainLevel(const tinyxml2::XMLElement* pRoot)
 {
 
     return true;
-}   // loadMainTrack
+} 
 
 // ----------------------------------------------------------------------------
 /** Update, called once per frame.

@@ -32,6 +32,36 @@
     <ClInclude Include="..\GameDemo\GameDemoPlayerController.h">
       <Filter>Demo</Filter>
     </ClInclude>
+    <ClInclude Include="..\Quake\Quake.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakeApp.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakeCameraController.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakeEvents.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakeManager.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakeNetwork.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakePlayerController.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakeResources.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakeStd.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakeView.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\TriangleDemoApp.cpp" />
@@ -59,13 +89,37 @@
     <ClCompile Include="..\GameDemo\GameDemoPlayerController.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
+    <ClCompile Include="..\Quake\Quake.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeApp.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeCameraController.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeEvents.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeManager.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakePlayerController.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeStd.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeView.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Graphic">
-      <UniqueIdentifier>{3456d0f4-9da9-4a04-848d-7fe770bb80e3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Demo">
       <UniqueIdentifier>{ce6ead9a-75e3-4556-82f9-64ef1a39a749}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quake">
+      <UniqueIdentifier>{8b320331-9d33-4f90-9d5f-797a46e33574}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

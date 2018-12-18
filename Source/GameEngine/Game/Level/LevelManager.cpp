@@ -1,7 +1,4 @@
 //
-//  SuperTuxKart - a fun racing game with go-kart
-//  Copyright (C) 2006-2013 SuperTuxKart-Team
-//
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
 //  as published by the Free Software Foundation; either version 3
@@ -43,7 +40,7 @@ LevelManager::~LevelManager()
 }// ~LevelManager
 
 //-----------------------------------------------------------------------------
-/** Adds a directory from which levels are loaded. The demos manager checks if
+/** Adds a directory from which levels are loaded. The manager checks if
  *  either this directory itself contains a level, and if any subdirectory
  *  contains a level.
  *  \param dir The directory to add.
@@ -98,8 +95,8 @@ void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::wstring> &lev
             mLevelAvailables[i-mLevels.begin()] = false;
             fwprintf(stderr,
 				L"Demo '%s' not available on all clients, disabled.\n", id.c_str());
-        }   // if id not in tracks
-    }   // for all available tracks in track manager
+        } 
+    } 
 
 }   // setUnavailableLevels
 
@@ -163,7 +160,7 @@ bool LevelManager::LoadLevel(const eastl::wstring& levelname)
     {
         level = new Level(levelname);
     }
-    catch(std::exception) //(std::exception& e)
+    catch(std::exception)
     {
 		/*
         fprintf(stderr, "[LevelManager] ERROR: Cannot load level <%s> : %s\n",
@@ -171,20 +168,7 @@ bool LevelManager::LoadLevel(const eastl::wstring& levelname)
 		*/
         return false;
     }
-	/*
-    if (demo->getVersion()<stkConfig->mMinTrackVersion ||
-        demo->getVersion()>stkConfig->mMaxTrackVersion)
-    {
-        fprintf(stderr, "[TrackManager] Warning: track '%s' is not supported "
-                        "by this binary, ignored. (Track is version %i, this "
-                        "executable supports from %i to %i)\n",
-                track->getIdent().c_str(), track->getVersion(),
-                stkConfig->mMinTrackVersion,
-                stkConfig->mMaxTrackVersion);
-        delete track;
-        return false;
-    }
-	*/
+
 	mAllLevelDirs.push_back(FileSystem::Get()->GetFileDir(levelname));
     mLevels.push_back(level);
     mLevelAvailables.push_back(true);
