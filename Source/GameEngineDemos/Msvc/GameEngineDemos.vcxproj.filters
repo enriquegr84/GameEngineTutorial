@@ -62,6 +62,45 @@
     <ClInclude Include="..\Quake\QuakeView.h">
       <Filter>Quake</Filter>
     </ClInclude>
+    <ClInclude Include="..\Quake\QuakeActorFactory.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\AmmoPickup.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\HealthPickup.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\ItemPickup.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\WeaponPickup.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\BasePickup.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\BaseTrigger.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\PushTrigger.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\TeleporterTrigger.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\BaseTarget.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\SpeakerTarget.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\ArmorPickup.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\RespawnTarget.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\TriangleDemoApp.cpp" />
@@ -113,6 +152,36 @@
     <ClCompile Include="..\Quake\QuakeView.cpp">
       <Filter>Quake</Filter>
     </ClCompile>
+    <ClCompile Include="..\Quake\QuakeActorFactory.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\AmmoPickup.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\HealthPickup.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\ItemPickup.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\WeaponPickup.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\PushTrigger.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\TeleporterTrigger.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\SpeakerTarget.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\ArmorPickup.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\RespawnTarget.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Demo">
@@ -120,6 +189,9 @@
     </Filter>
     <Filter Include="Quake">
       <UniqueIdentifier>{8b320331-9d33-4f90-9d5f-797a46e33574}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quake\Actors">
+      <UniqueIdentifier>{524c8a9f-b519-4683-9b39-adbacb26a18c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

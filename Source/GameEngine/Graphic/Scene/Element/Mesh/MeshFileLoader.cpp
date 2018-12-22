@@ -133,6 +133,7 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 			// Create the 2D texture and compute the stride and image size.
 			eastl::shared_ptr<Texture2> meshTexture =
 				eastl::make_shared<Texture2>(gtformat, width, height, true);
+			meshTexture->SetName(ToWideString(texture.c_str()));
 			UINT const stride = width * meshTexture->GetElementSize();
 			UINT const imageSize = stride * height;
 
@@ -149,6 +150,7 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 			DFType gtformat = DF_R8G8B8A8_UNORM;
 			eastl::shared_ptr<Texture2> meshTexture = eastl::make_shared<Texture2>(
 				gtformat, embeddedTexture->mWidth, embeddedTexture->mHeight, true);
+			meshTexture->SetName(ToWideString(texture.c_str()));
 			UINT const stride = embeddedTexture->mWidth * meshTexture->GetElementSize();
 			UINT const imageSize = stride * embeddedTexture->mHeight;
 
@@ -177,10 +179,10 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 	else if (!texture.empty())
 	{
 		int width, height, components;
-
 		eastl::wstring directory = FileSystem::Get()->GetWorkingDirectory();
-		eastl::string texturePath =
-			ToString(directory.c_str()) + "/" + eastl::string(textureName->C_Str());
+		eastl::string texturePath = textureName->C_Str();
+		if (FileSystem::Get()->GetFileDir(ToWideString(textureName->C_Str())) == L".")
+			texturePath = ToString(directory.c_str()) + "/" + texturePath;
 		unsigned char *imageData = stbi_load(
 			texturePath.c_str(), &width, &height, &components, STBI_rgb_alpha);
 		if (imageData == nullptr)
@@ -195,7 +197,6 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 		// Create the 2D texture and compute the stride and image size.
 		eastl::shared_ptr<Texture2> meshTexture =
 			eastl::make_shared<Texture2>(gtformat, width, height, true);
-		meshTexture->SetName(ToWideString(textureName->C_Str()));
 		UINT const stride = width * meshTexture->GetElementSize();
 		UINT const imageSize = stride * height;
 

@@ -1,5 +1,5 @@
 //========================================================================
-// AudioComponent.h - A component for attaching sounds to an actor
+// ActorFactory.h - Defines a factory for creating actors & components
 //
 // Part of the GameEngine Application
 //
@@ -36,34 +36,30 @@
 //
 //========================================================================
 
-#ifndef AUDIOCOMPONENT_H
-#define AUDIOCOMPONENT_H
+#ifndef QUAKEACTORFACTORY_H
+#define QUAKEACTORFACTORY_H
 
-#include "ActorComponent.h"
+#include "GameEngineStd.h"
 
-//---------------------------------------------------------------------------------------------------------------------
-// AudioComponent class.
-// [rez] This component was never directly described anywhere in the book but it's used to allow actors to trigger 
-// sound effects.
-//---------------------------------------------------------------------------------------------------------------------
-class AudioComponent : public ActorComponent
+#include "Game/Actor/ActorFactory.h"
+
+/*
+	Class ActorFactory. All actors are created using a factory. The factory's job is to
+	take an XML resource, parse it, and return a fully initialized actor complete with
+	all the appropriate components. It's important to understand how actors are built, 
+	how to define a component configuration and any default values for that component.
+*/
+class QuakeActorFactory : public ActorFactory
 {
-	eastl::vector<eastl::string> mAudios;
-	bool mLooping;
-	int mFadeTime;
-	int mVolume;
 
 public:
-	static const char *Name;
-	virtual const char *GetName() const { return Name; }
+	QuakeActorFactory(void);
 
-    AudioComponent(void);
-
-    virtual tinyxml2::XMLElement* GenerateXml(void);
-
-    // ActorComponent interface
-    virtual bool Init(tinyxml2::XMLElement* pData) override;
-    virtual void PostInit(void) override;
+//protected:
+    // This function can be overridden by a subclass so you can create game-specific 
+	// C++ components. If you do this, make sure you call the base-class version first.  
+	// If it returns NULL, you know it's not an engine component.
+    virtual eastl::shared_ptr<ActorComponent> CreateComponent(tinyxml2::XMLElement* pData);
 };
 
 

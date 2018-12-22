@@ -16,7 +16,7 @@
 	</PhysicsComponent>
 
 	<MeshRenderComponent>
-		<Mesh model_file="art\dwarf.x" />
+		<Mesh>art\dwarf.x</Mesh>
 	</MeshRenderComponent>
 	
 </Actor>

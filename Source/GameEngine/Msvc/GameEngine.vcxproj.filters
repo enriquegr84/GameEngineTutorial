@@ -160,9 +160,6 @@
     <Filter Include="Assets\Config">
       <UniqueIdentifier>{34787458-8ea3-42a7-905a-906392ec67ab}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Assets\World">
-      <UniqueIdentifier>{21ad7b9a-aab3-4745-9602-4959288a839f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Graphic\3rdParty\assimp\include">
       <UniqueIdentifier>{f981db26-0219-48d0-9986-961d35510f2e}</UniqueIdentifier>
     </Filter>
@@ -2955,9 +2952,6 @@
     </Xml>
     <Xml Include="..\..\..\Assets\Actors\cube.xml">
       <Filter>Assets\Actors</Filter>
-    </Xml>
-    <Xml Include="..\..\..\Assets\World\World.xml">
-      <Filter>Assets\World</Filter>
     </Xml>
   </ItemGroup>
 </Project>

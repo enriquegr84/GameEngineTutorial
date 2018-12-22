@@ -204,7 +204,7 @@ eastl::shared_ptr<ResHandle> ResCache::Load(BaseResource *r)
 	if (rawBuffer == NULL || rawSize < 0)
 	{
 		// resource cache out of memory
-		LogAssert(false, eastl::wstring("Resource not found ") + r->mName);
+		LogAssert(false, L"Resource not found " + r->mName);
 		return nullptr;
 	}
 

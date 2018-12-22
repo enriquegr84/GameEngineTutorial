@@ -1,9 +1,9 @@
 //========================================================================
-// Quake.h : source file for the sample game
+// HealthPickup.h - A health pickup
 //
-// Part of the GameEngine Application
+// Part of the GameCode4 Application
 //
-// GameEngine is the sample application that encapsulates much of the source code
+// GameCode4 is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
 // "Rez" Graham, published by Charles River Media. 
 // ISBN-10: 1133776574 | ISBN-13: 978-1133776574
@@ -17,7 +17,7 @@
 // There's a companion web site at http://www.mcshaffry.com/GameCode/
 // 
 // The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/GameEngine/
+//    http://code.google.com/p/gamecode4/
 //
 // (c) Copyright 2012 Michael L. McShaffry and David Graham
 //
@@ -36,62 +36,23 @@
 //
 //========================================================================
 
-#ifndef QUAKE_H
-#define QUAKE_H
+#ifndef HEALTHPICKUP_H
+#define HEALTHPICKUP_H
 
-#include "Game/Game.h"
-
-class BaseEventManager;
-class NetworkEventForwarder;
+#include "BasePickup.h"
 
 //---------------------------------------------------------------------------------------------------------------------
-// QuakeLogic class                        - Chapter 21, page 723
+// HealthPickup implementation class.
 //---------------------------------------------------------------------------------------------------------------------
-class QuakeLogic : public GameLogic
+class HealthPickup : public BasePickup
 {
-protected:
-	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
-
 public:
-	QuakeLogic();
-	virtual ~QuakeLogic();
+	static const char* Name;
+	virtual const char* GetName() const { return Name; }
 
-	// Quake Methods
-
-	// Update
-	virtual void SetProxy();
-
-	virtual void SyncActor(const ActorId id, Transform const &transform);
-
-	virtual void ResetViewType();
-	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView, bool add);
-
-	// Overloads
-	virtual void ChangeState(BaseGameState newState);
-	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) { return mPhysics; }
-
-	// event delegates
-	void RequestStartGameDelegate(BaseEventDataPtr pEventData);
-	void RemoteClientDelegate(BaseEventDataPtr pEventData);
-	void NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEventData);
-	void EnvironmentLoadedDelegate(BaseEventDataPtr pEventData);
-	void MoveActorDelegate(BaseEventDataPtr pEventData);
-	void StartThrustDelegate(BaseEventDataPtr pEventData);
-	void EndThrustDelegate(BaseEventDataPtr pEventData);
-	void StartSteerDelegate(BaseEventDataPtr pEventData);
-	void EndSteerDelegate(BaseEventDataPtr pEventData);
-
-protected:
-
-	virtual ActorFactory* CreateActorFactory(void);
-
-	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData);
-
-private:
-	void RegisterAllDelegates(void);
-	void RemoveAllDelegates(void);
-	void CreateNetworkEventForwarder(const int socketId);
-	void DestroyAllNetworkEventForwarders(void);
+    virtual bool Init(tinyxml2::XMLElement* pData) override;
+    virtual tinyxml2::XMLElement* GenerateXml(void) override;
+    virtual void Apply(eastl::weak_ptr<Actor> pActor) override;
 };
 
 #endif

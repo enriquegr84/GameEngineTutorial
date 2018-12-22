@@ -1,9 +1,9 @@
 //========================================================================
-// AudioComponent.h - A component for attaching sounds to an actor
+// BaseTarget.h - Interface class for all targets
 //
-// Part of the GameEngine Application
+// Part of the GameCode4 Application
 //
-// GameEngine is the sample application that encapsulates much of the source code
+// GameCode4 is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
 // "Rez" Graham, published by Charles River Media. 
 // ISBN-10: 1133776574 | ISBN-13: 978-1133776574
@@ -17,7 +17,7 @@
 // There's a companion web site at http://www.mcshaffry.com/GameCode/
 // 
 // The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/GameEngine/
+//    http://code.google.com/p/gamecode4/
 //
 // (c) Copyright 2012 Michael L. McShaffry and David Graham
 //
@@ -36,35 +36,19 @@
 //
 //========================================================================
 
-#ifndef AUDIOCOMPONENT_H
-#define AUDIOCOMPONENT_H
+#ifndef BASETARGET_H
+#define BASETARGET_H
 
-#include "ActorComponent.h"
+#include "Game/Actor/ActorComponent.h"
 
-//---------------------------------------------------------------------------------------------------------------------
-// AudioComponent class.
-// [rez] This component was never directly described anywhere in the book but it's used to allow actors to trigger 
-// sound effects.
-//---------------------------------------------------------------------------------------------------------------------
-class AudioComponent : public ActorComponent
+class BaseTarget : public ActorComponent
 {
-	eastl::vector<eastl::string> mAudios;
-	bool mLooping;
-	int mFadeTime;
-	int mVolume;
-
 public:
-	static const char *Name;
-	virtual const char *GetName() const { return Name; }
+//    static ComponentId COMPONENT_ID;  // unique ID for this component type
+//    virtual ComponentId GetComponentId(void) const override { return COMPONENT_ID; }
 
-    AudioComponent(void);
-
-    virtual tinyxml2::XMLElement* GenerateXml(void);
-
-    // ActorComponent interface
-    virtual bool Init(tinyxml2::XMLElement* pData) override;
-    virtual void PostInit(void) override;
+    // Trigger interface
+    virtual void Apply(eastl::weak_ptr<Actor> pActor) = 0;
 };
-
 
 #endif

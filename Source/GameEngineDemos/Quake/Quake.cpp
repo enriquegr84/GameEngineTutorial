@@ -13,6 +13,7 @@
 #include "QuakeApp.h"
 #include "QuakeNetwork.h"
 #include "QuakeEvents.h"
+#include "QuakeActorFactory.h"
 
 //
 // QuakeLogic::QuakeLogic
@@ -507,6 +508,11 @@ void QuakeLogic::DestroyAllNetworkEventForwarders(void)
 	mNetworkEventForwarders.clear();
 }
 
+
+ActorFactory* QuakeLogic::CreateActorFactory(void)
+{
+	return new QuakeActorFactory();
+}
 
 bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 {

@@ -1112,7 +1112,6 @@ void SkinnedMesh::AddMeshBuffer(BaseMeshBuffer* meshBuffer)
 		eastl::shared_ptr<SkinMeshBuffer>(mSkinningBuffers.back()));
 }
 
-
 SkinnedMesh::Joint *SkinnedMesh::AddJoint(Joint *parent)
 {
 	Joint *joint = new Joint();

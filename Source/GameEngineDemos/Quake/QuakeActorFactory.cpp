@@ -1,5 +1,5 @@
 //========================================================================
-// Quake.h : source file for the sample game
+// QuakeActorFactory.cpp : Creates actors from components
 //
 // Part of the GameEngine Application
 //
@@ -36,62 +36,34 @@
 //
 //========================================================================
 
-#ifndef QUAKE_H
-#define QUAKE_H
+ 
+#include "QuakeActorFactory.h"
 
-#include "Game/Game.h"
-
-class BaseEventManager;
-class NetworkEventForwarder;
+#include "Actors/AmmoPickup.h"
+#include "Actors/ItemPickup.h"
+#include "Actors/ArmorPickup.h"
+#include "Actors/HealthPickup.h"
+#include "Actors/WeaponPickup.h"
+#include "Actors/PushTrigger.h"
+#include "Actors/TeleporterTrigger.h"
+#include "Actors/RespawnTarget.h"
+#include "Actors/SpeakerTarget.h"
 
 //---------------------------------------------------------------------------------------------------------------------
-// QuakeLogic class                        - Chapter 21, page 723
-//---------------------------------------------------------------------------------------------------------------------
-class QuakeLogic : public GameLogic
+QuakeActorFactory::QuakeActorFactory(void) : ActorFactory()
 {
-protected:
-	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
+	mComponentFactory.Register<AmmoPickup>(ActorComponent::GetIdFromName(AmmoPickup::Name));
+	mComponentFactory.Register<ItemPickup>(ActorComponent::GetIdFromName(ItemPickup::Name));
+	mComponentFactory.Register<ArmorPickup>(ActorComponent::GetIdFromName(ArmorPickup::Name));
+	mComponentFactory.Register<HealthPickup>(ActorComponent::GetIdFromName(HealthPickup::Name));
+	mComponentFactory.Register<WeaponPickup>(ActorComponent::GetIdFromName(WeaponPickup::Name));
+	mComponentFactory.Register<PushTrigger>(ActorComponent::GetIdFromName(PushTrigger::Name));
+	mComponentFactory.Register<TeleporterTrigger>(ActorComponent::GetIdFromName(TeleporterTrigger::Name));
+	mComponentFactory.Register<RespawnTarget>(ActorComponent::GetIdFromName(RespawnTarget::Name));
+	mComponentFactory.Register<SpeakerTarget>(ActorComponent::GetIdFromName(SpeakerTarget::Name));
+}
 
-public:
-	QuakeLogic();
-	virtual ~QuakeLogic();
-
-	// Quake Methods
-
-	// Update
-	virtual void SetProxy();
-
-	virtual void SyncActor(const ActorId id, Transform const &transform);
-
-	virtual void ResetViewType();
-	virtual void UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView, bool add);
-
-	// Overloads
-	virtual void ChangeState(BaseGameState newState);
-	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) { return mPhysics; }
-
-	// event delegates
-	void RequestStartGameDelegate(BaseEventDataPtr pEventData);
-	void RemoteClientDelegate(BaseEventDataPtr pEventData);
-	void NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEventData);
-	void EnvironmentLoadedDelegate(BaseEventDataPtr pEventData);
-	void MoveActorDelegate(BaseEventDataPtr pEventData);
-	void StartThrustDelegate(BaseEventDataPtr pEventData);
-	void EndThrustDelegate(BaseEventDataPtr pEventData);
-	void StartSteerDelegate(BaseEventDataPtr pEventData);
-	void EndSteerDelegate(BaseEventDataPtr pEventData);
-
-protected:
-
-	virtual ActorFactory* CreateActorFactory(void);
-
-	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData);
-
-private:
-	void RegisterAllDelegates(void);
-	void RemoveAllDelegates(void);
-	void CreateNetworkEventForwarder(const int socketId);
-	void DestroyAllNetworkEventForwarders(void);
-};
-
-#endif
+eastl::shared_ptr<ActorComponent> QuakeActorFactory::CreateComponent(tinyxml2::XMLElement* pData)
+{
+	return ActorFactory::CreateComponent(pData);
+}

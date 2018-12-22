@@ -1,9 +1,9 @@
 //========================================================================
-// AudioComponent.h - A component for attaching sounds to an actor
+// PushTrigger.cpp - A push trigger
 //
-// Part of the GameEngine Application
+// Part of the GameCode4 Application
 //
-// GameEngine is the sample application that encapsulates much of the source code
+// GameCode4 is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
 // "Rez" Graham, published by Charles River Media. 
 // ISBN-10: 1133776574 | ISBN-13: 978-1133776574
@@ -17,7 +17,7 @@
 // There's a companion web site at http://www.mcshaffry.com/GameCode/
 // 
 // The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/GameEngine/
+//    http://code.google.com/p/gamecode4/
 //
 // (c) Copyright 2012 Michael L. McShaffry and David Graham
 //
@@ -36,35 +36,35 @@
 //
 //========================================================================
 
-#ifndef AUDIOCOMPONENT_H
-#define AUDIOCOMPONENT_H
+#include "GameEngineStd.h"
 
-#include "ActorComponent.h"
+#include "PushTrigger.h"
+#include "Game/Actor/Actor.h"
 
-//---------------------------------------------------------------------------------------------------------------------
-// AudioComponent class.
-// [rez] This component was never directly described anywhere in the book but it's used to allow actors to trigger 
-// sound effects.
-//---------------------------------------------------------------------------------------------------------------------
-class AudioComponent : public ActorComponent
+#include "Core/Logger/Logger.h"
+
+const char* PushTrigger::Name = "PushTrigger";
+
+bool PushTrigger::Init(tinyxml2::XMLElement* pData)
 {
-	eastl::vector<eastl::string> mAudios;
-	bool mLooping;
-	int mFadeTime;
-	int mVolume;
+	return true;
+}
 
-public:
-	static const char *Name;
-	virtual const char *GetName() const { return Name; }
+tinyxml2::XMLElement* PushTrigger::GenerateXml(void)
+{
+	tinyxml2::XMLDocument doc;
 
-    AudioComponent(void);
+	// component element
+	tinyxml2::XMLElement* pComponentElement = doc.NewElement(GetName());
+	return pComponentElement;
+}
 
-    virtual tinyxml2::XMLElement* GenerateXml(void);
+void PushTrigger::Apply(eastl::weak_ptr<Actor> pActor)
+{
+	eastl::shared_ptr<Actor> pStrongActor(pActor);
+	if (pStrongActor)
+	{
+		LogInformation("Applying push trigger to actor id " + eastl::to_string(pStrongActor->GetId()));
+	}
+}
 
-    // ActorComponent interface
-    virtual bool Init(tinyxml2::XMLElement* pData) override;
-    virtual void PostInit(void) override;
-};
-
-
-#endif

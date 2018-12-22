@@ -16,7 +16,7 @@
 	</PhysicsComponent>
 
 	<MeshRenderComponent>
-		<Mesh model_file="Art\quake3\models\players\sarge\lower.md3" />
+		<Mesh>art\dwarf.x</Mesh>
 	</MeshRenderComponent>
 	
 </Actor>

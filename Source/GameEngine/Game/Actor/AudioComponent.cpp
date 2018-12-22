@@ -48,7 +48,6 @@ const char* AudioComponent::Name = "AudioComponent";
 
 AudioComponent::AudioComponent()
 {
-	mAudioResource = "";
 	mLooping = false;
 	mFadeTime = 0;
 	mVolume = 100;
@@ -56,10 +55,21 @@ AudioComponent::AudioComponent()
 
 bool AudioComponent::Init(tinyxml2::XMLElement* pData)
 {
-	tinyxml2::XMLElement* pTexture = pData->FirstChildElement("Sound");
-    if (pTexture)
+	tinyxml2::XMLElement* pAudio = pData->FirstChildElement("Sound");
+	if (pAudio)
 	{
-		mAudioResource = pTexture->FirstChild()->Value();
+		eastl::string audios = pAudio->FirstChild()->Value();
+		audios.erase(eastl::remove(audios.begin(), audios.end(), '\r'), audios.end());
+		audios.erase(eastl::remove(audios.begin(), audios.end(), '\n'), audios.end());
+		audios.erase(eastl::remove(audios.begin(), audios.end(), '\t'), audios.end());
+		size_t audioBegin = 0, audioEnd = 0;
+		do
+		{
+			audioEnd = audios.find(',', audioBegin);
+			mAudios.push_back(audios.substr(audioBegin, audioEnd));
+
+			audioBegin = audioEnd + 1;
+		} while (audioEnd != eastl::string::npos);
 	}
 
 	tinyxml2::XMLElement* pLooping = pData->FirstChildElement("Looping");
@@ -93,10 +103,12 @@ tinyxml2::XMLElement* AudioComponent::GenerateXml(void)
 	// base element
 	tinyxml2::XMLElement* pBaseElement = doc.NewElement(GetName());
 
-	tinyxml2::XMLElement* pSoundNode = doc.NewElement("Sound");
-	tinyxml2::XMLText* pSoundText = doc.NewText(mAudioResource.c_str());
-    pSoundNode->LinkEndChild(pSoundText);
-    pBaseElement->LinkEndChild(pSoundNode);
+	tinyxml2::XMLElement* pScound = doc.NewElement("Sound");
+	for (eastl::string audio : mAudios)
+	{
+		tinyxml2::XMLText* pAudioText = doc.NewText(audio.c_str());
+		pBaseElement->LinkEndChild(pAudioText);
+	}
 
 	tinyxml2::XMLElement* pLoopingNode = doc.NewElement("Looping");
 	tinyxml2::XMLText* pLoopingText = doc.NewText(mLooping ? "1" : "0");
@@ -137,16 +149,21 @@ void AudioComponent::PostInit()
 	{
 		// The editor can play sounds, but it shouldn't run them when AudioComponents are initialized.
 
-		BaseResource resource(ToWideString(mAudioResource.c_str()));
-		eastl::shared_ptr<ResHandle> rh = ResCache::Get()->GetHandle(&resource);
-		eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, mVolume, mLooping));
-		processManager->AttachProcess(sound);
-
-		// fade process
-		if (mFadeTime > 0)
+		for (eastl::string audio : mAudios)
 		{
-			eastl::shared_ptr<FadeProcess> fadeProc(new FadeProcess(sound, mFadeTime, mVolume));
-			processManager->AttachProcess(fadeProc);
+			BaseResource resource(ToWideString(audio.c_str()));
+			eastl::shared_ptr<ResHandle> rh = ResCache::Get()->GetHandle(&resource);
+			/*
+			eastl::shared_ptr<SoundProcess> sound(new SoundProcess(rh, mVolume, mLooping));
+			processManager->AttachProcess(sound);
+
+			// fade process
+			if (mFadeTime > 0)
+			{
+				eastl::shared_ptr<FadeProcess> fadeProc(new FadeProcess(sound, mFadeTime, mVolume));
+				processManager->AttachProcess(fadeProc);
+			}
+			*/
 		}
 	}
 }

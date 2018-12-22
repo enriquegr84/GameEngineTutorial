@@ -61,21 +61,27 @@ const char* ParticleEffectRenderComponent::Name = "ParticleEffectRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
 MeshRenderComponent::MeshRenderComponent(void)
 {
-	mMeshModelTexture = "";
-	mMaterialType = 0;
 }
 
 bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 {
 	tinyxml2::XMLElement* pMesh = pData->FirstChildElement("Mesh");
+	if (pMesh)
+	{
+		eastl::string meshes = pMesh->FirstChild()->Value();
+		meshes.erase(eastl::remove(meshes.begin(), meshes.end(), '\r'), meshes.end());
+		meshes.erase(eastl::remove(meshes.begin(), meshes.end(), '\n'), meshes.end());
+		meshes.erase(eastl::remove(meshes.begin(), meshes.end(), '\t'), meshes.end());
+		size_t meshBegin = 0, meshEnd = 0;
+		do
+		{
+			meshEnd = meshes.find(',', meshBegin);
+			mMeshes.push_back(meshes.substr(meshBegin, meshEnd));
 
-	mMeshModelFile = pMesh->Attribute("model_file");
-
-	const char* texture = pMesh->Attribute("texture_file");
-	if (texture != nullptr) 
-		mMeshModelTexture = eastl::string(texture);
-
-	mMaterialType = pMesh->IntAttribute("material_type", mMaterialType);
+			meshBegin = meshEnd + 1;
+		} 
+		while (meshEnd != eastl::string::npos);
+	}
 
     return true;
 }
@@ -93,67 +99,45 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 		WeakBaseRenderComponentPtr wbrcp(
 			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
-		eastl::shared_ptr<ResHandle>& resHandle =
-			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshModelFile.c_str())));
-		if (resHandle)
+		eastl::shared_ptr<BaseMesh> mesh;
+		for (eastl::string meshName : mMeshes)
 		{
-			const eastl::shared_ptr<MeshResourceExtraData>& extra =
-				eastl::static_pointer_cast<MeshResourceExtraData>(resHandle->GetExtra());
-			eastl::shared_ptr<BaseMesh> mesh(extra->GetMesh());
-
-			if (!mMeshModelTexture.empty())
+			eastl::shared_ptr<ResHandle>& resHandle =
+				ResCache::Get()->GetHandle(&BaseResource(ToWideString(meshName.c_str())));
+			if (resHandle)
 			{
-				resHandle =
-					ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMeshModelTexture.c_str())));
-				if (resHandle)
+				const eastl::shared_ptr<MeshResourceExtraData>& extra =
+					eastl::static_pointer_cast<MeshResourceExtraData>(resHandle->GetExtra());
+				
+				eastl::shared_ptr<AnimateMeshMD3> meshMD3 = 
+					eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(mesh);
+				if (meshMD3)
 				{
-					const eastl::shared_ptr<ImageResourceExtraData>& extra =
-						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-					extra->GetImage()->AutogenerateMipmaps();
-					if (mMaterialType == MaterialType::MT_TRANSPARENT)
-					{
-						for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
-						{
-							eastl::shared_ptr<Material> material = mesh->GetMeshBuffer(i)->GetMaterial();
-							material->mBlendTarget.enable = true;
-							material->mBlendTarget.srcColor = BlendState::BM_ONE;
-							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
-							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
-							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
-							
-							material->mDepthBuffer = true;
-							material->mDepthMask = DepthStencilState::MASK_ZERO;
-
-							material->mFillMode = RasterizerState::FILL_SOLID;
-							material->mCullMode = RasterizerState::CULL_NONE;
-						}
-					}
-
-					for (unsigned int i = 0; i<mesh->GetMeshBufferCount(); ++i)
-						mesh->GetMeshBuffer(i)->GetMaterial()->SetTexture(TT_DIFFUSE, extra->GetImage());
+					AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(extra->GetMesh());
+					if (!animMeshMD3->GetMD3Mesh()->GetParent())
+						meshMD3->GetMD3Mesh()->AttachChild(animMeshMD3->GetMD3Mesh());
 				}
+				else mesh = eastl::shared_ptr<BaseMesh>(extra->GetMesh());
 			}
-
-			eastl::shared_ptr<Node> meshNode = nullptr;
-			if (mesh->GetMeshType() == MT_STANDARD)
-			{
-				// create an mesh scene node with specified mesh.
-				meshNode = pScene->AddMeshNode(wbrcp, 0, mesh, mOwner->GetId());
-				if (meshNode)
-					meshNode->GetRelativeTransform() = transform;
-			}
-			else
-			{
-				// create an animated mesh scene node with specified animated mesh.
-				meshNode = pScene->AddAnimatedMeshNode(
-					wbrcp, 0, eastl::dynamic_shared_pointer_cast<BaseAnimatedMesh>(mesh), mOwner->GetId());
-				if (meshNode)
-					meshNode->GetRelativeTransform() = transform;
-			}
-			meshNode->SetMaterialType((MaterialType)mMaterialType);
-
-			return meshNode;
 		}
+
+		eastl::shared_ptr<Node> meshNode = nullptr;
+		if (mesh->GetMeshType() == MT_STANDARD)
+		{
+			// create an mesh scene node with specified mesh.
+			meshNode = pScene->AddMeshNode(wbrcp, 0, mesh, mOwner->GetId());
+			if (meshNode)
+				meshNode->GetRelativeTransform() = transform;
+		}
+		else
+		{
+			// create an animated mesh scene node with specified animated mesh.
+			meshNode = pScene->AddAnimatedMeshNode(
+				wbrcp, 0, eastl::dynamic_shared_pointer_cast<BaseAnimatedMesh>(mesh), mOwner->GetId());
+			if (meshNode)
+				meshNode->GetRelativeTransform() = transform;
+		}
+		return meshNode;
 	}
 	return eastl::shared_ptr<Node>();
 }
@@ -161,11 +145,13 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 void MeshRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement)
 {
+	// shape
 	tinyxml2::XMLElement* pMesh = doc.NewElement("Mesh");
-	pMesh->SetAttribute("model_file", mMeshModelFile.c_str());
-	pMesh->SetAttribute("model_texture", mMeshModelTexture.c_str());
-	pMesh->SetAttribute("material_type", eastl::to_string(mMaterialType).c_str());
-	pBaseElement->LinkEndChild(pBaseElement);
+	for (eastl::string mesh : mMeshes)
+	{
+		tinyxml2::XMLText* pMeshText = doc.NewText(mesh.c_str());
+		pBaseElement->LinkEndChild(pMeshText);
+	}
 }
 
 //---------------------------------------------------------------------------------------------------------------------

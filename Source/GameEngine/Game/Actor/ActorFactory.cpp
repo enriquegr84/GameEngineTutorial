@@ -56,26 +56,16 @@
 //---------------------------------------------------------------------------------------------------------------------
 ActorFactory::ActorFactory(void)
 {
-    mComponentFactory.Register<TransformComponent>(
-		ActorComponent::GetIdFromName(TransformComponent::Name));
-	mComponentFactory.Register<MeshRenderComponent>(
-		ActorComponent::GetIdFromName(MeshRenderComponent::Name));
-    mComponentFactory.Register<SphereRenderComponent>(
-		ActorComponent::GetIdFromName(SphereRenderComponent::Name));
-	mComponentFactory.Register<CubeRenderComponent>(
-		ActorComponent::GetIdFromName(CubeRenderComponent::Name));
-    mComponentFactory.Register<GridRenderComponent>(
-		ActorComponent::GetIdFromName(GridRenderComponent::Name));
-    mComponentFactory.Register<ParticleEffectRenderComponent>(
-		ActorComponent::GetIdFromName(ParticleEffectRenderComponent::Name));
-    mComponentFactory.Register<LightRenderComponent>(
-		ActorComponent::GetIdFromName(LightRenderComponent::Name));
-    mComponentFactory.Register<SkyRenderComponent>(
-		ActorComponent::GetIdFromName(SkyRenderComponent::Name));
-    mComponentFactory.Register<AudioComponent>(
-		ActorComponent::GetIdFromName(AudioComponent::Name));
-	mComponentFactory.Register<PhysicComponent>(
-		ActorComponent::GetIdFromName(PhysicComponent::Name));
+    mComponentFactory.Register<TransformComponent>(ActorComponent::GetIdFromName(TransformComponent::Name));
+	mComponentFactory.Register<MeshRenderComponent>(ActorComponent::GetIdFromName(MeshRenderComponent::Name));
+    mComponentFactory.Register<SphereRenderComponent>(ActorComponent::GetIdFromName(SphereRenderComponent::Name));
+	mComponentFactory.Register<CubeRenderComponent>(ActorComponent::GetIdFromName(CubeRenderComponent::Name));
+    mComponentFactory.Register<GridRenderComponent>(ActorComponent::GetIdFromName(GridRenderComponent::Name));
+    mComponentFactory.Register<ParticleEffectRenderComponent>(ActorComponent::GetIdFromName(ParticleEffectRenderComponent::Name));
+    mComponentFactory.Register<LightRenderComponent>(ActorComponent::GetIdFromName(LightRenderComponent::Name));
+    mComponentFactory.Register<SkyRenderComponent>(ActorComponent::GetIdFromName(SkyRenderComponent::Name));
+    mComponentFactory.Register<AudioComponent>(ActorComponent::GetIdFromName(AudioComponent::Name));
+	mComponentFactory.Register<PhysicComponent>(ActorComponent::GetIdFromName(PhysicComponent::Name));
 }
 
 eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, tinyxml2::XMLElement *overrides,
