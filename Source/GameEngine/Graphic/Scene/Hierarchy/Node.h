@@ -40,35 +40,32 @@ enum GRAPHIC_ITEM DebugMode
 //! An enumeration for all types of built-in scene node animators
 enum GRAPHIC_ITEM NodeAnimatorType
 {
+	//! No identified
+	NAT_UNKNOWN = 0,
+
 	//! Fly circle scene node animator
-	NAT_FLY_CIRCLE = 0,
+	NAT_FLY_CIRCLE = 1,
 
 	//! Fly straight scene node animator
-	NAT_FLY_STRAIGHT,
+	NAT_FLY_STRAIGHT = 2,
 
 	//! Follow camera scene node animator
-	NAT_FOLLOW_CAMERA,
+	NAT_FOLLOW_CAMERA = 4,
 
 	//! Follow spline scene node animator
-	NAT_FOLLOW_SPLINE,
+	NAT_FOLLOW_SPLINE = 8,
 
 	//! Rotation scene node animator
-	NAT_ROTATION,
+	NAT_ROTATION = 16,
 
 	//! Texture scene node animator
-	NAT_TEXTURE,
+	NAT_TEXTURE = 32,
 
 	//! Deletion scene node animator
-	NAT_DELETION,
+	NAT_DELETION = 64,
 
-	//! Amount of built-in scene node animators
-	NAT_COUNT,
-
-	//! Unknown scene node animator
-	NAT_UNKNOWN,
-
-	//! This enum is never used, it only forces the compiler to compile this enumeration to 32 bit.
-	NAT_FORCE_32_BIT = 0x7fffffff
+	//! Show all animator types
+	NAT_FULL = 0xffffffff
 };
 
 //! An enumeration for all types of built-in scene nodes

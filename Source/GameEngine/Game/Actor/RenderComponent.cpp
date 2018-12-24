@@ -61,10 +61,14 @@ const char* ParticleEffectRenderComponent::Name = "ParticleEffectRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
 MeshRenderComponent::MeshRenderComponent(void)
 {
+	mMaterialType = 0;
+	mAnimatorType = 0;
 }
 
 bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 {
+	float temp = 0;
+
 	tinyxml2::XMLElement* pMesh = pData->FirstChildElement("Mesh");
 	if (pMesh)
 	{
@@ -81,6 +85,24 @@ bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 			meshBegin = meshEnd + 1;
 		} 
 		while (meshEnd != eastl::string::npos);
+	}
+
+	tinyxml2::XMLElement* pMaterial = pData->FirstChildElement("Material");
+	if (pMaterial)
+	{
+		unsigned int type = 0;
+		mMaterialType = pMaterial->IntAttribute("type", type);
+	}
+
+	tinyxml2::XMLElement* pAnimator = pData->FirstChildElement("Animator");
+	if (pAnimator)
+	{
+		tinyxml2::XMLElement* pAnimation = pAnimator->FirstChildElement("Animation");
+		if (pAnimation)
+		{
+			unsigned int type = 0;
+			mAnimatorType = pAnimation->IntAttribute("type", type);
+		}
 	}
 
     return true;
@@ -111,13 +133,41 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 				
 				eastl::shared_ptr<AnimateMeshMD3> meshMD3 = 
 					eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(mesh);
+				AnimateMeshMD3* animMeshMD3 = 
+					dynamic_cast<AnimateMeshMD3*>(extra->GetMesh());
 				if (meshMD3)
 				{
-					AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(extra->GetMesh());
 					if (!animMeshMD3->GetMD3Mesh()->GetParent())
 						meshMD3->GetMD3Mesh()->AttachChild(animMeshMD3->GetMD3Mesh());
 				}
 				else mesh = eastl::shared_ptr<BaseMesh>(extra->GetMesh());
+
+				if (animMeshMD3 && mMaterialType == MaterialType::MT_TRANSPARENT)
+				{
+					eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+					animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+
+					for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+					{
+						for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
+						{
+							eastl::shared_ptr<Material> material = mesh->GetMeshBuffer(i)->GetMaterial();
+							material->mBlendTarget.enable = true;
+							material->mBlendTarget.srcColor = BlendState::BM_ONE;
+							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+							material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+							material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+							material->mDepthBuffer = true;
+							material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+							material->mFillMode = RasterizerState::FILL_SOLID;
+							material->mCullMode = RasterizerState::CULL_NONE;
+
+							material->mType = (MaterialType)mMaterialType;
+						}
+					}
+				}
 			}
 		}
 
@@ -128,6 +178,8 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 			meshNode = pScene->AddMeshNode(wbrcp, 0, mesh, mOwner->GetId());
 			if (meshNode)
 				meshNode->GetRelativeTransform() = transform;
+
+			meshNode->SetMaterialType((MaterialType)mMaterialType);
 		}
 		else
 		{
@@ -136,6 +188,24 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 				wbrcp, 0, eastl::dynamic_shared_pointer_cast<BaseAnimatedMesh>(mesh), mOwner->GetId());
 			if (meshNode)
 				meshNode->GetRelativeTransform() = transform;
+
+			if (mAnimatorType & NAT_ROTATION)
+			{
+				eastl::shared_ptr<NodeAnimator> anim = 0;
+				anim = pScene->CreateRotationAnimator(Vector4<float>::Unit(2), 1.0f);
+				meshNode->AttachAnimator(anim);
+			}
+
+			if (mAnimatorType & NAT_FLY_STRAIGHT)
+			{
+				eastl::shared_ptr<NodeAnimator> anim = 0;
+				anim = pScene->CreateFlyStraightAnimator(
+					transform.GetTranslation() + Vector3<float>::Unit(2) * 5.f,
+					transform.GetTranslation() - Vector3<float>::Unit(2) * 5.f,
+					500, true, true);
+				meshNode->AttachAnimator(anim);
+			}
+			meshNode->SetMaterialType((MaterialType)mMaterialType);
 		}
 		return meshNode;
 	}
@@ -145,13 +215,26 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 void MeshRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement)
 {
-	// shape
+	// mesh
 	tinyxml2::XMLElement* pMesh = doc.NewElement("Mesh");
 	for (eastl::string mesh : mMeshes)
 	{
 		tinyxml2::XMLText* pMeshText = doc.NewText(mesh.c_str());
 		pBaseElement->LinkEndChild(pMeshText);
 	}
+
+	tinyxml2::XMLElement* pMaterial = doc.NewElement("Material");
+	pMaterial->SetAttribute("type", eastl::to_string(mMaterialType).c_str());
+	pBaseElement->LinkEndChild(pMaterial);
+
+	tinyxml2::XMLElement* pAnimatorElement = doc.NewElement("Animator");
+
+	// animation
+	tinyxml2::XMLElement* pAnimation = doc.NewElement("Animation");
+	pAnimation->SetAttribute("type", eastl::to_string(mAnimatorType).c_str());
+	pAnimatorElement->LinkEndChild(pAnimation);
+
+	pBaseElement->LinkEndChild(pAnimatorElement);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -545,7 +628,7 @@ void GridRenderComponent::CreateInheritedXMLElements(
 //---------------------------------------------------------------------------------------------------------------------
 LightRenderComponent::LightRenderComponent(void)
 {
-	mAnimatorType = -1;
+	mAnimatorType = 0;
 	mTextureResource = "";
 
 #if defined(_OPENGL_)
@@ -724,18 +807,11 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 			{
 				lightNode->GetRelativeTransform() = transform;
 
-				switch(mAnimatorType)
+				if (mAnimatorType & NAT_FLY_CIRCLE)
 				{
-					case NAT_FLY_CIRCLE:
-					{
-						eastl::shared_ptr<NodeAnimator> anim = 0;
-						anim = pScene->CreateFlyCircleAnimator(mAnimatorCenter, mAnimatorRadius);
-						lightNode->AttachAnimator(anim);
-						break;
-					}
-
-					default:
-						break;
+					eastl::shared_ptr<NodeAnimator> anim = 0;
+					anim = pScene->CreateFlyCircleAnimator(mAnimatorCenter, mAnimatorRadius);
+					lightNode->AttachAnimator(anim);
 				}
 
 				for (unsigned int i = 0; i < lightNode->GetMaterialCount(); ++i)

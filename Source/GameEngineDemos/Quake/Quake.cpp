@@ -135,7 +135,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				eastl::shared_ptr<BaseGameView> pView = *it;
 				if (pView->GetType() == GV_HUMAN)
 				{
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\player.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\quake\\players\\player.xml", NULL);
 					if (pActor)
 					{
 						pView->OnAttach(pView->GetId(), pActor->GetId());
@@ -153,7 +153,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				{
 					eastl::shared_ptr<NetworkGameView> pNetworkGameView =
 						eastl::static_pointer_cast<NetworkGameView, BaseGameView>(pView);
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\remote_player.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\quake\\players\\remote_player.xml", NULL);
 					if (pActor)
 					{
 						pView->OnAttach(pView->GetId(), pActor->GetId());
@@ -167,7 +167,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				{
 					eastl::shared_ptr<QuakeAIPlayerView> pAiView = 
 						eastl::static_pointer_cast<QuakeAIPlayerView, BaseGameView>(pView);
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\ai_player.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\quake\\players\\ai_player.xml", NULL);
 					if (pActor)
 					{
 						pView->OnAttach(pView->GetId(), pActor->GetId());

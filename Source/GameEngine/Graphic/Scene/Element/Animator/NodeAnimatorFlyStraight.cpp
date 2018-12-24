@@ -18,7 +18,7 @@ NodeAnimatorFlyStraight::NodeAnimatorFlyStraight(const Vector3<float>& startPoin
 void NodeAnimatorFlyStraight::RecalculateIntermediateValues()
 {
 	mVector = mEnd - mStart;
-	mTimeFactor = (float)mVector.GetSize() / mTimeForWay;
+	mTimeFactor = Length(mVector) / (float)mTimeForWay;
 	Normalize(mVector);
 }
 
@@ -31,7 +31,7 @@ void NodeAnimatorFlyStraight::AnimateNode(Scene* pScene, Node* node, unsigned in
 
 	unsigned int t = (timeMs-mStartTime);
 
-	Vector3<float> pos;
+	Vector3<float> pos = Vector3<float>::Zero();
 
 	if (!mLoop && !mPingPong && t >= mTimeForWay)
 	{
