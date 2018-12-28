@@ -1138,6 +1138,9 @@
     <ClCompile Include="..\Core\3rdParty\EASTL\source\thread_support.cpp">
       <Filter>Core\3rdParty\EASTL\source</Filter>
     </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\Texture2ArrayEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -2674,6 +2677,9 @@
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\weak_ptr.h">
       <Filter>Core\3rdParty\EASTL\include\EASTL</Filter>
     </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\Texture2ArrayEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Assets\Effects\AmbientLightEffectPS.glsl">
@@ -2799,6 +2805,12 @@
     <None Include="..\..\..\Assets\Effects\SpotLightTextureEffectVS.glsl">
       <Filter>Assets\Effects</Filter>
     </None>
+    <None Include="..\..\..\Assets\Effects\Texture2ArrayEffectPS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
+    <None Include="..\..\..\Assets\Effects\Texture2ArrayEffectVS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\..\Assets\Effects\AmbientLightEffect.hlsl">
@@ -2847,6 +2859,9 @@
       <Filter>Assets\Effects</Filter>
     </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\SpotLightTextureEffect.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayEffect.hlsl">
       <Filter>Assets\Effects</Filter>
     </FxCompile>
   </ItemGroup>

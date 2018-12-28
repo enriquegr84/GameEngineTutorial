@@ -5,8 +5,8 @@
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // File Version: 3.0.1 (2016/11/13)
 
-#ifndef MULTITEXTURE2EFFECT_H
-#define MULTITEXTURE2EFFECT_H
+#ifndef TEXTURE2ARRAYEFFECT_H
+#define TEXTURE2ARRAYEFFECT_H
 
 #include "Mathematic/Algebra/Matrix4x4.h"
 
@@ -14,11 +14,11 @@
 #include "Graphic/Effect/VisualEffect.h"
 
 
-class GRAPHIC_ITEM MultiTexture2Effect : public VisualEffect
+class GRAPHIC_ITEM Texture2ArrayEffect : public VisualEffect
 {
 public:
     // Constructionn.
-	MultiTexture2Effect(
+	Texture2ArrayEffect(
 		eastl::shared_ptr<ProgramFactory> const& factory, eastl::vector<eastl::string> path, 
 		eastl::vector<eastl::shared_ptr<Texture2>> const& texture,
 		SamplerState::Filter filter, SamplerState::Mode mode0, SamplerState::Mode mode1);
@@ -48,22 +48,22 @@ private:
 };
 
 
-inline void MultiTexture2Effect::SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
+inline void Texture2ArrayEffect::SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
 {
     *mPVWMatrix = pvwMatrix;
 }
 
-inline Matrix4x4<float> const& MultiTexture2Effect::GetPVWMatrix() const
+inline Matrix4x4<float> const& Texture2ArrayEffect::GetPVWMatrix() const
 {
     return *mPVWMatrix;
 }
 
-inline eastl::shared_ptr<ConstantBuffer> const& MultiTexture2Effect::GetPVWMatrixConstant() const
+inline eastl::shared_ptr<ConstantBuffer> const& Texture2ArrayEffect::GetPVWMatrixConstant() const
 {
     return mPVWMatrixConstant;
 }
 
-inline eastl::shared_ptr<Texture2> const& MultiTexture2Effect::GetTexture(unsigned int i) const
+inline eastl::shared_ptr<Texture2> const& Texture2ArrayEffect::GetTexture(unsigned int i) const
 {
 	if (i >= mTextures.size())
 		return nullptr;
@@ -71,7 +71,7 @@ inline eastl::shared_ptr<Texture2> const& MultiTexture2Effect::GetTexture(unsign
     return mTextures[i];
 }
 
-inline eastl::shared_ptr<SamplerState> const& MultiTexture2Effect::GetSampler() const
+inline eastl::shared_ptr<SamplerState> const& Texture2ArrayEffect::GetSampler() const
 {
     return mSampler;
 }
