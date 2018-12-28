@@ -39,6 +39,7 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 	mMesh = mesh;
 
 	mVisuals.clear();
+	eastl::map<eastl::string, int> textures;
 	for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 	{
 		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
@@ -50,6 +51,13 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 			eastl::shared_ptr<Texture2> textureDiffuse = meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
 			if (textureDiffuse)
 			{
+				eastl::string tex = 
+					eastl::to_string(textureDiffuse->GetWidth()) + " " + 
+					eastl::to_string(textureDiffuse->GetHeight());
+				if (textures.find(tex) == textures.end())
+					textures[tex] = 0;
+				textures[tex]++;
+
 				eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
 				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));

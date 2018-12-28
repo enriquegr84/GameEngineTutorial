@@ -12,6 +12,7 @@
 #include <EASTL/internal/move_help.h>
 #include <EASTL/type_traits.h>
 #include <EASTL/internal/functional_base.h>
+#include <EASTL/internal/mem_fn.h>
 
 
 #if defined(EA_PRAGMA_ONCE_SUPPORTED)
@@ -556,7 +557,7 @@ namespace eastl
 	/// work in many cases where the system requires a function object.
 	///
 	/// Example usage:
-	///     ptrdiff_t Rand(ptrdiff_t n) { return Rand() % n; } // Note: The C Rand function is poor and slow.
+	///     ptrdiff_t Rand(ptrdiff_t n) { return rand() % n; } // Note: The C rand function is poor and slow.
 	///     pointer_to_unary_function<ptrdiff_t, ptrdiff_t> randInstance(Rand);
 	///     random_shuffle(pArrayBegin, pArrayEnd, randInstance);
 	///
@@ -945,13 +946,90 @@ namespace eastl
 	}
 
 
+	// not_fn_ret
+	// not_fn_ret is a implementation specified return type of eastl::not_fn.
+	// The type name is not specified but it does have mandated functions that conforming implementations must support.
+	//
+	// http://en.cppreference.com/w/cpp/utility/functional/not_fn
+	//
+	template <typename F>
+	struct not_fn_ret
+	{
+		explicit not_fn_ret(F&& f) : mDecayF(eastl::forward<F>(f)) {}
+		not_fn_ret(not_fn_ret&& f) = default;
+		not_fn_ret(const not_fn_ret& f) = default;
+
+		// overloads for lvalues
+		template <class... Args>
+		auto operator()(Args&&... args) &
+		    -> decltype(!eastl::declval<eastl::invoke_result_t<eastl::decay_t<F>&, Args...>>())
+		{ return !eastl::invoke(mDecayF, eastl::forward<Args>(args)...); }
+
+		template <class... Args>
+		auto operator()(Args&&... args) const &
+		    -> decltype(!eastl::declval<eastl::invoke_result_t<eastl::decay_t<F> const&, Args...>>())
+		{ return !eastl::invoke(mDecayF, eastl::forward<Args>(args)...); }
+
+		// overloads for rvalues
+		template <class... Args>
+		auto operator()(Args&&... args) &&
+		    -> decltype(!eastl::declval<eastl::invoke_result_t<eastl::decay_t<F>, Args...>>())
+		{ return !eastl::invoke(eastl::move(mDecayF), eastl::forward<Args>(args)...); }
+
+		template <class... Args>
+		auto operator()(Args&&... args) const &&
+		    -> decltype(!eastl::declval<eastl::invoke_result_t<eastl::decay_t<F> const, Args...>>())
+		{ return !eastl::invoke(eastl::move(mDecayF), eastl::forward<Args>(args)...); }
+
+		eastl::decay_t<F> mDecayF;
+	};
+
+	/// not_fn
+	///
+	/// Creates an implementation specified functor that returns the complement of the callable object it was passed.
+	/// not_fn is intended to replace the C++03-era negators eastl::not1 and eastl::not2.
+	///
+	/// http://en.cppreference.com/w/cpp/utility/functional/not_fn
+	///
+	/// Example usage:
+	///
+	///		auto nf = eastl::not_fn([]{ return false; });
+	///     assert(nf());  // return true
+	///
+	template <class F>
+	inline not_fn_ret<F> not_fn(F&& f)
+	{
+		return not_fn_ret<F>(eastl::forward<F>(f));
+	}
 
 
 	///////////////////////////////////////////////////////////////////////
 	// hash
 	///////////////////////////////////////////////////////////////////////
+	namespace Internal
+	{
+		// utility to disable the generic template specialization that is
+		// used for enum types only.
+		template <typename T, bool Enabled>
+		struct EnableHashIf
+		{
+		};
+
+		template <typename T>
+		struct EnableHashIf<T, true>
+		{
+			size_t operator()(const T& p) const { return size_t(p); }
+		};
+	} // namespace Internal
+
 
 	template <typename T> struct hash;
+
+	template <typename T>
+	struct hash : Internal::EnableHashIf<T, is_enum_v<T>>
+	{
+		size_t operator()(T p) const { return size_t(p); }
+	};
 
 	template <typename T> struct hash<T*> // Note that we use the pointer as-is and don't divide by sizeof(T*). This is because the table is of a prime size and this division doesn't benefit distribution.
 		{ size_t operator()(T* p) const { return size_t(uintptr_t(p)); } };
@@ -1096,6 +1174,30 @@ namespace eastl
 		}
 	};
 
+#if defined(EA_WCHAR_UNIQUE) && EA_WCHAR_UNIQUE
+	template<> struct hash<wchar_t*>
+	{
+		size_t operator()(const wchar_t* p) const
+		{
+			uint32_t c, result = 2166136261U;    // Intentionally uint32_t instead of size_t, so the behavior is the same regardless of size.
+			while ((c = (uint32_t)*p++) != 0)    // cast to unsigned 32 bit.
+				result = (result * 16777619) ^ c;
+			return (size_t)result;
+		}
+	};
+
+	template<> struct hash<const wchar_t*>
+	{
+		size_t operator()(const wchar_t* p) const
+		{
+			uint32_t c, result = 2166136261U;    // Intentionally uint32_t instead of size_t, so the behavior is the same regardless of size.
+			while ((c = (uint32_t)*p++) != 0)    // cast to unsigned 32 bit.
+				result = (result * 16777619) ^ c;
+			return (size_t)result;
+		}
+	};
+#endif
+
 	/// string_hash
 	///
 	/// Defines a generic string hash for an arbitrary EASTL basic_string container.
@@ -1123,12 +1225,7 @@ namespace eastl
 
 } // namespace eastl
 
-#if EASTL_FUNCTION_ENABLED
-	EA_DISABLE_VC_WARNING(4510 4512 4610)  // disable warning: function_manager not generating default constructor and default assignment operators.
-	#include <EASTL/internal/function.h>
-	EA_RESTORE_VC_WARNING()
-#endif
-
+#include <EASTL/internal/function.h>
 
 #endif // Header include guard
 

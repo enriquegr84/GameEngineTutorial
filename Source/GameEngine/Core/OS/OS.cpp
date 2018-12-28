@@ -5,7 +5,7 @@
 	#define bswap_16(X) _byteswap_ushort(X)
 	#define bswap_32(X) _byteswap_ulong(X)
 #if (_MSC_VER >= 1400)
-	#define localtime _localtime_s
+	#define localtime _localtime64_s
 #endif
 #endif
 
@@ -75,8 +75,8 @@ Timer::RealTimeDate Timer::GetRealTimeAndDate()
 	time_t rawtime;
 	time(&rawtime);
 
-	struct tm * timeinfo;
-	timeinfo = localtime(&rawtime);
+	struct tm * timeinfo = NULL;
+	localtime(timeinfo, &rawtime);
 
 	// init with all 0 to indicate error
 	Timer::RealTimeDate date={0};

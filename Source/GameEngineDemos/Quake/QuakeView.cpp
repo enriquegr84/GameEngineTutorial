@@ -751,6 +751,8 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 					{
 						QuakeLogic* twg = static_cast<QuakeLogic *>(GameLogic::Get());
 						twg->ToggleRenderDiagnostics();
+						for (auto child : mScene->GetRootNode()->GetChildren())
+							child->SetVisible(!child->IsVisible());
 						return true;
 					}	
 

@@ -24,7 +24,9 @@
 #ifndef EASTL_ANY_H
 #define EASTL_ANY_H
 
-EA_ONCE()
+#if defined(EA_PRAGMA_ONCE_SUPPORTED)
+	#pragma once // Some compilers (e.g. VC++) benefit significantly from using this. We've measured 3-4% build speed improvements in apps as a result.
+#endif
 
 #include <EASTL/internal/config.h>
 #include <EASTL/internal/in_place_t.h>
@@ -137,6 +139,10 @@ namespace eastl
 		template <class ValueType> friend ValueType any_cast(any& operand);
 		template <class ValueType> friend ValueType any_cast(any&& operand);
 
+		//Adding Unsafe any cast operations
+		template <class ValueType> friend const ValueType* unsafe_any_cast(const any* pAny) EA_NOEXCEPT;
+		template <class ValueType> friend ValueType* unsafe_any_cast(any* pAny) EA_NOEXCEPT;
+
 
 		//////////////////////////////////////////////////////////////////////////////////////////
 		// internal storage handler
@@ -184,19 +190,25 @@ namespace eastl
 
 					case storage_operation::DESTROY:
 					{
+						EASTL_ASSERT(pThis);
 						destroy(const_cast<any&>(*pThis));
 					}
 					break;
 
 					case storage_operation::COPY:
 					{
+						EASTL_ASSERT(pThis);
+						EASTL_ASSERT(pOther);
 						construct(pOther->m_storage, *(T*)(&pThis->m_storage.internal_storage));
 					}
 					break;
 
 					case storage_operation::MOVE:
 					{
+						EASTL_ASSERT(pThis);
+						EASTL_ASSERT(pOther);
 						construct(pOther->m_storage, eastl::move(*(T*)(&pThis->m_storage.internal_storage)));
+						destroy(const_cast<any&>(*pThis));
 					}
 					break;
 
@@ -271,13 +283,18 @@ namespace eastl
 
 					case storage_operation::COPY:
 					{
+						EASTL_ASSERT(pThis);
+						EASTL_ASSERT(pOther);
 						construct(pOther->m_storage, *static_cast<T*>(pThis->m_storage.external_storage));
 					}
 					break;
 
 					case storage_operation::MOVE:
 					{
+						EASTL_ASSERT(pThis);
+						EASTL_ASSERT(pOther);
 						construct(pOther->m_storage, eastl::move(*(T*)(pThis->m_storage.external_storage)));
+						destroy(const_cast<any&>(*pThis));
 					}
 					break;
 
@@ -357,8 +374,8 @@ namespace eastl
 				// storage because because the storage class has effectively
 				// type erased user type so we have to defer to the handler
 				// function to get the type back and pass on the move request.
-				other.m_handler(storage_operation::MOVE, &other, this);
 				m_handler = eastl::move(other.m_handler);
+				other.m_handler(storage_operation::MOVE, &other, this);
 			}
 		}
 
@@ -368,9 +385,10 @@ namespace eastl
 		any(ValueType&& value,
 		    typename eastl::enable_if<!eastl::is_same<typename eastl::decay<ValueType>::type, any>::value>::type* = 0)
 		{
-			static_assert(is_copy_constructible<decay_t<ValueType>>::value, "ValueType must be copy-constructible");
-			storage_handler<decay_t<ValueType>>::construct(m_storage, eastl::forward<ValueType>(value));
-			m_handler = &storage_handler<ValueType>::handler_func;
+			typedef decay_t<ValueType> DecayedValueType;
+			static_assert(is_copy_constructible<DecayedValueType>::value, "ValueType must be copy-constructible");
+			storage_handler<DecayedValueType>::construct(m_storage, eastl::forward<ValueType>(value));
+			m_handler = &storage_handler<DecayedValueType>::handler_func;
 		}
 
 		template <class T, class... Args>
@@ -450,8 +468,31 @@ namespace eastl
 
 		void swap(any& other) EA_NOEXCEPT 
 		{
-			eastl::swap(m_storage, other.m_storage);
-			eastl::swap(m_handler, other.m_handler);
+			if(this == &other)
+				return;
+
+			if(m_handler && other.m_handler)
+			{
+				any tmp;
+				tmp.m_handler = other.m_handler;
+				other.m_handler(storage_operation::MOVE, &other, &tmp);
+
+				other.m_handler = m_handler;
+				m_handler(storage_operation::MOVE, this, &other);
+
+				m_handler = tmp.m_handler;
+				tmp.m_handler(storage_operation::MOVE, &tmp, this);
+			}
+			else if (m_handler == nullptr)
+			{
+				eastl::swap(m_handler, other.m_handler);
+				m_handler(storage_operation::MOVE, &other, this);
+			}
+			else if(other.m_handler == nullptr)
+			{
+				eastl::swap(m_handler, other.m_handler);
+				other.m_handler(storage_operation::MOVE, this, &other);
+			}
 		}
 
 	    // 20.7.3.4, observers
@@ -526,10 +567,14 @@ namespace eastl
 		return *p;
 	}
 
+	// NOTE(rparolin): The runtime type check was commented out because in DLL builds the templated function pointer
+	// value will be different -- completely breaking the validation mechanism.  Due to the fact that eastl::any uses
+	// type erasure we can't refesh (on copy/move) the cached function pointer to the internal handler function because
+	// we don't statically know the type.
 	template <class ValueType>
 	inline const ValueType* any_cast(const any* pAny) EA_NOEXCEPT
 	{
-		return (pAny && pAny->m_handler == &any::storage_handler<decay_t<ValueType>>::handler_func
+		return (pAny && pAny->m_handler //== &any::storage_handler<decay_t<ValueType>>::handler_func
 				#if EASTL_RTTI_ENABLED
 					&& pAny->type() == typeid(typename remove_reference<ValueType>::type)
 				#endif
@@ -541,7 +586,7 @@ namespace eastl
 	template <class ValueType>
 	inline ValueType* any_cast(any* pAny) EA_NOEXCEPT
 	{
-		return (pAny && pAny->m_handler == &any::storage_handler<decay_t<ValueType>>::handler_func
+		return (pAny && pAny->m_handler //== &any::storage_handler<decay_t<ValueType>>::handler_func
 				#if EASTL_RTTI_ENABLED
 					&& pAny->type() == typeid(typename remove_reference<ValueType>::type)
 				#endif
@@ -550,7 +595,20 @@ namespace eastl
 		           nullptr;
 	}
 
-    //////////////////////////////////////////////////////////////////////////////////////////
+	//Unsafe operations - use with caution
+	template <class ValueType>
+	inline const ValueType* unsafe_any_cast(const any* pAny) EA_NOEXCEPT
+	{
+		return unsafe_any_cast<ValueType>(const_cast<any*>(pAny));
+	}
+
+	template <class ValueType>
+	inline ValueType* unsafe_any_cast(any* pAny) EA_NOEXCEPT
+	{
+		return static_cast<ValueType*>(pAny->m_handler(any::storage_operation::GET, pAny, nullptr));
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////
 	// make_any
 	//
 	#if EASTL_VARIADIC_TEMPLATES_ENABLED

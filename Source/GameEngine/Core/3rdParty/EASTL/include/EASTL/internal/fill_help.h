@@ -13,6 +13,10 @@
 
 #include <EASTL/internal/config.h>
 
+#if defined(EA_COMPILER_MICROSOFT) && (defined(EA_PROCESSOR_X86) || defined(EA_PROCESSOR_X86_64))
+#include <intrin.h>
+#endif
+
 namespace eastl
 {
 	// fill
@@ -294,11 +298,7 @@ namespace eastl
 	template <typename OutputIterator, typename Size, typename T>
 	OutputIterator fill_n(OutputIterator first, Size n, const T& value)
 	{
-		#ifdef _MSC_VER // VC++ up to and including VC8 blow up when you pass a 64 bit scalar to the do_fill function.
-			return eastl::fill_n_imp< is_scalar<T>::value && (sizeof(T) <= sizeof(uint32_t)) >::do_fill(first, n, value);
-		#else
-			return eastl::fill_n_imp< is_scalar<T>::value >::do_fill(first, n, value);
-		#endif
+		return eastl::fill_n_imp<is_scalar<T>::value>::do_fill(first, n, value);
 	}
 
 	template <typename Size>

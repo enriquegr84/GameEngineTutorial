@@ -38,7 +38,7 @@ namespace eastl
 	/// More specifically, the scoped_ptr class template stores a pointer to a 
 	/// dynamically allocated object.  The object pointed to is automatically 
 	/// deleted on destructor of scoped_ptr or can be manually deleted via the 
-	/// scopted_ptr::Reset function. 
+	/// scopted_ptr::reset function. 
 	///
 	/// scoped_ptr cannot be used in C++ Standard Library containers; you'll need 
 	/// to use the shared_ptr template if you want to do this. The reason you can't
@@ -98,14 +98,14 @@ namespace eastl
 			del(mpValue);
 		}
 
-		/// Reset
+		/// reset
 		/// Deletes the owned pointer and takes ownership of the 
 		/// passed in pointer. If the passed in pointer is the same
 		/// as the owned pointer, nothing is done.
 		/// Example usage:
 		///    scoped_ptr<int> ptr(new int(3));
-		///    ptr.Reset(new int(4));  // deletes int(3)
-		///    ptr.Reset(NULL);        // deletes int(4)
+		///    ptr.reset(new int(4));  // deletes int(3)
+		///    ptr.reset(NULL);        // deletes int(4)
 		void reset(T* pValue = NULL)
 		{
 			if(pValue != mpValue)

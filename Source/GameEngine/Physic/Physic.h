@@ -41,6 +41,8 @@
 
 #include "GameEngineStd.h"
 
+#include "Importer/Bsp/BspLoader.h"
+
 #include "Graphic/Scene/Hierarchy/PVWUpdater.h"
 
 #include "Mathematic/Algebra/AxisAngle.h"
@@ -62,6 +64,9 @@ public:
 	virtual void OnUpdate(float deltaSeconds) = 0;
 
 	// Initialization of Physics Objects
+	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
+		/*const Matrix4x4<float>& initialTransform, */
+		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
 	virtual void AddSphere(float radius, eastl::weak_ptr<Actor> actor, 
 		/*const Matrix4x4<float>& initialTransform, */
 		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;

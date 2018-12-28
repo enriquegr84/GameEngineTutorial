@@ -6,7 +6,6 @@
 #include "Graphic/3rdParty/stb/stb_image.h"
 
 #include <malloc.h>
-#include <EAStdC/EASprintf.h>
 #include <EASTL/internal/config.h>
 
 #if defined(_M_IX86)
@@ -37,35 +36,30 @@
 #pragma comment(lib, "libvorbis_static.lib")
 #pragma comment(lib, "libvorbisfile_static.lib")
 
-///////////////////////////////////////////////////////////////////////////////
-// Required by EASTL.
-//
 #if !EASTL_EASTDC_VSNPRINTF
-int Vsnprintf8(char8_t* pDestination, size_t n, const char8_t*  pFormat, va_list arguments)
-{
-	return EA::StdC::Vsnprintf(pDestination, n, pFormat, arguments);
-}
+	// User-provided functions.
+	int Vsnprintf8(char8_t* pDestination, size_t n, const char8_t* pFormat, va_list arguments)
+	{
+		return vsnprintf(pDestination, n, pFormat, arguments);
+	}
 
-int Vsnprintf16(char16_t* pDestination, size_t n, const char16_t* pFormat, va_list arguments)
-{
-	return EA::StdC::Vsnprintf(pDestination, n, pFormat, arguments);
-}
+	int Vsnprintf16(char16_t* pDestination, size_t n, const char16_t* pFormat, va_list arguments)
+	{
+		return vswprintf((wchar_t*)pDestination, n, (wchar_t*)pFormat, arguments);
+	}
 
-#if (EASTDC_VERSION_N >= 10600)
-int Vsnprintf32(char32_t* pDestination, size_t n, const char32_t* pFormat, va_list arguments)
-{
-	return EA::StdC::Vsnprintf(pDestination, n, pFormat, arguments);
-}
-#endif
+	int Vsnprintf32(char32_t* pDestination, size_t n, const char32_t* pFormat, va_list arguments)
+	{
+		return vswprintf((wchar_t*)pDestination, n, (wchar_t*)pFormat, arguments);
+	}
 
 #if defined(EA_WCHAR_UNIQUE) && EA_WCHAR_UNIQUE
-int VsnprintfW(wchar_t* pDestination, size_t n, const wchar_t* pFormat, va_list arguments)
-{
-	return EA::StdC::Vsnprintf(pDestination, n, pFormat, arguments);
-}
+	int VsnprintfW(wchar_t* pDestination, size_t n, const wchar_t* pFormat, va_list arguments)
+	{
+		return vswprintf(pDestination, n, pFormat, arguments);
+	}
 #endif
 #endif
-
 
 ///////////////////////////////////////////////////////////////////////////////
 

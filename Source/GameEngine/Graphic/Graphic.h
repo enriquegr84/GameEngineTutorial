@@ -33,7 +33,6 @@
 #include "Effect/SpotLightEffect.h"
 #include "Effect/SpotLightTextureEffect.h"
 #include "Effect/Texture2ColorEffect.h"
-#include "Effect/MultiTexture2Effect.h"
 #include "Effect/Texture2Effect.h"
 #include "Effect/TextEffect.h"
 #include "Effect/ColorEffect.h"

@@ -706,10 +706,10 @@ namespace eastl
 		}
 
 
-		/// Reset
+		/// reset
 		///
 		/// This function unilaterally resets the fixed pool back to a newly initialized
-		/// state. This is useful for using in tandem with container Reset functionality.
+		/// state. This is useful for using in tandem with container reset functionality.
 		///
 		void reset(void* pNodeBuffer)
 		{
@@ -1357,7 +1357,7 @@ namespace eastl
 		//    mOverflowAllocator.set_name(pName);
 		//}
 
-		fixed_vector_allocator(void* pNodeBuffer)
+		fixed_vector_allocator(void* pNodeBuffer = nullptr)
 			: mpPoolBegin(pNodeBuffer)
 		{
 		}
@@ -1457,6 +1457,10 @@ namespace eastl
 		//fixed_vector_allocator(const char* = NULL) // This char* parameter is present so that this class can be like the other version.
 		//{
 		//}
+
+		fixed_vector_allocator()
+		{
+		}
 
 		fixed_vector_allocator(void* /*pNodeBuffer*/)
 		{
@@ -1586,9 +1590,9 @@ namespace eastl
 	public:
 		static void swap(Container& a, Container& b)
 		{
-			const Container temp(a); // Can't use global swap because that could
-			a = b;                   // itself call this swap function in return.
-			b = temp;
+			Container temp(EASTL_MOVE(a)); // Can't use global swap because that could
+			a = EASTL_MOVE(b);             // itself call this swap function in return.
+			b = EASTL_MOVE(temp);
 		}
 	};
 
@@ -1604,9 +1608,9 @@ namespace eastl
 
 			if(pMemory)
 			{
-				Container* const pTemp = ::new(pMemory) Container(a);
-				a = b;
-				b = *pTemp;
+				Container* pTemp = ::new(pMemory) Container(EASTL_MOVE(a));
+				a = EASTL_MOVE(b);
+				b = EASTL_MOVE(*pTemp);
 
 				pTemp->~Container();
 				allocator.deallocate(pMemory, sizeof(a));

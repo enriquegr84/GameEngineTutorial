@@ -483,7 +483,7 @@ void GameLogic::RenderDiagnostics()
 
 ActorFactory* GameLogic::CreateActorFactory(void)
 {
-    return new ActorFactory;
+    return new ActorFactory();
 }
 
 

@@ -49,7 +49,7 @@ namespace eastl
 		mutable const this_type* mpNext;
 
 		void link(const linked_array& linkedArray)
-		{   // This code can only be called when we are in a Reset state.
+		{   // This code can only be called when we are in a reset state.
 			// assert(!mpArray && (mpNext == mpPrev));
 			mpNext             = linkedArray.mpNext;
 			mpNext->mpPrev     = this;
@@ -125,7 +125,7 @@ namespace eastl
 		}
 
 
-		/// Reset
+		/// reset
 		/// Releases the owned pointer and takes ownership of the 
 		/// passed in pointer. If the passed in pointer is the same
 		/// as the owned pointer, nothing is done. The passed in pointer
@@ -165,8 +165,8 @@ namespace eastl
 		//    if(linkedArray.mpArray != mpArray)
 		//    {   // This is only safe if both linked_arrays are unique().
 		//        linkedArray::element_type* const pArrayTemp = linkedArray.mpArray;
-		//        linkedArray.Reset(mpArray);
-		//        Reset(pArrayTemp);
+		//        linkedArray.reset(mpArray);
+		//        reset(pArrayTemp);
 		//    }
 		//}
 

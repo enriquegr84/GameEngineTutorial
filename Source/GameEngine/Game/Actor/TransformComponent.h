@@ -64,6 +64,8 @@ public:
     void SetTransform(const Transform& newTransform) { mTransform = newTransform; }
     Vector3<float> GetPosition(void) const { return mTransform.GetTranslation(); }
     void SetPosition(const Vector3<float>& pos) { mTransform.SetTranslation(pos); }
+	Matrix4x4<float> GetRotation(void) const { return mTransform.GetRotation(); }
+	void SetRotation(const Matrix4x4<float>& rot) { mTransform.SetRotation(rot); }
 	AxisAngle<4, float> GetLookAt(void) const
 	{ 
 		AxisAngle<4, float> axisAngles;

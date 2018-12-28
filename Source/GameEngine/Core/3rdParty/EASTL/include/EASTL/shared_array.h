@@ -212,7 +212,7 @@ namespace eastl
 		}
 
 
-		/// Reset
+		/// reset
 		/// Releases the owned pointer and takes ownership of the 
 		/// passed in pointer. If the passed in pointer is the same
 		/// as the owned pointer, nothing is done. The passed in pointer

@@ -182,6 +182,7 @@
 #include "EASTL/vector.h"
 #include "EASTL/allocator.h"
 #include "EASTL/queue.h"
+#include "EASTL/hash_map.h"
 #include "EASTL/map.h"
 #include "EASTL/set.h"
 #include "EASTL/sort.h"

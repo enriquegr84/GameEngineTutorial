@@ -57,6 +57,9 @@ public:
 	static const char *Name;
 	virtual const char *GetName() const { return Name; }
 
+	void ClearAudios() { mAudios.clear(); }
+	void AddAudio(eastl::string& audio) { mAudios.push_back(audio); }
+
     AudioComponent(void);
 
     virtual tinyxml2::XMLElement* GenerateXml(void);

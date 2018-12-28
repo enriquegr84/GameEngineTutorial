@@ -117,7 +117,7 @@ bool GL4Renderer::Initialize(int requiredMajor, int requiredMinor)
     {
         eastl::string message = "OpenGL " + eastl::to_string(requiredMajor) + "."
             + eastl::to_string(requiredMinor) + " is required.";
-        std::cout << message << std::endl;
+        LogWarning(message9;
     }
 #endif
     return mMeetsRequirements;
