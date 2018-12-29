@@ -39,6 +39,8 @@
 #include "PhysicComponent.h"
 #include "TransformComponent.h"
 
+#include "Physic/Importer/PhysicResource.h"
+
 #include "Game/GameLogic.h"
 
 // all times are units-per-second
@@ -81,9 +83,7 @@ bool PhysicComponent::Init(tinyxml2::XMLElement* pData)
     // shape
 	tinyxml2::XMLElement* pShape = pData->FirstChildElement("Shape");
     if (pShape)
-    {
 		mShape = pShape->FirstChild()->Value();
-    }
 
     // density
 	tinyxml2::XMLElement* pDensity = pData->FirstChildElement("Density");
@@ -99,6 +99,11 @@ bool PhysicComponent::Init(tinyxml2::XMLElement* pData)
 	tinyxml2::XMLElement* pRigidBodyTransform = pData->FirstChildElement("RigidBodyTransform");
     if (pRigidBodyTransform)
         BuildRigidBodyTransform(pRigidBodyTransform);
+
+	// physic mesh
+	tinyxml2::XMLElement* pMesh = pData->FirstChildElement("Mesh");
+	if (pMesh)
+		mMesh = pMesh->FirstChild()->Value();
 
     return true;
 }
@@ -154,6 +159,12 @@ tinyxml2::XMLElement* PhysicComponent::GenerateXml(void)
 
     pBaseElement->LinkEndChild(pInitialTransform);
 
+	// mesh
+	tinyxml2::XMLElement* pMesh = doc.NewElement("Mesh");
+	tinyxml2::XMLText* pMeshText = doc.NewText(mMesh.c_str());
+	pMesh->LinkEndChild(pMeshText);
+	pBaseElement->LinkEndChild(pMesh);
+
     return pBaseElement;
 }
 
@@ -169,6 +180,17 @@ void PhysicComponent::PostInit(void)
 		else if (mShape == "Box")
 		{
 			gamePhysics->AddBox(mRigidBodyScale, mOwner, mDensity, mMaterial);
+		}
+		else if (mShape == "BSP")
+		{
+			eastl::shared_ptr<ResHandle>& resHandle =
+				ResCache::Get()->GetHandle(&BaseResource(ToWideString(mMesh.c_str())));
+			if (resHandle)
+			{
+				const eastl::shared_ptr<BspResourceExtraData>& extra =
+					eastl::static_pointer_cast<BspResourceExtraData>(resHandle->GetExtra());
+				gamePhysics->AddBSP(extra->GetLoader(), mOwner, mDensity, mMaterial);
+			}
 		}
 		else if (mShape == "PointCloud")
 		{

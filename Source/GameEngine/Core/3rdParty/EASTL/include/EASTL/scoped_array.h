@@ -77,14 +77,14 @@ namespace eastl
 			del(mpArray);
 		}
 
-		/// Reset
+		/// reset
 		/// Deletes the owned pointer and takes ownership of the 
 		/// passed in pointer. If the passed in pointer is the same
 		/// as the owned pointer, nothing is done.
 		/// Example usage:
 		///    scoped_array<int> ptr(new int[6]);
-		///    ptr.Reset(new int[7]);  // deletes int[6]
-		///    ptr.Reset(NULL);        // deletes int[7]
+		///    ptr.reset(new int[7]);  // deletes int[6]
+		///    ptr.reset(NULL);        // deletes int[7]
 		void reset(T* pArray = NULL)
 		{
 			if(pArray != mpArray)

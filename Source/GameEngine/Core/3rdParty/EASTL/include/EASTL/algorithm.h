@@ -34,7 +34,7 @@
 //    UnaryOperation               A function which takes one argument and returns a value (which will usually be assigned to second object).
 //    BinaryOperation              A function which takes two arguments and returns a value (which will usually be assigned to a third object).
 //    InputIterator                An input iterator (iterator you read from) which allows reading each element only once and only in a forward direction.
-//    ForwardIterator              An input iterator which is like InputIterator except it can be Reset back to the beginning.
+//    ForwardIterator              An input iterator which is like InputIterator except it can be reset back to the beginning.
 //    BidirectionalIterator        An input iterator which is like ForwardIterator except it can be read in a backward direction as well.
 //    RandomAccessIterator         An input iterator which can be addressed like an array. It is a superset of all other input iterators.
 //    OutputIterator               An output iterator (iterator you write to) which allows writing each element only once in only in a forward direction.
@@ -939,6 +939,24 @@ namespace eastl
 		return eastl::make_pair(*iteratorPair.first, *iteratorPair.second);
 	}
 
+	template <typename T>
+	inline T&& median_impl(T&& a, T&& b, T&& c)
+	{
+		if(a < b)
+		{
+			if(b < c)
+				return eastl::forward<T>(b);
+			else if(a < c)
+				return eastl::forward<T>(c);
+			else
+				return eastl::forward<T>(a);
+		}
+		else if(a < c)
+			return eastl::forward<T>(a);
+		else if(b < c)
+			return eastl::forward<T>(c);
+		return eastl::forward<T>(b);
+	}
 
 	/// median
 	///
@@ -951,20 +969,41 @@ namespace eastl
 	template <typename T>
 	inline const T& median(const T& a, const T& b, const T& c)
 	{
-		if(a < b)
+		return median_impl(a, b, c);
+	}
+
+	/// median
+	///
+	/// median finds which element of three (a, b, d) is in-between the other two.
+	/// If two or more elements are equal, the first (e.g. a before b) is chosen.
+	///
+	/// Complexity: Either two or three comparisons will be required, depending 
+	/// on the values.
+	///
+	template <typename T>
+	inline T&& median(T&& a, T&& b, T&& c)
+	{
+		return eastl::forward<T>(median_impl(eastl::forward<T>(a), eastl::forward<T>(b), eastl::forward<T>(c)));
+	}
+
+
+	template <typename T, typename Compare>
+	inline T&& median_impl(T&& a, T&& b, T&& c, Compare compare)
+	{
+		if(compare(a, b))
 		{
-			if(b < c)
-				return b;
-			else if(a < c)
-				return c;
+			if(compare(b, c))
+				return eastl::forward<T>(b);
+			else if(compare(a, c))
+				return eastl::forward<T>(c);
 			else
-				return a;
+				return eastl::forward<T>(a);
 		}
-		else if(a < c)
-			return a;
-		else if(b < c)
-			return c;
-		return b;
+		else if(compare(a, c))
+			return eastl::forward<T>(a);
+		else if(compare(b, c))
+			return eastl::forward<T>(c);
+		return eastl::forward<T>(b);
 	}
 
 
@@ -979,20 +1018,21 @@ namespace eastl
 	template <typename T, typename Compare>
 	inline const T& median(const T& a, const T& b, const T& c, Compare compare)
 	{
-		if(compare(a, b))
-		{
-			if(compare(b, c))
-				return b;
-			else if(compare(a, c))
-				return c;
-			else
-				return a;
-		}
-		else if(compare(a, c))
-			return a;
-		else if(compare(b, c))
-			return c;
-		return b;
+		return median_impl<const T&, Compare>(a, b, c, compare);
+	}
+
+	/// median
+	///
+	/// median finds which element of three (a, b, d) is in-between the other two.
+	/// If two or more elements are equal, the first (e.g. a before b) is chosen.
+	///
+	/// Complexity: Either two or three comparisons will be required, depending 
+	/// on the values.
+	///
+	template <typename T, typename Compare>
+	inline T&& median(T&& a, T&& b, T&& c, Compare compare)
+	{
+		return eastl::forward<T>(median_impl<T&&, Compare>(eastl::forward<T>(a), eastl::forward<T>(b), eastl::forward<T>(c), compare));
 	}
 
 
@@ -1114,31 +1154,29 @@ namespace eastl
 	/// Complexity: Exactly '(last - first) - 1' swaps.
 	///
 	/// Example usage:
-	///     struct Rand{ eastl_size_t operator()(eastl_size_t n) { return (eastl_size_t)(Rand() % n); } }; // Note: The C Rand function is poor and slow.
+	///     struct Rand{ eastl_size_t operator()(eastl_size_t n) { return (eastl_size_t)(rand() % n); } }; // Note: The C rand function is poor and slow.
 	///     Rand randInstance;
 	///     shuffle(pArrayBegin, pArrayEnd, randInstance);
 	///
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		// See the C++11 Standard, 26.5.1.3, Uniform random number generator requirements.
-		// Also http://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution
+	// See the C++11 Standard, 26.5.1.3, Uniform random number generator requirements.
+	// Also http://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution
 
-		template <typename RandomAccessIterator, typename UniformRandomNumberGenerator>
-		void shuffle(RandomAccessIterator first, RandomAccessIterator last, UniformRandomNumberGenerator&& urng)
+	template <typename RandomAccessIterator, typename UniformRandomNumberGenerator>
+	void shuffle(RandomAccessIterator first, RandomAccessIterator last, UniformRandomNumberGenerator&& urng)
+	{
+		if(first != last)
 		{
-			if(first != last)
-			{
-				typedef typename eastl::iterator_traits<RandomAccessIterator>::difference_type difference_type;
-				typedef typename eastl::make_unsigned<difference_type>::type                   unsigned_difference_type;
-				typedef typename eastl::uniform_int_distribution<unsigned_difference_type>     uniform_int_distribution;
-				typedef typename uniform_int_distribution::param_type                          uniform_int_distribution_param_type;
+			typedef typename eastl::iterator_traits<RandomAccessIterator>::difference_type difference_type;
+			typedef typename eastl::make_unsigned<difference_type>::type                   unsigned_difference_type;
+			typedef typename eastl::uniform_int_distribution<unsigned_difference_type>     uniform_int_distribution;
+			typedef typename uniform_int_distribution::param_type                          uniform_int_distribution_param_type;
 
-				uniform_int_distribution uid;
+			uniform_int_distribution uid;
 
-				for(RandomAccessIterator i = first + 1; i != last; ++i)
-					iter_swap(i, first + uid(urng, uniform_int_distribution_param_type(0, i - first)));
-			}
+			for(RandomAccessIterator i = first + 1; i != last; ++i)
+				iter_swap(i, first + uid(urng, uniform_int_distribution_param_type(0, i - first)));
 		}
-	#endif
+	}
 
 
 	/// random_shuffle
@@ -1150,32 +1188,27 @@ namespace eastl
 	/// Complexity: Exactly '(last - first) - 1' swaps.
 	///
 	/// Example usage:
-	///     eastl_size_t Rand(eastl_size_t n) { return (eastl_size_t)(Rand() % n); } // Note: The C Rand function is poor and slow.
+	///     eastl_size_t Rand(eastl_size_t n) { return (eastl_size_t)(rand() % n); } // Note: The C rand function is poor and slow.
 	///     pointer_to_unary_function<eastl_size_t, eastl_size_t> randInstance(Rand);
 	///     random_shuffle(pArrayBegin, pArrayEnd, randInstance);
 	///
 	/// Example usage:
-	///     struct Rand{ eastl_size_t operator()(eastl_size_t n) { return (eastl_size_t)(Rand() % n); } }; // Note: The C Rand function is poor and slow.
+	///     struct Rand{ eastl_size_t operator()(eastl_size_t n) { return (eastl_size_t)(rand() % n); } }; // Note: The C rand function is poor and slow.
 	///     Rand randInstance;
 	///     random_shuffle(pArrayBegin, pArrayEnd, randInstance);
 	///
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename RandomAccessIterator, typename RandomNumberGenerator>
-		inline void random_shuffle(RandomAccessIterator first, RandomAccessIterator last, RandomNumberGenerator&& rng)
-	#else
-		template <typename RandomAccessIterator, typename RandomNumberGenerator>
-		inline void random_shuffle(RandomAccessIterator first, RandomAccessIterator last, RandomNumberGenerator& rng)
-	#endif
-		{
-			typedef typename eastl::iterator_traits<RandomAccessIterator>::difference_type difference_type;
+	template <typename RandomAccessIterator, typename RandomNumberGenerator>
+	inline void random_shuffle(RandomAccessIterator first, RandomAccessIterator last, RandomNumberGenerator&& rng)
+	{
+		typedef typename eastl::iterator_traits<RandomAccessIterator>::difference_type difference_type;
 
-			// We must do 'Rand((i - first) + 1)' here and cannot do 'Rand(last - first)',
-			// as it turns out that the latter results in unequal distribution probabilities.
-			// http://www.cigital.com/papers/download/developer_gambling.php
+		// We must do 'rand((i - first) + 1)' here and cannot do 'rand(last - first)',
+		// as it turns out that the latter results in unequal distribution probabilities.
+		// http://www.cigital.com/papers/download/developer_gambling.php
 
-			for(RandomAccessIterator i = first + 1; i < last; ++i)               
-				iter_swap(i, first + (difference_type)rng((eastl_size_t)((i - first) + 1)));
-		}
+		for(RandomAccessIterator i = first + 1; i < last; ++i)               
+			iter_swap(i, first + (difference_type)rng((eastl_size_t)((i - first) + 1)));
+	}
 
 
 	/// random_shuffle
@@ -1831,6 +1864,31 @@ namespace eastl
 		return function;
 	}
 
+	/// for_each_n
+	///
+	/// Calls the Function function for each value in the range [first, first + n).
+	/// Function takes a single parameter: the current value.
+	/// 
+	/// Effects: Applies function to the result of dereferencing every iterator in 
+	/// the range [first, first + n), starting from first and proceeding to last 1.
+	///
+	/// Returns: first + n.
+	///
+	/// Complexity: Applies function exactly 'first + n' times.
+	///
+	/// Note: 
+	////  * If function returns a result, the result is ignored.
+	////  * If n < 0, behaviour is undefined.
+	///
+	template <typename InputIterator, typename Size, typename Function>
+	EA_CPP14_CONSTEXPR inline InputIterator 
+	for_each_n(InputIterator first, Size n, Function function)
+	{
+		for (Size i = 0; i < n; ++first, i++)
+			function(*first);
+		return first;
+	}
+
 
 	/// generate
 	///
@@ -1932,8 +1990,7 @@ namespace eastl
 	/// We should verify that such a thing results in an improvement.
 	///
 	template <typename InputIterator1, typename InputIterator2>
-	inline bool
-	equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2)
+	EA_CPP14_CONSTEXPR inline bool equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2)
 	{
 		for(; first1 != last1; ++first1, ++first2)
 		{
@@ -2606,7 +2663,7 @@ namespace eastl
 		{
 			if(!(*first == value)) // Note that we always express value comparisons in terms of < or ==.
 			{
-				*result = *first;
+				*result = move(*first);
 				++result;
 			}
 		}
@@ -2634,7 +2691,7 @@ namespace eastl
 		{
 			if(!predicate(*first))
 			{
-				*result = *first;
+				*result = eastl::move(*first);
 				++result;
 			}
 		}
@@ -3897,6 +3954,8 @@ namespace eastl
 		template<typename ForwardIterator>
 		ForwardIterator rotate_general_impl(ForwardIterator first, ForwardIterator middle, ForwardIterator last)
 		{
+			using eastl::swap;
+
 			ForwardIterator current = middle;
 
 			do {

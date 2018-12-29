@@ -5,22 +5,21 @@
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // File Version: 3.0.1 (2016/11/13)
 
-#ifndef MULTITEXTURE2EFFECT_H
-#define MULTITEXTURE2EFFECT_H
+#ifndef TEXTURE2ARRAYEFFECT_H
+#define TEXTURE2ARRAYEFFECT_H
 
 #include "Mathematic/Algebra/Matrix4x4.h"
 
-#include "Graphic/Resource/Texture/Texture2.h"
+#include "Graphic/Resource/Texture/Texture2Array.h"
 #include "Graphic/Effect/VisualEffect.h"
 
 
-class GRAPHIC_ITEM MultiTexture2Effect : public VisualEffect
+class GRAPHIC_ITEM Texture2ArrayEffect : public VisualEffect
 {
 public:
     // Constructionn.
-	MultiTexture2Effect(
-		eastl::shared_ptr<ProgramFactory> const& factory, eastl::vector<eastl::string> path, 
-		eastl::vector<eastl::shared_ptr<Texture2>> const& texture,
+	Texture2ArrayEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
+		eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2Array> const& textures,
 		SamplerState::Filter filter, SamplerState::Mode mode0, SamplerState::Mode mode1);
 
     // Member access.
@@ -29,18 +28,18 @@ public:
 
     // Required to bind and update resources.
     inline eastl::shared_ptr<ConstantBuffer> const& GetPVWMatrixConstant() const;
-    inline eastl::shared_ptr<Texture2> const& GetTexture(unsigned int i) const;
+    inline eastl::shared_ptr<Texture2Array> const& GetTextures() const;
     inline eastl::shared_ptr<SamplerState> const& GetSampler() const;
 
     void SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix);
-	void SetTextures(eastl::vector<eastl::shared_ptr<Texture2>> const& textures);
+	void SetTextures(eastl::shared_ptr<Texture2Array> const& textures);
 
 private:
     // Vertex shader parameters.
 	eastl::shared_ptr<ConstantBuffer> mPVWMatrixConstant;
 
     // Pixel shader parameters.
-	eastl::vector<eastl::shared_ptr<Texture2>> mTextures;
+	eastl::shared_ptr<Texture2Array> mTextures;
 	eastl::shared_ptr<SamplerState> mSampler;
 
     // Convenience pointer.
@@ -48,30 +47,27 @@ private:
 };
 
 
-inline void MultiTexture2Effect::SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
+inline void Texture2ArrayEffect::SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
 {
     *mPVWMatrix = pvwMatrix;
 }
 
-inline Matrix4x4<float> const& MultiTexture2Effect::GetPVWMatrix() const
+inline Matrix4x4<float> const& Texture2ArrayEffect::GetPVWMatrix() const
 {
     return *mPVWMatrix;
 }
 
-inline eastl::shared_ptr<ConstantBuffer> const& MultiTexture2Effect::GetPVWMatrixConstant() const
+inline eastl::shared_ptr<ConstantBuffer> const& Texture2ArrayEffect::GetPVWMatrixConstant() const
 {
     return mPVWMatrixConstant;
 }
 
-inline eastl::shared_ptr<Texture2> const& MultiTexture2Effect::GetTexture(unsigned int i) const
+inline eastl::shared_ptr<Texture2Array> const& Texture2ArrayEffect::GetTextures() const
 {
-	if (i >= mTextures.size())
-		return nullptr;
-
-    return mTextures[i];
+    return mTextures;
 }
 
-inline eastl::shared_ptr<SamplerState> const& MultiTexture2Effect::GetSampler() const
+inline eastl::shared_ptr<SamplerState> const& Texture2ArrayEffect::GetSampler() const
 {
     return mSampler;
 }

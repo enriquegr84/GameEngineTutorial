@@ -13,7 +13,7 @@ class NodeAnimatorRotation : public NodeAnimator
 public:
 
 	//! constructor
-	NodeAnimatorRotation(unsigned int time, const Vector3<float>& rotation);
+	NodeAnimatorRotation(unsigned int time, const Vector4<float>& rotation, float rotationSpeed);
 
 	//! animates a scene node
 	virtual void AnimateNode(Scene* pScene, Node* node, unsigned int timeMs);
@@ -26,8 +26,9 @@ public:
 
 protected:
 
-	Vector3<float>	mRotation;
-	unsigned int	mStartTime;
+	float				mRotationSpeed;
+	AxisAngle<4, float>	mRotation;
+	unsigned int		mStartTime;
 };
 
 #endif

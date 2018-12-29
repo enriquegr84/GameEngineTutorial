@@ -247,19 +247,18 @@ bool GameApplication::OnInitialize()
 	extern eastl::shared_ptr<BaseResourceLoader> CreateWAVResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateOGGResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateMeshResourceLoader();
-
 	extern eastl::shared_ptr<BaseResourceLoader> CreateXmlResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreateImageResourceLoader();
+	extern eastl::shared_ptr<BaseResourceLoader> CreatePhysicResourceLoader();
 
 	//	Note - register these in order from least specific to most specific! 
 	//	They get pushed onto a list.
 	mResCache->RegisterLoader(CreateWAVResourceLoader());
 	mResCache->RegisterLoader(CreateOGGResourceLoader());
 	mResCache->RegisterLoader(CreateMeshResourceLoader());
-
 	mResCache->RegisterLoader(CreateXmlResourceLoader());
 	mResCache->RegisterLoader(CreateImageResourceLoader());
-
+	mResCache->RegisterLoader(CreatePhysicResourceLoader());
 
 	mOption.Init(L"Config/PlayerOptions.xml");
 
@@ -468,7 +467,7 @@ void GameApplication::OnUpdateGame(unsigned int elapsedTime)
 // WndProc - the main message handler for the window class
 //
 // OnNcCreate - this is where you can set window data before it is created
-// OnMove - called whenever the window moves; used to update members of g_App
+// OnMove - called whenever the window moves; used to update members of App
 // OnDeviceChange - called whenever you eject the CD-ROM.
 // OnDisplayChange - called whenever the user changes the desktop settings
 // OnPowerBroadcast - called whenever a power message forces a shutdown
@@ -488,7 +487,7 @@ void GameApplication::ProcessMessage(int* hWndPtrAddress, int msg, int wParam, i
 void GameApplication::InitUserConfig()
 {
 	UserConfig* userConfig = new UserConfig();     // needs file_manager
-	const bool config_ok = user_config->LoadConfig();
+	const bool configOk = userConfig->LoadConfig();
 	if (UserConfigParams::mLanguage.ToString() != L"system")
 	{
 #ifdef WIN32
@@ -502,7 +501,6 @@ void GameApplication::InitUserConfig()
 	if (!LoadStrings("English"))
 		GE_ERROR("Failed to load strings");
 
-	//stk_config              = new STKConfig();      // in case of --stk-config
 	// command line parameters
 	user_config->PostLoadInit();
 	if (!configOk || UserConfigParams::mAllPlayers.size() == 0)

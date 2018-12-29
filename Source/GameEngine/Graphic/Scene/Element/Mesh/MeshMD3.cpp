@@ -376,6 +376,7 @@ void MD3Mesh::BuildFrameNr(bool loop, unsigned int elapsedTimeMs)
 		{
 			// play animation looped
 			mCurrentFrame += elapsedTimeMs * mAnimations[mCurrentAnimation].mFramesPerSecond * 0.001f;
+			printf("name %s, frame %f, time %u\n", mName.c_str(), mCurrentFrame, elapsedTimeMs);
 
 			// We have no interpolation between EndFrame and StartFrame,
 			// the last frame must be identical to first one with our current solution.

@@ -5,11 +5,10 @@
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // File Version: 3.0.1 (2016/11/13)
 
-#include "MultiTexture2Effect.h"
+#include "Texture2ArrayEffect.h"
 
-MultiTexture2Effect::MultiTexture2Effect(
-	eastl::shared_ptr<ProgramFactory> const& factory, eastl::vector<eastl::string> path,
-	eastl::vector<eastl::shared_ptr<Texture2>> const& texture,
+Texture2ArrayEffect::Texture2ArrayEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
+	eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2Array> const& textures,
 	SamplerState::Filter filter, SamplerState::Mode mode0, SamplerState::Mode mode1)
     :
     mPVWMatrix(nullptr)
@@ -29,17 +28,13 @@ MultiTexture2Effect::MultiTexture2Effect(
 		mSampler->mMode[0] = mode0;
 		mSampler->mMode[1] = mode1;
 
-		for (unsigned int i = 0; i < texture.size(); i++)
-		{
-			mTextures.push_back(texture[i]);
-
+		mTextures = textures;
 #if defined(_OPENGL_)
-			mProgram->GetPShader()->Set("baseSampler" + eastl::to_string(i + 1), mTextures[i]);
-			mProgram->GetPShader()->Set("baseSampler" + eastl::to_string(i + 1), mSampler);
+		mProgram->GetPShader()->Set("baseSampler", mTextures);
+		mProgram->GetPShader()->Set("baseSampler", mSampler);
 #else
-			mProgram->GetPShader()->Set("baseTexture" + eastl::to_string(i+1), mTextures[i]);
+		mProgram->GetPShader()->Set("baseTextureArray", mTextures);
 #endif
-		}
 
 #if defined(_OPENGL_)
 		mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);
@@ -50,25 +45,20 @@ MultiTexture2Effect::MultiTexture2Effect(
     }
 }
 
-void MultiTexture2Effect::SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix)
+void Texture2ArrayEffect::SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix)
 {
     mPVWMatrixConstant = pvwMatrix;
     mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);
 }
 
-void MultiTexture2Effect::SetTextures(eastl::vector<eastl::shared_ptr<Texture2>> const& textures)
+void Texture2ArrayEffect::SetTextures(eastl::shared_ptr<Texture2Array> const& textures)
 {
-	mTextures.clear();
-	for (unsigned int i = 0; i < textures.size(); i++)
-	{
-		mTextures.push_back(textures[i]);
-
+	mTextures = textures;
 #if defined(_OPENGL_)
-		mProgram->GetPShader()->Set("baseSampler" + eastl::to_string(i + 1), mTextures[i]);
-		mProgram->GetPShader()->Set("baseSampler" + eastl::to_string(i + 1), mSampler);
+	mProgram->GetPShader()->Set("baseSampler", mTextures);
+	mProgram->GetPShader()->Set("baseSampler", mSampler);
 #else
-		mProgram->GetPShader()->Set("baseTexture" + eastl::to_string(i+1), mTextures[i]);
+	mProgram->GetPShader()->Set("baseTextureArray", mTextures);
 #endif
-	}
 
 }

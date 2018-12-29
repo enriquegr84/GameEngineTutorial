@@ -56,6 +56,9 @@
 class MeshRenderComponent : public BaseRenderComponent
 {
 	eastl::vector<eastl::string> mMeshes;
+	unsigned int mMaterialType;
+
+	int mAnimatorType;
 
 public:
 	static const char *Name;

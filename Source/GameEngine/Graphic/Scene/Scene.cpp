@@ -433,10 +433,9 @@ eastl::shared_ptr<Node> Scene::AddLightNode(
 }
 
 //! creates a rotation animator, which rotates the attached scene node around itself.
-eastl::shared_ptr<NodeAnimator> Scene::CreateRotationAnimator(const Vector3<float>& rotationPerSecond)
+eastl::shared_ptr<NodeAnimator> Scene::CreateRotationAnimator(const Vector4<float>& rotation, float rotationSpeed)
 {
-	return eastl::shared_ptr<NodeAnimator>(
-		new NodeAnimatorRotation(Timer::GetTime(), rotationPerSecond));
+	return eastl::shared_ptr<NodeAnimator>(new NodeAnimatorRotation(Timer::GetTime(), rotation, rotationSpeed));
 }
 
 

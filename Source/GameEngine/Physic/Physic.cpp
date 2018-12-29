@@ -42,6 +42,9 @@
 #include "PhysicDebugDrawer.h"
 #include "PhysicEventListener.h"
 
+#include "Importer/Bsp/BspLoader.h"
+#include "Importer/Bsp/BspConverter.h"
+
 #include "Game/Actor/Actor.h"
 #include "Game/Actor/TransformComponent.h"
 
@@ -55,7 +58,7 @@
 #include "btBulletCollisionCommon.h"
 
 /////////////////////////////////////////////////////////////////////////////
-// g_Materials Description						- Chapter 17, page 579
+//   Materials Description						- Chapter 17, page 579
 //
 //   Predefines some useful physics materials. Define new ones here, and 
 //   have similar objects use it, so if you ever need to change it you'll 
@@ -96,6 +99,8 @@ public:
 	virtual void OnUpdate( float ) { }
 
 	// Initialization of Physics Objects
+	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
+		const eastl::string& densityStr, const eastl::string& physicMaterial) { }
 	virtual void AddSphere(float radius, eastl::weak_ptr<Actor> gameActor, 
 		const eastl::string& densityStr, const eastl::string& physicMaterial) { }
 	virtual void AddBox(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> gameActor,
@@ -223,6 +228,8 @@ struct ActorMotionState : public btMotionState
 	}
 };
 
+// forward declaration
+class BspToBulletConverter;
 
 /////////////////////////////////////////////////////////////////////////////
 // BaseGamePhysic								- Chapter 17, page 590
@@ -233,6 +240,8 @@ struct ActorMotionState : public btMotionState
 
 class BulletPhysics : public BaseGamePhysic
 {
+	friend class BspToBulletConverter;
+
 	// use auto pointers to automatically call delete on these objects
 	//   during ~BulletPhysics
 	
@@ -280,10 +289,10 @@ class BulletPhysics : public BaseGamePhysic
 		btRigidBody const * body0, btRigidBody const * body1 );
 	void SendCollisionPairRemoveEvent( btRigidBody const * body0, btRigidBody const * body1 );
 	
-	// common functionality used by VAddSphere, VAddBox, etc
+	// common functionality used by AddSphere, AddBox, etc
 	void AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionShape* shape, 
 		float mass, const eastl::string& physicMaterial);
-	
+
 	// helper for cleaning up objects
 	void RemoveCollisionObject( btCollisionObject * removeMe );
 
@@ -300,6 +309,8 @@ public:
 	virtual void OnUpdate( float deltaSeconds ) override; 
 
 	// Initialization of Physics Objects
+	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
+		const eastl::string& densityStr, const eastl::string& physicMaterial) override;
 	virtual void AddSphere(float radius, eastl::weak_ptr<Actor> pGameActor, 
 		const eastl::string& densityStr, const eastl::string& physicMaterial) override;
 	virtual void AddBox(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> pGameActor,
@@ -328,6 +339,70 @@ public:
 
     virtual void SetTransform(const ActorId id, const Transform& mat);
 	virtual Transform GetTransform(const ActorId id);
+};
+
+///BspToBulletConverter  extends the BspConverter to convert to Bullet datastructures
+class BspToBulletConverter : public BspConverter
+{
+public:
+
+	BspToBulletConverter(BulletPhysics*	physics, eastl::shared_ptr<Actor> pGameActor,
+		btScalar mass, const eastl::string& physicMaterial)
+		: mPhysics(physics), mGameActor(pGameActor), mMass(mass), mPhysicMaterial(physicMaterial)
+	{
+		LogAssert(mGameActor, "no actor");
+	}
+
+	virtual void AddConvexVerticesCollider(
+		btAlignedObjectArray<btVector3>& vertices, bool isEntity, const btVector3& entityTargetLocation)
+	{
+		///perhaps we can do something special with entities (isEntity)
+		///like adding a collision Triggering (as example)
+		if (vertices.size() > 0)
+		{
+			btCollisionShape* shape = new btConvexHullShape(&(vertices[0].getX()), vertices.size());
+
+			// lookup the material
+			MaterialData material(mPhysics->LookupMaterialData(mPhysicMaterial));
+
+			// localInertia defines how the object's mass is distributed
+			btVector3 localInertia(0.f, 0.f, 0.f);
+			if (mMass > 0.f)
+				shape->calculateLocalInertia(mMass, localInertia);
+
+			Transform transform;
+			eastl::shared_ptr<TransformComponent> pTransformComponent =
+				mGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+			LogAssert(pTransformComponent, "no transform");
+			if (pTransformComponent)
+			{
+				transform = pTransformComponent->GetTransform();
+			}
+			else
+			{
+				// Physics can't work on an actor that doesn't have a TransformComponent!
+				return;
+			}
+
+			// set the initial transform of the body from the actor
+			ActorMotionState * const motionState = new ActorMotionState(transform);
+
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(mMass, motionState, shape, localInertia);
+
+			// set up the materal properties
+			rbInfo.m_restitution = material.mRestitution;
+			rbInfo.m_friction = material.mFriction;
+
+			btRigidBody* const body = new btRigidBody(rbInfo);
+			mPhysics->mDynamicsWorld->addRigidBody(body);
+		}
+	}
+
+protected:
+	BulletPhysics* mPhysics;
+	eastl::shared_ptr<Actor> mGameActor;
+	eastl::string mPhysicMaterial;
+	btScalar mMass;
 };
 
 
@@ -633,6 +708,25 @@ ActorId BulletPhysics::FindActorID( btRigidBody const * const body ) const
 		return found->second;
 		
 	return ActorId();
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::AddBSP
+//
+void BulletPhysics::AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> pGameActor,
+	const eastl::string& densityStr, const eastl::string& physicMaterial)
+{
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor.lock());
+	if (!pStrongActor)
+		return;  // FUTURE WORK - Add a call to the error log here
+
+	// triggers are immoveable.  0 mass signals this to Bullet.
+	btScalar const mass = 0;
+
+	BspToBulletConverter bspToBullet(this, pStrongActor, mass, physicMaterial);
+	float bspScaling = 1.0f;
+	bspToBullet.ConvertBsp(bspLoader, bspScaling);
 }
 
 /////////////////////////////////////////////////////////////////////////////

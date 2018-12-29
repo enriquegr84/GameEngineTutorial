@@ -68,7 +68,7 @@ namespace eastl
 
 		template <typename U, typename D>
 		void link(const linked_ptr<U, D>& linkedPtr)
-		{   // This code can only be called when we are in a Reset state.
+		{   // This code can only be called when we are in a reset state.
 			// assert(!mpValue && (mpNext == mpPrev));
 			mpNext           = linkedPtr.mpNext;
 			mpNext->mpPrev   = this;
@@ -188,7 +188,7 @@ namespace eastl
 		}
 
 
-		/// Reset
+		/// reset
 		/// Releases the owned pointer and takes ownership of the 
 		/// passed in pointer. If the passed in pointer is the same
 		/// as the owned pointer, nothing is done. The passed in pointer
@@ -214,7 +214,7 @@ namespace eastl
 		}
 
 
-		/// Reset
+		/// reset
 		/// Resets the container with NULL. If the current pointer
 		/// is non-NULL, it is unlinked and possibly destroyed.
 		void reset()
@@ -239,8 +239,8 @@ namespace eastl
 		//    if(linkedPtr.mpValue != mpValue)
 		//    {   // This is only safe if both linked_ptrs are unique().
 		//        linkedPtr::element_type* const pValueTemp = linkedPtr.mpValue;
-		//        linkedPtr.Reset(mpValue);
-		//        Reset(pValueTemp);
+		//        linkedPtr.reset(mpValue);
+		//        reset(pValueTemp);
 		//    }
 		//}
 

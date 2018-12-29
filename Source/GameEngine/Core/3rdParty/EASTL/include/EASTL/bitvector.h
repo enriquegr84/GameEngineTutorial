@@ -326,17 +326,13 @@ namespace eastl
 		reverse_iterator erase(const_reverse_iterator first, const_reverse_iterator last);
 
 		void clear();
-		void reset_lose_memory(); // This is a unilateral Reset to an initially empty state. No destructors are called, no deallocation occurs.
+		void reset_lose_memory(); // This is a unilateral reset to an initially empty state. No destructors are called, no deallocation occurs.
 
 		container_type&       get_container();
 		const container_type& get_container() const;
 
 		bool validate() const;
 		int  validate_iterator(const_iterator i) const;
-
-		#if EASTL_RESET_ENABLED
-			void reset(); // This function name is deprecated; use reset_lose_memory instead.
-		#endif
 	};
 
 
@@ -1325,16 +1321,6 @@ namespace eastl
 		mContainer.swap(rhs.mContainer);
 		eastl::swap(mFreeBitCount, rhs.mFreeBitCount);
 	}
-
-
-	#if EASTL_RESET_ENABLED
-		// This function name is deprecated; use reset_lose_memory instead.
-		template <typename Allocator, typename Element, typename Container>
-		void bitvector<Allocator, Element, Container>::reset()
-		{
-			reset_lose_memory();
-		}
-	#endif
 
 
 	template <typename Allocator, typename Element, typename Container>

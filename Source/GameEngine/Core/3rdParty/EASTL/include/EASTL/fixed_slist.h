@@ -93,10 +93,8 @@ namespace eastl
 		explicit fixed_slist(size_type n);                                                  // Currently we don't support overflowAllocator specification for other constructors, for simplicity.
 		fixed_slist(size_type n, const value_type& value);
 		fixed_slist(const this_type& x);
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			fixed_slist(this_type&& x);
-			fixed_slist(this_type&&, const overflow_allocator_type&);
-		#endif
+		fixed_slist(this_type&& x);
+		fixed_slist(this_type&&, const overflow_allocator_type&);
 		fixed_slist(std::initializer_list<value_type> ilist, const overflow_allocator_type& overflowAllocator = EASTL_FIXED_SLIST_DEFAULT_ALLOCATOR);
 
 		template <typename InputIterator>
@@ -104,12 +102,10 @@ namespace eastl
 
 		this_type& operator=(const this_type& x);
 		this_type& operator=(std::initializer_list<value_type> ilist);
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			this_type& operator=(this_type&& x);
-		#endif
+		this_type& operator=(this_type&& x);
 
 		void      swap(this_type& x);
-		void      reset_lose_memory();      // This is a unilateral Reset to an initially empty state. No destructors are called, no deallocation occurs.
+		void      reset_lose_memory();      // This is a unilateral reset to an initially empty state. No destructors are called, no deallocation occurs.
 		size_type max_size() const;         // Returns the max fixed size, which is the user-supplied nodeCount parameter.
 		bool      full() const;             // Returns true if the fixed space has been fully allocated. Note that if overflow is enabled, the container size can be greater than nodeCount but full() could return true because the fixed space may have a recently freed slot. 
 		bool      has_overflowed() const;   // Returns true if the allocations spilled over into the overflow allocator. Meaningful only if overflow is enabled.
@@ -119,12 +115,6 @@ namespace eastl
 		const overflow_allocator_type& get_overflow_allocator() const EA_NOEXCEPT;
 		overflow_allocator_type&       get_overflow_allocator() EA_NOEXCEPT;
 		void                           set_overflow_allocator(const overflow_allocator_type& allocator);
-
-		// Deprecated:
-		#if EASTL_RESET_ENABLED
-			void reset(); // This function name is deprecated; use reset_lose_memory instead.
-		#endif
-
 	}; // fixed_slist
 
 
@@ -192,44 +182,41 @@ namespace eastl
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
-		inline fixed_slist<T, nodeCount, bEnableOverflow, OverflowAllocator>::fixed_slist(this_type&& x)
-			: base_type(fixed_allocator_type(mBuffer))
-		{
-			// Since we are a fixed_list, we can't normally swap pointers unless both this and 
-			// x are using using overflow and the overflow allocators are equal. To do:
-			//if(has_overflowed() && x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator()))
-			//{
-			//    We can swap contents and may need to swap the allocators as well.
-			//}
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline fixed_slist<T, nodeCount, bEnableOverflow, OverflowAllocator>::fixed_slist(this_type&& x)
+		: base_type(fixed_allocator_type(mBuffer))
+	{
+		// Since we are a fixed_list, we can't normally swap pointers unless both this and 
+		// x are using using overflow and the overflow allocators are equal. To do:
+		//if(has_overflowed() && x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator()))
+		//{
+		//    We can swap contents and may need to swap the allocators as well.
+		//}
 
-			// The following is currently identical to the fixed_vector(const this_type& x) code above. If it stays that
-			// way then we may want to make a shared implementation.
-			mAllocator.copy_overflow_allocator(x.mAllocator);
+		// The following is currently identical to the fixed_vector(const this_type& x) code above. If it stays that
+		// way then we may want to make a shared implementation.
+		mAllocator.copy_overflow_allocator(x.mAllocator);
 
-			#if EASTL_NAME_ENABLED
-				mAllocator.set_name(x.mAllocator.get_name());
-			#endif
+		#if EASTL_NAME_ENABLED
+			mAllocator.set_name(x.mAllocator.get_name());
+		#endif
 
-			assign(x.begin(), x.end());
-		}
+		assign(x.begin(), x.end());
+	}
 
-		template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
-		inline fixed_slist<T, nodeCount, bEnableOverflow, OverflowAllocator>::fixed_slist(this_type&& x, const overflow_allocator_type& overflowAllocator)
-			: base_type(fixed_allocator_type(mBuffer, overflowAllocator))
-		{
-			// See comments above.
-			mAllocator.copy_overflow_allocator(x.mAllocator);
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline fixed_slist<T, nodeCount, bEnableOverflow, OverflowAllocator>::fixed_slist(this_type&& x, const overflow_allocator_type& overflowAllocator)
+		: base_type(fixed_allocator_type(mBuffer, overflowAllocator))
+	{
+		// See comments above.
+		mAllocator.copy_overflow_allocator(x.mAllocator);
 
-			#if EASTL_NAME_ENABLED
-				mAllocator.set_name(x.mAllocator.get_name());
-			#endif
+		#if EASTL_NAME_ENABLED
+			mAllocator.set_name(x.mAllocator.get_name());
+		#endif
 
-			assign(x.begin(), x.end());
-		}
-
-	#endif
+		assign(x.begin(), x.end());
+	}
 
 
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
@@ -275,14 +262,12 @@ namespace eastl
 	}
 
 
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
-		inline typename fixed_slist<T, nodeCount, bEnableOverflow, OverflowAllocator>::this_type&
-		fixed_slist<T, nodeCount, bEnableOverflow, OverflowAllocator>::operator=(this_type&& x)
-		{
-			return operator=(x);
-		}
-	#endif
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline typename fixed_slist<T, nodeCount, bEnableOverflow, OverflowAllocator>::this_type&
+	fixed_slist<T, nodeCount, bEnableOverflow, OverflowAllocator>::operator=(this_type&& x)
+	{
+		return operator=(x);
+	}
 
 
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
@@ -301,16 +286,6 @@ namespace eastl
 		// Fixed containers use a special swap that can deal with excessively large buffers.
 		eastl::fixed_swap(*this, x);
 	}
-
-
-	#if EASTL_RESET_ENABLED
-		// This function name is deprecated; use reset_lose_memory instead.
-		template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
-		inline void fixed_slist<T, nodeCount, bEnableOverflow, OverflowAllocator>::reset()
-		{
-			reset_lose_memory();
-		}
-	#endif
 
 
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>

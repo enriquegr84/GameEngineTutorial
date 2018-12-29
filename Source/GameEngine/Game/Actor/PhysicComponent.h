@@ -76,9 +76,11 @@ public:
     void ApplyAngularAcceleration(float acceleration);
     void RemoveAngularAcceleration(void);
 
+	Transform GetTransform(void);
     Vector3<float> GetScale(void);
 	Vector3<float> GetVelocity(void);
-	Transform GetTransform(void);
+	eastl::string GetMesh(void) { return mMesh; }
+	eastl::string GetShape(void) { return mShape; }
     void SetVelocity(const Vector3<float>& velocity);
     void SetPosition(float x, float y, float z);
     void Stop(void);
@@ -90,6 +92,7 @@ protected:
     float mAcceleration, mAngularAcceleration;
     float mMaxVelocity, mMaxAngularVelocity;
 
+	eastl::string mMesh;
 	eastl::string mShape;
     eastl::string mDensity;
     eastl::string mMaterial;

@@ -46,8 +46,6 @@
     <ClCompile Include="..\Audio\DirectSoundAudio.cpp" />
     <ClCompile Include="..\Audio\SoundProcess.cpp" />
     <ClCompile Include="..\Audio\SoundResource.cpp" />
-    <ClCompile Include="..\Core\3rdParty\EASTL\include\EAStdC\source\EAMemory.cpp" />
-    <ClCompile Include="..\Core\3rdParty\EASTL\include\EAStdC\source\EASprintf.cpp" />
     <ClCompile Include="..\Core\3rdParty\EASTL\source\allocator_eastl.cpp" />
     <ClCompile Include="..\Core\3rdParty\EASTL\source\assert.cpp" />
     <ClCompile Include="..\Core\3rdParty\EASTL\source\fixed_pool.cpp" />
@@ -103,7 +101,7 @@
     <ClCompile Include="..\Graphic\Effect\Lighting.cpp" />
     <ClCompile Include="..\Graphic\Effect\LightingEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\Material.cpp" />
-    <ClCompile Include="..\Graphic\Effect\MultiTexture2Effect.cpp" />
+    <ClCompile Include="..\Graphic\Effect\Texture2ArrayEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\PointLightEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\PointLightTextureEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\SpotLightEffect.cpp" />
@@ -775,6 +773,9 @@
     <ClCompile Include="..\Mathematic\Arithmetic\IEEEBinary16.cpp" />
     <ClCompile Include="..\Mathematic\Arithmetic\UIntegerAP32.cpp" />
     <ClCompile Include="..\Network\Network.cpp" />
+    <ClCompile Include="..\Physic\Importer\Bsp\BspConverter.cpp" />
+    <ClCompile Include="..\Physic\Importer\Bsp\BspLoader.cpp" />
+    <ClCompile Include="..\Physic\Importer\PhysicResource.cpp" />
     <ClCompile Include="..\Physic\Physic.cpp" />
     <ClCompile Include="..\Physic\PhysicDebugDrawer.cpp" />
     <ClCompile Include="..\Physic\PhysicEventListener.cpp" />
@@ -793,25 +794,6 @@
     <ClInclude Include="..\Audio\DirectSoundAudio.h" />
     <ClInclude Include="..\Audio\SoundProcess.h" />
     <ClInclude Include="..\Audio\SoundResource.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAAssert\eaassert.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\config\eacompiler.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\config\eacompilertraits.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\config\eaplatform.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\eabase.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\eahave.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\earesult.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\eastdarg.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\nullptr.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EABase\version.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAMain\EAMain.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAAlignment.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EADateTime.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAMemory.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAProcess.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EASprintf.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAStopwatch.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EAString.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAStdC\EATextUtil.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\algorithm.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\allocator.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\allocator_malloc.h" />
@@ -822,19 +804,21 @@
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\adaptors.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\call_traits.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\compressed_pair.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\fixed_string_abstract.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\fixed_ring_buffer.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\fixed_tuple_vector.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\intrusive_sdlist.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\intrusive_slist.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\list_map.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\ring_buffer.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\sort_extra.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\sparse_matrix.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\string_abstract.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\bonus\tuple_vector.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\chrono.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\core_allocator.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\core_allocator_adapter.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\deque.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_allocator.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_function.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_hash_map.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_hash_set.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\fixed_list.h" />
@@ -859,14 +843,19 @@
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\fixed_pool.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\function.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\functional_base.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\function_detail.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\function_help.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\generic_iterator.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\hashtable.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\integer_sequence.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\intrusive_hashtable.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\in_place_t.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\memory_base.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\mem_fn.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\meta.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\move_help.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\pair_fwd_decls.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\piecewise_construct_t.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\red_black_tree.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\smart_ptr.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\internal\thread_support.h" />
@@ -886,6 +875,7 @@
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\list.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\map.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\memory.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\meta.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\numeric.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\numeric_limits.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\optional.h" />
@@ -902,6 +892,7 @@
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\shared_ptr.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\slist.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\sort.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\span.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\stack.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\string_hash_map.h" />
@@ -910,7 +901,10 @@
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\tuple.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\type_traits.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\unique_ptr.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\unordered_map.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\unordered_set.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\utility.h" />
+    <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\variant.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_map.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_multimap.h" />
@@ -918,9 +912,6 @@
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\vector_set.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\version.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\weak_ptr.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_atomic.h" />
-    <ClInclude Include="..\Core\3rdParty\EASTL\include\EAThread\eathread_thread.h" />
     <ClInclude Include="..\Core\3rdParty\fastdelegate\FastDelegate.h" />
     <ClInclude Include="..\Core\3rdParty\fastdelegate\FastDelegateBind.h" />
     <ClInclude Include="..\Core\3rdParty\tinyxml2\tinyxml2.h" />
@@ -1026,7 +1017,7 @@
     <ClInclude Include="..\Graphic\Effect\LightingEffect.h" />
     <ClInclude Include="..\Graphic\Effect\Material.h" />
     <ClInclude Include="..\Graphic\Effect\MaterialLayer.h" />
-    <ClInclude Include="..\Graphic\Effect\MultiTexture2Effect.h" />
+    <ClInclude Include="..\Graphic\Effect\Texture2ArrayEffect.h" />
     <ClInclude Include="..\Graphic\Effect\Particle.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightEffect.h" />
     <ClInclude Include="..\Graphic\Effect\PointLightTextureEffect.h" />
@@ -1767,6 +1758,9 @@
     <ClInclude Include="..\Mathematic\Surface\RectangleMesh.h" />
     <ClInclude Include="..\Mathematic\Surface\VertexAttribute.h" />
     <ClInclude Include="..\Network\Network.h" />
+    <ClInclude Include="..\Physic\Importer\Bsp\BspConverter.h" />
+    <ClInclude Include="..\Physic\Importer\Bsp\BspLoader.h" />
+    <ClInclude Include="..\Physic\Importer\PhysicResource.h" />
     <ClInclude Include="..\Physic\Physic.h" />
     <ClInclude Include="..\Physic\PhysicDebugDrawer.h" />
     <ClInclude Include="..\Physic\PhysicEventListener.h" />
@@ -1891,26 +1885,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="..\..\..\Assets\Effects\MultiTexture2EffectPS.glsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="..\..\..\Assets\Effects\MultiTexture2EffectVS.glsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="..\..\..\Assets\Effects\PointLightEffectPerPixelPS.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -2052,6 +2026,28 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="..\..\..\Assets\Effects\Texture2ArrayEffectPS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <DeploymentContent>false</DeploymentContent>
+    </None>
+    <None Include="..\..\..\Assets\Effects\Texture2ArrayEffectVS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <DeploymentContent>false</DeploymentContent>
+    </None>
     <None Include="..\..\..\Assets\Effects\Texture2ColorEffectPS.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
@@ -2112,7 +2108,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
     </None>
-    <None Include="..\Core\3rdParty\EASTL\include\EAMain\EAEntryPointMain.inl" />
     <None Include="..\Graphic\3rdParty\assimp\include\assimp\.editorconfig" />
     <None Include="..\Graphic\3rdParty\assimp\include\assimp\color4.inl" />
     <None Include="..\Graphic\3rdParty\assimp\include\assimp\config.h.in" />
@@ -2184,16 +2179,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\MultiTexture2Effect.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerPixel.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
@@ -2263,6 +2248,17 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayEffect.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <DeploymentContent>false</DeploymentContent>
     </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\Texture2ColorEffect.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

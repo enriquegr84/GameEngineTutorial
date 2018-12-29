@@ -313,12 +313,14 @@ public:
 		const eastl::shared_ptr<Light>& light, const Vector2<float>& size = Vector2<float>{ 10.0f, 10.0f }, int id = -1);
 
 	//! Creates a rotation animator, which rotates the attached scene node around itself.
-	/** \param rotationSpeed Specifies the speed of the animation in degree per 10 milliseconds.
+	/** 
+	\param roatation axis.
+	\param rotationSpeed Specifies the speed of the animation in degree per 10 milliseconds.
 	\return The animator. Attach it to a scene node with ISceneNode::addAnimator()
 	and the animator will animate it.
 	If you no longer need the animator, you should call ISceneNodeAnimator::drop().
 	See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<NodeAnimator> Scene::CreateRotationAnimator(const Vector3<float>& rotationPerSecond);
+	eastl::shared_ptr<NodeAnimator> Scene::CreateRotationAnimator(const Vector4<float>& rotation, float rotationSpeed);
 
 	//! Creates a fly circle animator, which lets the attached scene node fly around a center.
 	/** \param center: Center of the circle.

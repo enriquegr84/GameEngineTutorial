@@ -143,7 +143,7 @@ namespace eastl
 	///  vector<int>  intArray(1000);
 	///  
 	///  for(int i = 0; i < 1000; i++)
-	///     intArray[i] = Rand() % kElementRange;
+	///     intArray[i] = rand() % kElementRange;
 	///  
 	///  vector< vector<int> > bucketArray(kElementRange);
 	///  bucket_sort(intArray.begin(), intArray.end(), bucketArray, eastl::hash_use_self<int>());

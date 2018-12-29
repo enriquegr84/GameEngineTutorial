@@ -13,12 +13,12 @@ cbuffer PVWMatrix
 struct VS_INPUT
 {
     float3 modelPosition : POSITION;
-    float2 modelTCoord : TEXCOORD0;
+    float3 modelTCoord : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
-    float2 vertexTCoord : TEXCOORD0;
+    float3 vertexTCoord : TEXCOORD0;
     float4 clipPosition : SV_POSITION;
 };
 
@@ -34,13 +34,12 @@ VS_OUTPUT VSMain(VS_INPUT input)
     return output;
 }
 
-Texture2D baseTexture1;
-Texture2D baseTexture2;
+Texture2DArray baseTextureArray;
 SamplerState baseSampler;
 
 struct PS_INPUT
 {
-    float2 vertexTCoord : TEXCOORD0;
+    float3 vertexTCoord : TEXCOORD0;
 };
 
 struct PS_OUTPUT
@@ -51,22 +50,9 @@ struct PS_OUTPUT
 PS_OUTPUT PSMain(PS_INPUT input)
 {
     PS_OUTPUT output;
-	output.pixelColor0 = 0.0f;
 
-	float4 tcd;
+	// Sample texture array.
+	output.pixelColor0 = baseTextureArray.Sample(baseSampler, input.vertexTCoord);
 
-	// Sample first 2D texture.
-	tcd.xyz = float3(input.vertexTCoord, 0);
-	output.pixelColor0 += baseTexture1.Sample(baseSampler, tcd.xyz);
-	tcd.xyz = float3(input.vertexTCoord, 1);
-	output.pixelColor0 += baseTexture1.Sample(baseSampler, tcd.xyz);
-
-	// Sample second 2D texture.
-	tcd.xyz = float3(input.vertexTCoord, 0);
-	output.pixelColor0 += baseTexture2.Sample(baseSampler, tcd.xyz);
-	tcd.xyz = float3(input.vertexTCoord, 1);
-	output.pixelColor0 += baseTexture2.Sample(baseSampler, tcd.xyz);
-
-	output.pixelColor0 *= 0.25f;
     return output;
 }

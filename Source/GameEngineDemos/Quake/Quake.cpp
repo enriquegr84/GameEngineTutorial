@@ -8,6 +8,7 @@
 
 #include "Physic/Physic.h"
 #include "Physic/PhysicEventListener.h"
+#include "Physic/Importer/PhysicResource.h"
 
 #include "Quake.h"
 #include "QuakeApp.h"
@@ -135,7 +136,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				eastl::shared_ptr<BaseGameView> pView = *it;
 				if (pView->GetType() == GV_HUMAN)
 				{
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\player.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\quake\\players\\player.xml", NULL);
 					if (pActor)
 					{
 						pView->OnAttach(pView->GetId(), pActor->GetId());
@@ -153,7 +154,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				{
 					eastl::shared_ptr<NetworkGameView> pNetworkGameView =
 						eastl::static_pointer_cast<NetworkGameView, BaseGameView>(pView);
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\remote_player.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\quake\\players\\remote_player.xml", NULL);
 					if (pActor)
 					{
 						pView->OnAttach(pView->GetId(), pActor->GetId());
@@ -167,7 +168,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				{
 					eastl::shared_ptr<QuakeAIPlayerView> pAiView = 
 						eastl::static_pointer_cast<QuakeAIPlayerView, BaseGameView>(pView);
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\ai_player.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\quake\\players\\ai_player.xml", NULL);
 					if (pActor)
 					{
 						pView->OnAttach(pView->GetId(), pActor->GetId());
@@ -516,5 +517,227 @@ ActorFactory* QuakeLogic::CreateActorFactory(void)
 
 bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 {
+	for (auto actor : mActors)
+	{
+		eastl::shared_ptr<Actor> pActor = actor.second;
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+		{
+			if (pPhysicalComponent->GetShape() == "BSP")
+			{
+				eastl::shared_ptr<ResHandle>& resHandle =
+					ResCache::Get()->GetHandle(&BaseResource(ToWideString(pPhysicalComponent->GetMesh().c_str())));
+				if (resHandle)
+				{
+					eastl::map<eastl::string, eastl::string> modelResources;
+					eastl::map<eastl::string, eastl::string> triggerResources;
+					eastl::map<eastl::string, eastl::string> targetResources;
+
+					modelResources["ammo_bullets"] = "actors/quake/models/ammo/bullet.xml";
+					modelResources["ammo_cells"] = "actors/quake/models/ammo/cell.xml";
+					modelResources["ammo_grenades"] = "actors/quake/models/ammo/grenade.xml";
+					modelResources["ammo_lightning"] = "actors/quake/models/ammo/lightning.xml";
+					modelResources["ammo_rockets"] = "actors/quake/models/ammo/rocket.xml";
+					modelResources["ammo_shells"] = "actors/quake/models/ammo/shell.xml";
+					modelResources["ammo_slugs"] = "actors/quake/models/ammo/slug.xml";
+					modelResources["weapon_grenadelauncher"] = "actors/quake/models/weapon/grenadelauncher.xml";
+					modelResources["weapon_lightning"] = "actors/quake/models/weapon/lightning.xml";
+					modelResources["weapon_machinegun"] = "actors/quake/models/weapon/machinegun.xml";
+					modelResources["weapon_plasmagun"] = "actors/quake/models/weapon/plasmagun.xml";
+					modelResources["weapon_railgun"] = "actors/quake/models/weapon/railgun.xml";
+					modelResources["weapon_shotgun"] = "actors/quake/models/weapon/shotgun.xml";
+					modelResources["weapon_rocketlauncher"] = "actors/quake/models/weapon/rocketlauncher.xml";
+					modelResources["item_armor_shard"] = "actors/quake/models/armor/armorshard.xml";
+					modelResources["item_armor_combat"] = "actors/quake/models/armor/armorcombat.xml";
+					modelResources["item_armor_body"] = "actors/quake/models/armor/armorbody.xml";
+					modelResources["item_health_mega"] = "actors/quake/models/health/healthmega.xml";
+					modelResources["item_health_small"] = "actors/quake/models/health/healthsmall.xml";
+					modelResources["item_health_large"] = "actors/quake/models/health/healthlarge.xml";
+					modelResources["item_health"] = "actors/quake/models/health/health.xml";
+					targetResources["info_player_deathmatch"] = "actors/quake/target/playerdeathmatch.xml";
+					targetResources["target_speaker"] = "actors/quake/target/speaker.xml";
+					triggerResources["trigger_teleport"] = "actors/quake/trigger/teleporter.xml";
+					triggerResources["trigger_push"] = "actors/quake/trigger/push.xml";
+
+					const eastl::shared_ptr<BspResourceExtraData>& extra =
+						eastl::static_pointer_cast<BspResourceExtraData>(resHandle->GetExtra());
+					BspLoader& bspLoader = extra->GetLoader();
+					for (int i = 0; i < bspLoader.mNumEntities; i++)
+					{
+						const BSPEntity& entity = bspLoader.mEntities[i];
+						eastl::string className = bspLoader.GetValueForKey(&entity, "classname");
+
+						if (modelResources.find(className) != modelResources.end())
+						{
+							eastl::string gameType = bspLoader.GetValueForKey(&entity, "gametype");
+							eastl::string notGameType = bspLoader.GetValueForKey(&entity, "not_gametype");
+
+							if (gameType.empty() && notGameType.empty() ||
+								gameType.find("duel") != eastl::string::npos ||
+								notGameType.find("duel") == eastl::string::npos)
+							{
+								BSPVector3 origin;
+								if (bspLoader.GetVectorForKey(&entity, "origin", origin))
+								{
+									Transform initTransform;
+									initTransform.SetTranslation(origin[0], origin[1], origin[2]);
+									eastl::shared_ptr<Actor> pActor = CreateActor(
+										modelResources[className], nullptr, &initTransform);
+									if (pActor)
+									{
+										// fire an event letting everyone else know that we created a new actor
+										eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+											new EventDataNewActor(pActor->GetId()));
+										BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+									}
+								}
+							}
+						}
+						else if (targetResources.find(className) != targetResources.end())
+						{
+							eastl::string gameType = bspLoader.GetValueForKey(&entity, "gametype");
+							eastl::string notGameType = bspLoader.GetValueForKey(&entity, "not_gametype");
+
+							if (gameType.empty() && notGameType.empty() ||
+								gameType.find("duel") != eastl::string::npos ||
+								notGameType.find("duel") == eastl::string::npos)
+							{
+								BSPVector3 origin;
+								if (bspLoader.GetVectorForKey(&entity, "origin", origin))
+								{
+									Transform initTransform;
+									initTransform.SetTranslation(origin[0], origin[1], origin[2]);
+									eastl::shared_ptr<Actor> pActor = CreateActor(
+										targetResources[className], nullptr, &initTransform);
+									if (pActor)
+									{
+										float angle = bspLoader.GetFloatForKey(&entity, "angle");
+										if (angle)
+										{
+											eastl::shared_ptr<TransformComponent> pTransformComponent(
+												pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+											if (pTransformComponent)
+											{
+												Matrix4x4<float> yawRotation = Rotation<4, float>(
+													AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
+												pTransformComponent->SetRotation(yawRotation);
+											}
+										}
+
+										eastl::shared_ptr<AudioComponent> pAudioComponent(
+											pActor->GetComponent<AudioComponent>(AudioComponent::Name).lock());
+										if (pAudioComponent)
+										{
+											eastl::string audios = bspLoader.GetValueForKey(&entity, "noise");
+											if (!audios.empty())
+											{
+												pAudioComponent->ClearAudios();
+
+												audios.erase(eastl::remove(audios.begin(), audios.end(), '\r'), audios.end());
+												audios.erase(eastl::remove(audios.begin(), audios.end(), '\n'), audios.end());
+												audios.erase(eastl::remove(audios.begin(), audios.end(), '\t'), audios.end());
+												size_t audioBegin = 0, audioEnd = 0;
+												do
+												{
+													audioEnd = audios.find(',', audioBegin);
+													pAudioComponent->AddAudio("audio/quake/" + audios.substr(audioBegin, audioEnd));
+
+													audioBegin = audioEnd + 1;
+												} while (audioEnd != eastl::string::npos);
+
+												pAudioComponent->PostInit();
+											}
+										}
+
+										// fire an event letting everyone else know that we created a new actor
+										eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+											new EventDataNewActor(pActor->GetId()));
+										BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+									}
+								}
+							}
+						}
+						else if (triggerResources.find(className) != triggerResources.end())
+						{
+							eastl::string gameType = bspLoader.GetValueForKey(&entity, "gametype");
+							eastl::string notGameType = bspLoader.GetValueForKey(&entity, "not_gametype");
+
+							if (gameType.empty() && notGameType.empty() ||
+								gameType.find("duel") != eastl::string::npos ||
+								notGameType.find("duel") == eastl::string::npos)
+							{
+								BSPVector3 origin;
+								if (bspLoader.GetVectorForKey(&entity, "origin", origin))
+								{
+									Transform initTransform;
+									initTransform.SetTranslation(origin[0], origin[1], origin[2]);
+									eastl::shared_ptr<Actor> pActor = CreateActor(
+										triggerResources[className], nullptr, &initTransform);
+									if (pActor)
+									{
+										float angle = bspLoader.GetFloatForKey(&entity, "angle");
+										if (angle)
+										{
+											eastl::shared_ptr<TransformComponent> pTransformComponent(
+												pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+											if (pTransformComponent)
+											{
+												Matrix4x4<float> yawRotation = Rotation<4, float>(
+													AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
+												pTransformComponent->SetRotation(yawRotation);
+											}
+										}
+
+										// fire an event letting everyone else know that we created a new actor
+										eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+											new EventDataNewActor(pActor->GetId()));
+										BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+									}
+								}
+							}
+						}
+						else if (className == "worldspawn")
+						{
+							eastl::shared_ptr<Actor> pActor = CreateActor("actors/quake/music/music.xml", nullptr);
+							if (pActor)
+							{
+								eastl::shared_ptr<AudioComponent> pAudioComponent(
+									pActor->GetComponent<AudioComponent>(AudioComponent::Name).lock());
+								if (pAudioComponent)
+								{
+									eastl::string audios = bspLoader.GetValueForKey(&entity, "noise");
+									if (!audios.empty())
+									{
+										pAudioComponent->ClearAudios();
+
+										audios.erase(eastl::remove(audios.begin(), audios.end(), '\r'), audios.end());
+										audios.erase(eastl::remove(audios.begin(), audios.end(), '\n'), audios.end());
+										audios.erase(eastl::remove(audios.begin(), audios.end(), '\t'), audios.end());
+										size_t audioBegin = 0, audioEnd = 0;
+										do
+										{
+											audioEnd = audios.find(',', audioBegin);
+											pAudioComponent->AddAudio("audio/quake/" + audios.substr(audioBegin, audioEnd));
+
+											audioBegin = audioEnd + 1;
+										} while (audioEnd != eastl::string::npos);
+
+										pAudioComponent->PostInit();
+									}
+								}
+
+								// fire an event letting everyone else know that we created a new actor
+								eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+									new EventDataNewActor(pActor->GetId()));
+								BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return true;
 }

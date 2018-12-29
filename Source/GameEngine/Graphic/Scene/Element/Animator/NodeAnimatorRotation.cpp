@@ -7,10 +7,10 @@
 #include "Core/OS/OS.h"
 
 //! constructor
-NodeAnimatorRotation::NodeAnimatorRotation(unsigned int time, const Vector3<float>& rotation)
-:	mRotation(rotation), mStartTime(time)
+NodeAnimatorRotation::NodeAnimatorRotation(unsigned int time, const Vector4<float>& rotation, float rotationSpeed)
+: mRotationSpeed(rotationSpeed), mStartTime(time)
 {
-
+	mRotation = Rotation<4, float>(rotation);
 }
 
 
@@ -25,16 +25,12 @@ void NodeAnimatorRotation::AnimateNode(Scene* pScene, Node* node, unsigned int t
 		{
 			// clip the rotation to small values, to avoid
 			// precision problems with huge floats.
-			/*
-			Vector3<float> rot = node->GetAbsoluteTransform().GetRotation() + mRotation*(diffTime*0.1f);
-			if (rot.X>360.f)
-				rot.X=fmodf(rot.X, 360.f);
-			if (rot.Y>360.f)
-				rot.Y=fmodf(rot.Y, 360.f);
-			if (rot.Z>360.f)
-				rot.Z=fmodf(rot.Z, 360.f);
-			node->SetRotation(rot);
-			*/
+			mRotation.mAngle += mRotationSpeed * 0.1f * diffTime * (float)GE_C_DEG_TO_RAD;
+			if (mRotation.mAngle > (float)GE_C_TWO_PI) mRotation.mAngle = 0.f;
+			
+			Matrix4x4<float> rotation = Rotation<4, float>(mRotation);
+			node->GetAbsoluteTransform().SetRotation(node->GetAbsoluteTransform().GetRotation() * rotation);
+
 			mStartTime=timeMs;
 		}
 	}
@@ -43,7 +39,7 @@ void NodeAnimatorRotation::AnimateNode(Scene* pScene, Node* node, unsigned int t
 NodeAnimator* NodeAnimatorRotation::CreateClone(Node* node)
 {
 	NodeAnimatorRotation* newAnimator = 
-		new NodeAnimatorRotation(mStartTime, mRotation);
+		new NodeAnimatorRotation(mStartTime, mRotation.mAxis, mRotationSpeed);
 
 	return newAnimator;
 }
