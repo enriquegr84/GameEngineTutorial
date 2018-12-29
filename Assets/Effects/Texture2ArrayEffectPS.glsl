@@ -7,13 +7,11 @@
 
 uniform sampler2D baseSampler;
 
-layout(location = 0) in vec2 vertexTCoord;
+layout(location = 0) in vec3 vertexTCoord;
 layout(location = 0) out vec4 pixelColor;
 
 void main()
 {
-	// Sample first 2D texture array.
-    vec4 tcd;
-    tcd.xyz = vec3(vertexTCoord, 0);
-    pixelColor0 = texture(baseSampler, tcd.xyz);
+	// Sample 2D texture array.
+    pixelColor0 = texture(baseSampler, vertexTCoord);
 }

@@ -10,7 +10,7 @@
 
 #include "Mathematic/Algebra/Matrix4x4.h"
 
-#include "Graphic/Resource/Texture/Texture2.h"
+#include "Graphic/Resource/Texture/Texture2Array.h"
 #include "Graphic/Effect/VisualEffect.h"
 
 
@@ -18,9 +18,8 @@ class GRAPHIC_ITEM Texture2ArrayEffect : public VisualEffect
 {
 public:
     // Constructionn.
-	Texture2ArrayEffect(
-		eastl::shared_ptr<ProgramFactory> const& factory, eastl::vector<eastl::string> path, 
-		eastl::vector<eastl::shared_ptr<Texture2>> const& texture,
+	Texture2ArrayEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
+		eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2Array> const& textures,
 		SamplerState::Filter filter, SamplerState::Mode mode0, SamplerState::Mode mode1);
 
     // Member access.
@@ -29,18 +28,18 @@ public:
 
     // Required to bind and update resources.
     inline eastl::shared_ptr<ConstantBuffer> const& GetPVWMatrixConstant() const;
-    inline eastl::shared_ptr<Texture2> const& GetTexture(unsigned int i) const;
+    inline eastl::shared_ptr<Texture2Array> const& GetTextures() const;
     inline eastl::shared_ptr<SamplerState> const& GetSampler() const;
 
     void SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix);
-	void SetTextures(eastl::vector<eastl::shared_ptr<Texture2>> const& textures);
+	void SetTextures(eastl::shared_ptr<Texture2Array> const& textures);
 
 private:
     // Vertex shader parameters.
 	eastl::shared_ptr<ConstantBuffer> mPVWMatrixConstant;
 
     // Pixel shader parameters.
-	eastl::vector<eastl::shared_ptr<Texture2>> mTextures;
+	eastl::shared_ptr<Texture2Array> mTextures;
 	eastl::shared_ptr<SamplerState> mSampler;
 
     // Convenience pointer.
@@ -63,12 +62,9 @@ inline eastl::shared_ptr<ConstantBuffer> const& Texture2ArrayEffect::GetPVWMatri
     return mPVWMatrixConstant;
 }
 
-inline eastl::shared_ptr<Texture2> const& Texture2ArrayEffect::GetTexture(unsigned int i) const
+inline eastl::shared_ptr<Texture2Array> const& Texture2ArrayEffect::GetTextures() const
 {
-	if (i >= mTextures.size())
-		return nullptr;
-
-    return mTextures[i];
+    return mTextures;
 }
 
 inline eastl::shared_ptr<SamplerState> const& Texture2ArrayEffect::GetSampler() const

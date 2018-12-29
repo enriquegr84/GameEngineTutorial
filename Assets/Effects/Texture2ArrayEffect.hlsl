@@ -13,12 +13,12 @@ cbuffer PVWMatrix
 struct VS_INPUT
 {
     float3 modelPosition : POSITION;
-    float2 modelTCoord : TEXCOORD0;
+    float3 modelTCoord : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
-    float2 vertexTCoord : TEXCOORD0;
+    float3 vertexTCoord : TEXCOORD0;
     float4 clipPosition : SV_POSITION;
 };
 
@@ -39,7 +39,7 @@ SamplerState baseSampler;
 
 struct PS_INPUT
 {
-    float2 vertexTCoord : TEXCOORD0;
+    float3 vertexTCoord : TEXCOORD0;
 };
 
 struct PS_OUTPUT
@@ -52,9 +52,7 @@ PS_OUTPUT PSMain(PS_INPUT input)
     PS_OUTPUT output;
 
 	// Sample texture array.
-	float4 tcd;
-	tcd.xyz = float3(input.vertexTCoord, 0);
-	output.pixelColor0 = baseTextureArray.Sample(baseSampler, tcd.xyz);
+	output.pixelColor0 = baseTextureArray.Sample(baseSampler, input.vertexTCoord);
 
     return output;
 }

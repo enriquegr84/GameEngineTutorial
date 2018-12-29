@@ -102,7 +102,8 @@ bool MeshFileLoader::IsALoadableFileExtension(const eastl::wstring& fileName) co
 	else return false;
 }
 
-bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType textureType, aiString* textureName)
+bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, 
+	bool textureMipmaps, TextureType textureType, aiString* textureName)
 {
 	//	If the texture is embedded, receives a '*' followed by the id of
 	//	the texture(for the textures stored in the corresponding scene) which
@@ -131,7 +132,7 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 
 			// Create the 2D texture and compute the stride and image size.
 			eastl::shared_ptr<Texture2> meshTexture =
-				eastl::make_shared<Texture2>(gtformat, width, height, true);
+				eastl::make_shared<Texture2>(gtformat, width, height, textureMipmaps);
 			meshTexture->SetName(ToWideString(texture.c_str()));
 			UINT const stride = width * meshTexture->GetElementSize();
 			UINT const imageSize = stride * height;
@@ -140,7 +141,8 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 			std::memcpy(meshTexture->Get<BYTE>(), imageData, imageSize);
 			stbi_image_free(imageData);
 
-			meshTexture->AutogenerateMipmaps();
+			if (textureMipmaps)
+				meshTexture->AutogenerateMipmaps();
 			meshBuffer->GetMaterial()->SetTexture(textureType, meshTexture);
 		}
 		else
@@ -148,7 +150,7 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 			// Create the 2D texture and compute the stride and image size.
 			DFType gtformat = DF_R8G8B8A8_UNORM;
 			eastl::shared_ptr<Texture2> meshTexture = eastl::make_shared<Texture2>(
-				gtformat, embeddedTexture->mWidth, embeddedTexture->mHeight, true);
+				gtformat, embeddedTexture->mWidth, embeddedTexture->mHeight, textureMipmaps);
 			meshTexture->SetName(ToWideString(texture.c_str()));
 			UINT const stride = embeddedTexture->mWidth * meshTexture->GetElementSize();
 			UINT const imageSize = stride * embeddedTexture->mHeight;
@@ -170,7 +172,8 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 				}
 			}
 
-			meshTexture->AutogenerateMipmaps();
+			if (textureMipmaps)
+				meshTexture->AutogenerateMipmaps();
 			meshBuffer->GetMaterial()->SetTexture(textureType, meshTexture);
 		}
 		return true;
@@ -195,7 +198,7 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 
 		// Create the 2D texture and compute the stride and image size.
 		eastl::shared_ptr<Texture2> meshTexture =
-			eastl::make_shared<Texture2>(gtformat, width, height, true);
+			eastl::make_shared<Texture2>(gtformat, width, height, textureMipmaps);
 		UINT const stride = width * meshTexture->GetElementSize();
 		UINT const imageSize = stride * height;
 
@@ -203,7 +206,8 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer, TextureType 
 		std::memcpy(meshTexture->Get<BYTE>(), imageData, imageSize);
 		stbi_image_free(imageData);
 
-		meshTexture->AutogenerateMipmaps();
+		if (textureMipmaps)
+			meshTexture->AutogenerateMipmaps();
 		meshBuffer->GetMaterial()->SetTexture(textureType, meshTexture);
 		return true;
 	}
@@ -229,7 +233,7 @@ bool HasAlphaPixels(eastl::shared_ptr<Texture2> piTexture)
 }
 
 //-------------------------------------------------------------------------------
-void CreateMaterial(const aiScene* pScene, const aiMesh* pMesh, BaseMeshBuffer* meshBuffer)
+void CreateMaterial(const aiScene* pScene, const aiMesh* pMesh, BaseMeshBuffer* meshBuffer, bool generateMipmaps)
 {
 	const aiMaterial* pMaterial = pScene->mMaterials[pMesh->mMaterialIndex];
 
@@ -286,7 +290,7 @@ void CreateMaterial(const aiScene* pScene, const aiMesh* pMesh, BaseMeshBuffer* 
 		// DIFFUSE TEXTURE
 		if (AI_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_TEXTURE_DIFFUSE(0), &texturePath))
 		{
-			LoadTexture(pScene, meshBuffer, TT_DIFFUSE, &texturePath);
+			LoadTexture(pScene, meshBuffer, generateMipmaps, TT_DIFFUSE, &texturePath);
 
 			aiGetMaterialInteger(pMaterial, AI_MATKEY_MAPPINGMODE_U_DIFFUSE(0), (int*)&mapU);
 			aiGetMaterialInteger(pMaterial, AI_MATKEY_MAPPINGMODE_V_DIFFUSE(0), (int*)&mapV);
@@ -331,13 +335,13 @@ void CreateMaterial(const aiScene* pScene, const aiMesh* pMesh, BaseMeshBuffer* 
 		// SPECULAR TEXTURE
 		if (AI_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_TEXTURE_SPECULAR(0), &texturePath))
 		{
-			LoadTexture(pScene, meshBuffer, TT_SPECULAR, &texturePath);
+			LoadTexture(pScene, meshBuffer, generateMipmaps, TT_SPECULAR, &texturePath);
 		}
 
 		// OPACITY TEXTURE
 		if (AI_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_TEXTURE_OPACITY(0), &texturePath))
 		{
-			LoadTexture(pScene, meshBuffer, TT_OPACITY, &texturePath);
+			LoadTexture(pScene, meshBuffer, generateMipmaps, TT_OPACITY, &texturePath);
 		}
 		else
 		{
@@ -363,38 +367,38 @@ void CreateMaterial(const aiScene* pScene, const aiMesh* pMesh, BaseMeshBuffer* 
 		// AMBIENT TEXTURE
 		if (AI_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_TEXTURE_AMBIENT(0), &texturePath))
 		{
-			LoadTexture(pScene, meshBuffer, TT_AMBIENT, &texturePath);
+			LoadTexture(pScene, meshBuffer, generateMipmaps, TT_AMBIENT, &texturePath);
 		}
 
 		// EMISSIVE TEXTURE
 		if (AI_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_TEXTURE_EMISSIVE(0), &texturePath))
 		{
-			LoadTexture(pScene, meshBuffer, TT_EMISSIVE, &texturePath);
+			LoadTexture(pScene, meshBuffer, generateMipmaps, TT_EMISSIVE, &texturePath);
 		}
 
 		// SHININESS TEXTURE
 		if (AI_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_TEXTURE_SHININESS(0), &texturePath))
 		{
-			LoadTexture(pScene, meshBuffer, TT_SHININESS, &texturePath);
+			LoadTexture(pScene, meshBuffer, generateMipmaps, TT_SHININESS, &texturePath);
 		}
 
 		// LIGHTMAP TEXTURE
 		if (AI_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_TEXTURE_LIGHTMAP(0), &texturePath))
 		{
-			LoadTexture(pScene, meshBuffer, TT_LIGHTMAP, &texturePath);
+			LoadTexture(pScene, meshBuffer, generateMipmaps, TT_LIGHTMAP, &texturePath);
 		}
 
 		// NORMAL/HEIGHT MAP
 		bool bHM = false;
 		if (AI_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_TEXTURE_NORMALS(0), &texturePath))
 		{
-			LoadTexture(pScene, meshBuffer, TT_NORMALS, &texturePath);
+			LoadTexture(pScene, meshBuffer, generateMipmaps, TT_NORMALS, &texturePath);
 		}
 		else
 		{
 			if (AI_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_TEXTURE_HEIGHT(0), &texturePath))
 			{
-				LoadTexture(pScene, meshBuffer, TT_NORMALS, &texturePath);
+				LoadTexture(pScene, meshBuffer, generateMipmaps, TT_NORMALS, &texturePath);
 			}
 			else bib = true;
 			bHM = true;
@@ -590,7 +594,7 @@ void ReadNodeMesh(const aiScene* pScene,
 							eastl::shared_ptr<BaseMeshBuffer> meshBuffer = meshMD3->GetMeshBuffer(mb);
 							if (meshBuffer->GetName() == ToWideString(mesh->mName.C_Str()))
 							{
-								CreateMaterial(pScene, mesh, meshBuffer.get());
+								CreateMaterial(pScene, mesh, meshBuffer.get(), true);
 								break;
 							}
 						}
@@ -749,7 +753,10 @@ void ReadNodeMesh(const aiScene* pScene,
 			}
 
 			if (pScene->HasMaterials())
-				CreateMaterial(pScene, pScene->mMeshes[*meshIndex], meshBuffer);
+			{
+				bool generateMipmaps = dynamic_cast<StandardMesh*>(mesh) == NULL;
+				CreateMaterial(pScene, pScene->mMeshes[*meshIndex], meshBuffer, generateMipmaps);
+			}
 
 			mesh->AddMeshBuffer(meshBuffer);
 		}

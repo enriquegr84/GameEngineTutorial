@@ -39,64 +39,196 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 	mMesh = mesh;
 
 	mVisuals.clear();
-	eastl::map<eastl::string, int> textures;
-	for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
+
+	eastl::vector<eastl::shared_ptr<BaseMeshBuffer>> meshBuffers;
+	unsigned int meshBufferVerticeCount = 0, meshBufferPrimitiveCount = 0;
+
+	eastl::map<eastl::string, eastl::vector<eastl::shared_ptr<BaseMeshBuffer>>> meshBufferDiffuse;
+	eastl::map<eastl::string, unsigned int> meshBufferVertices;
+	eastl::map<eastl::string, unsigned int> meshBufferPrimitives;
+	for (unsigned int i = 0; i < mMesh->GetMeshBufferCount(); ++i)
 	{
 		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
 		if (meshBuffer)
 		{
-			mBlendStates.push_back(eastl::make_shared<BlendState>());
-			mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
-
-			eastl::shared_ptr<Texture2> textureDiffuse = meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
+			eastl::shared_ptr<Texture2> textureDiffuse = 
+				meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
 			if (textureDiffuse)
 			{
-				eastl::string tex = 
-					eastl::to_string(textureDiffuse->GetWidth()) + " " + 
+				eastl::string tex =
+					eastl::to_string(textureDiffuse->GetWidth()) + " " +
 					eastl::to_string(textureDiffuse->GetHeight());
-				if (textures.find(tex) == textures.end())
-					textures[tex] = 0;
-				textures[tex]++;
+				meshBufferDiffuse[tex].push_back(meshBuffer);
 
-				eastl::vector<eastl::string> path;
-#if defined(_OPENGL_)
-				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
-				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
-#else
-				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
-#endif
-
-				eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
-					ProgramFactory::Get(), path, textureDiffuse,
-					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mFilter,
-					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeU,
-					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeV);
-
-				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
-					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
-				visual->UpdateModelBound();
-				mVisuals.push_back(visual);
-				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+				if (meshBufferVertices.find(tex) == meshBufferVertices.end())
+				{
+					meshBufferVertices[tex] = 0;
+					meshBufferPrimitives[tex] = 0;
+				}
+				meshBufferVertices[tex] += meshBuffer->GetVertice()->GetNumElements();
+				meshBufferPrimitives[tex] += meshBuffer->GetIndice()->GetNumPrimitives();
 			}
 			else
 			{
-				eastl::vector<eastl::string> path;
-#if defined(_OPENGL_)
-				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectVS.glsl"));
-				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectPS.glsl"));
-#else
-				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffect.hlsl"));
-#endif
-				eastl::shared_ptr<ConstantColorEffect> effect =
-					eastl::make_shared<ConstantColorEffect>(ProgramFactory::Get(), path, Vector4<float>::Zero());
-
-				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
-					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
-				visual->UpdateModelBound();
-				mVisuals.push_back(visual);
-				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+				meshBufferVerticeCount += meshBuffer->GetVertice()->GetNumElements();
+				meshBufferPrimitiveCount += meshBuffer->GetIndice()->GetNumPrimitives();
+				meshBuffers.push_back(meshBuffer);
 			}
 		}
+	}
+
+	unsigned int bCount = 0;
+	eastl::map<eastl::string, eastl::vector<eastl::shared_ptr<BaseMeshBuffer>>>::const_iterator it;
+	for (it = meshBufferDiffuse.begin(); it != meshBufferDiffuse.end(); it++)
+	{
+		struct Vertex
+		{
+			Vector3<float> position;
+			Vector3<float> texCoord;
+			Vector3<float> normal;
+		};
+		VertexFormat vertexFormat;
+		vertexFormat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+		vertexFormat.Bind(VA_TEXCOORD, DF_R32G32B32_FLOAT, 0);
+		vertexFormat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+
+		eastl::shared_ptr<VertexBuffer> vBuffer = eastl::make_shared<VertexBuffer>(
+			vertexFormat, meshBufferVertices[it->first] * sizeof(Vertex));
+		Vertex* vertex = vBuffer->Get<Vertex>();
+
+		eastl::shared_ptr<IndexBuffer> iBuffer = eastl::make_shared<IndexBuffer>(
+			IP_TRIMESH, meshBufferPrimitives[it->first], sizeof(unsigned int));
+
+		SamplerState::Filter samplerfilter;
+		SamplerState::Mode samplerModeU, samplerModeV;
+
+		size_t split = it->first.find(" ");
+		eastl::shared_ptr<Texture2Array> textureArray = 
+			eastl::make_shared<Texture2Array>(it->second.size(), DF_R8G8B8A8_UNORM, 
+			atoi(it->first.substr(0, split).c_str()), atoi(it->first.substr(split + 1).c_str()), false);
+		//textureArray->AutogenerateMipmaps();
+		unsigned char* textureData = textureArray->Get<unsigned char>();
+
+		unsigned int vertexCount = 0, idx = 0;
+		for (unsigned int mb = 0; mb < it->second.size(); mb++)
+		{
+			const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = it->second[mb];
+			if (meshBuffer)
+			{
+				eastl::shared_ptr<Texture2> textureDiffuse =
+					meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
+				samplerfilter = meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mFilter;
+				samplerModeU = meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeU;
+				samplerModeV = meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeV;
+
+				// fill vertices
+				for (unsigned int i = 0; i < meshBuffer->GetVertice()->GetNumElements(); i++)
+				{
+					vertex[vertexCount + i].position = meshBuffer->Position(i);
+					vertex[vertexCount + i].normal = meshBuffer->Normal(i);
+					vertex[vertexCount + i].texCoord = HLift(meshBuffer->TCoord(0, i), (float)bCount);
+				}
+
+				//fill textures
+				std::memcpy(textureData, textureDiffuse->GetData(), textureDiffuse->GetNumBytes());
+				textureData += textureDiffuse->GetNumBytes();
+
+				//fill indices
+				unsigned int* index = meshBuffer->GetIndice()->Get<unsigned int>();
+				for (unsigned int i = 0; i < meshBuffer->GetIndice()->GetNumPrimitives(); i++)
+				{
+					iBuffer->SetTriangle(idx++,
+						vertexCount + index[i * 3],
+						vertexCount + index[i * 3 + 1],
+						vertexCount + index[i * 3 + 2]);
+				}
+
+				vertexCount += meshBuffer->GetVertice()->GetNumElements();
+				bCount++;
+			}
+		}
+
+		mBlendStates.push_back(eastl::make_shared<BlendState>());
+		mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
+
+		eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ArrayEffectVS.glsl"));
+		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ArrayEffectPS.glsl"));
+#else
+		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ArrayEffect.hlsl"));
+#endif
+
+		eastl::shared_ptr<Texture2ArrayEffect> effect = eastl::make_shared<Texture2ArrayEffect>(
+			ProgramFactory::Get(), path, textureArray, samplerfilter, samplerModeU, samplerModeV);
+
+		eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vBuffer, iBuffer, effect);
+		visual->UpdateModelBound();
+		mVisuals.push_back(visual);
+		mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
+	}
+
+	if (meshBuffers.size() > 0)
+	{
+		struct Vertex
+		{
+			Vector3<float> position;
+			Vector4<float> color;
+			Vector3<float> normal;
+		};
+		VertexFormat vertexFormat;
+		vertexFormat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
+		vertexFormat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
+		vertexFormat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
+
+		eastl::shared_ptr<VertexBuffer> vBuffer = eastl::make_shared<VertexBuffer>(
+			vertexFormat, meshBufferVerticeCount * sizeof(Vertex));
+		Vertex* vertex = vBuffer->Get<Vertex>();
+
+		eastl::shared_ptr<IndexBuffer> iBuffer = eastl::make_shared<IndexBuffer>(
+			IP_TRIMESH, meshBufferPrimitiveCount, sizeof(unsigned int));
+
+		unsigned int vertexCount = 0, idx = 0;
+		for (unsigned int mb = 0; mb < meshBuffers.size(); mb++)
+		{
+			const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = meshBuffers[mb];
+			if (meshBuffer)
+			{
+				// fill vertices
+				for (unsigned int i = 0; i < meshBuffer->GetVertice()->GetNumElements(); i++)
+				{
+					vertex[vertexCount + i].position = meshBuffer->Position(i);
+					vertex[vertexCount + i].normal = meshBuffer->Normal(i);
+				}
+
+				//fill indices
+				unsigned int* index = meshBuffer->GetIndice()->Get<unsigned int>();
+				for (unsigned int i = 0; i < meshBuffer->GetIndice()->GetNumPrimitives(); i++)
+				{
+					iBuffer->SetTriangle(idx++,
+						vertexCount + index[i * 3],
+						vertexCount + index[i * 3 + 1],
+						vertexCount + index[i * 3 + 2]);
+				}
+
+				vertexCount += meshBuffer->GetVertice()->GetNumElements();
+			}
+		}
+
+		eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+		path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectVS.glsl"));
+		path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectPS.glsl"));
+#else
+		path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffect.hlsl"));
+#endif
+		eastl::shared_ptr<ConstantColorEffect> effect =
+			eastl::make_shared<ConstantColorEffect>(ProgramFactory::Get(), path, Vector4<float>::Zero());
+
+		eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vBuffer, iBuffer, effect);
+		visual->UpdateModelBound();
+		mVisuals.push_back(visual);
+		mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 	}
 }
 
@@ -154,7 +286,7 @@ bool MeshNode::Render(Scene *pScene)
 
 	if (mShadow && mPassCount==1)
 		mShadow->UpdateShadowVolumes(pScene);
-
+	/*
 	for (unsigned int i = 0; i<mMesh->GetMeshBufferCount(); ++i)
 	{
 		const eastl::shared_ptr<BaseMeshBuffer>& mb = mMesh->GetMeshBuffer(i);
@@ -183,7 +315,12 @@ bool MeshNode::Render(Scene *pScene)
 			Renderer::Get()->SetDefaultRasterizerState();
 		}
 	}
-	
+	*/
+
+	for (unsigned int i = 0; i < GetVisualCount(); ++i)
+		if (false == isTransparentPass)
+			Renderer::Get()->Draw(mVisuals[i]);
+
 	return true;
 }
 
