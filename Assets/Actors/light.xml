@@ -18,7 +18,7 @@
 			<SpotCutoff angle="0.6" exponent="1.0" />
 		</Light>
 		<Animator>
-			<Animation type="0" radius="200.0" />
+			<Animation type="1" radius="200.0" />
 			<Center x="0.0" y="0.0" z="100.0" />
 		</Animator>
 	</LightRenderComponent>
