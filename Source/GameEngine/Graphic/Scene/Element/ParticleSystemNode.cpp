@@ -60,7 +60,7 @@ void ParticleSystemNode::SetEffect(int size)
 #else
 	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl"));
 #endif
-	eastl::shared_ptr<Texture2ColorEffect> effect = eastl::make_shared<Texture2ColorEffect>(
+	eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE),
 		SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::WRAP, SamplerState::WRAP);
 	mEffect = effect;

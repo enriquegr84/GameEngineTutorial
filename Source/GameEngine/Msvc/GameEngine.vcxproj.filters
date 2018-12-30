@@ -982,9 +982,6 @@
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowCamera.cpp">
       <Filter>Graphic\Scene\Element\Animator</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Effect\Texture2ColorEffect.cpp">
-      <Filter>Graphic\Effect</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Effect\SpotLightTextureEffect.cpp">
       <Filter>Graphic\Effect</Filter>
     </ClCompile>
@@ -2179,9 +2176,6 @@
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFollowCamera.h">
       <Filter>Graphic\Scene\Element\Animator</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Effect\Texture2ColorEffect.h">
-      <Filter>Graphic\Effect</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\Effect\SpotLightTextureEffect.h">
       <Filter>Graphic\Effect</Filter>
     </ClInclude>
@@ -2811,6 +2805,12 @@
     <None Include="..\..\..\Assets\Effects\Texture2ArrayEffectVS.glsl">
       <Filter>Assets\Effects</Filter>
     </None>
+    <None Include="..\..\..\Assets\Effects\Texture2ArrayColorEffectPS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
+    <None Include="..\..\..\Assets\Effects\Texture2ArrayColorEffectVS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\..\Assets\Effects\AmbientLightEffect.hlsl">
@@ -2862,6 +2862,9 @@
       <Filter>Assets\Effects</Filter>
     </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayEffect.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayColorEffect.hlsl">
       <Filter>Assets\Effects</Filter>
     </FxCompile>
   </ItemGroup>

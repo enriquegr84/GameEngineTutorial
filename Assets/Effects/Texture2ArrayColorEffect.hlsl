@@ -14,10 +14,12 @@ struct VS_INPUT
 {
     float3 modelPosition : POSITION;
     float3 modelTCoord : TEXCOORD0;
+	float4 modelColor : COLOR0;
 };
 
 struct VS_OUTPUT
 {
+	float4 vertexColor : COLOR0;
     float3 vertexTCoord : TEXCOORD0;
     float4 clipPosition : SV_POSITION;
 };
@@ -30,6 +32,7 @@ VS_OUTPUT VSMain(VS_INPUT input)
 #else
     output.clipPosition = mul(float4(input.modelPosition, 1.0f), pvwMatrix);
 #endif
+	output.vertexColor = input.modelColor;
     output.vertexTCoord = input.modelTCoord;
     return output;
 }
@@ -39,6 +42,7 @@ SamplerState baseSampler;
 
 struct PS_INPUT
 {
+	float4 vertexColor : COLOR0;
     float3 vertexTCoord : TEXCOORD0;
 };
 
@@ -52,7 +56,7 @@ PS_OUTPUT PSMain(PS_INPUT input)
     PS_OUTPUT output;
 
 	// Sample texture array.
-	output.pixelColor0 = baseTextureArray.Sample(baseSampler, input.vertexTCoord);
-
+	float4 textureColor = baseTextureArray.Sample(baseSampler, input.vertexTCoord);
+	output.pixelColor0 = input.vertexColor * textureColor;
     return output;
 }

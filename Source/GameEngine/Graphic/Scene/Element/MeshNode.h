@@ -79,6 +79,7 @@ public:
 
 protected:
 
+	eastl::vector<eastl::shared_ptr<Material>> mMaterials;
 	eastl::vector<eastl::shared_ptr<BlendState>> mBlendStates;
 	eastl::vector<eastl::shared_ptr<DepthStencilState>> mDepthStencilStates;
 	eastl::shared_ptr<RasterizerState> mRasterizerState;

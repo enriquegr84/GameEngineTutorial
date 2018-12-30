@@ -854,16 +854,44 @@ unsigned int AnimatedMeshNode::GetVisualCount() const
 //! to directly modify the material of a scene node.
 eastl::shared_ptr<Material> const& AnimatedMeshNode::GetMaterial(unsigned int i)
 {
-	if (i >= mMesh->GetMeshBufferCount())
-		return nullptr;
+	if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
+	{
+		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
 
-	return mMesh->GetMeshBuffer(i)->GetMaterial();
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+		unsigned int mbCount = 0;
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+			for (unsigned int mbIdx = 0; mbIdx < mesh->GetMeshBufferCount(); mbIdx++, mbCount++)
+				if (mbCount == i)
+					return mesh->GetMeshBuffer(mbIdx)->GetMaterial();
+
+		return nullptr;
+	}
+	else
+	{
+		if (i >= mMesh->GetMeshBufferCount())
+			return nullptr;
+
+		return mMesh->GetMeshBuffer(i)->GetMaterial();
+	}
 }
 
 //! returns amount of materials used by this scene node.
 unsigned int AnimatedMeshNode::GetMaterialCount() const
 {
-	return mMesh->GetMeshBufferCount();
+	if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
+	{
+		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+		unsigned int mbCount = 0;
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+			mbCount += mesh->GetMeshBufferCount();
+		return mbCount;
+	}
+	else return mMesh->GetMeshBufferCount();
 }
 
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
@@ -874,16 +902,42 @@ void AnimatedMeshNode::SetMaterialTexture(unsigned int textureLayer, eastl::shar
 	if (textureLayer >= MATERIAL_MAX_TEXTURES)
 		return;
 
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i)->SetTexture(textureLayer, texture);
+	if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
+	{
+		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+			for (unsigned int mbIdx = 0; mbIdx < mesh->GetMeshBufferCount(); mbIdx++)
+				mesh->GetMeshBuffer(mbIdx)->GetMaterial()->SetTexture(textureLayer, texture);
+	}
+	else
+	{
+		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+			GetMaterial(i)->SetTexture(textureLayer, texture);
+	}
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.
 /** \param newType New type of material to be set. */
 void AnimatedMeshNode::SetMaterialType(MaterialType newType)
 {
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
-		GetMaterial(i)->mType = newType;
+	if (dynamic_cast<AnimateMeshMD3*>(mMesh.get()))
+	{
+		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mMesh.get());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+			for (unsigned int mbIdx = 0; mbIdx < mesh->GetMeshBufferCount(); mbIdx++)
+				mesh->GetMeshBuffer(mbIdx)->GetMaterial()->mType = newType;
+	}
+	else
+	{
+		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+			GetMaterial(i)->mType = newType;
+	}
 }
 
 //! Sets if the scene node should not copy the materials of the mesh but use them in a read only style.

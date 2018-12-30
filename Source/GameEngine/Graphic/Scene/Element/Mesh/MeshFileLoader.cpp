@@ -152,24 +152,17 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer,
 			eastl::shared_ptr<Texture2> meshTexture = eastl::make_shared<Texture2>(
 				gtformat, embeddedTexture->mWidth, embeddedTexture->mHeight, textureMipmaps);
 			meshTexture->SetName(ToWideString(texture.c_str()));
-			UINT const stride = embeddedTexture->mWidth * meshTexture->GetElementSize();
-			UINT const imageSize = stride * embeddedTexture->mHeight;
 
 			// Copy the pixels from the decoder to the texture.
-			//std::memcpy(meshTexture->Get<BYTE>(), embeddedTexture->pcData, imageSize);
-
-			int dataIdx = 0;
-			char* data = meshTexture->GetData();
-			for (unsigned int y = 0; y < embeddedTexture->mHeight; ++y)
+			//std::memcpy(meshTexture->Get<unsigned char>(), embeddedTexture->pcData, meshTexture->GetNumBytes());
+			unsigned char* textureData = meshTexture->Get<unsigned char>();
+			for (unsigned int i = 0; i <  embeddedTexture->mWidth * embeddedTexture->mHeight ; ++i)
 			{
-				for (unsigned int x = 0; x < embeddedTexture->mWidth; ++x)
-				{
-					aiTexel* tx = embeddedTexture->pcData + y * embeddedTexture->mWidth + x;
-					data[dataIdx++] = tx->r;
-					data[dataIdx++] = tx->g;
-					data[dataIdx++] = tx->b;
-					data[dataIdx++] = tx->a;
-				}
+				aiTexel tx = embeddedTexture->pcData[i];
+				*textureData++ = tx.r;
+				*textureData++ = tx.g;
+				*textureData++ = tx.b;
+				*textureData++ = tx.a;
 			}
 
 			if (textureMipmaps)
@@ -199,6 +192,7 @@ bool LoadTexture(const aiScene* pScene, BaseMeshBuffer* meshBuffer,
 		// Create the 2D texture and compute the stride and image size.
 		eastl::shared_ptr<Texture2> meshTexture =
 			eastl::make_shared<Texture2>(gtformat, width, height, textureMipmaps);
+		meshTexture->SetName(ToWideString(texture.c_str()));
 		UINT const stride = width * meshTexture->GetElementSize();
 		UINT const imageSize = stride * height;
 
@@ -646,7 +640,7 @@ void ReadNodeMesh(const aiScene* pScene,
 				{
 					const aiVector3D& position = pScene->mMeshes[*meshIndex]->mVertices[v];
 					if (fileExtension == L"pk3")
-						meshBuffer->Position(v) = Vector3<float>{ position.x, -position.z, position.y };
+						meshBuffer->Position(v) = Vector3<float>{ position.x, position.y, -position.z };
 					else
 						meshBuffer->Position(v) = Vector3<float>{ position.x, position.z, position.y };
 				}
@@ -654,7 +648,7 @@ void ReadNodeMesh(const aiScene* pScene,
 				{
 					const aiVector3D& normal = pScene->mMeshes[*meshIndex]->mNormals[v];
 					if (fileExtension == L"pk3")
-						meshBuffer->Normal(v) = Vector3<float>{ normal.x, -normal.z , normal.y };
+						meshBuffer->Normal(v) = Vector3<float>{ normal.x, normal.y , -normal.z };
 					else
 						meshBuffer->Normal(v) = Vector3<float>{ normal.x, normal.z , normal.y };
 				}
@@ -662,7 +656,7 @@ void ReadNodeMesh(const aiScene* pScene,
 				{
 					const aiVector3D& tangent = pScene->mMeshes[*meshIndex]->mTangents[v];
 					if (fileExtension == L"pk3")
-						meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, -tangent.z , tangent.y };
+						meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, tangent.y , -tangent.z };
 					else
 						meshBuffer->Tangent(v) = Vector3<float>{ tangent.x, tangent.z , tangent.y };
 				}
@@ -670,7 +664,7 @@ void ReadNodeMesh(const aiScene* pScene,
 				{
 					const aiVector3D& bitangent = pScene->mMeshes[*meshIndex]->mBitangents[v];
 					if (fileExtension == L"pk3")
-						meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, -bitangent.z, bitangent.y };
+						meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, bitangent.y, -bitangent.z };
 					else
 						meshBuffer->Bitangent(v) = Vector3<float>{ bitangent.x, bitangent.z, bitangent.y };
 				}

@@ -13,5 +13,5 @@ layout(location = 0) out vec4 pixelColor;
 void main()
 {
 	// Sample 2D texture array.
-    pixelColor0 = texture(baseSampler, vertexTCoord);
+    pixelColor = texture(baseSampler, vertexTCoord);
 }
