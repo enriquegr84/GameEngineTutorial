@@ -567,13 +567,8 @@ void ReadNodeMesh(const aiScene* pScene,
 					md3Animation.mEndFrame = atoi(end.C_Str());
 					md3Animation.mLoopFrame = atoi(loop.C_Str());
 					md3Animation.mFramesPerSecond = (float)atoi(fps.C_Str());
-					md3Animation.mAnimationType = (MD3AnimationType)atoi(type.C_Str());
+					md3Animation.mAnimationType = atoi(type.C_Str());
 					meshMD3->AddAnimation(md3Animation);
-				}
-				if (meshMD3->GetAnimationCount())
-				{
-					meshMD3->SetCurrentAnimation(12);
-					meshMD3->SetCurrentFrame(meshMD3->GetAnimation(12).mBeginFrame);
 				}
 
 				if (pScene->HasMaterials())

@@ -195,7 +195,9 @@ HICON DemosApp::VGetIcon()
 
 void GameDemoApp::RegisterGameEvents(void)
 {
+	REGISTER_EVENT(EventDataJumpActor);
 	REGISTER_EVENT(EventDataMoveActor);
+	REGISTER_EVENT(EventDataRotateActor);
     REGISTER_EVENT(EventDataStartThrust);
     REGISTER_EVENT(EventDataEndThrust);
     REGISTER_EVENT(EventDataStartSteer);
@@ -218,7 +220,13 @@ void GameDemoApp::CreateNetworkEventForwarder(void)
 			EventDataFireWeapon::skEventType);
 		pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataJumpActor::skEventType);
+		pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataMoveActor::skEventType);
+		pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataRotateActor::skEventType);
         pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), 
 			EventDataStartThrust::skEventType);
@@ -247,7 +255,13 @@ void GameDemoApp::DestroyNetworkEventForwarder(void)
 			EventDataFireWeapon::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataJumpActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataMoveActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			EventDataRotateActor::skEventType);
         eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataStartThrust::skEventType);

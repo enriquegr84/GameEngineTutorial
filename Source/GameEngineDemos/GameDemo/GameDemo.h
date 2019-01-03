@@ -75,7 +75,9 @@ public:
 	void RemoteClientDelegate(BaseEventDataPtr pEventData);
 	void NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEventData);
 	void EnvironmentLoadedDelegate(BaseEventDataPtr pEventData);
+	void JumpActorDelegate(BaseEventDataPtr pEventData);
 	void MoveActorDelegate(BaseEventDataPtr pEventData);
+	void RotateActorDelegate(BaseEventDataPtr pEventData);
 	void StartThrustDelegate(BaseEventDataPtr pEventData);
 	void EndThrustDelegate(BaseEventDataPtr pEventData);
 	void StartSteerDelegate(BaseEventDataPtr pEventData);

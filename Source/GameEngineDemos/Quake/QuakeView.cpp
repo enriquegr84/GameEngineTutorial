@@ -751,8 +751,10 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 					{
 						QuakeLogic* twg = static_cast<QuakeLogic *>(GameLogic::Get());
 						twg->ToggleRenderDiagnostics();
+						/*
 						for (auto child : mScene->GetRootNode()->GetChildren())
 							child->SetVisible(!child->IsVisible());
+						*/
 						return true;
 					}	
 
@@ -891,6 +893,40 @@ void QuakeHumanView::SetControlledActorDelegate(BaseEventDataPtr pEventData)
 
 }
 
+void QuakeHumanView::MoveActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataMoveActor> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataMoveActor>(pEventData);
+
+	ActorId actorId = pCastEventData->GetId();
+	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
+	if (pNode)
+	{
+		eastl::shared_ptr<AnimatedMeshNode> animatedNode = 
+			eastl::dynamic_shared_pointer_cast<AnimatedMeshNode>(pNode);
+		eastl::shared_ptr<AnimateMeshMD3> animMeshMD3 =
+			eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(animatedNode->GetMesh());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+		{
+			if (mesh->GetName() == "lower" && mesh->GetCurrentAnimation() != LEGS_RUN)
+			{
+				//run animation
+				mesh->SetCurrentAnimation(LEGS_RUN);
+				mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_RUN).mBeginFrame);
+			}
+			else if (mesh->GetName() == "upper" && mesh->GetCurrentAnimation() != TORSO_STAND)
+			{
+				//run animation
+				mesh->SetCurrentAnimation(TORSO_STAND);
+				mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
+			}
+		}
+	}
+}
+
 void QuakeHumanView::RegisterAllDelegates(void)
 {
     BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
@@ -900,6 +936,9 @@ void QuakeHumanView::RegisterAllDelegates(void)
     pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeHumanView::SetControlledActorDelegate), 
 		QuakeEventDataSetControlledActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeHumanView::MoveActorDelegate),
+		QuakeEventDataMoveActor::skEventType);
 }
 
 void QuakeHumanView::RemoveAllDelegates(void)
@@ -911,6 +950,9 @@ void QuakeHumanView::RemoveAllDelegates(void)
     pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeHumanView::SetControlledActorDelegate), 
 		QuakeEventDataSetControlledActor::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeHumanView::MoveActorDelegate),
+		QuakeEventDataMoveActor::skEventType);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

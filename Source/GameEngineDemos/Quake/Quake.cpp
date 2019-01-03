@@ -269,6 +269,22 @@ void QuakeLogic::NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEventDat
 	LogError("Could not find HumanView to attach actor to!");
 }
 
+void QuakeLogic::JumpActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataJumpActor> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataJumpActor>(pEventData);
+
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
+	if (pGameActor)
+	{
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+			pPhysicalComponent->KinematicJump(pCastEventData->GetDirection());
+	}
+}
+
 void QuakeLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 {
 	eastl::shared_ptr<QuakeEventDataMoveActor> pCastEventData =
@@ -281,7 +297,23 @@ void QuakeLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
-			pPhysicalComponent->KinematicMove(pCastEventData->GetTransform());
+			pPhysicalComponent->KinematicMove(pCastEventData->GetDirection());
+	}
+}
+
+void QuakeLogic::RotateActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataRotateActor> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataRotateActor>(pEventData);
+
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
+	if (pGameActor)
+	{
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+			pPhysicalComponent->SetRotation(pCastEventData->GetTransform());
 	}
 }
 
@@ -366,8 +398,14 @@ void QuakeLogic::RegisterAllDelegates(void)
 		EventDataRemoteEnvironmentLoaded::skEventType);
 
 	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeLogic::JumpActorDelegate),
+		QuakeEventDataJumpActor::skEventType);
+	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeLogic::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeLogic::RotateActorDelegate),
+		QuakeEventDataRotateActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeLogic::StartThrustDelegate), 
 		QuakeEventDataStartThrust::skEventType);
@@ -412,8 +450,14 @@ void QuakeLogic::RemoveAllDelegates(void)
 	}
 
 	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeLogic::JumpActorDelegate),
+		QuakeEventDataJumpActor::skEventType);
+	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeLogic::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeLogic::RotateActorDelegate),
+		QuakeEventDataRotateActor::skEventType);
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeLogic::StartThrustDelegate), 
 		QuakeEventDataStartThrust::skEventType);
@@ -462,7 +506,13 @@ void QuakeLogic::CreateNetworkEventForwarder(const int socketId)
 		QuakeEventDataFireWeapon::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		QuakeEventDataJumpActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 		QuakeEventDataMoveActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		QuakeEventDataRotateActor::skEventType);
 
 	mNetworkEventForwarders.push_back(pNetworkEventForwarder);
 }
@@ -501,7 +551,13 @@ void QuakeLogic::DestroyAllNetworkEventForwarders(void)
 			QuakeEventDataFireWeapon::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataJumpActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataMoveActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataRotateActor::skEventType);
 
 		delete networkEventForwarder;
 	}

@@ -68,7 +68,6 @@ public:
     // Physics functions
     void ApplyForce(const Vector3<float>& direction, float forceNewtons);
     void ApplyTorque(const Vector3<float>& direction, float forceNewtons);
-	bool KinematicMove(const Transform& transform);
 
     // acceleration
     void ApplyAcceleration(float acceleration);
@@ -76,15 +75,26 @@ public:
     void ApplyAngularAcceleration(float acceleration);
     void RemoveAngularAcceleration(void);
 
+	//Character controller
+	void KinematicJump(const Vector3<float>& direction);
+	void KinematicMove(const Vector3<float>& direction);
+	bool OnGround(void);
+
 	Transform GetTransform(void);
+	void SetTransform(const Transform& transform);
+
     Vector3<float> GetScale(void);
 	Vector3<float> GetVelocity(void);
-	eastl::string GetMesh(void) { return mMesh; }
-	eastl::string GetShape(void) { return mShape; }
     void SetVelocity(const Vector3<float>& velocity);
     void SetPosition(float x, float y, float z);
+	void SetRotation(const Transform& transform);
     void Stop(void);
 
+	eastl::string GetMesh(void) { return mMesh; }
+	eastl::string GetShape(void) { return mShape; }
+	Vector3<float> GetScaleOffset(void) { return mRigidBodyScale; }
+	Vector3<float> GetPositionOffset(void) { return mRigidBodyLocation; }
+	Vector3<float> GetOrientationOffset(void) { return mRigidBodyOrientation; }
 
 protected:
     void BuildRigidBodyTransform(tinyxml2::XMLElement* pTransformElement);

@@ -194,7 +194,9 @@ HICON QuakeApp::VGetIcon()
 
 void QuakeApp::RegisterGameEvents(void)
 {
+	REGISTER_EVENT(QuakeEventDataJumpActor);
 	REGISTER_EVENT(QuakeEventDataMoveActor);
+	REGISTER_EVENT(QuakeEventDataRotateActor);
     REGISTER_EVENT(QuakeEventDataStartThrust);
     REGISTER_EVENT(QuakeEventDataEndThrust);
     REGISTER_EVENT(QuakeEventDataStartSteer);
@@ -217,7 +219,13 @@ void QuakeApp::CreateNetworkEventForwarder(void)
 			QuakeEventDataFireWeapon::skEventType);
 		pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataJumpActor::skEventType);
+		pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataMoveActor::skEventType);
+		pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataRotateActor::skEventType);
         pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), 
 			QuakeEventDataStartThrust::skEventType);
@@ -250,7 +258,13 @@ void QuakeApp::DestroyNetworkEventForwarder(void)
 			QuakeEventDataFireWeapon::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataJumpActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataMoveActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataRotateActor::skEventType);
         eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataStartThrust::skEventType);

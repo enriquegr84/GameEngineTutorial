@@ -67,6 +67,9 @@ public:
 	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
 		/*const Matrix4x4<float>& initialTransform, */
 		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
+	virtual void AddCharacterController(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> actor,
+		/*const Matrix4x4<float>& initialTransform, */
+		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
 	virtual void AddSphere(float radius, eastl::weak_ptr<Actor> actor, 
 		/*const Matrix4x4<float>& initialTransform, */
 		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
@@ -86,17 +89,21 @@ public:
 	virtual void CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) = 0;
 	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
 	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
-	virtual bool KinematicMove(const Transform &mat, ActorId aid) = 0;
 
 	// Physics actor states
+	virtual bool OnGround(ActorId actorId) = 0;
+	virtual void Jump(ActorId actorId, const Vector3<float>& dir) = 0;
+	virtual void WalkDirection(ActorId actorId, const Vector3<float>& dir) = 0;
+
 	virtual void StopActor(ActorId actorId) = 0;
 	virtual Vector3<float> GetScale(ActorId actorId) = 0;
 	virtual Vector3<float> GetVelocity(ActorId actorId) = 0;
 	virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel) = 0;
+	virtual void SetPosition(ActorId actorId, const Vector3<float> &pos) = 0;
+	virtual void SetRotation(ActorId actorId, const Transform &mat) = 0;
 	virtual Vector3<float> GetAngularVelocity(ActorId actorId) = 0;
 	virtual void SetAngularVelocity(ActorId actorId, const Vector3<float>& vel) = 0;
 	virtual void Translate(ActorId actorId, const Vector3<float>& vec) = 0;
-
 	virtual void SetTransform(const ActorId id, const Transform& mat) = 0;
 	virtual Transform GetTransform(const ActorId id) = 0;
 

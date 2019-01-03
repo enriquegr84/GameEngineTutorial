@@ -63,13 +63,17 @@ protected:
 	float		mYawOnDown;
 
 	// Speed Controls
+	float		mMaxJumpSpeed;
 	float		mMaxMoveSpeed;
 	float		mMaxRotateSpeed;
+	float		mJumpSpeed;
 	float		mMoveSpeed;
 	float		mRotateSpeed;
 
 	// Added for Ch19/20 refactor
 	bool		mWheelRollDown;
+	bool		mMouseRButtonDown;
+	bool		mMouseLButtonDown;
 
 	eastl::shared_ptr<Node> mObject;
 

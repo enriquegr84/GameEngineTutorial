@@ -144,10 +144,10 @@ tinyxml2::XMLElement* PhysicComponent::GenerateXml(void)
     pInitialTransform->LinkEndChild(pPosition);
 
     // initial transform -> orientation
-	tinyxml2::XMLElement* pOrientation = doc.NewElement("Orientation");
-    pOrientation->SetAttribute("yaw", eastl::to_string(mRigidBodyOrientation[0]).c_str());
-    pOrientation->SetAttribute("pitch", eastl::to_string(mRigidBodyOrientation[1]).c_str());
-    pOrientation->SetAttribute("roll", eastl::to_string(mRigidBodyOrientation[2]).c_str());
+	tinyxml2::XMLElement* pOrientation = doc.NewElement("YawPitchRoll");
+    pOrientation->SetAttribute("x", eastl::to_string(mRigidBodyOrientation[0]).c_str());
+    pOrientation->SetAttribute("y", eastl::to_string(mRigidBodyOrientation[1]).c_str());
+    pOrientation->SetAttribute("z", eastl::to_string(mRigidBodyOrientation[2]).c_str());
     pInitialTransform->LinkEndChild(pOrientation);
 
 	// initial transform -> scale 
@@ -180,6 +180,10 @@ void PhysicComponent::PostInit(void)
 		else if (mShape == "Box")
 		{
 			gamePhysics->AddBox(mRigidBodyScale, mOwner, mDensity, mMaterial);
+		}
+		else if (mShape == "Controller")
+		{
+			gamePhysics->AddCharacterController(mRigidBodyScale, mOwner, mDensity, mMaterial);
 		}
 		else if (mShape == "BSP")
 		{
@@ -256,16 +260,16 @@ void PhysicComponent::BuildRigidBodyTransform(tinyxml2::XMLElement* pTransformEl
 		mRigidBodyLocation = Vector3<float>{ x, y, z };
     }
 
-	tinyxml2::XMLElement* pOrientationElement = pTransformElement->FirstChildElement("Orientation");
+	tinyxml2::XMLElement* pOrientationElement = pTransformElement->FirstChildElement("YawPitchRoll");
     if (pOrientationElement)
     {
 		float yaw = 0;
 		float pitch = 0;
 		float roll = 0;
-        yaw = pPositionElement->FloatAttribute("yaw", yaw);
-        pitch = pPositionElement->FloatAttribute("pitch", pitch);
-        roll = pPositionElement->FloatAttribute("roll", roll);
-		mRigidBodyOrientation = Vector3<float>{ yaw, pitch, roll };
+        roll = pOrientationElement->FloatAttribute("x", roll);
+		pitch = pOrientationElement->FloatAttribute("y", pitch);
+		yaw = pOrientationElement->FloatAttribute("z", yaw);
+		mRigidBodyOrientation = Vector3<float>{ roll, pitch, yaw };
     }
 
 	tinyxml2::XMLElement* pScaleElement = pTransformElement->FirstChildElement("Scale");
@@ -293,12 +297,6 @@ void PhysicComponent::ApplyTorque(const Vector3<float>& direction, float forceNe
     gamePhysics->ApplyTorque(direction, forceNewtons, mOwner->GetId());
 }
 
-bool PhysicComponent::KinematicMove(const Transform &transform)
-{
-	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
-	return gamePhysics->KinematicMove(transform, mOwner->GetId());
-}
-
 void PhysicComponent::ApplyAcceleration(float acceleration)
 {
     mAcceleration = acceleration;
@@ -319,6 +317,24 @@ void PhysicComponent::RemoveAngularAcceleration(void)
     mAngularAcceleration = 0;
 }
 
+void PhysicComponent::KinematicJump(const Vector3<float>& direction)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	gamePhysics->Jump(mOwner->GetId(), direction);
+}
+
+void PhysicComponent::KinematicMove(const Vector3<float>& direction)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	gamePhysics->WalkDirection(mOwner->GetId(), direction);
+}
+
+bool PhysicComponent::OnGround()
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	return gamePhysics->OnGround(mOwner->GetId());
+}
+
 Vector3<float> PhysicComponent::GetScale(void)
 {
 	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
@@ -331,32 +347,34 @@ Vector3<float> PhysicComponent::GetVelocity(void)
     return gamePhysics->GetVelocity(mOwner->GetId());
 }
 
-Transform PhysicComponent::GetTransform(void)
-{
-	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
-	return gamePhysics->GetTransform(mOwner->GetId());
-}
-
 void PhysicComponent::SetVelocity(const Vector3<float>& velocity)
 {
 	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
     gamePhysics->SetVelocity(mOwner->GetId(), velocity);
 }
 
+Transform PhysicComponent::GetTransform(void)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	return gamePhysics->GetTransform(mOwner->GetId());
+}
+
+void PhysicComponent::SetTransform(const Transform& transform)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	gamePhysics->SetTransform(mOwner->GetId(), transform);
+}
+
+void PhysicComponent::SetRotation(const Transform& transform)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	gamePhysics->SetRotation(mOwner->GetId(), transform);
+}
+
 void PhysicComponent::SetPosition(float x, float y, float z)
 {
-    eastl::shared_ptr<TransformComponent> pTransformComponent(
-		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-    if (pTransformComponent)
-    {
-		Transform transform = GetTransform();
-		Vector3<float> position = Vector3<float>{ x, y, z };
-        transform.SetTranslation(position);
-
-        KinematicMove(transform);
-    }
-    else
-        LogError("Attempting to call SetPosition() on actor with no trnasform component");
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	gamePhysics->SetPosition(mOwner->GetId(), Vector3<float>{x, y, z});
 }
 
 void PhysicComponent::Stop(void)

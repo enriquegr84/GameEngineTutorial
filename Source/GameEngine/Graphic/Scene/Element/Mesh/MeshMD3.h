@@ -160,7 +160,7 @@ enum MD3AnimationType
 
 	// The final block is the animations that the legs perform
 
-	LEGS_WALKCR,			// The legs's crouching walk animation
+	LEGS_WALKCR = 6,		// The legs's crouching walk animation
 	LEGS_WALK,				// The legs's walk animation
 	LEGS_RUN,				// The legs's run animation
 	LEGS_BACK,				// The legs's running backwards animation
@@ -178,12 +178,12 @@ enum MD3AnimationType
 	LEGS_TURN,				// The legs's turn animation
 
 	//! Not an animation, but amount of animation types.
-	ANIMATION_COUNT
+	ANIMATION_COUNT = 25
 };
 
 struct AnimationData
 {
-	AnimationData() : mAnimationType(BOTH_DEATH1), 
+	AnimationData() : mAnimationType(0), 
 		mBeginFrame(0), mEndFrame(0), mLoopFrame(0), mFramesPerSecond(0.f)
 	{
 
@@ -193,7 +193,7 @@ struct AnimationData
 	int mEndFrame;
 	int mLoopFrame;
 	float mFramesPerSecond;
-	MD3AnimationType mAnimationType;
+	int mAnimationType;
 };
 
 //! Holding Frame Data for a Mesh

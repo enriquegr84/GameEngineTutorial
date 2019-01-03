@@ -267,6 +267,22 @@ void GameDemoLogic::NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEvent
 	LogError("Could not find HumanView to attach actor to!");
 }
 
+void GameDemoLogic::JumpActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<EventDataJumpActor> pCastEventData =
+		eastl::static_pointer_cast<EventDataJumpActor>(pEventData);
+
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
+	if (pGameActor)
+	{
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+			pPhysicalComponent->KinematicJump(pCastEventData->GetDirection());
+	}
+}
+
 void GameDemoLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 {
 	eastl::shared_ptr<EventDataMoveActor> pCastEventData =
@@ -279,7 +295,23 @@ void GameDemoLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
-			pPhysicalComponent->KinematicMove(pCastEventData->GetTransform());
+			pPhysicalComponent->KinematicMove(pCastEventData->GetDirection());
+	}
+}
+
+void GameDemoLogic::RotateActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<EventDataRotateActor> pCastEventData =
+		eastl::static_pointer_cast<EventDataRotateActor>(pEventData);
+
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
+	if (pGameActor)
+	{
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+			pPhysicalComponent->SetRotation(pCastEventData->GetTransform());
 	}
 }
 
@@ -351,8 +383,14 @@ void GameDemoLogic::RegisterAllDelegates(void)
 		MakeDelegate(this, &GameDemoLogic::SyncActorDelegate),
 		EventDataSyncActor::skEventType);
 	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::JumpActorDelegate),
+		EventDataJumpActor::skEventType);
+	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &GameDemoLogic::MoveActorDelegate), 
 		EventDataMoveActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &GameDemoLogic::RotateActorDelegate),
+		EventDataRotateActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &GameDemoLogic::RequestStartGameDelegate), 
 		EventDataRequestStartGame::skEventType);
@@ -391,8 +429,14 @@ void GameDemoLogic::RemoveAllDelegates(void)
 		MakeDelegate(this, &GameDemoLogic::SyncActorDelegate),
 		EventDataSyncActor::skEventType);
 	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::JumpActorDelegate),
+		EventDataJumpActor::skEventType);
+	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &GameDemoLogic::MoveActorDelegate), 
 		EventDataMoveActor::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &GameDemoLogic::RotateActorDelegate),
+		EventDataRotateActor::skEventType);
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &GameDemoLogic::RequestStartGameDelegate), 
 		EventDataRequestStartGame::skEventType);
@@ -452,8 +496,14 @@ void GameDemoLogic::CreateNetworkEventForwarder(const int socketId)
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 		EventDataSyncActor::skEventType);
 	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		EventDataJumpActor::skEventType);
+	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 		EventDataMoveActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		EventDataRotateActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 		EventDataRequestNewActor::skEventType);
@@ -490,8 +540,14 @@ void GameDemoLogic::DestroyAllNetworkEventForwarders(void)
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 			EventDataSyncActor::skEventType);
 		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			EventDataJumpActor::skEventType);
+		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataMoveActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			EventDataRotateActor::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataRequestNewActor::skEventType);

@@ -95,12 +95,74 @@ public:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// QuakeEventDataJumpActor - sent when actor jumps
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataJumpActor : public EventData
+{
+	ActorId mId;
+	Vector3<float> mDirection;
+
+public:
+	static const BaseEventType skEventType;
+
+	virtual const BaseEventType& GetEventType(void) const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataJumpActor(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataJumpActor(ActorId id, const Vector3<float>& dir)
+		: mId(id), mDirection(dir)
+	{
+		//
+	}
+
+	virtual void Serialize(std::ostrstream &out) const
+	{
+		out << mId << " ";
+		for (int i = 0; i<4; ++i)
+			out << mDirection[i] << " ";
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
+		for (int i = 0; i<4; ++i)
+			in >> mDirection[i];
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataJumpActor(mId, mDirection));
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataJumpActor";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+
+	const Vector3<float>& GetDirection(void) const
+	{
+		return mDirection;
+	}
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // QuakeEventDataMoveActor - sent when actors are moved
 //---------------------------------------------------------------------------------------------------------------------
 class QuakeEventDataMoveActor : public EventData
 {
 	ActorId mId;
-	Transform mTransform;
+	Vector3<float> mDirection;
 
 public:
 	static const BaseEventType skEventType;
@@ -115,7 +177,69 @@ public:
 		mId = INVALID_ACTOR_ID;
 	}
 
-	QuakeEventDataMoveActor(ActorId id, const Transform& trans)
+	QuakeEventDataMoveActor(ActorId id, const Vector3<float>& dir)
+		: mId(id), mDirection(dir)
+	{
+		//
+	}
+
+	virtual void Serialize(std::ostrstream &out) const
+	{
+		out << mId << " ";
+		for (int i = 0; i<4; ++i)
+			out << mDirection[i] << " ";
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
+		for (int i = 0; i<4; ++i)
+			in >> mDirection[i];
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataMoveActor(mId, mDirection));
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataMoveActor";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+
+	const Vector3<float>& GetDirection(void) const
+	{
+		return mDirection;
+	}
+};
+
+//---------------------------------------------------------------------------------------------------------------------
+// QuakeEventDataRotateActor - sent when actors are moved
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataRotateActor : public EventData
+{
+	ActorId mId;
+	Transform mTransform;
+
+public:
+	static const BaseEventType skEventType;
+
+	virtual const BaseEventType& GetEventType(void) const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataRotateActor(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataRotateActor(ActorId id, const Transform& trans)
 		: mId(id), mTransform(trans)
 	{
 		//
@@ -141,12 +265,12 @@ public:
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new QuakeEventDataMoveActor(mId, mTransform));
+		return BaseEventDataPtr(new QuakeEventDataRotateActor(mId, mTransform));
 	}
 
 	virtual const char* GetName(void) const
 	{
-		return "QuakeEventDataMoveActor";
+		return "QuakeEventDataRotateActor";
 	}
 
 	ActorId GetId(void) const

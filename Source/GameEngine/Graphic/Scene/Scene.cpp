@@ -614,24 +614,18 @@ void Scene::SyncActorDelegate(BaseEventDataPtr pEventData)
 		pNode->GetRelativeTransform() = pCastEventData->GetTransform();
 		pNode->GetRelativeTransform().SetScale(actorScale);
 
-		//not the best strategy to calculate a surrounding bound in the model
-		//would be better approach if we compute an aabb
-		BoundingSphere actorBound;
-		for (unsigned int v = 0; v < pNode->GetVisualCount(); v++)
+		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
+		eastl::shared_ptr<PhysicComponent> pPhysicComponent(
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
+		if (pPhysicComponent)
 		{
-			eastl::shared_ptr<Visual> visual = pNode->GetVisual(v);
-			if (visual->mModelBound.GetRadius() > actorBound.GetRadius())
-				actorBound = pNode->GetVisual(v)->mModelBound;
-		}
-
-		if (actorBound.GetRadius() != 0.f)
-		{
+			Vector4<float> actorPosOffset = HLift(pPhysicComponent->GetPositionOffset(), 0.f);
 			Vector3<float> actorTranslation = pNode->GetRelativeTransform().GetTranslation();
 			Matrix4x4<float> actorRotation = pNode->GetRelativeTransform().GetRotation();
 #if defined(GE_USE_MAT_VEC)
-			actorTranslation -= HProject(actorRotation * actorBound.GetCenter());
+			actorTranslation -= HProject(actorRotation * actorPosOffset);
 #else
-			actorTranslation -= HProject(actorBound.GetCenter() * actorRotation);
+			actorTranslation -= HProject(actorPosOffset * actorRotation);
 #endif
 			pNode->GetRelativeTransform().SetTranslation(actorTranslation);
 		}

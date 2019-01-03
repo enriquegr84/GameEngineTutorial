@@ -40,7 +40,9 @@
 #include "GameDemoEvents.h"
 
 const BaseEventType EventDataFireWeapon::skEventType(0x1b15b6a7);
+const BaseEventType EventDataJumpActor::skEventType(0xfeee009e);
 const BaseEventType EventDataMoveActor::skEventType(0xeeaa0a40);
+const BaseEventType EventDataRotateActor::skEventType(0xed6973fe);
 const BaseEventType EventDataStartThrust::skEventType(0x1d62d48c);
 const BaseEventType EventDataEndThrust::skEventType(0xe60f88a4);
 const BaseEventType EventDataStartSteer::skEventType(0xf0b5b4fd);

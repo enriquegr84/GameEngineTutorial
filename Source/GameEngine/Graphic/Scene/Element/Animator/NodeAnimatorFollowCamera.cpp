@@ -37,22 +37,31 @@ void NodeAnimatorFollowCamera::AnimateNode(Scene* pScene, Node* node, unsigned i
 	if (pScene->GetActiveCamera().get() != camera || !camera->GetTarget())
 		return;
 
-	// set the camera behind the node and project it towards node direction
-	Matrix4x4<float> yawRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(2), 180 * (float)GE_C_DEG_TO_RAD));
-	camera->GetAbsoluteTransform().SetRotation(
-		camera->GetTarget()->GetAbsoluteTransform() * yawRotation);
-	Vector4<float> translation = camera->GetTarget()->GetAbsoluteTransform().GetTranslationW1();
-	Vector4<float> direction = Vector4<float>::Unit(1); // forward vector
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(camera->GetTarget()->GetId()).lock());
+	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
+		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
+	if (pPhysicComponent)
+	{
+		float yaw = 180 + pPhysicComponent->GetOrientationOffset()[2];
+
+		// set the camera behind the node and project it towards node direction
+		Matrix4x4<float> yawRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(2), yaw * (float)GE_C_DEG_TO_RAD));
+		Transform targetTransform = pPhysicComponent->GetTransform();
+		camera->GetAbsoluteTransform().SetRotation(targetTransform.GetRotation() * yawRotation);
+		Vector4<float> translation = targetTransform.GetTranslationW1();
+		Vector4<float> direction = Vector4<float>::Unit(1); // forward vector
 #if defined(GE_USE_MAT_VEC)
-	direction = camera->GetAbsoluteTransform() * direction;
+		direction = camera->GetAbsoluteTransform() * direction;
 #else
-	direction = direction * camera->GetAbsoluteTransform();
+		direction = direction * camera->GetAbsoluteTransform();
 #endif
 
-	float scale = 60;
-	Vector4<float> offset{ 0, 0, 80, 0 };
-	camera->GetAbsoluteTransform().SetTranslation(translation - direction * scale + offset);
+		float scale = 80;
+		Vector4<float> offset{ 0, 0, 60, 0 };
+		camera->GetAbsoluteTransform().SetTranslation(translation - direction * scale + offset);
+	}
 }
 
 //! Sets the rotation speed

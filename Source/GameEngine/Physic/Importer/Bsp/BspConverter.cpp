@@ -51,7 +51,7 @@ void BspConverter::ConvertBsp(BspLoader& bspLoader,float scaling)
 	for (int i=0;i<bspLoader.mNumLeafs;i++)
 	{
 		char info[128];
-		sprintf(info, "Reading bspLeaf %i from total %i (%f procent)\n",
+		sprintf(info, "Reading bspLeaf %i from total %i (%f percent)\n",
 			i, bspLoader.mNumLeafs, (100.f*(float)i / float(bspLoader.mNumLeafs)));
 		printf(info);
 			

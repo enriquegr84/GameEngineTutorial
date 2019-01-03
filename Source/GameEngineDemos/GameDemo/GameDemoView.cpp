@@ -755,8 +755,10 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 					{
 						GameDemoLogic* twg = static_cast<GameDemoLogic *>(GameLogic::Get());
 						twg->ToggleRenderDiagnostics();
+						/*
 						for (auto child : mScene->GetRootNode()->GetChildren())
 							child->SetVisible(!child->IsVisible());
+						*/
 						return true;
 					}	
 

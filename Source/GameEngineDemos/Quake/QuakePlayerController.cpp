@@ -59,9 +59,11 @@ QuakePlayerController::QuakePlayerController(
 	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
 	mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
-	mMaxMoveSpeed = 300.0f;
+	mMaxMoveSpeed = 8.0f;
+	mMaxJumpSpeed = 5.0f;
 	mMaxRotateSpeed = 180.0f;
-	mMoveSpeed = 0.0f;
+	mJumpSpeed = 5.0f;
+	mMoveSpeed = 6.0f;
 	mRotateSpeed = 0.0f;
 
 	//Point cursor;
@@ -71,6 +73,9 @@ QuakePlayerController::QuakePlayerController(
 	mLastMousePos = Vector2<int>{ (int)cursorPosition[0], (int)cursorPosition[1] };
 
 	memset(mKey, 0x00, sizeof(mKey));
+
+	mMouseRButtonDown = false;
+	mMouseLButtonDown = false;
 }
 
 //
@@ -79,12 +84,42 @@ QuakePlayerController::QuakePlayerController(
 bool QuakePlayerController::OnMouseButtonDown(
 	const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
 {
+	if (buttonName == "PointerLeft")
+	{
+		mMouseLButtonDown = true;
+
+		// We want mouse movement to be relative to the position
+		// the cursor was at when the user first presses down on
+		// the left button
+		mLastMousePos = mousePos;
+		return true;
+	}
+	else if (buttonName == "PointerRight")
+	{
+		mMouseRButtonDown = true;
+
+		// We want mouse movement to be relative to the position
+		// the cursor was at when the user first presses down on
+		// the right button
+		mLastMousePos = mousePos;
+		return true;
+	}
 	return false;
 }
 
 bool QuakePlayerController::OnMouseButtonUp(
 	const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
 {
+	if (buttonName == "PointerLeft")
+	{
+		mMouseLButtonDown = false;
+		return true;
+	}
+	else if (buttonName == "PointerRight")
+	{
+		mMouseRButtonDown = false;
+		return true;
+	}
 	return false;
 }
 
@@ -138,14 +173,8 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		}
 	}
 
-	//Handling rotation as a result of mouse position
 	Matrix4x4<float> rotation;
-
-	eastl::shared_ptr<Actor> pGameActor(
-		GameLogic::Get()->GetActor(mObject->GetId()).lock());
-	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
-		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
-	if (pPhysicComponent)
+	//Handling rotation as a result of mouse position
 	{
 		mPitch = eastl::max(-45.f, eastl::min(45.f, mPitch));
 
@@ -155,12 +184,10 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
 		rotation = -yawRotation;
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(0), -mPitch * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(1), -mPitch * (float)GE_C_DEG_TO_RAD));
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
-		mAbsoluteTransform.SetTranslation(pPhysicComponent->GetTransform().GetTranslation());
 	}
 
-	bool isTranslating = false;
 	Vector4<float> atWorld = Vector4<float>::Zero();
 	Vector4<float> rightWorld = Vector4<float>::Zero();
 	Vector4<float> upWorld = Vector4<float>::Zero();
@@ -170,17 +197,15 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		// This will give us the "look at" vector 
 		// in world space - we'll use that to move
 		// the camera.
-		atWorld = Vector4<float>::Unit(1); // forward vector
+		atWorld = Vector4<float>::Unit(0); // forward vector
 #if defined(GE_USE_MAT_VEC)
 		atWorld = rotation * atWorld;
 #else
 		atWorld = atWorld * rotation;
 #endif
 
-		if (mKey[KEY_KEY_S])
+		if (mKey[KEY_KEY_W])
 			atWorld *= -1.f;
-
-		isTranslating = true;
 	}
 
 	if (mKey[KEY_KEY_A] || mKey[KEY_KEY_D])
@@ -188,7 +213,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		// This will give us the "look right" vector 
 		// in world space - we'll use that to move
 		// the camera.
-		rightWorld = Vector4<float>::Unit(0); // right vector
+		rightWorld = Vector4<float>::Unit(1); // right vector
 #if defined(GE_USE_MAT_VEC)
 		rightWorld = rotation * rightWorld;
 #else
@@ -197,10 +222,8 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 		if (mKey[KEY_KEY_A])
 			rightWorld *= -1.f;
-
-		isTranslating = true;
 	}
-
+	/*
 	if (mKey[KEY_SPACE] || mKey[KEY_KEY_C] || mKey[KEY_KEY_X])
 	{
 		//Unlike strafing, Up is always up no matter
@@ -214,25 +237,48 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 		if (mKey[KEY_SPACE])
 			upWorld *= -1.f;
-
-		isTranslating = true;
 	}
-
-	if (mEnabled && isTranslating)
-	{
-		float elapsedTime = (float)deltaMs / 1000.0f;
-
-		Vector4<float> direction = atWorld + rightWorld + upWorld;
-		Normalize(direction);
-
-		mMoveSpeed = mMaxMoveSpeed;
-		direction *= mMoveSpeed * elapsedTime;
-		Vector4<float> pos = mAbsoluteTransform.GetTranslationW0() + direction;
-		mAbsoluteTransform.SetTranslation(pos);
-	}
-
+	*/
 	const ActorId actorId = mObject->GetId();
-	eastl::shared_ptr<QuakeEventDataMoveActor> pEvent(
-		new QuakeEventDataMoveActor(actorId, mAbsoluteTransform));
-	EventManager::Get()->TriggerEvent(pEvent);
+	eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
+	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
+		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
+	if (pPhysicComponent)
+	{
+		Vector4<float> velocity = Vector4<float>::Zero();
+		if (pPhysicComponent->OnGround())
+		{
+			if (mEnabled)
+			{
+				if (mMouseRButtonDown)
+				{
+					upWorld = Vector4<float>::Unit(2);
+					Vector4<float> direction = atWorld + rightWorld + upWorld;
+					Normalize(direction);
+
+					direction[0] *= mMaxMoveSpeed;
+					direction[1] *= mMaxMoveSpeed;
+					direction[2] *= mJumpSpeed;
+					velocity = direction;
+
+					EventManager::Get()->TriggerEvent(
+						eastl::make_shared<QuakeEventDataJumpActor>(actorId, HProject(velocity)));
+				}
+				else
+				{
+					Vector4<float> direction = atWorld + rightWorld + upWorld;
+					Normalize(direction);
+
+					direction *= mMoveSpeed;
+					velocity = direction;
+				}
+			}
+
+			EventManager::Get()->TriggerEvent(
+				eastl::make_shared<QuakeEventDataMoveActor>(actorId, HProject(velocity)));
+		}
+
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<QuakeEventDataRotateActor>(actorId, mAbsoluteTransform));
+	}
 }

@@ -370,13 +370,12 @@ void MD3Mesh::BuildFrameNr(bool loop, unsigned int elapsedTimeMs)
 		if (mAnimations[mCurrentAnimation].mBeginFrame == mAnimations[mCurrentAnimation].mEndFrame)
 		{
 			//Support for non animated meshes
-			mCurrentFrame = mAnimations[mCurrentAnimation].mBeginFrame;
+			mCurrentFrame = (float)mAnimations[mCurrentAnimation].mBeginFrame;
 		}
 		else if (loop)
 		{
 			// play animation looped
 			mCurrentFrame += elapsedTimeMs * mAnimations[mCurrentAnimation].mFramesPerSecond * 0.001f;
-			printf("name %s, frame %f, time %u\n", mName.c_str(), mCurrentFrame, elapsedTimeMs);
 
 			// We have no interpolation between EndFrame and StartFrame,
 			// the last frame must be identical to first one with our current solution.
@@ -384,14 +383,14 @@ void MD3Mesh::BuildFrameNr(bool loop, unsigned int elapsedTimeMs)
 			{
 				if (mCurrentFrame > mAnimations[mCurrentAnimation].mEndFrame)
 				{
-					mCurrentFrame = mAnimations[mCurrentAnimation].mBeginFrame;
+					mCurrentFrame = (float)mAnimations[mCurrentAnimation].mBeginFrame;
 				}
 			}
 			else //backwards...
 			{
 				if (mCurrentFrame < mAnimations[mCurrentAnimation].mBeginFrame)
 				{
-					mCurrentFrame = mAnimations[mCurrentAnimation].mEndFrame;
+					mCurrentFrame = (float)mAnimations[mCurrentAnimation].mEndFrame;
 				}
 			}
 		}
@@ -404,14 +403,14 @@ void MD3Mesh::BuildFrameNr(bool loop, unsigned int elapsedTimeMs)
 			{
 				if (mCurrentFrame > mAnimations[mCurrentAnimation].mEndFrame)
 				{
-					mCurrentFrame = mAnimations[mCurrentAnimation].mEndFrame;
+					mCurrentFrame = (float)mAnimations[mCurrentAnimation].mEndFrame;
 				}
 			}
 			else //backwards...
 			{
 				if (mCurrentFrame < mAnimations[mCurrentAnimation].mBeginFrame)
 				{
-					mCurrentFrame = mAnimations[mCurrentAnimation].mBeginFrame;
+					mCurrentFrame = (float)mAnimations[mCurrentAnimation].mBeginFrame;
 				}
 			}
 		}

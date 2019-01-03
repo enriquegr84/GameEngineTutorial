@@ -69,16 +69,16 @@ bool TransformComponent::Init(tinyxml2::XMLElement* pData)
         float yaw = 0;
 		float pitch = 0;
 		float roll = 0;
-        yaw = pOrientationElement->FloatAttribute("x", yaw);
-        pitch = pOrientationElement->FloatAttribute("y", pitch);
-        roll = pOrientationElement->FloatAttribute("z", roll);
+		roll = pOrientationElement->FloatAttribute("x", roll);
+		pitch = pOrientationElement->FloatAttribute("y", pitch);
+        yaw = pOrientationElement->FloatAttribute("z", yaw);
 
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), yaw * (float)GE_C_DEG_TO_RAD));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(0), pitch * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(1), pitch * (float)GE_C_DEG_TO_RAD));
 		Matrix4x4<float> rollRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), roll * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(0), roll * (float)GE_C_DEG_TO_RAD));
 
 		rotation = yawRotation * pitchRotation * rollRotation;
 	};

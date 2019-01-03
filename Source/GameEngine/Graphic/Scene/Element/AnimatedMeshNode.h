@@ -200,7 +200,7 @@ public:
 
 private:
 
-	void Render(unsigned int& visual, bool isTransparentPass, bool isInterpolation, Scene *pScene, 
+	void Render(unsigned int& visual, bool isTransparentPass, Scene *pScene, 
 		eastl::vector<Transform> interpolations, eastl::shared_ptr<MD3Mesh> pMesh);
 
 	//! Get a static mesh for the current frame of this animated mesh

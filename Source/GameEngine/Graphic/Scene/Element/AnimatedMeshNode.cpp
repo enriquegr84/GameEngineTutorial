@@ -167,14 +167,14 @@ void AnimatedMeshNode::BuildFrameNr(unsigned int timeMs)
 		{
 			if (mCurrentFrameNr > mEndFrame)
 			{
-				mCurrentFrameNr = mStartFrame;
+				mCurrentFrameNr = (float)mStartFrame;
 			}
 		}
 		else //backwards...
 		{
 			if (mCurrentFrameNr < mStartFrame)
 			{
-				mCurrentFrameNr = mEndFrame;
+				mCurrentFrameNr = (float)mEndFrame;
 			}
 		}
 	}
@@ -253,7 +253,7 @@ eastl::shared_ptr<BaseMesh> AnimatedMeshNode::GetMeshForCurrentFrame()
 			{
 				if (mesh->GetAnimationCount())
 				{
-					frameNr = mesh->GetCurrentFrame();
+					frameNr = (int)mesh->GetCurrentFrame();
 					frameBlend = (int)(Function<float>::Fract(mesh->GetCurrentFrame() * 1000.f));
 					beginFrame = mesh->GetAnimation(mesh->GetCurrentAnimation()).mBeginFrame;
 					endFrame = mesh->GetAnimation(mesh->GetCurrentAnimation()).mEndFrame;
@@ -356,13 +356,11 @@ bool AnimatedMeshNode::PreRender(Scene* pScene)
 	return Node::PreRender(pScene);
 }
 
-void AnimatedMeshNode::Render(unsigned int& visual, bool isTransparentPass, bool isInterpolation,
+void AnimatedMeshNode::Render(unsigned int& visual, bool isTransparentPass,
 	Scene *pScene, eastl::vector<Transform> interpolations, eastl::shared_ptr<MD3Mesh> pMesh)
 {
 	if (pMesh->IsTagMesh())
 	{
-		isInterpolation = true;
-
 		Transform tagInterpolation;
 		tagInterpolation.SetRotation(pMesh->GetTagInterpolation().mRotation);
 		tagInterpolation.SetTranslation(pMesh->GetTagInterpolation().mPosition);
@@ -396,7 +394,7 @@ void AnimatedMeshNode::Render(unsigned int& visual, bool isTransparentPass, bool
 				Matrix4x4<float> pvMatrix = pScene->GetActiveCamera()->Get()->GetProjectionViewMatrix();
 				cbuffer = mVisuals[visual]->GetEffect()->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
 
-				if (isInterpolation)
+				//if (isInterpolation)
 				{
 					Matrix4x4<float> interpolation = Matrix4x4<float>::Identity();
 					eastl::vector<Transform>::reverse_iterator it;
@@ -431,7 +429,7 @@ void AnimatedMeshNode::Render(unsigned int& visual, bool isTransparentPass, bool
 	for (unsigned int n = 0; n < pMesh->GetChildren().size(); n++)
 	{
 		eastl::shared_ptr<MD3Mesh> pChild = pMesh->GetChildren()[n];
-		Render(visual, isTransparentPass, isInterpolation, pScene, interpolations, pChild);
+		Render(visual, isTransparentPass, pScene, interpolations, pChild);
 	}
 }
 
@@ -454,7 +452,7 @@ bool AnimatedMeshNode::Render(Scene* pScene)
 		AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(mCurrentFrameMesh.get());
 
 		eastl::vector<Transform> interpolations{ mWorldTransform };
-		Render(visual, isTransparentPass, false, pScene, interpolations, animMeshMD3->GetMD3Mesh());
+		Render(visual, isTransparentPass, pScene, interpolations, animMeshMD3->GetMD3Mesh());
 	}
 	else
 	{

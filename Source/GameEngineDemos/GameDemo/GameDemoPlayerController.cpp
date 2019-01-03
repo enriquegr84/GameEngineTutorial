@@ -59,9 +59,11 @@ GameDemoPlayerController::GameDemoPlayerController(
 	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
 	mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
-	mMaxMoveSpeed = 300.0f;
+	mMaxMoveSpeed = 8.0f;
+	mMaxJumpSpeed = 4.0f;
 	mMaxRotateSpeed = 180.0f;
-	mMoveSpeed = 0.0f;
+	mJumpSpeed = 4.0f;
+	mMoveSpeed = 6.0f;
 	mRotateSpeed = 0.0f;
 
 	//Point cursor;
@@ -71,6 +73,9 @@ GameDemoPlayerController::GameDemoPlayerController(
 	mLastMousePos = Vector2<int>{ (int)cursorPosition[0], (int)cursorPosition[1] };
 
 	memset(mKey, 0x00, sizeof(mKey));
+
+	mMouseRButtonDown = false;
+	mMouseLButtonDown = false;
 }
 
 //
@@ -79,12 +84,42 @@ GameDemoPlayerController::GameDemoPlayerController(
 bool GameDemoPlayerController::OnMouseButtonDown(
 	const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
 {
+	if (buttonName == "PointerLeft")
+	{
+		mMouseLButtonDown = true;
+
+		// We want mouse movement to be relative to the position
+		// the cursor was at when the user first presses down on
+		// the left button
+		mLastMousePos = mousePos;
+		return true;
+	}
+	else if (buttonName == "PointerRight")
+	{
+		mMouseRButtonDown = true;
+
+		// We want mouse movement to be relative to the position
+		// the cursor was at when the user first presses down on
+		// the right button
+		mLastMousePos = mousePos;
+		return true;
+	}
 	return false;
 }
 
 bool GameDemoPlayerController::OnMouseButtonUp(
 	const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName)
 {
+	if (buttonName == "PointerLeft")
+	{
+		mMouseLButtonDown = false;
+		return true;
+	}
+	else if (buttonName == "PointerRight")
+	{
+		mMouseRButtonDown = false;
+		return true;
+	}
 	return false;
 }
 
@@ -138,14 +173,8 @@ void GameDemoPlayerController::OnUpdate(unsigned int timeMs, unsigned long delta
 		}
 	}
 
-	//Handling rotation as a result of mouse position
 	Matrix4x4<float> rotation;
-
-	eastl::shared_ptr<Actor> pGameActor(
-		GameLogic::Get()->GetActor(mObject->GetId()).lock());
-	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
-		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
-	if (pPhysicComponent)
+	//Handling rotation as a result of mouse position
 	{
 		mPitch = eastl::max(-45.f, eastl::min(45.f, mPitch));
 
@@ -157,10 +186,8 @@ void GameDemoPlayerController::OnUpdate(unsigned int timeMs, unsigned long delta
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(0), -mPitch * (float)GE_C_DEG_TO_RAD));
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
-		mAbsoluteTransform.SetTranslation(pPhysicComponent->GetTransform().GetTranslation());
 	}
 
-	bool isTranslating = false;
 	Vector4<float> atWorld = Vector4<float>::Zero();
 	Vector4<float> rightWorld = Vector4<float>::Zero();
 	Vector4<float> upWorld = Vector4<float>::Zero();
@@ -179,8 +206,6 @@ void GameDemoPlayerController::OnUpdate(unsigned int timeMs, unsigned long delta
 
 		if (mKey[KEY_KEY_S])
 			atWorld *= -1.f;
-
-		isTranslating = true;
 	}
 
 	if (mKey[KEY_KEY_A] || mKey[KEY_KEY_D])
@@ -197,10 +222,9 @@ void GameDemoPlayerController::OnUpdate(unsigned int timeMs, unsigned long delta
 
 		if (mKey[KEY_KEY_A])
 			rightWorld *= -1.f;
-
-		isTranslating = true;
 	}
 
+	/*
 	if (mKey[KEY_SPACE] || mKey[KEY_KEY_C] || mKey[KEY_KEY_X])
 	{
 		//Unlike strafing, Up is always up no matter
@@ -214,25 +238,48 @@ void GameDemoPlayerController::OnUpdate(unsigned int timeMs, unsigned long delta
 
 		if (mKey[KEY_SPACE])
 			upWorld *= -1.f;
-
-		isTranslating = true;
 	}
-
-	if (mEnabled && isTranslating)
-	{
-		float elapsedTime = (float)deltaMs / 1000.0f;
-
-		Vector4<float> direction = atWorld + rightWorld + upWorld;
-		Normalize(direction);
-
-		mMoveSpeed = mMaxMoveSpeed;
-		direction *= mMoveSpeed * elapsedTime;
-		Vector4<float> pos = mAbsoluteTransform.GetTranslationW0() + direction;
-		mAbsoluteTransform.SetTranslation(pos);
-	}
-
+	*/
 	const ActorId actorId = mObject->GetId();
-	eastl::shared_ptr<EventDataMoveActor> pEvent(
-		new EventDataMoveActor(actorId, mAbsoluteTransform));
-	EventManager::Get()->TriggerEvent(pEvent);
+	eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
+	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
+		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
+	if (pPhysicComponent)
+	{
+		Vector4<float> velocity = Vector4<float>::Zero();
+		if (pPhysicComponent->OnGround())
+		{
+			if (mEnabled)
+			{
+				if (mMouseRButtonDown)
+				{
+					upWorld = Vector4<float>::Unit(2);
+					Vector4<float> direction = atWorld + rightWorld + upWorld;
+					Normalize(direction);
+
+					direction[0] *= mMaxMoveSpeed;
+					direction[1] *= mMaxMoveSpeed;
+					direction[2] *= mJumpSpeed;
+					velocity = direction;
+
+					EventManager::Get()->TriggerEvent(
+						eastl::make_shared<EventDataJumpActor>(actorId, HProject(velocity)));
+				}
+				else
+				{
+					Vector4<float> direction = atWorld + rightWorld + upWorld;
+					Normalize(direction);
+
+					direction *= mMoveSpeed;
+					velocity = direction;
+				}
+			}
+
+			EventManager::Get()->TriggerEvent(
+				eastl::make_shared<EventDataMoveActor>(actorId, HProject(velocity)));
+		}
+
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<EventDataRotateActor>(actorId, mAbsoluteTransform));
+	}
 }

@@ -1,22 +1,19 @@
 <Actor type="Player" resource="actors\player.xml">
-
 	<TransformComponent>
 		<Position x="0" y="0" z="30"/>
 		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
-
 	<PhysicsComponent>
-		<Shape>Box</Shape>
+		<Shape>Controller</Shape>
 		<Density>glass</Density>
 		<PhysicsMaterial>Normal</PhysicsMaterial>
-		
 		<RigidBodyTransform>
-			<Scale x="12" y="12" z="26" />   
+			<Position x="0" y="0" z="30"/>
+			<YawPitchRoll x="0" y="0" z="0"/>
+			<Scale x="24" y="24" z="60" />   
 		</RigidBodyTransform>
 	</PhysicsComponent>
-
 	<MeshRenderComponent>
 		<Mesh>art\dwarf.x</Mesh>
 	</MeshRenderComponent>
-	
 </Actor>
