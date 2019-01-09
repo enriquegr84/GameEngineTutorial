@@ -44,9 +44,6 @@
     <ClInclude Include="..\Quake\QuakeEvents.h">
       <Filter>Quake</Filter>
     </ClInclude>
-    <ClInclude Include="..\Quake\QuakeManager.h">
-      <Filter>Quake</Filter>
-    </ClInclude>
     <ClInclude Include="..\Quake\QuakeNetwork.h">
       <Filter>Quake</Filter>
     </ClInclude>
@@ -101,6 +98,9 @@
     <ClInclude Include="..\Quake\Actors\RespawnTarget.h">
       <Filter>Quake\Actors</Filter>
     </ClInclude>
+    <ClInclude Include="..\Quake\QuakeLevelManager.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\TriangleDemoApp.cpp" />
@@ -138,9 +138,6 @@
       <Filter>Quake</Filter>
     </ClCompile>
     <ClCompile Include="..\Quake\QuakeEvents.cpp">
-      <Filter>Quake</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Quake\QuakeManager.cpp">
       <Filter>Quake</Filter>
     </ClCompile>
     <ClCompile Include="..\Quake\QuakePlayerController.cpp">
@@ -181,6 +178,9 @@
     </ClCompile>
     <ClCompile Include="..\Quake\Actors\RespawnTarget.cpp">
       <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeLevelManager.cpp">
+      <Filter>Quake</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

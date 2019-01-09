@@ -226,7 +226,7 @@
     <ClInclude Include="..\Quake\QuakeApp.h" />
     <ClInclude Include="..\Quake\QuakeCameraController.h" />
     <ClInclude Include="..\Quake\QuakeEvents.h" />
-    <ClInclude Include="..\Quake\QuakeManager.h" />
+    <ClInclude Include="..\Quake\QuakeLevelManager.h" />
     <ClInclude Include="..\Quake\QuakeNetwork.h" />
     <ClInclude Include="..\Quake\QuakePlayerController.h" />
     <ClInclude Include="..\Quake\QuakeResources.h" />
@@ -257,7 +257,7 @@
     <ClCompile Include="..\Quake\QuakeApp.cpp" />
     <ClCompile Include="..\Quake\QuakeCameraController.cpp" />
     <ClCompile Include="..\Quake\QuakeEvents.cpp" />
-    <ClCompile Include="..\Quake\QuakeManager.cpp" />
+    <ClCompile Include="..\Quake\QuakeLevelManager.cpp" />
     <ClCompile Include="..\Quake\QuakePlayerController.cpp" />
     <ClCompile Include="..\Quake\QuakeStd.cpp" />
     <ClCompile Include="..\Quake\QuakeView.cpp" />
