@@ -372,7 +372,7 @@ void MD3Mesh::BuildFrameNr(bool loop, unsigned int elapsedTimeMs)
 			//Support for non animated meshes
 			mCurrentFrame = (float)mAnimations[mCurrentAnimation].mBeginFrame;
 		}
-		else if (loop)
+		else if (mAnimations[mCurrentAnimation].mLoopFrame)
 		{
 			// play animation looped
 			mCurrentFrame += elapsedTimeMs * mAnimations[mCurrentAnimation].mFramesPerSecond * 0.001f;

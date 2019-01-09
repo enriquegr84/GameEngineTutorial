@@ -51,6 +51,7 @@
 
 //NumericalMethod
 #include "NumericalMethod/GaussianElimination.h"
+#include "NumericalMethod/SingularValueDecomposition.h"
 
 //Surface
 #include "Surface/VertexAttribute.h"

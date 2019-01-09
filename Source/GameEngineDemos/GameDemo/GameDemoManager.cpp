@@ -136,7 +136,7 @@ void GameDemoManager::LoadGameDemosList()
 
         // ------------------------------------------------
         eastl::set<eastl::wstring> dirs;
-		FileSystem::Get()->ListFiles(
+		FileSystem::Get()->GetFileList(
 			dirs, eastl::wstring("../../../Assets/Demo/") + dir);
         for(eastl::set<eastl::wstring>::iterator subdir = dirs.begin();
             subdir != dirs.end(); subdir++)

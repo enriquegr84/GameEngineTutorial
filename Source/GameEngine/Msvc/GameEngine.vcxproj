@@ -1751,6 +1751,7 @@
     <ClInclude Include="..\Mathematic\Mathematic.h" />
     <ClInclude Include="..\Mathematic\MathematicStd.h" />
     <ClInclude Include="..\Mathematic\NumericalMethod\GaussianElimination.h" />
+    <ClInclude Include="..\Mathematic\NumericalMethod\SingularValueDecomposition.h" />
     <ClInclude Include="..\Mathematic\Surface\IndexAttribute.h" />
     <ClInclude Include="..\Mathematic\Surface\Mesh.h" />
     <ClInclude Include="..\Mathematic\Surface\RectangleMesh.h" />

@@ -151,6 +151,7 @@ public:
     // event delegates
     void GameplayUiUpdateDelegate(BaseEventDataPtr pEventData);
     void SetControlledActorDelegate(BaseEventDataPtr pEventData);
+	void JumpActorDelegate(BaseEventDataPtr pEventData);
 	void MoveActorDelegate(BaseEventDataPtr pEventData);
 
 private:

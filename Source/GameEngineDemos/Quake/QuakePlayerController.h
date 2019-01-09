@@ -71,6 +71,7 @@ protected:
 	float		mRotateSpeed;
 
 	// Added for Ch19/20 refactor
+	bool		mWheelRollUp;
 	bool		mWheelRollDown;
 	bool		mMouseRButtonDown;
 	bool		mMouseLButtonDown;
@@ -97,7 +98,7 @@ public:
 	bool OnKeyUp(const KeyCode c) { mKey[c] = false; return true; }
 
 	bool OnWheelRollDown() { mWheelRollDown = true; return true; }
-	bool OnWheelRollUp() { mWheelRollDown = false; return true; }
+	bool OnWheelRollUp() { mWheelRollUp = true; return true; }
 
 };
 

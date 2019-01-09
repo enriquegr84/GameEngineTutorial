@@ -149,11 +149,11 @@ void ResCache::RegisterLoader(const eastl::shared_ptr<BaseResourceLoader>& loade
 //
 eastl::shared_ptr<ResHandle> ResCache::GetHandle(BaseResource * r)
 {
-	eastl::shared_ptr<ResHandle> handle(Find(r));
+	eastl::shared_ptr<ResHandle> handle = Find(r);
 	if (handle==NULL)
 	{
 		handle = Load(r);
-		//GE_ASSERT(handle);
+		//LogAssert(handle);
 	}
 	else
 	{

@@ -144,14 +144,14 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 
 				if (animMeshMD3 && mMaterialType == MaterialType::MT_TRANSPARENT)
 				{
-					eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
-					animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+					eastl::vector<eastl::shared_ptr<MD3Mesh>> animMeshes;
+					animMeshMD3->GetMD3Mesh()->GetMeshes(animMeshes);
 
-					for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+					for (eastl::shared_ptr<MD3Mesh> animMesh : animMeshes)
 					{
-						for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
+						for (unsigned int i = 0; i < animMesh->GetMeshBufferCount(); ++i)
 						{
-							eastl::shared_ptr<Material> material = mesh->GetMeshBuffer(i)->GetMaterial();
+							eastl::shared_ptr<Material> material = animMesh->GetMeshBuffer(i)->GetMaterial();
 							material->mBlendTarget.enable = true;
 							material->mBlendTarget.srcColor = BlendState::BM_ONE;
 							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;

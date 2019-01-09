@@ -10,6 +10,7 @@
 
 #include "Mathematic/Algebra/Vector.h"
 #include "Mathematic/Function/Constants.h"
+#include "Mathematic/NumericalMethod/SingularValueDecomposition.h"
 
 // The plane is represented as Dot(U,X) = c where U is a unit-length normal
 // vector, c is the plane constant, and X is any point on the plane.  The user
@@ -29,14 +30,16 @@ public:
     // U is specified, c = Dot(U,p) where p is a point on the hyperplane.
     Hyperplane(Vector<N, Real> const& inNormal, Vector<N, Real> const& p);
 
+	// U is a unit-length vector in the orthogonal complement of the set
+	// {p[1]-p[0],...,p[n-1]-p[0]} and c = Dot(U,p[0]), where the p[i] are
+	// pointson the hyperplane.
+	Hyperplane(eastl::array<Vector<N, Real>, N> const& p);
+
     // Public member access.
     Vector<N, Real> mNormal;
     Real mConstant;
 
 public:
-
-	int WhichSide(Vector<N, Real> const& P) const;
-	Real DistanceTo(Vector<N, Real> const& P) const;
 
     // Comparisons to support sorted containers.
     bool operator==(Hyperplane const& hyperplane) const;
@@ -77,17 +80,23 @@ Hyperplane<N, Real>::Hyperplane(Vector<N, Real> const& inNormal,
 {
 }
 
-template <int N, typename Real>
-int Hyperplane<N, Real>::WhichSide(Vector<N, Real> const& P) const
-{
-	float distance = Dot(mTuple, P);
-	return (distance > GE_ROUNDING_ERROR ? +1 : (distance < -GE_ROUNDING_ERROR ? -1 : 0));
-}
 
 template <int N, typename Real>
-Real Hyperplane<N, Real>::DistanceTo(Vector<N, Real> const& P) const
+Hyperplane<N, Real>::Hyperplane(eastl::array<Vector<N, Real>, N> const& p)
 {
-	return Dot(mNormal, P);
+	Matrix<N, N - 1, Real> edge;
+	for (int i = 0; i < N - 1; ++i)
+	{
+		edge.SetCol(i, p[i + 1] - p[0]);
+	}
+
+	// Compute the 1-dimensional orthogonal complement of the edges of the
+	// simplex formed by the points p[].
+	SingularValueDecomposition<Real> svd(N, N - 1, 32);
+	svd.Solve(&edge[0], -1);
+	svd.GetUColumn(N - 1, &mNormal[0]);
+
+	mConstant = Dot(mNormal, p[0]);
 }
 
 template <int N, typename Real>

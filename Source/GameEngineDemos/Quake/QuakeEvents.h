@@ -100,6 +100,7 @@ public:
 class QuakeEventDataJumpActor : public EventData
 {
 	ActorId mId;
+	bool mIsBackward;
 	Vector3<float> mDirection;
 
 public:
@@ -115,8 +116,8 @@ public:
 		mId = INVALID_ACTOR_ID;
 	}
 
-	QuakeEventDataJumpActor(ActorId id, const Vector3<float>& dir)
-		: mId(id), mDirection(dir)
+	QuakeEventDataJumpActor(ActorId id, bool isBackward, const Vector3<float>& dir)
+		: mId(id), mIsBackward(isBackward), mDirection(dir)
 	{
 		//
 	}
@@ -124,6 +125,7 @@ public:
 	virtual void Serialize(std::ostrstream &out) const
 	{
 		out << mId << " ";
+		out << mIsBackward << " ";
 		for (int i = 0; i<4; ++i)
 			out << mDirection[i] << " ";
 	}
@@ -131,13 +133,14 @@ public:
 	virtual void Deserialize(std::istrstream& in)
 	{
 		in >> mId;
+		in >> mIsBackward;
 		for (int i = 0; i<4; ++i)
 			in >> mDirection[i];
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new QuakeEventDataJumpActor(mId, mDirection));
+		return BaseEventDataPtr(new QuakeEventDataJumpActor(mId, mIsBackward, mDirection));
 	}
 
 	virtual const char* GetName(void) const
@@ -148,6 +151,11 @@ public:
 	ActorId GetId(void) const
 	{
 		return mId;
+	}
+
+	bool IsBackward(void) const
+	{
+		return mIsBackward;
 	}
 
 	const Vector3<float>& GetDirection(void) const
@@ -162,6 +170,8 @@ public:
 class QuakeEventDataMoveActor : public EventData
 {
 	ActorId mId;
+	bool mOnGround;
+	bool mIsBackward;
 	Vector3<float> mDirection;
 
 public:
@@ -177,8 +187,8 @@ public:
 		mId = INVALID_ACTOR_ID;
 	}
 
-	QuakeEventDataMoveActor(ActorId id, const Vector3<float>& dir)
-		: mId(id), mDirection(dir)
+	QuakeEventDataMoveActor(ActorId id, bool onGround, bool isBackward, const Vector3<float>& dir)
+		: mId(id), mOnGround(onGround), mIsBackward(isBackward), mDirection(dir)
 	{
 		//
 	}
@@ -186,6 +196,8 @@ public:
 	virtual void Serialize(std::ostrstream &out) const
 	{
 		out << mId << " ";
+		out << mOnGround << " ";
+		out << mIsBackward << " ";
 		for (int i = 0; i<4; ++i)
 			out << mDirection[i] << " ";
 	}
@@ -193,13 +205,15 @@ public:
 	virtual void Deserialize(std::istrstream& in)
 	{
 		in >> mId;
+		in >> mOnGround;
+		in >> mIsBackward;
 		for (int i = 0; i<4; ++i)
 			in >> mDirection[i];
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new QuakeEventDataMoveActor(mId, mDirection));
+		return BaseEventDataPtr(new QuakeEventDataMoveActor(mId, mOnGround, mIsBackward, mDirection));
 	}
 
 	virtual const char* GetName(void) const
@@ -210,6 +224,16 @@ public:
 	ActorId GetId(void) const
 	{
 		return mId;
+	}
+
+	bool OnGround(void) const
+	{
+		return mOnGround;
+	}
+
+	bool IsBackward(void) const
+	{
+		return mIsBackward;
 	}
 
 	const Vector3<float>& GetDirection(void) const

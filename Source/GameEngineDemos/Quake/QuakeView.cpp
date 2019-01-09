@@ -76,7 +76,7 @@
 //
 //========================================================================
 
-#define CID_QUAKE_WINDOW					(1)
+#define CID_QUAKE_WINDOW				(1)
 #define CID_CREATE_GAME_RADIO			(2)
 #define CID_NUM_AI_SLIDER				(3)
 #define CID_NUM_PLAYER_SLIDER			(4)
@@ -893,6 +893,58 @@ void QuakeHumanView::SetControlledActorDelegate(BaseEventDataPtr pEventData)
 
 }
 
+void QuakeHumanView::JumpActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataJumpActor> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataJumpActor>(pEventData);
+
+	ActorId actorId = pCastEventData->GetId();
+	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
+	if (pNode)
+	{
+		eastl::shared_ptr<AnimatedMeshNode> animatedNode =
+			eastl::dynamic_shared_pointer_cast<AnimatedMeshNode>(pNode);
+		eastl::shared_ptr<AnimateMeshMD3> animMeshMD3 =
+			eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(animatedNode->GetMesh());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+		{
+			if (pCastEventData->IsBackward())
+			{
+				if (mesh->GetName() == "lower")
+				{
+					//run animation
+					mesh->SetCurrentAnimation(LEGS_JUMPB);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_JUMPB).mBeginFrame);
+				}
+				else if (mesh->GetName() == "upper")
+				{
+					//run animation
+					mesh->SetCurrentAnimation(TORSO_STAND);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
+				}
+			}
+			else
+			{
+				if (mesh->GetName() == "lower")
+				{
+					//run animation
+					mesh->SetCurrentAnimation(LEGS_JUMP);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_JUMP).mBeginFrame);
+				}
+				else if (mesh->GetName() == "upper")
+				{
+					//run animation
+					mesh->SetCurrentAnimation(TORSO_STAND);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
+				}
+			}
+		}
+	}
+}
+
 void QuakeHumanView::MoveActorDelegate(BaseEventDataPtr pEventData)
 {
 	eastl::shared_ptr<QuakeEventDataMoveActor> pCastEventData =
@@ -911,17 +963,56 @@ void QuakeHumanView::MoveActorDelegate(BaseEventDataPtr pEventData)
 		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
 		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
 		{
-			if (mesh->GetName() == "lower" && mesh->GetCurrentAnimation() != LEGS_RUN)
+			if (pCastEventData->OnGround())
 			{
-				//run animation
-				mesh->SetCurrentAnimation(LEGS_RUN);
-				mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_RUN).mBeginFrame);
-			}
-			else if (mesh->GetName() == "upper" && mesh->GetCurrentAnimation() != TORSO_STAND)
-			{
-				//run animation
-				mesh->SetCurrentAnimation(TORSO_STAND);
-				mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
+				if (Length(pCastEventData->GetDirection()))
+				{
+					if (pCastEventData->IsBackward())
+					{
+						if (mesh->GetName() == "lower" && mesh->GetCurrentAnimation() != LEGS_BACK)
+						{
+							//run animation
+							mesh->SetCurrentAnimation(LEGS_BACK);
+							mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_BACK).mBeginFrame);
+						}
+						else if (mesh->GetName() == "upper" && mesh->GetCurrentAnimation() != TORSO_STAND)
+						{
+							//run animation
+							mesh->SetCurrentAnimation(TORSO_STAND);
+							mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
+						}
+					}
+					else
+					{
+						if (mesh->GetName() == "lower" && mesh->GetCurrentAnimation() != LEGS_RUN)
+						{
+							//run animation
+							mesh->SetCurrentAnimation(LEGS_RUN);
+							mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_RUN).mBeginFrame);
+						}
+						else if (mesh->GetName() == "upper" && mesh->GetCurrentAnimation() != TORSO_STAND)
+						{
+							//run animation
+							mesh->SetCurrentAnimation(TORSO_STAND);
+							mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
+						}
+					}
+				}
+				else
+				{
+					if (mesh->GetName() == "lower" && mesh->GetCurrentAnimation() != LEGS_IDLE)
+					{
+						//run animation
+						mesh->SetCurrentAnimation(LEGS_IDLE);
+						mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_IDLE).mBeginFrame);
+					}
+					else if (mesh->GetName() == "upper" && mesh->GetCurrentAnimation() != TORSO_STAND)
+					{
+						//run animation
+						mesh->SetCurrentAnimation(TORSO_STAND);
+						mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
+					}
+				}
 			}
 		}
 	}
@@ -937,6 +1028,9 @@ void QuakeHumanView::RegisterAllDelegates(void)
 		MakeDelegate(this, &QuakeHumanView::SetControlledActorDelegate), 
 		QuakeEventDataSetControlledActor::skEventType);
 	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeHumanView::JumpActorDelegate),
+		QuakeEventDataJumpActor::skEventType);
+	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeHumanView::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
 }
@@ -950,6 +1044,9 @@ void QuakeHumanView::RemoveAllDelegates(void)
     pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeHumanView::SetControlledActorDelegate), 
 		QuakeEventDataSetControlledActor::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeHumanView::JumpActorDelegate),
+		QuakeEventDataJumpActor::skEventType);
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeHumanView::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);

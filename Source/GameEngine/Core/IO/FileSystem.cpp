@@ -199,6 +199,30 @@ BaseFileList* FileSystem::CreateFileList()
 	return r;
 }
 
+// Returns a list of files in a given directory.
+void FileSystem::GetFileList(eastl::set<eastl::wstring>& result,
+	const eastl::wstring& dir, bool makeFullPath)
+{
+	result.clear();
+	eastl::wstring previousCWD = GetWorkingDirectory();
+
+	if (!ChangeWorkingDirectoryTo(dir.c_str()))
+	{
+		LogError("FileManager listFiles : Could not change CWD!");
+		return;
+	}
+
+	BaseFileList* files = CreateFileList();
+	for (int n = 0; n<(int)files->GetFileCount(); n++)
+	{
+		result.insert(makeFullPath ? dir + L"/" +
+			files->GetFileName(n).c_str() : files->GetFileName(n).c_str());
+	}
+
+	ChangeWorkingDirectoryTo(previousCWD);
+	delete files;
+}   // listFiles
+
 //! Creates an empty filelist
 BaseFileList* FileSystem::CreateEmptyFileList(const eastl::wstring& filesPath, bool ignoreCase, bool ignorePaths)
 {
@@ -450,28 +474,3 @@ BaseFileSystemType FileSystem::SetFileSystemType(BaseFileSystemType listType)
 	mFileSystemType = listType;
 	return current;
 }
-
-
-// Returns a list of files in a given directory.
-void FileSystem::ListFiles(eastl::set<eastl::wstring>& result, 
-	const eastl::wstring& dir, bool makeFullPath)
-{
-    result.clear();
-    eastl::wstring previousCWD = GetWorkingDirectory();
-
-    if(!ChangeWorkingDirectoryTo( dir.c_str() ))
-    {
-        LogError("FileManager listFiles : Could not change CWD!");
-        return;
-    }
-
-    BaseFileList* files = CreateFileList();
-    for(int n=0; n<(int)files->GetFileCount(); n++)
-    {
-        result.insert(makeFullPath ? dir + L"/" + 
-			files->GetFileName(n).c_str() : files->GetFileName(n).c_str());
-    }
-
-	ChangeWorkingDirectoryTo( previousCWD );
-	delete files;
-}   // listFiles

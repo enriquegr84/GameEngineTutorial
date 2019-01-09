@@ -134,7 +134,7 @@ void QuakeManager::LoadQuakeList()
         // Then see if a subdir of this dir contains data
         // ------------------------------------------------
         eastl::set<eastl::wstring> dirs;
-		FileSystem::Get()->ListFiles(
+		FileSystem::Get()->GetFileList(
 			dirs, eastl::wstring("../../../Assets/Quake/") + dir);
         for(eastl::set<eastl::wstring>::iterator subdir = dirs.begin();
             subdir != dirs.end(); subdir++)

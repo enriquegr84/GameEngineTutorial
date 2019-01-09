@@ -2674,6 +2674,9 @@
     <ClInclude Include="..\Graphic\Effect\Texture2ArrayEffect.h">
       <Filter>Graphic\Effect</Filter>
     </ClInclude>
+    <ClInclude Include="..\Mathematic\NumericalMethod\SingularValueDecomposition.h">
+      <Filter>Mathematic\NumericalMethod</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Assets\Effects\AmbientLightEffectPS.glsl">

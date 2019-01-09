@@ -76,6 +76,8 @@ QuakePlayerController::QuakePlayerController(
 
 	mMouseRButtonDown = false;
 	mMouseLButtonDown = false;
+	mWheelRollDown = false;
+	mWheelRollUp = false;
 }
 
 //
@@ -248,10 +250,12 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		Vector4<float> velocity = Vector4<float>::Zero();
 		if (pPhysicComponent->OnGround())
 		{
+			bool isJumping = false;
 			if (mEnabled)
 			{
 				if (mMouseRButtonDown)
 				{
+					isJumping = true;
 					upWorld = Vector4<float>::Unit(2);
 					Vector4<float> direction = atWorld + rightWorld + upWorld;
 					Normalize(direction);
@@ -262,7 +266,8 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					velocity = direction;
 
 					EventManager::Get()->TriggerEvent(
-						eastl::make_shared<QuakeEventDataJumpActor>(actorId, HProject(velocity)));
+						eastl::make_shared<QuakeEventDataJumpActor>(
+						actorId, mKey[KEY_KEY_S], HProject(velocity)));
 				}
 				else
 				{
@@ -275,7 +280,8 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			}
 
 			EventManager::Get()->TriggerEvent(
-				eastl::make_shared<QuakeEventDataMoveActor>(actorId, HProject(velocity)));
+				eastl::make_shared<QuakeEventDataMoveActor>(
+				actorId, !isJumping, mKey[KEY_KEY_S], HProject(velocity)));
 		}
 
 		EventManager::Get()->TriggerEvent(

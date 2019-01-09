@@ -111,7 +111,7 @@ public:
 	 *  \param dir The director for which to get the directory listing.
 	 *  \param make_full_path If set to true, all listed files will be full paths.
 	 */
-    virtual void ListFiles(
+    virtual void GetFileList(
 		eastl::set<eastl::wstring>& result, const eastl::wstring& dir, bool make_full_path=false) = 0;
 
 	//! Determines if a directory exists and could be opened.
