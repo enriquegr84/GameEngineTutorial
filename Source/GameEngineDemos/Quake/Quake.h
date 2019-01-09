@@ -49,9 +49,6 @@ class NetworkEventForwarder;
 //---------------------------------------------------------------------------------------------------------------------
 class QuakeLogic : public GameLogic
 {
-protected:
-	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
-
 public:
 	QuakeLogic();
 	virtual ~QuakeLogic();
@@ -84,8 +81,10 @@ public:
 	void EndSteerDelegate(BaseEventDataPtr pEventData);
 
 protected:
+	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
 
 	virtual ActorFactory* CreateActorFactory(void);
+	virtual LevelManager* CreateLevelManager(void);
 
 	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData);
 

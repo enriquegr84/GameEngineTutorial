@@ -84,13 +84,12 @@ GameLogic::GameLogic()
 	mAIPlayersAttached = 0;
 	mHumanGamesLoaded = 0;
 	mActorFactory = NULL;
+	mLevelManager = NULL;
+
 	//mPathingGraph = NULL;
 
 	mProcessManager = new ProcessManager();
-	mLevelManager = new LevelManager();
-	LogAssert(mProcessManager && mLevelManager, "Uninitialized process and level mngr");
-	mLevelManager->AddLevelSearchDir(L"world/");
-	mLevelManager->LoadLevelList(L"*.xml");
+	LogAssert(mProcessManager, "Uninitialized process mngr");
 
     //	register script events from the engine
 	//  [mrmike] this was moved to the constructor post-press, since this function 
@@ -113,13 +112,13 @@ GameLogic::~GameLogic()
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	gameApp->RemoveViews();
 
-	delete mLevelManager;
 	delete mProcessManager;
 	delete mActorFactory;
+	delete mLevelManager;
 
-	mLevelManager = nullptr;
 	mProcessManager = nullptr;
 	mActorFactory = nullptr;
+	mLevelManager = nullptr;
 
     // destroy all actors
     for (auto it = mActors.begin(); it != mActors.end(); ++it)
@@ -137,6 +136,7 @@ GameLogic::~GameLogic()
 bool GameLogic::Init(void)
 {
     mActorFactory = CreateActorFactory();
+	mLevelManager = CreateLevelManager();
     //mPathingGraph.reset(CreatePathingGraph());
 
     BaseEventManager::Get()->AddListener(
@@ -486,6 +486,10 @@ ActorFactory* GameLogic::CreateActorFactory(void)
     return new ActorFactory();
 }
 
+LevelManager* GameLogic::CreateLevelManager(void)
+{
+	return new LevelManager();
+}
 
 void GameLogic::RequestDestroyActorDelegate(BaseEventDataPtr pEventData)
 {

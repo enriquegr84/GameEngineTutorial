@@ -13,6 +13,7 @@
 #include "GameDemoApp.h"
 #include "GameDemoNetwork.h"
 #include "GameDemoEvents.h"
+#include "GameDemoManager.h"
 
 //
 // GameDemoLogic::GameDemoLogic
@@ -43,7 +44,7 @@ void GameDemoLogic::UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView,
 	/*
 	if (pView->GetType() == GV_REMOTE)
 	{
-	mHumanPlayersAttached += add ? 1 : -1;
+		mHumanPlayersAttached += add ? 1 : -1;
 	}
 	*/
 	if (pView->GetType() == GV_HUMAN)
@@ -561,6 +562,13 @@ void GameDemoLogic::DestroyAllNetworkEventForwarders(void)
 	mNetworkEventForwarders.clear();
 }
 
+LevelManager* GameDemoLogic::CreateLevelManager(void)
+{
+	GameDemoManager* demoManager = new GameDemoManager();
+	demoManager->AddLevelSearchDir(L"world/demo/");
+	demoManager->LoadLevelList(L"*.xml");
+	return demoManager;
+}
 
 bool GameDemoLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 {

@@ -49,9 +49,6 @@ class NetworkEventForwarder;
 //---------------------------------------------------------------------------------------------------------------------
 class GameDemoLogic : public GameLogic
 {
-protected:
-	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
-
 public:
 	GameDemoLogic();
 	virtual ~GameDemoLogic();
@@ -84,6 +81,11 @@ public:
 	void EndSteerDelegate(BaseEventDataPtr pEventData);
 
 protected:
+
+	virtual LevelManager* CreateLevelManager(void);
+
+	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
+
 	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData);
 
 private:

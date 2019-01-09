@@ -131,8 +131,8 @@ public:
 	// editor functions
 	eastl::string GetActorXml(const ActorId id);
 
-	// Level management
-	const LevelManager* GetLevelManager() { return mLevelManager; }
+	LevelManager* GetLevelManager() { return mLevelManager; }
+
 	// [rez] Subclasses shouldn't override this function; use LoadGameDelegate() instead
 	virtual bool LoadGame(const char* levelResource) override;
 	virtual void SetProxy();
@@ -170,6 +170,7 @@ protected:
 	static GameLogic* mGame;
 
 	virtual ActorFactory* CreateActorFactory(void);
+	virtual LevelManager* CreateLevelManager(void);
 
 	// [rez] Override this function to do any game-specific loading.
 	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData) { return true; }
@@ -190,6 +191,7 @@ protected:
 	int mHumanGamesLoaded;
 
 	//eastl::shared_ptr<PathingGraph> mPathingGraph;	// the pathing graph
+	LevelManager * mLevelManager;					// Manages loading and changing levels
     ActorFactory* mActorFactory;
     
 	bool mIsProxy;									// set if this is a proxy game logic, not a real one
@@ -197,9 +199,6 @@ protected:
 
 	bool mIsRenderDiagnostics;						// Are we rendering diagnostics?
 	eastl::shared_ptr<BaseGamePhysic> mPhysics;
-
-	LevelManager* mLevelManager;					// Manages loading and chaining levels
-
 };
 
 

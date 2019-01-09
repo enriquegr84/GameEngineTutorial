@@ -30,8 +30,6 @@ public:
 	LevelManager();
 	~LevelManager();
 
-	static LevelManager* LevelMngr;
-
     static void AddLevelSearchDir(const eastl::wstring &dir);
     /** Returns a list of all level identifiers. */
     eastl::vector<eastl::wstring> GetAllLevelIdentifiers();
@@ -83,6 +81,7 @@ public:
     }   // getLevelInGroup
 
 private:
+
 	/** All directories in which level are searched. */
 	static eastl::vector<eastl::wstring> mLevelSearchPaths;
 

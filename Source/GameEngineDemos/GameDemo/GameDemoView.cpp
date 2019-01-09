@@ -339,8 +339,7 @@ bool MainMenuUI::OnInit()
 
 	eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
 	for (eastl::vector<Level*>::iterator it = levels.begin(); it != levels.end(); ++it)
-		if ((*it)->GetFileName().find(L"demo") != eastl::wstring::npos)
-			level->AddItem((*it)->GetName().c_str());
+		level->AddItem((*it)->GetName().c_str());
 
 	// create a setting panel
 	screenRectangle.mCenter[0] = screenSize[0] - 350;
@@ -427,24 +426,8 @@ void MainMenuUI::Set()
 
 	if (level->GetSelected() >= 0)
 	{
-
-		if (level->GetSelected() >= 0)
-		{
-			unsigned int levelId = 0;
-			eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
-			for (eastl::vector<Level*>::iterator it = levels.begin(); it != levels.end(); ++it)
-			{
-				if ((*it)->GetFileName().find(L"demo") != eastl::wstring::npos)
-				{
-					if (level->GetSelected() == levelId)
-					{
-						gameApp->mOption.mLevel = ToString((*it)->GetFileName().c_str());
-						break;
-					}
-					levelId++;
-				}
-			}
-		}
+		eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
+		gameApp->mOption.mLevel = ToString(levels[level->GetSelected()]->GetFileName().c_str());
 	}
 }
 

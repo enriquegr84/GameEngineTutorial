@@ -15,6 +15,7 @@
 #include "QuakeNetwork.h"
 #include "QuakeEvents.h"
 #include "QuakeActorFactory.h"
+#include "QuakeManager.h"
 
 //
 // QuakeLogic::QuakeLogic
@@ -569,6 +570,14 @@ void QuakeLogic::DestroyAllNetworkEventForwarders(void)
 ActorFactory* QuakeLogic::CreateActorFactory(void)
 {
 	return new QuakeActorFactory();
+}
+
+LevelManager* QuakeLogic::CreateLevelManager(void)
+{
+	QuakeLevelManager* levelManager = new QuakeLevelManager();
+	levelManager->AddLevelSearchDir(L"world/quake/");
+	levelManager->LoadLevelList(L"*.xml");
+	return levelManager;
 }
 
 bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)

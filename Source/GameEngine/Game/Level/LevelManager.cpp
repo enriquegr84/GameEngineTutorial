@@ -19,7 +19,7 @@
 #include "Core/IO/ResourceCache.h"
 #include "Core/Logger/Logger.h"
 
-LevelManager* LevelManager::LevelMngr = NULL;
+
 eastl::vector<eastl::wstring> LevelManager::mLevelSearchPaths;
 
 /** Constructor (currently empty). The real work happens in loadLevelList.
@@ -93,8 +93,7 @@ void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::wstring> &lev
         if (eastl::find(levels.begin(), levels.end(), id)==levels.end())
         {
             mLevelAvailables[i-mLevels.begin()] = false;
-            fwprintf(stderr,
-				L"Demo '%s' not available on all clients, disabled.\n", id.c_str());
+            LogError(L"Level " + id + L"not available on all clients, disabled");
         } 
     } 
 
