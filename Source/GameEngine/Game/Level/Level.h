@@ -26,18 +26,15 @@
 
 struct Subtitle
 {
-    int mFrom, mTo;
-    eastl::wstring mText;
-
     Subtitle(int from, int to, eastl::wstring text)
     {
         mFrom = from;
         mTo = to;
         mText = text;
     }
-    int getFrom() const { return mFrom; }
-    int getTo()   const { return mTo;   }
-    const eastl::wstring& getText() const { return mText; }
+
+	int mFrom, mTo;
+	eastl::wstring mText;
 };
 
 /**
@@ -59,14 +56,11 @@ public:
 	// ------------------------------------------------------------------------
 	/** Returns a unique identifier for this level (the directory name). */
 	const eastl::wstring& GetName() const { return mName; }
-    // ------------------------------------------------------------------------
-	/** Returns all groups this level belongs to. */
-	const eastl::vector<eastl::wstring>& GetGroups() const { return mGroups; }
 	// ------------------------------------------------------------------------
     /** Returns the filename of this level. */
     const eastl::wstring& GetFileName() const { return mFileName; }
 
-private:
+protected:
 
 	/** A simple class to keep information about a level mode. */
 	class LevelMode
@@ -77,7 +71,7 @@ private:
 
 							   /** Default constructor, sets default names for all fields. */
 		LevelMode()
-			: mName(L"default"), mScene(L"scene.xml")
+			: mName(L"default"), mScene(L"default")
 		{
 
 		}
@@ -92,11 +86,8 @@ private:
 
 	eastl::wstring mID;
 	eastl::wstring mScreenShot;
-	double mGravity;
 
 	eastl::vector<Subtitle> mSubtitles;
-
-	eastl::vector<eastl::wstring> mGroups;
 
 	/** The full filename of the config (xml) file. */
 	eastl::wstring mFileName;

@@ -13,25 +13,23 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#ifndef QUAKELEVELMANAGER_H
-#define QUAKELEVELMANAGER_H
+#ifndef QUAKELEVEL_H
+#define QUAKELEVEL_H
 
 #include "QuakeStd.h"
 
-#include "Game/Level/LevelManager.h"
+#include "Game/Level/Level.h"
 
 /**
-  * \brief Simple class to load and manage data, names and such
+  * \ingroup quake levels
   */
-class QuakeLevelManager : public LevelManager
+class QuakeLevel : public Level
 {
-
 public:
-	QuakeLevelManager();
-	~QuakeLevelManager();
 
-	virtual bool LoadLevel(const eastl::wstring& dirname);
-
-};   // QuakeManager
+	QuakeLevel(const eastl::wstring& filename);
+	~QuakeLevel();
+    
+};   // class QuakeLevel
 
 #endif

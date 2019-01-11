@@ -46,9 +46,14 @@
 //---------------------------------------------------------------------------------------------------------------------
 class ItemPickup : public BasePickup
 {
+	ComponentId mId;
+	unsigned int mType;
+
 public:
 	static const char* Name;
 	virtual const char* GetName() const { return Name; }
+	virtual ComponentId GetId(void) const { return mId; }
+	unsigned int GetType() const { return mType; }
 
 	virtual bool Init(tinyxml2::XMLElement* pData) override;
 	virtual tinyxml2::XMLElement* GenerateXml(void) override;

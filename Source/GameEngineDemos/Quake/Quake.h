@@ -41,8 +41,74 @@
 
 #include "Game/Game.h"
 
+#include "Actors/PlayerActor.h"
+#include "Actors/AmmoPickup.h"
+#include "Actors/ItemPickup.h"
+#include "Actors/ArmorPickup.h"
+#include "Actors/HealthPickup.h"
+#include "Actors/WeaponPickup.h"
+#include "Actors/PushTrigger.h"
+#include "Actors/TeleporterTrigger.h"
+#include "Actors/RespawnTarget.h"
+#include "Actors/SpeakerTarget.h"
+
 class BaseEventManager;
 class NetworkEventForwarder;
+
+enum ItemType 
+{
+	IT_WEAPON,				// EFX: rotate + upscale + minlight
+	IT_AMMO,				// EFX: rotate
+	IT_ARMOR,				// EFX: rotate + minlight
+	IT_HEALTH,				// EFX: static external sphere + rotating internal
+	IT_POWERUP,				// instant on, timer based
+							// EFX: rotate + external ring that rotates
+	IT_HOLDABLE,			// single use, holdable item
+							// EFX: rotate + bob
+	IT_COUNT
+};
+
+enum WeaponType
+{
+	WP_NONE,
+
+	WP_GAUNTLET,
+	WP_MACHINEGUN,
+	WP_SHOTGUN,
+	WP_GRENADE_LAUNCHER,
+	WP_ROCKET_LAUNCHER,
+	WP_LIGHTNING,
+	WP_RAILGUN,
+	WP_PLASMAGUN,
+	WP_BFG,
+	WP_GRAPPLING_HOOK,
+
+	WP_NUM_WEAPONS
+};
+
+enum PowerupType 
+{
+	PW_NONE,
+
+	PW_QUAD,
+	PW_BATTLESUIT,
+	PW_HASTE,
+	PW_INVIS,
+	PW_REGEN,
+	PW_FLIGHT,
+
+	PW_REDFLAG,
+	PW_BLUEFLAG,
+	PW_NEUTRALFLAG,
+
+	PW_SCOUT,
+	PW_GUARD,
+	PW_DOUBLER,
+	PW_AMMOREGEN,
+	PW_INVULNERABILITY,
+
+	PW_NUM_POWERUPS
+};
 
 //---------------------------------------------------------------------------------------------------------------------
 // QuakeLogic class                        - Chapter 21, page 723
@@ -71,9 +137,12 @@ public:
 	void RequestStartGameDelegate(BaseEventDataPtr pEventData);
 	void RemoteClientDelegate(BaseEventDataPtr pEventData);
 	void NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEventData);
+	void PhysicsCollisionDelegate(BaseEventDataPtr pEventData);
 	void EnvironmentLoadedDelegate(BaseEventDataPtr pEventData);
+	void FireWeaponDelegate(BaseEventDataPtr pEventData);
 	void JumpActorDelegate(BaseEventDataPtr pEventData);
 	void MoveActorDelegate(BaseEventDataPtr pEventData);
+	void FallActorDelegate(BaseEventDataPtr pEventData);
 	void RotateActorDelegate(BaseEventDataPtr pEventData);
 	void StartThrustDelegate(BaseEventDataPtr pEventData);
 	void EndThrustDelegate(BaseEventDataPtr pEventData);
@@ -82,6 +151,10 @@ public:
 
 protected:
 	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
+
+	eastl::shared_ptr<Actor> CreatePlayerActor(const eastl::string &actorResource,
+		tinyxml2::XMLElement *overrides, const Transform *initialTransform = NULL,
+		const ActorId serversActorId = INVALID_ACTOR_ID);
 
 	virtual ActorFactory* CreateActorFactory(void);
 	virtual LevelManager* CreateLevelManager(void);
@@ -93,6 +166,10 @@ private:
 	void RemoveAllDelegates(void);
 	void CreateNetworkEventForwarder(const int socketId);
 	void DestroyAllNetworkEventForwarders(void);
+
+	bool CanItemBeGrabbed(
+		const eastl::shared_ptr<Actor>& item,
+		const eastl::shared_ptr<PlayerActor>& player);
 };
 
 #endif

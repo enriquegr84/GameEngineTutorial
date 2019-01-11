@@ -47,6 +47,22 @@ const char* WeaponPickup::Name = "WeaponPickup";
 
 bool WeaponPickup::Init(tinyxml2::XMLElement* pData)
 {
+	tinyxml2::XMLElement* pWeapon = pData->FirstChildElement("Weapon");
+	if (pWeapon)
+	{
+		unsigned int temp = 0;
+		mType = pWeapon->IntAttribute("type", temp);
+
+		temp = 0;
+		mId = pWeapon->IntAttribute("id", temp);
+
+		temp = 0;
+		mWait = pWeapon->IntAttribute("wait", temp);
+
+		temp = 0;
+		mAmmo = pWeapon->IntAttribute("ammo", temp);
+	}
+
 	return true;
 }
 

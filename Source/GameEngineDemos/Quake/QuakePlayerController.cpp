@@ -283,6 +283,20 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				eastl::make_shared<QuakeEventDataMoveActor>(
 				actorId, !isJumping, mKey[KEY_KEY_S], HProject(velocity)));
 		}
+		else
+		{
+			upWorld = -Vector4<float>::Unit(2);
+			Vector4<float> direction = atWorld + rightWorld + upWorld;
+			Normalize(direction);
+
+			direction[0] *= 300;
+			direction[1] *= 300;
+			direction[2] *= 1000;
+			velocity = direction;
+
+			EventManager::Get()->TriggerEvent(
+				eastl::make_shared<QuakeEventDataFallActor>(actorId, HProject(velocity)));
+		}
 
 		EventManager::Get()->TriggerEvent(
 			eastl::make_shared<QuakeEventDataRotateActor>(actorId, mAbsoluteTransform));

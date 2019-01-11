@@ -46,9 +46,20 @@
 //---------------------------------------------------------------------------------------------------------------------
 class WeaponPickup : public BasePickup
 {
+	ComponentId mId;
+	unsigned int mType;
+
+	unsigned int mWait;
+	unsigned int mAmmo;
+
 public:
 	static const char* Name;
 	virtual const char* GetName() const { return Name; }
+	virtual ComponentId GetId(void) const { return mId; }
+	unsigned int GetType() const { return mType; }
+
+	unsigned int GetWait() const { return mWait; }
+	unsigned int GetAmmo() const { return mAmmo; }
 
 	virtual bool Init(tinyxml2::XMLElement* pData) override;
 	virtual tinyxml2::XMLElement* GenerateXml(void) override;

@@ -64,7 +64,7 @@
 #include "QuakeApp.h"
 #include "QuakeView.h"
 #include "QuakeEvents.h"
-#include "QuakeManager.h"
+#include "QuakeLevelManager.h"
 #include "QuakeNetwork.h"
 #include "QuakePlayerController.h"
 #include "QuakeCameraController.h"

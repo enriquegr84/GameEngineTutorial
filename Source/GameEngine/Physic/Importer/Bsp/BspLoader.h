@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef BSPLOADER_H
 #define BSPLOADER_H
 
+#include "GameEngineStd.h"
+
 #define	BSPMAXTOKEN	1024
 #define	BSPMAX_KEY				32
 #define	BSPMAX_VALUE			1024
@@ -46,8 +48,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	LUMP_VISIBILITY		16
 #define	HEADER_LUMPS		17
 #define	MAX_QPATH		64
-
-#include "GameEngineStd.h"
 
 typedef struct {
 	int fileofs, filelen;

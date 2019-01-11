@@ -70,7 +70,7 @@ private:
 
 public:
     explicit Actor(ActorId id);
-    ~Actor(void);
+    virtual ~Actor(void);
 
     bool Init(tinyxml2::XMLElement* pData);
     void PostInit(void);

@@ -1,9 +1,9 @@
 //========================================================================
-// AmmoPickup.h - An ammo pickup
+// Actor.cpp - Implements the Actor class
 //
-// Part of the GameCode4 Application
+// Part of the GameEngine Application
 //
-// GameCode4 is the sample application that encapsulates much of the source code
+// GameEngine is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
 // "Rez" Graham, published by Charles River Media. 
 // ISBN-10: 1133776574 | ISBN-13: 978-1133776574
@@ -17,7 +17,7 @@
 // There's a companion web site at http://www.mcshaffry.com/GameCode/
 // 
 // The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/gamecode4/
+//    http://code.google.com/p/GameEngine/
 //
 // (c) Copyright 2012 Michael L. McShaffry and David Graham
 //
@@ -36,34 +36,21 @@
 //
 //========================================================================
 
-#ifndef AMMOPICKUP_H
-#define AMMOPICKUP_H
+#include "PlayerActor.h"
 
-#include "BasePickup.h"
+#include "Core/Logger/Logger.h"
+
 
 //---------------------------------------------------------------------------------------------------------------------
-// AmmoPickup implementation class.
+// PlayerActor
 //---------------------------------------------------------------------------------------------------------------------
-class AmmoPickup : public BasePickup
+PlayerActor::PlayerActor(ActorId id) : Actor(id)
 {
-	ComponentId mId;
-	unsigned int mType;
 
-	unsigned int mWait;
-	unsigned int mAmount;
+}
 
-public:
-	static const char* Name;
-	virtual const char* GetName() const { return Name; }
-	virtual ComponentId GetId(void) const { return mId; }
-	unsigned int GetType() const { return mType; }
+PlayerActor::~PlayerActor(void)
+{
 
-	unsigned int GetWait() const { return mWait; }
-	unsigned int GetAmount() const { return mAmount; }
+}
 
-	virtual bool Init(tinyxml2::XMLElement* pData) override;
-	virtual tinyxml2::XMLElement* GenerateXml(void) override;
-	virtual void Apply(eastl::weak_ptr<Actor> pActor) override;
-};
-
-#endif

@@ -46,9 +46,14 @@
 //---------------------------------------------------------------------------------------------------------------------
 class RespawnTarget : public BaseTarget
 {
+	const char* mTarget;
+
 public:
 	static const char* Name;
 	virtual const char* GetName() const { return Name; }
+
+	virtual const char* GetTarget() const { return mTarget; }
+	virtual void SetTarget(const char* target) { mTarget = target; }
 
 	virtual bool Init(tinyxml2::XMLElement* pData) override;
 	virtual tinyxml2::XMLElement* GenerateXml(void) override;

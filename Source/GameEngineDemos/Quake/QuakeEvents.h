@@ -243,6 +243,68 @@ public:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// QuakeEventDataFallActor - sent when actors are falling
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataFallActor : public EventData
+{
+	ActorId mId;
+	Vector3<float> mDirection;
+
+public:
+	static const BaseEventType skEventType;
+
+	virtual const BaseEventType& GetEventType(void) const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataFallActor(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataFallActor(ActorId id, const Vector3<float>& dir)
+		: mId(id), mDirection(dir)
+	{
+		//
+	}
+
+	virtual void Serialize(std::ostrstream &out) const
+	{
+		out << mId << " ";
+		for (int i = 0; i<4; ++i)
+			out << mDirection[i] << " ";
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
+		for (int i = 0; i<4; ++i)
+			in >> mDirection[i];
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataFallActor(mId, mDirection));
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataFallActor";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+
+	const Vector3<float>& GetDirection(void) const
+	{
+		return mDirection;
+	}
+};
+
+//---------------------------------------------------------------------------------------------------------------------
 // QuakeEventDataRotateActor - sent when actors are moved
 //---------------------------------------------------------------------------------------------------------------------
 class QuakeEventDataRotateActor : public EventData

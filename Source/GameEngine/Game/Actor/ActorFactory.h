@@ -68,7 +68,7 @@ public:
     // This function can be overridden by a subclass so you can create game-specific 
 	// C++ components. If you do this, make sure you call the base-class version first.  
 	// If it returns NULL, you know it's not an engine component.
-    virtual eastl::shared_ptr<ActorComponent> CreateComponent(tinyxml2::XMLElement* pData);
+    virtual eastl::shared_ptr<ActorComponent> CreateComponent(eastl::shared_ptr<Actor> pActor, tinyxml2::XMLElement* pData);
 };
 
 

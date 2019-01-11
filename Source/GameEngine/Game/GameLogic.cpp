@@ -262,8 +262,8 @@ void GameLogic::SetProxy()
 	mPhysics.reset(CreateNullPhysics());
 }
 
-eastl::shared_ptr<Actor> GameLogic::CreateActor(const eastl::string &actorResource, tinyxml2::XMLElement *overrides,
-	const Transform *initialTransform, const ActorId serversActorId)
+eastl::shared_ptr<Actor> GameLogic::CreateActor(const eastl::string &actorResource, 
+	tinyxml2::XMLElement *overrides, const Transform *initialTransform, const ActorId serversActorId)
 {
     LogAssert(mActorFactory, "actor factory is not initialized");
 	if (!mIsProxy && serversActorId != INVALID_ACTOR_ID)

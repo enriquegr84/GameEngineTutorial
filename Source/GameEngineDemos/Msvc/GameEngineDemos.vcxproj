@@ -216,6 +216,7 @@
     <ClInclude Include="..\Quake\Actors\BaseTrigger.h" />
     <ClInclude Include="..\Quake\Actors\HealthPickup.h" />
     <ClInclude Include="..\Quake\Actors\ItemPickup.h" />
+    <ClInclude Include="..\Quake\Actors\PlayerActor.h" />
     <ClInclude Include="..\Quake\Actors\PushTrigger.h" />
     <ClInclude Include="..\Quake\Actors\RespawnTarget.h" />
     <ClInclude Include="..\Quake\Actors\SpeakerTarget.h" />
@@ -226,6 +227,7 @@
     <ClInclude Include="..\Quake\QuakeApp.h" />
     <ClInclude Include="..\Quake\QuakeCameraController.h" />
     <ClInclude Include="..\Quake\QuakeEvents.h" />
+    <ClInclude Include="..\Quake\QuakeLevel.h" />
     <ClInclude Include="..\Quake\QuakeLevelManager.h" />
     <ClInclude Include="..\Quake\QuakeNetwork.h" />
     <ClInclude Include="..\Quake\QuakePlayerController.h" />
@@ -247,6 +249,7 @@
     <ClCompile Include="..\Quake\Actors\ArmorPickup.cpp" />
     <ClCompile Include="..\Quake\Actors\HealthPickup.cpp" />
     <ClCompile Include="..\Quake\Actors\ItemPickup.cpp" />
+    <ClCompile Include="..\Quake\Actors\PlayerActor.cpp" />
     <ClCompile Include="..\Quake\Actors\PushTrigger.cpp" />
     <ClCompile Include="..\Quake\Actors\RespawnTarget.cpp" />
     <ClCompile Include="..\Quake\Actors\SpeakerTarget.cpp" />
@@ -257,6 +260,7 @@
     <ClCompile Include="..\Quake\QuakeApp.cpp" />
     <ClCompile Include="..\Quake\QuakeCameraController.cpp" />
     <ClCompile Include="..\Quake\QuakeEvents.cpp" />
+    <ClCompile Include="..\Quake\QuakeLevel.cpp" />
     <ClCompile Include="..\Quake\QuakeLevelManager.cpp" />
     <ClCompile Include="..\Quake\QuakePlayerController.cpp" />
     <ClCompile Include="..\Quake\QuakeStd.cpp" />

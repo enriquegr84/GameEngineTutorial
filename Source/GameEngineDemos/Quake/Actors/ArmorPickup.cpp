@@ -47,6 +47,25 @@ const char* ArmorPickup::Name = "ArmorPickup";
 
 bool ArmorPickup::Init(tinyxml2::XMLElement* pData)
 {
+	tinyxml2::XMLElement* pArmor = pData->FirstChildElement("Armor");
+	if (pArmor)
+	{
+		unsigned int temp = 0;
+		mType = pArmor->IntAttribute("type", temp);
+
+		temp = 0;
+		mId = pArmor->IntAttribute("id", temp);
+
+		temp = 0;
+		mWait = pArmor->IntAttribute("wait", temp);
+
+		temp = 0;
+		mAmount = pArmor->IntAttribute("amount", temp);
+
+		temp = 0;
+		mMaximum = pArmor->IntAttribute("maximum", temp);
+	}
+
 	return true;
 }
 

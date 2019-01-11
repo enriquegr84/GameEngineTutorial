@@ -46,9 +46,22 @@
 //---------------------------------------------------------------------------------------------------------------------
 class HealthPickup : public BasePickup
 {
+	ComponentId mId;
+	unsigned int mType;
+
+	unsigned int mWait;
+	unsigned int mAmount;
+	unsigned int mMaximum;
+
 public:
 	static const char* Name;
 	virtual const char* GetName() const { return Name; }
+	virtual ComponentId GetId(void) const { return mId; }
+	unsigned int GetType() const { return mType; }
+
+	unsigned int GetWait() const { return mWait; }
+	unsigned int GetAmount() const { return mAmount; }
+	unsigned int GetMaximum() const { return mMaximum; }
 
     virtual bool Init(tinyxml2::XMLElement* pData) override;
     virtual tinyxml2::XMLElement* GenerateXml(void) override;

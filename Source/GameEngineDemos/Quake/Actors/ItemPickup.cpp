@@ -47,6 +47,16 @@ const char* ItemPickup::Name = "ItemPickup";
 
 bool ItemPickup::Init(tinyxml2::XMLElement* pData)
 {
+	tinyxml2::XMLElement* pItem = pData->FirstChildElement("Item");
+	if (pItem)
+	{
+		unsigned int temp = 0;
+		mType = pItem->IntAttribute("type", temp);
+
+		temp = 0;
+		mId = pItem->IntAttribute("id", temp);
+	}
+
 	return true;
 }
 

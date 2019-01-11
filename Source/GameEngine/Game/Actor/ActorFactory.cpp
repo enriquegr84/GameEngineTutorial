@@ -68,8 +68,8 @@ ActorFactory::ActorFactory(void)
 	mComponentFactory.Register<PhysicComponent>(ActorComponent::GetIdFromName(PhysicComponent::Name));
 }
 
-eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, tinyxml2::XMLElement *overrides,
-	const Transform *pInitialTransform, const ActorId serversActorId)
+eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource, 
+	tinyxml2::XMLElement *overrides, const Transform *pInitialTransform, const ActorId serversActorId)
 {
     // Grab the root XML node
 	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(actorResource);
@@ -98,13 +98,8 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
     // Loop through each child element and load the component
     for (; pNode; pNode = pNode->NextSiblingElement())
     {
-        eastl::shared_ptr<ActorComponent> pComponent(CreateComponent(pNode));
-        if (pComponent)
-        {
-            pActor->AddComponent(pComponent);
-            pComponent->SetOwner(pActor);
-        }
-        else
+        eastl::shared_ptr<ActorComponent> pComponent(CreateComponent(pActor, pNode));
+        if (!pComponent)
         {
             //	If an error occurs, we kill the actor and bail.  We could keep going, 
 			//	but the actor is will only be partially complete so it's not worth it.  
@@ -134,7 +129,8 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
     return pActor;
 }
 
-eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(tinyxml2::XMLElement* pData)
+eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(
+	eastl::shared_ptr<Actor> pActor, tinyxml2::XMLElement* pData)
 {
     const char* name = pData->Value();
     eastl::shared_ptr<ActorComponent> pComponent(
@@ -148,6 +144,9 @@ eastl::shared_ptr<ActorComponent> ActorFactory::CreateComponent(tinyxml2::XMLEle
             LogError(eastl::string("Component failed to initialize: ") + eastl::string(name));
             return eastl::shared_ptr<ActorComponent>();
         }
+
+		pActor->AddComponent(pComponent);
+		pComponent->SetOwner(pActor);
     }
     else
     {
@@ -180,14 +179,6 @@ void ActorFactory::ModifyActor(eastl::shared_ptr<Actor> pActor, tinyxml2::XMLEle
 			// changes.
 			pComponent->OnChanged();		
 		}
-		else
-		{
-			pComponent = CreateComponent(pNode);
-			if (pComponent)
-			{
-				pActor->AddComponent(pComponent);
-				pComponent->SetOwner(pActor);
-			}
-		}
+		else pComponent = CreateComponent(pActor, pNode);
 	}		
 }

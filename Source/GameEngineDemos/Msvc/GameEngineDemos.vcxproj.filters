@@ -101,6 +101,12 @@
     <ClInclude Include="..\Quake\QuakeLevelManager.h">
       <Filter>Quake</Filter>
     </ClInclude>
+    <ClInclude Include="..\Quake\QuakeLevel.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\PlayerActor.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\TriangleDemoApp.cpp" />
@@ -181,6 +187,12 @@
     </ClCompile>
     <ClCompile Include="..\Quake\QuakeLevelManager.cpp">
       <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeLevel.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\PlayerActor.cpp">
+      <Filter>Quake\Actors</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

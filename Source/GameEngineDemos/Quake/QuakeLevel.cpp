@@ -13,25 +13,21 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#ifndef QUAKELEVELMANAGER_H
-#define QUAKELEVELMANAGER_H
+#include "QuakeLevel.h"
 
-#include "QuakeStd.h"
+#include "Core/IO/FileSystem.h"
+#include "Core/IO/XmlResource.h"
 
-#include "Game/Level/LevelManager.h"
+#include "Core/Utility/StringUtil.h"
 
-/**
-  * \brief Simple class to load and manage data, names and such
-  */
-class QuakeLevelManager : public LevelManager
+// ----------------------------------------------------------------------------
+QuakeLevel::QuakeLevel(const eastl::wstring& filename) : Level(filename)
+{
+}   // Level
+
+//-----------------------------------------------------------------------------
+/** Destructor, removes quad data structures etc. */
+QuakeLevel::~QuakeLevel()
 {
 
-public:
-	QuakeLevelManager();
-	~QuakeLevelManager();
-
-	virtual bool LoadLevel(const eastl::wstring& dirname);
-
-};   // QuakeManager
-
-#endif
+}   // ~Level

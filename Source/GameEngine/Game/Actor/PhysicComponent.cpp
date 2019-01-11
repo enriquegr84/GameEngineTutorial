@@ -181,6 +181,10 @@ void PhysicComponent::PostInit(void)
 		{
 			gamePhysics->AddBox(mRigidBodyScale, mOwner, mDensity, mMaterial);
 		}
+		else if (mShape == "Trigger")
+		{
+			gamePhysics->AddTrigger(mRigidBodyScale, mOwner);
+		}
 		else if (mShape == "Controller")
 		{
 			gamePhysics->AddCharacterController(mRigidBodyScale, mOwner, mDensity, mMaterial);
@@ -327,6 +331,12 @@ void PhysicComponent::KinematicMove(const Vector3<float>& direction)
 {
 	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
 	gamePhysics->WalkDirection(mOwner->GetId(), direction);
+}
+
+void PhysicComponent::KinematicFall(const Vector3<float>& direction)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	gamePhysics->FallDirection(mOwner->GetId(), direction);
 }
 
 bool PhysicComponent::OnGround()

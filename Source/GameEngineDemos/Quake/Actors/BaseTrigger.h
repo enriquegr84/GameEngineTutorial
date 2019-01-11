@@ -43,7 +43,15 @@
 
 class BaseTrigger : public ActorComponent
 {
+	const char* mModel;
+	const char* mTarget;
+
 public:
+	virtual const char* GetModel() const { return mModel; }
+	virtual void SetModel(const char* model) { mModel = model; }
+
+	virtual const char* GetTarget() const { return mTarget; }
+	virtual void SetTarget(const char* target) { mTarget = target; }
 //    static ComponentId COMPONENT_ID;  // unique ID for this component type
 //    virtual ComponentId GetComponentId(void) const override { return COMPONENT_ID; }
 

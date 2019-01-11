@@ -65,7 +65,7 @@ Level* LevelManager::GetLevel(const eastl::wstring& ident) const
 
     return NULL;
 
-}   // getTrack
+}   // GetLevel
 
 //-----------------------------------------------------------------------------
 /** Removes all cached data from all levels. This is called when the screen
@@ -77,11 +77,9 @@ void LevelManager::RemoveAllCachedData()
     for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
         (*i)->RemoveCachedData();
 */
-}   // removeAllCachedData
+}   // RemoveAllCachedData
 //-----------------------------------------------------------------------------
-/** Sets all levels that are not in the list a to be unavailable. This is used
- *  by the network manager upon receiving the list of available levels from
- *  a client.
+/** Sets all levels that are not in the list a to be unavailable.
  *  \param demos List of all levels identifiers (available on a client).
  */
 void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::wstring> &levels)
@@ -97,7 +95,7 @@ void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::wstring> &lev
         } 
     } 
 
-}   // setUnavailableLevels
+}   // SetUnavailableLevels
 
 //-----------------------------------------------------------------------------
 /** Returns a list with all level identifiers.
@@ -110,7 +108,7 @@ eastl::vector<eastl::wstring> LevelManager::GetAllLevelIdentifiers()
         all.push_back((*i)->GetID());
     }
     return all;
-}   // getAllDemoNames
+}   // GetAllLevelIdentifiers
 
 //-----------------------------------------------------------------------------
 /** Loads all levels from the level directory (world/).
@@ -118,8 +116,6 @@ eastl::vector<eastl::wstring> LevelManager::GetAllLevelIdentifiers()
 void LevelManager::LoadLevelList(const eastl::wstring& levelname)
 {
     mAllLevelDirs.clear();
-    mLevelGroupNames.clear();
-    mLevelGroups.clear();
     mLevelAvailables.clear();
     mLevels.clear();
 
@@ -161,19 +157,15 @@ bool LevelManager::LoadLevel(const eastl::wstring& levelname)
     }
     catch(std::exception)
     {
-		/*
-        fprintf(stderr, "[LevelManager] ERROR: Cannot load level <%s> : %s\n",
-			Utils::GetFileBasename(levelname).c_str(), e.what());
-		*/
+		LogError(L"Cannot load level " + levelname);
         return false;
     }
 
 	mAllLevelDirs.push_back(FileSystem::Get()->GetFileDir(levelname));
     mLevels.push_back(level);
     mLevelAvailables.push_back(true);
-    UpdateGroups(level);
     return true;
-}   // loadTrack
+}   // LoadLevel
 
 // ----------------------------------------------------------------------------
 /** Removes a level.
@@ -185,7 +177,7 @@ void LevelManager::RemoveLevel(const eastl::wstring& ident)
     if (level == NULL)
     {
 		wchar_t error[128];
-        wsprintf(error, L"[LevelManager] ERROR: There is no level named '%s'!!\n", ident.c_str());
+        wsprintf(error, L"There is no level named '%s'!!", ident.c_str());
         LogError(error);
         return;
     }
@@ -196,80 +188,16 @@ void LevelManager::RemoveLevel(const eastl::wstring& ident)
     if (it == mLevels.end())
     {
 		wchar_t error[128];
-		wsprintf(error, L"[LevelsManager] INTERNAL ERROR: Cannot find level '%s' in map!!\n", ident.c_str());
+		wsprintf(error, L" Cannot find level '%s' in map!!", ident.c_str());
 		LogError(error);
         return;
     }
     int index = it - mLevels.begin();
 
-    // Remove the demo from all groups it belongs to
-    Group2Indices &groupToIndices = mLevelGroups;
-
-    eastl::vector<eastl::wstring> &groupNames = mLevelGroupNames;
-    const eastl::vector<eastl::wstring>& groups = level->GetGroups();
-    for(unsigned int i=0; i<groups.size(); i++)
-    {
-        eastl::vector<int> &indices = groupToIndices[groups[i]];
-        eastl::vector<int>::iterator j;
-        j = eastl::find(indices.begin(), indices.end(), index);
-        LogAssert(j!=indices.end(), "error indice");
-        indices.erase(j);
-
-        // If the demo was the last member of a group,
-        // completely remove the group
-        if(indices.size()==0)
-        {
-            groupToIndices.erase(groups[i]);
-            eastl::vector<eastl::wstring>::iterator it_g;
-            it_g = eastl::find(groupNames.begin(), groupNames.end(), groups[i]);
-			LogAssert(it_g!=groupNames.end(), "error indice");
-            groupNames.erase(it_g);
-        }   // if complete group must be removed
-    }   // for i in groups
-
-    // Adjust all indices of level with an index number higher than
-    // the removed level, since they have been moved down. This must
-    // be done for all levels
-    unsigned int i=2; // i=2: levels
-    {
-        Group2Indices &g2i = mLevelGroups;
-        Group2Indices::iterator j;
-        for(j=g2i.begin(); j!=g2i.end(); j++)
-        {
-            for(unsigned int i=0; i<(*j).second.size(); i++)
-                if((*j).second[i]>index) (*j).second[i]--;
-        }   // for j in group_2_indices
-    }   // for levels
-
     mLevels.erase(it);
     mAllLevelDirs.erase(mAllLevelDirs.begin()+index);
     mLevelAvailables.erase(mLevelAvailables.begin()+index);
     delete level;
-}   // removeDemo
-
-// ----------------------------------------------------------------------------
-/** \brief Updates the groups after a level was read in.
-  * \param demo Pointer to the new level, whose groups are now analysed.
-  */
-void LevelManager::UpdateGroups(const Level* level)
-{
-    //if (level->isInternal()) return;
-
-    const eastl::vector<eastl::wstring>& newGroups = level->GetGroups();
-
-    Group2Indices &groupToIndices = mLevelGroups;
-
-    eastl::vector<eastl::wstring> &groupNames = mLevelGroupNames;
-
-    const unsigned int groupsAmount = newGroups.size();
-    for(unsigned int i=0; i<groupsAmount; i++)
-    {
-        bool groupExists = 
-			groupToIndices.find(newGroups[i]) != groupToIndices.end();
-        if(!groupExists)
-            groupNames.push_back(newGroups[i]);
-        groupToIndices[newGroups[i]].push_back(mLevels.size()-1);
-    }
-}   // updateGroups
+}   // RemoveLevel
 
 // ----------------------------------------------------------------------------

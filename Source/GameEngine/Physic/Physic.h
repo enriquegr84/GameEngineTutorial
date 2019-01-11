@@ -64,6 +64,7 @@ public:
 	virtual void OnUpdate(float deltaSeconds) = 0;
 
 	// Initialization of Physics Objects
+	virtual void AddTrigger(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> pGameActor) = 0;
 	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
 		/*const Matrix4x4<float>& initialTransform, */
 		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
@@ -86,13 +87,13 @@ public:
 	virtual void RenderDiagnostics() = 0;
 
 	// Physics world modifiers
-	virtual void CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) = 0;
 	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
 	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
 
 	// Physics actor states
 	virtual bool OnGround(ActorId actorId) = 0;
 	virtual void Jump(ActorId actorId, const Vector3<float>& dir) = 0;
+	virtual void FallDirection(ActorId actorId, const Vector3<float>& dir) = 0;
 	virtual void WalkDirection(ActorId actorId, const Vector3<float>& dir) = 0;
 
 	virtual void StopActor(ActorId actorId) = 0;

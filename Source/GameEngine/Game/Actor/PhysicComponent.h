@@ -78,6 +78,7 @@ public:
 	//Character controller
 	void KinematicJump(const Vector3<float>& direction);
 	void KinematicMove(const Vector3<float>& direction);
+	void KinematicFall(const Vector3<float>& direction);
 	bool OnGround(void);
 
 	Transform GetTransform(void);

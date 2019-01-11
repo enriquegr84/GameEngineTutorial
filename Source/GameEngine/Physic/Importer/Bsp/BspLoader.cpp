@@ -352,7 +352,8 @@ char *BspLoader::CopyString(const char *s)
 	return b;
 }
 
-void BspLoader::StripTrailing( char *e ) {
+void BspLoader::StripTrailing( char *e ) 
+{
 	char	*s;
 
 	s = e + strlen(e)-1;
@@ -375,12 +376,14 @@ BSPKeyValuePair *BspLoader::ParseEpair( void )
 	e = (struct BSPPair*) malloc( sizeof(BSPKeyValuePair));
 	memset( e, 0, sizeof(BSPKeyValuePair) );
 	
-	if ( strlen(token) >= BSPMAX_KEY-1 ) {
+	if ( strlen(token) >= BSPMAX_KEY-1 ) 
+	{
 		//printf ("ParseEpar: token too long");
 	}
 	e->key = CopyString( token );
 	GetToken( false );
-	if ( strlen(token) >= BSPMAX_VALUE-1 ) {
+	if ( strlen(token) >= BSPMAX_VALUE-1 ) 
+	{
 
 		//printf ("ParseEpar: token too long");
 	}
@@ -674,18 +677,21 @@ bool BspLoader::FindVectorByName(float* outvec,const char* name)
 
 	ParseEntities();
 
-	for ( int i = 1; i < mNumEntities; i++ ) {
+	for ( int i = 1; i < mNumEntities; i++ ) 
+	{
 		cl = GetValueForKey (&mEntities[i], "classname");
-		if ( !strcmp( cl, "info_player_start" ) ) {
-				GetVectorForKey( &mEntities[i], "origin", origin );
-				found = true;
-				break;
-			}
-		if ( !strcmp( cl, "info_player_deathmatch" ) ) {
-				GetVectorForKey( &mEntities[i], "origin", origin );
-				found = true;
-				break;
-			}
+		if ( !strcmp( cl, "info_player_start" ) ) 
+		{
+			GetVectorForKey( &mEntities[i], "origin", origin );
+			found = true;
+			break;
+		}
+		if ( !strcmp( cl, "info_player_deathmatch" ) ) 
+		{
+			GetVectorForKey( &mEntities[i], "origin", origin );
+			found = true;
+			break;
+		}
 	}
 
 	if (found)
@@ -701,12 +707,13 @@ const BSPEntity * BspLoader::GetEntityByValue( const char* name, const char* val
 {
 	const BSPEntity* entity = NULL;
 
-	for ( int i = 1; i < mNumEntities; i++ ) {
-
+	for ( int i = 1; i < mNumEntities; i++ ) 
+	{
 		const BSPEntity& ent = mEntities[i];
 
 		const char* cl = GetValueForKey (&mEntities[i], name);
-		if ( !strcmp( cl, value ) ) {
+		if ( !strcmp( cl, value ) ) 
+		{
 			entity = &ent;
 			break;
 		}

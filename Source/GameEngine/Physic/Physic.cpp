@@ -101,6 +101,7 @@ public:
 	virtual void OnUpdate( float ) { }
 
 	// Initialization of Physics Objects
+	virtual void AddTrigger(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> pGameActor) { }
 	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
 		const eastl::string& densityStr, const eastl::string& physicMaterial) { }
 	virtual void AddCharacterController(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> actor,
@@ -117,13 +118,13 @@ public:
 	virtual void RenderDiagnostics() { }
 
 	// Physics world modifiers
-	virtual void CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) { }
 	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) { }
 	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) { }
 
 	// Physics actor states
 	virtual bool OnGround(ActorId actorId) { return false; }
 	virtual void Jump(ActorId actorId, const Vector3<float>& dir) { }
+	virtual void FallDirection(ActorId actorId, const Vector3<float>& dir) { }
 	virtual void WalkDirection(ActorId actorId, const Vector3<float>& dir) { }
 
 	virtual void StopActor(ActorId actorId) { }
@@ -142,17 +143,17 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////
 // helpers for conversion to and from Bullet's data types
-static btVector3 Vector3_to_btVector3( Vector3<float> const & vector3 )
+static btVector3 Vector3TobtVector3( Vector3<float> const & vector3 )
 {
 	return btVector3(vector3[0], vector3[1], vector3[2] );
 }
 
-static Vector3<float> btVector3_to_Vector3( btVector3 const & btvec )
+static Vector3<float> btVector3ToVector3( btVector3 const & btvec )
 {
 	return Vector3<float>{ btvec.x(), btvec.y(), btvec.z() };
 }
 
-static btTransform Transform_to_btTransform( Transform const & transform)
+static btTransform TransformTobtTransform( Transform const & transform)
 {
 	// convert from matrix4 (GameEngine) to btTransform (Bullet)
 	btMatrix3x3 bulletRotation;
@@ -177,7 +178,7 @@ static btTransform Transform_to_btTransform( Transform const & transform)
 	return btTransform( bulletRotation, bulletPosition );
 }
 
-static Transform btTransform_to_Transform( btTransform const & trans )
+static Transform btTransformToTransform( btTransform const & trans )
 {
 	Transform returnTransform;
 
@@ -228,12 +229,12 @@ struct ActorMotionState : public btMotionState
 	// btMotionState interface:  Bullet calls these
 	virtual void getWorldTransform( btTransform& worldTrans ) const
 	{ 
-		worldTrans = Transform_to_btTransform( mWorldToPositionTransform ); 
+		worldTrans = TransformTobtTransform( mWorldToPositionTransform ); 
 	}
 
 	virtual void setWorldTransform( const btTransform& worldTrans )
 	{ 
-		mWorldToPositionTransform = btTransform_to_Transform( worldTrans ); 
+		mWorldToPositionTransform = btTransformToTransform( worldTrans ); 
 	}
 };
 
@@ -324,6 +325,7 @@ public:
 	virtual void OnUpdate( float deltaSeconds ) override; 
 
 	// Initialization of Physics Objects
+	virtual void AddTrigger(const Vector3<float> &dimension, eastl::weak_ptr<Actor> pGameActor) override;
 	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
 		const eastl::string& densityStr, const eastl::string& physicMaterial) override;
 	virtual void AddCharacterController(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> actor,
@@ -340,13 +342,12 @@ public:
 	virtual void RenderDiagnostics() override;
 
 	// Physics world modifiers
-	virtual void CreateTrigger(
-		eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim) override;
 	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) override;
 	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) override;
 	
 	virtual bool OnGround(ActorId actorId);
 	virtual void Jump(ActorId actorId, const Vector3<float>& dir);
+	virtual void FallDirection(ActorId actorId, const Vector3<float>& dir);
 	virtual void WalkDirection(ActorId actorId, const Vector3<float>& dir);
 
 	virtual void StopActor(ActorId actorId);
@@ -579,7 +580,7 @@ void BulletPhysics::SyncVisibleScene()
             if (pTransformComponent)
             {
 				Transform actorCollisionTransform = 
-					btTransform_to_Transform(actorCollisionObject->getWorldTransform());
+					btTransformToTransform(actorCollisionObject->getWorldTransform());
 
 			    if (pTransformComponent->GetTransform().GetMatrix() != actorCollisionTransform.GetMatrix() ||
 					pTransformComponent->GetTransform().GetTranslation() != actorCollisionTransform.GetTranslation())
@@ -740,6 +741,50 @@ ActorId BulletPhysics::FindActorID( btCollisionObject const * const collisionObj
 
 
 /////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::AddTrigger
+//
+void BulletPhysics::AddTrigger(const Vector3<float> &dimension, eastl::weak_ptr<Actor> pGameActor)
+{
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor.lock());
+	if (!pStrongActor)
+		return;  // FUTURE WORK: Add a call to the error log here
+
+				 // create the collision body, which specifies the shape of the object
+	btBoxShape * const boxShape = new btBoxShape(Vector3TobtVector3(dimension));
+
+	// triggers are immoveable.  0 mass signals this to Bullet.
+	btScalar const mass = 0;
+
+	Transform triggerTransform;
+	eastl::shared_ptr<TransformComponent> pTransformComponent =
+		pStrongActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+	LogAssert(pTransformComponent, "no transform");
+	if (pTransformComponent)
+	{
+		triggerTransform = pTransformComponent->GetTransform();
+	}
+	else
+	{
+		// Physics can't work on an actor that doesn't have a TransformComponent!
+		return;
+	}
+	ActorMotionState * const motionState = new ActorMotionState(triggerTransform);
+
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, boxShape, btVector3(0, 0, 0));
+	btRigidBody * const body = new btRigidBody(rbInfo);
+
+	mDynamicsWorld->addRigidBody(body);
+
+	// a trigger is just a box that doesn't collide with anything.  That's what "CF_NO_CONTACT_RESPONSE" indicates.
+	body->setCollisionFlags(body->getCollisionFlags() | btRigidBody::CF_NO_CONTACT_RESPONSE);
+
+	mActorIdToCollisionObject[pStrongActor->GetId()] = body;
+	mCollisionObjectToActorId[body] = pStrongActor->GetId();
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::AddBSP
 //
 void BulletPhysics::AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> pGameActor,
@@ -805,7 +850,7 @@ void BulletPhysics::AddCharacterController(
 	}
 
 	btPairCachingGhostObject* ghostObject = new btPairCachingGhostObject();
-	ghostObject->setWorldTransform(Transform_to_btTransform(transform));
+	ghostObject->setWorldTransform(TransformTobtTransform(transform));
 	mBroadphase->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
 	ghostObject->setCollisionShape(collisionShape);
 	ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
@@ -854,7 +899,7 @@ void BulletPhysics::AddBox(const Vector3<float>& dimensions, eastl::weak_ptr<Act
         return;  // FUTURE WORK: Add a call to the error log here
 
 	// create the collision body, which specifies the shape of the object
-	btBoxShape * const boxShape = new btBoxShape( Vector3_to_btVector3( dimensions ) );
+	btBoxShape * const boxShape = new btBoxShape( Vector3TobtVector3( dimensions ) );
 	
 	// calculate absolute mass from specificGravity
     float specificGravity = LookupSpecificGravity(densityStr);
@@ -878,7 +923,7 @@ void BulletPhysics::AddPointCloud(Vector3<float> *verts, int numPoints, eastl::w
 	
 	// add the points to the shape one at a time
 	for ( int i=0; i<numPoints; ++i )
-		shape->addPoint(  Vector3_to_btVector3( verts[i] ) );
+		shape->addPoint(  Vector3TobtVector3( verts[i] ) );
 	
 	// approximate absolute mass using bounding box
 	btVector3 aabbMin(0,0,0), aabbMax(0,0,0);
@@ -918,41 +963,6 @@ void BulletPhysics::RenderDiagnostics()
 
 	mDebugDrawer->Render();
 	mDebugDrawer->Clear();
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// BulletPhysics::CreateTrigger				- Chapter 17, page 602
-//
-// FUTURE WORK: Mike create a trigger actor archetype that can be instantiated in the editor!!!!!
-//
-void BulletPhysics::CreateTrigger(eastl::weak_ptr<Actor> pGameActor, const Vector3<float> &pos, const float dim)
-{
-	eastl::shared_ptr<Actor> pStrongActor(pGameActor.lock());
-    if (!pStrongActor)
-        return;  // FUTURE WORK: Add a call to the error log here
-
-	// create the collision body, which specifies the shape of the object
-	Vector3<float> dimension{ dim, dim, dim };
-	btBoxShape * const boxShape = new btBoxShape(Vector3_to_btVector3(dimension));
-	
-	// triggers are immoveable.  0 mass signals this to Bullet.
-	btScalar const mass = 0;
-
-	// set the initial position of the body from the actor
-	Transform triggerTransform;
-	triggerTransform.SetTranslation( pos );
-	ActorMotionState * const motionState = new ActorMotionState(triggerTransform);
-	
-	btRigidBody::btRigidBodyConstructionInfo rbInfo( mass, motionState, boxShape, btVector3(0,0,0) );
-	btRigidBody * const body = new btRigidBody(rbInfo);
-	
-	mDynamicsWorld->addRigidBody( body );
-	
-	// a trigger is just a box that doesn't collide with anything.  That's what "CF_NO_CONTACT_RESPONSE" indicates.
-	body->setCollisionFlags( body->getCollisionFlags() | btRigidBody::CF_NO_CONTACT_RESPONSE );
-
-	mActorIdToCollisionObject[pStrongActor->GetId()] = body;
-	mCollisionObjectToActorId[body] = pStrongActor->GetId();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -996,7 +1006,7 @@ Transform BulletPhysics::GetTransform(const ActorId id)
     LogAssert(pCollisionObject, "no collision object");
 
     const btTransform& actorTransform = pCollisionObject->getWorldTransform();
-    return btTransform_to_Transform(actorTransform);
+    return btTransformToTransform(actorTransform);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1009,7 +1019,7 @@ void BulletPhysics::SetTransform(ActorId actorId, const Transform& mat)
 	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(actorId))
 	{
 		// warp the body to the new position
-		collisionObject->setWorldTransform(Transform_to_btTransform(mat));
+		collisionObject->setWorldTransform(TransformTobtTransform(mat));
 	}
 }
 
@@ -1038,7 +1048,7 @@ Vector3<float> BulletPhysics::GetScale(ActorId actorId)
 				btVector3 aabbMin, aabbMax;
 				collisionShape->getAabb(controller->getGhostObject()->getWorldTransform(), aabbMin, aabbMax);
 				btVector3 const aabbExtents = aabbMax - aabbMin;
-				return btVector3_to_Vector3(aabbExtents);
+				return btVector3ToVector3(aabbExtents);
 			}
 		}
 		else
@@ -1048,7 +1058,7 @@ Vector3<float> BulletPhysics::GetScale(ActorId actorId)
 			btVector3 aabbMin, aabbMax;
 			rigidBody->getAabb(aabbMin, aabbMax);
 			btVector3 const aabbExtents = aabbMax - aabbMin;
-			return btVector3_to_Vector3(aabbExtents);
+			return btVector3ToVector3(aabbExtents);
 		}
 	}
 	return Vector3<float>();
@@ -1067,14 +1077,14 @@ Vector3<float> BulletPhysics::GetVelocity(ActorId actorId)
 				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(actorId)))
 			{
 				btVector3 btVel = controller->getLinearVelocity();
-				return btVector3_to_Vector3(btVel);
+				return btVector3ToVector3(btVel);
 			}
 		}
 		else
 		{
 			btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(collisionObject);
 			btVector3 btVel = rigidBody->getLinearVelocity();
-			return btVector3_to_Vector3(btVel);
+			return btVector3ToVector3(btVel);
 		}
 	}
 	return Vector3<float>();
@@ -1090,14 +1100,14 @@ void BulletPhysics::SetVelocity(ActorId actorId, const Vector3<float>& vel)
 			if (btKinematicCharacterController* const controller =
 				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(actorId)))
 			{
-				btVector3 btVel = Vector3_to_btVector3(vel);
+				btVector3 btVel = Vector3TobtVector3(vel);
 				controller->setLinearVelocity(btVel);
 			}
 		}
 		else
 		{
 			btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(collisionObject);
-			btVector3 btVel = Vector3_to_btVector3(vel);
+			btVector3 btVel = Vector3TobtVector3(vel);
 			rigidBody->setLinearVelocity(btVel);
 		}
 	}
@@ -1114,14 +1124,14 @@ Vector3<float> BulletPhysics::GetAngularVelocity(ActorId actorId)
 				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(actorId)))
 			{
 				btVector3 btVel = controller->getAngularVelocity();
-				return btVector3_to_Vector3(btVel);
+				return btVector3ToVector3(btVel);
 			}
 		}
 		else
 		{
 			btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(collisionObject);
 			btVector3 btVel = rigidBody->getAngularVelocity();
-			return btVector3_to_Vector3(btVel);
+			return btVector3ToVector3(btVel);
 		}
 	}
 	return Vector3<float>();
@@ -1137,14 +1147,14 @@ void BulletPhysics::SetAngularVelocity(ActorId actorId, const Vector3<float>& ve
 			if (btKinematicCharacterController* const controller =
 				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(actorId)))
 			{
-				btVector3 btVel = Vector3_to_btVector3(vel);
+				btVector3 btVel = Vector3TobtVector3(vel);
 				controller->setAngularVelocity(btVel);
 			}
 		}
 		else
 		{
 			btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(collisionObject);
-			btVector3 btVel = Vector3_to_btVector3(vel);
+			btVector3 btVel = Vector3TobtVector3(vel);
 			rigidBody->setAngularVelocity(btVel);
 		}
 	}
@@ -1155,7 +1165,7 @@ void BulletPhysics::Translate(ActorId actorId, const Vector3<float>& vec)
 {
 	if (btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(FindBulletCollisionObject(actorId)))
 	{
-		btVector3 btVec = Vector3_to_btVector3(vec);
+		btVector3 btVec = Vector3TobtVector3(vec);
 		rigidBody->translate(btVec);
 	}
 }
@@ -1179,7 +1189,18 @@ void BulletPhysics::Jump(ActorId aid, const Vector3<float> &dir)
 	if (btKinematicCharacterController* const controller =
 		dynamic_cast<btKinematicCharacterController*>(FindBulletAction(aid)))
 	{
-		controller->jump(btVector3(dir[0], dir[1], dir[2]));
+		controller->jump(Vector3TobtVector3(dir));
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::FallDirection
+void BulletPhysics::FallDirection(ActorId aid, const Vector3<float> &dir)
+{
+	if (btKinematicCharacterController* const controller =
+		dynamic_cast<btKinematicCharacterController*>(FindBulletAction(aid)))
+	{
+		controller->setGravity(Vector3TobtVector3(dir));
 	}
 }
 
@@ -1190,7 +1211,7 @@ void BulletPhysics::WalkDirection(ActorId aid, const Vector3<float> &dir)
 	if (btKinematicCharacterController* const controller =
 		dynamic_cast<btKinematicCharacterController*>(FindBulletAction(aid)))
 	{
-		controller->setWalkDirection(btVector3(dir[0], dir[1], dir[2]));
+		controller->setWalkDirection(Vector3TobtVector3(dir));
 	}
 }
 
@@ -1201,7 +1222,7 @@ void BulletPhysics::SetPosition(ActorId actorId, const Vector3<float>& pos)
 	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(actorId))
 	{
 		btTransform transform = collisionObject->getWorldTransform();
-		transform.setOrigin(Vector3_to_btVector3(pos));
+		transform.setOrigin(Vector3TobtVector3(pos));
 		collisionObject->setWorldTransform(transform);
 	}
 }
@@ -1212,7 +1233,7 @@ void BulletPhysics::SetRotation(ActorId actorId, const Transform& mat)
 {
 	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(actorId))
 	{
-		btTransform transform = Transform_to_btTransform(mat);
+		btTransform transform = TransformTobtTransform(mat);
 		transform.setOrigin(collisionObject->getWorldTransform().getOrigin());
 		collisionObject->setWorldTransform(transform);
 	}
@@ -1328,17 +1349,17 @@ void BulletPhysics::SendCollisionPairAddEvent( btPersistentManifold const * mani
 		
 		// this pair of colliding objects is new.  send a collision-begun event
 		eastl::list<Vector3<float>> collisionPoints;
-		Vector3<float> sumNormalForce;
-		Vector3<float> sumFrictionForce;
+		Vector3<float> sumNormalForce = Vector3<float>::Zero();
+		Vector3<float> sumFrictionForce = Vector3<float>::Zero();
 		
 		for ( int pointIdx = 0; pointIdx < manifold->getNumContacts(); ++pointIdx )
 		{
 			btManifoldPoint const & point = manifold->getContactPoint( pointIdx );
 		
-			collisionPoints.push_back( btVector3_to_Vector3( point.getPositionWorldOnB() ) );
+			collisionPoints.push_back( btVector3ToVector3( point.getPositionWorldOnB() ) );
 			
-			sumNormalForce += btVector3_to_Vector3( point.m_combinedRestitution * point.m_normalWorldOnB );
-			sumFrictionForce += btVector3_to_Vector3( point.m_combinedFriction * point.m_lateralFrictionDir1 );
+			sumNormalForce += btVector3ToVector3( point.m_combinedRestitution * point.m_normalWorldOnB );
+			sumFrictionForce += btVector3ToVector3( point.m_combinedFriction * point.m_lateralFrictionDir1 );
 		}
 		
 		// send the event for the game

@@ -48,6 +48,25 @@ const char* HealthPickup::Name = "HealthPickup";
 
 bool HealthPickup::Init(tinyxml2::XMLElement* pData)
 {
+	tinyxml2::XMLElement* pHealth = pData->FirstChildElement("Health");
+	if (pHealth)
+	{
+		unsigned int temp = 0;
+		mType = pHealth->IntAttribute("type", temp);
+
+		temp = 0;
+		mId = pHealth->IntAttribute("id", temp);
+
+		temp = 0;
+		mWait = pHealth->IntAttribute("wait", temp);
+
+		temp = 0;
+		mAmount = pHealth->IntAttribute("amount", temp);
+
+		temp = 0;
+		mMaximum = pHealth->IntAttribute("maximum", temp);
+	}
+
     return true;
 }
 

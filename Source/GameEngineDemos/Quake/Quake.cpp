@@ -15,13 +15,12 @@
 #include "QuakeNetwork.h"
 #include "QuakeEvents.h"
 #include "QuakeActorFactory.h"
-#include "QuakeManager.h"
+#include "QuakeLevelManager.h"
 
 //
 // QuakeLogic::QuakeLogic
 //
-QuakeLogic::QuakeLogic()
-	: GameLogic()
+QuakeLogic::QuakeLogic() : GameLogic()
 {
 	mPhysics.reset(CreateGamePhysics());
 	RegisterAllDelegates();
@@ -137,17 +136,14 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				eastl::shared_ptr<BaseGameView> pView = *it;
 				if (pView->GetType() == GV_HUMAN)
 				{
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\quake\\players\\player.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = 
+						CreatePlayerActor("actors\\quake\\players\\player.xml", NULL);
 					if (pActor)
 					{
 						pView->OnAttach(pView->GetId(), pActor->GetId());
 
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
 							new EventDataNewActor(pActor->GetId(), pView->GetId()));
-
-						// [rez] This needs to happen asap because the constructor function for Lua 
-						// (which is called in through VCreateActor()) queues an event that expects 
-						// this event to have been handled
 						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
 					}
 				}
@@ -155,7 +151,8 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				{
 					eastl::shared_ptr<NetworkGameView> pNetworkGameView =
 						eastl::static_pointer_cast<NetworkGameView, BaseGameView>(pView);
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\quake\\players\\remote_player.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = 
+						CreatePlayerActor("actors\\quake\\players\\remote_player.xml", NULL);
 					if (pActor)
 					{
 						pView->OnAttach(pView->GetId(), pActor->GetId());
@@ -169,7 +166,8 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				{
 					eastl::shared_ptr<QuakeAIPlayerView> pAiView = 
 						eastl::static_pointer_cast<QuakeAIPlayerView, BaseGameView>(pView);
-					eastl::shared_ptr<Actor> pActor = CreateActor("actors\\quake\\players\\ai_player.xml", NULL);
+					eastl::shared_ptr<Actor> pActor = 
+						CreatePlayerActor("actors\\quake\\players\\ai_player.xml", NULL);
 					if (pActor)
 					{
 						pView->OnAttach(pView->GetId(), pActor->GetId());
@@ -200,7 +198,6 @@ void QuakeLogic::EnvironmentLoadedDelegate(BaseEventDataPtr pEventData)
 {
 	++mHumanGamesLoaded;
 }
-
 
 // FUTURE WORK - this isn't Quake specific so it can go into the game agnostic base class
 void QuakeLogic::RemoteClientDelegate(BaseEventDataPtr pEventData)
@@ -270,6 +267,39 @@ void QuakeLogic::NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEventDat
 	LogError("Could not find HumanView to attach actor to!");
 }
 
+void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataJumpActor> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataJumpActor>(pEventData);
+
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
+	if (pGameActor)
+	{
+		/*
+		local aggressor = self:GetActorById(eventData.id);
+
+		if (aggressor == nil) then
+			print("FireWeapon from noone?");
+		return;
+		end;
+
+		print("FireWeapon!");
+		local pos = Vec3:Create(aggressor : GetPos());
+		local lookAt = Vec3:Create(aggressor : GetLookAt());
+		lookAt.y = lookAt.y + 1;
+		local dir = lookAt * 2;
+		pos = pos + dir;
+		local ypr = Vec3:Create({ x = 0, y = 0, z = 0 });
+		local ball = CreateActor("actors\\sphere.xml", pos, ypr);
+		if (ball ~= -1) then
+			dir : Normalize();
+		ApplyForce(dir, .3, ball);
+		end
+		*/
+	}
+}
+
 void QuakeLogic::JumpActorDelegate(BaseEventDataPtr pEventData)
 {
 	eastl::shared_ptr<QuakeEventDataJumpActor> pCastEventData =
@@ -299,6 +329,22 @@ void QuakeLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
 			pPhysicalComponent->KinematicMove(pCastEventData->GetDirection());
+	}
+}
+
+void QuakeLogic::FallActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataFallActor> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataFallActor>(pEventData);
+
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
+	if (pGameActor)
+	{
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+			pPhysicalComponent->KinematicFall(pCastEventData->GetDirection());
 	}
 }
 
@@ -397,13 +443,22 @@ void QuakeLogic::RegisterAllDelegates(void)
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeLogic::EnvironmentLoadedDelegate), 
 		EventDataRemoteEnvironmentLoaded::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeLogic::PhysicsCollisionDelegate),
+		EventDataPhysCollision::skEventType);
 
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeLogic::FireWeaponDelegate),
+		QuakeEventDataFireWeapon::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeLogic::JumpActorDelegate),
 		QuakeEventDataJumpActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeLogic::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeLogic::FallActorDelegate),
+		QuakeEventDataFallActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeLogic::RotateActorDelegate),
 		QuakeEventDataRotateActor::skEventType);
@@ -443,6 +498,9 @@ void QuakeLogic::RemoveAllDelegates(void)
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeLogic::EnvironmentLoadedDelegate), 
 		EventDataRemoteEnvironmentLoaded::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeLogic::PhysicsCollisionDelegate),
+		EventDataPhysCollision::skEventType);
 	if (mIsProxy)
 	{
 		pGlobalEventManager->RemoveListener(
@@ -451,11 +509,17 @@ void QuakeLogic::RemoveAllDelegates(void)
 	}
 
 	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeLogic::FireWeaponDelegate),
+		QuakeEventDataFireWeapon::skEventType);
+	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeLogic::JumpActorDelegate),
 		QuakeEventDataJumpActor::skEventType);
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeLogic::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeLogic::FallActorDelegate),
+		QuakeEventDataFallActor::skEventType);
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeLogic::RotateActorDelegate),
 		QuakeEventDataRotateActor::skEventType);
@@ -513,6 +577,9 @@ void QuakeLogic::CreateNetworkEventForwarder(const int socketId)
 		QuakeEventDataMoveActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		QuakeEventDataFallActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 		QuakeEventDataRotateActor::skEventType);
 
 	mNetworkEventForwarders.push_back(pNetworkEventForwarder);
@@ -558,6 +625,9 @@ void QuakeLogic::DestroyAllNetworkEventForwarders(void)
 			QuakeEventDataMoveActor::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataFallActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataRotateActor::skEventType);
 
 		delete networkEventForwarder;
@@ -578,6 +648,38 @@ LevelManager* QuakeLogic::CreateLevelManager(void)
 	levelManager->AddLevelSearchDir(L"world/quake/");
 	levelManager->LoadLevelList(L"*.xml");
 	return levelManager;
+}
+
+
+eastl::shared_ptr<Actor> QuakeLogic::CreatePlayerActor(const eastl::string &actorResource, 
+	tinyxml2::XMLElement *overrides, const Transform *initialTransform, const ActorId serversActorId)
+{
+	QuakeActorFactory* actorFactory = dynamic_cast<QuakeActorFactory*>(mActorFactory);
+	LogAssert(actorFactory, "quake actor factory is not initialized");
+	if (!mIsProxy && serversActorId != INVALID_ACTOR_ID)
+		return eastl::shared_ptr<Actor>();
+
+	if (mIsProxy && serversActorId == INVALID_ACTOR_ID)
+		return eastl::shared_ptr<Actor>();
+
+	eastl::shared_ptr<Actor> pActor = actorFactory->CreatePlayerActor(
+		ToWideString(actorResource.c_str()).c_str(), overrides, initialTransform, serversActorId);
+	if (pActor)
+	{
+		mActors.insert(eastl::make_pair(pActor->GetId(), pActor));
+		if (!mIsProxy && (mGameState == BGS_SPAWNINGPLAYERACTORS || mGameState == BGS_RUNNING))
+		{
+			eastl::shared_ptr<EventDataRequestNewActor> pNewActor(
+				new EventDataRequestNewActor(actorResource, initialTransform, pActor->GetId()));
+			BaseEventManager::Get()->TriggerEvent(pNewActor);
+		}
+		return pActor;
+	}
+	else
+	{
+		// FUTURE WORK: Log error: couldn't create actor
+		return eastl::shared_ptr<Actor>();
+	}
 }
 
 bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
@@ -620,7 +722,10 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 					modelResources["item_health_small"] = "actors/quake/models/health/healthsmall.xml";
 					modelResources["item_health_large"] = "actors/quake/models/health/healthlarge.xml";
 					modelResources["item_health"] = "actors/quake/models/health/health.xml";
-					targetResources["info_player_deathmatch"] = "actors/quake/target/playerdeathmatch.xml";
+					targetResources["info_player_deathmatch"] = "actors/quake/target/destination.xml";
+					targetResources["info_player_intermission"] = "actors/quake/target/destination.xml";
+					targetResources["info_notnull"] = "actors/quake/target/destination.xml";
+					targetResources["info_null"] = "actors/quake/target/destination.xml";
 					targetResources["target_speaker"] = "actors/quake/target/speaker.xml";
 					triggerResources["trigger_teleport"] = "actors/quake/trigger/teleporter.xml";
 					triggerResources["trigger_push"] = "actors/quake/trigger/push.xml";
@@ -690,6 +795,18 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 											}
 										}
 
+										const char* target = bspLoader.GetValueForKey(&entity, "targetname");
+										if (target)
+										{
+											if (className == "info_player_deathmatch")
+											{
+												eastl::shared_ptr<RespawnTarget> pRespawnTarget(
+													pActor->GetComponent<RespawnTarget>(RespawnTarget::Name).lock());
+												if (pRespawnTarget)
+													pRespawnTarget->SetTarget(target);
+											}
+										}
+
 										eastl::shared_ptr<AudioComponent> pAudioComponent(
 											pActor->GetComponent<AudioComponent>(AudioComponent::Name).lock());
 										if (pAudioComponent)
@@ -732,34 +849,54 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 								gameType.find("duel") != eastl::string::npos ||
 								notGameType.find("duel") == eastl::string::npos)
 							{
-								BSPVector3 origin;
-								if (bspLoader.GetVectorForKey(&entity, "origin", origin))
+								Transform initTransform;
+								eastl::shared_ptr<Actor> pActor = CreateActor(
+									triggerResources[className], nullptr, &initTransform);
+								if (pActor)
 								{
-									Transform initTransform;
-									initTransform.SetTranslation(origin[0], origin[1], origin[2]);
-									eastl::shared_ptr<Actor> pActor = CreateActor(
-										triggerResources[className], nullptr, &initTransform);
-									if (pActor)
+									float angle = bspLoader.GetFloatForKey(&entity, "angle");
+									if (angle)
 									{
-										float angle = bspLoader.GetFloatForKey(&entity, "angle");
-										if (angle)
+										eastl::shared_ptr<TransformComponent> pTransformComponent(
+											pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+										if (pTransformComponent)
 										{
-											eastl::shared_ptr<TransformComponent> pTransformComponent(
-												pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-											if (pTransformComponent)
-											{
-												Matrix4x4<float> yawRotation = Rotation<4, float>(
-													AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
-												pTransformComponent->SetRotation(yawRotation);
-											}
+											Matrix4x4<float> yawRotation = Rotation<4, float>(
+												AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
+											pTransformComponent->SetRotation(yawRotation);
 										}
-
-										// fire an event letting everyone else know that we created a new actor
-										eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
-											new EventDataNewActor(pActor->GetId()));
-										BaseEventManager::Get()->QueueEvent(pNewActorEvent);
 									}
 								}
+
+								const char* model = bspLoader.GetValueForKey(&entity, "model");
+								const char* target = bspLoader.GetValueForKey(&entity, "target");
+								if (model && target)
+								{
+									if (className == "trigger_teleport")
+									{
+										eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger(
+											pActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock());
+										if (pTeleporterTrigger)
+										{
+											pTeleporterTrigger->SetModel(model);
+											pTeleporterTrigger->SetTarget(target);
+										}
+									}
+									else if (className == "trigger_push")
+									{
+										eastl::shared_ptr<PushTrigger> pPushTrigger(
+											pActor->GetComponent<PushTrigger>(PushTrigger::Name).lock());
+										if (pPushTrigger)
+										{
+											pPushTrigger->SetModel(model);
+											pPushTrigger->SetTarget(target);
+										}
+									}
+								}
+
+								// fire an event letting everyone else know that we created a new actor
+								eastl::shared_ptr<EventDataNewActor> pNewActorEvent(new EventDataNewActor(pActor->GetId()));
+								BaseEventManager::Get()->QueueEvent(pNewActorEvent);
 							}
 						}
 						else if (className == "worldspawn")
@@ -805,4 +942,235 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 	}
 
 	return true;
+}
+
+
+void QuakeLogic::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<EventDataPhysCollision> pCastEventData =
+		eastl::static_pointer_cast<EventDataPhysCollision>(pEventData);
+
+	eastl::shared_ptr<Actor> pGameActorA(
+		GameLogic::Get()->GetActor(pCastEventData->GetActorA()).lock());
+	eastl::shared_ptr<Actor> pGameActorB(
+		GameLogic::Get()->GetActor(pCastEventData->GetActorB()).lock());
+	if (pGameActorA && pGameActorB)
+	{
+		if (eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorA) &&
+			!eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorB))
+		{
+			eastl::shared_ptr<PlayerActor> pPlayerActor =
+				eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorA);
+
+			// dead players don't activate triggers
+			if (pPlayerActor->GetState().stats[STAT_HEALTH] <= 0)
+				return;
+
+			if (pGameActorB->GetType() == "Trigger")
+			{
+				eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
+					pGameActorB->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
+				if (pTeleporterTrigger)
+				{
+
+				}
+
+				eastl::shared_ptr<PushTrigger> pPushTrigger =
+					pGameActorB->GetComponent<PushTrigger>(PushTrigger::Name).lock();
+				if (pPushTrigger)
+				{
+
+				}
+			}
+			else
+			{
+				if (!CanItemBeGrabbed(pGameActorB, pPlayerActor))
+					return; // can't hold it
+
+				if (pGameActorB->GetType() == "Weapon")
+				{
+					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+						pGameActorB->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+					if (pWeaponPickup)
+					{
+						pPlayerActor->GetState().stats[STAT_WEAPONS] |= 1 << pWeaponPickup->GetId();
+						if (!pPlayerActor->GetState().ammo[pWeaponPickup->GetId()])
+							pPlayerActor->GetState().ammo[pWeaponPickup->GetId()] = 1;
+					}
+				}
+			}
+		}
+		else if (!eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorA) &&
+			eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorB))
+		{
+			eastl::shared_ptr<PlayerActor> pPlayerActor =
+				eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorB);
+
+			// dead players don't activate triggers
+			if (pPlayerActor->GetState().stats[STAT_HEALTH] <= 0)
+				return;
+
+			if (!CanItemBeGrabbed(pGameActorA, pPlayerActor)) 
+				return; // can't hold it
+
+			if (pGameActorA->GetType() == "Weapon")
+			{
+				eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+					pGameActorA->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+				if (pWeaponPickup)
+				{
+					pPlayerActor->GetState().stats[STAT_WEAPONS] |= 1 << pWeaponPickup->GetId();
+					if (!pPlayerActor->GetState().ammo[pWeaponPickup->GetId()])
+						pPlayerActor->GetState().ammo[pWeaponPickup->GetId()] = 1;
+				}
+			}
+		}
+	}
+	/*
+	local actorA = self:GetActorById(eventData.actorA);
+	local actorB = self:GetActorById(eventData.actorB);
+
+	--one of the actors isn't in the script manager
+	if (actorA == nil or actorB == nil) then
+	return;
+	end
+
+	local teapot = nil;
+	local sphere = nil;
+
+	if (actorA.actorType == "Teapot" and actorB.actorType == "Sphere") then
+	teapot = actorA;
+	sphere = actorB;
+	elseif(actorA.actorType == "Sphere" and actorB.actorType == "Teapot") then
+	teapot = actorB;
+	sphere = actorA;
+	end
+
+	-- needs to be a teapot and sphere collision for us to care
+	if (teapot == nil or sphere == nil) then
+	return;
+	end
+
+	-- If we get here, there was a collision between a teapot and a sphere.Damage the teapot.
+	self:_DamageTeapot(teapot);
+
+	--destroy the sphere
+	self : RemoveSphere(sphere);
+	QueueEvent(EventType.EvtData_Request_Destroy_Actor, sphere:GetActorId());
+
+	--play the hit sound
+	QueueEvent(EventType.EvtData_PlaySound, "audio\\computerbeep3.wav");
+	*/
+}
+
+
+/*
+========================
+TouchJumpPad
+========================
+*/
+/*
+void TouchJumpPad(const eastl::shared_ptr<PlayerActor>& player, EntityState *jumppad)
+{
+	Vector3<float>	angles;
+	float p;
+	int effectNum;
+
+	// spectators don't use jump pads
+	if (ps->pm_type != PM_NORMAL)
+	{
+		return;
+	}
+
+	// flying characters don't hit bounce pads
+	if (ps->powerups[PW_FLIGHT])
+	{
+		return;
+	}
+
+	// if we didn't hit this same jumppad the previous frame
+	// then don't play the event sound again if we are in a fat trigger
+	if (ps->jumppad_ent != jumppad->number)
+	{
+		vectoangles(jumppad->origin2, angles);
+		p = fabs(AngleNormalize180(angles[PITCH]));
+		if (p < 45)
+		{
+			effectNum = 0;
+		}
+		else
+		{
+			effectNum = 1;
+		}
+		AddPredictableEventToPlayerstate(EV_JUMP_PAD, effectNum, ps);
+	}
+	// remember hitting this jumppad this frame
+	ps->jumppad_ent = jumppad->number;
+	ps->jumppad_frame = ps->pmove_framecount;
+	// give the player the velocity from the jumppad
+	ps->velocity = Vector3<float>{ jumppad->origin2 };
+}
+*/
+/*
+================
+CanItemBeGrabbed
+Returns false if the item should not be picked up.
+================
+*/
+bool QuakeLogic::CanItemBeGrabbed(const eastl::shared_ptr<Actor>& item, const eastl::shared_ptr<PlayerActor>& player)
+{
+	if (item->GetType() == "Ammo")
+	{
+		eastl::shared_ptr<AmmoPickup> pAmmoPickup = 
+			item->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+		if (pAmmoPickup)
+		{
+			if (player->GetState().ammo[pAmmoPickup->GetId()] >= 200)
+				return false;		// can't hold any more
+
+			return true;
+		}
+	}
+	else if (item->GetType() == "Armor")
+	{
+		if (player->GetState().stats[STAT_ARMOR] >= 
+			player->GetState().stats[STAT_MAX_HEALTH] * 2)
+			return false;
+
+		return true;
+	}
+	else if (item->GetType() == "Health")
+	{
+		// small and mega healths will go over the max, otherwise
+		// don't pick up if already at max
+		eastl::shared_ptr<HealthPickup> pHealthPickup =
+			item->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+		if (pHealthPickup)
+		{
+			if (pHealthPickup->GetAmount() == 5 || pHealthPickup->GetAmount() == 100)
+			{
+				if (player->GetState().stats[STAT_HEALTH] >= 
+					player->GetState().stats[STAT_MAX_HEALTH] * 2)
+					return false;
+
+				return true;
+			}
+
+			if (player->GetState().stats[STAT_HEALTH] >= 
+				player->GetState().stats[STAT_MAX_HEALTH])
+				return false;
+
+			return true;
+		}
+	}
+	else if (item->GetType() == "Weapon")
+	{
+		return true;	// weapons are always picked up
+	}
+	else
+	{ 
+		LogError("Unknown type " + item->GetType());
+	}
+
+	return false;
 }
