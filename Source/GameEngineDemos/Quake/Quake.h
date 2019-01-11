@@ -49,7 +49,7 @@
 #include "Actors/WeaponPickup.h"
 #include "Actors/PushTrigger.h"
 #include "Actors/TeleporterTrigger.h"
-#include "Actors/DestinationTarget.h"
+#include "Actors/LocationTarget.h"
 #include "Actors/SpeakerTarget.h"
 
 class BaseEventManager;

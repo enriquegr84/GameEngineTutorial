@@ -675,8 +675,6 @@ bool BspLoader::FindVectorByName(float* outvec,const char* name)
 	
 	bool found = false;
 
-	ParseEntities();
-
 	for ( int i = 1; i < mNumEntities; i++ ) 
 	{
 		cl = GetValueForKey (&mEntities[i], "classname");

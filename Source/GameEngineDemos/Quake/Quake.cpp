@@ -722,10 +722,10 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 					modelResources["item_health_small"] = "actors/quake/models/health/healthsmall.xml";
 					modelResources["item_health_large"] = "actors/quake/models/health/healthlarge.xml";
 					modelResources["item_health"] = "actors/quake/models/health/health.xml";
-					targetResources["info_player_deathmatch"] = "actors/quake/target/destination.xml";
-					targetResources["info_player_intermission"] = "actors/quake/target/destination.xml";
-					targetResources["info_notnull"] = "actors/quake/target/destination.xml";
-					targetResources["info_null"] = "actors/quake/target/destination.xml";
+					targetResources["info_player_deathmatch"] = "actors/quake/target/location.xml";
+					targetResources["target_teleporter"] = "actors/quake/target/location.xml";
+					targetResources["target_position"] = "actors/quake/target/location.xml";
+					targetResources["target_push"] = "actors/quake/target/location.xml";
 					targetResources["target_speaker"] = "actors/quake/target/speaker.xml";
 					triggerResources["trigger_teleport"] = "actors/quake/trigger/teleporter.xml";
 					triggerResources["trigger_push"] = "actors/quake/trigger/push.xml";
@@ -798,12 +798,12 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 										const char* target = bspLoader.GetValueForKey(&entity, "targetname");
 										if (target)
 										{
-											if (className == "info_player_deathmatch")
+											if (className != "target_speaker")
 											{
-												eastl::shared_ptr<DestinationTarget> pDestinationTarget(
-													pActor->GetComponent<DestinationTarget>(DestinationTarget::Name).lock());
-												if (pDestinationTarget)
-													pDestinationTarget->SetTarget(target);
+												eastl::shared_ptr<LocationTarget> pLocationTarget(
+													pActor->GetComponent<LocationTarget>(LocationTarget::Name).lock());
+												if (pLocationTarget)
+													pLocationTarget->SetTarget(target);
 											}
 										}
 
@@ -890,6 +890,19 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 										{
 											pPushTrigger->SetModel(model);
 											pPushTrigger->SetTarget(target);
+										}
+									}
+
+									if (strcmp(model, ""))
+									{
+										// add the model as a brush
+										if (model[0] == '*')
+										{
+											int modelnr = atoi(&model[1]);
+											if ((modelnr >= 0) && (modelnr < bspLoader.mNumModels))
+											{
+												const BSPModel& model = bspLoader.mDModels[modelnr];
+											}
 										}
 									}
 								}
@@ -1111,6 +1124,7 @@ void TouchJumpPad(const eastl::shared_ptr<PlayerActor>& player, EntityState *jum
 	ps->velocity = Vector3<float>{ jumppad->origin2 };
 }
 */
+
 /*
 ================
 CanItemBeGrabbed

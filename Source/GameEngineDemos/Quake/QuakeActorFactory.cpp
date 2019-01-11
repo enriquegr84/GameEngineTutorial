@@ -46,7 +46,7 @@
 #include "Actors/WeaponPickup.h"
 #include "Actors/PushTrigger.h"
 #include "Actors/TeleporterTrigger.h"
-#include "Actors/DestinationTarget.h"
+#include "Actors/LocationTarget.h"
 #include "Actors/SpeakerTarget.h"
 #include "Actors/PlayerActor.h"
 
@@ -66,7 +66,7 @@ QuakeActorFactory::QuakeActorFactory(void) : ActorFactory()
 	mComponentFactory.Register<WeaponPickup>(ActorComponent::GetIdFromName(WeaponPickup::Name));
 	mComponentFactory.Register<PushTrigger>(ActorComponent::GetIdFromName(PushTrigger::Name));
 	mComponentFactory.Register<TeleporterTrigger>(ActorComponent::GetIdFromName(TeleporterTrigger::Name));
-	mComponentFactory.Register<DestinationTarget>(ActorComponent::GetIdFromName(DestinationTarget::Name));
+	mComponentFactory.Register<LocationTarget>(ActorComponent::GetIdFromName(LocationTarget::Name));
 	mComponentFactory.Register<SpeakerTarget>(ActorComponent::GetIdFromName(SpeakerTarget::Name));
 }
 

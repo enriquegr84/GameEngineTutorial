@@ -1,5 +1,5 @@
 //========================================================================
-// DestinationTarget.cpp - A destination target
+// LocationTarget.cpp - A location target
 //
 // Part of the GameCode4 Application
 //
@@ -38,19 +38,19 @@
 
 #include "GameEngineStd.h"
 
-#include "DestinationTarget.h"
+#include "LocationTarget.h"
 #include "Game/Actor/Actor.h"
 
 #include "Core/Logger/Logger.h"
 
-const char* DestinationTarget::Name = "DestinationTarget";
+const char* LocationTarget::Name = "LocationTarget";
 
-bool DestinationTarget::Init(tinyxml2::XMLElement* pData)
+bool LocationTarget::Init(tinyxml2::XMLElement* pData)
 {
 	return true;
 }
 
-tinyxml2::XMLElement* DestinationTarget::GenerateXml(void)
+tinyxml2::XMLElement* LocationTarget::GenerateXml(void)
 {
 	tinyxml2::XMLDocument doc;
 
@@ -59,12 +59,12 @@ tinyxml2::XMLElement* DestinationTarget::GenerateXml(void)
 	return pComponentElement;
 }
 
-void DestinationTarget::Apply(eastl::weak_ptr<Actor> pActor)
+void LocationTarget::Apply(eastl::weak_ptr<Actor> pActor)
 {
 	eastl::shared_ptr<Actor> pStrongActor(pActor);
 	if (pStrongActor)
 	{
-		LogInformation("Applying destination target to actor id " + eastl::to_string(pStrongActor->GetId()));
+		LogInformation("Applying location target to actor id " + eastl::to_string(pStrongActor->GetId()));
 	}
 }
 

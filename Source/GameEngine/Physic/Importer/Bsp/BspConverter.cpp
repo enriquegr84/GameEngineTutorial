@@ -22,29 +22,9 @@ subject to the following restrictions:
 #include <stdio.h>
 #include <string.h>
 
-
 void BspConverter::ConvertBsp(BspLoader& bspLoader,float scaling)
 {
-	float	playstartf[3] = {0,0,100};
-
-	if (bspLoader.FindVectorByName(&playstartf[0],"info_player_start"))
-	{
-		LogInformation("found playerstart");
-	} 
-	else
-	{
-		if (bspLoader.FindVectorByName(&playstartf[0],"info_player_deathmatch"))
-		{
-			LogInformation("found deatchmatch start");
-		}
-	}
-
-	btVector3 playerStart (playstartf[0],playstartf[1],playstartf[2]);
-
-
-	playerStart[2] += 20.f; //start a bit higher
-
-	playerStart *= scaling;
+	bspLoader.ParseEntities();
 
 	//progressBegin("Loading bsp");
 
@@ -100,95 +80,6 @@ void BspConverter::ConvertBsp(BspLoader& bspLoader,float scaling)
 			} 
 		}
 	}
-
-#define USE_ENTITIES
-#ifdef USE_ENTITIES
-	{
-		int i;
-		for (i = 0; i < bspLoader.mNumEntities; i++)
-		{
-			const BSPEntity& entity = bspLoader.mEntities[i];
-			const char* cl = bspLoader.GetValueForKey(&entity, "classname");
-			if (!strcmp(cl, "trigger_push")) 
-			{
-				btVector3 targetLocation(0.f, 0.f, 0.f);
-
-				cl = bspLoader.GetValueForKey(&entity, "target");
-				if (strcmp(cl, "")) 
-				{
-					//its not empty so ...
-
-					/*
-					//lookup the target position for the jumppad:
-					const BSPEntity* targetentity = bspLoader.getEntityByValue( "targetname" , cl );
-					if (targetentity)
-					{
-						if (bspLoader.getVectorForKey( targetentity , "origin",&targetLocation[0]))
-						{
-
-						}
-					}
-					*/
-
-					cl = bspLoader.GetValueForKey(&entity, "model");
-					if (strcmp(cl, ""))
-					{
-						// add the model as a brush
-						if (cl[0] == '*')
-						{
-							int modelnr = atoi(&cl[1]);
-							if ((modelnr >= 0) && (modelnr < bspLoader.mNumModels))
-							{
-								const BSPModel& model = bspLoader.mDModels[modelnr];
-								for (int n = 0; n < model.numBrushes; n++)
-								{
-									btAlignedObjectArray<btVector3> planeEquations;
-									bool isValidBrush = false;
-
-									//convert brush
-									const BSPBrush& brush = bspLoader.mDBrushes[model.firstBrush + n];
-									{
-										for (int p = 0; p < brush.numSides; p++)
-										{
-											int sideid = brush.firstSide + p;
-											BSPBrushSide& brushside = bspLoader.mDBrushsides[sideid];
-											int planeid = brushside.planeNum;
-											BSPPlane& plane = bspLoader.mDPlanes[planeid];
-											btVector3 planeEq;
-											planeEq.setValue(
-												plane.normal[0],
-												plane.normal[1],
-												plane.normal[2]);
-											planeEq[3] = scaling * -plane.dist;
-											planeEquations.push_back(planeEq);
-											isValidBrush = true;
-										}
-										if (isValidBrush)
-										{
-
-											btAlignedObjectArray<btVector3>	vertices;
-											btGeometryUtil::getVerticesFromPlaneEquations(planeEquations, vertices);
-
-											bool isEntity = true;
-											AddConvexVerticesCollider(vertices, isEntity, targetLocation);
-
-										}
-									}
-
-								}
-							}
-						}
-						else
-						{
-							LogInformation("unsupported trigger_push model, md3 ?");
-						}
-					}
-				}
-			}
-		}
-	}
-					
-#endif //USE_ENTITIES
 
 	//progressEnd();
 }

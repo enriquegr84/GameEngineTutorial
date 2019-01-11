@@ -1,5 +1,5 @@
 //========================================================================
-// DestinationTarget.h - A destination target
+// LocationTarget.h - A location target
 //
 // Part of the GameCode4 Application
 //
@@ -42,9 +42,9 @@
 #include "BaseTarget.h"
 
 //---------------------------------------------------------------------------------------------------------------------
-// DestinationTarget implementation class.
+// LocationTarget implementation class.
 //---------------------------------------------------------------------------------------------------------------------
-class DestinationTarget : public BaseTarget
+class LocationTarget : public BaseTarget
 {
 	const char* mTarget;
 
