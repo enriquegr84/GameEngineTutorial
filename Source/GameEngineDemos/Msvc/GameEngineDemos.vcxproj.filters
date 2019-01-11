@@ -95,9 +95,6 @@
     <ClInclude Include="..\Quake\Actors\ArmorPickup.h">
       <Filter>Quake\Actors</Filter>
     </ClInclude>
-    <ClInclude Include="..\Quake\Actors\RespawnTarget.h">
-      <Filter>Quake\Actors</Filter>
-    </ClInclude>
     <ClInclude Include="..\Quake\QuakeLevelManager.h">
       <Filter>Quake</Filter>
     </ClInclude>
@@ -105,6 +102,9 @@
       <Filter>Quake</Filter>
     </ClInclude>
     <ClInclude Include="..\Quake\Actors\PlayerActor.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\DestinationTarget.h">
       <Filter>Quake\Actors</Filter>
     </ClInclude>
   </ItemGroup>
@@ -182,9 +182,6 @@
     <ClCompile Include="..\Quake\Actors\ArmorPickup.cpp">
       <Filter>Quake\Actors</Filter>
     </ClCompile>
-    <ClCompile Include="..\Quake\Actors\RespawnTarget.cpp">
-      <Filter>Quake\Actors</Filter>
-    </ClCompile>
     <ClCompile Include="..\Quake\QuakeLevelManager.cpp">
       <Filter>Quake</Filter>
     </ClCompile>
@@ -192,6 +189,9 @@
       <Filter>Quake</Filter>
     </ClCompile>
     <ClCompile Include="..\Quake\Actors\PlayerActor.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\DestinationTarget.cpp">
       <Filter>Quake\Actors</Filter>
     </ClCompile>
   </ItemGroup>

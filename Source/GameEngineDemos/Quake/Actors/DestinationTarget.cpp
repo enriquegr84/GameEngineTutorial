@@ -1,5 +1,5 @@
 //========================================================================
-// RespawnTarget.cpp - A respawn target
+// DestinationTarget.cpp - A destination target
 //
 // Part of the GameCode4 Application
 //
@@ -38,19 +38,19 @@
 
 #include "GameEngineStd.h"
 
-#include "RespawnTarget.h"
+#include "DestinationTarget.h"
 #include "Game/Actor/Actor.h"
 
 #include "Core/Logger/Logger.h"
 
-const char* RespawnTarget::Name = "RespawnTarget";
+const char* DestinationTarget::Name = "DestinationTarget";
 
-bool RespawnTarget::Init(tinyxml2::XMLElement* pData)
+bool DestinationTarget::Init(tinyxml2::XMLElement* pData)
 {
 	return true;
 }
 
-tinyxml2::XMLElement* RespawnTarget::GenerateXml(void)
+tinyxml2::XMLElement* DestinationTarget::GenerateXml(void)
 {
 	tinyxml2::XMLDocument doc;
 
@@ -59,12 +59,12 @@ tinyxml2::XMLElement* RespawnTarget::GenerateXml(void)
 	return pComponentElement;
 }
 
-void RespawnTarget::Apply(eastl::weak_ptr<Actor> pActor)
+void DestinationTarget::Apply(eastl::weak_ptr<Actor> pActor)
 {
 	eastl::shared_ptr<Actor> pStrongActor(pActor);
 	if (pStrongActor)
 	{
-		LogInformation("Applying respawn target to actor id " + eastl::to_string(pStrongActor->GetId()));
+		LogInformation("Applying destination target to actor id " + eastl::to_string(pStrongActor->GetId()));
 	}
 }
 

@@ -800,10 +800,10 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 										{
 											if (className == "info_player_deathmatch")
 											{
-												eastl::shared_ptr<RespawnTarget> pRespawnTarget(
-													pActor->GetComponent<RespawnTarget>(RespawnTarget::Name).lock());
-												if (pRespawnTarget)
-													pRespawnTarget->SetTarget(target);
+												eastl::shared_ptr<DestinationTarget> pDestinationTarget(
+													pActor->GetComponent<DestinationTarget>(DestinationTarget::Name).lock());
+												if (pDestinationTarget)
+													pDestinationTarget->SetTarget(target);
 											}
 										}
 

@@ -1,5 +1,5 @@
 //========================================================================
-// RespawnTarget.h - A respawn target
+// DestinationTarget.h - A destination target
 //
 // Part of the GameCode4 Application
 //
@@ -36,15 +36,15 @@
 //
 //========================================================================
 
-#ifndef RESPAWNTARGET_H
-#define RESPAWNTARGET_H
+#ifndef DESTINATIONTARGET_H
+#define DESTINATIONTARGET_H
 
 #include "BaseTarget.h"
 
 //---------------------------------------------------------------------------------------------------------------------
-// RespawnTarget implementation class.
+// DestinationTarget implementation class.
 //---------------------------------------------------------------------------------------------------------------------
-class RespawnTarget : public BaseTarget
+class DestinationTarget : public BaseTarget
 {
 	const char* mTarget;
 
