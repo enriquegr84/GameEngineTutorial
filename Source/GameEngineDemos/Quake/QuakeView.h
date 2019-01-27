@@ -48,6 +48,231 @@
 //! Macro for save Dropping an Element
 #define DropElement(x)	if (x) { x->Remove(); x = 0; }
 
+#define	NUM_CROSSHAIRS		10
+
+enum FootStep 
+{
+	FOOTSTEP_NORMAL,
+	FOOTSTEP_BOOT,
+	FOOTSTEP_FLESH,
+	FOOTSTEP_MECH,
+	FOOTSTEP_ENERGY,
+	FOOTSTEP_METAL,
+	FOOTSTEP_SPLASH,
+
+	FOOTSTEP_TOTAL
+};
+
+enum ImpactSound
+{
+	IMPACTSOUND_DEFAULT,
+	IMPACTSOUND_METAL,
+	IMPACTSOUND_FLESH
+};
+
+enum LeType
+{
+	LE_MARK,
+	LE_EXPLOSION,
+	LE_SPRITE_EXPLOSION,
+	LE_FRAGMENT,
+	LE_MOVE_SCALE_FADE,
+	LE_FALL_SCALE_FADE,
+	LE_FADE_RGB,
+	LE_SCALE_FADE,
+	LE_SCOREPLUM
+};
+
+enum LeFlag
+{
+	LEF_PUFF_DONT_SCALE = 0x0001,	// do not scale size over time
+	LEF_TUMBLE = 0x0002,			// tumble over time, used for ejecting shells
+	LEF_SOUND1 = 0x0004,			// sound 1 for kamikaze
+	LEF_SOUND2 = 0x0008				// sound 2 for kamikaze
+};
+
+enum LeMarkType
+{
+	LEMT_NONE,
+	LEMT_BURN,
+	LEMT_BLOOD
+};			// fragment local entities can leave marks on walls
+
+enum LeBounceSoundType
+{
+	LEBS_NONE,
+	LEBS_BLOOD,
+	LEBS_BRASS
+};	// fragment local entities can make sounds on impacts
+
+
+// all of the model, shader, and sound references that are
+// loaded at game load time are stored in Media
+struct MediaResource
+{
+	eastl::wstring armorIcon;
+
+	eastl::wstring deferShader;
+
+	// gib explosions
+	eastl::wstring gibAbdomen;
+	eastl::wstring gibArm;
+	eastl::wstring gibChest;
+	eastl::wstring gibFist;
+	eastl::wstring gibFoot;
+	eastl::wstring gibForearm;
+	eastl::wstring gibIntestine;
+	eastl::wstring gibLeg;
+	eastl::wstring gibSkull;
+	eastl::wstring gibBrain;
+
+	eastl::wstring smoke2;
+
+	eastl::wstring machinegunBrassModel;
+	eastl::wstring shotgunBrassModel;
+
+	eastl::wstring railRingsShader;
+	eastl::wstring railCoreShader;
+
+	eastl::wstring lightningShader;
+
+	eastl::wstring balloonShader;
+	eastl::wstring connectionShader;
+
+	eastl::wstring selectShader;
+	eastl::wstring viewBloodShader;
+	eastl::wstring tracerShader;
+	eastl::wstring crosshairShader[NUM_CROSSHAIRS];
+	eastl::wstring lagometerShader;
+	eastl::wstring backTileShader;
+	eastl::wstring noammoShader;
+
+	eastl::wstring smokePuffShader;
+	eastl::wstring smokePuffRageProShader;
+	eastl::wstring shotgunSmokePuffShader;
+	eastl::wstring plasmaBallShader;
+	eastl::wstring bloodTrailShader;
+
+	eastl::wstring numberShaders[11];
+
+	eastl::wstring shadowMarkShader;
+
+	eastl::wstring botSkillShaders[5];
+
+	// wall mark shaders
+	eastl::wstring bloodMarkShader;
+	eastl::wstring bulletMarkShader;
+	eastl::wstring burnMarkShader;
+	eastl::wstring holeMarkShader;
+	eastl::wstring energyMarkShader;
+
+	// weapon effect models
+	eastl::wstring bulletFlashModel;
+	eastl::wstring ringFlashModel;
+	eastl::wstring dishFlashModel;
+	eastl::wstring lightningExplosionModel;
+
+	// weapon effect shaders
+	eastl::wstring railExplosionShader;
+	eastl::wstring plasmaExplosionShader;
+	eastl::wstring bulletExplosionShader;
+	eastl::wstring rocketExplosionShader;
+	eastl::wstring grenadeExplosionShader;
+	eastl::wstring bfgExplosionShader;
+	eastl::wstring bloodExplosionShader[5];
+
+	// special effects models
+	eastl::wstring teleportEffectModel;
+	eastl::wstring teleportEffectShader;
+
+	// scoreboard headers
+	eastl::wstring scoreboardName;
+	eastl::wstring scoreboardPing;
+	eastl::wstring scoreboardScore;
+	eastl::wstring scoreboardTime;
+
+	// medals shown during gameplay
+	eastl::wstring medalImpressive;
+	eastl::wstring medalExcellent;
+	eastl::wstring medalGauntlet;
+	eastl::wstring medalDefend;
+	eastl::wstring medalAssist;
+	eastl::wstring medalCapture;
+
+	// sounds
+	eastl::wstring quadSound;
+	eastl::wstring tracerSound;
+	eastl::wstring selectSound;
+	eastl::wstring useNothingSound;
+	eastl::wstring wearOffSound;
+	eastl::wstring footsteps[FOOTSTEP_TOTAL][4];
+	eastl::wstring sfxLghit1;
+	eastl::wstring sfxLghit2;
+	eastl::wstring sfxLghit3;
+	eastl::wstring sfxRic1;
+	eastl::wstring sfxRic2;
+	eastl::wstring sfxRic3;
+	eastl::wstring sfxRailg;
+	eastl::wstring sfxRockexp;
+	eastl::wstring sfxPlasmaexp;
+
+	eastl::wstring gibSound;
+	eastl::wstring gibBounce1Sound;
+	eastl::wstring gibBounce2Sound;
+	eastl::wstring gibBounce3Sound;
+	eastl::wstring teleInSound;
+	eastl::wstring teleOutSound;
+	eastl::wstring noAmmoSound;
+	eastl::wstring respawnSound;
+	eastl::wstring talkSound;
+	eastl::wstring landSound;
+	eastl::wstring fallSound;
+	eastl::wstring jumpPadSound;
+
+	eastl::wstring oneMinuteSound;
+	eastl::wstring fiveMinuteSound;
+	eastl::wstring suddenDeathSound;
+
+	eastl::wstring threeFragSound;
+	eastl::wstring twoFragSound;
+	eastl::wstring oneFragSound;
+
+	eastl::wstring hitSound;
+	eastl::wstring hitSoundHighArmor;
+	eastl::wstring hitSoundLowArmor;
+	eastl::wstring hitTeamSound;
+	eastl::wstring impressiveSound;
+	eastl::wstring excellentSound;
+	eastl::wstring deniedSound;
+	eastl::wstring humiliationSound;
+	eastl::wstring assistSound;
+	eastl::wstring defendSound;
+	eastl::wstring firstImpressiveSound;
+	eastl::wstring firstExcellentSound;
+	eastl::wstring firstHumiliationSound;
+
+	eastl::wstring weaponHoverSound;
+
+	// tournament sounds
+	eastl::wstring count3Sound;
+	eastl::wstring count2Sound;
+	eastl::wstring count1Sound;
+	eastl::wstring countFightSound;
+	eastl::wstring countPrepareSound;
+
+	eastl::wstring cursor;
+	eastl::wstring selectCursor;
+	eastl::wstring sizeCursor;
+
+	eastl::wstring nhealthSound;
+	eastl::wstring hgrenb1aSound;
+	eastl::wstring hgrenb2aSound;
+	eastl::wstring wstbimplSound;
+	eastl::wstring wstbimpmSound;
+	eastl::wstring wstbimpdSound;
+	eastl::wstring wstbactvSound;
+};
+
 class QuakeMainMenuUI : public BaseUI
 {
 protected:
@@ -127,9 +352,13 @@ public:
 class QuakeHumanView : public HumanView
 {
 protected:
+
 	bool  mShowUI;					// If true, it renders the UI control text
 	DebugMode mDebugMode;
     eastl::string mGameplayText;
+
+	// media
+	MediaResource mMedia;
 
 	eastl::shared_ptr<QuakePlayerController> mGamePlayerController;
 	eastl::shared_ptr<QuakeCameraController> mGameCameraController;
@@ -151,10 +380,22 @@ public:
     // event delegates
     void GameplayUiUpdateDelegate(BaseEventDataPtr pEventData);
     void SetControlledActorDelegate(BaseEventDataPtr pEventData);
+	
+	void FireWeaponDelegate(BaseEventDataPtr pEventData);
+	void ChangeWeaponDelegate(BaseEventDataPtr pEventData);
+
+	void DeadActorDelegate(BaseEventDataPtr pEventData);
+	void SpawnActorDelegate(BaseEventDataPtr pEventData);
 	void JumpActorDelegate(BaseEventDataPtr pEventData);
 	void MoveActorDelegate(BaseEventDataPtr pEventData);
 
+	void ProjectileImpactDelegate(BaseEventDataPtr pEventData);
+
 private:
+
+	void RegisterSounds();
+	void RegisterGraphics();
+
     void RegisterAllDelegates(void);
     void RemoveAllDelegates(void);
 };

@@ -74,11 +74,11 @@ bool TransformComponent::Init(tinyxml2::XMLElement* pData)
         yaw = pOrientationElement->FloatAttribute("z", yaw);
 
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(2), yaw * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(2), yaw));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), pitch * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(1), pitch));
 		Matrix4x4<float> rollRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(0), roll * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(0), roll));
 
 		rotation = yawRotation * pitchRotation * rollRotation;
 	};
@@ -122,6 +122,8 @@ tinyxml2::XMLElement* TransformComponent::GenerateXml(void)
 	tinyxml2::XMLElement* pDirection = doc.NewElement("YawPitchRoll");
 
 	EulerAngles<float> yawPitchRoll;
+	yawPitchRoll.mAxis[1] = 1;
+	yawPitchRoll.mAxis[2] = 2;
 	mTransform.GetRotation(yawPitchRoll);
     pDirection->SetAttribute("x", eastl::to_string(yawPitchRoll.mAngle[0]).c_str());
     pDirection->SetAttribute("y", eastl::to_string(yawPitchRoll.mAngle[1]).c_str());

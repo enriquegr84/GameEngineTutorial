@@ -75,7 +75,7 @@ public:
     bool Init(tinyxml2::XMLElement* pData);
     void PostInit(void);
     void Destroy(void);
-    void Update(float deltaMs);
+    virtual void Update(float deltaMs);
 
     // editor functions
 	//[mrmike] - we can delete this.
@@ -105,7 +105,7 @@ public:
     }
 
     template <class ComponentType>
-    eastl::weak_ptr<ComponentType> GetComponent(const char *name)
+    eastl::weak_ptr<ComponentType> GetComponent(const char* name)
     {
 		ComponentId id = ActorComponent::GetIdFromName(name);
         ActorComponents::iterator findIt = mComponents.find(id);

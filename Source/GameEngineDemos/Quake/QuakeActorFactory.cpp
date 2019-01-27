@@ -48,7 +48,6 @@
 #include "Actors/TeleporterTrigger.h"
 #include "Actors/LocationTarget.h"
 #include "Actors/SpeakerTarget.h"
-#include "Actors/PlayerActor.h"
 
 #include "Game/Actor/TransformComponent.h"
 #include "Game/Actor/ActorComponent.h"
@@ -77,7 +76,7 @@ eastl::shared_ptr<ActorComponent> QuakeActorFactory::CreateComponent(
 }
 
 
-eastl::shared_ptr<Actor> QuakeActorFactory::CreatePlayerActor(const wchar_t* actorResource,
+eastl::shared_ptr<PlayerActor> QuakeActorFactory::CreatePlayerActor(const wchar_t* actorResource,
 	tinyxml2::XMLElement *overrides, const Transform *pInitialTransform, const ActorId serversActorId)
 {
 	// Grab the root XML node
@@ -85,7 +84,7 @@ eastl::shared_ptr<Actor> QuakeActorFactory::CreatePlayerActor(const wchar_t* act
 	if (!pRoot)
 	{
 		LogError(L"Failed to create actor from resource: " + eastl::wstring(actorResource));
-		return eastl::shared_ptr<Actor>();
+		return eastl::shared_ptr<PlayerActor>();
 	}
 
 	// create the actor instance
@@ -94,11 +93,11 @@ eastl::shared_ptr<Actor> QuakeActorFactory::CreatePlayerActor(const wchar_t* act
 	{
 		nextActorId = GameLogic::Get()->GetNewActorID();
 	}
-	eastl::shared_ptr<Actor> pActor(new PlayerActor(nextActorId));
+	eastl::shared_ptr<PlayerActor> pActor(new PlayerActor(nextActorId));
 	if (!pActor->Init(pRoot))
 	{
 		LogError(L"Failed to initialize actor: " + eastl::wstring(actorResource));
-		return eastl::shared_ptr<Actor>();
+		return eastl::shared_ptr<PlayerActor>();
 	}
 
 	bool initialTransformSet = false;
@@ -114,7 +113,7 @@ eastl::shared_ptr<Actor> QuakeActorFactory::CreatePlayerActor(const wchar_t* act
 			//	but the actor is will only be partially complete so it's not worth it.  
 			//	Note that the pActor instance will be destroyed because it will fall 
 			//	out of scope with nothing else pointing to it.
-			return eastl::shared_ptr<Actor>();
+			return eastl::shared_ptr<PlayerActor>();
 		}
 	}
 

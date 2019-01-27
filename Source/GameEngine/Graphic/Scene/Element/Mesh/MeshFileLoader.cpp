@@ -544,6 +544,14 @@ void ReadNodeMesh(const aiScene* pScene,
 				pNode->mParent->mName.C_Str(), pNode->mName.C_Str());
 		}
 
+		aiVector3t<float> position;
+		aiQuaterniont<float> rotation;
+		pNode->mTransformation.DecomposeNoScaling(rotation, position);
+		meshMD3->GetTagInterpolation().mPosition =
+			Vector3<float>{ position.x, -position.z, position.y };
+		meshMD3->GetTagInterpolation().mRotation =
+			Quaternion<float>{ rotation.x, rotation.y, rotation.z, rotation.w };
+
 		if (pNode->mMetaData != NULL)
 		{
 			aiString path, numAnimations;

@@ -8,8 +8,10 @@
 
 #include "Core/Logger/Logger.h"
 #include "Core/IO/FileSystem.h"
+#include "Core/IO/ResourceCache.h"
 #include "Core/Utility/StringUtil.h"
 
+#include "GLSLShaderResource.h"
 #include "GLSLComputeProgram.h"
 #include "GLSLProgramFactory.h"
 #include "GLSLVisualProgram.h"
@@ -37,48 +39,75 @@ eastl::shared_ptr<VisualProgram> GLSLProgramFactory::CreateFromNamedFiles(
 	eastl::string const&, eastl::string const& psFile,
 	eastl::string const&, eastl::string const& gsFile)
 {
-	BaseReadFile* vertexFile = FileSystem::Get()->CreateReadFile(ToWideString(vsFile.c_str()));
-	BaseReadFile* pixelFile = FileSystem::Get()->CreateReadFile(ToWideString(psFile.c_str()));
-	if (vertexFile == nullptr || pixelFile == nullptr)
+	eastl::shared_ptr<ResHandle> resHandle =
+		ResCache::Get()->GetHandle(&BaseResource(ToWideString(vsFile.c_str())));
+	const eastl::shared_ptr<GLSLShaderResourceExtraData>& vsHandle =
+		eastl::static_pointer_cast<GLSLShaderResourceExtraData>(resHandle->GetExtra());
+	if (!vsHandle->GetShader())
 	{
-		LogError("A program must have a vertex shader and a pixel shader.");
+		BaseReadFile* vertexFile = FileSystem::Get()->CreateReadFile(
+			ToWideString(FileSystem::Get()->GetPath(vsFile).c_str()));
+		if (vertexFile == nullptr)
+		{
+			LogError("A program must have a vertex shader");
+			delete vertexFile;
+			return nullptr;
+		}
+
+		char* vsSource = new char[vertexFile->GetSize() + 1];
+		memset(vsSource, 0, vertexFile->GetSize() + 1);
+		vertexFile->Read(vsSource, vertexFile->GetSize());
+		vsHandle->GetShader() = Compile(GL_VERTEX_SHADER, vsSource);
 		delete vertexFile;
-		delete pixelFile;
-		return nullptr;
-	}
-
-	char* vsSource = new char[vertexFile->GetSize() + 1];
-	memset(vsSource, 0, vertexFile->GetSize() + 1);
-	vertexFile->Read(vsSource, vertexFile->GetSize());
-	GLuint vsHandle = Compile(GL_VERTEX_SHADER, vsSource);
-	delete vertexFile;
-	if (vsHandle == 0)
-	{
-		return nullptr;
-	}
-
-	char* psSource = new char[pixelFile->GetSize() + 1];
-	memset(psSource, 0, pixelFile->GetSize() + 1);
-	pixelFile->Read(psSource, pixelFile->GetSize());
-	GLuint psHandle = Compile(GL_FRAGMENT_SHADER, psSource);
-	delete pixelFile;
-	if (psHandle == 0)
-	{
-		return nullptr;
-	}
-
-	GLuint gsHandle = 0;
-	BaseReadFile* geometryFile = FileSystem::Get()->CreateReadFile(ToWideString(gsFile.c_str()));
-	delete geometryFile;
-	if (geometryFile != nullptr)
-	{
-		char* gsSource = new char[geometryFile->GetSize() + 1];
-		memset(gsSource, 0, geometryFile->GetSize() + 1);
-		geometryFile->Read(gsSource, geometryFile->GetSize());
-		gsHandle = Compile(GL_GEOMETRY_SHADER, gsSource);
-		if (gsHandle == 0)
+		if (!vsHandle->GetShader())
 		{
 			return nullptr;
+		}
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(ToWideString(psFile.c_str())));
+	const eastl::shared_ptr<GLSLShaderResourceExtraData>& psHandle =
+		eastl::static_pointer_cast<GLSLShaderResourceExtraData>(resHandle->GetExtra());
+	if (!psHandle->GetShader())
+	{
+		BaseReadFile* pixelFile = FileSystem::Get()->CreateReadFile(
+			ToWideString(FileSystem::Get()->GetPath(psFile).c_str()));
+		if (pixelFile == nullptr)
+		{
+			LogError("A program must have a pixel shader.");
+			delete pixelFile;
+			return nullptr;
+		}
+
+		char* psSource = new char[pixelFile->GetSize() + 1];
+		memset(psSource, 0, pixelFile->GetSize() + 1);
+		pixelFile->Read(psSource, pixelFile->GetSize());
+		psHandle->GetShader() = Compile(GL_FRAGMENT_SHADER, psSource);
+		delete pixelFile;
+		if (!psHandle->GetShader())
+		{
+			return nullptr;
+		}
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(ToWideString(gsFile.c_str())));
+	const eastl::shared_ptr<GLSLShaderResourceExtraData>& gsHandle =
+		eastl::static_pointer_cast<GLSLShaderResourceExtraData>(resHandle->GetExtra());
+	if (!gsHandle->GetShader())
+	{
+		BaseReadFile* geometryFile = FileSystem::Get()->CreateReadFile(
+			ToWideString(FileSystem::Get()->GetPath(gsFile).c_str()));
+		if (geometryFile != nullptr)
+		{
+			char* gsSource = new char[geometryFile->GetSize() + 1];
+			memset(gsSource, 0, geometryFile->GetSize() + 1);
+			geometryFile->Read(gsSource, geometryFile->GetSize());
+			gsHandle->GetShader() = Compile(GL_GEOMETRY_SHADER, gsSource);
+			delete geometryFile;
+			if (!gsHandle->GetShader())
+			{
+				return nullptr;
+			}
 		}
 	}
 
@@ -89,23 +118,23 @@ eastl::shared_ptr<VisualProgram> GLSLProgramFactory::CreateFromNamedFiles(
 		return nullptr;
 	}
 
-	glAttachShader(programHandle, vsHandle);
-	glAttachShader(programHandle, psHandle);
+	glAttachShader(programHandle, vsHandle->GetShader());
+	glAttachShader(programHandle, psHandle->GetShader());
 	if (gsHandle > 0)
 	{
-		glAttachShader(programHandle, gsHandle);
+		glAttachShader(programHandle, gsHandle->GetShader());
 	}
 
 	if (!Link(programHandle))
 	{
-		glDetachShader(programHandle, vsHandle);
-		glDeleteShader(vsHandle);
-		glDetachShader(programHandle, psHandle);
-		glDeleteShader(psHandle);
+		glDetachShader(programHandle, vsHandle->GetShader());
+		glDeleteShader(vsHandle->GetShader());
+		glDetachShader(programHandle, psHandle->GetShader());
+		glDeleteShader(psHandle->GetShader());
 		if (gsHandle)
 		{
-			glDetachShader(programHandle, gsHandle);
-			glDeleteShader(gsHandle);
+			glDetachShader(programHandle, gsHandle->GetShader());
+			glDeleteShader(gsHandle->GetShader());
 		}
 		glDeleteProgram(programHandle);
 		return nullptr;

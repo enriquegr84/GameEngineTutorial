@@ -43,7 +43,6 @@
 #include "Core/Event/EventManager.h"
 #include "Core/Event/Event.h"
 
-
 //---------------------------------------------------------------------------------------------------------------------
 // class QuakeEventDataFireWeapon
 //---------------------------------------------------------------------------------------------------------------------
@@ -88,10 +87,240 @@ public:
         return "QuakeEventDataFireWeapon";
     }
 
-	ActorId GetActorId(void) const
+	ActorId GetId(void) const
     {
         return mId;
     }
+};
+
+
+//---------------------------------------------------------------------------------------------------------------------
+// class QuakeEventDataChangeWeapon
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataChangeWeapon : public EventData
+{
+	ActorId mId;
+
+public:
+	static const BaseEventType skEventType;
+	virtual const BaseEventType & GetEventType() const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataChangeWeapon(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataChangeWeapon(ActorId id)
+		: mId(id)
+	{
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataChangeWeapon(mId));
+	}
+
+	virtual void Serialize(std::ostrstream & out) const
+	{
+		out << mId << " ";
+	}
+
+	virtual void Deserialize(std::istrstream & in)
+	{
+		in >> mId;
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataChangeWeapon";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+};
+
+//---------------------------------------------------------------------------------------------------------------------
+// class QuakeEventDataDeadActor
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataDeadActor : public EventData
+{
+	ActorId mId;
+
+public:
+	static const BaseEventType skEventType;
+	virtual const BaseEventType & GetEventType() const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataDeadActor(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataDeadActor(ActorId id)
+		: mId(id)
+	{
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataDeadActor(mId));
+	}
+
+	virtual void Serialize(std::ostrstream & out) const
+	{
+		out << mId << " ";
+	}
+
+	virtual void Deserialize(std::istrstream & in)
+	{
+		in >> mId;
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataDeadActor";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+};
+
+
+//---------------------------------------------------------------------------------------------------------------------
+// QuakeEventDataSpawnActor - sent when actors are spawned
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataSpawnActor : public EventData
+{
+	ActorId mId;
+	Transform mTransform;
+
+public:
+	static const BaseEventType skEventType;
+
+	virtual const BaseEventType& GetEventType(void) const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataSpawnActor(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataSpawnActor(ActorId id, const Transform& trans)
+		: mId(id), mTransform(trans)
+	{
+		//
+	}
+
+	virtual void Serialize(std::ostrstream &out) const
+	{
+		out << mId << " ";
+		for (int i = 0; i<4; ++i)
+			for (int j = 0; j<4; ++j)
+				out << mTransform.GetMatrix()(i, j) << " ";
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
+
+		Matrix4x4<float> transform = mTransform.GetMatrix();
+		for (int i = 0; i<4; ++i)
+			for (int j = 0; j<4; ++j)
+				in >> transform(i, j);
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataSpawnActor(mId, mTransform));
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataSpawnActor";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+
+	const Transform& GetTransform(void) const
+	{
+		return mTransform;
+	}
+};
+
+//---------------------------------------------------------------------------------------------------------------------
+// QuakeEventDataPushActor - sent when actor is pushed
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataPushActor : public EventData
+{
+	ActorId mId;
+	Vector3<float> mDirection;
+
+public:
+	static const BaseEventType skEventType;
+
+	virtual const BaseEventType& GetEventType(void) const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataPushActor(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataPushActor(ActorId id, const Vector3<float>& dir)
+		: mId(id), mDirection(dir)
+	{
+		//
+	}
+
+	virtual void Serialize(std::ostrstream &out) const
+	{
+		out << mId << " ";
+		for (int i = 0; i<3; ++i)
+			out << mDirection[i] << " ";
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
+		for (int i = 0; i<3; ++i)
+			in >> mDirection[i];
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataPushActor(mId, mDirection));
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataPushActor";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+
+	const Vector3<float>& GetDirection(void) const
+	{
+		return mDirection;
+	}
 };
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -100,7 +329,6 @@ public:
 class QuakeEventDataJumpActor : public EventData
 {
 	ActorId mId;
-	bool mIsBackward;
 	Vector3<float> mDirection;
 
 public:
@@ -116,8 +344,8 @@ public:
 		mId = INVALID_ACTOR_ID;
 	}
 
-	QuakeEventDataJumpActor(ActorId id, bool isBackward, const Vector3<float>& dir)
-		: mId(id), mIsBackward(isBackward), mDirection(dir)
+	QuakeEventDataJumpActor(ActorId id, const Vector3<float>& dir)
+		: mId(id), mDirection(dir)
 	{
 		//
 	}
@@ -125,22 +353,20 @@ public:
 	virtual void Serialize(std::ostrstream &out) const
 	{
 		out << mId << " ";
-		out << mIsBackward << " ";
-		for (int i = 0; i<4; ++i)
+		for (int i = 0; i<3; ++i)
 			out << mDirection[i] << " ";
 	}
 
 	virtual void Deserialize(std::istrstream& in)
 	{
 		in >> mId;
-		in >> mIsBackward;
-		for (int i = 0; i<4; ++i)
+		for (int i = 0; i<3; ++i)
 			in >> mDirection[i];
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new QuakeEventDataJumpActor(mId, mIsBackward, mDirection));
+		return BaseEventDataPtr(new QuakeEventDataJumpActor(mId, mDirection));
 	}
 
 	virtual const char* GetName(void) const
@@ -151,11 +377,6 @@ public:
 	ActorId GetId(void) const
 	{
 		return mId;
-	}
-
-	bool IsBackward(void) const
-	{
-		return mIsBackward;
 	}
 
 	const Vector3<float>& GetDirection(void) const
@@ -170,8 +391,6 @@ public:
 class QuakeEventDataMoveActor : public EventData
 {
 	ActorId mId;
-	bool mOnGround;
-	bool mIsBackward;
 	Vector3<float> mDirection;
 
 public:
@@ -187,8 +406,8 @@ public:
 		mId = INVALID_ACTOR_ID;
 	}
 
-	QuakeEventDataMoveActor(ActorId id, bool onGround, bool isBackward, const Vector3<float>& dir)
-		: mId(id), mOnGround(onGround), mIsBackward(isBackward), mDirection(dir)
+	QuakeEventDataMoveActor(ActorId id, const Vector3<float>& dir)
+		: mId(id), mDirection(dir)
 	{
 		//
 	}
@@ -196,24 +415,20 @@ public:
 	virtual void Serialize(std::ostrstream &out) const
 	{
 		out << mId << " ";
-		out << mOnGround << " ";
-		out << mIsBackward << " ";
-		for (int i = 0; i<4; ++i)
+		for (int i = 0; i<3; ++i)
 			out << mDirection[i] << " ";
 	}
 
 	virtual void Deserialize(std::istrstream& in)
 	{
 		in >> mId;
-		in >> mOnGround;
-		in >> mIsBackward;
-		for (int i = 0; i<4; ++i)
+		for (int i = 0; i<3; ++i)
 			in >> mDirection[i];
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new QuakeEventDataMoveActor(mId, mOnGround, mIsBackward, mDirection));
+		return BaseEventDataPtr(new QuakeEventDataMoveActor(mId, mDirection));
 	}
 
 	virtual const char* GetName(void) const
@@ -224,16 +439,6 @@ public:
 	ActorId GetId(void) const
 	{
 		return mId;
-	}
-
-	bool OnGround(void) const
-	{
-		return mOnGround;
-	}
-
-	bool IsBackward(void) const
-	{
-		return mIsBackward;
 	}
 
 	const Vector3<float>& GetDirection(void) const
@@ -272,14 +477,14 @@ public:
 	virtual void Serialize(std::ostrstream &out) const
 	{
 		out << mId << " ";
-		for (int i = 0; i<4; ++i)
+		for (int i = 0; i<3; ++i)
 			out << mDirection[i] << " ";
 	}
 
 	virtual void Deserialize(std::istrstream& in)
 	{
 		in >> mId;
-		for (int i = 0; i<4; ++i)
+		for (int i = 0; i<3; ++i)
 			in >> mDirection[i];
 	}
 
@@ -617,6 +822,87 @@ public:
     }
 };
 
+//---------------------------------------------------------------------------------------------------------------------
+// QuakeEventDataProjectileImpact
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataProjectileImpact : public EventData
+{
+	ActorId mId;
+	unsigned int mWeapon;
+	Vector3<float> mImpactPoint, mImpactNormal;
+
+public:
+	static const BaseEventType skEventType;
+
+	virtual const BaseEventType& GetEventType(void) const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataProjectileImpact(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataProjectileImpact(ActorId id, unsigned int weapon,
+		const Vector3<float>& point, const Vector3<float>& normal)
+		: mId(id), mWeapon(weapon), mImpactPoint(point), mImpactNormal(normal)
+	{
+		//
+	}
+
+	virtual void Serialize(std::ostrstream &out) const
+	{
+		out << mId << " ";
+		out << mWeapon << " ";
+		for (int i = 0; i<3; ++i)
+			out << mImpactPoint[i] << " ";
+		for (int i = 0; i<3; ++i)
+			out << mImpactNormal[i] << " ";
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
+		in >> mWeapon;
+		for (int i = 0; i<3; ++i)
+			in >> mImpactPoint[i];
+		for (int i = 0; i<3; ++i)
+			in >> mImpactNormal[i];
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(
+			new QuakeEventDataProjectileImpact(
+			mId, mWeapon, mImpactPoint, mImpactNormal));
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataProjectileImpact";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+
+	unsigned int GetWeapon(void) const
+	{
+		return mWeapon;
+	}
+
+	const Vector3<float>& GetImpactPoint(void) const
+	{
+		return mImpactPoint;
+	}
+
+	const Vector3<float>& GetImpactNormal(void) const
+	{
+		return mImpactNormal;
+	}
+};
 
 //---------------------------------------------------------------------------------------------------------------------
 // class QuakeEventDataGameplayUIUpdate				- Chapter 10, 279

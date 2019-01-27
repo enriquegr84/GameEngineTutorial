@@ -8,7 +8,11 @@
 #include "Core/Logger/Logger.h"
 #include "Core/Utility/StringUtil.h"
 
+#include "Core/IO/FileSystem.h"
+#include "Core/IO/ResourceCache.h"
+
 #include "HLSLShaderFactory.h"
+#include "HLSLShaderResource.h"
 
 #include <string>
 
@@ -20,22 +24,33 @@ HLSLShader HLSLShaderFactory::CreateFromFile(eastl::string const& name,
 	eastl::string type = target.substr(0, 3);
 	if (type == "vs_" || type == "gs_" || type == "ps_" || type == "cs_")
 	{
-		ID3DBlob* compiledCode = CompileShader(
-			filepath, entry, target, compileFlags, defines);
-		if (!compiledCode)
+		eastl::shared_ptr<ResHandle> resHandle =
+			ResCache::Get()->GetHandle(&BaseResource(ToWideString(filepath.c_str())));
+
+		const eastl::shared_ptr<HLSLShaderResourceExtraData>& extra =
+			eastl::static_pointer_cast<HLSLShaderResourceExtraData>(resHandle->GetExtra());
+		if (!extra->GetShader().IsValid())
 		{
-			// Errors are recorded to a logfile by CompileShader.
-			return HLSLShader();
+			ID3DBlob* compiledCode = CompileShader(
+				FileSystem::Get()->GetPath(filepath), entry, target, compileFlags, defines);
+			if (!compiledCode)
+			{
+				// Errors are recorded to a logfile by CompileShader.
+				return HLSLShader();
+			}
+
+			HLSLShader shader;
+			if (!ReflectShader(name, entry, target, compiledCode, shader))
+			{
+				// Errors are recorded to a logfile by ReflectShader.
+				shader = HLSLShader();
+			}
+			compiledCode->Release();
+
+			extra->GetShader() = shader;
 		}
 
-		HLSLShader shader;
-		if (!ReflectShader(name, entry, target, compiledCode, shader))
-		{
-			// Errors are recorded to a logfile by ReflectShader.
-			shader = HLSLShader();
-		}
-		compiledCode->Release();
-		return shader;
+		return extra->GetShader();
 	}
 	else
 	{

@@ -42,6 +42,16 @@ DirectionalLightTextureEffect::DirectionalLightTextureEffect(
     mProgram->GetPShader()->Set("baseSampler", mSampler);
 }
 
+void DirectionalLightTextureEffect::SetTexture(eastl::shared_ptr<Texture2> const& texture)
+{
+	mTexture = texture;
+#if defined(_OPENGL_)
+	mProgram->GetPShader()->Set("baseSampler", mTexture);
+#else
+	mProgram->GetPShader()->Set("baseTexture", mTexture);
+#endif
+}
+
 void DirectionalLightTextureEffect::UpdateMaterialConstant()
 {
     InternalMaterial* internalMaterial = mMaterialConstant->Get<InternalMaterial>();

@@ -1,5 +1,5 @@
 //========================================================================
-// ActorFactory.h - Defines a factory for creating actors & components
+// HLSLShaderResource.cpp : API to use load HLSLShader files from the Resource Cache
 //
 // Part of the GameEngine Application
 //
@@ -36,38 +36,30 @@
 //
 //========================================================================
 
-#ifndef QUAKEACTORFACTORY_H
-#define QUAKEACTORFACTORY_H
+#include "HLSLShaderResource.h"
 
-#include "GameEngineStd.h"
-
-#include "Game/Actor/ActorFactory.h"
-
-#include "Actors/PlayerActor.h"
-
-/*
-	Class ActorFactory. All actors are created using a factory. The factory's job is to
-	take an XML resource, parse it, and return a fully initialized actor complete with
-	all the appropriate components. It's important to understand how actors are built, 
-	how to define a component configuration and any default values for that component.
-*/
-class QuakeActorFactory : public ActorFactory
+//! returns true if the file maybe is able to be loaded by this class
+//! based on the file extension (e.g. ".hlsl")
+bool HLSLShaderResourceLoader::IsALoadableFileExtension(const eastl::wstring& fileName) const
 {
+	if (fileName.rfind('.') != eastl::string::npos)
+	{
+		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
+		return fileExtension.compare(L"hlsl") == 0;
+	}
+	else return false;
+}
 
-public:
-	QuakeActorFactory(void);
+bool HLSLShaderResourceLoader::LoadResource(
+	void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle)
+{
+    eastl::shared_ptr<HLSLShaderResourceExtraData> pExtraData(new HLSLShaderResourceExtraData());
+    handle->SetExtra(eastl::shared_ptr<HLSLShaderResourceExtraData>(pExtraData));
 
-	eastl::shared_ptr<PlayerActor> CreatePlayerActor(
-		const wchar_t* actorResource, tinyxml2::XMLElement* overrides,
-		const Transform* initialTransform, const ActorId serversActorId);
+    return true;
+}
 
-//protected:
-    // This function can be overridden by a subclass so you can create game-specific 
-	// C++ components. If you do this, make sure you call the base-class version first.  
-	// If it returns NULL, you know it's not an engine component.
-    virtual eastl::shared_ptr<ActorComponent> CreateComponent(
-		eastl::shared_ptr<Actor> pActor, tinyxml2::XMLElement* pData);
-};
-
-
-#endif
+eastl::shared_ptr<BaseResourceLoader> CreateHLSLShaderResourceLoader()
+{
+    return eastl::shared_ptr<BaseResourceLoader>(new HLSLShaderResourceLoader());
+}

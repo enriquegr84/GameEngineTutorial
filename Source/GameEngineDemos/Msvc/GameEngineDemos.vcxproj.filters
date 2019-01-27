@@ -104,7 +104,10 @@
     <ClInclude Include="..\Quake\Actors\PlayerActor.h">
       <Filter>Quake\Actors</Filter>
     </ClInclude>
-    <ClInclude Include="..\Quake\Actors\DestinationTarget.h">
+    <ClInclude Include="..\Quake\Actors\LocationTarget.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\ProjectileActor.h">
       <Filter>Quake\Actors</Filter>
     </ClInclude>
   </ItemGroup>
@@ -191,7 +194,10 @@
     <ClCompile Include="..\Quake\Actors\PlayerActor.cpp">
       <Filter>Quake\Actors</Filter>
     </ClCompile>
-    <ClCompile Include="..\Quake\Actors\DestinationTarget.cpp">
+    <ClCompile Include="..\Quake\Actors\LocationTarget.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\ProjectileActor.cpp">
       <Filter>Quake\Actors</Filter>
     </ClCompile>
   </ItemGroup>

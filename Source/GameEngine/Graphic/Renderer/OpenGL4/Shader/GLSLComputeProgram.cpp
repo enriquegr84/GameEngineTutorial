@@ -10,6 +10,7 @@
 
 GLSLComputeProgram::~GLSLComputeProgram()
 {
+	/*
     if (glIsProgram(mProgramHandle))
     {
         if (glIsShader(mCShaderHandle))
@@ -20,6 +21,7 @@ GLSLComputeProgram::~GLSLComputeProgram()
 
         glDeleteProgram(mProgramHandle);
     }
+	*/
 }
 
 GLSLComputeProgram::GLSLComputeProgram(GLuint programHandle, GLuint cshaderHandle)

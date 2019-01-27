@@ -44,12 +44,19 @@ void NodeAnimatorFollowCamera::AnimateNode(Scene* pScene, Node* node, unsigned i
 	if (pPhysicComponent)
 	{
 		float yaw = 180 + pPhysicComponent->GetOrientationOffset()[2];
+		float pitch = pPhysicComponent->GetOrientationOffset()[1];
+		float roll = pPhysicComponent->GetOrientationOffset()[0];
 
 		// set the camera behind the node and project it towards node direction
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), yaw * (float)GE_C_DEG_TO_RAD));
+		Matrix4x4<float> pitchRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(1), pitch * (float)GE_C_DEG_TO_RAD));
+		Matrix4x4<float> rollRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(0), roll * (float)GE_C_DEG_TO_RAD));
 		Transform targetTransform = pPhysicComponent->GetTransform();
-		camera->GetAbsoluteTransform().SetRotation(targetTransform.GetRotation() * yawRotation);
+		camera->GetAbsoluteTransform().SetRotation(
+			targetTransform.GetRotation() * yawRotation * pitchRotation * rollRotation);
 		Vector4<float> translation = targetTransform.GetTranslationW1();
 		Vector4<float> direction = Vector4<float>::Unit(1); // forward vector
 #if defined(GE_USE_MAT_VEC)

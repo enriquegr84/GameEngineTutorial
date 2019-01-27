@@ -66,8 +66,8 @@ public:
     virtual void Update(float deltaMs) override;
 
     // Physics functions
-    void ApplyForce(const Vector3<float>& direction, float forceNewtons);
-    void ApplyTorque(const Vector3<float>& direction, float forceNewtons);
+    void ApplyForce(const Vector3<float>& velocity);
+    void ApplyTorque(const Vector3<float>& velocity);
 
     // acceleration
     void ApplyAcceleration(float acceleration);
@@ -93,6 +93,13 @@ public:
 
 	eastl::string GetMesh(void) { return mMesh; }
 	eastl::string GetShape(void) { return mShape; }
+	eastl::string GetDensity(void) { return mDensity; }
+	eastl::string GetMaterial(void) { return mMaterial; }
+	void SetMesh(eastl::string mesh) { mMesh = mesh; }
+	void SetShape(eastl::string shape) { mShape = shape; }
+	void SetDensity(eastl::string density) { mDensity = density; }
+	void SetMaterial(eastl::string material) { mMaterial = material; }
+
 	Vector3<float> GetScaleOffset(void) { return mRigidBodyScale; }
 	Vector3<float> GetPositionOffset(void) { return mRigidBodyLocation; }
 	Vector3<float> GetOrientationOffset(void) { return mRigidBodyOrientation; }

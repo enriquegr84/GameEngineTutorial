@@ -54,9 +54,13 @@
 
 #include "Application/GameApplication.h"
 
+#include "LinearMath/btGeometryUtil.h"
+
 #include "btBulletDynamicsCommon.h"
 #include "btBulletCollisionCommon.h"
+#include "BulletCollision/Gimpact/btBoxCollision.h"
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
+#include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 #include "BulletDynamics/Character/btKinematicCharacterController.h"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -112,20 +116,28 @@ public:
 		const eastl::string& densityStr, const eastl::string& physicMaterial) { }
 	virtual void AddPointCloud(Vector3<float> *verts, int numPoints, eastl::weak_ptr<Actor> gameActor,
 		const eastl::string& densityStr, const eastl::string& physicMaterial) { }
+	virtual void AddPointCloud(Plane3<float> *planes, int numPlanes, eastl::weak_ptr<Actor> gameActor,
+		const eastl::string& densityStr, const eastl::string& physicMaterial) { }
 	virtual void RemoveActor(ActorId id) { }
 
 	// Debugging
 	virtual void RenderDiagnostics() { }
 
 	// Physics world modifiers
-	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) { }
-	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) { }
+	virtual void ApplyForce(const Vector3<float> &velocity, ActorId aid) { }
+	virtual void ApplyTorque(const Vector3<float> &velocity, ActorId aid) { }
 
 	// Physics actor states
 	virtual bool OnGround(ActorId actorId) { return false; }
 	virtual void Jump(ActorId actorId, const Vector3<float>& dir) { }
 	virtual void FallDirection(ActorId actorId, const Vector3<float>& dir) { }
 	virtual void WalkDirection(ActorId actorId, const Vector3<float>& dir) { }
+
+	// Collisions
+	virtual bool FindIntersection(ActorId actorId, const Vector3<float>& point) { return false; }
+	virtual ActorId CastRay(
+		const Vector3<float>& origin, const Vector3<float>& end,
+		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal) { return INVALID_ACTOR_ID; }
 
 	virtual void StopActor(ActorId actorId) { }
 	virtual Vector3<float> GetScale(ActorId actorId) { return Vector3<float>(); }
@@ -336,19 +348,27 @@ public:
 		const eastl::string& densityStr, const eastl::string& physicMaterial) override;
 	virtual void AddPointCloud(Vector3<float> *verts, int numPoints, eastl::weak_ptr<Actor> pGameActor,
 		const eastl::string& densityStr, const eastl::string& physicMaterial) override;
+	virtual void AddPointCloud(Plane3<float> *planes, int numPlanes, eastl::weak_ptr<Actor> pGameActor,
+		const eastl::string& densityStr, const eastl::string& physicMaterial) override;
 	virtual void RemoveActor(ActorId id) override;
 
 	// Debugging
 	virtual void RenderDiagnostics() override;
 
 	// Physics world modifiers
-	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) override;
-	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) override;
+	virtual void ApplyForce(const Vector3<float> &velocity, ActorId aid) override;
+	virtual void ApplyTorque(const Vector3<float> &velocity, ActorId aid) override;
 	
 	virtual bool OnGround(ActorId actorId);
 	virtual void Jump(ActorId actorId, const Vector3<float>& dir);
 	virtual void FallDirection(ActorId actorId, const Vector3<float>& dir);
 	virtual void WalkDirection(ActorId actorId, const Vector3<float>& dir);
+
+	// Collisions
+	virtual bool FindIntersection(ActorId actorId, const Vector3<float>& point);
+	virtual ActorId CastRay(
+		const Vector3<float>& origin, const Vector3<float>& end,
+		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal);
 
 	virtual void StopActor(ActorId actorId);
 	virtual Vector3<float> GetScale(ActorId actorId);
@@ -376,8 +396,7 @@ public:
 		LogAssert(mGameActor, "no actor");
 	}
 
-	virtual void AddConvexVerticesCollider(
-		btAlignedObjectArray<btVector3>& vertices, bool isEntity, const btVector3& entityTargetLocation)
+	virtual void AddConvexVerticesCollider(btAlignedObjectArray<btVector3>& vertices)
 	{
 		///perhaps we can do something special with entities (isEntity)
 		///like adding a collision Triggering (as example)
@@ -736,7 +755,7 @@ ActorId BulletPhysics::FindActorID( btCollisionObject const * const collisionObj
 	if ( found != mCollisionObjectToActorId.end() )
 		return found->second;
 		
-	return ActorId();
+	return INVALID_ACTOR_ID;
 }
 
 
@@ -777,6 +796,7 @@ void BulletPhysics::AddTrigger(const Vector3<float> &dimension, eastl::weak_ptr<
 
 	// a trigger is just a box that doesn't collide with anything.  That's what "CF_NO_CONTACT_RESPONSE" indicates.
 	body->setCollisionFlags(body->getCollisionFlags() | btRigidBody::CF_NO_CONTACT_RESPONSE);
+	body->setUserPointer(new int(pStrongActor->GetId()));
 
 	mActorIdToCollisionObject[pStrongActor->GetId()] = body;
 	mCollisionObjectToActorId[body] = pStrongActor->GetId();
@@ -923,7 +943,7 @@ void BulletPhysics::AddPointCloud(Vector3<float> *verts, int numPoints, eastl::w
 	
 	// add the points to the shape one at a time
 	for ( int i=0; i<numPoints; ++i )
-		shape->addPoint(  Vector3TobtVector3( verts[i] ) );
+		shape->addPoint( Vector3TobtVector3( verts[i] ) );
 	
 	// approximate absolute mass using bounding box
 	btVector3 aabbMin(0,0,0), aabbMax(0,0,0);
@@ -937,6 +957,48 @@ void BulletPhysics::AddPointCloud(Vector3<float> *verts, int numPoints, eastl::w
 	
 	AddShape(pStrongActor, shape, mass, physicMaterial);
 }
+
+/////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::AddPointCloud				- Chapter 17, page 601
+//
+void BulletPhysics::AddPointCloud(Plane3<float> *planes, int numPlanes, eastl::weak_ptr<Actor> pGameActor,
+	const eastl::string& densityStr, const eastl::string& physicMaterial)
+{
+	eastl::shared_ptr<Actor> pStrongActor(pGameActor.lock());
+	if (!pStrongActor)
+		return;  // FUTURE WORK: Add a call to the error log here
+
+	btAlignedObjectArray<btVector3> planeEquations;
+	for (int i = 0; i < numPlanes; ++i)
+	{
+		btVector3 planeEq;
+		planeEq.setValue(
+			planes[i].mNormal[0],
+			planes[i].mNormal[1],
+			planes[i].mNormal[2]);
+		planeEq[3] = -planes[i].mConstant;
+		planeEquations.push_back(planeEq);
+	}
+	btAlignedObjectArray<btVector3>	vertices;
+	btGeometryUtil::getVerticesFromPlaneEquations(planeEquations, vertices);
+
+	btConvexHullShape * const shape = new btConvexHullShape();
+	for (int i = 0; i < vertices.size(); ++i)
+		shape->addPoint(vertices[i]);
+
+	// approximate absolute mass using bounding box
+	btVector3 aabbMin(0, 0, 0), aabbMax(0, 0, 0);
+	shape->getAabb(btTransform::getIdentity(), aabbMin, aabbMax);
+
+	btVector3 const aabbExtents = aabbMax - aabbMin;
+
+	float specificGravity = LookupSpecificGravity(densityStr);
+	float const volume = aabbExtents.x() * aabbExtents.y() * aabbExtents.z();
+	btScalar const mass = volume * specificGravity;
+
+	AddShape(pStrongActor, shape, mass, physicMaterial);
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::RemoveActor					- not described in the book
@@ -968,31 +1030,33 @@ void BulletPhysics::RenderDiagnostics()
 /////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::ApplyForce					- Chapter 17, page 603
 //
-void BulletPhysics::ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid)
+void BulletPhysics::ApplyForce(const Vector3<float> &velocity, ActorId aid)
 {
-	if (btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(FindBulletCollisionObject(aid)))
+	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(aid))
 	{
-		btVector3 const force( dir[0] * newtons,
-		                       dir[1] * newtons,
-		                       dir[2] * newtons );
-
-		rigidBody->applyCentralImpulse( force );
+		if (collisionObject->getCollisionFlags() & btCollisionObject::CF_CHARACTER_OBJECT)
+		{
+			if (btKinematicCharacterController* const controller =
+				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(aid)))
+			{
+				controller->applyImpulse(Vector3TobtVector3(velocity));
+			}
+		}
+		else
+		{
+			btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(collisionObject);
+			rigidBody->applyCentralImpulse(Vector3TobtVector3(velocity));
+		}
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::ApplyTorque					- Chapter 17, page 603
 //
-void BulletPhysics::ApplyTorque(const Vector3<float> &dir, float magnitude, ActorId aid)
+void BulletPhysics::ApplyTorque(const Vector3<float> &velocity, ActorId aid)
 {
 	if (btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(FindBulletCollisionObject(aid)))
-	{
-		btVector3 const torque( dir[0] * magnitude,
-		                        dir[1] * magnitude,
-		                        dir[2] * magnitude );
-
-		rigidBody->applyTorqueImpulse( torque );
-	}
+		rigidBody->applyTorqueImpulse( Vector3TobtVector3(velocity) );
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1029,6 +1093,78 @@ void BulletPhysics::SetTransform(ActorId actorId, const Transform& mat)
 void BulletPhysics::StopActor(ActorId actorId)
 {
 	SetVelocity(actorId, Vector3<float>());
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::FindIntersection		
+bool BulletPhysics::FindIntersection(ActorId actorId, const Vector3<float>& point)
+{
+	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(actorId))
+	{
+		if (collisionObject->getCollisionFlags() & btCollisionObject::CF_CHARACTER_OBJECT)
+		{
+			if (btKinematicCharacterController* const controller =
+				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(actorId)))
+			{
+				btCollisionShape* collisionShape = controller->getGhostObject()->getCollisionShape();
+
+				btAABB aaBBox;
+				collisionShape->getAabb(controller->getGhostObject()->getWorldTransform(), aaBBox.m_min, aaBBox.m_max);
+				if (aaBBox.m_min[0] > point[0] || aaBBox.m_max[0] < point[0] ||
+					aaBBox.m_min[1] > point[1] || aaBBox.m_max[1] < point[1] ||
+					aaBBox.m_min[2] > point[2] || aaBBox.m_max[2] < point[2])
+				{
+					return false;
+				}
+				return true;
+			}
+		}
+		else
+		{
+			btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(collisionObject);
+			
+			btAABB aaBBox;
+			rigidBody->getAabb(aaBBox.m_min, aaBBox.m_max);
+			if (aaBBox.m_min[0] > point[0] || aaBBox.m_max[0] < point[0] ||
+				aaBBox.m_min[1] > point[1] || aaBBox.m_max[1] < point[1] ||
+				aaBBox.m_min[2] > point[2] || aaBBox.m_max[2] < point[2])
+			{
+				return false;
+			}
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::CastRay	
+ActorId BulletPhysics::CastRay(
+	const Vector3<float>& origin, const Vector3<float>& end, 
+	Vector3<float>& collisionPoint, Vector3<float>& collisionNormal)
+{
+	btVector3 from = Vector3TobtVector3(origin);
+	btVector3 to = Vector3TobtVector3(end);
+	btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
+	closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+
+	mDynamicsWorld->updateAabbs();
+	mDynamicsWorld->computeOverlappingPairs();
+	mDynamicsWorld->rayTest(from, to, closestResults);
+
+	if (closestResults.hasHit())
+	{
+		collisionPoint = btVector3ToVector3(closestResults.m_hitPointWorld);
+		collisionNormal = btVector3ToVector3(closestResults.m_hitNormalWorld);
+		return FindActorID(closestResults.m_collisionObject);
+	}
+	else
+	{
+		collisionPoint = NULL;
+		collisionNormal = NULL;
+		return INVALID_ACTOR_ID;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////

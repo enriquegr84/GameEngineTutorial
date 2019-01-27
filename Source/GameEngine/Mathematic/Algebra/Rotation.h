@@ -619,7 +619,8 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r, EulerAngles<Real>& 
             {
                 if (rot[e.mAxis[2] * N + e.mAxis[0]] > (Real)-1)
                 {
-                    e.mAngle[2] = atan2(sgn*rot[e.mAxis[1] * N + e.mAxis[0]],
+                    e.mAngle[2] = atan2(
+						sgn*rot[e.mAxis[1] * N + e.mAxis[0]],
 						rot[e.mAxis[0] * N + e.mAxis[0]]);
                     e.mAngle[1] = asin(-sgn * rot[e.mAxis[2] * N + e.mAxis[0]]);
                     e.mAngle[0] = atan2(
@@ -656,7 +657,8 @@ void Rotation<N, Real>::Convert(Matrix<N, N, Real> const& r, EulerAngles<Real>& 
             {
                 if (rot[e.mAxis[0] * N + e.mAxis[2]] > (Real)-1)
                 {
-                    e.mAngle[0] = atan2(sgn*rot[e.mAxis[1] * N + e.mAxis[2]],
+                    e.mAngle[0] = atan2(
+						sgn*rot[e.mAxis[1] * N + e.mAxis[2]],
 						rot[e.mAxis[2] * N + e.mAxis[2]]);
                     e.mAngle[1] = asin(-sgn * rot[e.mAxis[0] * N + e.mAxis[2]]);
                     e.mAngle[2] = atan2(

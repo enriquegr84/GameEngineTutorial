@@ -71,10 +71,8 @@ void BspConverter::ConvertBsp(BspLoader& bspLoader,float scaling)
 					{
 						btAlignedObjectArray<btVector3>	vertices;
 						btGeometryUtil::getVerticesFromPlaneEquations(planeEquations,vertices);
-						
-						bool isEntity = false;
-						btVector3 entityTarget(0.f,0.f,0.f);
-						AddConvexVerticesCollider(vertices,isEntity,entityTarget);
+
+						AddConvexVerticesCollider(vertices);
 					}
 				}
 			} 

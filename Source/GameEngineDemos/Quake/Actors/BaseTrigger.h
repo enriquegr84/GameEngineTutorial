@@ -41,17 +41,16 @@
 
 #include "Game/Actor/ActorComponent.h"
 
+#include "Mathematic/Algebra/Transform.h"
+
 class BaseTrigger : public ActorComponent
 {
-	const char* mModel;
-	const char* mTarget;
+	Transform mTarget;
 
 public:
-	virtual const char* GetModel() const { return mModel; }
-	virtual void SetModel(const char* model) { mModel = model; }
 
-	virtual const char* GetTarget() const { return mTarget; }
-	virtual void SetTarget(const char* target) { mTarget = target; }
+	const Transform& GetTarget() const { return mTarget; }
+	void SetTarget(const Transform& target) { mTarget = target; }
 //    static ComponentId COMPONENT_ID;  // unique ID for this component type
 //    virtual ComponentId GetComponentId(void) const override { return COMPONENT_ID; }
 

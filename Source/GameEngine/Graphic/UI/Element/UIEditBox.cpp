@@ -44,10 +44,11 @@ UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, Recta
 		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
 		eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
+		path.push_back("Effects/Texture2EffectVS.glsl");
+		path.push_back("Effects/Texture2EffectPS.glsl");
 #else
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
+		path.push_back("Effects/Texture2EffectVS.hlsl");
+		path.push_back("Effects/Texture2EffectPS.hlsl");
 #endif
 		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
 			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);
@@ -67,10 +68,11 @@ UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, Recta
 
 	eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectVS.glsl"));
-	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectPS.glsl"));
+	path.push_back("Effects/ColorEffectVS.glsl");
+	path.push_back("Effects/ColorEffectPS.glsl");
 #else
-	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl"));
+	path.push_back("Effects/ColorEffectVS.hlsl");
+	path.push_back("Effects/ColorEffectPS.hlsl");
 #endif
 	mEffectHighlight = eastl::make_shared<ColorEffect>(ProgramFactory::Get(), path);
 	mVisualHighlight = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffectHighlight);

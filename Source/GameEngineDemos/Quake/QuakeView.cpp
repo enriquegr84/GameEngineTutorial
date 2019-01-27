@@ -687,11 +687,13 @@ bool QuakeStandardHUD::OnEvent(const Event& evt)
 //
 // QuakeHumanView::QuakeHumanView	- Chapter 19, page 724
 //
-QuakeHumanView::QuakeHumanView() 
-	: HumanView()
+QuakeHumanView::QuakeHumanView() : HumanView()
 { 
 	mShowUI = true; 
 	mDebugMode = DM_OFF;
+
+	RegisterSounds();
+	RegisterGraphics();
     RegisterAllDelegates();
 }
 
@@ -808,10 +810,6 @@ void QuakeHumanView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	{
 		mGamePlayerController->OnUpdate(timeMs, deltaMs);
 	}
-
-	//Send out a tick to listeners.
-	eastl::shared_ptr<EventDataUpdateTick> pTickEvent(new EventDataUpdateTick(timeMs));
-    BaseEventManager::Get()->TriggerEvent(pTickEvent);
 }
 
 //
@@ -854,10 +852,316 @@ void QuakeHumanView::SetControlledActor(ActorId actorId)
 
 	HumanView::SetControlledActor(actorId);
 
-    mGamePlayerController.reset(new QuakePlayerController(mPlayer, 0, 0));
-    mKeyboardHandler = mGamePlayerController;
-    mMouseHandler = mGamePlayerController;
+	eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
+	eastl::shared_ptr<TransformComponent> pTransformComponent(
+		pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+	if (pTransformComponent)
+	{
+		EulerAngles<float> yawPitchRoll;
+		yawPitchRoll.mAxis[1] = 1;
+		yawPitchRoll.mAxis[2] = 2;
+		pTransformComponent->GetTransform().GetRotation(yawPitchRoll);
+		mGamePlayerController.reset(new QuakePlayerController(mPlayer, 
+			yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG, 
+			yawPitchRoll.mAngle[ROLL] * (float)GE_C_RAD_TO_DEG));
+		mKeyboardHandler = mGamePlayerController;
+		mMouseHandler = mGamePlayerController;
+	}
 }
+
+// RegisterSounds called during a precache command
+void QuakeHumanView::RegisterSounds() 
+{
+	mMedia.oneMinuteSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/1_minute.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.oneMinuteSound));
+	mMedia.fiveMinuteSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/5_minute.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.fiveMinuteSound));
+	mMedia.suddenDeathSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/sudden_death.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.suddenDeathSound));
+	mMedia.oneFragSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/1_frag.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.oneFragSound));
+	mMedia.twoFragSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/2_frags.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.twoFragSound));
+	mMedia.threeFragSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/3_frags.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.threeFragSound));
+	mMedia.count3Sound = eastl::wstring(ToWideString("audio/quake/sound/feedback/three.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.count3Sound));
+	mMedia.count2Sound = eastl::wstring(ToWideString("audio/quake/sound/feedback/two.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.count2Sound));
+	mMedia.count1Sound = eastl::wstring(ToWideString("audio/quake/sound/feedback/one.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.count1Sound));
+	mMedia.countFightSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/fight.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.countFightSound));
+	mMedia.countPrepareSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/prepare.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.countPrepareSound));
+
+	mMedia.tracerSound = eastl::wstring(ToWideString("audio/quake/sound/weapons/machinegun/buletby1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.tracerSound));
+	mMedia.selectSound = eastl::wstring(ToWideString("audio/quake/sound/weapons/change.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.selectSound));
+	mMedia.gibSound = eastl::wstring(ToWideString("audio/quake/sound/gibs/gibsplt1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibSound));
+	mMedia.gibBounce1Sound = eastl::wstring(ToWideString("audio/quake/sound/gibs/gibimp1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibBounce1Sound));
+	mMedia.gibBounce2Sound = eastl::wstring(ToWideString("audio/quake/sound/gibs/gibimp2.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibBounce2Sound));
+	mMedia.gibBounce3Sound = eastl::wstring(ToWideString("audio/quake/sound/gibs/gibimp3.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibBounce3Sound));
+
+	mMedia.teleInSound = eastl::wstring(ToWideString("audio/quake/sound/world/telein.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.teleInSound));
+	mMedia.teleOutSound = eastl::wstring(ToWideString("audio/quake/sound/world/teleout.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.teleOutSound));
+	mMedia.respawnSound = eastl::wstring(ToWideString("audio/quake/sound/items/respawn1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.respawnSound));
+
+	mMedia.noAmmoSound = eastl::wstring(ToWideString("audio/quake/sound/weapons/noammo.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.noAmmoSound));
+
+	mMedia.talkSound = eastl::wstring(ToWideString("audio/quake/sound/player/talk.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.talkSound));
+	mMedia.landSound = eastl::wstring(ToWideString("audio/quake/sound/player/land1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.landSound));
+
+	mMedia.hitSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/hit.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.hitSound));
+
+	mMedia.impressiveSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/impressive1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.impressiveSound));
+	mMedia.excellentSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/excellent1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.excellentSound));
+	mMedia.deniedSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/denied.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.deniedSound));
+	mMedia.humiliationSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/humiliation1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.humiliationSound));
+	mMedia.assistSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/assist.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.assistSound));
+	mMedia.defendSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/defense.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.defendSound));
+
+	mMedia.jumpPadSound = eastl::wstring(ToWideString("audio/quake/sound/world/jumppad.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.jumpPadSound));
+
+	char name[MAX_QPATH];
+	for (int i = 0; i < 4; i++) 
+	{
+		sprintf(name, "audio/quake/sound/player/footsteps/step%i.ogg", i + 1);
+		mMedia.footsteps[FOOTSTEP_NORMAL][i] = eastl::wstring(ToWideString(name));
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.footsteps[FOOTSTEP_NORMAL][i]));
+
+		sprintf(name, "audio/quake/sound/player/footsteps/boot%i.ogg", i + 1);
+		mMedia.footsteps[FOOTSTEP_BOOT][i] = eastl::wstring(ToWideString(name));
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.footsteps[FOOTSTEP_BOOT][i]));
+
+		sprintf(name, "audio/quake/sound/player/footsteps/flesh%i.ogg", i + 1);
+		mMedia.footsteps[FOOTSTEP_FLESH][i] = eastl::wstring(ToWideString(name));
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.footsteps[FOOTSTEP_FLESH][i]));
+
+		sprintf(name, "audio/quake/sound/player/footsteps/mech%i.ogg", i + 1);
+		mMedia.footsteps[FOOTSTEP_MECH][i] = eastl::wstring(ToWideString(name));
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.footsteps[FOOTSTEP_MECH][i]));
+
+		sprintf(name, "audio/quake/sound/player/footsteps/energy%i.ogg", i + 1);
+		mMedia.footsteps[FOOTSTEP_ENERGY][i] = eastl::wstring(ToWideString(name));
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.footsteps[FOOTSTEP_ENERGY][i]));
+
+		sprintf(name, "audio/quake/sound/player/footsteps/splash%i.ogg", i + 1);
+		mMedia.footsteps[FOOTSTEP_SPLASH][i] = eastl::wstring(ToWideString(name)); 
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.footsteps[FOOTSTEP_SPLASH][i]));
+
+		sprintf(name, "audio/quake/sound/player/footsteps/clank%i.ogg", i + 1);
+		mMedia.footsteps[FOOTSTEP_METAL][i] = eastl::wstring(ToWideString(name));
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.footsteps[FOOTSTEP_METAL][i]));
+	}
+
+	// FIXME: only needed with item
+	mMedia.quadSound = eastl::wstring(ToWideString("audio/quake/sound/items/damage3.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.quadSound));
+	mMedia.sfxRic1 = eastl::wstring(ToWideString("audio/quake/sound/weapons/machinegun/ric1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.sfxRic1));
+	mMedia.sfxRic2 = eastl::wstring(ToWideString("audio/quake/sound/weapons/machinegun/ric2.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.sfxRic2));
+	mMedia.sfxRic3 = eastl::wstring(ToWideString("audio/quake/sound/weapons/machinegun/ric3.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.sfxRic3));
+	mMedia.sfxRailg = eastl::wstring(ToWideString("audio/quake/sound/weapons/railgun/railgf1a.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.sfxRailg));
+	mMedia.sfxRockexp = eastl::wstring(ToWideString("audio/quake/sound/weapons/rocket/rocklx1a.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.sfxRockexp));
+	mMedia.sfxPlasmaexp = eastl::wstring(ToWideString("audio/quake/sound/weapons/plasma/plasmx1a.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.sfxPlasmaexp));
+
+	mMedia.nhealthSound = eastl::wstring(ToWideString("audio/quake/sound/items/n_health.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.nhealthSound));
+	mMedia.hgrenb1aSound = eastl::wstring(ToWideString("audio/quake/sound/weapons/grenade/hgrenb1a.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.hgrenb1aSound));
+	mMedia.hgrenb2aSound = eastl::wstring(ToWideString("audio/quake/sound/weapons/grenade/hgrenb2a.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.hgrenb2aSound));
+}
+
+// RegisterSounds called during a precache command
+void QuakeHumanView::RegisterGraphics()
+{
+	char* sbNums[11] = 
+	{
+		"art/quake/gfx/2d/numbers/zero_32b.png",
+		"art/quake/gfx/2d/numbers/one_32b.png",
+		"art/quake/gfx/2d/numbers/two_32b.png",
+		"art/quake/gfx/2d/numbers/three_32b.png",
+		"art/quake/gfx/2d/numbers/four_32b.png",
+		"art/quake/gfx/2d/numbers/five_32b.png",
+		"art/quake/gfx/2d/numbers/six_32b.png",
+		"art/quake/gfx/2d/numbers/seven_32b.png",
+		"art/quake/gfx/2d/numbers/eight_32b.png",
+		"art/quake/gfx/2d/numbers/nine_32b.png",
+		"art/quake/gfx/2d/numbers/minus_32b.png",
+	};
+	for (int i=0 ; i<=10; i++) 
+	{
+		mMedia.numberShaders[i] = eastl::wstring(ToWideString(sbNums[i]));
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.numberShaders[i]));
+	}
+
+	mMedia.botSkillShaders[0] = eastl::wstring(ToWideString("art/quake/menu/art/skill1.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.botSkillShaders[0]));
+	mMedia.botSkillShaders[1] = eastl::wstring(ToWideString("art/quake/menu/art/skill2.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.botSkillShaders[1]));
+	mMedia.botSkillShaders[2] = eastl::wstring(ToWideString("art/quake/menu/art/skill3.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.botSkillShaders[2]));
+	mMedia.botSkillShaders[3] = eastl::wstring(ToWideString("art/quake/menu/art/skill4.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.botSkillShaders[3]));
+	mMedia.botSkillShaders[4] = eastl::wstring(ToWideString("art/quake/menu/art/skill5.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.botSkillShaders[4]));
+
+	mMedia.viewBloodShader = eastl::wstring(ToWideString("art/quake/gfx/damage/blood_screen.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.viewBloodShader));
+
+	mMedia.deferShader = eastl::wstring(ToWideString("art/quake/gfx/2d/defer.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.deferShader));
+
+	mMedia.scoreboardName = eastl::wstring(ToWideString("art/quake/menu/tab/name.tga"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.scoreboardName));
+	mMedia.scoreboardPing = eastl::wstring(ToWideString("art/quake/menu/tab/ping.tga"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.scoreboardPing));
+	mMedia.scoreboardScore = eastl::wstring(ToWideString("art/quake/menu/tab/score.tga"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.scoreboardScore));
+	mMedia.scoreboardTime = eastl::wstring(ToWideString("art/quake/menu/tab/time.tga"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.scoreboardTime));
+
+	mMedia.smokePuffShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuff3.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.smokePuffShader));
+	mMedia.smokePuffRageProShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuffragepro.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.smokePuffRageProShader));
+	mMedia.shotgunSmokePuffShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuff2b.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.shotgunSmokePuffShader));
+	mMedia.plasmaBallShader = eastl::wstring(ToWideString("art/quake/sprites/plasmaa.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.plasmaBallShader));
+	mMedia.bloodTrailShader = eastl::wstring(ToWideString("art/quake/gfx/damage/blood_spurt.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodTrailShader));
+	mMedia.lagometerShader = eastl::wstring(ToWideString("art/quake/gfx/2d/lag.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.lagometerShader));
+	mMedia.connectionShader = eastl::wstring(ToWideString("art/quake/gfx/2d/net.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.connectionShader));
+
+	mMedia.tracerShader = eastl::wstring(ToWideString("art/quake/gfx/misc/tracer2.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.tracerShader));
+	mMedia.selectShader = eastl::wstring(ToWideString("art/quake/gfx/2d/select.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.selectShader));
+
+	char name[MAX_QPATH];
+	for (int i = 0 ; i < NUM_CROSSHAIRS ; i++ ) 
+	{
+		sprintf(name, "art/quake/gfx/2d/crosshair%i.png", i + 1);
+		mMedia.crosshairShader[i] = eastl::wstring(ToWideString(name));
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.crosshairShader[i]));
+	}
+
+	mMedia.backTileShader = eastl::wstring(ToWideString("art/quake/gfx/2d/backtile.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.backTileShader));
+	mMedia.noammoShader = eastl::wstring(ToWideString("art/quake/icons/noammo.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.noammoShader));
+
+	mMedia.armorIcon = eastl::wstring(ToWideString("art/quake/icons/iconr_yellow.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.armorIcon));
+
+	mMedia.machinegunBrassModel = eastl::wstring(ToWideString("art/quake/models/projectiles/shells/m_shell.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.machinegunBrassModel));
+	mMedia.shotgunBrassModel = eastl::wstring(ToWideString("art/quake/models/projectiles/shells/s_shell.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.shotgunBrassModel));
+
+	mMedia.gibAbdomen = eastl::wstring(ToWideString("art/quake/models/gibs/abdomen.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibAbdomen));
+	mMedia.gibArm = eastl::wstring(ToWideString("art/quake/models/gibs/arm.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibArm));
+	mMedia.gibChest = eastl::wstring(ToWideString("art/quake/models/gibs/chest.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibChest));
+	mMedia.gibFist = eastl::wstring(ToWideString("art/quake/models/gibs/fist.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibFist));
+	mMedia.gibFoot = eastl::wstring(ToWideString("art/quake/models/gibs/foot.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibFoot));
+	mMedia.gibForearm = eastl::wstring(ToWideString("art/quake/models/gibs/forearm.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibForearm));
+	mMedia.gibIntestine = eastl::wstring(ToWideString("art/quake/models/gibs/intestine.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibIntestine));
+	mMedia.gibLeg = eastl::wstring(ToWideString("art/quake/models/gibs/leg.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibLeg));
+	mMedia.gibSkull = eastl::wstring(ToWideString("art/quake/models/gibs/skull.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibSkull));
+	mMedia.gibBrain = eastl::wstring(ToWideString("art/quake/models/gibs/brain.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.gibBrain));
+
+	mMedia.smoke2 = eastl::wstring(ToWideString("art/quake/models/projectiles/shells/s_shell.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.smoke2));
+
+	mMedia.balloonShader = eastl::wstring(ToWideString("art/quake/sprites/balloon4.tga"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.balloonShader));
+
+	for (int i = 0; i < 5; i++)
+	{
+		sprintf(name, "art/quake/gfx/damage/blood20%i.png", i + 1);
+		mMedia.bloodExplosionShader[i] = eastl::wstring(ToWideString(name));
+		ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodExplosionShader[i]));
+	}
+
+	mMedia.bulletFlashModel = eastl::wstring(ToWideString("art/quake/models/weaphits/bullet.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletFlashModel));
+	mMedia.ringFlashModel = eastl::wstring(ToWideString("art/quake/models/weaphits/ring02.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.ringFlashModel));
+	mMedia.dishFlashModel = eastl::wstring(ToWideString("art/quake/models/weaphits/boom01.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.dishFlashModel));
+
+	mMedia.teleportEffectModel = eastl::wstring(ToWideString("art/quake/models/misc/telep.md3"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.teleportEffectModel));
+	mMedia.teleportEffectShader = eastl::wstring(ToWideString("art/quake/gfx/misc/teleportEffect2.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.teleportEffectShader));
+
+	mMedia.medalImpressive = eastl::wstring(ToWideString("art/quake/menu/medals/medal_impressive.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.medalImpressive));
+	mMedia.medalExcellent = eastl::wstring(ToWideString("art/quake/menu/medals/medal_excellent.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.medalExcellent));
+	mMedia.medalGauntlet = eastl::wstring(ToWideString("art/quake/menu/medals/medal_gauntlet.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.medalGauntlet));
+	mMedia.medalDefend = eastl::wstring(ToWideString("art/quake/menu/medals/medal_defense.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.medalDefend));
+	mMedia.medalAssist = eastl::wstring(ToWideString("art/quake/menu/medals/medal_assist.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.medalAssist));
+	mMedia.medalCapture = eastl::wstring(ToWideString("art/quake/menu/medals/medal_capture.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.medalCapture));
+
+	// wall marks
+	mMedia.bulletMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/bullet_mrk.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletMarkShader));
+	mMedia.burnMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/burn_med_mrk.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.burnMarkShader));
+	mMedia.holeMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/hole_lg_mrk.jpg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.holeMarkShader));
+	mMedia.energyMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/plasma_mrk.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.energyMarkShader));
+	mMedia.shadowMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/shadow.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.shadowMarkShader));
+	mMedia.bloodMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/blood_stain.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodMarkShader));
+}
+
 
 void QuakeHumanView::GameplayUiUpdateDelegate(BaseEventDataPtr pEventData)
 {
@@ -881,12 +1185,15 @@ void QuakeHumanView::SetControlledActorDelegate(BaseEventDataPtr pEventData)
 
 }
 
-void QuakeHumanView::JumpActorDelegate(BaseEventDataPtr pEventData)
+void QuakeHumanView::FireWeaponDelegate(BaseEventDataPtr pEventData)
 {
-	eastl::shared_ptr<QuakeEventDataJumpActor> pCastEventData =
-		eastl::static_pointer_cast<QuakeEventDataJumpActor>(pEventData);
+	eastl::shared_ptr<QuakeEventDataFireWeapon> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataFireWeapon>(pEventData);
 
 	ActorId actorId = pCastEventData->GetId();
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(actorId).lock()));
 	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
 	if (pNode)
 	{
@@ -899,35 +1206,185 @@ void QuakeHumanView::JumpActorDelegate(BaseEventDataPtr pEventData)
 		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
 		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
 		{
-			if (pCastEventData->IsBackward())
+			if (mesh->GetName() == "lower")
 			{
-				if (mesh->GetName() == "lower")
+				//run animation
+				int legsAnim = pPlayerActor->GetState().legsAnim;
+				if (mesh->GetCurrentAnimation() != legsAnim)
 				{
-					//run animation
-					mesh->SetCurrentAnimation(LEGS_JUMPB);
-					mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_JUMPB).mBeginFrame);
-				}
-				else if (mesh->GetName() == "upper")
-				{
-					//run animation
-					mesh->SetCurrentAnimation(TORSO_STAND);
-					mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
+					mesh->SetCurrentAnimation(legsAnim);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(legsAnim).mBeginFrame);
 				}
 			}
-			else
+			else if (mesh->GetName() == "upper")
 			{
-				if (mesh->GetName() == "lower")
+				//run animation
+				int torsoAnim = pPlayerActor->GetState().torsoAnim;
+				if (mesh->GetCurrentAnimation() != torsoAnim ||
+					mesh->GetCurrentFrame() == mesh->GetAnimation(torsoAnim).mEndFrame)
 				{
-					//run animation
-					mesh->SetCurrentAnimation(LEGS_JUMP);
-					mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_JUMP).mBeginFrame);
+					mesh->SetCurrentAnimation(torsoAnim);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(torsoAnim).mBeginFrame);
 				}
-				else if (mesh->GetName() == "upper")
+			}
+		}
+	}
+}
+
+void QuakeHumanView::ChangeWeaponDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataFireWeapon> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataFireWeapon>(pEventData);
+
+	ActorId actorId = pCastEventData->GetId();
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(actorId).lock()));
+	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
+	if (pNode)
+	{
+		eastl::shared_ptr<AnimatedMeshNode> animatedNode =
+			eastl::dynamic_shared_pointer_cast<AnimatedMeshNode>(pNode);
+		eastl::shared_ptr<AnimateMeshMD3> animMeshMD3 =
+			eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(animatedNode->GetMesh());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+
+		int weaponIdx = 0;
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+		{
+			if (mesh->GetParent() && mesh->GetParent()->GetName() == "tag_weapon")
+			{
+				weaponIdx++;
+				if (pPlayerActor->GetState().weapon == weaponIdx)
+					mesh->SetRenderMesh(true);
+				else
+					mesh->SetRenderMesh(false);
+			}
+
+			if (mesh->GetName() == "lower")
+			{
+				//run animation
+				int legsAnim = pPlayerActor->GetState().legsAnim;
+				if (mesh->GetCurrentAnimation() != legsAnim)
 				{
-					//run animation
-					mesh->SetCurrentAnimation(TORSO_STAND);
-					mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
+					mesh->SetCurrentAnimation(legsAnim);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(legsAnim).mBeginFrame);
 				}
+			}
+			else if (mesh->GetName() == "upper")
+			{
+				//run animation
+				int torsoAnim = pPlayerActor->GetState().torsoAnim;
+				if (mesh->GetCurrentAnimation() != torsoAnim)
+				{
+					mesh->SetCurrentAnimation(torsoAnim);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(torsoAnim).mBeginFrame);
+				}
+			}
+		}
+	}
+}
+
+void QuakeHumanView::DeadActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataDeadActor> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataDeadActor>(pEventData);
+
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock()));
+	if (pPlayerActor)
+	{
+
+	}
+}
+
+void QuakeHumanView::SpawnActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataSpawnActor> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataSpawnActor>(pEventData);
+
+	ActorId actorId = pCastEventData->GetId();
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+			GameLogic::Get()->GetActor(actorId).lock()));
+	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
+	if (pNode)
+	{
+		eastl::shared_ptr<AnimatedMeshNode> animatedNode =
+			eastl::dynamic_shared_pointer_cast<AnimatedMeshNode>(pNode);
+		eastl::shared_ptr<AnimateMeshMD3> animMeshMD3 =
+			eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(animatedNode->GetMesh());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+
+		int weaponIdx = 0;
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+		{
+			if (mesh->GetParent() && mesh->GetParent()->GetName() == "tag_weapon")
+			{
+				weaponIdx++;
+				if (pPlayerActor->GetState().weapon == weaponIdx)
+					mesh->SetRenderMesh(true);
+				else
+					mesh->SetRenderMesh(false);
+			}
+
+			if (mesh->GetName() == "lower")
+			{
+				//run animation
+				int legsAnim = pPlayerActor->GetState().legsAnim;
+				mesh->SetCurrentAnimation(legsAnim);
+				mesh->SetCurrentFrame((float)mesh->GetAnimation(legsAnim).mBeginFrame);
+			}
+			else if (mesh->GetName() == "upper")
+			{
+				//run animation
+				int torsoAnim = pPlayerActor->GetState().torsoAnim;
+				mesh->SetCurrentAnimation(torsoAnim);
+				mesh->SetCurrentFrame((float)mesh->GetAnimation(torsoAnim).mBeginFrame);
+			}
+		}
+	}
+}
+
+void QuakeHumanView::JumpActorDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataJumpActor> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataJumpActor>(pEventData);
+
+	ActorId actorId = pCastEventData->GetId();
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(actorId).lock()));
+	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
+	if (pNode)
+	{
+		eastl::shared_ptr<AnimatedMeshNode> animatedNode =
+			eastl::dynamic_shared_pointer_cast<AnimatedMeshNode>(pNode);
+		eastl::shared_ptr<AnimateMeshMD3> animMeshMD3 =
+			eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(animatedNode->GetMesh());
+
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+		{
+			if (mesh->GetName() == "lower")
+			{
+				//run animation
+				int legsAnim = pPlayerActor->GetState().legsAnim;
+				mesh->SetCurrentAnimation(legsAnim);
+				mesh->SetCurrentFrame((float)mesh->GetAnimation(legsAnim).mBeginFrame);
+			}
+			else if (mesh->GetName() == "upper")
+			{
+				//run animation
+				int torsoAnim = pPlayerActor->GetState().torsoAnim;
+				mesh->SetCurrentAnimation(torsoAnim);
+				mesh->SetCurrentFrame((float)mesh->GetAnimation(torsoAnim).mBeginFrame);
 			}
 		}
 	}
@@ -939,6 +1396,18 @@ void QuakeHumanView::MoveActorDelegate(BaseEventDataPtr pEventData)
 		eastl::static_pointer_cast<QuakeEventDataMoveActor>(pEventData);
 
 	ActorId actorId = pCastEventData->GetId();
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(actorId).lock()));
+	if (pPlayerActor->GetState().weaponState != WEAPON_READY)
+		return;
+
+	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
+		pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
+	if (pPhysicComponent)
+		if (!pPhysicComponent->OnGround())
+			return;
+
 	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
 	if (pNode)
 	{
@@ -951,58 +1420,42 @@ void QuakeHumanView::MoveActorDelegate(BaseEventDataPtr pEventData)
 		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
 		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
 		{
-			if (pCastEventData->OnGround())
+			if (mesh->GetName() == "lower")
 			{
-				if (Length(pCastEventData->GetDirection()))
+				//run animation
+				int legsAnim = pPlayerActor->GetState().legsAnim;
+				if (mesh->GetCurrentAnimation() != legsAnim)
 				{
-					if (pCastEventData->IsBackward())
-					{
-						if (mesh->GetName() == "lower" && mesh->GetCurrentAnimation() != LEGS_BACK)
-						{
-							//run animation
-							mesh->SetCurrentAnimation(LEGS_BACK);
-							mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_BACK).mBeginFrame);
-						}
-						else if (mesh->GetName() == "upper" && mesh->GetCurrentAnimation() != TORSO_STAND)
-						{
-							//run animation
-							mesh->SetCurrentAnimation(TORSO_STAND);
-							mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
-						}
-					}
-					else
-					{
-						if (mesh->GetName() == "lower" && mesh->GetCurrentAnimation() != LEGS_RUN)
-						{
-							//run animation
-							mesh->SetCurrentAnimation(LEGS_RUN);
-							mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_RUN).mBeginFrame);
-						}
-						else if (mesh->GetName() == "upper" && mesh->GetCurrentAnimation() != TORSO_STAND)
-						{
-							//run animation
-							mesh->SetCurrentAnimation(TORSO_STAND);
-							mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
-						}
-					}
+					mesh->SetCurrentAnimation(legsAnim);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(legsAnim).mBeginFrame);
 				}
-				else
+			}
+			else if (mesh->GetName() == "upper")
+			{
+				//run animation
+				int torsoAnim = pPlayerActor->GetState().torsoAnim;
+				if (mesh->GetCurrentAnimation() != torsoAnim)
 				{
-					if (mesh->GetName() == "lower" && mesh->GetCurrentAnimation() != LEGS_IDLE)
-					{
-						//run animation
-						mesh->SetCurrentAnimation(LEGS_IDLE);
-						mesh->SetCurrentFrame((float)mesh->GetAnimation(LEGS_IDLE).mBeginFrame);
-					}
-					else if (mesh->GetName() == "upper" && mesh->GetCurrentAnimation() != TORSO_STAND)
-					{
-						//run animation
-						mesh->SetCurrentAnimation(TORSO_STAND);
-						mesh->SetCurrentFrame((float)mesh->GetAnimation(TORSO_STAND).mBeginFrame);
-					}
+					mesh->SetCurrentAnimation(torsoAnim);
+					mesh->SetCurrentFrame((float)mesh->GetAnimation(torsoAnim).mBeginFrame);
 				}
 			}
 		}
+	}
+}
+
+
+void QuakeHumanView::ProjectileImpactDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataProjectileImpact> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataProjectileImpact>(pEventData);
+
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock()));
+	if (pPlayerActor)
+	{
+		//mMedia.bloodExplosionShader
 	}
 }
 
@@ -1015,12 +1468,29 @@ void QuakeHumanView::RegisterAllDelegates(void)
     pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeHumanView::SetControlledActorDelegate), 
 		QuakeEventDataSetControlledActor::skEventType);
+
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeHumanView::FireWeaponDelegate),
+		QuakeEventDataFireWeapon::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeHumanView::ChangeWeaponDelegate),
+		QuakeEventDataChangeWeapon::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeHumanView::DeadActorDelegate),
+		QuakeEventDataDeadActor::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeHumanView::SpawnActorDelegate),
+		QuakeEventDataSpawnActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeHumanView::JumpActorDelegate),
 		QuakeEventDataJumpActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeHumanView::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
+
+	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeHumanView::ProjectileImpactDelegate),
+		QuakeEventDataProjectileImpact::skEventType);
 }
 
 void QuakeHumanView::RemoveAllDelegates(void)
@@ -1032,12 +1502,29 @@ void QuakeHumanView::RemoveAllDelegates(void)
     pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeHumanView::SetControlledActorDelegate), 
 		QuakeEventDataSetControlledActor::skEventType);
+
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeHumanView::FireWeaponDelegate),
+		QuakeEventDataFireWeapon::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeHumanView::ChangeWeaponDelegate),
+		QuakeEventDataChangeWeapon::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeHumanView::DeadActorDelegate),
+		QuakeEventDataDeadActor::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeHumanView::SpawnActorDelegate),
+		QuakeEventDataSpawnActor::skEventType);
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeHumanView::JumpActorDelegate),
 		QuakeEventDataJumpActor::skEventType);
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeHumanView::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
+
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeHumanView::ProjectileImpactDelegate),
+		QuakeEventDataProjectileImpact::skEventType);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

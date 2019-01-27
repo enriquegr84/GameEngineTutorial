@@ -132,55 +132,6 @@ enum MD3Model
 	MD3_NUMMODELS
 };
 
-// This enumeration stores all the animations in order from the config file (.cfg).
-enum MD3AnimationType
-{
-	// If one model is set to one of the BOTH_* animations, the other one should be too,
-	// otherwise it looks really bad and confusing.
-
-	BOTH_DEATH1 = 0,		// The first twirling death animation
-	BOTH_DEAD1,				// The end of the first twirling death animation
-	BOTH_DEATH2,			// The second twirling death animation
-	BOTH_DEAD2,				// The end of the second twirling death animation
-	BOTH_DEATH3,			// The back flip death animation
-	BOTH_DEAD3,				// The end of the back flip death animation
-
-	// The next block is the animations that the upper body performs
-
-	TORSO_GESTURE,			// The torso's gesturing animation
-	
-	TORSO_ATTACK,			// The torso's attack1 animation
-	TORSO_ATTACK2,			// The torso's attack2 animation
-
-	TORSO_DROP,				// The torso's weapon drop animation
-	TORSO_RAISE,			// The torso's weapon pickup animation
-
-	TORSO_STAND,			// The torso's idle stand animation
-	TORSO_STAND2,			// The torso's idle stand2 animation
-
-	// The final block is the animations that the legs perform
-
-	LEGS_WALKCR = 6,		// The legs's crouching walk animation
-	LEGS_WALK,				// The legs's walk animation
-	LEGS_RUN,				// The legs's run animation
-	LEGS_BACK,				// The legs's running backwards animation
-	LEGS_SWIM,				// The legs's swimming animation
-	
-	LEGS_JUMP,				// The legs's jumping animation
-	LEGS_LAND,				// The legs's landing animation
-
-	LEGS_JUMPB,				// The legs's jumping back animation
-	LEGS_LANDB,				// The legs's landing back animation
-
-	LEGS_IDLE,				// The legs's idle stand animation
-	LEGS_IDLECR,			// The legs's idle crouching animation
-
-	LEGS_TURN,				// The legs's turn animation
-
-	//! Not an animation, but amount of animation types.
-	ANIMATION_COUNT = 25
-};
-
 struct AnimationData
 {
 	AnimationData() : mAnimationType(0), 
@@ -319,14 +270,14 @@ typedef eastl::vector<eastl::shared_ptr<MD3Mesh>> MD3MeshList;
 class MD3Mesh : public eastl::enable_shared_from_this<MD3Mesh>
 {
 public:
-	MD3Mesh() : mInterPolShift(0), mLoopMode(0), mParent(nullptr),
+	MD3Mesh() : mInterPolShift(0), mLoopMode(0), mParent(nullptr), mMeshRender(true),
 		mNumTags(0), mNumFrames(0), mCurrentFrame(0), mCurrentAnimation(0)
 	{
 
 	}
 
 	MD3Mesh(eastl::string name) : 
-		mName(name), mInterPolShift(0), mLoopMode(0), mParent(nullptr),
+		mName(name), mInterPolShift(0), mLoopMode(0), mParent(nullptr), mMeshRender(true),
 		mNumTags(0), mNumFrames(0), mCurrentFrame(0), mCurrentAnimation(0)
 	{
 
@@ -385,6 +336,10 @@ public:
 	MD3QuaternionTag& GetTagInterpolation();
 	eastl::shared_ptr<MD3Mesh> GetTagMesh(eastl::string tagName);
 
+	//! rendering
+	void SetRenderMesh(bool render);
+	bool IsRenderMesh() { return mMeshRender; }
+
 	//! animations
 	float GetCurrentFrame() { return mCurrentFrame; }
 	void SetCurrentFrame(float currentFrame) { mCurrentFrame = currentFrame; }
@@ -414,8 +369,8 @@ protected:
 		float lat = (float)((iNormal >> 8u) & 0xff);
 		float lng = (float)((iNormal & 0xff));
 		const float invVal(float(1.0) / float(128.0));
-		lat *= float(3.141926) * invVal;
-		lng *= float(3.141926) * invVal;
+		lat *= float(GE_C_PI) * invVal;
+		lng *= float(GE_C_PI) * invVal;
 
 		afOut[0] = cos(lat) * sin(lng);
 		afOut[1] = sin(lat) * sin(lng);
@@ -423,6 +378,10 @@ protected:
 	}
 
 private:
+
+	eastl::string mName;
+	MD3MeshList mChildren;
+	eastl::shared_ptr<MD3Mesh> mParent;
 
 	//! Cache Animation Info
 	struct CacheAnimationInfo
@@ -442,18 +401,15 @@ private:
 		int mEndFrameLoop;		// The end index into animations 
 	};
 	CacheAnimationInfo mCurrent;
-
-	eastl::string mName;
-	MD3MeshList mChildren;
-	eastl::shared_ptr<MD3Mesh> mParent;
-
-	int mNumFrames;
-	float mCurrentFrame;
 	unsigned int mCurrentAnimation;
 	eastl::vector<AnimationData> mAnimations;
 
+	int mNumFrames;
+	float mCurrentFrame;
+
 	unsigned int mLoopMode;
 	unsigned int mInterPolShift;	// The next frame of animation to interpolate too
+	bool mMeshRender;	// activate renderization of the mesh
 
 	//! tag data
 	unsigned int mNumTags;

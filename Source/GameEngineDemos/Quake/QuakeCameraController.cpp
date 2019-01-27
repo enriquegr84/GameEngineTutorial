@@ -179,9 +179,9 @@ void QuakeCameraController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		// Calculate the new rotation matrix from the camera
 		// yaw and pitch (zrotate and xrotate).
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(YAW), mYaw * (float)GE_C_DEG_TO_RAD));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(0), -mPitch * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(PITCH), -mPitch * (float)GE_C_DEG_TO_RAD));
 
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
 		mAbsoluteTransform.SetTranslation(mTarget->GetAbsoluteTransform().GetTranslation());
@@ -197,7 +197,7 @@ void QuakeCameraController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		// This will give us the "look at" vector 
 		// in world space - we'll use that to move
 		// the camera.
-		atWorld = Vector4<float>::Unit(1); // forward vector
+		atWorld = Vector4<float>::Unit(ROLL); // forward vector
 #if defined(GE_USE_MAT_VEC)
 		atWorld = mAbsoluteTransform * atWorld;
 #else
@@ -215,7 +215,7 @@ void QuakeCameraController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		// This will give us the "look right" vector 
 		// in world space - we'll use that to move
 		// the camera.
-		rightWorld = Vector4<float>::Unit(0); // right vector
+		rightWorld = Vector4<float>::Unit(PITCH); // right vector
 #if defined(GE_USE_MAT_VEC)
 		rightWorld = mAbsoluteTransform * rightWorld;
 #else
@@ -233,7 +233,7 @@ void QuakeCameraController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	{
 		//Unlike strafing, Up is always up no matter
 		//which way you are looking
-		upWorld = Vector4<float>::Unit(2); // up vector
+		upWorld = Vector4<float>::Unit(YAW); // up vector
 #if defined(GE_USE_MAT_VEC)
 		upWorld = mAbsoluteTransform * upWorld;
 #else

@@ -1,5 +1,5 @@
 //========================================================================
-// ActorFactory.h - Defines a factory for creating actors & components
+// HLSLShaderResource.h : API to use load HLSLShader files from the Resource Cache
 //
 // Part of the GameEngine Application
 //
@@ -36,37 +36,37 @@
 //
 //========================================================================
 
-#ifndef QUAKEACTORFACTORY_H
-#define QUAKEACTORFACTORY_H
+#ifndef HLSLSHADERRESOURCE_H
+#define HLSLSHADERRESOURCE_H
 
 #include "GameEngineStd.h"
 
-#include "Game/Actor/ActorFactory.h"
+#include "Core/IO/ResourceCache.h"
 
-#include "Actors/PlayerActor.h"
+#include "HLSLShader.h"
 
-/*
-	Class ActorFactory. All actors are created using a factory. The factory's job is to
-	take an XML resource, parse it, and return a fully initialized actor complete with
-	all the appropriate components. It's important to understand how actors are built, 
-	how to define a component configuration and any default values for that component.
-*/
-class QuakeActorFactory : public ActorFactory
+class HLSLShaderResourceExtraData : public BaseResourceExtraData
 {
+	HLSLShader mHLSLShader;
 
 public:
-	QuakeActorFactory(void);
+    virtual eastl::wstring ToString() { return L"HLSLShaderResourceExtraData"; }
+	HLSLShader& GetShader(void) { return mHLSLShader; }
+};
 
-	eastl::shared_ptr<PlayerActor> CreatePlayerActor(
-		const wchar_t* actorResource, tinyxml2::XMLElement* overrides,
-		const Transform* initialTransform, const ActorId serversActorId);
 
-//protected:
-    // This function can be overridden by a subclass so you can create game-specific 
-	// C++ components. If you do this, make sure you call the base-class version first.  
-	// If it returns NULL, you know it's not an engine component.
-    virtual eastl::shared_ptr<ActorComponent> CreateComponent(
-		eastl::shared_ptr<Actor> pActor, tinyxml2::XMLElement* pData);
+class HLSLShaderResourceLoader : public BaseResourceLoader
+{
+public:
+    virtual bool UseRawFile() { return false; }
+	virtual bool DiscardRawBufferAfterLoad() { return true; }
+    virtual unsigned int GetLoadedResourceSize(void *rawBuffer, unsigned int rawSize) { return rawSize; }
+    virtual bool LoadResource(void *rawBuffer, unsigned int rawSize, const eastl::shared_ptr<ResHandle>& handle);
+	virtual bool MatchResourceFormat(eastl::wstring name) { return IsALoadableFileExtension(name.c_str()); }
+
+protected:
+
+	bool IsALoadableFileExtension(const eastl::wstring& filename) const;
 };
 
 

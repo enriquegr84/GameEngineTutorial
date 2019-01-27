@@ -55,10 +55,11 @@ void ParticleSystemNode::SetEffect(int size)
 
 	eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ColorEffectVS.glsl"));
-	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ColorEffectPS.glsl"));
+	path.push_back("Effects/Texture2ColorEffectVS.glsl");
+	path.push_back("Effects/Texture2ColorEffectPS.glsl");
 #else
-	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ColorEffect.hlsl"));
+	path.push_back("Effects/Texture2ColorEffectVS.hlsl");
+	path.push_back("Effects/Texture2ColorEffectPS.hlsl");
 #endif
 	eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE),
@@ -386,6 +387,18 @@ void ParticleSystemNode::SetMaterialTexture(unsigned int textureLayer, eastl::sh
 
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 		GetMaterial(i)->SetTexture(textureLayer, texture);
+
+	for (unsigned int i = 0; i < GetVisualCount(); ++i)
+	{
+		eastl::shared_ptr<Visual> visual = GetVisual(i);
+		if (visual)
+		{
+			eastl::shared_ptr<Texture2Effect> textureEffect =
+				eastl::dynamic_shared_pointer_cast<Texture2Effect>(visual->GetEffect());
+			if (textureEffect)
+				textureEffect->SetTexture(texture);
+		}
+	}
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.

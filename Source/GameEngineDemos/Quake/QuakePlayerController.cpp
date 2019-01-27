@@ -43,6 +43,7 @@
 
 #include "Physic/PhysicEventListener.h"
 
+#include "Actors/PlayerActor.h"
 #include "QuakePlayerController.h"
 #include "QuakeEvents.h"
 #include "QuakeApp.h"
@@ -199,7 +200,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		// This will give us the "look at" vector 
 		// in world space - we'll use that to move
 		// the camera.
-		atWorld = Vector4<float>::Unit(0); // forward vector
+		atWorld = Vector4<float>::Unit(PITCH); // forward vector
 #if defined(GE_USE_MAT_VEC)
 		atWorld = rotation * atWorld;
 #else
@@ -215,7 +216,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		// This will give us the "look right" vector 
 		// in world space - we'll use that to move
 		// the camera.
-		rightWorld = Vector4<float>::Unit(1); // right vector
+		rightWorld = Vector4<float>::Unit(ROLL); // right vector
 #if defined(GE_USE_MAT_VEC)
 		rightWorld = rotation * rightWorld;
 #else
@@ -230,7 +231,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	{
 		//Unlike strafing, Up is always up no matter
 		//which way you are looking
-		upWorld = Vector4<float>::Unit(2); // up vector
+		upWorld = Vector4<float>::Unit(YAW); // up vector
 #if defined(GE_USE_MAT_VEC)
 		upWorld = rotation * upWorld;
 #else
@@ -242,63 +243,84 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	}
 	*/
 	const ActorId actorId = mObject->GetId();
-	eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
-	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
-		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
-	if (pPhysicComponent)
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(actorId).lock()));
+	if (pPlayerActor)
 	{
-		Vector4<float> velocity = Vector4<float>::Zero();
-		if (pPhysicComponent->OnGround())
+		eastl::shared_ptr<PhysicComponent> pPhysicComponent(
+			pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
+		if (pPhysicComponent)
 		{
-			bool isJumping = false;
-			if (mEnabled)
+			pPlayerActor->GetAction().actionType = 0;
+			if (mMouseLButtonDown)
+				pPlayerActor->GetAction().actionType |= ACTION_ATTACK;
+			if (mWheelRollDown)
+				pPlayerActor->PrevWeapon();
+			if (mWheelRollUp)
+				pPlayerActor->NextWeapon();
+
+			Vector4<float> velocity = Vector4<float>::Zero();
+			if (pPhysicComponent->OnGround())
 			{
-				if (mMouseRButtonDown)
+				if (mEnabled)
 				{
-					isJumping = true;
-					upWorld = Vector4<float>::Unit(2);
-					Vector4<float> direction = atWorld + rightWorld + upWorld;
-					Normalize(direction);
+					if (mKey[KEY_KEY_S])
+						pPlayerActor->GetAction().actionType |= ACTION_MOVEBACK;
+					else if (mKey[KEY_KEY_W])
+						pPlayerActor->GetAction().actionType |= ACTION_MOVEFORWARD;
+					else if (mKey[KEY_KEY_A])
+						pPlayerActor->GetAction().actionType |= ACTION_MOVELEFT;
+					else if (mKey[KEY_KEY_D])
+						pPlayerActor->GetAction().actionType |= ACTION_MOVERIGHT;
 
-					direction[0] *= mMaxMoveSpeed;
-					direction[1] *= mMaxMoveSpeed;
-					direction[2] *= mJumpSpeed;
-					velocity = direction;
+					if (mMouseRButtonDown)
+					{
+						upWorld = Vector4<float>::Unit(YAW);
+						Vector4<float> direction = atWorld + rightWorld + upWorld;
+						Normalize(direction);
 
-					EventManager::Get()->TriggerEvent(
-						eastl::make_shared<QuakeEventDataJumpActor>(
-						actorId, mKey[KEY_KEY_S], HProject(velocity)));
+						direction[PITCH] *= mMaxMoveSpeed;
+						direction[ROLL] *= mMaxMoveSpeed;
+						direction[YAW] *= mJumpSpeed;
+						velocity = direction;
+
+						pPlayerActor->GetAction().actionType |= ACTION_JUMP;
+					}
+					else
+					{
+						Vector4<float> direction = atWorld + rightWorld + upWorld;
+						Normalize(direction);
+
+						direction *= mMoveSpeed;
+						velocity = direction;
+					}
 				}
-				else
-				{
-					Vector4<float> direction = atWorld + rightWorld + upWorld;
-					Normalize(direction);
+				pPlayerActor->GetAction().actionType |= ACTION_RUN;
+			}
+			else
+			{
+				upWorld = -Vector4<float>::Unit(YAW);
+				Vector4<float> direction = atWorld + rightWorld + upWorld;
+				Normalize(direction);
 
-					direction *= mMoveSpeed;
-					velocity = direction;
-				}
+				direction[PITCH] *= 300;
+				direction[ROLL] *= 300;
+				direction[YAW] *= 1000;
+				velocity = direction;
+
+				pPlayerActor->GetAction().actionType |= ACTION_FALLEN;
 			}
 
 			EventManager::Get()->TriggerEvent(
-				eastl::make_shared<QuakeEventDataMoveActor>(
-				actorId, !isJumping, mKey[KEY_KEY_S], HProject(velocity)));
+				eastl::make_shared<QuakeEventDataRotateActor>(actorId, mAbsoluteTransform));
+
+			pPlayerActor->UpdateTimers(deltaMs);
+			pPlayerActor->UpdateWeapon(deltaMs);
+			pPlayerActor->UpdateMovement(HProject(velocity));
 		}
-		else
-		{
-			upWorld = -Vector4<float>::Unit(2);
-			Vector4<float> direction = atWorld + rightWorld + upWorld;
-			Normalize(direction);
-
-			direction[0] *= 300;
-			direction[1] *= 300;
-			direction[2] *= 1000;
-			velocity = direction;
-
-			EventManager::Get()->TriggerEvent(
-				eastl::make_shared<QuakeEventDataFallActor>(actorId, HProject(velocity)));
-		}
-
-		EventManager::Get()->TriggerEvent(
-			eastl::make_shared<QuakeEventDataRotateActor>(actorId, mAbsoluteTransform));
 	}
+
+	mWheelRollDown = false;
+	mWheelRollUp = false;
 }

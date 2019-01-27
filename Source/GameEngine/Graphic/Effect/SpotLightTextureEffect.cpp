@@ -40,6 +40,16 @@ SpotLightTextureEffect::SpotLightTextureEffect(eastl::shared_ptr<ProgramFactory>
 	mProgram->GetPShader()->Set("baseSampler", mSampler);
 }
 
+void SpotLightTextureEffect::SetTexture(eastl::shared_ptr<Texture2> const& texture)
+{
+	mTexture = texture;
+#if defined(_OPENGL_)
+	mProgram->GetPShader()->Set("baseSampler", mTexture);
+#else
+	mProgram->GetPShader()->Set("baseTexture", mTexture);
+#endif
+}
+
 void SpotLightTextureEffect::UpdateMaterialConstant()
 {
     InternalMaterial* internalMaterial = mMaterialConstant->Get<InternalMaterial>();

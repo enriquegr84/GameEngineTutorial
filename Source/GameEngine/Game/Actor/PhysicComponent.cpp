@@ -238,15 +238,15 @@ void PhysicComponent::Update(float deltaMs)
 #else
 		direction = direction * GetTransform();
 #endif
-		gamePhysics->ApplyForce(HProject(direction), accelerationPerFrame, mOwner->GetId());
+		gamePhysics->ApplyForce(HProject(direction) * accelerationPerFrame, mOwner->GetId());
     }
 
     if (mAngularAcceleration != 0)
     {
         // calculate the acceleration this frame
 		Vector3<float> upVector = Vector3<float>::Unit(2); // up vector
-        float angularAccelerationToApplyThisFrame = mAngularAcceleration / 1000.f * (float)deltaMs;
-		gamePhysics->ApplyTorque(upVector, angularAccelerationToApplyThisFrame, mOwner->GetId());
+        float accelerationPerFrame = mAngularAcceleration / 1000.f * (float)deltaMs;
+		gamePhysics->ApplyTorque(upVector * accelerationPerFrame, mOwner->GetId());
     }
 }
 
@@ -289,16 +289,16 @@ void PhysicComponent::BuildRigidBodyTransform(tinyxml2::XMLElement* pTransformEl
     }
 }
 
-void PhysicComponent::ApplyForce(const Vector3<float>& direction, float forceNewtons)
+void PhysicComponent::ApplyForce(const Vector3<float>& velocity)
 {
 	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
-    gamePhysics->ApplyForce(direction, forceNewtons, mOwner->GetId());
+    gamePhysics->ApplyForce(velocity, mOwner->GetId());
 }
 
-void PhysicComponent::ApplyTorque(const Vector3<float>& direction, float forceNewtons)
+void PhysicComponent::ApplyTorque(const Vector3<float>& velocity)
 {
 	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
-    gamePhysics->ApplyTorque(direction, forceNewtons, mOwner->GetId());
+    gamePhysics->ApplyTorque(velocity, mOwner->GetId());
 }
 
 void PhysicComponent::ApplyAcceleration(float acceleration)

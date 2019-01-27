@@ -36,27 +36,3 @@ VS_OUTPUT VSMain(VS_INPUT input)
     output.vertexTCoord = input.modelTCoord;
     return output;
 }
-
-Texture2DArray baseTextureArray;
-SamplerState baseSampler;
-
-struct PS_INPUT
-{
-	float4 vertexColor : COLOR0;
-    float3 vertexTCoord : TEXCOORD0;
-};
-
-struct PS_OUTPUT
-{
-    float4 pixelColor0 : SV_TARGET0;
-};
-
-PS_OUTPUT PSMain(PS_INPUT input)
-{
-    PS_OUTPUT output;
-
-	// Sample texture array.
-	float4 textureColor = baseTextureArray.Sample(baseSampler, input.vertexTCoord);
-	output.pixelColor0 = input.vertexColor * textureColor;
-    return output;
-}

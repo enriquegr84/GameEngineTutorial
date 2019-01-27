@@ -479,8 +479,17 @@ void GameDemoLogic::CreateNetworkEventForwarder(const int socketId)
 
 	// then add those events that need to be sent along to amy attached clients
 	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		EventDataPhysTriggerEnter::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		EventDataPhysTriggerLeave::skEventType);
+	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 		EventDataPhysCollision::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		EventDataPhysSeparation::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 		EventDataDestroyActor::skEventType);
@@ -523,8 +532,17 @@ void GameDemoLogic::DestroyAllNetworkEventForwarders(void)
 
 		BaseEventManager* eventManager = BaseEventManager::Get();
 		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			EventDataPhysTriggerEnter::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			EventDataPhysTriggerLeave::skEventType);
+		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataPhysCollision::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			EventDataPhysSeparation::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataDestroyActor::skEventType);

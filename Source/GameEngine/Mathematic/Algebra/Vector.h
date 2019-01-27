@@ -290,10 +290,8 @@ template <int N, typename Real> inline
 bool Vector<N, Real>::operator==(Vector const& vec) const
 {
 	for (int i = 0; i < N; ++i)
-	{
 		if (mTuple[i] != vec.mTuple[i])
 			return false;
-	}
 
 	return true;
 }
@@ -302,10 +300,8 @@ template <int N, typename Real> inline
 bool Vector<N, Real>::operator!=(Vector const& vec) const
 {
 	for (int i = 0; i < N; ++i)
-	{
 		if (mTuple[i] != vec.mTuple[i])
 			return true;
-	}
 
 	return false;
 }
@@ -339,9 +335,7 @@ void Vector<N, Real>::MakeZero()
 {
 	int i = 0;
 	for (/**/; i < N; ++i)
-	{
 		mTuple[i] = (Real)0;
-	}
 }
 
 template <int N, typename Real>
@@ -349,14 +343,10 @@ void Vector<N, Real>::MakeUnit(int d)
 {
 	int i = 0;
 	for (/**/; i < N; ++i)
-	{
 		mTuple[i] = (Real)0;
-	}
 
     if (0 <= d && d < N)
-    {
         mTuple[d] = (Real)1;
-    }
 }
 
 template <int N, typename Real>
@@ -386,9 +376,8 @@ Vector<N, Real> operator-(Vector<N, Real> const& v)
 {
 	Vector<N, Real> result;
 	for (int i = 0; i < N; ++i)
-	{
 		result.mTuple[i] = -v.mTuple[i];
-	}
+
 	return result;
 }
 
@@ -433,9 +422,8 @@ template <int N, typename Real> inline
 Vector<N, Real>& operator+=(Vector<N, Real>& v0, Vector<N, Real> const& v1)
 {
 	for (int i = 0; i < N; ++i)
-	{
 		v0.mTuple[i] += v1.mTuple[i];
-	}
+
 	return v0;
 }
 
@@ -443,9 +431,8 @@ template <int N, typename Real> inline
 Vector<N, Real>& operator-=(Vector<N, Real>& v0, Vector<N, Real> const& v1)
 {
 	for (int i = 0; i < N; ++i)
-	{
 		v0.mTuple[i] -= v1.mTuple[i];
-	}
+
 	return v0;
 }
 
@@ -453,9 +440,8 @@ template <int N, typename Real> inline
 Vector<N, Real>& operator*=(Vector<N, Real>& v, Real scalar)
 {
 	for (int i = 0; i < N; ++i)
-	{
 		v.mTuple[i] *= scalar;
-	}
+
 	return v;
 }
 
@@ -465,16 +451,12 @@ Vector<N, Real>& operator/=(Vector<N, Real>& v, Real scalar)
 	if (scalar != (Real)0)
 	{
 		for (int i = 0; i < N; ++i)
-		{
 			v.mTuple[i] /= scalar;
-		}
 	}
 	else
 	{
 		for (int i = 0; i < N; ++i)
-		{
 			v.mTuple[i] = (Real)0;
-		}
 	}
 	return v;
 }
@@ -499,9 +481,8 @@ template <int N, typename Real> inline
 Vector<N, Real>& operator*=(Vector<N, Real>& v0, Vector<N, Real> const& v1)
 {
 	for (int i = 0; i < N; ++i)
-	{
 		v0.mTuple[i] *= v1.mTuple[i];
-	}
+
 	return v0;
 }
 
@@ -509,9 +490,8 @@ template <int N, typename Real> inline
 Vector<N, Real>& operator/=(Vector<N, Real>& v0, Vector<N, Real> const& v1)
 {
 	for (int i = 0; i < N; ++i)
-	{
 		v0.mTuple[i] /= v1.mTuple[i];
-	}
+
 	return v0;
 }
 
@@ -520,9 +500,8 @@ Real Dot(Vector<N, Real> const& v0, Vector<N, Real> const& v1)
 {
 	Real dot = v0.mTuple[0] * v1.mTuple[0];
 	for (int i = 1; i < N; ++i)
-	{
 		dot += v0.mTuple[i] * v1.mTuple[i];
-	}
+
 	return dot;
 }
 
@@ -536,9 +515,7 @@ Real Length(Vector<N, Real> const& v, bool robust)
 		{
 			Real absComp = fabs(v.mTuple[i]);
 			if (absComp > maxAbsComp)
-			{
 				maxAbsComp = absComp;
-			}
 		}
 
 		Real length;
@@ -547,16 +524,10 @@ Real Length(Vector<N, Real> const& v, bool robust)
 			Vector<N, Real> scaled = v / maxAbsComp;
 			length = maxAbsComp * sqrt(Dot(scaled, scaled));
 		}
-		else
-		{
-			length = (Real)0;
-		}
+		else length = (Real)0;
 		return length;
 	}
-	else
-	{
-		return sqrt(Dot(v, v));
-	}
+	else return sqrt(Dot(v, v));
 }
 
 template <int N, typename Real> inline
@@ -569,9 +540,7 @@ Real Normalize(Vector<N, Real>& v, bool robust)
 		{
 			Real absComp = fabs(v.mTuple[i]);
 			if (absComp > maxAbsComp)
-			{
 				maxAbsComp = absComp;
-			}
 		}
 
 		Real length;
@@ -586,9 +555,7 @@ Real Normalize(Vector<N, Real>& v, bool robust)
 		{
 			length = (Real)0;
 			for (int i = 0; i < N; ++i)
-			{
 				v.mTuple[i] = (Real)0;
-			}
 		}
 		return length;
 	}
@@ -602,9 +569,7 @@ Real Normalize(Vector<N, Real>& v, bool robust)
 		else
 		{
 			for (int i = 0; i < N; ++i)
-			{
 				v.mTuple[i] = (Real)0;
-			}
 		}
 		return length;
 	}
@@ -625,9 +590,7 @@ Real Orthonormalize(int numInputs, Vector<N, Real>* v, bool robust)
 			}
 			Real length = Normalize(v[i], robust);
 			if (length < minLength)
-			{
 				minLength = length;
-			}
 		}
 		return minLength;
 	}
@@ -685,13 +648,9 @@ bool ComputeExtremes(int numVectors, Vector<N, Real> const* v,
 			for (int i = 0; i < N; ++i)
 			{
 				if (vec.mTuple[i] < vmin.mTuple[i])
-				{
 					vmin.mTuple[i] = vec.mTuple[i];
-				}
 				else if (vec.mTuple[i] > vmax.mTuple[i])
-				{
 					vmax.mTuple[i] = vec.mTuple[i];
-				}
 			}
 		}
 		return true;
@@ -706,9 +665,8 @@ Vector<N + 1, Real> HLift(Vector<N, Real> const& v, Real last)
 	Vector<N + 1, Real> result;
 	Real* out = reinterpret_cast<Real*>(&result);
 	for (int i = 0; i < N; ++i)
-	{
 		out[i] = v.mTuple[i];
-	}
+
 	out[N] = last;
 	return result;
 }
@@ -720,9 +678,8 @@ Vector<N - 1, Real> HProject(Vector<N, Real> const& v)
 	Vector<N - 1, Real> result;
 	Real* out = reinterpret_cast<Real*>(&result);
 	for (int i = 0; i < N - 1; ++i)
-	{
 		out[i] = v.mTuple[i];
-	}
+
 	return result;
 }
 
@@ -734,15 +691,13 @@ Vector<N + 1, Real> Lift(Vector<N, Real> const& v, int inject, Real value)
 
 	int i;
 	for (i = 0; i < inject; ++i)
-	{
 		out[i] = v.mTuple[i];
-	}
+
 	out[i] = value;
 	int j = i;
 	for (++j; i < N; ++i, ++j)
-	{
 		out[j] = v.mTuple[i];
-	}
+
 	return result;
 }
 
@@ -754,10 +709,7 @@ Vector<N - 1, Real> Project(Vector<N, Real> const& v, int reject)
 	Real* out = reinterpret_cast<Real*>(&result);
 	for (int i = 0, j = 0; i < N - 1; ++i, ++j)
 	{
-		if (j == reject)
-		{
-			++j;
-		}
+		if (j == reject) ++j;
 		out[i] = v.mTuple[j];
 	}
 	return result;

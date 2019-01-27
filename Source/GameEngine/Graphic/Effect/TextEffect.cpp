@@ -13,9 +13,9 @@ TextEffect::TextEffect(eastl::shared_ptr<ProgramFactory> const& factory,
 	eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2> const& texture)
 {
 
-	eastl::string vsPath = path.front();
-	eastl::string psPath = path.size() > 1 ? path[1] : path.front();
-	eastl::string gsPath = path.size() > 2 ? path[2] : "";
+	eastl::string vsPath = path[0];
+	eastl::string psPath = path[1];
+	eastl::string gsPath = "";
 	mProgram = factory->CreateFromFiles(vsPath, psPath, gsPath);
     if (mProgram)
     {

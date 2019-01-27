@@ -115,10 +115,11 @@ bool TriangleDemoApp::CreateScene()
 	//LoadBuiltInFont
 	eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-	path.push_back(FileSystem::Get()->GetPath("Effects/TextEffectVS.glsl"));
-	path.push_back(FileSystem::Get()->GetPath("Effects/TextEffectPS.glsl"));
+	path.push_back("Effects/TextEffectVS.glsl");
+	path.push_back("Effects/TextEffectPS.glsl");
 #else
-	path.push_back(FileSystem::Get()->GetPath("Effects/TextEffect.hlsl"));
+	path.push_back("Effects/TextEffectVS.hlsl");
+	path.push_back("Effects/TextEffectPS.hlsl");
 #endif
 	eastl::shared_ptr<Font> builtInFont = eastl::make_shared<FontArialW400H18>(ProgramFactory::Get(), path, 256);
 	Renderer::Get()->SetDefaultFont(builtInFont);
@@ -129,10 +130,11 @@ bool TriangleDemoApp::CreateScene()
 
 	path.clear(); 
 #if defined(_OPENGL_)
-	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectVS.glsl"));
-	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffectPS.glsl"));
+	path.push_back("Effects/ColorEffectVS.glsl");
+	path.push_back("Effects/ColorEffectPS.glsl");
 #else
-	path.push_back(FileSystem::Get()->GetPath("Effects/ColorEffect.hlsl"));
+	path.push_back("Effects/ColorEffectVS.hlsl");
+	path.push_back("Effects/ColorEffectPS.hlsl");
 #endif
 	eastl::shared_ptr<ColorEffect> effect =
 		eastl::make_shared<ColorEffect>(mProgramFactory, path);

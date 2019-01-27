@@ -38,19 +38,392 @@
 
 #include "PlayerActor.h"
 
-#include "Core/Logger/Logger.h"
+#include "Quake/QuakeEvents.h"
 
+#include "Core/Logger/Logger.h"
 
 //---------------------------------------------------------------------------------------------------------------------
 // PlayerActor
 //---------------------------------------------------------------------------------------------------------------------
 PlayerActor::PlayerActor(ActorId id) : Actor(id)
 {
+	memset(&mState, 0, sizeof(mState));
+	memset(&mAction, 0, sizeof(mAction));
+}
+
+PlayerActor::~PlayerActor()
+{
 
 }
 
-PlayerActor::~PlayerActor(void)
-{
 
+void PlayerActor::StartTorsoAnim(int anim)
+{
+	if (mState.moveType >= PM_DEAD)
+		return;
+
+	mState.torsoAnim = anim;
+}
+
+void PlayerActor::StartLegsAnim(int anim)
+{
+	if (mState.moveType >= PM_DEAD)
+		return;
+
+	if (mState.legsTimer > 0)
+		return;		// a high priority animation is running
+
+	mState.legsAnim = anim;
+}
+
+void PlayerActor::ContinueLegsAnim(int anim)
+{
+	if (mState.legsAnim == anim)
+		return;
+
+	if (mState.legsTimer > 0)
+		return;		// a high priority animation is running
+
+	StartLegsAnim(anim);
+}
+
+void PlayerActor::ContinueTorsoAnim(int anim)
+{
+	if (mState.torsoAnim == anim)
+		return;
+
+	if (mState.torsoTimer > 0)
+		return;		// a high priority animation is running
+
+	StartTorsoAnim(anim);
+}
+
+void PlayerActor::ForceLegsAnim(int anim)
+{
+	mState.legsTimer = 0;
+	StartLegsAnim(anim);
+}
+
+void PlayerActor::BeginWeaponChange()
+{
+	if (mState.weapon <= WP_NONE || mState.weapon > MAX_WEAPONS)
+		return;
+
+	if (!(mState.stats[STAT_WEAPONS] & (1 << mState.weapon)))
+		return;
+
+	if (mState.weaponState == WEAPON_DROPPING)
+		return;
+
+	mState.weaponState = WEAPON_DROPPING;
+	mState.weaponTime += 200;
+	StartTorsoAnim(TORSO_DROP);
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<QuakeEventDataChangeWeapon>(GetId()));
+}
+
+void PlayerActor::FinishWeaponChange()
+{
+	int weapon = mAction.weaponSelect;
+	if (weapon < WP_NONE || weapon > MAX_WEAPONS)
+		weapon = WP_NONE;
+
+	if (!(mState.stats[STAT_WEAPONS] & (1 << weapon)))
+		weapon = WP_NONE;
+
+	mState.weapon = weapon;
+	mState.weaponState = WEAPON_RAISING;
+	mState.weaponTime += 250;
+	StartTorsoAnim(TORSO_RAISE);
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<QuakeEventDataChangeWeapon>(GetId()));
+}
+
+bool PlayerActor::WeaponSelectable(int i)
+{
+	if (!mState.ammo[i])
+		return false;
+
+	if (!(mState.stats[STAT_WEAPONS] & (1 << i)))
+		return false;
+
+	return true;
+}
+
+void PlayerActor::NextWeapon()
+{
+	//mAction.weaponSelectTime = cg.time;
+	int i;
+	int original = mAction.weaponSelect;
+	for (i=1; i <= MAX_WEAPONS; i++)
+	{
+		mAction.weaponSelect++;
+		if (mAction.weaponSelect > MAX_WEAPONS)
+			mAction.weaponSelect = 1;
+
+		if (mAction.weaponSelect == WP_GAUNTLET)
+			continue;		// never cycle to gauntlet
+
+		if (WeaponSelectable(mAction.weaponSelect))
+			break;
+	}
+	if (i > MAX_WEAPONS)
+		mAction.weaponSelect = original;
+}
+
+void PlayerActor::PrevWeapon()
+{
+	//mAction.weaponSelectTime = cg.time;
+	int i;
+	int original = mAction.weaponSelect;
+	for (i=1; i <= MAX_WEAPONS; i++)
+	{
+		mAction.weaponSelect--;
+		if (mAction.weaponSelect == -1)
+			mAction.weaponSelect = MAX_WEAPONS;
+
+		if (mAction.weaponSelect == WP_GAUNTLET)
+			continue;		// never cycle to gauntlet
+
+		if (WeaponSelectable(mAction.weaponSelect))
+			break;
+	}
+	if (i > MAX_WEAPONS)
+		mAction.weaponSelect = original;
+}
+
+void PlayerActor::Weapon()
+{
+	int num = 0;// = atoi(Argv(1));
+	if (num < 1 || num > MAX_WEAPONS)
+		return;
+
+	//mAction.weaponSelectTime = cg.time;
+
+	if (!(mState.stats[STAT_WEAPONS] & (1 << num)))
+		return;		// don't have the weapon
+
+	mAction.weaponSelect = num;
+}
+
+void PlayerActor::OutOfAmmoChange()
+{
+	//mAction.weaponSelectTime = cg.time;
+	for (int i = MAX_WEAPONS; i > 0; i--)
+	{
+		if (WeaponSelectable(i))
+		{
+			mAction.weaponSelect = i;
+			break;
+		}
+	}
+}
+
+void PlayerActor::UpdateWeapon(unsigned long deltaMs)
+{
+	int addTime;
+
+	// don't allow attack until all buttons are up
+	if (mAction.actionType & ACTION_RESPAWN)
+		return;
+
+	// ignore if spectator
+	/*
+	if (mState.persistant[PERS_TEAM] == TEAM_SPECTATOR)
+		return;
+	*/
+
+	// check for dead player
+	if (mState.stats[STAT_HEALTH] <= 0)
+	{
+		mState.weapon = WP_NONE;
+		return;
+	}
+
+	// make weapon function
+	if (mState.weaponTime > 0)
+		mState.weaponTime -= deltaMs;
+
+	// check for weapon change
+	// can't change if weapon is firing, but can change
+	// again if lowering or raising
+	if (mState.weaponTime <= 0 ||
+		mState.weaponState != WEAPON_FIRING)
+	{
+		if (mState.weapon != mAction.weaponSelect)
+			BeginWeaponChange();
+	}
+
+	if (mState.weaponTime > 0)
+		return;
+
+	// change weapon if time
+	if (mState.weaponState == WEAPON_DROPPING)
+	{
+		FinishWeaponChange();
+		return;
+	}
+
+	if (mState.weaponState == WEAPON_RAISING)
+	{
+		mState.weaponState = WEAPON_READY;
+		if (mState.weapon == WP_GAUNTLET)
+			StartTorsoAnim(TORSO_STAND2);
+		else
+			StartTorsoAnim(TORSO_STAND);
+		return;
+	}
+
+	// check for fire
+	if (!(mAction.actionType & ACTION_ATTACK))
+	{
+		mState.weaponTime = 0;
+		mState.weaponState = WEAPON_READY;
+		return;
+	}
+
+	// start the animation even if out of ammo
+	if (mState.weapon == WP_GAUNTLET)
+	{
+		// the guantlet only "fires" when it actually hits something
+		/*
+		if (!mState.gauntletHit)
+		{
+			mState.weaponTime = 0;
+			mState.weaponState = WEAPON_READY;
+			return;
+		}
+		*/
+		StartTorsoAnim(TORSO_ATTACK2);
+	}
+	else
+	{
+		StartTorsoAnim(TORSO_ATTACK);
+	}
+
+	mState.weaponState = WEAPON_FIRING;
+
+	// check for out of ammo
+	if (!mState.ammo[mState.weapon])
+	{
+		OutOfAmmoChange();
+		mState.weaponTime += 500;
+		return;
+	}
+
+	// take an ammo away if not infinite
+	if (mState.ammo[mState.weapon] != -1)
+		mState.ammo[mState.weapon]--;
+
+	// fire weapon
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<QuakeEventDataFireWeapon>(GetId()));
+
+	switch (mState.weapon)
+	{
+		default:
+		case WP_GAUNTLET:
+			addTime = 400;
+			break;
+		case WP_LIGHTNING:
+			addTime = 50;
+			break;
+		case WP_SHOTGUN:
+			addTime = 1000;
+			break;
+		case WP_MACHINEGUN:
+			addTime = 100;
+			break;
+		case WP_GRENADE_LAUNCHER:
+			addTime = 800;
+			break;
+		case WP_ROCKET_LAUNCHER:
+			addTime = 800;
+			break;
+		case WP_PLASMAGUN:
+			addTime = 100;
+			break;
+		case WP_RAILGUN:
+			addTime = 1500;
+			break;
+	}
+
+	mState.weaponTime += addTime;
+}
+
+void PlayerActor::UpdateMovement(const Vector3<float>& velocity)
+{
+	if (mState.weaponState == WEAPON_READY)
+	{
+		if (mState.weapon == WP_GAUNTLET)
+			ContinueTorsoAnim(TORSO_STAND2);
+		else
+			ContinueTorsoAnim(TORSO_STAND);
+	}
+
+	if (mAction.actionType & ACTION_JUMP)
+	{
+		if (mAction.actionType & ACTION_MOVEFORWARD)
+			ForceLegsAnim(LEGS_JUMP);
+		else
+			ForceLegsAnim(LEGS_JUMPB);
+
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<QuakeEventDataJumpActor>(GetId(), velocity));
+	}
+
+	if (mAction.actionType & ACTION_RUN)
+	{
+		// if not trying to move
+		if (!(mAction.actionType & ACTION_MOVEFORWARD) &&
+			!(mAction.actionType & ACTION_MOVEBACK) &&
+			!(mAction.actionType & ACTION_MOVELEFT) &&
+			!(mAction.actionType & ACTION_MOVERIGHT))
+		{
+			ContinueLegsAnim(LEGS_IDLE);
+		}
+		else
+		{
+			if (mAction.actionType & ACTION_MOVEBACK)
+				ContinueLegsAnim(LEGS_BACK);
+			else
+				ContinueLegsAnim(LEGS_RUN);
+		}
+
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<QuakeEventDataMoveActor>(GetId(), velocity));
+	}
+	else
+	{
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<QuakeEventDataFallActor>(GetId(), velocity));
+	}
+}
+
+void PlayerActor::UpdateTimers(unsigned long deltaMs)
+{
+	// drop misc timing counter
+	if (mState.moveTime)
+	{
+		if (deltaMs >= mState.moveTime)
+			mState.moveTime = 0;
+		else
+			mState.moveTime -= deltaMs;
+	}
+
+	// drop animation counter
+	if (mState.legsTimer > 0)
+	{
+		mState.legsTimer -= deltaMs;
+		if (mState.legsTimer < 0)
+			mState.legsTimer = 0;
+	}
+
+	if (mState.torsoTimer > 0)
+	{
+		mState.torsoTimer -= deltaMs;
+		if (mState.torsoTimer < 0)
+			mState.torsoTimer = 0;
+	}
 }
 

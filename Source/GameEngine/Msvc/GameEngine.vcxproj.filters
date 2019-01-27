@@ -1138,6 +1138,12 @@
     <ClCompile Include="..\Graphic\Effect\Texture2ArrayEffect.cpp">
       <Filter>Graphic\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderResource.cpp">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLShaderResource.cpp">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -2677,6 +2683,12 @@
     <ClInclude Include="..\Mathematic\NumericalMethod\SingularValueDecomposition.h">
       <Filter>Mathematic\NumericalMethod</Filter>
     </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\DirectX11\HLSL\HLSLShaderResource.h">
+      <Filter>Graphic\Renderer\DirectX11\HLSL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLShaderResource.h">
+      <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Assets\Effects\AmbientLightEffectPS.glsl">
@@ -2816,62 +2828,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\..\Assets\Effects\AmbientLightEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\ColorEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\ConstantColorEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightEffectPerPixel.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightEffectPerVertex.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightTextureEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerPixel.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerVertex.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\PointLightTextureEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\SpotLightEffectPerPixel.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\SpotLightEffectPerVertex.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\TextEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\Texture2Effect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\VertexColorEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\Texture2ColorEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\SpotLightTextureEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayColorEffect.hlsl">
-      <Filter>Assets\Effects</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
     <Xml Include="..\..\..\Assets\Actors\afternoon_sky.xml">
       <Filter>Assets\Actors</Filter>
     </Xml>
@@ -2923,5 +2879,115 @@
     <Xml Include="..\..\..\Assets\Actors\cube.xml">
       <Filter>Assets\Actors</Filter>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\..\Assets\Effects\PointLightTextureEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\SpotLightEffectPerPixelPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\SpotLightEffectPerPixelVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\SpotLightEffectPerVertexPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\SpotLightEffectPerVertexVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\SpotLightTextureEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\SpotLightTextureEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\TextEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\TextEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayColorEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayColorEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ArrayEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ColorEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2ColorEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2EffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\Texture2EffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\VertexColorEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\VertexColorEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\AmbientLightEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\AmbientLightEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\ColorEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\ColorEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\ConstantColorEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\ConstantColorEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightEffectPerPixelPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightEffectPerPixelVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightEffectPerVertexPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightEffectPerVertexVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightTextureEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\DirectionalLightTextureEffectVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerPixelPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerPixelVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerVertexPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\PointLightEffectPerVertexVS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\PointLightTextureEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

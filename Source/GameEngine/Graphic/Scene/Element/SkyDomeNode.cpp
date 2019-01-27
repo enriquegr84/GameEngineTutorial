@@ -50,10 +50,11 @@ SkyDomeNode::SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRen
 
 	eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
-	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
+	path.push_back("Effects/Texture2EffectVS.glsl");
+	path.push_back("Effects/Texture2EffectPS.glsl");
 #else
-	path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
+	path.push_back("Effects/Texture2EffectVS.hlsl");
+	path.push_back("Effects/Texture2EffectPS.hlsl");
 #endif
 	eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
 		ProgramFactory::Get(), path, mMeshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE),
@@ -229,6 +230,18 @@ void SkyDomeNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_pt
 
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 		GetMaterial(i)->SetTexture(textureLayer, texture);
+
+	for (unsigned int i = 0; i < GetVisualCount(); ++i)
+	{
+		eastl::shared_ptr<Visual> visual = GetVisual(i);
+		if (visual)
+		{
+			eastl::shared_ptr<Texture2Effect> textureEffect =
+				eastl::dynamic_shared_pointer_cast<Texture2Effect>(visual->GetEffect());
+			if (textureEffect)
+				textureEffect->SetTexture(texture);
+		}
+	}
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.

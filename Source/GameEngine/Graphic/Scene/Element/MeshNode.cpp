@@ -170,10 +170,11 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 
 		eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ArrayEffectVS.glsl"));
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ArrayEffectPS.glsl"));
+		path.push_back("Effects/Texture2ArrayEffectVS.glsl");
+		path.push_back("Effects/Texture2ArrayEffectPS.glsl");
 #else
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ArrayEffect.hlsl"));
+		path.push_back("Effects/Texture2ArrayEffectVS.hlsl");
+		path.push_back("Effects/Texture2ArrayEffectPS.hlsl");
 #endif
 
 		eastl::shared_ptr<Texture2ArrayEffect> effect = eastl::make_shared<Texture2ArrayEffect>(
@@ -261,10 +262,11 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 
 		eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ArrayEffectVS.glsl"));
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ArrayEffectPS.glsl"));
+		path.push_back("Effects/Texture2ArrayEffectVS.glsl");
+		path.push_back("Effects/Texture2ArrayEffectPS.glsl");
 #else
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2ArrayEffect.hlsl"));
+		path.push_back("Effects/Texture2ArrayEffectVS.hlsl");
+		path.push_back("Effects/Texture2ArrayEffectPS.hlsl");
 #endif
 
 		eastl::shared_ptr<Texture2ArrayEffect> effect = eastl::make_shared<Texture2ArrayEffect>(
@@ -332,10 +334,11 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 
 		eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-		path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectVS.glsl"));
-		path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectPS.glsl"));
+		path.push_back("Effects/ConstantColorEffectVS.glsl");
+		path.push_back("Effects/ConstantColorEffectPS.glsl");
 #else
-		path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffect.hlsl"));
+		path.push_back("Effects/ConstantColorEffectVS.hlsl");
+		path.push_back("Effects/ConstantColorEffectPS.hlsl");
 #endif
 		eastl::shared_ptr<ConstantColorEffect> effect =
 			eastl::make_shared<ConstantColorEffect>(ProgramFactory::Get(), path, Vector4<float>::Zero());

@@ -7,42 +7,29 @@
 
 cbuffer PVWMatrix
 {
-    float4x4 pvwMatrix; 
-}
-
-/************* Data Structures *************/
+    float4x4 pvwMatrix;
+};
 
 struct VS_INPUT
 {
     float3 modelPosition : POSITION;
-    float4 color : COLOR0;
+    float4 vertexColor : COLOR0;
 };
 
-struct VS_OUTPUT 
+struct VS_OUTPUT
 {
-    float4 position: SV_Position;
-    float4 color : COLOR0;
+    float4 vertexColor : COLOR0;
+    float4 clipPosition : SV_POSITION;
 };
-
-
-/************* Vertex Shader *************/
 
 VS_OUTPUT VSMain(VS_INPUT input)
 {
-    VS_OUTPUT output = (VS_OUTPUT)0;
+    VS_OUTPUT output;
 #if GE_USE_MAT_VEC
-	output.position = mul(pvwMatrix, float4(input.modelPosition, 1.0f));
+    output.clipPosition = mul(pvwMatrix, float4(input.modelPosition, 1.0f));
 #else
-	output.position = mul(float4(input.modelPosition, 1.0f), pvwMatrix);
+    output.clipPosition = mul(float4(input.modelPosition, 1.0f), pvwMatrix);
 #endif
-    output.color = input.color;
-    
+    output.vertexColor = input.vertexColor;
     return output;
-}
-
-/************* Pixel Shader *************/
-
-float4 PSMain(VS_OUTPUT input) : SV_Target
-{
-    return input.color;
 }

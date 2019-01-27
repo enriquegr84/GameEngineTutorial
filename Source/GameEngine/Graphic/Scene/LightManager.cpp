@@ -34,7 +34,8 @@ void LightManager::UpdateCameraLightModelPositions(Node* node, CameraNode* camer
 
 			if (visual)
 			{
-				LightingEffect* ltEffect = dynamic_cast<LightingEffect*>(visual->GetEffect().get());
+				eastl::shared_ptr<LightingEffect> ltEffect = 
+					eastl::dynamic_shared_pointer_cast<LightingEffect>(visual->GetEffect());
 				if (ltEffect)
 				{
 					ltEffect->SetLighting(mLight->mLighting);

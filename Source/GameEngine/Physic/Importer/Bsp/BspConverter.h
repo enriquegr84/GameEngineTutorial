@@ -32,8 +32,7 @@ class BspConverter
 		}
 
 		///this callback is called for each brush that succesfully converted into vertices
-		virtual void AddConvexVerticesCollider(
-			btAlignedObjectArray<btVector3>& vertices, bool isEntity, const btVector3& entityTargetLocation) = 0;
+		virtual void AddConvexVerticesCollider(btAlignedObjectArray<btVector3>& vertices) = 0;
 
 };
 

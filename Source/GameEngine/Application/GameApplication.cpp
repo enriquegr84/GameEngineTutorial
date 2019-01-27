@@ -251,6 +251,12 @@ bool GameApplication::OnInitialize()
 	extern eastl::shared_ptr<BaseResourceLoader> CreateImageResourceLoader();
 	extern eastl::shared_ptr<BaseResourceLoader> CreatePhysicResourceLoader();
 
+#ifdef USE_DX11
+	extern eastl::shared_ptr<BaseResourceLoader> CreateHLSLShaderResourceLoader();
+#elif _OPENGL_
+	extern eastl::shared_ptr<BaseResourceLoader> CreateGLSLShaderResourceLoader();
+#endif
+
 	//	Note - register these in order from least specific to most specific! 
 	//	They get pushed onto a list.
 	mResCache->RegisterLoader(CreateWAVResourceLoader());
@@ -259,6 +265,13 @@ bool GameApplication::OnInitialize()
 	mResCache->RegisterLoader(CreateXmlResourceLoader());
 	mResCache->RegisterLoader(CreateImageResourceLoader());
 	mResCache->RegisterLoader(CreatePhysicResourceLoader());
+
+
+#ifdef USE_DX11
+	mResCache->RegisterLoader(CreateHLSLShaderResourceLoader());
+#elif _OPENGL_
+	mResCache->RegisterLoader(CreateGLSLShaderResourceLoader());
+#endif
 
 	mOption.Init(L"Config/PlayerOptions.xml");
 
@@ -636,8 +649,13 @@ void GameApplication::CreateNetworkEventForwarder(void)
 	pGlobalEventManager->AddListener(MakeDelegate(
 		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataEnvironmentLoaded::skEventType);
 	pGlobalEventManager->AddListener(MakeDelegate(
+		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysTriggerEnter::skEventType);
+	pGlobalEventManager->AddListener(MakeDelegate(
+		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysTriggerLeave::skEventType);
+	pGlobalEventManager->AddListener(MakeDelegate(
 		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysCollision::skEventType);
-
+	pGlobalEventManager->AddListener(MakeDelegate(
+		mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysSeparation::skEventType);
 }
 
 void GameApplication::DestroyNetworkEventForwarder(void)
@@ -650,8 +668,14 @@ void GameApplication::DestroyNetworkEventForwarder(void)
 		pGlobalEventManager->RemoveListener(MakeDelegate(
 			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataEnvironmentLoaded::skEventType);
 		pGlobalEventManager->RemoveListener(MakeDelegate(
+			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysTriggerEnter::skEventType);
+		pGlobalEventManager->RemoveListener(MakeDelegate(
+			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysTriggerLeave::skEventType);
+		pGlobalEventManager->RemoveListener(MakeDelegate(
 			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysCollision::skEventType);
-        
+		pGlobalEventManager->RemoveListener(MakeDelegate(
+			mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), EventDataPhysSeparation::skEventType);
+
 		//delete mNetworkEventForwarder;
     }
 }

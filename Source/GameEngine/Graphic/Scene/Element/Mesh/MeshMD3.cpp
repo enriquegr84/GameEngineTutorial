@@ -157,7 +157,7 @@ void MD3Mesh::DetachAllChildren()
 
 eastl::shared_ptr<MD3Mesh> MD3Mesh::GetTagMesh(eastl::string tagName)
 {
-	if (mTagInterpol.mName == tagName)
+	if (mTagInterpol.mName.find(tagName) != eastl::string::npos)
 		return shared_from_this();
 
 	for (unsigned int n = 0; n < mChildren.size(); n++)
@@ -242,6 +242,12 @@ eastl::shared_ptr<MD3Mesh> MD3Mesh::CreateMesh(eastl::string parentName, eastl::
 	return shared_from_this();
 }
 
+void MD3Mesh::SetRenderMesh(bool render) 
+{
+	mMeshRender = render; 
+	for (unsigned int n = 0; n < mChildren.size(); n++)
+		mChildren[n]->SetRenderMesh(render);
+}
 
 //! update mesh based on a detail level. 0 is the lowest, 255 the highest detail.
 bool MD3Mesh::UpdateMesh(int frame, int detailLevel, int startFrameLoop, int endFrameLoop)
@@ -478,7 +484,19 @@ bool MD3Mesh::LoadModel(eastl::wstring& path)
 	{
 		eastl::shared_ptr<MD3Mesh> meshMD3 = rootMesh->GetTagMesh(tags[i].mName);
 		if (!meshMD3)
-			meshMD3 = CreateMesh(mName, tags[i].mName);
+		{
+			size_t prefixBegin = 0, prefixEnd = 0;
+			prefixEnd = mName.find('$', prefixBegin);
+			eastl::string tagName = tags[i].mName;
+			if (prefixEnd != eastl::string::npos)
+			{
+				prefixBegin = prefixEnd + 1;
+				prefixEnd = mName.find('$', prefixBegin);
+				tagName = mName.substr(0, prefixEnd + 1) + "_" + tags[i].mName;
+			}
+
+			meshMD3 = CreateMesh(mName, tagName);
+		}
 
 		if (!meshMD3->IsTagMesh())
 		{
@@ -518,6 +536,12 @@ bool MD3Mesh::LoadModel(eastl::wstring& path)
 		//! read indices
 		file->Seek(offset + buf->mMeshHeader.offsetTriangles);
 		file->Read(buf->mFaces.data(), meshHeader.numTriangles * sizeof(MD3Face));
+		// invert the order of all faces in this mesh
+		for (unsigned int a = 0; a < meshHeader.numTriangles; a++)
+		{
+			MD3Face& face = buf->mFaces[a];
+			eastl::swap(face.index[0], face.index[2]);
+		}
 
 		//! prepare memory
 		buf->mNormals = eastl::vector<Vector3<float>>(meshHeader.numVertices * meshHeader.numFrames);

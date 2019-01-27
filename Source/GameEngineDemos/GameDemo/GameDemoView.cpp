@@ -807,10 +807,6 @@ void GameDemoHumanView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	{
 		mGamePlayerController->OnUpdate(timeMs, deltaMs);
 	}
-
-	//Send out a tick to listeners.
-	eastl::shared_ptr<EventDataUpdateTick> pTickEvent(new EventDataUpdateTick(timeMs));
-    BaseEventManager::Get()->TriggerEvent(pTickEvent);
 }
 
 //

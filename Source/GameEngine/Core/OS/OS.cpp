@@ -135,7 +135,7 @@ long long Timer::GetTimeSinceEpoch()
 // code one for all, which should work on every platform the same,
 // which is desireable.
 
-signed int Randomizer::seed = 0x0f0f0f0f;
+signed int Randomizer::seed = (int)time(0);
 
 //! generates a pseudo random number
 signed int Randomizer::Rand()

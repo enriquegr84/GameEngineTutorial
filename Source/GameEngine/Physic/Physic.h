@@ -48,6 +48,7 @@
 #include "Mathematic/Algebra/AxisAngle.h"
 #include "Mathematic/Algebra/Transform.h"
 #include "Mathematic/Algebra/Vector3.h"
+#include "Mathematic/Geometric/Hyperplane.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // class BaseGamePhysic							- Chapter 17, page 589
@@ -80,15 +81,17 @@ public:
 	virtual void AddPointCloud(Vector3<float> *verts, int numPoints, eastl::weak_ptr<Actor> gameActor, 
 		/*const Matrix4x4<float>& initialTransform, */
 		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
-
+	virtual void AddPointCloud(Plane3<float> *planes, int numPlanes, eastl::weak_ptr<Actor> gameActor,
+		/*const Matrix4x4<float>& initialTransform, */
+		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;
 	virtual void RemoveActor(ActorId id) = 0;
 
 	// Debugging
 	virtual void RenderDiagnostics() = 0;
 
 	// Physics world modifiers
-	virtual void ApplyForce(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
-	virtual void ApplyTorque(const Vector3<float> &dir, float newtons, ActorId aid) = 0;
+	virtual void ApplyForce(const Vector3<float> &velocity, ActorId aid) = 0;
+	virtual void ApplyTorque(const Vector3<float> &velocity, ActorId aid) = 0;
 
 	// Physics actor states
 	virtual bool OnGround(ActorId actorId) = 0;
@@ -96,12 +99,18 @@ public:
 	virtual void FallDirection(ActorId actorId, const Vector3<float>& dir) = 0;
 	virtual void WalkDirection(ActorId actorId, const Vector3<float>& dir) = 0;
 
+	// Collisions
+	virtual bool FindIntersection(ActorId actorId, const Vector3<float>& point) = 0;
+	virtual ActorId CastRay(
+		const Vector3<float>& origin, const Vector3<float>& end,
+		Vector3<float>& collisionPoint, Vector3<float>& collision) = 0;
+
 	virtual void StopActor(ActorId actorId) = 0;
 	virtual Vector3<float> GetScale(ActorId actorId) = 0;
 	virtual Vector3<float> GetVelocity(ActorId actorId) = 0;
 	virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel) = 0;
-	virtual void SetPosition(ActorId actorId, const Vector3<float> &pos) = 0;
-	virtual void SetRotation(ActorId actorId, const Transform &mat) = 0;
+	virtual void SetPosition(ActorId actorId, const Vector3<float>& pos) = 0;
+	virtual void SetRotation(ActorId actorId, const Transform& mat) = 0;
 	virtual Vector3<float> GetAngularVelocity(ActorId actorId) = 0;
 	virtual void SetAngularVelocity(ActorId actorId, const Vector3<float>& vel) = 0;
 	virtual void Translate(ActorId actorId, const Vector3<float>& vec) = 0;

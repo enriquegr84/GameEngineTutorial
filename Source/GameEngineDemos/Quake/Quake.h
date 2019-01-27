@@ -55,6 +55,88 @@
 class BaseEventManager;
 class NetworkEventForwarder;
 
+#define	MAX_SPAWN_POINTS	128
+#define	DEFAULT_GRAVITY		800
+#define	GIB_HEALTH			-40
+#define	ARMOR_PROTECTION	0.66
+
+#define	GENTITYNUM_BITS		10		// don't need to send any more
+#define	MAX_GENTITIES		(1<<GENTITYNUM_BITS)
+
+// entitynums are communicated with GENTITY_BITS, so any reserved
+// values that are going to be communcated over the net need to
+// also be in this range
+#define	ENTITYNUM_NONE		(MAX_GENTITIES-1)
+#define	ENTITYNUM_WORLD		(MAX_GENTITIES-2)
+#define	ENTITYNUM_MAX_NORMAL	(MAX_GENTITIES-2)
+
+#define	MAX_MODELS			256		// these are sent over the net as 8 bits
+#define	MAX_SOUNDS			256		// so they cannot be blindly increased
+
+#define	CARNAGE_REWARD_TIME	3000
+#define REWARD_SPRITE_TIME	2000
+
+// contents flags are seperate bits
+// a given brush can contribute multiple content bits
+
+#define	CONTENTS_SOLID			1		// an eye is never valid in a solid
+#define	CONTENTS_LAVA			8
+#define	CONTENTS_SLIME			16
+#define	CONTENTS_WATER			32
+#define	CONTENTS_FOG			64
+
+#define CONTENTS_NOTTEAM1		0x0080
+#define CONTENTS_NOTTEAM2		0x0100
+#define CONTENTS_NOBOTCLIP		0x0200
+
+#define	CONTENTS_AREAPORTAL		0x8000
+
+#define	CONTENTS_PLAYERCLIP		0x10000
+#define	CONTENTS_MONSTERCLIP	0x20000
+//bot specific contents types
+#define	CONTENTS_TELEPORTER		0x40000
+#define	CONTENTS_JUMPPAD		0x80000
+#define CONTENTS_CLUSTERPORTAL	0x100000
+#define CONTENTS_DONOTENTER		0x200000
+#define CONTENTS_BOTCLIP		0x400000
+#define CONTENTS_MOVER			0x800000
+
+#define	CONTENTS_ORIGIN			0x1000000	// removed before bsping an entity
+
+#define	CONTENTS_BODY			0x2000000	// should never be on a brush, only in game
+#define	CONTENTS_CORPSE			0x4000000
+#define	CONTENTS_DETAIL			0x8000000	// brushes not used for the bsp
+#define	CONTENTS_STRUCTURAL		0x10000000	// brushes used for the bsp
+#define	CONTENTS_TRANSLUCENT	0x20000000	// don't consume surface fragments inside
+#define	CONTENTS_TRIGGER		0x40000000
+#define	CONTENTS_NODROP			0x80000000	// don't leave bodies or items (death fog, lava)
+
+// Entity Flgas
+#define	EF_DEAD				0x00000001		// don't draw a foe marker over players with EF_DEAD
+#define	EF_TELEPORT_BIT		0x00000004		// toggled every time the origin abruptly changes
+#define	EF_AWARD_EXCELLENT	0x00000008		// draw an excellent sprite
+#define EF_PLAYER_EVENT		0x00000010
+#define	EF_BOUNCE			0x00000010		// for missiles
+#define	EF_BOUNCE_HALF		0x00000020		// for missiles
+#define	EF_AWARD_GAUNTLET	0x00000040		// draw a gauntlet sprite
+#define	EF_NODRAW			0x00000080		// may have an event, but no model (unspawned items)
+#define	EF_FIRING			0x00000100		// for lightning gun
+#define	EF_KAMIKAZE			0x00000200
+#define	EF_MOVER_STOP		0x00000400		// will push otherwise
+#define EF_AWARD_CAP		0x00000800		// draw the capture sprite
+#define	EF_TALK				0x00001000		// draw a talk balloon
+#define	EF_CONNECTION		0x00002000		// draw a connection trouble sprite
+#define	EF_VOTED			0x00004000		// already cast a vote
+#define	EF_AWARD_IMPRESSIVE	0x00008000		// draw an impressive sprite
+#define	EF_AWARD_DEFEND		0x00010000		// draw a defend sprite
+#define	EF_AWARD_ASSIST		0x00020000		// draw a assist sprite
+#define EF_AWARD_DENIED		0x00040000		// denied
+#define EF_TEAMVOTED		0x00080000		// already cast a team vote
+
+#define MACHINEGUN_SPREAD	200
+#define	MACHINEGUN_DAMAGE	7
+#define	MACHINEGUN_TEAM_DAMAGE	5		// wimpier MG in teamplay
+
 enum ItemType 
 {
 	IT_WEAPON,				// EFX: rotate + upscale + minlight
@@ -68,23 +150,6 @@ enum ItemType
 	IT_COUNT
 };
 
-enum WeaponType
-{
-	WP_NONE,
-
-	WP_GAUNTLET,
-	WP_MACHINEGUN,
-	WP_SHOTGUN,
-	WP_GRENADE_LAUNCHER,
-	WP_ROCKET_LAUNCHER,
-	WP_LIGHTNING,
-	WP_RAILGUN,
-	WP_PLASMAGUN,
-	WP_BFG,
-	WP_GRAPPLING_HOOK,
-
-	WP_NUM_WEAPONS
-};
 
 enum PowerupType 
 {
@@ -108,6 +173,27 @@ enum PowerupType
 	PW_INVULNERABILITY,
 
 	PW_NUM_POWERUPS
+};
+
+enum EntityType
+{
+	ET_GENERAL,
+	ET_PLAYER,
+	ET_ITEM,
+	ET_MISSILE,
+	ET_MOVER,
+	ET_BEAM,
+	ET_PORTAL,
+	ET_SPEAKER,
+	ET_PUSH_TRIGGER,
+	ET_TELEPORT_TRIGGER,
+	ET_INVISIBLE,
+	ET_GRAPPLE,				// grapple hooked on wall
+	ET_TEAM,
+
+	ET_EVENTS				// any of the EV_* events can be added freestanding
+							// by setting eType to ET_EVENTS + eventNum
+							// this avoids having to set eFlags and eventNum
 };
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -137,9 +223,15 @@ public:
 	void RequestStartGameDelegate(BaseEventDataPtr pEventData);
 	void RemoteClientDelegate(BaseEventDataPtr pEventData);
 	void NetworkPlayerActorAssignmentDelegate(BaseEventDataPtr pEventData);
+	void PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData);
+	void PhysicsTriggerLeaveDelegate(BaseEventDataPtr pEventData);
 	void PhysicsCollisionDelegate(BaseEventDataPtr pEventData);
+	void PhysicsSeparationDelegate(BaseEventDataPtr pEventData);
 	void EnvironmentLoadedDelegate(BaseEventDataPtr pEventData);
+
 	void FireWeaponDelegate(BaseEventDataPtr pEventData);
+	void SpawnActorDelegate(BaseEventDataPtr pEventData);
+	void PushActorDelegate(BaseEventDataPtr pEventData);
 	void JumpActorDelegate(BaseEventDataPtr pEventData);
 	void MoveActorDelegate(BaseEventDataPtr pEventData);
 	void FallActorDelegate(BaseEventDataPtr pEventData);
@@ -152,7 +244,7 @@ public:
 protected:
 	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
 
-	eastl::shared_ptr<Actor> CreatePlayerActor(const eastl::string &actorResource,
+	eastl::shared_ptr<PlayerActor> CreatePlayerActor(const eastl::string &actorResource,
 		tinyxml2::XMLElement *overrides, const Transform *initialTransform = NULL,
 		const ActorId serversActorId = INVALID_ACTOR_ID);
 
@@ -167,9 +259,27 @@ private:
 	void CreateNetworkEventForwarder(const int socketId);
 	void DestroyAllNetworkEventForwarders(void);
 
-	bool CanItemBeGrabbed(
-		const eastl::shared_ptr<Actor>& item,
-		const eastl::shared_ptr<PlayerActor>& player);
+	bool GauntletAttack(const eastl::shared_ptr<PlayerActor>& player,
+		const Vector3<float>& origin, const Vector3<float>& forward,
+		const Vector3<float>& right, const Vector3<float>& up);
+	void BulletFire(const eastl::shared_ptr<PlayerActor>& player,
+		const Vector3<float>& muzzle, const Vector3<float>& forward,
+		const Vector3<float>& right, const Vector3<float>& up, float spread, int damage);
+
+	bool SpotTelefrag(const eastl::shared_ptr<Actor>& spot);
+	const eastl::shared_ptr<Actor>& SelectRandomSpawnPoint();
+	const eastl::shared_ptr<Actor>& SelectNearestSpawnPoint(const Vector3<float>& from);
+	const eastl::shared_ptr<Actor>& SelectRandomFurthestSpawnPoint(
+		const Vector3<float>& avoidPoint, Transform& transform);
+	const eastl::shared_ptr<Actor>& SelectSpawnPoint(
+		const Vector3<float>& avoidPoint, Transform& transform);
+	const eastl::shared_ptr<Actor>& SelectInitialSpawnPoint(Transform& transform);
+
+	void PlayerSpawn(const eastl::shared_ptr<PlayerActor>& playerActor);
+	void PlayerDie(const eastl::shared_ptr<PlayerActor>& player,
+		const eastl::shared_ptr<PlayerActor>& inflictor,
+		const eastl::shared_ptr<PlayerActor>& attacker,
+		int damage, MeansOfDeath meansOfDeath);
 };
 
 #endif

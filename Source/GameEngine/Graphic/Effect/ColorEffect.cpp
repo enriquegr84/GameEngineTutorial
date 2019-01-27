@@ -15,9 +15,9 @@ ColorEffect::ColorEffect(
 	:
 	mPVWMatrix(nullptr)
 {
-	eastl::string vsPath = path.front();
-	eastl::string psPath = path.size() > 1 ? path[1] : path.front();
-	eastl::string gsPath = path.size() > 2 ? path[2] : "";
+	eastl::string vsPath = path[0];
+	eastl::string psPath = path[1];
+	eastl::string gsPath = "";
 	mProgram = factory->CreateFromFiles(vsPath, psPath, gsPath);
 	if (mProgram)
 	{

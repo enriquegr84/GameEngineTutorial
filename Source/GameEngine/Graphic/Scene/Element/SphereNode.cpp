@@ -47,10 +47,11 @@ SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 
 	eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-	path.push_back(FileSystem::Get()->GetPath("Effects/PointLightTextureEffectVS.glsl"));
-	path.push_back(FileSystem::Get()->GetPath("Effects/PointLightTextureEffectPS.glsl"));
+	path.push_back("Effects/PointLightTextureEffectVS.glsl");
+	path.push_back("Effects/PointLightTextureEffectPS.glsl");
 #else
-	path.push_back(FileSystem::Get()->GetPath("Effects/PointLightTextureEffect.hlsl"));
+	path.push_back("Effects/PointLightTextureEffectVS.hlsl");
+	path.push_back("Effects/PointLightTextureEffectPS.hlsl");
 #endif
 	mEffect = eastl::make_shared<PointLightTextureEffect>(
 		ProgramFactory::Get(), mPVWUpdater->GetUpdater(), path, mMaterial, lighting, geometry,
@@ -212,6 +213,18 @@ void SphereNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr
 
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 		GetMaterial(i)->SetTexture(textureLayer, texture);
+
+	for (unsigned int i = 0; i < GetVisualCount(); ++i)
+	{
+		eastl::shared_ptr<Visual> visual = GetVisual(i);
+		if (visual)
+		{
+			eastl::shared_ptr<PointLightTextureEffect> textureEffect =
+				eastl::dynamic_shared_pointer_cast<PointLightTextureEffect>(visual->GetEffect());
+			if (textureEffect)
+				textureEffect->SetTexture(texture);
+		}
+	}
 }
 
 //! Sets the material type of all materials in this scene node to a new material type.

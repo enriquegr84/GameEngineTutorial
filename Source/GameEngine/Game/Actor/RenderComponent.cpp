@@ -172,7 +172,15 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 		}
 
 		eastl::shared_ptr<Node> meshNode = nullptr;
-		if (mesh->GetMeshType() == MT_STANDARD)
+		if (!mesh)
+		{
+			meshNode = pScene->AddEmptyNode(wbrcp, 0, mOwner->GetId());
+			if (meshNode)
+				meshNode->GetRelativeTransform() = transform;
+
+			meshNode->SetMaterialType((MaterialType)mMaterialType);
+		}
+		else if (mesh->GetMeshType() == MT_STANDARD)
 		{
 			// create an mesh scene node with specified mesh.
 			meshNode = pScene->AddMeshNode(wbrcp, 0, mesh, mOwner->GetId());

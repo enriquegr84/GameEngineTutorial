@@ -36,10 +36,11 @@ UICheckBox::UICheckBox(BaseUI* ui, int id, RectangleShape<2, int> rectangle, boo
 		// bilinearly filtered and the texture coordinates are clamped to [0,1]^2.
 		eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
+		path.push_back("Effects/Texture2EffectVS.glsl");
+		path.push_back("Effects/Texture2EffectPS.glsl");
 #else
-		path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
+		path.push_back("Effects/Texture2EffectVS.hlsl");
+		path.push_back("Effects/Texture2EffectPS.hlsl");
 #endif
 		mEffect = eastl::make_shared<Texture2Effect>(ProgramFactory::Get(), path, extra->GetImage(),
 			SamplerState::MIN_L_MAG_L_MIP_P, SamplerState::CLAMP, SamplerState::CLAMP);

@@ -17,6 +17,7 @@
 #include "HLSLSamplerState.h"
 #include "HLSLShader.h"
 #include "HLSLShaderFactory.h"
+#include "HLSLShaderResource.h"
 #include "HLSLShaderType.h"
 #include "HLSLShaderVariable.h"
 #include "HLSLStructuredBuffer.h"

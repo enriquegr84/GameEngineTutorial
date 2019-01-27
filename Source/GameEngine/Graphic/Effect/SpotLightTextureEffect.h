@@ -27,6 +27,8 @@ public:
 	inline eastl::shared_ptr<Texture2> const& GetTexture() const;
 	inline eastl::shared_ptr<SamplerState> const& GetSampler() const;
 
+	void SetTexture(eastl::shared_ptr<Texture2> const& texture);
+
     // After you set or modify 'material', 'light', or 'geometry', call the update
     // to inform any listener that the corresponding constant buffer has changed.
     virtual void UpdateMaterialConstant();

@@ -194,6 +194,8 @@ HICON QuakeApp::VGetIcon()
 
 void QuakeApp::RegisterGameEvents(void)
 {
+	REGISTER_EVENT(QuakeEventDataSpawnActor);
+	REGISTER_EVENT(QuakeEventDataPushActor);
 	REGISTER_EVENT(QuakeEventDataJumpActor);
 	REGISTER_EVENT(QuakeEventDataMoveActor);
 	REGISTER_EVENT(QuakeEventDataFallActor);
@@ -215,9 +217,12 @@ void QuakeApp::CreateNetworkEventForwarder(void)
 		//	Then as events are created, they are automatically added to the right 
 		//	network forwarders. This could also detect a 
 
-	    pGlobalEventManager->AddListener(
-			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), 
-			QuakeEventDataFireWeapon::skEventType);
+		pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataSpawnActor::skEventType);
+		pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataPushActor::skEventType);
 		pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataJumpActor::skEventType);
@@ -257,9 +262,12 @@ void QuakeApp::DestroyNetworkEventForwarder(void)
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataEnvironmentLoaded::skEventType);
 
-        eventManager->RemoveListener(
+		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			QuakeEventDataFireWeapon::skEventType);
+			QuakeEventDataSpawnActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataPushActor::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataJumpActor::skEventType);

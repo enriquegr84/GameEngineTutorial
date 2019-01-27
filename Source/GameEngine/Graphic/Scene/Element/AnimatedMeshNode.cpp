@@ -67,10 +67,11 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 			{
 				eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectVS.glsl"));
-				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2EffectPS.glsl"));
+				path.push_back("Effects/Texture2EffectVS.glsl");
+				path.push_back("Effects/Texture2EffectPS.glsl");
 #else
-				path.push_back(FileSystem::Get()->GetPath("Effects/Texture2Effect.hlsl"));
+				path.push_back("Effects/Texture2EffectVS.hlsl");
+				path.push_back("Effects/Texture2EffectPS.hlsl");
 #endif
 
 				eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
@@ -89,10 +90,11 @@ void AnimatedMeshNode::SetMesh(const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
 			{
 				eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectVS.glsl"));
-				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffectPS.glsl"));
+				path.push_back("Effects/ConstantColorEffectVS.glsl");
+				path.push_back("Effects/ConstantColorEffectPS.glsl");
 #else
-				path.push_back(FileSystem::Get()->GetPath("Effects/ConstantColorEffect.hlsl"));
+				path.push_back("Effects/ConstantColorEffectVS.hlsl");
+				path.push_back("Effects/ConstantColorEffectPS.hlsl");
 #endif
 				eastl::shared_ptr<ConstantColorEffect> effect =
 					eastl::make_shared<ConstantColorEffect>(ProgramFactory::Get(), path, Vector4<float>::Zero());
@@ -369,33 +371,33 @@ void AnimatedMeshNode::Render(unsigned int& visual, bool isTransparentPass,
 
 	for (unsigned int i = 0; i < pMesh->GetMeshBufferCount(); ++i, ++visual)
 	{
-		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = pMesh->GetMeshBuffer(i);
-		if (meshBuffer)
+		if (pMesh->IsRenderMesh())
 		{
-			eastl::shared_ptr<Material> material = meshBuffer->GetMaterial();
-
-			// only render transparent buffer if this is the transparent render pass
-			// and solid only in solid pass
-			bool transparent = (material->IsTransparent());
-			if (transparent == isTransparentPass)
+			const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = pMesh->GetMeshBuffer(i);
+			if (meshBuffer)
 			{
-				if (material->Update(mBlendStates[i]))
-					Renderer::Get()->Unbind(mBlendStates[i]);
-				if (material->Update(mDepthStencilStates[i]))
-					Renderer::Get()->Unbind(mDepthStencilStates[i]);
-				if (material->Update(mRasterizerState))
-					Renderer::Get()->Unbind(mRasterizerState);
+				eastl::shared_ptr<Material> material = meshBuffer->GetMaterial();
 
-				Renderer::Get()->SetBlendState(mBlendStates[i]);
-				Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
-				Renderer::Get()->SetRasterizerState(mRasterizerState);
-
-				eastl::shared_ptr<ConstantBuffer> cbuffer;
-				Matrix4x4<float> pvMatrix = pScene->GetActiveCamera()->Get()->GetProjectionViewMatrix();
-				cbuffer = mVisuals[visual]->GetEffect()->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
-
-				//if (isInterpolation)
+				// only render transparent buffer if this is the transparent render pass
+				// and solid only in solid pass
+				bool transparent = (material->IsTransparent());
+				if (transparent == isTransparentPass)
 				{
+					if (material->Update(mBlendStates[i]))
+						Renderer::Get()->Unbind(mBlendStates[i]);
+					if (material->Update(mDepthStencilStates[i]))
+						Renderer::Get()->Unbind(mDepthStencilStates[i]);
+					if (material->Update(mRasterizerState))
+						Renderer::Get()->Unbind(mRasterizerState);
+
+					Renderer::Get()->SetBlendState(mBlendStates[i]);
+					Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
+					Renderer::Get()->SetRasterizerState(mRasterizerState);
+
+					eastl::shared_ptr<ConstantBuffer> cbuffer;
+					Matrix4x4<float> pvMatrix = pScene->GetActiveCamera()->Get()->GetProjectionViewMatrix();
+					cbuffer = mVisuals[visual]->GetEffect()->GetVertexShader()->Get<ConstantBuffer>("PVWMatrix");
+
 					Matrix4x4<float> interpolation = Matrix4x4<float>::Identity();
 					eastl::vector<Transform>::reverse_iterator it;
 					for (it = interpolations.rbegin(); it != interpolations.rend(); it++)
@@ -412,16 +414,16 @@ void AnimatedMeshNode::Render(unsigned int& visual, bool isTransparentPass,
 #else
 					*cbuffer->Get<Matrix4x4<float>>() = interpolation * pvMatrix;
 #endif
+
+					Renderer* renderer = Renderer::Get();
+					renderer->Update(cbuffer);
+					renderer->Update(meshBuffer->GetVertice());
+					renderer->Draw(mVisuals[visual]);
+
+					Renderer::Get()->SetDefaultBlendState();
+					Renderer::Get()->SetDefaultDepthStencilState();
+					Renderer::Get()->SetDefaultRasterizerState();
 				}
-
-				Renderer* renderer = Renderer::Get();
-				renderer->Update(cbuffer);
-				renderer->Update(meshBuffer->GetVertice());
-				renderer->Draw(mVisuals[visual]);
-
-				Renderer::Get()->SetDefaultBlendState();
-				Renderer::Get()->SetDefaultDepthStencilState();
-				Renderer::Get()->SetDefaultRasterizerState();
 			}
 		}
 	}
@@ -914,6 +916,18 @@ void AnimatedMeshNode::SetMaterialTexture(unsigned int textureLayer, eastl::shar
 	{
 		for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 			GetMaterial(i)->SetTexture(textureLayer, texture);
+	}
+
+	for (unsigned int i = 0; i < GetVisualCount(); ++i)
+	{
+		eastl::shared_ptr<Visual> visual = GetVisual(i);
+		if (visual)
+		{
+			eastl::shared_ptr<Texture2Effect> textureEffect =
+				eastl::dynamic_shared_pointer_cast<Texture2Effect>(visual->GetEffect());
+			if (textureEffect)
+				textureEffect->SetTexture(texture);
+		}
 	}
 }
 

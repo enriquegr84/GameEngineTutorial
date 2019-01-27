@@ -217,8 +217,9 @@
     <ClInclude Include="..\Quake\Actors\HealthPickup.h" />
     <ClInclude Include="..\Quake\Actors\ItemPickup.h" />
     <ClInclude Include="..\Quake\Actors\PlayerActor.h" />
+    <ClInclude Include="..\Quake\Actors\ProjectileActor.h" />
     <ClInclude Include="..\Quake\Actors\PushTrigger.h" />
-    <ClInclude Include="..\Quake\Actors\DestinationTarget.h" />
+    <ClInclude Include="..\Quake\Actors\LocationTarget.h" />
     <ClInclude Include="..\Quake\Actors\SpeakerTarget.h" />
     <ClInclude Include="..\Quake\Actors\TeleporterTrigger.h" />
     <ClInclude Include="..\Quake\Actors\WeaponPickup.h" />
@@ -250,8 +251,9 @@
     <ClCompile Include="..\Quake\Actors\HealthPickup.cpp" />
     <ClCompile Include="..\Quake\Actors\ItemPickup.cpp" />
     <ClCompile Include="..\Quake\Actors\PlayerActor.cpp" />
+    <ClCompile Include="..\Quake\Actors\ProjectileActor.cpp" />
     <ClCompile Include="..\Quake\Actors\PushTrigger.cpp" />
-    <ClCompile Include="..\Quake\Actors\DestinationTarget.cpp" />
+    <ClCompile Include="..\Quake\Actors\LocationTarget.cpp" />
     <ClCompile Include="..\Quake\Actors\SpeakerTarget.cpp" />
     <ClCompile Include="..\Quake\Actors\TeleporterTrigger.cpp" />
     <ClCompile Include="..\Quake\Actors\WeaponPickup.cpp" />

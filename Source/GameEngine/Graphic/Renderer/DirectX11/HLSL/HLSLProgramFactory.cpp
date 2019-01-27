@@ -62,8 +62,8 @@ eastl::shared_ptr<VisualProgram> HLSLProgramFactory::CreateFromByteCode(
         vsEntry, eastl::string("vs_") + version, vsBytecode.size(), vsBytecode.data());
     if (hlslVShader.IsValid())
     {
-        vshader =
-			eastl::static_pointer_cast<VertexShader>(eastl::make_shared<Shader>(hlslVShader));
+        vshader = eastl::static_pointer_cast<VertexShader>(
+			eastl::make_shared<Shader>(hlslVShader));
     }
     else
     {
