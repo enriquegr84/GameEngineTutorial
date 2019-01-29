@@ -550,11 +550,11 @@ void HumanView::Console::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		if ( mCurrentInputString == kExitString )
 		{
 			SetActive( false );
-			mCurrentInputString = eastl::wstring(">") ;
+			mCurrentInputString = eastl::wstring(L">") ;
 		}
 		else if ( mCurrentInputString == kClearString )
 		{
-			mCurrentInputString = eastl::wstring(">") ;	//clear
+			mCurrentInputString = eastl::wstring(L">") ;	//clear
 		}
 		else
 		{

@@ -105,6 +105,42 @@ enum LeBounceSoundType
 	LEBS_BRASS
 };	// fragment local entities can make sounds on impacts
 
+// each weapon enum has an associated resource
+// that contains media references necessary to present the
+// weapon and its effects
+struct WeaponResource 
+{
+	eastl::shared_ptr<MD3Mesh> handsModel;			// the hands don't actually draw, they just position the weapon
+	eastl::shared_ptr<MD3Mesh> barrelModel;
+	eastl::shared_ptr<MD3Mesh> flashModel;
+
+	Vector3<float> weaponMidpoint;		// so it will rotate centered instead of by tag
+
+	float flashDlight;
+	eastl::wstring flashSound[4];		// fast firing weapons randomly choose
+	eastl::array<float, 4U> flashDlightColor;
+
+	eastl::wstring weaponIcon;
+	eastl::wstring weaponModel;
+	eastl::wstring ammoIcon;
+	eastl::wstring ammoModel;
+
+	eastl::wstring missileModel;
+	eastl::wstring missileSound;
+
+	float missileDlight;
+	int missileRenderfx;
+	eastl::array<float, 4U>	missileDlightColor;
+
+	float trailRadius;
+	float wiTrailTime;
+
+	eastl::wstring readySound;
+	eastl::wstring firingSound;
+
+	bool loopFireSound;
+};
+
 
 // all of the model, shader, and sound references that are
 // loaded at game load time are stored in Media
@@ -173,12 +209,11 @@ struct MediaResource
 	eastl::wstring lightningExplosionModel;
 
 	// weapon effect shaders
-	eastl::wstring railExplosionShader;
 	eastl::wstring plasmaExplosionShader;
-	eastl::wstring bulletExplosionShader;
-	eastl::wstring rocketExplosionShader;
-	eastl::wstring grenadeExplosionShader;
-	eastl::wstring bfgExplosionShader;
+	eastl::wstring railExplosionShader[5];
+	eastl::wstring bulletExplosionShader[5];
+	eastl::wstring rocketExplosionShader[8];
+	eastl::wstring grenadeExplosionShader[4];
 	eastl::wstring bloodExplosionShader[5];
 
 	// special effects models
@@ -359,6 +394,7 @@ protected:
 
 	// media
 	MediaResource mMedia;
+	WeaponResource mWeaponMedia[8];
 
 	eastl::shared_ptr<QuakePlayerController> mGamePlayerController;
 	eastl::shared_ptr<QuakeCameraController> mGameCameraController;
@@ -389,12 +425,11 @@ public:
 	void JumpActorDelegate(BaseEventDataPtr pEventData);
 	void MoveActorDelegate(BaseEventDataPtr pEventData);
 
-	void ProjectileImpactDelegate(BaseEventDataPtr pEventData);
-
 private:
 
-	void RegisterSounds();
-	void RegisterGraphics();
+	void RegisterSound();
+	void RegisterMedia();
+	void RegisterWeapon(unsigned int weapon);
 
     void RegisterAllDelegates(void);
     void RemoveAllDelegates(void);

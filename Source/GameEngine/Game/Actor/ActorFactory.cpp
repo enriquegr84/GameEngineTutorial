@@ -62,6 +62,7 @@ ActorFactory::ActorFactory(void)
 	mComponentFactory.Register<CubeRenderComponent>(ActorComponent::GetIdFromName(CubeRenderComponent::Name));
     mComponentFactory.Register<GridRenderComponent>(ActorComponent::GetIdFromName(GridRenderComponent::Name));
     mComponentFactory.Register<ParticleEffectRenderComponent>(ActorComponent::GetIdFromName(ParticleEffectRenderComponent::Name));
+	mComponentFactory.Register<BillboardRenderComponent>(ActorComponent::GetIdFromName(BillboardRenderComponent::Name));
     mComponentFactory.Register<LightRenderComponent>(ActorComponent::GetIdFromName(LightRenderComponent::Name));
     mComponentFactory.Register<SkyRenderComponent>(ActorComponent::GetIdFromName(SkyRenderComponent::Name));
     mComponentFactory.Register<AudioComponent>(ActorComponent::GetIdFromName(AudioComponent::Name));

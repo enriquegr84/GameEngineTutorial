@@ -634,10 +634,6 @@ void QuakeLogic::CreateNetworkEventForwarder(const int socketId)
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 		QuakeEventDataRotateActor::skEventType);
 
-	pGlobalEventManager->AddListener(
-		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
-		QuakeEventDataProjectileImpact::skEventType);
-
 	mNetworkEventForwarders.push_back(pNetworkEventForwarder);
 }
 
@@ -706,10 +702,6 @@ void QuakeLogic::DestroyAllNetworkEventForwarders(void)
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataRotateActor::skEventType);
-
-		eventManager->RemoveListener(
-			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
-			QuakeEventDataProjectileImpact::skEventType);
 
 		delete networkEventForwarder;
 	}
@@ -1088,6 +1080,457 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 	return true;
 }
 
+
+int CheckArmor(eastl::shared_ptr<PlayerActor> playerActor, int damage, int dflags)
+{
+	if (!damage)
+		return 0;
+
+	if (!playerActor)
+		return 0;
+
+	if (dflags & DAMAGE_NO_ARMOR)
+		return 0;
+
+	// armor
+	int save = ceil(damage * ARMOR_PROTECTION);
+	if (save >= playerActor->GetState().stats[STAT_ARMOR])
+		save = playerActor->GetState().stats[STAT_ARMOR];
+
+	if (!save)
+		return 0;
+	playerActor->GetState().stats[STAT_ARMOR] -= save;
+
+	return save;
+}
+
+/*
+Called just before a snapshot is sent to the given player.
+Totals up all damage and generates both the player state
+damage values to that player for pain blends and kicks, and
+global pain sound events for all players.
+*/
+void DamageFeedback(const eastl::shared_ptr<PlayerActor>& player)
+{
+	if (player->GetState().moveType == PM_DEAD)
+		return;
+
+	// total points of damage shot at the player this frame
+	int count = player->GetState().damageBlood + player->GetState().damageArmor;
+	if (count == 0)
+		return;		// didn't take any damage
+
+	if (count > 255) count = 255;
+
+	// send the information to the client
+
+	// world damage (falling, slime, etc) uses a special code
+	// to make the blend blob centered instead of positional
+	if (player->GetState().damageFromWorld)
+	{
+		player->GetState().damagePitch = 255;
+		player->GetState().damageYaw = 255;
+
+		player->GetState().damageFromWorld = false;
+	}
+	else
+	{
+		/*
+		vectoangles(player->GetState().damageFrom, angles);
+		player->GetState().damagePitch = angles[PITCH] / 360.0 * 256;
+		player->GetState().damageYaw = angles[YAW] / 360.0 * 256;
+		*/
+	}
+
+	// play an apropriate pain sound
+	//if ((level.time > player->GetState().painDebounceTime) && !(player->GetState().flags & FL_GODMODE))
+	{
+		//player->GetState().painDebounceTime = level.time + 700;
+		//AddEvent(player, EV_PAIN, player->health);
+		//EventManager::Get()->TriggerEvent(
+		//	eastl::make_shared<EventDataPlaySound>(GetId()));
+		player->GetState().damageEvent++;
+	}
+
+	player->GetState().damageCount = count;
+
+	//
+	// clear totals
+	//
+	player->GetState().damageBlood = 0;
+	player->GetState().damageArmor = 0;
+	player->GetState().damageKnockback = 0;
+}
+
+/*
+============
+Damage
+
+target		player that is being damaged
+inflictor	player that is causing the damage
+attacker	player that caused the inflictor to damage target
+
+dir			direction of the attack for knockback
+point		point at which the damage is being inflicted, used for headshots
+damage		amount of damage being inflicted
+knockback	force to be applied against targ as a result of the damage
+
+inflictor, attacker, dir, and point can be NULL for environmental effects
+
+dflags		these flags are used to control how T_Damage works
+DAMAGE_RADIUS			damage was indirect (from a nearby explosion)
+DAMAGE_NO_ARMOR			armor does not protect from this damage
+DAMAGE_NO_KNOCKBACK		do not affect velocity, just view angles
+DAMAGE_NO_PROTECTION	kills godmode, armor, everything
+============
+*/
+
+void Damage(
+	const eastl::shared_ptr<PlayerActor>& target,
+	const eastl::shared_ptr<PlayerActor>& inflictor,
+	const eastl::shared_ptr<PlayerActor>& attacker,
+	Vector3<float> dir, Vector3<float> point,
+	int damage, int dflags, int mod)
+{
+	if (!target->GetState().takeDamage)
+	{
+		return;
+	}
+
+	/*
+	// the intermission has allready been qualified for, so don't
+	// allow any extra scoring
+	if (level.intermissionQueued)
+	{
+	return;
+	}
+
+	if (!inflictor)
+	{
+	inflictor = &entities[ENTITYNUM_WORLD];
+	}
+	if (!attacker)
+	{
+	attacker = &entities[ENTITYNUM_WORLD];
+	}
+	*/
+
+	// reduce damage by the attacker's handicap value
+	// unless they are rocket jumping
+	if (attacker && attacker != target)
+	{
+		int max = attacker->GetState().stats[STAT_MAX_HEALTH];
+		damage = damage * max / 100;
+	}
+
+	if (dir != Vector3<float>::Zero())
+	{
+		dflags |= DAMAGE_NO_KNOCKBACK;
+	}
+	else
+	{
+		Normalize(dir);
+	}
+
+	int knockback = damage;
+	if (knockback > 200)
+		knockback = 200;
+
+	if (dflags & DAMAGE_NO_KNOCKBACK)
+		knockback = 0;
+
+	// figure momentum add, even if the damage won't be taken
+	if (knockback && target)
+	{
+		Vector3<float>	kvel;
+		float	mass;
+
+		mass = 200;
+
+		//kvel = dir * (g_knockback.value * (float)knockback / mass));
+		//target->GetState().velocity += kvel;
+
+		// set the timer so that the other client can't cancel
+		// out the movement immediately
+		if (!target->GetState().moveTime)
+		{
+			int		t;
+
+			t = knockback * 2;
+			if (t < 50)
+			{
+				t = 50;
+			}
+			if (t > 200)
+			{
+				t = 200;
+			}
+			target->GetState().moveTime = t;
+			//target->GetState().moveFlags |= PMF_TIME_KNOCKBACK;
+		}
+	}
+
+	// check for completely getting out of the damage
+	/*
+	if (!(dflags & DAMAGE_NO_PROTECTION))
+	{
+	// if TF_NO_FRIENDLY_FIRE is set, don't do damage to the target
+	// if the attacker was on the same team
+	if (target != attacker)// && OnSameTeam(targ, attacker))
+	{
+	if (!g_friendlyFire.integer)
+	{
+	return;
+	}
+	}
+
+	// check for godmode
+	if (target->GetState().flags & FL_GODMODE)
+	{
+	return;
+	}
+	}
+	*/
+	// battlesuit protects from all radius damage (but takes knockback)
+	// and protects 50% against all damage
+	if (target && target->GetState().powerups[PW_BATTLESUIT])
+	{
+		//AddEvent(targ, EV_POWERUP_BATTLESUIT, 0);
+		if ((dflags & DAMAGE_RADIUS) || (mod == MOD_FALLING))
+		{
+			return;
+		}
+		damage *= 0.5;
+	}
+
+	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
+	if (attacker && target != attacker &&
+		target->GetState().stats[STAT_HEALTH] > 0 &&
+		target->GetState().eType != ET_MISSILE &&
+		target->GetState().eType != ET_GENERAL)
+	{
+		/*
+		if (OnSameTeam(target, attacker))
+		{
+		attacker->GetState().persistant[PERS_HITS]--;
+		}
+		else
+		*/
+		{
+			attacker->GetState().persistant[PERS_HITS]++;
+		}
+		attacker->GetState().persistant[PERS_ATTACKEE_ARMOR] =
+			(target->GetState().stats[STAT_HEALTH] << 8) | (target->GetState().stats[STAT_ARMOR]);
+	}
+
+	// always give half damage if hurting self
+	// calculated after knockback, so rocket jumping works
+	if (target == attacker)
+		damage *= 0.5;
+
+	if (damage < 1)
+		damage = 1;
+
+	int take = damage;
+	int save = 0;
+
+	// save some from armor
+	int asave = CheckArmor(target, take, dflags);
+	take -= asave;
+	/*
+	if (g_debugDamage.integer)
+	{
+	LogInformation("%i: client:%i health:%i damage:%i armor:%i\n", level.time, targ->state->number,
+	targ->health, take, asave);
+	}
+	*/
+	// add to the damage inflicted on a player this frame
+	// the total will be turned into screen blends and view angle kicks
+	// at the end of the frame
+	if (target)
+	{
+		if (attacker)
+		{
+			target->GetState().persistant[PERS_ATTACKER] = attacker->GetId();
+		}
+		else
+		{
+			target->GetState().persistant[PERS_ATTACKER] = ENTITYNUM_WORLD;
+		}
+		target->GetState().damageArmor += asave;
+		target->GetState().damageBlood += take;
+		target->GetState().damageKnockback += knockback;
+		if (dir != Vector3<float>::Zero())
+		{
+			target->GetState().damageFrom = Vector3<float>{ dir };
+			target->GetState().damageFromWorld = false;
+		}
+		else
+		{
+			Transform playerTransform;
+			eastl::shared_ptr<TransformComponent> pTransformComponent(
+				target->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+			if (pTransformComponent)
+			{
+				target->GetState().damageFrom = pTransformComponent->GetTransform().GetTranslation();
+				target->GetState().damageFromWorld = true;
+			}
+		}
+	}
+
+	if (target)
+	{
+		// set the last client who damaged the target
+		target->GetState().lastHurt = attacker->GetId();
+		target->GetState().lastHurtMod = mod;
+	}
+
+	// do the damage
+	if (take)
+	{
+		target->GetState().stats[STAT_HEALTH] =
+			target->GetState().stats[STAT_HEALTH] - take;
+
+		if (target->GetState().stats[STAT_HEALTH] <= 0)
+		{
+			//target->GetState().flags |= FL_NO_KNOCKBACK;
+
+			if (target->GetState().stats[STAT_HEALTH] < -999)
+				target->GetState().stats[STAT_HEALTH] = -999;
+
+			//targ->enemy = attacker;
+			//PlayerDie(target, inflictor, attacker, take, mod);
+		}
+		else //if (targ->pain)
+		{
+			//targ->pain(targ, attacker, take);
+			//PlayerPain(target, attacker, take);
+		}
+	}
+}
+
+
+/*
+CanDamage
+
+Returns true if the inflictor can directly damage the target.  Used for
+explosions and melee attacks.
+*/
+bool CanDamage(const eastl::shared_ptr<PlayerActor>& target, Vector3<float> origin)
+{
+	return true;
+}
+
+bool LogAccuracyHit(
+	const eastl::shared_ptr<PlayerActor>& target,
+	const eastl::shared_ptr<PlayerActor>& attacker)
+{
+	if (!target->GetState().takeDamage)
+	{
+		return false;
+	}
+
+	if (target == attacker)
+	{
+		return false;
+	}
+
+	if (!target)
+	{
+		return false;
+	}
+
+	if (!attacker)
+	{
+		return false;
+	}
+
+	if (target->GetState().stats[STAT_HEALTH] <= 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool RadiusDamage(Vector3<float> origin,
+	const eastl::shared_ptr<PlayerActor>& attacker,
+	const eastl::shared_ptr<Actor>& ignore,
+	float damage, float radius, int mod)
+{
+	float points, dist;
+	int numListedEntities;
+	Vector3<float> mins, maxs;
+	Vector3<float> v;
+	Vector3<float> dir;
+	int i, e;
+	bool hitClient = false;
+
+	if (radius < 1)
+		radius = 1;
+
+	for (i = 0; i < 3; i++)
+	{
+		mins[i] = origin[i] - radius;
+		maxs[i] = origin[i] + radius;
+	}
+
+	//numListedEntities = trap_EntitiesInBox(mins, maxs, entityList, MAX_GENTITIES);
+
+	for (e = 0; e < numListedEntities; e++)
+	{
+		eastl::shared_ptr<PlayerActor> actor; // ent = &entities[entityList[e]];
+
+		if (actor == ignore)
+			continue;
+		if (!actor->GetState().takeDamage)
+			continue;
+
+		// find the distance from the edge of the bounding box
+		for (i = 0; i < 3; i++)
+		{
+			/*
+			if (origin[i] < ent->absmin[i])
+			{
+			v[i] = ent->absmin[i] - origin[i];
+			}
+			else if (origin[i] > ent->absmax[i])
+			{
+			v[i] = origin[i] - ent->absmax[i];
+			}
+			else
+			{
+			v[i] = 0;
+			}
+			*/
+		}
+
+		dist = Length(v);
+		if (dist >= radius)
+		{
+			continue;
+		}
+
+		points = damage * (1.0 - dist / radius);
+
+		if (CanDamage(actor, origin))
+		{
+			if (LogAccuracyHit(actor, attacker))
+			{
+				hitClient = true;
+			}
+			//dir = actor->GetState().currentOrigin - origin;
+			// push the center of mass higher than the origin so players
+			// get knocked into the air more
+			dir[2] += 24;
+			Damage(actor, NULL, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
+		}
+	}
+
+	return hitClient;
+}
+
+
 void BounceProjectile(
 	Vector3<float> start, Vector3<float> impact,
 	Vector3<float> dir, Vector3<float> endout)
@@ -1154,7 +1597,7 @@ bool QuakeLogic::GauntletAttack(
 	*/
 
 	damage = 50;
-	//Damage(player, player, player, forward, muzzle, damage, 0, MOD_GAUNTLET);
+	Damage(player, player, player, forward, muzzle, damage, 0, MOD_GAUNTLET);
 	return true;
 }
 
@@ -1189,20 +1632,26 @@ void QuakeLogic::BulletFire(
 	ActorId actorCollisionId = mPhysics->CastRay(muzzle, end, collision, collisionNormal);
 	if (collision == NULL) return; // no surface impact
 
-	// send bullet impact
-	EventManager::Get()->TriggerEvent(
-		eastl::make_shared<QuakeEventDataProjectileImpact>(
-		actorCollisionId, WP_MACHINEGUN, collision, collisionNormal));
-
 	if (actorCollisionId != INVALID_ACTOR_ID &&
 		eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]))
 	{
 		eastl::shared_ptr<PlayerActor> target =
 			eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]);
-		//if (LogAccuracyHit(target, player))
-		//	player->GetState().accuracyHits++;
+		if (LogAccuracyHit(target, player))
+			player->GetState().accuracyHits++;
 
-		//Damage(target, player, player, forward, collision, damage, 0, MOD_MACHINEGUN);
+		//rotation = ((69069 * randSeed + 1) & 0x7fff) % 360;
+		Transform initTransform;
+		initTransform.SetTranslation(collision);
+		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
+
+		Damage(target, player, player, forward, collision, damage, 0, MOD_MACHINEGUN);
+	}
+	else
+	{
+		Transform initTransform;
+		initTransform.SetTranslation(collision);
+		CreateActor("actors/quake/effects/bulletexplosion.xml", nullptr, &initTransform);
 	}
 }
 
@@ -1235,7 +1684,10 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 		origin = pPhysicalComponent->GetTransform().GetTranslation();
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
-		rotation = -yawRotation;
+		Matrix4x4<float> pitchRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(1), -viewAngles.mAngle[1]));
+
+		rotation = yawRotation * pitchRotation;
 	}
 	Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
 	Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
@@ -1874,456 +2326,6 @@ void QuakeLogic::PlayerDie(
 		//i = (i + 1) % 3;
 	}
 	//trap_LinkEntity(self);
-}
-
-
-int CheckArmor(eastl::shared_ptr<PlayerActor> playerActor, int damage, int dflags)
-{
-	if (!damage)
-		return 0;
-
-	if (!playerActor)
-		return 0;
-
-	if (dflags & DAMAGE_NO_ARMOR)
-		return 0;
-
-	// armor
-	int save = ceil(damage * ARMOR_PROTECTION);
-	if (save >= playerActor->GetState().stats[STAT_ARMOR])
-		save = playerActor->GetState().stats[STAT_ARMOR];
-
-	if (!save)
-		return 0;
-	playerActor->GetState().stats[STAT_ARMOR] -= save;
-
-	return save;
-}
-
-/*
-Called just before a snapshot is sent to the given player.
-Totals up all damage and generates both the player state
-damage values to that player for pain blends and kicks, and
-global pain sound events for all players.
-*/
-void DamageFeedback(const eastl::shared_ptr<PlayerActor>& player)
-{
-	if (player->GetState().moveType == PM_DEAD)
-		return;
-
-	// total points of damage shot at the player this frame
-	int count = player->GetState().damageBlood + player->GetState().damageArmor;
-	if (count == 0)
-		return;		// didn't take any damage
-
-	if (count > 255) count = 255;
-
-	// send the information to the client
-
-	// world damage (falling, slime, etc) uses a special code
-	// to make the blend blob centered instead of positional
-	if (player->GetState().damageFromWorld)
-	{
-		player->GetState().damagePitch = 255;
-		player->GetState().damageYaw = 255;
-
-		player->GetState().damageFromWorld = false;
-	}
-	else
-	{
-		/*
-		vectoangles(player->GetState().damageFrom, angles);
-		player->GetState().damagePitch = angles[PITCH] / 360.0 * 256;
-		player->GetState().damageYaw = angles[YAW] / 360.0 * 256;
-		*/
-	}
-
-	// play an apropriate pain sound
-	//if ((level.time > player->GetState().painDebounceTime) && !(player->GetState().flags & FL_GODMODE))
-	{
-		//player->GetState().painDebounceTime = level.time + 700;
-		//AddEvent(player, EV_PAIN, player->health);
-		//EventManager::Get()->TriggerEvent(
-		//	eastl::make_shared<EventDataPlaySound>(GetId()));
-		player->GetState().damageEvent++;
-	}
-
-	player->GetState().damageCount = count;
-
-	//
-	// clear totals
-	//
-	player->GetState().damageBlood = 0;
-	player->GetState().damageArmor = 0;
-	player->GetState().damageKnockback = 0;
-}
-
-/*
-============
-Damage
-
-target		player that is being damaged
-inflictor	player that is causing the damage
-attacker	player that caused the inflictor to damage target
-
-dir			direction of the attack for knockback
-point		point at which the damage is being inflicted, used for headshots
-damage		amount of damage being inflicted
-knockback	force to be applied against targ as a result of the damage
-
-inflictor, attacker, dir, and point can be NULL for environmental effects
-
-dflags		these flags are used to control how T_Damage works
-DAMAGE_RADIUS			damage was indirect (from a nearby explosion)
-DAMAGE_NO_ARMOR			armor does not protect from this damage
-DAMAGE_NO_KNOCKBACK		do not affect velocity, just view angles
-DAMAGE_NO_PROTECTION	kills godmode, armor, everything
-============
-*/
-
-void Damage(
-	const eastl::shared_ptr<PlayerActor>& target,
-	const eastl::shared_ptr<PlayerActor>& inflictor,
-	const eastl::shared_ptr<PlayerActor>& attacker,
-	Vector3<float> dir, Vector3<float> point,
-	int damage, int dflags, int mod)
-{
-	if (!target->GetState().takeDamage)
-	{
-		return;
-	}
-
-	/*
-	// the intermission has allready been qualified for, so don't
-	// allow any extra scoring
-	if (level.intermissionQueued)
-	{
-	return;
-	}
-
-	if (!inflictor)
-	{
-	inflictor = &entities[ENTITYNUM_WORLD];
-	}
-	if (!attacker)
-	{
-	attacker = &entities[ENTITYNUM_WORLD];
-	}
-	*/
-
-	// reduce damage by the attacker's handicap value
-	// unless they are rocket jumping
-	if (attacker && attacker != target)
-	{
-		int max = attacker->GetState().stats[STAT_MAX_HEALTH];
-		damage = damage * max / 100;
-	}
-
-	if (dir != Vector3<float>::Zero())
-	{
-		dflags |= DAMAGE_NO_KNOCKBACK;
-	}
-	else
-	{
-		Normalize(dir);
-	}
-
-	int knockback = damage;
-	if (knockback > 200)
-		knockback = 200;
-
-	if (dflags & DAMAGE_NO_KNOCKBACK)
-		knockback = 0;
-
-	// figure momentum add, even if the damage won't be taken
-	if (knockback && target)
-	{
-		Vector3<float>	kvel;
-		float	mass;
-
-		mass = 200;
-
-		//kvel = dir * (g_knockback.value * (float)knockback / mass));
-		//target->GetState().velocity += kvel;
-
-		// set the timer so that the other client can't cancel
-		// out the movement immediately
-		if (!target->GetState().moveTime)
-		{
-			int		t;
-
-			t = knockback * 2;
-			if (t < 50)
-			{
-				t = 50;
-			}
-			if (t > 200)
-			{
-				t = 200;
-			}
-			target->GetState().moveTime = t;
-			//target->GetState().moveFlags |= PMF_TIME_KNOCKBACK;
-		}
-	}
-
-	// check for completely getting out of the damage
-	/*
-	if (!(dflags & DAMAGE_NO_PROTECTION))
-	{
-		// if TF_NO_FRIENDLY_FIRE is set, don't do damage to the target
-		// if the attacker was on the same team
-		if (target != attacker)// && OnSameTeam(targ, attacker))
-		{
-			if (!g_friendlyFire.integer)
-			{
-				return;
-			}
-		}
-
-		// check for godmode
-		if (target->GetState().flags & FL_GODMODE)
-		{
-			return;
-		}
-	}
-	*/
-	// battlesuit protects from all radius damage (but takes knockback)
-	// and protects 50% against all damage
-	if (target && target->GetState().powerups[PW_BATTLESUIT])
-	{
-		//AddEvent(targ, EV_POWERUP_BATTLESUIT, 0);
-		if ((dflags & DAMAGE_RADIUS) || (mod == MOD_FALLING))
-		{
-			return;
-		}
-		damage *= 0.5;
-	}
-
-	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
-	if (attacker && target != attacker &&
-		target->GetState().stats[STAT_HEALTH] > 0 &&
-		target->GetState().eType != ET_MISSILE &&
-		target->GetState().eType != ET_GENERAL)
-	{
-		/*
-		if (OnSameTeam(target, attacker))
-		{
-		attacker->GetState().persistant[PERS_HITS]--;
-		}
-		else
-		*/
-		{
-			attacker->GetState().persistant[PERS_HITS]++;
-		}
-		attacker->GetState().persistant[PERS_ATTACKEE_ARMOR] =
-			(target->GetState().stats[STAT_HEALTH] << 8) | (target->GetState().stats[STAT_ARMOR]);
-	}
-
-	// always give half damage if hurting self
-	// calculated after knockback, so rocket jumping works
-	if (target == attacker)
-		damage *= 0.5;
-
-	if (damage < 1)
-		damage = 1;
-
-	int take = damage;
-	int save = 0;
-
-	// save some from armor
-	int asave = CheckArmor(target, take, dflags);
-	take -= asave;
-	/*
-	if (g_debugDamage.integer)
-	{
-		LogInformation("%i: client:%i health:%i damage:%i armor:%i\n", level.time, targ->state->number,
-			targ->health, take, asave);
-	}
-	*/
-	// add to the damage inflicted on a player this frame
-	// the total will be turned into screen blends and view angle kicks
-	// at the end of the frame
-	if (target)
-	{
-		if (attacker)
-		{
-			target->GetState().persistant[PERS_ATTACKER] = attacker->GetId();
-		}
-		else
-		{
-			target->GetState().persistant[PERS_ATTACKER] = ENTITYNUM_WORLD;
-		}
-		target->GetState().damageArmor += asave;
-		target->GetState().damageBlood += take;
-		target->GetState().damageKnockback += knockback;
-		if (dir != Vector3<float>::Zero())
-		{
-			target->GetState().damageFrom = Vector3<float>{ dir };
-			target->GetState().damageFromWorld = false;
-		}
-		else
-		{
-			Transform playerTransform;
-			eastl::shared_ptr<TransformComponent> pTransformComponent(
-				target->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-			if (pTransformComponent)
-			{
-				target->GetState().damageFrom = pTransformComponent->GetTransform().GetTranslation();
-				target->GetState().damageFromWorld = true;
-			}
-		}
-	}
-
-	if (target)
-	{
-		// set the last client who damaged the target
-		target->GetState().lastHurt = attacker->GetId();
-		target->GetState().lastHurtMod = mod;
-	}
-
-	// do the damage
-	if (take)
-	{
-		target->GetState().stats[STAT_HEALTH] =
-			target->GetState().stats[STAT_HEALTH] - take;
-
-		if (target->GetState().stats[STAT_HEALTH] <= 0)
-		{
-			//target->GetState().flags |= FL_NO_KNOCKBACK;
-
-			if (target->GetState().stats[STAT_HEALTH] < -999)
-				target->GetState().stats[STAT_HEALTH] = -999;
-
-			//targ->enemy = attacker;
-			//PlayerDie(target, inflictor, attacker, take, mod);
-		}
-		else //if (targ->pain)
-		{
-			//targ->pain(targ, attacker, take);
-			//PlayerPain(target, attacker, take);
-		}
-	}
-}
-
-
-/*
-CanDamage
-
-Returns true if the inflictor can directly damage the target.  Used for
-explosions and melee attacks.
-*/
-bool CanDamage(const eastl::shared_ptr<PlayerActor>& target, Vector3<float> origin)
-{
-	return true;
-}
-
-bool LogAccuracyHit(
-	const eastl::shared_ptr<PlayerActor>& target,
-	const eastl::shared_ptr<PlayerActor>& attacker)
-{
-	if (!target->GetState().takeDamage)
-	{
-		return false;
-	}
-
-	if (target == attacker)
-	{
-		return false;
-	}
-
-	if (!target)
-	{
-		return false;
-	}
-
-	if (!attacker)
-	{
-		return false;
-	}
-
-	if (target->GetState().stats[STAT_HEALTH] <= 0)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-bool RadiusDamage(Vector3<float> origin,
-	const eastl::shared_ptr<PlayerActor>& attacker,
-	const eastl::shared_ptr<Actor>& ignore,
-	float damage, float radius, int mod)
-{
-	float points, dist;
-	int numListedEntities;
-	Vector3<float> mins, maxs;
-	Vector3<float> v;
-	Vector3<float> dir;
-	int i, e;
-	bool hitClient = false;
-
-	if (radius < 1)
-		radius = 1;
-
-	for (i = 0; i < 3; i++)
-	{
-		mins[i] = origin[i] - radius;
-		maxs[i] = origin[i] + radius;
-	}
-
-	//numListedEntities = trap_EntitiesInBox(mins, maxs, entityList, MAX_GENTITIES);
-
-	for (e = 0; e < numListedEntities; e++)
-	{
-		eastl::shared_ptr<PlayerActor> actor; // ent = &entities[entityList[e]];
-
-		if (actor == ignore)
-			continue;
-		if (!actor->GetState().takeDamage)
-			continue;
-
-		// find the distance from the edge of the bounding box
-		for (i = 0; i < 3; i++)
-		{
-			/*
-			if (origin[i] < ent->absmin[i])
-			{
-			v[i] = ent->absmin[i] - origin[i];
-			}
-			else if (origin[i] > ent->absmax[i])
-			{
-			v[i] = origin[i] - ent->absmax[i];
-			}
-			else
-			{
-			v[i] = 0;
-			}
-			*/
-		}
-
-		dist = Length(v);
-		if (dist >= radius)
-		{
-			continue;
-		}
-
-		points = damage * (1.0 - dist / radius);
-
-		if (CanDamage(actor, origin))
-		{
-			if (LogAccuracyHit(actor, attacker))
-			{
-				hitClient = true;
-			}
-			//dir = actor->GetState().currentOrigin - origin;
-			// push the center of mass higher than the origin so players
-			// get knocked into the air more
-			dir[2] += 24;
-			Damage(actor, NULL, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
-		}
-	}
-
-	return hitClient;
 }
 
 int PickupAmmo(const eastl::shared_ptr<PlayerActor>& player, const eastl::shared_ptr<AmmoPickup>& ammo)

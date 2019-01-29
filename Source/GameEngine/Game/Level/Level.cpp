@@ -57,7 +57,7 @@ void Level::LoadLevelInfo()
 
 	if (!pRoot)
 	{
-		LogError(eastl::wstring("Can't load level '") + mFileName.c_str() + eastl::wstring("', no level element."));
+		LogError(eastl::wstring(L"Can't load level '") + mFileName.c_str() + eastl::wstring(L"', no level element."));
 		return;
 	}
 

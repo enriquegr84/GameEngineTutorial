@@ -167,9 +167,8 @@ void LightManager::OnNodePreRender(Node* node)
 		for (i = 0; i < mSceneLightList->size(); ++i)
 		{
 			Node* lightNode = (*mSceneLightList)[i];
-
-			const float distance = Length(
-				lightNode->GetAbsoluteTransform().GetTranslation() - nodePosition);
+			Vector3<float> lightPosition = lightNode->GetAbsoluteTransform().GetTranslation();
+			const float distance = Length(lightPosition - nodePosition);
 			sortingArray.push_back(LightDistanceElement(lightNode, distance));
 		}
 

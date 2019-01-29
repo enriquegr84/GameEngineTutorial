@@ -56,7 +56,7 @@
 #include "QuakeResources.h"
 
 #include "QuakeApp.h"
-
+/*
 //========================================================================
 // main - Defines the entry point to the application, the GameApplication handles the 
 // initialization. This allows the GameEngine function to live in a library, 
@@ -125,7 +125,7 @@ int main()
 
 	return exitCode;
 }
-
+*/
 //========================================================================
 //
 // QuakeApp Implementation     - Chapter 21, page 722

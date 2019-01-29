@@ -191,6 +191,10 @@ void Scene::AddToDeletionQueue(Node* node)
 		return;
 
 	mDeletionList.push_back(node);
+
+	eastl::shared_ptr<EventDataRequestDestroyActor> 
+		pRequestDestroyActorEvent(new EventDataRequestDestroyActor(node->GetId()));
+	BaseEventManager::Get()->QueueEvent(pRequestDestroyActorEvent);
 }
 
 
@@ -418,11 +422,9 @@ eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
 //! turned on. (This is the default setting in most scene nodes).
 eastl::shared_ptr<Node> Scene::AddLightNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-	const eastl::shared_ptr<Texture2>& texture, const eastl::shared_ptr<Light>& light, 
-	const Vector2<float>& size, int id)
+	const eastl::shared_ptr<Light>& light, int id)
 {
-	eastl::shared_ptr<Node> node(
-		new LightNode(id, &mPVWUpdater, renderComponent, texture, size, light));
+	eastl::shared_ptr<Node> node(new LightNode(id, &mPVWUpdater, renderComponent, light));
 
 	if (!parent) 
 		AddSceneNode(id, node);

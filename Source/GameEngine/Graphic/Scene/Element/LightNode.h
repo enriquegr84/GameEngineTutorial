@@ -20,9 +20,7 @@ public:
 
 	//! Constructor
 	LightNode(const ActorId actorId, PVWUpdater* updater, 
-		WeakBaseRenderComponentPtr renderComponent, 
-		const eastl::shared_ptr<Texture2>& texture, 
-		const Vector2<float>& size, const eastl::shared_ptr<Light>& light);
+		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Light>& light);
 
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);
@@ -35,22 +33,6 @@ public:
 	//! Gets the light.
 	/** \return The current light. */
 	eastl::shared_ptr<Light> const& GetLight() const;
-
-	//! sets the size of the lightnode
-	void SetSize(const Vector2<float>& size);
-
-	//! gets the size of the lightnode
-	const Vector2<float>& GetSize() const;
-
-	//! Returns the visual based on the zero based index i. To get the amount 
-	//! of visuals used by this scene node, use GetVisualCount(). 
-	//! This function is needed for inserting the node into the scene hierarchy 
-	//! at an optimal position for minimizing renderstate changes, but can also 
-	//! be used to directly modify the visual of a scene node.
-	virtual eastl::shared_ptr<Visual> const& GetVisual(unsigned int i);
-
-	//! return amount of visuals of this scene node.
-	virtual unsigned int GetVisualCount() const;
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use GetMaterialCount().
@@ -75,19 +57,10 @@ public:
 private:
 
 	void DoLightRecalc();
-	void DoLightBuffers(Scene* pScene);
 
 	eastl::shared_ptr<Light> mLight;
-	//! Size.Width is the bottom edge width
-	Vector2<float> mSize;
 
-	eastl::shared_ptr<BlendState> mBlendState;
-	eastl::shared_ptr<DepthStencilState> mDepthStencilState;
-	eastl::shared_ptr<RasterizerState> mRasterizerState;
-
-	eastl::shared_ptr<VisualEffect> mEffect;
-	eastl::shared_ptr<MeshBuffer> mMeshBuffer;
-	eastl::shared_ptr<Visual> mVisual;
+	eastl::shared_ptr<Material> mMaterial;
 };
 
 #endif

@@ -32,8 +32,8 @@ public:
 
 protected:
 
-	unsigned int		mFinishTime;
-	bool				mHasFinished;
+	unsigned int mFinishTime;
+	bool mHasFinished;
 
 private:
 

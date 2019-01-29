@@ -485,7 +485,7 @@ bool QuakeMainMenuUI::OnRender(double time, float elapsedTime)
 	const eastl::shared_ptr<BaseUIStaticText>& statusLabel =
 		eastl::static_pointer_cast<BaseUIStaticText>(root->GetElementFromId(CID_STATUS_LABEL));
 	if (statusLabel)
-		statusLabel->SetText(eastl::wstring("Press set button to change settings").c_str());
+		statusLabel->SetText(eastl::wstring(L"Press set button to change settings").c_str());
 
 	return BaseUI::OnRender(time, elapsedTime);
 };
@@ -692,8 +692,10 @@ QuakeHumanView::QuakeHumanView() : HumanView()
 	mShowUI = true; 
 	mDebugMode = DM_OFF;
 
-	RegisterSounds();
-	RegisterGraphics();
+	RegisterSound();
+	RegisterMedia();
+	for (unsigned int i = 0; i < 8; i++)
+		RegisterWeapon(i);
     RegisterAllDelegates();
 }
 
@@ -869,8 +871,387 @@ void QuakeHumanView::SetControlledActor(ActorId actorId)
 	}
 }
 
+// RegisterWeapons called during a precache command
+void QuakeHumanView::RegisterWeapon(unsigned int weapon)
+{
+	WeaponType wp = (WeaponType)(weapon + 1);
+	switch (wp)
+	{
+		case WP_GAUNTLET:
+
+			// calc midpoint for rotation
+			/*
+			for (unsigned int i = 0; i < 3; i++)
+				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
+			*/
+			// load cmodel before model so filecache works
+			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_gauntlet.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
+			mWeaponMedia[weapon].weaponModel = eastl::wstring(L"art/quake/models/weapons2/gauntlet/gauntlet.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponModel));
+			mWeaponMedia[weapon].ammoIcon = eastl::wstring();
+			mWeaponMedia[weapon].ammoModel = eastl::wstring();
+
+			mWeaponMedia[weapon].flashModel = eastl::make_shared<MD3Mesh>("gauntlet_flash");
+			mWeaponMedia[weapon].flashModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/gauntlet/gauntlet_flash.md3").c_str()));
+			mWeaponMedia[weapon].barrelModel = eastl::make_shared<MD3Mesh>("gauntlet_barrel");
+			mWeaponMedia[weapon].barrelModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/gauntlet/gauntlet_barrel.md3").c_str()));
+			mWeaponMedia[weapon].handsModel = eastl::make_shared<MD3Mesh>("gauntlet_hand");
+			mWeaponMedia[weapon].handsModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/gauntlet/gauntlet_hand.md3").c_str()));
+
+			mWeaponMedia[weapon].loopFireSound = false;
+
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 0.6f, 0.6f, 1.0f, 1.0f};
+			mWeaponMedia[weapon].firingSound = eastl::wstring(L"audio/quake/sound/weapons/melee/fstrun.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].firingSound));
+			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/melee/fstatck.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
+			break;
+
+		case WP_LIGHTNING:
+
+			// calc midpoint for rotation
+			/*
+			for (unsigned int i = 0; i < 3; i++)
+				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
+			*/
+			// load cmodel before model so filecache works
+			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_lightning.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
+			mWeaponMedia[weapon].weaponModel = eastl::wstring(L"art/quake/models/weapons2/lightning/lightning.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponModel));
+			mWeaponMedia[weapon].ammoIcon = eastl::wstring(L"art/quake/icons/icona_lightning.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoIcon));
+			mWeaponMedia[weapon].ammoModel = eastl::wstring(L"art/quake/models/powerups/ammo/lightningam.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoModel));
+
+			mWeaponMedia[weapon].flashModel = eastl::make_shared<MD3Mesh>("lightning_flash");
+			mWeaponMedia[weapon].flashModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/lightning/lightning_flash.md3").c_str()));
+			mWeaponMedia[weapon].barrelModel = eastl::make_shared<MD3Mesh>();
+			mWeaponMedia[weapon].handsModel = eastl::make_shared<MD3Mesh>("lightning_hand");
+			mWeaponMedia[weapon].handsModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/lightning/lightning_hand.md3").c_str()));
+
+			mWeaponMedia[weapon].loopFireSound = false;
+
+			mMedia.lightningShader = eastl::wstring(L"art/quake/gfx/misc/lightning3new.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.lightningShader));
+			mMedia.lightningExplosionModel = eastl::wstring(L"art/quake/models/weaphits/crackle.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.lightningExplosionModel));
+
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 0.6f, 0.6f, 1.0f, 1.0f};
+			mWeaponMedia[weapon].readySound = eastl::wstring(L"audio/quake/sound/weapons/melee/fsthum.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].readySound));
+			mWeaponMedia[weapon].firingSound = eastl::wstring(L"audio/quake/sound/weapons/lightning/lg_hum.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].firingSound));
+			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/lightning/lg_fire.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
+
+			mMedia.sfxLghit1 = eastl::wstring(L"audio/quake/sound/weapons/lightning/lg_hit.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.sfxLghit1));
+			mMedia.sfxLghit2 = eastl::wstring(L"audio/quake/sound/weapons/lightning/lg_hit2.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.sfxLghit2));
+			mMedia.sfxLghit3 = eastl::wstring(L"audio/quake/sound/weapons/lightning/lg_hit3.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.sfxLghit3));
+			break;
+
+		case WP_MACHINEGUN:
+
+			// calc midpoint for rotation
+			/*
+			for (unsigned int i = 0; i < 3; i++)
+				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
+			*/
+			// load cmodel before model so filecache works
+			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_machinegun.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
+			mWeaponMedia[weapon].weaponModel = eastl::wstring(L"art/quake/models/weapons2/machinegun/machinegun.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponModel));
+			mWeaponMedia[weapon].ammoIcon = eastl::wstring(L"art/quake/icons/icona_machinegun.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoIcon));
+			mWeaponMedia[weapon].ammoModel = eastl::wstring(L"art/quake/models/powerups/ammo/machinegunam.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoModel));
+
+			mWeaponMedia[weapon].flashModel = eastl::make_shared<MD3Mesh>("machinegun_flash");
+			mWeaponMedia[weapon].flashModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/machinegun/machinegun_flash.md3").c_str()));
+			mWeaponMedia[weapon].barrelModel = eastl::make_shared<MD3Mesh>("machinegun_barrel");
+			mWeaponMedia[weapon].barrelModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/machinegun/machinegun_barrel.md3").c_str()));
+			mWeaponMedia[weapon].handsModel = eastl::make_shared<MD3Mesh>("machinegun_hand");
+			mWeaponMedia[weapon].handsModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/machinegun/machinegun_hand.md3").c_str()));
+
+			mWeaponMedia[weapon].loopFireSound = false;
+
+			//mWeaponMedia[weapon].ejectBrassFunc = CG_MachineGunEjectBrass;
+			mMedia.bulletExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/bullet1.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[0]));
+			mMedia.bulletExplosionShader[1] = eastl::wstring(L"art/quake/models/weaphits/bullet2.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[1]));
+			mMedia.bulletExplosionShader[2] = eastl::wstring(L"art/quake/models/weaphits/bullet3.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[2]));
+			mMedia.bulletExplosionShader[3] = eastl::wstring(L"art/quake/gfx/colors/black.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[3]));
+
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 1.f, 0.f, 1.f};
+			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/machinegun/machgf1b.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
+			mWeaponMedia[weapon].flashSound[1] = eastl::wstring(L"audio/quake/sound/weapons/machinegun/machgf2b.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[1]));
+			mWeaponMedia[weapon].flashSound[2] = eastl::wstring(L"audio/quake/sound/weapons/machinegun/machgf3b.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[2]));
+			mWeaponMedia[weapon].flashSound[3] = eastl::wstring(L"audio/quake/sound/weapons/machinegun/machgf4b.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[3]));
+
+			break;
+
+		case WP_SHOTGUN:
+
+			// calc midpoint for rotation
+			/*
+			for (unsigned int i = 0; i < 3; i++)
+				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
+			*/
+			// load cmodel before model so filecache works
+			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_shotgun.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
+			mWeaponMedia[weapon].weaponModel = eastl::wstring(L"art/quake/models/weapons2/shotgun/shotgun.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponModel));
+			mWeaponMedia[weapon].ammoIcon = eastl::wstring(L"art/quake/icons/icona_shotgun.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoIcon));
+			mWeaponMedia[weapon].ammoModel = eastl::wstring(L"art/quake/models/powerups/ammo/shotgunam.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoModel));
+
+			mWeaponMedia[weapon].flashModel = eastl::make_shared<MD3Mesh>("shotgun_flash");
+			mWeaponMedia[weapon].flashModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/shotgun/shotgun_flash.md3").c_str()));
+			mWeaponMedia[weapon].barrelModel = eastl::make_shared<MD3Mesh>();
+			mWeaponMedia[weapon].handsModel = eastl::make_shared<MD3Mesh>("shotgun_hand");
+			mWeaponMedia[weapon].handsModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/shotgun/shotgun_hand.md3").c_str()));
+
+			mWeaponMedia[weapon].loopFireSound = false;
+
+			//mWeaponMedia[weapon].ejectBrassFunc = CG_ShotgunEjectBrass;
+
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 1.f, 0.f, 1.f};
+			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/shotgun/sshotf1b.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
+			break;
+
+		case WP_ROCKET_LAUNCHER:
+
+			// calc midpoint for rotation
+			/*
+			for (unsigned int i = 0; i < 3; i++)
+				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
+			*/
+			// load cmodel before model so filecache works
+			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_rocket.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
+			mWeaponMedia[weapon].weaponModel = eastl::wstring(L"art/quake/models/weapons2/rocketl/rocketl.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponModel));
+			mWeaponMedia[weapon].ammoIcon = eastl::wstring(L"art/quake/icons/icona_rocket.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoIcon));
+			mWeaponMedia[weapon].ammoModel = eastl::wstring(L"art/quake/models/powerups/ammo/rocketam.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoModel));
+
+			mWeaponMedia[weapon].flashModel = eastl::make_shared<MD3Mesh>("rocketl_flash");
+			mWeaponMedia[weapon].flashModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/rocketl/rocketl_flash.md3").c_str()));
+			mWeaponMedia[weapon].barrelModel = eastl::make_shared<MD3Mesh>();
+			mWeaponMedia[weapon].handsModel = eastl::make_shared<MD3Mesh>("rocketl_hand");
+			mWeaponMedia[weapon].handsModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/rocketl/rocketl_hand.md3").c_str()));
+
+			mWeaponMedia[weapon].loopFireSound = false;
+
+			mMedia.rocketExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_1.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[0]));
+			mMedia.rocketExplosionShader[1] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_2.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[1]));
+			mMedia.rocketExplosionShader[2] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_3.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[2]));
+			mMedia.rocketExplosionShader[3] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_4.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[3]));
+			mMedia.rocketExplosionShader[4] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_5.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[4]));
+			mMedia.rocketExplosionShader[5] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_6.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[5]));
+			mMedia.rocketExplosionShader[6] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_7.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[6]));
+			mMedia.rocketExplosionShader[7] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_8.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[7]));
+
+			mWeaponMedia[weapon].missileModel = eastl::wstring(L"art/quake/models/ammo/rocket/rocket.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].missileModel));
+			mWeaponMedia[weapon].missileSound = eastl::wstring(L"audio/quake/sound/weapons/rocket/rockfly.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].missileSound));
+			//mWeaponMedia[weapon].missileTrailFunc = CG_RocketTrail;
+			mWeaponMedia[weapon].missileDlight = 200;
+			mWeaponMedia[weapon].wiTrailTime = 2000;
+			mWeaponMedia[weapon].trailRadius = 64;
+
+			mWeaponMedia[weapon].missileDlightColor = eastl::array<float, 4U>{ 1.f, 0.75f, 0.f, 1.f};
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 0.75f, 0.f, 1.f};
+			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/rocket/rocklf1a.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
+			break;
+
+		case WP_GRENADE_LAUNCHER:
+
+			// calc midpoint for rotation
+			/*
+			for (unsigned int i = 0; i < 3; i++)
+				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
+			*/
+			// load cmodel before model so filecache works
+			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_grenade.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
+			mWeaponMedia[weapon].weaponModel = eastl::wstring(L"art/quake/models/weapons2/grenadel/grenadel.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponModel));
+			mWeaponMedia[weapon].ammoIcon = eastl::wstring(L"art/quake/icons/icona_grenade.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoIcon));
+			mWeaponMedia[weapon].ammoModel = eastl::wstring(L"art/quake/models/powerups/ammo/grenadeam.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoModel));
+
+			mWeaponMedia[weapon].flashModel = eastl::make_shared<MD3Mesh>("grenadel_flash");
+			mWeaponMedia[weapon].flashModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/grenadel/grenadel_flash.md3").c_str()));
+			mWeaponMedia[weapon].barrelModel = eastl::make_shared<MD3Mesh>();
+			mWeaponMedia[weapon].handsModel = eastl::make_shared<MD3Mesh>("grenadel_hand");
+			mWeaponMedia[weapon].handsModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/grenadel/grenadel_hand.md3").c_str()));
+
+			mWeaponMedia[weapon].loopFireSound = false;
+
+			mMedia.grenadeExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/glboom/glboom_1.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[0]));
+			mMedia.grenadeExplosionShader[1] = eastl::wstring(L"art/quake/models/weaphits/glboom/glboom_2.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[1]));
+			mMedia.grenadeExplosionShader[2] = eastl::wstring(L"art/quake/models/weaphits/glboom/glboom_3.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[2]));
+			mMedia.grenadeExplosionShader[3] = eastl::wstring(L"art/quake/gfx/colors/black.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[3]));
+
+			mWeaponMedia[weapon].missileModel = eastl::wstring(L"art/quake/models/ammo/grenade1.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].missileModel));
+
+			//mWeaponMedia[weapon].missileTrailFunc = CG_GrenadeTrail;
+			mWeaponMedia[weapon].wiTrailTime = 700;
+			mWeaponMedia[weapon].trailRadius = 32;
+
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 0.7f, 0.f, 1.f};
+			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/grenade/grenlf1a.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
+			break;
+
+		case WP_PLASMAGUN:
+
+			// calc midpoint for rotation
+			/*
+			for (unsigned int i = 0; i < 3; i++)
+				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
+			*/
+			// load cmodel before model so filecache works
+			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_plasma.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
+			mWeaponMedia[weapon].weaponModel = eastl::wstring(L"art/quake/models/weapons2/plasma/plasma.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponModel));
+			mWeaponMedia[weapon].ammoIcon = eastl::wstring(L"art/quake/icons/icona_plasma.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoIcon));
+			mWeaponMedia[weapon].ammoModel = eastl::wstring(L"art/quake/models/powerups/ammo/plasmaam.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoModel));
+
+			mWeaponMedia[weapon].flashModel = eastl::make_shared<MD3Mesh>("plasma_flash");
+			mWeaponMedia[weapon].flashModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/plasma/plasma_flash.md3").c_str()));
+			mWeaponMedia[weapon].barrelModel = eastl::make_shared<MD3Mesh>();
+			mWeaponMedia[weapon].handsModel = eastl::make_shared<MD3Mesh>("plasma_hand");
+			mWeaponMedia[weapon].handsModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/plasma/plasma_hand.md3").c_str()));
+
+			mWeaponMedia[weapon].loopFireSound = false;
+
+			mMedia.plasmaExplosionShader = eastl::wstring(L"art/quake/models/weaphits/plasmaboom.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.plasmaExplosionShader));
+			mMedia.railRingsShader = eastl::wstring(L"art/quake/gfx/misc/raildisc_mono2.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.railRingsShader));
+
+			//weaponInfo->missileModel = cgs.media.invulnerabilityPowerupModel;
+			//mWeaponMedia[weapon].missileTrailFunc = CG_PlasmaTrail;
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 0.6f, 0.6f, 1.f};
+			mWeaponMedia[weapon].missileSound = eastl::wstring(L"audio/quake/sound/weapons/plasma/lasfly.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].missileSound));
+			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/plasma/hyprbf1a.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
+			break;
+
+		case WP_RAILGUN:
+
+			// calc midpoint for rotation
+			/*
+			for (unsigned int i = 0; i < 3; i++)
+				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
+			*/
+			// load cmodel before model so filecache works
+			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_railgun.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
+			mWeaponMedia[weapon].weaponModel = eastl::wstring(L"art/quake/models/weapons2/railgun/railgun.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponModel));
+			mWeaponMedia[weapon].ammoIcon = eastl::wstring(L"art/quake/icons/icona_railgun.png");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoIcon));
+			mWeaponMedia[weapon].ammoModel = eastl::wstring(L"art/quake/models/powerups/ammo/railgunam.md3");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoModel));
+
+			mWeaponMedia[weapon].flashModel = eastl::make_shared<MD3Mesh>("railgun_flash");
+			mWeaponMedia[weapon].flashModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/railgun/railgun_flash.md3").c_str()));
+			mWeaponMedia[weapon].barrelModel = eastl::make_shared<MD3Mesh>();
+			mWeaponMedia[weapon].handsModel = eastl::make_shared<MD3Mesh>("railgun_hand");
+			mWeaponMedia[weapon].handsModel->LoadModel(ToWideString(
+				FileSystem::Get()->GetPath("art/quake/models/weapons2/railgun/railgun_hand.md3").c_str()));
+
+			mWeaponMedia[weapon].loopFireSound = false;
+
+			mMedia.railExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/ring02_1.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[0]));
+			mMedia.railExplosionShader[1] = eastl::wstring(L"art/quake/models/weaphits/ring02_2.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[1]));
+			mMedia.railExplosionShader[2] = eastl::wstring(L"art/quake/models/weaphits/ring02_3.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[2]));
+			mMedia.railExplosionShader[3] = eastl::wstring(L"art/quake/models/weaphits/ring02_4.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[3]));
+			mMedia.railExplosionShader[4] = eastl::wstring(L"art/quake/gfx/colors/black.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[4]));
+
+			mMedia.railRingsShader = eastl::wstring(L"art/quake/gfx/misc/raildisc_mono2.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.railRingsShader));
+			mMedia.railCoreShader = eastl::wstring(L"art/quake/gfx/misc/railcorethin_mono.jpg");
+			ResCache::Get()->GetHandle(&BaseResource(mMedia.railCoreShader));
+
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 0.5f, 0.f, 1.f};
+			mWeaponMedia[weapon].readySound = eastl::wstring(L"audio/quake/sound/weapons/railgun/rg_hum.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].readySound));
+			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/railgun/railgf1a.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
+			break;
+
+		default:
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 1.f, 1.f, 1.f};
+			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/rocket/rocklf1a.ogg");
+			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
+			break;
+	}
+}
+
 // RegisterSounds called during a precache command
-void QuakeHumanView::RegisterSounds() 
+void QuakeHumanView::RegisterSound() 
 {
 	mMedia.oneMinuteSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/1_minute.ogg"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.oneMinuteSound));
@@ -892,7 +1273,7 @@ void QuakeHumanView::RegisterSounds()
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.count1Sound));
 	mMedia.countFightSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/fight.ogg"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.countFightSound));
-	mMedia.countPrepareSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/prepare.ogg"));
+	mMedia.countPrepareSound = eastl::wstring(ToWideString("audio/quake/sound/feedback/prepare.wav"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.countPrepareSound));
 
 	mMedia.tracerSound = eastl::wstring(ToWideString("audio/quake/sound/weapons/machinegun/buletby1.ogg"));
@@ -999,7 +1380,7 @@ void QuakeHumanView::RegisterSounds()
 }
 
 // RegisterSounds called during a precache command
-void QuakeHumanView::RegisterGraphics()
+void QuakeHumanView::RegisterMedia()
 {
 	char* sbNums[11] = 
 	{
@@ -1047,20 +1428,31 @@ void QuakeHumanView::RegisterGraphics()
 	mMedia.scoreboardTime = eastl::wstring(ToWideString("art/quake/menu/tab/time.tga"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.scoreboardTime));
 
-	mMedia.smokePuffShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuff3.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.smokePuffShader));
-	mMedia.smokePuffRageProShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuffragepro.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.smokePuffRageProShader));
-	mMedia.shotgunSmokePuffShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuff2b.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.shotgunSmokePuffShader));
+	mMedia.smokePuffShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuff3.png"));
+	eastl::shared_ptr<ResHandle> resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.smokePuffShader));
+	eastl::shared_ptr<ImageResourceExtraData>& extra =
+		eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
+	mMedia.smokePuffRageProShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuffragepro.png"));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.smokePuffRageProShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
+	mMedia.shotgunSmokePuffShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuff2b.png"));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.shotgunSmokePuffShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 	mMedia.plasmaBallShader = eastl::wstring(ToWideString("art/quake/sprites/plasmaa.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.plasmaBallShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.plasmaBallShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 	mMedia.bloodTrailShader = eastl::wstring(ToWideString("art/quake/gfx/damage/blood_spurt.png"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodTrailShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodTrailShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 	mMedia.lagometerShader = eastl::wstring(ToWideString("art/quake/gfx/2d/lag.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.lagometerShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.lagometerShader));
 	mMedia.connectionShader = eastl::wstring(ToWideString("art/quake/gfx/2d/net.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.connectionShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.connectionShader));
 
 	mMedia.tracerShader = eastl::wstring(ToWideString("art/quake/gfx/misc/tracer2.jpg"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.tracerShader));
@@ -1112,14 +1504,16 @@ void QuakeHumanView::RegisterGraphics()
 	mMedia.smoke2 = eastl::wstring(ToWideString("art/quake/models/projectiles/shells/s_shell.md3"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.smoke2));
 
-	mMedia.balloonShader = eastl::wstring(ToWideString("art/quake/sprites/balloon4.tga"));
+	mMedia.balloonShader = eastl::wstring(ToWideString("art/quake/sprites/balloon4.png"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.balloonShader));
 
 	for (int i = 0; i < 5; i++)
 	{
 		sprintf(name, "art/quake/gfx/damage/blood20%i.png", i + 1);
 		mMedia.bloodExplosionShader[i] = eastl::wstring(ToWideString(name));
-		ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodExplosionShader[i]));
+		resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodExplosionShader[i]));
+		extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
 	}
 
 	mMedia.bulletFlashModel = eastl::wstring(ToWideString("art/quake/models/weaphits/bullet.md3"));
@@ -1132,7 +1526,9 @@ void QuakeHumanView::RegisterGraphics()
 	mMedia.teleportEffectModel = eastl::wstring(ToWideString("art/quake/models/misc/telep.md3"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.teleportEffectModel));
 	mMedia.teleportEffectShader = eastl::wstring(ToWideString("art/quake/gfx/misc/teleportEffect2.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.teleportEffectShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.teleportEffectShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 
 	mMedia.medalImpressive = eastl::wstring(ToWideString("art/quake/menu/medals/medal_impressive.png"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.medalImpressive));
@@ -1149,17 +1545,29 @@ void QuakeHumanView::RegisterGraphics()
 
 	// wall marks
 	mMedia.bulletMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/bullet_mrk.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletMarkShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletMarkShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 	mMedia.burnMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/burn_med_mrk.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.burnMarkShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.burnMarkShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 	mMedia.holeMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/hole_lg_mrk.jpg"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.holeMarkShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.holeMarkShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 	mMedia.energyMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/plasma_mrk.png"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.energyMarkShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.energyMarkShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 	mMedia.shadowMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/shadow.png"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.shadowMarkShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.shadowMarkShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 	mMedia.bloodMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/blood_stain.png"));
-	ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodMarkShader));
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodMarkShader));
+	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	extra->GetImage()->AutogenerateMipmaps();
 }
 
 
@@ -1444,21 +1852,6 @@ void QuakeHumanView::MoveActorDelegate(BaseEventDataPtr pEventData)
 	}
 }
 
-
-void QuakeHumanView::ProjectileImpactDelegate(BaseEventDataPtr pEventData)
-{
-	eastl::shared_ptr<QuakeEventDataProjectileImpact> pCastEventData =
-		eastl::static_pointer_cast<QuakeEventDataProjectileImpact>(pEventData);
-
-	eastl::shared_ptr<PlayerActor> pPlayerActor(
-		eastl::dynamic_shared_pointer_cast<PlayerActor>(
-		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock()));
-	if (pPlayerActor)
-	{
-		//mMedia.bloodExplosionShader
-	}
-}
-
 void QuakeHumanView::RegisterAllDelegates(void)
 {
     BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
@@ -1487,10 +1880,6 @@ void QuakeHumanView::RegisterAllDelegates(void)
 	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeHumanView::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
-
-	pGlobalEventManager->AddListener(
-		MakeDelegate(this, &QuakeHumanView::ProjectileImpactDelegate),
-		QuakeEventDataProjectileImpact::skEventType);
 }
 
 void QuakeHumanView::RemoveAllDelegates(void)
@@ -1521,10 +1910,6 @@ void QuakeHumanView::RemoveAllDelegates(void)
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeHumanView::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
-
-	pGlobalEventManager->RemoveListener(
-		MakeDelegate(this, &QuakeHumanView::ProjectileImpactDelegate),
-		QuakeEventDataProjectileImpact::skEventType);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -309,8 +309,7 @@ public:
 	\return Pointer to the interface of the light if successful, otherwise NULL.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 	eastl::shared_ptr<Node> AddLightNode(WeakBaseRenderComponentPtr renderComponent, 
-		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& texture, 
-		const eastl::shared_ptr<Light>& light, const Vector2<float>& size = Vector2<float>{ 10.0f, 10.0f }, int id = -1);
+		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Light>& light, int id = -1);
 
 	//! Creates a rotation animator, which rotates the attached scene node around itself.
 	/** 

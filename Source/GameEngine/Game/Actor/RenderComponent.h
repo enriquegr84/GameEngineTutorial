@@ -80,7 +80,7 @@ protected:
 class SphereRenderComponent : public BaseRenderComponent
 {
 	eastl::string mTextureResource;
-	Vector2<float> mTextureScale;
+	Vector2<float> mTextureSize;
 	unsigned int mMaterialType;
     unsigned int mSegments;
 	float mRadius;
@@ -105,7 +105,7 @@ protected:
 class CubeRenderComponent : public BaseRenderComponent
 {
 	eastl::string mTextureResource;
-	Vector2<float> mTextureScale;
+	Vector2<float> mTextureSize;
 	unsigned int mMaterialType;
 	float mSize;
 
@@ -115,7 +115,7 @@ public:
 
 	CubeRenderComponent(void);
 	const char* GetTextureResource() { return mTextureResource.c_str(); }
-	const Vector2<float> GetTextureScale() { return mTextureScale; }
+	const Vector2<float> GetTextureScale() { return mTextureSize; }
 	const float GetSize() { return mSize; }
 
 protected:
@@ -132,7 +132,7 @@ protected:
 class GridRenderComponent : public BaseRenderComponent
 {
     eastl::string mTextureResource;
-	Vector2<float> mTextureScale;
+	Vector2<float> mTextureSize;
 	unsigned int mMaterialType;
     Vector2<int> mSegments;
 	Vector2<float> mExtent;
@@ -143,7 +143,7 @@ public:
 
     GridRenderComponent(void);
 	const char* GetTextureResource() { return mTextureResource.c_str(); }
-	const Vector2<float> GetTextureScale() { return mTextureScale; }
+	const Vector2<float> GetTextureScale() { return mTextureSize; }
 	const Vector2<int> GetSegments() { return mSegments; }
 	const Vector2<float> GetExtent() { return mExtent; }
 
@@ -165,7 +165,7 @@ class LightRenderComponent : public BaseRenderComponent
 	float mAnimatorRadius;
 	Vector3<float> mAnimatorCenter;
 
-	Vector2<float> mTextureScale;
+	Vector2<float> mTextureSize;
 	eastl::string mTextureResource;
 
 	eastl::shared_ptr<Light> mLightData;
@@ -182,6 +182,33 @@ protected:
 
     // editor stuff
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
+};
+
+//---------------------------------------------------------------------------------------------------------------------
+// Billboard
+//---------------------------------------------------------------------------------------------------------------------
+class BillboardRenderComponent : public BaseRenderComponent
+{
+	int mMaterialType;
+
+	int mAnimatorType;
+	unsigned int mAnimationTime;
+
+	Vector2<float> mTextureSize;
+	eastl::vector<eastl::string> mTextures;
+
+public:
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
+
+	BillboardRenderComponent(void);
+
+protected:
+	virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+
+	// editor stuff
+	virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
 

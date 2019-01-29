@@ -484,7 +484,7 @@ bool MainMenuUI::OnRender(double time, float elapsedTime)
 	const eastl::shared_ptr<BaseUIStaticText>& statusLabel =
 		eastl::static_pointer_cast<BaseUIStaticText>(root->GetElementFromId(CID_STATUS_LABEL));
 	if (statusLabel)
-		statusLabel->SetText(eastl::wstring("Press set button to change settings").c_str());
+		statusLabel->SetText(eastl::wstring(L"Press set button to change settings").c_str());
 
 	return BaseUI::OnRender(time, elapsedTime);
 };
