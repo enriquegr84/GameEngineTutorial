@@ -58,7 +58,8 @@ void NodeAnimatorTexture::AnimateNode(Scene* pScene, Node* node, unsigned int ti
 		}
 
 		if (idx < mTextures.size())
-			node->SetMaterialTexture(0, mTextures[idx]);
+			if (node->GetMaterial(0)->GetTexture(0) != mTextures[idx])
+				node->SetMaterialTexture(0, mTextures[idx]);
 	}
 }
 

@@ -65,7 +65,8 @@ public:
 	virtual void OnUpdate(float deltaSeconds) = 0;
 
 	// Initialization of Physics Objects
-	virtual void AddTrigger(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> pGameActor) = 0;
+	virtual void AddTrigger(const Vector3<float>& dimensions, 
+		eastl::weak_ptr<Actor> pGameActor, const eastl::string& physicMaterial) = 0;
 	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
 		/*const Matrix4x4<float>& initialTransform, */
 		const eastl::string& densityStr, const eastl::string& physicMaterial) = 0;

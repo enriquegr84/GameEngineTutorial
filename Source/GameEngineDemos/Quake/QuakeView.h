@@ -264,6 +264,20 @@ struct MediaResource
 	eastl::wstring fallSound;
 	eastl::wstring jumpPadSound;
 
+	//player sound
+	eastl::wstring playerDeath1Sound;
+	eastl::wstring playerDeath2Sound;
+	eastl::wstring playerDeath3Sound;
+	eastl::wstring playerDrownSound;
+	eastl::wstring playerFallSound;
+	eastl::wstring playerFallingSound;
+	eastl::wstring playerGaspSound;
+	eastl::wstring playerJumpSound;
+	eastl::wstring playerLandSound;
+	eastl::wstring playerPainSound[4];
+	eastl::wstring playerTalkSound;
+	eastl::wstring playerTauntSound;
+
 	eastl::wstring oneMinuteSound;
 	eastl::wstring fiveMinuteSound;
 	eastl::wstring suddenDeathSound;

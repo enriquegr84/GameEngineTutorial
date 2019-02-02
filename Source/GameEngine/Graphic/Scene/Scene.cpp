@@ -480,7 +480,6 @@ eastl::shared_ptr<NodeAnimator> Scene::CreateDeleteAnimator(unsigned int when)
 	return eastl::shared_ptr<NodeAnimator>(new NodeAnimatorDelete(Timer::GetTime() + when));
 }
 
-
 //! Creates a follow spline animator.
 eastl::shared_ptr<NodeAnimator> Scene::CreateFollowSplineAnimator(int startTime,
 	const eastl::vector<Vector3<float>>& points, float speed, float tightness, bool loop, bool pingpong)

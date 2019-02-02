@@ -105,7 +105,8 @@ public:
 	virtual void OnUpdate( float ) { }
 
 	// Initialization of Physics Objects
-	virtual void AddTrigger(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> pGameActor) { }
+	virtual void AddTrigger(const Vector3<float>& dimensions, 
+		eastl::weak_ptr<Actor> pGameActor, const eastl::string& physicMaterial) { }
 	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
 		const eastl::string& densityStr, const eastl::string& physicMaterial) { }
 	virtual void AddCharacterController(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> actor,
@@ -337,7 +338,8 @@ public:
 	virtual void OnUpdate( float deltaSeconds ) override; 
 
 	// Initialization of Physics Objects
-	virtual void AddTrigger(const Vector3<float> &dimension, eastl::weak_ptr<Actor> pGameActor) override;
+	virtual void AddTrigger(const Vector3<float> &dimension, 
+		eastl::weak_ptr<Actor> pGameActor, const eastl::string& physicMaterial) override;
 	virtual void AddBSP(BspLoader& bspLoader, eastl::weak_ptr<Actor> actor,
 		const eastl::string& densityStr, const eastl::string& physicMaterial) override;
 	virtual void AddCharacterController(const Vector3<float>& dimensions, eastl::weak_ptr<Actor> actor,
@@ -542,7 +544,7 @@ bool BulletPhysics::Initialize()
 	// This is the main Bullet interface point.  Pass in all these components to customize its behavior.
 	mDynamicsWorld = new btDiscreteDynamicsWorld( 
 		mDispatcher, mBroadphase, mSolver, mCollisionConfiguration );
-	mDynamicsWorld->setGravity(btVector3(0, 0, -1.f));
+	mDynamicsWorld->setGravity(btVector3(0, 0, -200.f));
 
 	mDebugDrawer = new BulletDebugDrawer();
 	GameApplication* gameApp = (GameApplication*)Application::App;
@@ -762,7 +764,8 @@ ActorId BulletPhysics::FindActorID( btCollisionObject const * const collisionObj
 /////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::AddTrigger
 //
-void BulletPhysics::AddTrigger(const Vector3<float> &dimension, eastl::weak_ptr<Actor> pGameActor)
+void BulletPhysics::AddTrigger(const Vector3<float> &dimension, 
+	eastl::weak_ptr<Actor> pGameActor, const eastl::string& physicMaterial)
 {
 	eastl::shared_ptr<Actor> pStrongActor(pGameActor.lock());
 	if (!pStrongActor)
@@ -791,6 +794,13 @@ void BulletPhysics::AddTrigger(const Vector3<float> &dimension, eastl::weak_ptr<
 
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, boxShape, btVector3(0, 0, 0));
 	btRigidBody * const body = new btRigidBody(rbInfo);
+
+	// lookup the material
+	MaterialData material(LookupMaterialData(physicMaterial));
+
+	// set up the materal properties
+	rbInfo.m_restitution = material.mRestitution;
+	rbInfo.m_friction = material.mFriction;
 
 	mDynamicsWorld->addRigidBody(body);
 

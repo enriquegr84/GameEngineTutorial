@@ -91,7 +91,7 @@ bool PhysicComponent::Init(tinyxml2::XMLElement* pData)
         mDensity = pDensity->FirstChild()->Value();
 
     // material
-	tinyxml2::XMLElement* pMaterial = pData->FirstChildElement("PhysicMaterial");
+	tinyxml2::XMLElement* pMaterial = pData->FirstChildElement("PhysicsMaterial");
     if (pMaterial)
         mMaterial = pMaterial->FirstChild()->Value();
 
@@ -183,7 +183,7 @@ void PhysicComponent::PostInit(void)
 		}
 		else if (mShape == "Trigger")
 		{
-			gamePhysics->AddTrigger(mRigidBodyScale, mOwner);
+			gamePhysics->AddTrigger(mRigidBodyScale, mOwner, mMaterial);
 		}
 		else if (mShape == "Controller")
 		{

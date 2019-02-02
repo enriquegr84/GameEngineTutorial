@@ -690,12 +690,6 @@
     <ClCompile Include="..\Graphic\Resource\Texture\TextureDS.cpp" />
     <ClCompile Include="..\Graphic\Resource\Texture\TextureRT.cpp" />
     <ClCompile Include="..\Graphic\Resource\Texture\TextureSingle.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Controller\BlendTransformController.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Controller\ControlledObject.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Controller\Controller.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Controller\KeyframeController.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Controller\SkinController.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Controller\TransformController.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\AnimatedMeshNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorDelete.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyCircle.cpp" />
@@ -1647,12 +1641,6 @@
     <ClInclude Include="..\Graphic\Resource\Texture\TextureDS.h" />
     <ClInclude Include="..\Graphic\Resource\Texture\TextureRT.h" />
     <ClInclude Include="..\Graphic\Resource\Texture\TextureSingle.h" />
-    <ClInclude Include="..\Graphic\Scene\Controller\BlendTransformController.h" />
-    <ClInclude Include="..\Graphic\Scene\Controller\ControlledObject.h" />
-    <ClInclude Include="..\Graphic\Scene\Controller\Controller.h" />
-    <ClInclude Include="..\Graphic\Scene\Controller\KeyframeController.h" />
-    <ClInclude Include="..\Graphic\Scene\Controller\SkinController.h" />
-    <ClInclude Include="..\Graphic\Scene\Controller\TransformController.h" />
     <ClInclude Include="..\Graphic\Scene\Element\AnimatedMeshNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorDelete.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Animator\NodeAnimatorFlyCircle.h" />

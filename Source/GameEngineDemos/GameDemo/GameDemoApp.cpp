@@ -62,7 +62,7 @@
 // initialization. This allows the GameEngine function to live in a library, 
 // separating the game engine from game specific code, in this case Demos.
 //========================================================================
-
+/*
 int main()
 {
 #if defined(_DEBUG)
@@ -126,7 +126,7 @@ int main()
 
 	return exitCode;
 }
-
+*/
 //========================================================================
 //
 // GameDemoApp Implementation     - Chapter 21, page 722

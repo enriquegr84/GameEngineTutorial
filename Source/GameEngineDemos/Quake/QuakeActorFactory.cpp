@@ -128,6 +128,7 @@ eastl::shared_ptr<PlayerActor> QuakeActorFactory::CreatePlayerActor(const wchar_
 		pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 	if (pInitialTransform && pTransformComponent)
 	{
+		pTransformComponent->SetRotation(pInitialTransform->GetRotation());
 		pTransformComponent->SetPosition(pInitialTransform->GetTranslation());
 	}
 

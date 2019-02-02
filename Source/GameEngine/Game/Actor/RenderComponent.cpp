@@ -81,7 +81,7 @@ bool MeshRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 		do
 		{
 			meshEnd = meshes.find(',', meshBegin);
-			mMeshes.push_back(meshes.substr(meshBegin, meshEnd));
+			mMeshes.push_back(meshes.substr(meshBegin, meshEnd - meshBegin));
 
 			meshBegin = meshEnd + 1;
 		} 
@@ -134,8 +134,7 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 				
 				eastl::shared_ptr<AnimateMeshMD3> meshMD3 = 
 					eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(mesh);
-				AnimateMeshMD3* animMeshMD3 = 
-					dynamic_cast<AnimateMeshMD3*>(extra->GetMesh());
+				AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(extra->GetMesh());
 				if (meshMD3)
 				{
 					if (!animMeshMD3->GetMD3Mesh()->GetParent())
@@ -143,16 +142,39 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 				}
 				else mesh = eastl::shared_ptr<BaseMesh>(extra->GetMesh());
 
-				if (animMeshMD3 && mMaterialType == MaterialType::MT_TRANSPARENT)
+				if (mMaterialType == MaterialType::MT_TRANSPARENT)
 				{
-					eastl::vector<eastl::shared_ptr<MD3Mesh>> animMeshes;
-					animMeshMD3->GetMD3Mesh()->GetMeshes(animMeshes);
-
-					for (eastl::shared_ptr<MD3Mesh> animMesh : animMeshes)
+					if (animMeshMD3)
 					{
-						for (unsigned int i = 0; i < animMesh->GetMeshBufferCount(); ++i)
+						eastl::vector<eastl::shared_ptr<MD3Mesh>> animMeshes;
+						animMeshMD3->GetMD3Mesh()->GetMeshes(animMeshes);
+
+						for (eastl::shared_ptr<MD3Mesh> animMesh : animMeshes)
 						{
-							eastl::shared_ptr<Material> material = animMesh->GetMeshBuffer(i)->GetMaterial();
+							for (unsigned int i = 0; i < animMesh->GetMeshBufferCount(); ++i)
+							{
+								eastl::shared_ptr<Material> material = animMesh->GetMeshBuffer(i)->GetMaterial();
+								material->mBlendTarget.enable = true;
+								material->mBlendTarget.srcColor = BlendState::BM_ONE;
+								material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+								material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+								material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+								material->mDepthBuffer = true;
+								material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+								material->mFillMode = RasterizerState::FILL_SOLID;
+								material->mCullMode = RasterizerState::CULL_NONE;
+
+								material->mType = (MaterialType)mMaterialType;
+							}
+						}
+					}
+					else
+					{
+						for (unsigned int i = 0; i < mesh->GetMeshBufferCount(); ++i)
+						{
+							eastl::shared_ptr<Material> material = mesh->GetMeshBuffer(i)->GetMaterial();
 							material->mBlendTarget.enable = true;
 							material->mBlendTarget.srcColor = BlendState::BM_ONE;
 							material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
@@ -186,9 +208,10 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 			// create an mesh scene node with specified mesh.
 			meshNode = pScene->AddMeshNode(wbrcp, 0, mesh, mOwner->GetId());
 			if (meshNode)
+			{
 				meshNode->GetRelativeTransform() = transform;
-
-			meshNode->SetMaterialType((MaterialType)mMaterialType);
+				meshNode->SetMaterialType((MaterialType)mMaterialType);
+			}
 		}
 		else
 		{
@@ -196,25 +219,28 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 			meshNode = pScene->AddAnimatedMeshNode(
 				wbrcp, 0, eastl::dynamic_shared_pointer_cast<BaseAnimatedMesh>(mesh), mOwner->GetId());
 			if (meshNode)
+			{
 				meshNode->GetRelativeTransform() = transform;
 
-			if (mAnimatorType & NAT_ROTATION)
-			{
-				eastl::shared_ptr<NodeAnimator> anim = 0;
-				anim = pScene->CreateRotationAnimator(Vector4<float>::Unit(2), 1.0f);
-				meshNode->AttachAnimator(anim);
-			}
+				if (mAnimatorType & NAT_ROTATION)
+				{
+					eastl::shared_ptr<NodeAnimator> anim = 0;
+					anim = pScene->CreateRotationAnimator(Vector4<float>::Unit(2), 1.0f);
+					meshNode->AttachAnimator(anim);
+				}
 
-			if (mAnimatorType & NAT_FLY_STRAIGHT)
-			{
-				eastl::shared_ptr<NodeAnimator> anim = 0;
-				anim = pScene->CreateFlyStraightAnimator(
-					transform.GetTranslation() + Vector3<float>::Unit(2) * 5.f,
-					transform.GetTranslation() - Vector3<float>::Unit(2) * 5.f,
-					500, true, true);
-				meshNode->AttachAnimator(anim);
+				if (mAnimatorType & NAT_FLY_STRAIGHT)
+				{
+					eastl::shared_ptr<NodeAnimator> anim = 0;
+					anim = pScene->CreateFlyStraightAnimator(
+						transform.GetTranslation() + Vector3<float>::Unit(2) * 5.f,
+						transform.GetTranslation() - Vector3<float>::Unit(2) * 5.f,
+						500, true, true);
+					meshNode->AttachAnimator(anim);
+				}
+
+				meshNode->SetMaterialType((MaterialType)mMaterialType);
 			}
-			meshNode->SetMaterialType((MaterialType)mMaterialType);
 		}
 		return meshNode;
 	}
@@ -676,7 +702,7 @@ bool BillboardRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 		do
 		{
 			textureEnd = textures.find(',', textureBegin);
-			mTextures.push_back(textures.substr(textureBegin, textureEnd));
+			mTextures.push_back(textures.substr(textureBegin, textureEnd - textureBegin));
 
 			textureBegin = textureEnd + 1;
 		} while (textureEnd != eastl::string::npos);
@@ -727,7 +753,7 @@ eastl::shared_ptr<Node> BillboardRenderComponent::CreateSceneNode(void)
 					for (auto texture : mTextures)
 					{
 						eastl::shared_ptr<ResHandle>& resHandle = 
-							ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextures.front().c_str())));
+							ResCache::Get()->GetHandle(&BaseResource(ToWideString(texture.c_str())));
 						if (resHandle)
 						{
 							const eastl::shared_ptr<ImageResourceExtraData>& extra =
@@ -1365,13 +1391,6 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 				{
 					eastl::shared_ptr<BaseParticleAffector> particleAffector(
 						particleSystem->CreateAttractionAffector());
-					particleSystem->AddAffector(particleAffector);
-					break;
-				}
-				case PAT_FADE_OUT:
-				{
-					eastl::shared_ptr<BaseParticleAffector> particleAffector(
-						particleSystem->CreateFadeOutParticleAffector());
 					particleSystem->AddAffector(particleAffector);
 					break;
 				}

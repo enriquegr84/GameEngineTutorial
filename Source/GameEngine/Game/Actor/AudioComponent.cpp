@@ -66,7 +66,7 @@ bool AudioComponent::Init(tinyxml2::XMLElement* pData)
 		do
 		{
 			audioEnd = audios.find(',', audioBegin);
-			mAudios.push_back(audios.substr(audioBegin, audioEnd));
+			mAudios.push_back(audios.substr(audioBegin, audioEnd - audioBegin));
 
 			audioBegin = audioEnd + 1;
 		} while (audioEnd != eastl::string::npos);

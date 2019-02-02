@@ -243,7 +243,6 @@ struct PlayerAction
 	int weaponSelect;
 };
 
-
 // PlayerState is the information from its current state
 struct PlayerState
 {
@@ -302,7 +301,6 @@ struct PlayerState
 	int powerups[MAX_POWERUPS];	// level.time that the powerup runs out
 	int ammo[MAX_WEAPONS];
 };
-
 
 /*
 	Player Actor class. Quake player actor is a character (NPC or human) in your game world.

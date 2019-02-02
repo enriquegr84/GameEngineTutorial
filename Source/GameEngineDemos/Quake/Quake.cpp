@@ -903,7 +903,7 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 												do
 												{
 													audioEnd = audios.find(',', audioBegin);
-													pAudioComponent->AddAudio("audio/quake/" + audios.substr(audioBegin, audioEnd));
+													pAudioComponent->AddAudio("audio/quake/" + audios.substr(audioBegin, audioEnd - audioBegin));
 
 													audioBegin = audioEnd + 1;
 												} while (audioEnd != eastl::string::npos);
@@ -1056,7 +1056,7 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 										do
 										{
 											audioEnd = audios.find(',', audioBegin);
-											pAudioComponent->AddAudio("audio/quake/" + audios.substr(audioBegin, audioEnd));
+											pAudioComponent->AddAudio("audio/quake/" + audios.substr(audioBegin, audioEnd - audioBegin));
 
 											audioBegin = audioEnd + 1;
 										} while (audioEnd != eastl::string::npos);
@@ -1078,6 +1078,333 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 	}
 
 	return true;
+}
+
+/*
+Spawns an item and tosses it forward
+*/
+eastl::shared_ptr<Actor> DropItem(
+	const Transform& transform, const eastl::shared_ptr<Actor>& item)
+{
+	AxisAngle<4, float> angles = Rotation<4, float>(transform.GetRotation());
+
+	Vector3<float> direction = HProject(angles.mAxis);
+	direction[YAW] = -1.0f;
+	Normalize(direction);
+
+	direction[PITCH] *= 2.0f;
+	direction[ROLL] *= 2.0f;
+	direction[YAW] *= 6.0f;
+
+	// fire the targets of the spawn point
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<QuakeEventDataPushActor>(item->GetId(), direction));
+
+	// auto-remove after 30 seconds
+	return item;
+}
+
+eastl::shared_ptr<Actor> CreateItemWeapon(WeaponType weapon, const Transform& initTransform)
+{
+	eastl::shared_ptr<Actor> pActor;
+	switch (weapon)
+	{
+	case WP_SHOTGUN:
+		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/shotgun.xml", nullptr, &initTransform);
+		break;
+	case WP_GRENADE_LAUNCHER:
+		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/grenadelauncher.xml", nullptr, &initTransform);
+		break;
+	case WP_ROCKET_LAUNCHER:
+		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/rocketlauncher.xml", nullptr, &initTransform);
+		break;
+	case WP_LIGHTNING:
+		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/lightning.xml", nullptr, &initTransform);
+		break;
+	case WP_RAILGUN:
+		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/railgun.xml", nullptr, &initTransform);
+		break;
+	case WP_PLASMAGUN:
+		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/plasmagun.xml", nullptr, &initTransform);
+		break;
+	default:
+		break;
+	}
+
+	LogError("Couldn't find item for weapon " + eastl::to_string(weapon));
+	return pActor;
+}
+
+/*
+Toss the weapon and powerups for the killed player
+*/
+void TossClientItems(const eastl::shared_ptr<PlayerActor>& player)
+{
+	// drop the weapon if not a gauntlet or machinegun
+	WeaponType weapon = (WeaponType)player->GetState().weapon;
+
+	// make a special check to see if they are changing to a new
+	// weapon that isn't the mg or gauntlet.  Without this, a client
+	// can pick up a weapon, be killed, and not drop the weapon because
+	// their weapon change hasn't completed yet and they are still holding the MG.
+	if (weapon == WP_MACHINEGUN)
+	{
+		if (player->GetState().weaponState == WEAPON_DROPPING)
+		{
+			weapon = WP_NONE;
+		}
+		if (!(player->GetState().stats[STAT_WEAPONS] & (1 << weapon)))
+		{
+			weapon = WP_NONE;
+		}
+	}
+
+	if (weapon > WP_MACHINEGUN &&
+		player->GetState().ammo[weapon])
+	{
+		// find the item type for this weapon
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			player->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			// spawn the item
+			Transform itemTransform;
+			itemTransform.SetTranslation(pTransformComponent->GetTransform().GetTranslationW1());
+			eastl::shared_ptr<Actor> item = CreateItemWeapon(weapon, itemTransform);
+
+			DropItem(pTransformComponent->GetTransform(), item);
+		}
+	}
+}
+
+void LookAtKiller(
+	const eastl::shared_ptr<Actor>& inflictor,
+	const eastl::shared_ptr<PlayerActor>& player,
+	const eastl::shared_ptr<PlayerActor>& attacker)
+{
+	if (attacker && attacker != player)
+	{
+		Vector4<float> playerTranslation, attackerTranslation;
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			player->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+			playerTranslation = pTransformComponent->GetTransform().GetTranslationW1();
+
+		pTransformComponent =
+			attacker->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+		if (pTransformComponent)
+			attackerTranslation = pTransformComponent->GetTransform().GetTranslationW1();
+
+		Vector4<float> direction = attackerTranslation - playerTranslation;
+		Normalize(direction);
+		Matrix4x4<float> rotation = Rotation<4, float>(AxisAngle<4, float>(direction, 0.f));
+
+		Transform transform;
+		transform.SetRotation(rotation);
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<QuakeEventDataRotateActor>(player->GetId(), transform));
+		player->GetState().stats[STAT_DEAD_YAW] = 0;
+	}
+	else if (inflictor && inflictor != player)
+	{
+		Vector4<float> playerTranslation, inflictorTranslation;
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			player->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+			playerTranslation = pTransformComponent->GetTransform().GetTranslationW1();
+
+		pTransformComponent =
+			attacker->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+		if (pTransformComponent)
+			inflictorTranslation = pTransformComponent->GetTransform().GetTranslationW1();
+
+		Vector4<float> direction = inflictorTranslation - playerTranslation;
+		Normalize(direction);
+		Matrix4x4<float> rotation = Rotation<4, float>(AxisAngle<4, float>(direction, 0.f));
+
+		Transform transform;
+		transform.SetRotation(rotation);
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<QuakeEventDataRotateActor>(player->GetId(), transform));
+		player->GetState().stats[STAT_DEAD_YAW] = 0;
+	}
+	else
+	{
+		Transform playerTransform;
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			player->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+			playerTransform = pTransformComponent->GetTransform();
+
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<QuakeEventDataRotateActor>(player->GetId(), playerTransform));
+		player->GetState().stats[STAT_DEAD_YAW] = 0;
+	}
+}
+
+
+void Die(int damage, MeansOfDeath meansOfDeath,
+	const eastl::shared_ptr<Actor>& inflictor,
+	const eastl::shared_ptr<PlayerActor>& player,
+	const eastl::shared_ptr<PlayerActor>& attacker)
+{
+	eastl::shared_ptr<Actor> ent;
+
+	if (player->GetState().moveType == PM_DEAD)
+		return;
+
+	player->GetState().moveType = PM_DEAD;
+	player->GetState().viewHeight = DEAD_VIEWHEIGHT;
+	/*
+	if (meansOfDeath < 0 || meansOfDeath >= sizeof(modNames) / sizeof(modNames[0]))
+	{
+	obit = "<bad obituary>";
+	}
+	else
+	{
+	obit = modNames[meansOfDeath];
+	}
+
+	LogInformation("Kill: %i %i %i: %s killed %s by %s\n",
+	killer, self->state->number, meansOfDeath, killerName,
+	self->client->pers.netname, obit);
+
+	// broadcast the death event to everyone
+	*/
+
+	player->GetState().persistant[PERS_KILLED]++;
+
+	if (attacker)
+	{
+		attacker->GetState().lastKilled = player->GetId();
+
+		if (attacker == player)//|| OnSameTeam(self, attacker))
+		{
+			attacker->GetState().persistant[PERS_SCORE] -= 1;
+			/*
+			if (g_gametype.integer == GT_TEAM)
+			level.teamScores[attacker->GetState().persistant[PERS_TEAM]] -= 1;
+			*/
+		}
+		else
+		{
+			attacker->GetState().persistant[PERS_SCORE] += 1;
+			/*
+			if (g_gametype.integer == GT_TEAM)
+			level.teamScores[attacker->GetState().persistant[PERS_TEAM]] += 1;
+			*/
+
+			if (meansOfDeath == MOD_GAUNTLET)
+			{
+				// play humiliation on player
+				attacker->GetState().persistant[PERS_GAUNTLET_FRAG_COUNT]++;
+
+				// add the sprite over the player's head
+				attacker->GetState().eFlags &= ~(
+					EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT |
+					EF_AWARD_GAUNTLET | EF_AWARD_ASSIST |
+					EF_AWARD_DEFEND | EF_AWARD_CAP);
+				attacker->GetState().eFlags |= EF_AWARD_GAUNTLET;
+				//attacker->GetState().rewardTime = level.time + REWARD_SPRITE_TIME;
+
+				// also play humiliation on target
+				player->GetState().persistant[PERS_PLAYEREVENTS] ^= PLAYEREVENT_GAUNTLETREWARD;
+			}
+
+			// check for two kills in a short amount of time
+			// if this is close enough to the last kill, give a reward sound
+			/*
+			if (level.time - attacker->GetState().lastKillTime < CARNAGE_REWARD_TIME)
+			{
+			// play excellent on player
+			attacker->GetState().persistant[PERS_EXCELLENT_COUNT]++;
+
+			// add the sprite over the player's head
+			attacker->GetState().eFlags &= ~(
+			EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT |
+			EF_AWARD_GAUNTLET | EF_AWARD_ASSIST |
+			EF_AWARD_DEFEND | EF_AWARD_CAP);
+			attacker->GetState().eFlags |= EF_AWARD_EXCELLENT;
+			attacker->GetState().rewardTime = level.time + REWARD_SPRITE_TIME;
+			}
+			attacker->GetState().lastKillTime = level.time;
+			*/
+		}
+	}
+	else
+	{
+		player->GetState().persistant[PERS_SCORE] -= 1;
+		/*
+		if (g_gametype.integer == GT_TEAM)
+		level.teamScores[player->GetState().persistant[PERS_TEAM]] -= 1;
+		*/
+	}
+
+	// Add team bonuses
+	//Team_FragBonuses(self, inflictor, attacker);
+
+	// if client is in a nodrop area, don't drop anything (but return CTF flags!)
+	TossClientItems(player);
+
+	//Cmd_Score_f(self);		// show scores
+	// send updated scores to any clients that are following this one,
+	// or they would get stale scoreboards
+
+	player->GetState().takeDamage = true;	// can still be gibbed
+
+	player->GetState().weapon = WP_NONE;
+	player->GetState().contents = CONTENTS_CORPSE;
+	LookAtKiller(inflictor, player, attacker);
+
+	//player->GetState().viewangles = Vector3<float>{ player->GetState().angles };
+	//player->GetState().loopSound = 0;
+
+	//self->maxs[2] = -8;
+
+	// don't allow respawn until the death anim is done
+	// g_forcerespawn may force spawning at some later time
+	//player->GetState().respawnTime = level.time + 1700;
+
+	// remove powerups
+	memset(player->GetState().powerups, 0, sizeof(player->GetState().powerups));
+
+	// never gib in a nodrop
+	int anim = BOTH_DEATH1;
+	/*
+	if ((player->GetState().stats[STAT_HEALTH] <= GIB_HEALTH &&
+	!(contents & CONTENTS_NODROP)) || meansOfDeath == MOD_SUICIDE)
+	{
+	// gib death
+	//GibEntity(self, killer);
+	}
+	else
+	*/
+	{
+		// for the no-blood option, we need to prevent the health
+		// from going to gib level
+		if (player->GetState().stats[STAT_HEALTH] <= GIB_HEALTH)
+			player->GetState().stats[STAT_HEALTH] = GIB_HEALTH + 1;
+
+		player->GetState().legsAnim = anim;
+		player->GetState().torsoAnim = anim;
+
+		// call for animation death
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<QuakeEventDataDeadActor>(player->GetId()));
+
+		// play pain sound
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<EventDataPlaySound>("audio/quake/sound/player/death1.wav"));
+
+		//AddEvent(self, EV_DEATH1 + i, killer);
+
+		// the body can still be gibbed
+		//self->die = body_die;
+
+		// globally cycle through the different death animations
+		//i = (i + 1) % 3;
+	}
+	//trap_LinkEntity(self);
 }
 
 
@@ -1162,6 +1489,8 @@ void DamageFeedback(const eastl::shared_ptr<PlayerActor>& player)
 	player->GetState().damageKnockback = 0;
 }
 
+
+
 /*
 ============
 Damage
@@ -1185,35 +1514,17 @@ DAMAGE_NO_PROTECTION	kills godmode, armor, everything
 ============
 */
 
-void Damage(
-	const eastl::shared_ptr<PlayerActor>& target,
-	const eastl::shared_ptr<PlayerActor>& inflictor,
-	const eastl::shared_ptr<PlayerActor>& attacker,
+void Damage(int damage, int dflags, int mod,
 	Vector3<float> dir, Vector3<float> point,
-	int damage, int dflags, int mod)
+	const eastl::shared_ptr<PlayerActor>& target,
+	const eastl::shared_ptr<Actor>& inflictor,
+	const eastl::shared_ptr<PlayerActor>& attacker)
 {
 	if (!target->GetState().takeDamage)
 	{
 		return;
 	}
 
-	/*
-	// the intermission has allready been qualified for, so don't
-	// allow any extra scoring
-	if (level.intermissionQueued)
-	{
-	return;
-	}
-
-	if (!inflictor)
-	{
-	inflictor = &entities[ENTITYNUM_WORLD];
-	}
-	if (!attacker)
-	{
-	attacker = &entities[ENTITYNUM_WORLD];
-	}
-	*/
 
 	// reduce damage by the attacker's handicap value
 	// unless they are rocket jumping
@@ -1270,27 +1581,6 @@ void Damage(
 		}
 	}
 
-	// check for completely getting out of the damage
-	/*
-	if (!(dflags & DAMAGE_NO_PROTECTION))
-	{
-	// if TF_NO_FRIENDLY_FIRE is set, don't do damage to the target
-	// if the attacker was on the same team
-	if (target != attacker)// && OnSameTeam(targ, attacker))
-	{
-	if (!g_friendlyFire.integer)
-	{
-	return;
-	}
-	}
-
-	// check for godmode
-	if (target->GetState().flags & FL_GODMODE)
-	{
-	return;
-	}
-	}
-	*/
 	// battlesuit protects from all radius damage (but takes knockback)
 	// and protects 50% against all damage
 	if (target && target->GetState().powerups[PW_BATTLESUIT])
@@ -1337,13 +1627,7 @@ void Damage(
 	// save some from armor
 	int asave = CheckArmor(target, take, dflags);
 	take -= asave;
-	/*
-	if (g_debugDamage.integer)
-	{
-	LogInformation("%i: client:%i health:%i damage:%i armor:%i\n", level.time, targ->state->number,
-	targ->health, take, asave);
-	}
-	*/
+
 	// add to the damage inflicted on a player this frame
 	// the total will be turned into screen blends and view angle kicks
 	// at the end of the frame
@@ -1399,12 +1683,37 @@ void Damage(
 				target->GetState().stats[STAT_HEALTH] = -999;
 
 			//targ->enemy = attacker;
-			//PlayerDie(target, inflictor, attacker, take, mod);
+			Die(take, (MeansOfDeath)mod, inflictor, target, attacker);
 		}
 		else //if (targ->pain)
 		{
 			//targ->pain(targ, attacker, take);
-			//PlayerPain(target, attacker, take);
+			DamageFeedback(attacker);
+
+			if (target->GetState().stats[STAT_HEALTH] < 25) 
+			{
+				// play pain sound
+				EventManager::Get()->TriggerEvent(
+					eastl::make_shared<EventDataPlaySound>("audio/quake/sound/player/pain25_1.wav"));
+			}
+			else if (target->GetState().stats[STAT_HEALTH] < 50) 
+			{
+				// play pain sound
+				EventManager::Get()->TriggerEvent(
+					eastl::make_shared<EventDataPlaySound>("audio/quake/sound/player/pain50_1.wav"));
+			}
+			else if (target->GetState().stats[STAT_HEALTH] < 75) 
+			{
+				// play pain sound
+				EventManager::Get()->TriggerEvent(
+					eastl::make_shared<EventDataPlaySound>("audio/quake/sound/player/pain75_1.wav"));
+			}
+			else 
+			{
+				// play pain sound
+				EventManager::Get()->TriggerEvent(
+					eastl::make_shared<EventDataPlaySound>("audio/quake/sound/player/pain100_1.wav"));
+			}
 		}
 	}
 }
@@ -1453,10 +1762,10 @@ bool LogAccuracyHit(
 	return true;
 }
 
-bool RadiusDamage(Vector3<float> origin,
+bool RadiusDamage(
+	float damage, float radius, int mod, Vector3<float> origin,
 	const eastl::shared_ptr<PlayerActor>& attacker,
-	const eastl::shared_ptr<Actor>& ignore,
-	float damage, float radius, int mod)
+	const eastl::shared_ptr<Actor>& ignore)
 {
 	float points, dist;
 	int numListedEntities;
@@ -1523,13 +1832,12 @@ bool RadiusDamage(Vector3<float> origin,
 			// push the center of mass higher than the origin so players
 			// get knocked into the air more
 			dir[2] += 24;
-			Damage(actor, NULL, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
+			Damage((int)points, DAMAGE_RADIUS, mod, dir, origin, actor, NULL, attacker);
 		}
 	}
 
 	return hitClient;
 }
-
 
 void BounceProjectile(
 	Vector3<float> start, Vector3<float> impact,
@@ -1559,9 +1867,9 @@ void Gauntlet(const eastl::shared_ptr<PlayerActor>& player)
 
 }
 
-bool QuakeLogic::GauntletAttack(
+void QuakeLogic::GauntletAttack(
 	const eastl::shared_ptr<PlayerActor>& player, 
-	const Vector3<float>& origin, const Vector3<float>& forward, 
+	const Vector3<float>& muzzle, const Vector3<float>& forward,
 	const Vector3<float>& right, const Vector3<float>& up)
 {
 	//EntityTrace tr;
@@ -1570,9 +1878,32 @@ bool QuakeLogic::GauntletAttack(
 	int damage;
 
 	//set muzzle location relative to pivoting eye
-	Vector3<float> muzzle = origin;
-	muzzle[2] += player->GetState().viewHeight;
-	muzzle = muzzle + forward * 32.f;
+	Vector3<float> end = muzzle + forward * 32.f;
+
+	// play attack sound
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/melee/fstrun.ogg"));
+
+	Vector3<float> collision, collisionNormal;
+	ActorId actorCollisionId = mPhysics->CastRay(muzzle, end, collision, collisionNormal);
+	if (collision == NULL) return; // no surface impact
+
+	if (actorCollisionId != INVALID_ACTOR_ID &&
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]))
+	{
+		eastl::shared_ptr<PlayerActor> target =
+			eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]);
+		if (LogAccuracyHit(target, player))
+			player->GetState().accuracyHits++;
+
+		//rotation = ((69069 * randSeed + 1) & 0x7fff) % 360;
+		Transform initTransform;
+		initTransform.SetTranslation(collision);
+		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
+
+		damage = 50;
+		Damage(damage, 0, MOD_GAUNTLET, forward, muzzle, target, player, player);
+	}
 
 	/*
 	trap_Trace(&tr, muzzle, NULL, NULL, end, ent->es->number, MASK_SHOT);
@@ -1595,10 +1926,6 @@ bool QuakeLogic::GauntletAttack(
 	if (!traceEnt->takedamage)
 	return false;
 	*/
-
-	damage = 50;
-	Damage(player, player, player, forward, muzzle, damage, 0, MOD_GAUNTLET);
-	return true;
 }
 
 
@@ -1616,17 +1943,16 @@ void QuakeLogic::BulletFire(
 	const Vector3<float>& muzzle, const Vector3<float>& forward,
 	const Vector3<float>& right, const Vector3<float>& up, float spread, int damage)
 {
-	//EntityTrace tr;
-	Vector3<float> end;
-	eastl::shared_ptr<Actor> ent;
-	//eastl::shared_ptr<Actor> traceEnt;
-
-	float r = (rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * spread * 16.f;
-	r = cos(r) * (2.f * ((rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * spread * 16.f;
-	end = muzzle + forward * 8192.f * 16.f;
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * spread * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * spread * 16.f;
+	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
 	end += right * r;
 	end += up * u;
+
+	// play firing sound
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/machinegun/ric1.ogg"));
 
 	Vector3<float> collision, collisionNormal;
 	ActorId actorCollisionId = mPhysics->CastRay(muzzle, end, collision, collisionNormal);
@@ -1645,7 +1971,7 @@ void QuakeLogic::BulletFire(
 		initTransform.SetTranslation(collision);
 		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
 
-		Damage(target, player, player, forward, collision, damage, 0, MOD_MACHINEGUN);
+		Damage(damage, 0, MOD_MACHINEGUN, forward, collision, target, player, player);
 	}
 	else
 	{
@@ -1653,6 +1979,427 @@ void QuakeLogic::BulletFire(
 		initTransform.SetTranslation(collision);
 		CreateActor("actors/quake/effects/bulletexplosion.xml", nullptr, &initTransform);
 	}
+}
+
+
+/*
+======================================================================
+
+SHOTGUN
+
+======================================================================
+*/
+
+// DEFAULT_SHOTGUN_SPREAD and DEFAULT_SHOTGUN_COUNT	are in bg_public.h, because
+// client predicts same spreads
+#define	DEFAULT_SHOTGUN_DAMAGE	10
+
+bool QuakeLogic::ShotgunPellet(const eastl::shared_ptr<PlayerActor>& player, 
+	const Vector3<float>& forward, const Vector3<float>& start, const Vector3<float>& end)
+{
+	Vector3<float> collision, collisionNormal;
+	ActorId actorCollisionId = mPhysics->CastRay(start, end, collision, collisionNormal);
+	if (collision == NULL) return false; // no surface impact
+
+	if (actorCollisionId != INVALID_ACTOR_ID &&
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]))
+	{
+		eastl::shared_ptr<PlayerActor> target =
+			eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]);
+		if (LogAccuracyHit(target, player))
+			player->GetState().accuracyHits++;
+
+		//rotation = ((69069 * randSeed + 1) & 0x7fff) % 360;
+		Transform initTransform;
+		initTransform.SetTranslation(collision);
+		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
+
+		int damage = DEFAULT_SHOTGUN_DAMAGE;
+		Damage(damage, 0, MOD_SHOTGUN, forward, collision, target, player, player);
+		return true;
+	}
+	else
+	{
+		Transform initTransform;
+		initTransform.SetTranslation(collision);
+		CreateActor("actors/quake/effects/bulletexplosion.xml", nullptr, &initTransform);
+	}
+
+	return false;
+}
+
+void QuakeLogic::ShotgunFire(
+	const eastl::shared_ptr<PlayerActor>& player,
+	const Vector3<float>& muzzle, const Vector3<float>& forward,
+	const Vector3<float>& right, const Vector3<float>& up)
+{
+	// play firing sound
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/shotgun/sshotf1b.ogg"));
+
+	// generate the "random" spread pattern
+	for (unsigned int i = 0; i < DEFAULT_SHOTGUN_COUNT; i++)
+	{
+		float r = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
+		float u = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
+		Vector3<float> end = muzzle + forward * 8192.f * 16.f;
+		end += right * r;
+		end += up * u;
+
+		if (ShotgunPellet(player, forward, muzzle, end))
+			player->GetState().accuracyHits++;
+	}
+}
+
+
+/*
+======================================================================
+
+GRENADE LAUNCHER
+
+======================================================================
+*/
+
+void QuakeLogic::GrenadeLauncherFire(
+	const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
+	const Vector3<float>& forward, const Vector3<float>& right,
+	const Vector3<float>& up, const EulerAngles<float>& viewAngles)
+{
+	Matrix4x4<float> yawRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
+	Matrix4x4<float> pitchRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1] + GE_C_QUARTER_PI));
+
+	Transform initTransform;
+	initTransform.SetRotation(yawRotation * pitchRotation);
+	initTransform.SetTranslation(muzzle);
+
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
+	end += right * r;
+	end += up * u;
+	Vector3<float> direction = end - muzzle;
+	Normalize(direction);
+
+	eastl::shared_ptr<Actor> pGameActor = 
+		CreateActor("actors/quake/effects/grenadelauncherfire.xml", nullptr, &initTransform);
+	if (pGameActor)
+	{
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+			pPhysicalComponent->ApplyForce(direction * 600000.f);
+	}
+
+	// play firing sound
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/grenade/grenlf1a.ogg"));
+
+	/*
+	bolt->damage = 100;
+	bolt->splashDamage = 100;
+	bolt->splashRadius = 150;
+	bolt->methodOfDeath = MOD_GRENADE;
+	bolt->splashMethodOfDeath = MOD_GRENADE_SPLASH;
+
+	// splash damage
+	if (ent->splashDamage) {
+		if (G_RadiusDamage(ent->r.currentOrigin, ent->parent, ent->splashDamage, ent->splashRadius, ent
+			, ent->splashMethodOfDeath)) {
+			g_entities[ent->r.ownerNum].client->accuracy_hits++;
+		}
+	}
+
+	mod = cgs.media.dishFlashModel;
+	shader = cgs.media.grenadeExplosionShader;
+	sfx = cgs.media.sfx_rockexp;
+	mark = cgs.media.burnMarkShader;
+	radius = 64;
+	light = 300;
+
+	m = FireGrenade(ent, muzzle, forward);
+	//	VectorAdd( m->state->pos.trDelta, ent->client->ps.velocity, m->state->pos.trDelta );	// "real" physics
+	*/
+}
+
+/*
+======================================================================
+
+ROCKET
+
+======================================================================
+*/
+
+void QuakeLogic::RocketLauncherFire(
+	const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
+	const Vector3<float>& forward, const Vector3<float>& right,
+	const Vector3<float>& up, const EulerAngles<float>& viewAngles)
+{
+	Matrix4x4<float> yawRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
+	Matrix4x4<float> pitchRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1] + GE_C_QUARTER_PI));
+
+	Transform initTransform;
+	initTransform.SetRotation(yawRotation * pitchRotation);
+	initTransform.SetTranslation(muzzle);
+
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
+	end += right * r;
+	end += up * u;
+	Vector3<float> direction = end - muzzle;
+	Normalize(direction);
+
+	eastl::shared_ptr<Actor> pGameActor =
+		CreateActor("actors/quake/effects/grenadelauncherfire.xml", nullptr, &initTransform);
+	if (pGameActor)
+	{
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+			pPhysicalComponent->ApplyForce(direction * 600000.f);
+	}
+
+	// play firing sound
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/grenade/grenlf1a.ogg"));
+
+	/*
+	bolt->damage = 100;
+	bolt->splashDamage = 100;
+	bolt->splashRadius = 150;
+	bolt->methodOfDeath = MOD_GRENADE;
+	bolt->splashMethodOfDeath = MOD_GRENADE_SPLASH;
+
+	// splash damage
+	if (ent->splashDamage) {
+	if (G_RadiusDamage(ent->r.currentOrigin, ent->parent, ent->splashDamage, ent->splashRadius, ent
+	, ent->splashMethodOfDeath)) {
+	g_entities[ent->r.ownerNum].client->accuracy_hits++;
+	}
+	}
+
+	mod = cgs.media.dishFlashModel;
+	shader = cgs.media.grenadeExplosionShader;
+	sfx = cgs.media.sfx_rockexp;
+	mark = cgs.media.burnMarkShader;
+	radius = 64;
+	light = 300;
+
+	m = FireRocket(ent, muzzle, forward);
+	//	VectorAdd( m->state->pos.trDelta, ent->client->ps.velocity, m->state->pos.trDelta );	// "real" physics
+	*/
+}
+
+
+/*
+======================================================================
+
+PLASMA GUN
+
+======================================================================
+*/
+
+void QuakeLogic::PlasmagunFire(
+	const eastl::shared_ptr<PlayerActor>& player,
+	const Vector3<float>& muzzle, const Vector3<float>& forward,
+	const Vector3<float>& right, const Vector3<float>& up)
+{
+	/*
+	Entity	*m;
+
+	m = FirePlasma(ent, muzzle, forward);
+	//	VectorAdd( m->state->pos.trDelta, ent->client->ps.velocity, m->state->pos.trDelta );	// "real" physics
+	*/
+}
+
+/*
+======================================================================
+
+RAILGUN
+
+======================================================================
+*/
+
+#define	MAX_RAIL_HITS	4
+void QuakeLogic::RailgunFire(
+	const eastl::shared_ptr<PlayerActor>& player,
+	const Vector3<float>& muzzle, const Vector3<float>& forward,
+	const Vector3<float>& right, const Vector3<float>& up)
+{
+	/*
+	Vector3<float> end;
+
+	EntityTrace trace;
+	Entity	*tent;
+	Entity	*traceEnt;
+	int damage;
+	int i;
+	int hits;
+	int unlinked;
+	int passent;
+	Entity *unlinkedEntities[MAX_RAIL_HITS];
+
+	damage = 100;
+
+	end = muzzle + forward * 8192.f;
+
+	// trace only against the solids, so the railgun will go through people
+	unlinked = 0;
+	hits = 0;
+	passent = ent->state->number;
+	do
+	{
+		//trap_Trace(&trace, muzzle, NULL, NULL, end, passent, MASK_SHOT);
+		if (trace.entityNum >= ENTITYNUM_MAX_NORMAL)
+		{
+			break;
+		}
+		traceEnt = &entities[trace.entityNum];
+		if (traceEnt->takedamage)
+		{
+			if (LogAccuracyHit(traceEnt, ent))
+			{
+				hits++;
+			}
+			Damage(traceEnt, ent, ent, forward, trace.endpos, damage, 0, MOD_RAILGUN);
+		}
+		if (trace.contents & CONTENTS_SOLID)
+		{
+			break;		// we hit something solid enough to stop the beam
+		}
+		// unlink this entity, so the next trace will go past it
+		//trap_UnlinkEntity(traceEnt);
+		unlinkedEntities[unlinked] = traceEnt;
+		unlinked++;
+	} while (unlinked < MAX_RAIL_HITS);
+
+	// link back in any entities we unlinked
+	for (i = 0; i < unlinked; i++)
+	{
+	trap_LinkEntity(unlinkedEntities[i]);
+	}
+
+	// the final trace endpos will be the terminal point of the rail trail
+
+	// snap the endpos to integers to save net bandwidth, but nudged towards the line
+	//SnapVectorTowards(trace.endpos, muzzle);
+
+	// send railgun beam effect
+	tent = TempEntity(trace.endpos, EV_RAILTRAIL);
+
+	// set player number for custom colors on the railtrail
+	tent->state->clientNum = ent->state->clientNum;
+
+	tent->state->origin2 = Vector3<float>{ muzzle };
+	// move origin a bit to come closer to the drawn gun muzzle
+	tent->state->origin2 += right * 4.f;
+	tent->state->origin2 += up * -1.f;
+
+	// no explosion at end if SURF_NOIMPACT, but still make the trail
+	if (trace.surfaceFlags & SURF_NOIMPACT)
+	{
+		tent->state->eventParm = 255;	// don't make the explosion at the end
+	}
+	else
+	{
+		tent->state->eventParm = DirToByte(trace.plane.mNormal);
+	}
+	tent->state->clientNum = ent->state->clientNum;
+
+	// give the shooter a reward sound if they have made two railgun hits in a row
+	if (hits == 0)
+	{
+		// complete miss
+		player->GetState().accurateCount = 0;
+	}
+	else
+	{
+		// check for "impressive" reward sound
+		player->GetState().accurateCount += hits;
+		if (player->GetState().accurateCount >= 2)
+		{
+			player->GetState().accurateCount -= 2;
+			player->GetState().persistant[PERS_IMPRESSIVE_COUNT]++;
+			// add the sprite over the player's head
+			player->GetState().eFlags &= ~
+				(EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT |
+					EF_AWARD_GAUNTLET | EF_AWARD_ASSIST |
+					EF_AWARD_DEFEND | EF_AWARD_CAP);
+			player->GetState().eFlags |= EF_AWARD_IMPRESSIVE;
+			player->GetState().rewardTime = level.time + REWARD_SPRITE_TIME;
+		}
+		player->GetState().accuracyHits++;
+	}
+	*/
+}
+
+
+/*
+======================================================================
+
+LIGHTNING GUN
+
+======================================================================
+*/
+
+void QuakeLogic::LightningFire(
+	const eastl::shared_ptr<PlayerActor>& player,
+	const Vector3<float>& muzzle, const Vector3<float>& forward,
+	const Vector3<float>& right, const Vector3<float>& up)
+{
+	/*
+	EntityTrace		tr;
+	Vector3<float>		end;
+	Entity	*traceEnt, *tent;
+	int			damage, i, passent;
+
+	damage = 8;
+
+	passent = ent->state->number;
+	for (i = 0; i < 10; i++)
+	{
+		end = muzzle + forward * LIGHTNING_RANGE;
+		//trap_Trace(&tr, muzzle, NULL, NULL, end, passent, MASK_SHOT);
+
+		if (tr.entityNum == ENTITYNUM_NONE)
+		{
+			return;
+		}
+
+		traceEnt = &entities[tr.entityNum];
+
+		if (traceEnt->takedamage)
+		{
+			Damage(traceEnt, ent, ent, forward, tr.endpos,
+				damage, 0, MOD_LIGHTNING);
+		}
+
+		if (traceEnt->takedamage && traceEnt->client)
+		{
+			tent = TempEntity(tr.endpos, EV_MISSILE_HIT);
+			tent->state->otherEntityNum = traceEnt->state->number;
+			tent->state->eventParm = DirToByte(tr.plane.mNormal);
+			tent->state->weapon = ent->state->weapon;
+			if (LogAccuracyHit(traceEnt, ent))
+			{
+				ent->client->accuracy_hits++;
+			}
+		}
+		else if (!(tr.surfaceFlags & SURF_NOIMPACT))
+		{
+			tent = TempEntity(tr.endpos, EV_MISSILE_MISS);
+			tent->state->eventParm = DirToByte(tr.plane.mNormal);
+		}
+
+		break;
+	}
+	*/
 }
 
 
@@ -1673,11 +2420,11 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 	// set aiming directions
 	Vector3<float> origin;
 	Matrix4x4<float> rotation;
+	EulerAngles<float> viewAngles;
 	eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
 		pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 	if (pPhysicalComponent)
 	{
-		EulerAngles<float> viewAngles;
 		viewAngles.mAxis[1] = 1;
 		viewAngles.mAxis[2] = 2;
 		pPhysicalComponent->GetTransform().GetRotation(viewAngles);
@@ -1685,7 +2432,7 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), -viewAngles.mAngle[1]));
+			AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
 
 		rotation = yawRotation * pitchRotation;
 	}
@@ -1696,34 +2443,35 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 	//set muzzle location relative to pivoting eye
 	Vector3<float> muzzle = origin;
 	muzzle[2] += pPlayerActor->GetState().viewHeight;
-	muzzle = muzzle + forward * 14.f;
+	muzzle += forward * 14.f;
+	muzzle -= right * 14.f;
 
 	// fire the specific weapon
 	switch (pPlayerActor->GetState().weapon)
 	{
 		case WP_GAUNTLET:
-			//GauntletAttack(pPlayerActor, origin, forward, right, up);
+			GauntletAttack(pPlayerActor, muzzle, forward, right, up);
 			break;
 		case WP_LIGHTNING:
-			//LightningFire(pPlayerActor, muzzle, forward, right, up);
+			LightningFire(pPlayerActor, muzzle, forward, right, up);
 			break;
 		case WP_SHOTGUN:
-			//ShotgunFire(pPlayerActor, muzzle, forward, right, up);
+			ShotgunFire(pPlayerActor, muzzle, forward, right, up);
 			break;
 		case WP_MACHINEGUN:
 			BulletFire(pPlayerActor, muzzle, forward, right, up, MACHINEGUN_SPREAD, MACHINEGUN_DAMAGE);
 			break;
 		case WP_GRENADE_LAUNCHER:
-			//GrenadeLauncherFire(pPlayerActor, muzzle, forward, right, up);
+			GrenadeLauncherFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
 			break;
 		case WP_ROCKET_LAUNCHER:
-			//RocketLauncherFire(pPlayerActor, muzzle, forward, right, up);
+			RocketLauncherFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
 			break;
 		case WP_PLASMAGUN:
-			//PlasmagunFire(pPlayerActor, muzzle, forward, right, up);
+			PlasmagunFire(pPlayerActor, muzzle, forward, right, up);
 			break;
 		case WP_RAILGUN:
-			//RailgunFire(pPlayerActor, muzzle, forward, right, up);
+			RailgunFire(pPlayerActor, muzzle, forward, right, up);
 			break;
 		default:
 			// FIXME Error( "Bad ent->state->weapon" );
@@ -1965,8 +2713,20 @@ void QuakeLogic::PlayerSpawn(const eastl::shared_ptr<PlayerActor>& playerActor)
 	playerActor->GetState().takeDamage = true;
 	playerActor->GetState().contents = CONTENTS_BODY;
 	playerActor->GetState().viewHeight = DEFAULT_VIEWHEIGHT;
-	playerActor->GetState().stats[STAT_WEAPONS] = (1 << WP_MACHINEGUN);
-	playerActor->GetState().ammo[WP_MACHINEGUN] = 100;
+	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_SHOTGUN);
+	playerActor->GetState().ammo[WP_SHOTGUN] = 1000;
+	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_ROCKET_LAUNCHER);
+	playerActor->GetState().ammo[WP_ROCKET_LAUNCHER] = 1000;
+	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_RAILGUN);
+	playerActor->GetState().ammo[WP_RAILGUN] = 1000;
+	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_PLASMAGUN);
+	playerActor->GetState().ammo[WP_PLASMAGUN] = 1000;
+	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_MACHINEGUN);
+	playerActor->GetState().ammo[WP_MACHINEGUN] = 1000;
+	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_LIGHTNING);
+	playerActor->GetState().ammo[WP_LIGHTNING] = 1000;
+	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_GRENADE_LAUNCHER);
+	playerActor->GetState().ammo[WP_GRENADE_LAUNCHER] = 1000;
 	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_GAUNTLET);
 	playerActor->GetState().ammo[WP_GAUNTLET] = -1;
 
@@ -2004,328 +2764,6 @@ void QuakeLogic::PlayerSpawn(const eastl::shared_ptr<PlayerActor>& playerActor)
 	// fire the targets of the spawn point
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<QuakeEventDataSpawnActor>(playerActor->GetId(), spawnTransform));
-}
-
-/*
-Spawns an item and tosses it forward
-*/
-eastl::shared_ptr<Actor> DropItem(
-	const Transform& transform, const eastl::shared_ptr<Actor>& item)
-{
-	AxisAngle<4, float> angles = Rotation<4, float>(transform.GetRotation());
-
-	Vector3<float> direction = HProject(angles.mAxis);
-	direction[YAW] = -1.0f;
-	Normalize(direction);
-
-	direction[PITCH] *= 2.0f;
-	direction[ROLL] *= 2.0f;
-	direction[YAW] *= 6.0f;
-
-	// fire the targets of the spawn point
-	EventManager::Get()->TriggerEvent(
-		eastl::make_shared<QuakeEventDataPushActor>(item->GetId(), direction));
-
-	// auto-remove after 30 seconds
-	return item;
-}
-
-eastl::shared_ptr<Actor> CreateItemWeapon(WeaponType weapon, const Transform& initTransform)
-{
-	eastl::shared_ptr<Actor> pActor;
-	switch (weapon)
-	{
-	case WP_SHOTGUN:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/shotgun.xml", nullptr, &initTransform);
-		break;
-	case WP_GRENADE_LAUNCHER:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/grenadelauncher.xml", nullptr, &initTransform);
-		break;
-	case WP_ROCKET_LAUNCHER:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/rocketlauncher.xml", nullptr, &initTransform);
-		break;
-	case WP_LIGHTNING:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/lightning.xml", nullptr, &initTransform);
-		break;
-	case WP_RAILGUN:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/railgun.xml", nullptr, &initTransform);
-		break;
-	case WP_PLASMAGUN:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/plasmagun.xml", nullptr, &initTransform);
-		break;
-	default:
-		break;
-	}
-
-	LogError("Couldn't find item for weapon " + eastl::to_string(weapon));
-	return pActor;
-}
-
-/*
-Toss the weapon and powerups for the killed player
-*/
-void TossClientItems(const eastl::shared_ptr<PlayerActor>& player)
-{
-	// drop the weapon if not a gauntlet or machinegun
-	 WeaponType weapon = (WeaponType)player->GetState().weapon;
-
-	// make a special check to see if they are changing to a new
-	// weapon that isn't the mg or gauntlet.  Without this, a client
-	// can pick up a weapon, be killed, and not drop the weapon because
-	// their weapon change hasn't completed yet and they are still holding the MG.
-	if (weapon == WP_MACHINEGUN)
-	{
-		if (player->GetState().weaponState == WEAPON_DROPPING)
-		{
-			weapon = WP_NONE;
-		}
-		if (!(player->GetState().stats[STAT_WEAPONS] & (1 << weapon)))
-		{
-			weapon = WP_NONE;
-		}
-	}
-
-	if (weapon > WP_MACHINEGUN &&
-		player->GetState().ammo[weapon])
-	{
-		// find the item type for this weapon
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			player->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-		{
-			// spawn the item
-			Transform itemTransform;
-			itemTransform.SetTranslation(pTransformComponent->GetTransform().GetTranslationW1());
-			eastl::shared_ptr<Actor> item = CreateItemWeapon(weapon, itemTransform);
-
-			DropItem(pTransformComponent->GetTransform(), item);
-		}
-	}
-}
-
-void LookAtKiller(
-	const eastl::shared_ptr<PlayerActor>& player,
-	const eastl::shared_ptr<PlayerActor>& inflictor,
-	const eastl::shared_ptr<PlayerActor>& attacker)
-{
-	if (attacker && attacker != player)
-	{
-		Vector4<float> playerTranslation, attackerTranslation;
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			player->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-			playerTranslation = pTransformComponent->GetTransform().GetTranslationW1();
-
-		pTransformComponent =
-			attacker->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-		if (pTransformComponent)
-			attackerTranslation = pTransformComponent->GetTransform().GetTranslationW1();
-
-		Vector4<float> direction = attackerTranslation - playerTranslation;
-		Normalize(direction);
-		Matrix4x4<float> rotation = Rotation<4, float>(AxisAngle<4, float>(direction, 0.f));
-
-		Transform transform;
-		transform.SetRotation(rotation);
-		EventManager::Get()->TriggerEvent(
-			eastl::make_shared<QuakeEventDataRotateActor>(player->GetId(), transform));
-		player->GetState().stats[STAT_DEAD_YAW] = 0;
-	}
-	else if (inflictor && inflictor != player)
-	{
-		Vector4<float> playerTranslation, inflictorTranslation;
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			player->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-			playerTranslation = pTransformComponent->GetTransform().GetTranslationW1();
-
-		pTransformComponent =
-			attacker->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-		if (pTransformComponent)
-			inflictorTranslation = pTransformComponent->GetTransform().GetTranslationW1();
-
-		Vector4<float> direction = inflictorTranslation - playerTranslation;
-		Normalize(direction);
-		Matrix4x4<float> rotation = Rotation<4, float>(AxisAngle<4, float>(direction, 0.f));
-		
-		Transform transform;
-		transform.SetRotation(rotation);
-		EventManager::Get()->TriggerEvent(
-			eastl::make_shared<QuakeEventDataRotateActor>(player->GetId(), transform));
-		player->GetState().stats[STAT_DEAD_YAW] = 0;
-	}
-	else
-	{
-		Transform playerTransform;
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			player->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-			playerTransform = pTransformComponent->GetTransform();
-
-		EventManager::Get()->TriggerEvent(
-			eastl::make_shared<QuakeEventDataRotateActor>(player->GetId(), playerTransform));
-		player->GetState().stats[STAT_DEAD_YAW] = 0;
-	}
-}
-
-void QuakeLogic::PlayerDie(
-	const eastl::shared_ptr<PlayerActor>& player,
-	const eastl::shared_ptr<PlayerActor>& inflictor,
-	const eastl::shared_ptr<PlayerActor>& attacker,
-	int damage, MeansOfDeath meansOfDeath)
-{
-	eastl::shared_ptr<Actor> ent;
-
-	if (player->GetState().moveType == PM_DEAD)
-		return;
-
-	player->GetState().moveType = PM_DEAD;
-	player->GetState().viewHeight = DEAD_VIEWHEIGHT;
-	/*
-	if (meansOfDeath < 0 || meansOfDeath >= sizeof(modNames) / sizeof(modNames[0]))
-	{
-		obit = "<bad obituary>";
-	}
-	else
-	{
-		obit = modNames[meansOfDeath];
-	}
-
-	LogInformation("Kill: %i %i %i: %s killed %s by %s\n",
-	killer, self->state->number, meansOfDeath, killerName,
-	self->client->pers.netname, obit);
-
-	// broadcast the death event to everyone
-	*/
-
-	player->GetState().persistant[PERS_KILLED]++;
-
-	if (attacker)
-	{
-		attacker->GetState().lastKilled = player->GetId();
-
-		if (attacker == player)//|| OnSameTeam(self, attacker))
-		{
-			attacker->GetState().persistant[PERS_SCORE] -= 1;
-			/*
-			if (g_gametype.integer == GT_TEAM)
-				level.teamScores[attacker->GetState().persistant[PERS_TEAM]] -= 1;
-			*/
-		}
-		else
-		{
-			attacker->GetState().persistant[PERS_SCORE] += 1;
-			/*
-			if (g_gametype.integer == GT_TEAM)
-				level.teamScores[attacker->GetState().persistant[PERS_TEAM]] += 1;
-			*/
-
-			if (meansOfDeath == MOD_GAUNTLET)
-			{
-				// play humiliation on player
-				attacker->GetState().persistant[PERS_GAUNTLET_FRAG_COUNT]++;
-
-				// add the sprite over the player's head
-				attacker->GetState().eFlags &= ~(
-					EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT |
-					EF_AWARD_GAUNTLET | EF_AWARD_ASSIST |
-					EF_AWARD_DEFEND | EF_AWARD_CAP);
-				attacker->GetState().eFlags |= EF_AWARD_GAUNTLET;
-				//attacker->GetState().rewardTime = level.time + REWARD_SPRITE_TIME;
-
-				// also play humiliation on target
-				player->GetState().persistant[PERS_PLAYEREVENTS] ^= PLAYEREVENT_GAUNTLETREWARD;
-			}
-
-			// check for two kills in a short amount of time
-			// if this is close enough to the last kill, give a reward sound
-			/*
-			if (level.time - attacker->GetState().lastKillTime < CARNAGE_REWARD_TIME)
-			{
-				// play excellent on player
-				attacker->GetState().persistant[PERS_EXCELLENT_COUNT]++;
-
-				// add the sprite over the player's head
-				attacker->GetState().eFlags &= ~(
-					EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT |
-					EF_AWARD_GAUNTLET | EF_AWARD_ASSIST |
-					EF_AWARD_DEFEND | EF_AWARD_CAP);
-				attacker->GetState().eFlags |= EF_AWARD_EXCELLENT;
-				attacker->GetState().rewardTime = level.time + REWARD_SPRITE_TIME;
-			}
-			attacker->GetState().lastKillTime = level.time;
-			*/
-		}
-	}
-	else
-	{
-		player->GetState().persistant[PERS_SCORE] -= 1;
-		/*
-		if (g_gametype.integer == GT_TEAM)
-			level.teamScores[player->GetState().persistant[PERS_TEAM]] -= 1;
-		*/
-	}
-
-	// Add team bonuses
-	//Team_FragBonuses(self, inflictor, attacker);
-
-	// if client is in a nodrop area, don't drop anything (but return CTF flags!)
-	TossClientItems(player);
-
-	//Cmd_Score_f(self);		// show scores
-	// send updated scores to any clients that are following this one,
-	// or they would get stale scoreboards
-
-	player->GetState().takeDamage = true;	// can still be gibbed
-
-	player->GetState().weapon = WP_NONE;
-	player->GetState().contents = CONTENTS_CORPSE;
-	LookAtKiller(player, inflictor, attacker);
-
-	//player->GetState().viewangles = Vector3<float>{ player->GetState().angles };
-	//player->GetState().loopSound = 0;
-
-	//self->maxs[2] = -8;
-
-	// don't allow respawn until the death anim is done
-	// g_forcerespawn may force spawning at some later time
-	//player->GetState().respawnTime = level.time + 1700;
-
-	// remove powerups
-	memset(player->GetState().powerups, 0, sizeof(player->GetState().powerups));
-
-	// never gib in a nodrop
-	int anim = BOTH_DEATH1;
-	/*
-	if ((player->GetState().stats[STAT_HEALTH] <= GIB_HEALTH &&
-		!(contents & CONTENTS_NODROP)) || meansOfDeath == MOD_SUICIDE)
-	{
-		// gib death
-		//GibEntity(self, killer);
-	}
-	else
-	*/
-	{
-		// for the no-blood option, we need to prevent the health
-		// from going to gib level
-		if (player->GetState().stats[STAT_HEALTH] <= GIB_HEALTH)
-			player->GetState().stats[STAT_HEALTH] = GIB_HEALTH + 1;
-
-		player->GetState().legsAnim = anim;
-		player->GetState().torsoAnim = anim;
-
-		// call for animation death
-		EventManager::Get()->TriggerEvent(
-			eastl::make_shared<QuakeEventDataDeadActor>(player->GetId()));
-		//AddEvent(self, EV_DEATH1 + i, killer);
-
-		// the body can still be gibbed
-		//self->die = body_die;
-
-		// globally cycle through the different death animations
-		//i = (i + 1) % 3;
-	}
-	//trap_LinkEntity(self);
 }
 
 int PickupAmmo(const eastl::shared_ptr<PlayerActor>& player, const eastl::shared_ptr<AmmoPickup>& ammo)
@@ -2443,59 +2881,63 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 
 	eastl::shared_ptr<Actor> pItemActor(
 		GameLogic::Get()->GetActor(pCastEventData->GetTriggerId()).lock());
+
 	eastl::shared_ptr<PlayerActor> pPlayerActor(
 		eastl::dynamic_shared_pointer_cast<PlayerActor>(
 		GameLogic::Get()->GetActor(pCastEventData->GetOtherActor()).lock()));
 
-	// dead players
-	if (pPlayerActor->GetState().stats[STAT_HEALTH] <= 0)
-		return;
+	if (pPlayerActor)
+	{
+		// dead players
+		if (pPlayerActor->GetState().stats[STAT_HEALTH] <= 0)
+			return;
 
-	if (!CanItemBeGrabbed(pItemActor, pPlayerActor))
-		return; // can't hold it
+		if (!CanItemBeGrabbed(pItemActor, pPlayerActor))
+			return; // can't hold it
 
-	int respawn;
-	if (pItemActor->GetType() == "Weapon")
-	{
-		eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-			pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-		respawn = PickupWeapon(pPlayerActor, pWeaponPickup);
-	}
-	else if (pItemActor->GetType() == "Ammo")
-	{
-		eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-			pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-		respawn = PickupAmmo(pPlayerActor, pAmmoPickup);
-	}
-	else if (pItemActor->GetType() == "Armor")
-	{
-		eastl::shared_ptr<ArmorPickup> pArmorPickup =
-			pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-		respawn = PickupArmor(pPlayerActor, pArmorPickup);
-	}
-	else if (pItemActor->GetType() == "Health")
-	{
-		eastl::shared_ptr<HealthPickup> pHealthPickup =
-			pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-		respawn = PickupHealth(pPlayerActor, pHealthPickup);
-	}
-
-	// play the normal pickup sound
-	//QueueEvent(EventType.EvtData_PlaySound, "audio\\computerbeep3.wav");
-	// global sound to play
-	//QueueEvent(EventType.EvtData_PlaySound, "audio\\computerbeep3.wav");
-	// dropped items will not respawn
-	//QueueEvent(EventType.EvtData_Request_Destroy_Actor, sphere:GetActorId());
-
-	if (pItemActor->GetType() == "Weapon")
-	{
-		eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-			pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-		if (pWeaponPickup)
+		int respawn;
+		if (pItemActor->GetType() == "Weapon")
 		{
-			pPlayerActor->GetState().stats[STAT_WEAPONS] |= 1 << pWeaponPickup->GetId();
-			if (!pPlayerActor->GetState().ammo[pWeaponPickup->GetId()])
-				pPlayerActor->GetState().ammo[pWeaponPickup->GetId()] = 1;
+			eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+				pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+			respawn = PickupWeapon(pPlayerActor, pWeaponPickup);
+		}
+		else if (pItemActor->GetType() == "Ammo")
+		{
+			eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+				pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+			respawn = PickupAmmo(pPlayerActor, pAmmoPickup);
+		}
+		else if (pItemActor->GetType() == "Armor")
+		{
+			eastl::shared_ptr<ArmorPickup> pArmorPickup =
+				pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+			respawn = PickupArmor(pPlayerActor, pArmorPickup);
+		}
+		else if (pItemActor->GetType() == "Health")
+		{
+			eastl::shared_ptr<HealthPickup> pHealthPickup =
+				pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+			respawn = PickupHealth(pPlayerActor, pHealthPickup);
+		}
+
+		// play the normal pickup sound
+		//QueueEvent(EventType.EvtData_PlaySound, "audio\\computerbeep3.wav");
+		// global sound to play
+		//QueueEvent(EventType.EvtData_PlaySound, "audio\\computerbeep3.wav");
+		// dropped items will not respawn
+		//QueueEvent(EventType.EvtData_Request_Destroy_Actor, sphere:GetActorId());
+
+		if (pItemActor->GetType() == "Weapon")
+		{
+			eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+				pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+			if (pWeaponPickup)
+			{
+				pPlayerActor->GetState().stats[STAT_WEAPONS] |= 1 << pWeaponPickup->GetId();
+				if (!pPlayerActor->GetState().ammo[pWeaponPickup->GetId()])
+					pPlayerActor->GetState().ammo[pWeaponPickup->GetId()] = 1;
+			}
 		}
 	}
 }

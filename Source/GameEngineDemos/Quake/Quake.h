@@ -137,6 +137,9 @@ class NetworkEventForwarder;
 #define	MACHINEGUN_DAMAGE	7
 #define	MACHINEGUN_TEAM_DAMAGE	5		// wimpier MG in teamplay
 
+#define DEFAULT_SHOTGUN_SPREAD	700
+#define DEFAULT_SHOTGUN_COUNT	11
+
 enum ItemType 
 {
 	IT_WEAPON,				// EFX: rotate + upscale + minlight
@@ -259,12 +262,34 @@ private:
 	void CreateNetworkEventForwarder(const int socketId);
 	void DestroyAllNetworkEventForwarders(void);
 
-	bool GauntletAttack(const eastl::shared_ptr<PlayerActor>& player,
+	void GauntletAttack(const eastl::shared_ptr<PlayerActor>& player,
 		const Vector3<float>& origin, const Vector3<float>& forward,
+		const Vector3<float>& right, const Vector3<float>& up);
+	void LightningFire(const eastl::shared_ptr<PlayerActor>& player,
+		const Vector3<float>& muzzle, const Vector3<float>& forward,
 		const Vector3<float>& right, const Vector3<float>& up);
 	void BulletFire(const eastl::shared_ptr<PlayerActor>& player,
 		const Vector3<float>& muzzle, const Vector3<float>& forward,
 		const Vector3<float>& right, const Vector3<float>& up, float spread, int damage);
+	void ShotgunFire(const eastl::shared_ptr<PlayerActor>& player,
+		const Vector3<float>& muzzle, const Vector3<float>& forward,
+		const Vector3<float>& right, const Vector3<float>& up);
+	bool ShotgunPellet(const eastl::shared_ptr<PlayerActor>& player,
+		const Vector3<float>& forward, const Vector3<float>& start, const Vector3<float>& end);
+	void GrenadeLauncherFire(
+		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle, 
+		const Vector3<float>& forward, const Vector3<float>& right, 
+		const Vector3<float>& up, const EulerAngles<float>& angles);
+	void RocketLauncherFire(
+		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
+		const Vector3<float>& forward, const Vector3<float>& right,
+		const Vector3<float>& up, const EulerAngles<float>& angles);
+	void PlasmagunFire(const eastl::shared_ptr<PlayerActor>& player,
+		const Vector3<float>& muzzle, const Vector3<float>& forward,
+		const Vector3<float>& right, const Vector3<float>& up);
+	void RailgunFire(const eastl::shared_ptr<PlayerActor>& player,
+		const Vector3<float>& muzzle, const Vector3<float>& forward,
+		const Vector3<float>& right, const Vector3<float>& up);
 
 	bool SpotTelefrag(const eastl::shared_ptr<Actor>& spot);
 	const eastl::shared_ptr<Actor>& SelectRandomSpawnPoint();
@@ -276,10 +301,6 @@ private:
 	const eastl::shared_ptr<Actor>& SelectInitialSpawnPoint(Transform& transform);
 
 	void PlayerSpawn(const eastl::shared_ptr<PlayerActor>& playerActor);
-	void PlayerDie(const eastl::shared_ptr<PlayerActor>& player,
-		const eastl::shared_ptr<PlayerActor>& inflictor,
-		const eastl::shared_ptr<PlayerActor>& attacker,
-		int damage, MeansOfDeath meansOfDeath);
 };
 
 #endif

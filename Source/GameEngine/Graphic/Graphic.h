@@ -80,13 +80,6 @@
 #include "Scene/MeshFactory.h"
 #include "Scene/LightManager.h"
 
-#include "Scene/Controller/Controller.h"
-#include "Scene/Controller/ControlledObject.h"
-#include "Scene/Controller/BlendTransformController.h"
-#include "Scene/Controller/TransformController.h"
-#include "Scene/Controller/KeyframeController.h"
-#include "Scene/Controller/SkinController.h"
-
 #include "Scene/Element/Animator/NodeAnimatorDelete.h"
 #include "Scene/Element/Animator/NodeAnimatorFlyCircle.h"
 #include "Scene/Element/Animator/NodeAnimatorFlyStraight.h"

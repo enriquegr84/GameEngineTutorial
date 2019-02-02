@@ -874,6 +874,9 @@ void QuakeHumanView::SetControlledActor(ActorId actorId)
 // RegisterWeapons called during a precache command
 void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 {
+	eastl::shared_ptr<ResHandle> resHandle;
+	eastl::shared_ptr<ImageResourceExtraData> resData;
+
 	WeaponType wp = (WeaponType)(weapon + 1);
 	switch (wp)
 	{
@@ -939,7 +942,9 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			mWeaponMedia[weapon].loopFireSound = false;
 
 			mMedia.lightningShader = eastl::wstring(L"art/quake/gfx/misc/lightning3new.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.lightningShader));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.lightningShader));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.lightningExplosionModel = eastl::wstring(L"art/quake/models/weaphits/crackle.md3");
 			ResCache::Get()->GetHandle(&BaseResource(mMedia.lightningExplosionModel));
 
@@ -990,13 +995,21 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 			//mWeaponMedia[weapon].ejectBrassFunc = CG_MachineGunEjectBrass;
 			mMedia.bulletExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/bullet1.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[0]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[0]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.bulletExplosionShader[1] = eastl::wstring(L"art/quake/models/weaphits/bullet2.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[1]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[1]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.bulletExplosionShader[2] = eastl::wstring(L"art/quake/models/weaphits/bullet3.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[2]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[2]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.bulletExplosionShader[3] = eastl::wstring(L"art/quake/gfx/colors/black.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[3]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletExplosionShader[3]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 
 			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 1.f, 0.f, 1.f};
 			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/machinegun/machgf1b.ogg");
@@ -1072,21 +1085,37 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			mWeaponMedia[weapon].loopFireSound = false;
 
 			mMedia.rocketExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_1.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[0]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[0]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.rocketExplosionShader[1] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_2.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[1]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[1]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.rocketExplosionShader[2] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_3.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[2]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[2]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.rocketExplosionShader[3] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_4.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[3]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[3]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.rocketExplosionShader[4] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_5.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[4]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[4]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.rocketExplosionShader[5] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_6.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[5]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[5]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.rocketExplosionShader[6] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_7.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[6]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[6]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.rocketExplosionShader[7] = eastl::wstring(L"art/quake/models/weaphits/rlboom/rlboom_8.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[7]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.rocketExplosionShader[7]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 
 			mWeaponMedia[weapon].missileModel = eastl::wstring(L"art/quake/models/ammo/rocket/rocket.md3");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].missileModel));
@@ -1131,15 +1160,23 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			mWeaponMedia[weapon].loopFireSound = false;
 
 			mMedia.grenadeExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/glboom/glboom_1.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[0]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[0]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.grenadeExplosionShader[1] = eastl::wstring(L"art/quake/models/weaphits/glboom/glboom_2.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[1]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[1]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.grenadeExplosionShader[2] = eastl::wstring(L"art/quake/models/weaphits/glboom/glboom_3.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[2]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[2]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.grenadeExplosionShader[3] = eastl::wstring(L"art/quake/gfx/colors/black.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[3]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.grenadeExplosionShader[3]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 
-			mWeaponMedia[weapon].missileModel = eastl::wstring(L"art/quake/models/ammo/grenade1.md3");
+			mWeaponMedia[weapon].missileModel = eastl::wstring(L"art/quake/models/ammo/grenade/grenade1.md3");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].missileModel));
 
 			//mWeaponMedia[weapon].missileTrailFunc = CG_GrenadeTrail;
@@ -1179,9 +1216,13 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			mWeaponMedia[weapon].loopFireSound = false;
 
 			mMedia.plasmaExplosionShader = eastl::wstring(L"art/quake/models/weaphits/plasmaboom.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.plasmaExplosionShader));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.plasmaExplosionShader));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.railRingsShader = eastl::wstring(L"art/quake/gfx/misc/raildisc_mono2.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.railRingsShader));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.railRingsShader));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 
 			//weaponInfo->missileModel = cgs.media.invulnerabilityPowerupModel;
 			//mWeaponMedia[weapon].missileTrailFunc = CG_PlasmaTrail;
@@ -1219,21 +1260,35 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 			mWeaponMedia[weapon].loopFireSound = false;
 
-			mMedia.railExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/ring02_1.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[0]));
-			mMedia.railExplosionShader[1] = eastl::wstring(L"art/quake/models/weaphits/ring02_2.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[1]));
-			mMedia.railExplosionShader[2] = eastl::wstring(L"art/quake/models/weaphits/ring02_3.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[2]));
-			mMedia.railExplosionShader[3] = eastl::wstring(L"art/quake/models/weaphits/ring02_4.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[3]));
+			mMedia.railExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/ring02_1.png");
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[0]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
+			mMedia.railExplosionShader[1] = eastl::wstring(L"art/quake/models/weaphits/ring02_2.png");
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[1]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
+			mMedia.railExplosionShader[2] = eastl::wstring(L"art/quake/models/weaphits/ring02_3.png");
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[2]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
+			mMedia.railExplosionShader[3] = eastl::wstring(L"art/quake/models/weaphits/ring02_4.png");
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[3]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.railExplosionShader[4] = eastl::wstring(L"art/quake/gfx/colors/black.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[4]));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[4]));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 
 			mMedia.railRingsShader = eastl::wstring(L"art/quake/gfx/misc/raildisc_mono2.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.railRingsShader));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.railRingsShader));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mMedia.railCoreShader = eastl::wstring(L"art/quake/gfx/misc/railcorethin_mono.jpg");
-			ResCache::Get()->GetHandle(&BaseResource(mMedia.railCoreShader));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.railCoreShader));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 
 			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 0.5f, 0.f, 1.f};
 			mWeaponMedia[weapon].readySound = eastl::wstring(L"audio/quake/sound/weapons/railgun/rg_hum.ogg");
@@ -1355,6 +1410,37 @@ void QuakeHumanView::RegisterSound()
 		ResCache::Get()->GetHandle(&BaseResource(mMedia.footsteps[FOOTSTEP_METAL][i]));
 	}
 
+	mMedia.playerDeath1Sound = eastl::wstring(ToWideString("audio/quake/sound/player/death1.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerDeath1Sound));
+	mMedia.playerDeath2Sound = eastl::wstring(ToWideString("audio/quake/sound/player/death2.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerDeath2Sound));
+	mMedia.playerDeath3Sound = eastl::wstring(ToWideString("audio/quake/sound/player/death3.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerDeath3Sound));
+	mMedia.playerDrownSound = eastl::wstring(ToWideString("audio/quake/sound/player/drown.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerDrownSound));
+	mMedia.playerFallSound = eastl::wstring(ToWideString("audio/quake/sound/player/fall1.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerFallSound));
+	mMedia.playerFallingSound = eastl::wstring(ToWideString("audio/quake/sound/player/falling1.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerFallingSound));
+	mMedia.playerGaspSound = eastl::wstring(ToWideString("audio/quake/sound/player/gasp.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerGaspSound));
+	mMedia.playerJumpSound = eastl::wstring(ToWideString("audio/quake/sound/player/jump1.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerJumpSound));
+	mMedia.playerLandSound = eastl::wstring(ToWideString("audio/quake/sound/player/land1.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerLandSound));
+	mMedia.playerPainSound[0] = eastl::wstring(ToWideString("audio/quake/sound/player/pain25_1.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerPainSound[0]));
+	mMedia.playerPainSound[1] = eastl::wstring(ToWideString("audio/quake/sound/player/pain50_1.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerPainSound[1]));
+	mMedia.playerPainSound[2] = eastl::wstring(ToWideString("audio/quake/sound/player/pain75_1.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerPainSound[2]));
+	mMedia.playerPainSound[3] = eastl::wstring(ToWideString("audio/quake/sound/player/pain100_1.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerPainSound[3]));
+	mMedia.playerTalkSound = eastl::wstring(ToWideString("audio/quake/sound/player/talk.ogg"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerTalkSound));
+	mMedia.playerTauntSound = eastl::wstring(ToWideString("audio/quake/sound/player/taunt.wav"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.playerTauntSound));
+
 	// FIXME: only needed with item
 	mMedia.quadSound = eastl::wstring(ToWideString("audio/quake/sound/items/damage3.ogg"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.quadSound));
@@ -1382,6 +1468,9 @@ void QuakeHumanView::RegisterSound()
 // RegisterSounds called during a precache command
 void QuakeHumanView::RegisterMedia()
 {
+	eastl::shared_ptr<ResHandle> resHandle;
+	eastl::shared_ptr<ImageResourceExtraData> resData;
+
 	char* sbNums[11] = 
 	{
 		"art/quake/gfx/2d/numbers/zero_32b.png",
@@ -1429,26 +1518,25 @@ void QuakeHumanView::RegisterMedia()
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.scoreboardTime));
 
 	mMedia.smokePuffShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuff3.png"));
-	eastl::shared_ptr<ResHandle> resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.smokePuffShader));
-	eastl::shared_ptr<ImageResourceExtraData>& extra =
-		eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.smokePuffShader));
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.smokePuffRageProShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuffragepro.png"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.smokePuffRageProShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.shotgunSmokePuffShader = eastl::wstring(ToWideString("art/quake/gfx/misc/smokepuff2b.png"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.shotgunSmokePuffShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.plasmaBallShader = eastl::wstring(ToWideString("art/quake/sprites/plasmaa.jpg"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.plasmaBallShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.bloodTrailShader = eastl::wstring(ToWideString("art/quake/gfx/damage/blood_spurt.png"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodTrailShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.lagometerShader = eastl::wstring(ToWideString("art/quake/gfx/2d/lag.jpg"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.lagometerShader));
 	mMedia.connectionShader = eastl::wstring(ToWideString("art/quake/gfx/2d/net.jpg"));
@@ -1509,11 +1597,11 @@ void QuakeHumanView::RegisterMedia()
 
 	for (int i = 0; i < 5; i++)
 	{
-		sprintf(name, "art/quake/gfx/damage/blood20%i.png", i + 1);
+		sprintf(name, "art/quake/gfx/damage/blood20%i.jpg", i + 1);
 		mMedia.bloodExplosionShader[i] = eastl::wstring(ToWideString(name));
 		resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodExplosionShader[i]));
-		extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-		extra->GetImage()->AutogenerateMipmaps();
+		resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		resData->GetImage()->AutogenerateMipmaps();
 	}
 
 	mMedia.bulletFlashModel = eastl::wstring(ToWideString("art/quake/models/weaphits/bullet.md3"));
@@ -1527,8 +1615,8 @@ void QuakeHumanView::RegisterMedia()
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.teleportEffectModel));
 	mMedia.teleportEffectShader = eastl::wstring(ToWideString("art/quake/gfx/misc/teleportEffect2.jpg"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.teleportEffectShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 
 	mMedia.medalImpressive = eastl::wstring(ToWideString("art/quake/menu/medals/medal_impressive.png"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.medalImpressive));
@@ -1546,28 +1634,28 @@ void QuakeHumanView::RegisterMedia()
 	// wall marks
 	mMedia.bulletMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/bullet_mrk.jpg"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bulletMarkShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.burnMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/burn_med_mrk.jpg"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.burnMarkShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.holeMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/hole_lg_mrk.jpg"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.holeMarkShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.energyMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/plasma_mrk.png"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.energyMarkShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.shadowMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/shadow.png"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.shadowMarkShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mMedia.bloodMarkShader = eastl::wstring(ToWideString("art/quake/gfx/damage/blood_stain.png"));
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.bloodMarkShader));
-	extra = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-	extra->GetImage()->AutogenerateMipmaps();
+	resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 }
 
 
@@ -1717,7 +1805,7 @@ void QuakeHumanView::SpawnActorDelegate(BaseEventDataPtr pEventData)
 	ActorId actorId = pCastEventData->GetId();
 	eastl::shared_ptr<PlayerActor> pPlayerActor(
 		eastl::dynamic_shared_pointer_cast<PlayerActor>(
-			GameLogic::Get()->GetActor(actorId).lock()));
+		GameLogic::Get()->GetActor(actorId).lock()));
 	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
 	if (pNode)
 	{

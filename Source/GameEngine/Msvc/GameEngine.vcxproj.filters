@@ -79,9 +79,6 @@
     <Filter Include="Graphic\Scene\Visibility">
       <UniqueIdentifier>{1b3a4d8b-5c5b-4040-90d5-748643f5faed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphic\Scene\Controller">
-      <UniqueIdentifier>{1b804654-66a7-4faf-9482-fcfe6b2e9786}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Mathematic\Surface">
       <UniqueIdentifier>{cc1dbbbd-6a5c-465c-bd31-e1c5b9ffb5bd}</UniqueIdentifier>
     </Filter>
@@ -598,12 +595,6 @@
     <ClCompile Include="..\Graphic\Scene\Visibility\CullingPlane.cpp">
       <Filter>Graphic\Scene\Visibility</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Controller\ControlledObject.cpp">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Controller\Controller.cpp">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\MeshFactory.cpp">
       <Filter>Graphic\Scene</Filter>
     </ClCompile>
@@ -894,18 +885,6 @@
     </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Element\RootNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Controller\BlendTransformController.cpp">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Controller\KeyframeController.cpp">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Controller\SkinController.cpp">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Controller\TransformController.cpp">
-      <Filter>Graphic\Scene\Controller</Filter>
     </ClCompile>
     <ClCompile Include="..\Graphic\Resource\Buffer\MeshBuffer.cpp">
       <Filter>Graphic\Resource\Buffer</Filter>
@@ -1561,12 +1540,6 @@
     <ClInclude Include="..\Graphic\Scene\Visibility\CullingPlane.h">
       <Filter>Graphic\Scene\Visibility</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Controller\ControlledObject.h">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Controller\Controller.h">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClInclude>
     <ClInclude Include="..\Mathematic\Surface\IndexAttribute.h">
       <Filter>Mathematic\Surface</Filter>
     </ClInclude>
@@ -1953,18 +1926,6 @@
     </ClInclude>
     <ClInclude Include="..\Mathematic\Geometric\Frustum.h">
       <Filter>Mathematic\Geometric</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Controller\BlendTransformController.h">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Controller\KeyframeController.h">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Controller\SkinController.h">
-      <Filter>Graphic\Scene\Controller</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Controller\TransformController.h">
-      <Filter>Graphic\Scene\Controller</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\StandardMesh.h">
       <Filter>Graphic\Scene\Element\Mesh</Filter>

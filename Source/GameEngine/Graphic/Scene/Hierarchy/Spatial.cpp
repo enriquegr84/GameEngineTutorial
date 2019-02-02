@@ -57,7 +57,7 @@ void Spatial::UpdateAbsoluteTransform()
 #if defined(GE_USE_MAT_VEC)
 		mWorldTransform = mParent->mWorldTransform * mLocalTransform;
 #else
-		mWorldTransform = localTransform * mParent->mWorldTransform;
+		mWorldTransform = mLocalTransform * mParent->mWorldTransform;
 #endif
 	}
 	else

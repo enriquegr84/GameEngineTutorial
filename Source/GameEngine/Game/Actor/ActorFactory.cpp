@@ -121,6 +121,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
 		pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 	if (pInitialTransform && pTransformComponent)
 	{
+		pTransformComponent->SetRotation(pInitialTransform->GetRotation());
 		pTransformComponent->SetPosition(pInitialTransform->GetTranslation());
 	}
 

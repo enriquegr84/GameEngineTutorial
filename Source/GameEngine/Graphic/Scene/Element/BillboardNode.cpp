@@ -45,10 +45,6 @@ BillboardNode::BillboardNode(const ActorId actorId,
 	// A point light illuminates the target.  Create a semitransparent
 	// material for the patch.
 	eastl::shared_ptr<Material> material = eastl::make_shared<Material>();
-	material->mEmissive = { 0.0f, 0.0f, 0.0f, 1.0f };
-	material->mAmbient = { 0.5f, 0.5f, 0.5f, 1.0f };
-	material->mDiffuse = { 0.5f, 0.5f, 0.5f, 1.0f };
-	material->mSpecular = { 1.0f, 1.0f, 1.0f, 0.75f };
 	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		meshBuffer->GetMaterial() = material;
 	mMeshBuffer.reset(meshBuffer);
@@ -88,7 +84,6 @@ BillboardNode::BillboardNode(const ActorId actorId,
 	mVisual = eastl::make_shared<Visual>(
 		mMeshBuffer->GetVertice(), mMeshBuffer->GetIndice(), mEffect);
 	mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
-
 }
 
 //! prerender
@@ -175,7 +170,6 @@ void BillboardNode::DoBillboardBuffers(Scene *pScene)
 		return;
 
 	Vector3<float> scale = GetAbsoluteTransform().GetScale();
-	Vector3<float> position = GetAbsoluteTransform().GetTranslation();
 
 	float f = 0.5f * mSize[0];
 	const Vector4<float> horizontal = cameraNode->Get()->GetRVector() * f;
@@ -183,13 +177,13 @@ void BillboardNode::DoBillboardBuffers(Scene *pScene)
 	f = 0.5f * mSize[1];
 	const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
 
-	mMeshBuffer->Position(0) = position + HProject(horizontal + vertical) * scale;
+	mMeshBuffer->Position(0) = HProject(horizontal + vertical) * scale;
 	mMeshBuffer->Color(0, 0) = mMeshBuffer->GetMaterial()->mDiffuse;
-	mMeshBuffer->Position(1) = position + HProject(horizontal - vertical) * scale;
+	mMeshBuffer->Position(1) = HProject(horizontal - vertical) * scale;
 	mMeshBuffer->Color(0, 1) = mMeshBuffer->GetMaterial()->mDiffuse;
-	mMeshBuffer->Position(2) = position + HProject(-horizontal - vertical) * scale;
+	mMeshBuffer->Position(2) = HProject(-horizontal - vertical) * scale;
 	mMeshBuffer->Color(0, 2) = mMeshBuffer->GetMaterial()->mDiffuse;
-	mMeshBuffer->Position(3) = position + HProject(-horizontal + vertical) * scale;
+	mMeshBuffer->Position(3) = HProject(-horizontal + vertical) * scale;
 	mMeshBuffer->Color(0, 3) = mMeshBuffer->GetMaterial()->mDiffuse;
 
 	mVisual->UpdateModelBound();
