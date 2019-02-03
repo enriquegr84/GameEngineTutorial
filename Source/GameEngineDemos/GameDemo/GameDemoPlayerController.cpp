@@ -54,7 +54,7 @@
 
 GameDemoPlayerController::GameDemoPlayerController(
 	const eastl::shared_ptr<Node>& object, float initialYaw, float initialPitch)
-	: mObject(object)
+	: mTarget(object)
 {
 	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
 	mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
@@ -240,7 +240,7 @@ void GameDemoPlayerController::OnUpdate(unsigned int timeMs, unsigned long delta
 			upWorld *= -1.f;
 	}
 	*/
-	const ActorId actorId = mObject->GetId();
+	const ActorId actorId = mTarget->GetId();
 	eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
 	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
 		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());

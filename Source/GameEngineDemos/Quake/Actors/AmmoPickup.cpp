@@ -54,7 +54,7 @@ bool AmmoPickup::Init(tinyxml2::XMLElement* pData)
 		mType = pAmmo->IntAttribute("type", temp);
 
 		temp = 0;
-		mId = pAmmo->IntAttribute("id", temp);
+		mCode = pAmmo->IntAttribute("code", temp);
 
 		temp = 0;
 		mWait = pAmmo->IntAttribute("wait", temp);

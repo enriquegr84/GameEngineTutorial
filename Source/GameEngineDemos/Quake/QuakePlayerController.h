@@ -59,6 +59,7 @@ protected:
 	// Orientation Controls
 	float		mYaw;
 	float		mPitch;
+	float		mPitchTarget;
 	float		mPitchOnDown;
 	float		mYawOnDown;
 
@@ -76,11 +77,11 @@ protected:
 	bool		mMouseRButtonDown;
 	bool		mMouseLButtonDown;
 
-	eastl::shared_ptr<Node> mObject;
+	eastl::shared_ptr<Node> mTarget;
 
 public:
 	QuakePlayerController(
-		const eastl::shared_ptr<Node>& object, float initialYaw, float initialPitch);
+		const eastl::shared_ptr<Node>& target, float initialYaw, float initialPitch);
 
 	//! Sets whether or not the controller is currently enabled.
 	void SetEnabled(bool enabled) { mEnabled = enabled; }

@@ -2,7 +2,7 @@
     <PhysicsMaterials>
         <PlayDough restitution="0.05" friction="0.9"/>
         <Normal restitution="0.25" friction="0.5"/>
-		<HalfBouncy restitution="0.5" friction="0.5"/>
+		<Custome restitution="0.95" friction="0.7"/>
         <Bouncy restitution = "0.95" friction = "0.5"/>
         <Slippery restitution = "0.25" friction = "0.0"/>
     </PhysicsMaterials>
@@ -17,6 +17,7 @@
         <!--  specific gravity (these numbers are easier to find) -->
         <air>0.0013</air>
         <water>1.000</water>
+		<custome>0.00035</custome>
 
         <!--  Synthetics -->
         <styrofoam>0.0100</styrofoam>

@@ -54,7 +54,7 @@ bool ArmorPickup::Init(tinyxml2::XMLElement* pData)
 		mType = pArmor->IntAttribute("type", temp);
 
 		temp = 0;
-		mId = pArmor->IntAttribute("id", temp);
+		mCode = pArmor->IntAttribute("code", temp);
 
 		temp = 0;
 		mWait = pArmor->IntAttribute("wait", temp);

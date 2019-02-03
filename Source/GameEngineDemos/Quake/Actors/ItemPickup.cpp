@@ -54,7 +54,7 @@ bool ItemPickup::Init(tinyxml2::XMLElement* pData)
 		mType = pItem->IntAttribute("type", temp);
 
 		temp = 0;
-		mId = pItem->IntAttribute("id", temp);
+		mCode = pItem->IntAttribute("code", temp);
 	}
 
 	return true;

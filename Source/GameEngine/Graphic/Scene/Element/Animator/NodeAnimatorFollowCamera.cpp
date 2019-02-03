@@ -41,6 +41,8 @@ void NodeAnimatorFollowCamera::AnimateNode(Scene* pScene, Node* node, unsigned i
 		GameLogic::Get()->GetActor(camera->GetTarget()->GetId()).lock());
 	eastl::shared_ptr<PhysicComponent> pPhysicComponent(
 		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
+
+	Matrix4x4<float> rotation = Matrix4x4<float>::Identity();
 	if (pPhysicComponent)
 	{
 		float yaw = 180 + pPhysicComponent->GetOrientationOffset()[2];
@@ -54,9 +56,16 @@ void NodeAnimatorFollowCamera::AnimateNode(Scene* pScene, Node* node, unsigned i
 			AxisAngle<4, float>(Vector4<float>::Unit(1), pitch * (float)GE_C_DEG_TO_RAD));
 		Matrix4x4<float> rollRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(0), roll * (float)GE_C_DEG_TO_RAD));
-		Transform targetTransform = pPhysicComponent->GetTransform();
-		camera->GetAbsoluteTransform().SetRotation(
-			targetTransform.GetRotation() * yawRotation * pitchRotation * rollRotation);
+		rotation = yawRotation * pitchRotation * rollRotation;
+	}
+
+	eastl::shared_ptr<TransformComponent> pTransformComponent(
+		pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+	if (pTransformComponent)
+	{
+		Transform targetTransform = pTransformComponent->GetTransform();
+		camera->GetAbsoluteTransform().SetRotation(targetTransform.GetRotation() * rotation);
+
 		Vector4<float> translation = targetTransform.GetTranslationW1();
 		Vector4<float> direction = Vector4<float>::Unit(1); // forward vector
 #if defined(GE_USE_MAT_VEC)

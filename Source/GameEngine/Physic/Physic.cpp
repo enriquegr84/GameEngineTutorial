@@ -544,7 +544,7 @@ bool BulletPhysics::Initialize()
 	// This is the main Bullet interface point.  Pass in all these components to customize its behavior.
 	mDynamicsWorld = new btDiscreteDynamicsWorld( 
 		mDispatcher, mBroadphase, mSolver, mCollisionConfiguration );
-	mDynamicsWorld->setGravity(btVector3(0, 0, -200.f));
+	mDynamicsWorld->setGravity(btVector3(0, 0, -300.f));
 
 	mDebugDrawer = new BulletDebugDrawer();
 	GameApplication* gameApp = (GameApplication*)Application::App;
@@ -600,22 +600,21 @@ void BulletPhysics::SyncVisibleScene()
 				pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
             if (pTransformComponent)
             {
-				Transform actorCollisionTransform = 
+				Transform actorTransform = 
 					btTransformToTransform(actorCollisionObject->getWorldTransform());
 
-			    if (pTransformComponent->GetTransform().GetMatrix() != actorCollisionTransform.GetMatrix() ||
-					pTransformComponent->GetTransform().GetTranslation() != actorCollisionTransform.GetTranslation())
+			    if (pTransformComponent->GetTransform().GetMatrix() != actorTransform.GetMatrix() ||
+					pTransformComponent->GetTransform().GetTranslation() != actorTransform.GetTranslation())
                 {
                     // Bullet has moved the actor's physics object. Sync and inform
 					// about game actor transform 
-					pTransformComponent->SetTransform(actorCollisionTransform);
+					//pTransformComponent->SetTransform(actorTransform);
 /*
-					LogInformation("x = " + eastl::to_string(actorMotionState->mWorldToPositionTransform.GetTranslation()[0]) +
-									" y = " + eastl::to_string(actorMotionState->mWorldToPositionTransform.GetTranslation()[1]) +
-									" z = " + eastl::to_string(actorMotionState->mWorldToPositionTransform.GetTranslation()[2]));
+					LogInformation("x = " + eastl::to_string(actorTransform.GetTranslation()[0]) +
+									" y = " + eastl::to_string(actorTransform.GetTranslation()[1]) +
+									" z = " + eastl::to_string(actorTransform.GetTranslation()[2]));
 */
-                    eastl::shared_ptr<EventDataSyncActor> pEvent(
-						new EventDataSyncActor(id, actorCollisionTransform));
+                    eastl::shared_ptr<EventDataSyncActor> pEvent(new EventDataSyncActor(id, actorTransform));
                     BaseEventManager::Get()->TriggerEvent(pEvent);
 			    }
             }

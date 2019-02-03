@@ -75,7 +75,7 @@ protected:
 	bool		mMouseRButtonDown;
 	bool		mMouseLButtonDown;
 
-	eastl::shared_ptr<Node> mObject;
+	eastl::shared_ptr<Node> mTarget;
 
 public:
 	GameDemoPlayerController(

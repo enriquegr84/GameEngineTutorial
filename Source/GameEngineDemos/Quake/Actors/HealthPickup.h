@@ -46,7 +46,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 class HealthPickup : public BasePickup
 {
-	ComponentId mId;
+	unsigned int mCode;
 	unsigned int mType;
 
 	unsigned int mWait;
@@ -56,7 +56,7 @@ class HealthPickup : public BasePickup
 public:
 	static const char* Name;
 	virtual const char* GetName() const { return Name; }
-	virtual ComponentId GetId(void) const { return mId; }
+	unsigned int GetCode(void) const { return mCode; }
 	unsigned int GetType() const { return mType; }
 
 	unsigned int GetWait() const { return mWait; }

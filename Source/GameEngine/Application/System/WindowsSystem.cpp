@@ -1340,8 +1340,7 @@ void WindowsSystem::CursorControl::SetPosition(int x, int y)
 			SetCursorPos(x + rect.left + mBorderX, y + rect.top + mBorderY);
 	}
 
-	mCursorPos[0] = x;
-	mCursorPos[1] = y;
+	UpdateInternalCursorPosition();
 }
 
 //! Returns the current position of the mouse cursor.

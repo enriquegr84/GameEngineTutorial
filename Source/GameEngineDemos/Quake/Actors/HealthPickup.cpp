@@ -55,7 +55,7 @@ bool HealthPickup::Init(tinyxml2::XMLElement* pData)
 		mType = pHealth->IntAttribute("type", temp);
 
 		temp = 0;
-		mId = pHealth->IntAttribute("id", temp);
+		mCode = pHealth->IntAttribute("code", temp);
 
 		temp = 0;
 		mWait = pHealth->IntAttribute("wait", temp);

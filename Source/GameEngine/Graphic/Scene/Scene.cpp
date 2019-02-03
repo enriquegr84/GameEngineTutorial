@@ -611,11 +611,16 @@ void Scene::SyncActorDelegate(BaseEventDataPtr pEventData)
 	eastl::shared_ptr<Node> pNode = GetSceneNode(actorId);
 	if (pNode)
 	{
+		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+			pTransformComponent->SetPosition(pCastEventData->GetTransform().GetTranslation());
+
 		Vector3<float> actorScale = pNode->GetRelativeTransform().GetScale();
 		pNode->GetRelativeTransform() = pCastEventData->GetTransform();
 		pNode->GetRelativeTransform().SetScale(actorScale);
 
-		eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(actorId).lock());
 		eastl::shared_ptr<PhysicComponent> pPhysicComponent(
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
 		if (pPhysicComponent)

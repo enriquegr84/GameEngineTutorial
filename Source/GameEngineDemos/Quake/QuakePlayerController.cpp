@@ -54,11 +54,11 @@
 
 
 QuakePlayerController::QuakePlayerController(
-	const eastl::shared_ptr<Node>& object, float initialYaw, float initialPitch)
-	: mObject(object)
+	const eastl::shared_ptr<Node>& target, float initialYaw, float initialPitch)
+	: mTarget(target)
 {
 	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
-	mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
+	mPitchTarget = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
 	mMaxMoveSpeed = 8.0f;
 	mMaxJumpSpeed = 5.0f;
@@ -71,7 +71,8 @@ QuakePlayerController::QuakePlayerController(
 	System* system = System::Get();
 	system->GetCursorControl()->SetPosition(0.5f, 0.5f);
 	Vector2<unsigned int> cursorPosition = system->GetCursorControl()->GetPosition();
-	mLastMousePos = Vector2<int>{ (int)cursorPosition[0], (int)cursorPosition[1] };
+	mLastMousePos[0] = cursorPosition[0];
+	mLastMousePos[1] = cursorPosition[1];
 
 	memset(mKey, 0x00, sizeof(mKey));
 
@@ -138,7 +139,7 @@ bool QuakePlayerController::OnMouseMove(const Vector2<int> &mousePos, const int 
 
 		System* system = System::Get();
 		mYaw += ((mLastMousePos[0] - mousePos[0]) / (float)system->GetWidth()) * mRotateSpeed;
-		mPitch += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
+		mPitchTarget += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
 		mLastMousePos = mousePos;
 	}
 
@@ -172,14 +173,21 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			// Force a reset.
 			system->GetCursorControl()->SetPosition(0.5f, 0.5f);
 			cursorPosition = system->GetCursorControl()->GetPosition();
-			mLastMousePos = Vector2<int>{ (int)cursorPosition[0], (int)cursorPosition[1] };
+			mLastMousePos[0] = cursorPosition[0];
+			mLastMousePos[1] = cursorPosition[1];
 		}
 	}
-
-	Matrix4x4<float> rotation;
 	//Handling rotation as a result of mouse position
+	Matrix4x4<float> rotation;
+
+	const ActorId actorId = mTarget->GetId();
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(actorId).lock()));
+	if (pPlayerActor)
 	{
-		mPitch = eastl::max(-45.f, eastl::min(45.f, mPitch));
+		mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
+		mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
 
 		// Calculate the new rotation matrix from the camera
 		// yaw and pitch (zrotate and xrotate).
@@ -189,6 +197,16 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(1), -mPitch * (float)GE_C_DEG_TO_RAD));
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
+
+		// update node rotation matrix
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			pitchRotation = Rotation<4, float>(
+				AxisAngle<4, float>(Vector4<float>::Unit(1), -mPitchTarget * (float)GE_C_DEG_TO_RAD));
+			pTransformComponent->SetRotation(yawRotation * pitchRotation);
+		}
 	}
 
 	Vector4<float> atWorld = Vector4<float>::Zero();
@@ -242,10 +260,6 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			upWorld *= -1.f;
 	}
 	*/
-	const ActorId actorId = mObject->GetId();
-	eastl::shared_ptr<PlayerActor> pPlayerActor(
-		eastl::dynamic_shared_pointer_cast<PlayerActor>(
-		GameLogic::Get()->GetActor(actorId).lock()));
 	if (pPlayerActor)
 	{
 		eastl::shared_ptr<PhysicComponent> pPhysicComponent(

@@ -68,7 +68,8 @@ QuakeCameraController::QuakeCameraController(const eastl::shared_ptr<CameraNode>
 	System* system = System::Get();
 	system->GetCursorControl()->SetPosition(0.5f, 0.5f);
 	Vector2<unsigned int> cursorPosition = system->GetCursorControl()->GetPosition();
-	mLastMousePos = Vector2<int>{ (int)cursorPosition[0], (int)cursorPosition[1]};
+	mLastMousePos[0] = cursorPosition[0];
+	mLastMousePos[1] = cursorPosition[1];
 
 	memset(mKey, 0x00, sizeof(mKey));
 
@@ -168,7 +169,8 @@ void QuakeCameraController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			// Force a reset.
 			system->GetCursorControl()->SetPosition(0.5f, 0.5f);
 			cursorPosition = system->GetCursorControl()->GetPosition();
-			mLastMousePos = Vector2<int>{ (int)cursorPosition[0], (int)cursorPosition[1] };
+			mLastMousePos[0] = cursorPosition[0];
+			mLastMousePos[1] = cursorPosition[1];
 		}
 	}
 

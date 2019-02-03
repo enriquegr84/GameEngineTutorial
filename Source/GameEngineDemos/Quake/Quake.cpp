@@ -2090,7 +2090,12 @@ void QuakeLogic::GrenadeLauncherFire(
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
-			pPhysicalComponent->ApplyForce(direction * 600000.f);
+		{
+			direction[PITCH] *= 800000.f;
+			direction[ROLL] *= 800000.f;
+			direction[YAW] *= 400000.f;
+			pPhysicalComponent->ApplyForce(direction);
+		}
 	}
 
 	// play firing sound
@@ -2140,7 +2145,7 @@ void QuakeLogic::RocketLauncherFire(
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
 		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
 	Matrix4x4<float> pitchRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1] + GE_C_QUARTER_PI));
+		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
 
 	Transform initTransform;
 	initTransform.SetRotation(yawRotation * pitchRotation);
@@ -2156,18 +2161,23 @@ void QuakeLogic::RocketLauncherFire(
 	Normalize(direction);
 
 	eastl::shared_ptr<Actor> pGameActor =
-		CreateActor("actors/quake/effects/grenadelauncherfire.xml", nullptr, &initTransform);
+		CreateActor("actors/quake/effects/rocketlauncherfire.xml", nullptr, &initTransform);
 	if (pGameActor)
 	{
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
-			pPhysicalComponent->ApplyForce(direction * 600000.f);
+		{
+			direction[PITCH] *= 300.f;
+			direction[ROLL] *= 300.f;
+			direction[YAW] *= 300.f;
+			pPhysicalComponent->ApplyForce(direction);
+		}
 	}
 
 	// play firing sound
 	EventManager::Get()->TriggerEvent(
-		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/grenade/grenlf1a.ogg"));
+		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/rocket/rocklf1a.ogg"));
 
 	/*
 	bolt->damage = 100;
@@ -2421,14 +2431,14 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 	Vector3<float> origin;
 	Matrix4x4<float> rotation;
 	EulerAngles<float> viewAngles;
-	eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
-		pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
-	if (pPhysicalComponent)
+	eastl::shared_ptr<TransformComponent> pTransformComponent(
+		pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+	if (pTransformComponent)
 	{
 		viewAngles.mAxis[1] = 1;
 		viewAngles.mAxis[2] = 2;
-		pPhysicalComponent->GetTransform().GetRotation(viewAngles);
-		origin = pPhysicalComponent->GetTransform().GetTranslation();
+		pTransformComponent->GetTransform().GetRotation(viewAngles);
+		origin = pTransformComponent->GetTransform().GetTranslation();
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
@@ -2824,7 +2834,7 @@ bool CanItemBeGrabbed(const eastl::shared_ptr<Actor>& item, const eastl::shared_
 			item->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
 		if (pAmmoPickup)
 		{
-			if (player->GetState().ammo[pAmmoPickup->GetId()] >= 200)
+			if (player->GetState().ammo[pAmmoPickup->GetCode()] >= 200)
 				return false;		// can't hold any more
 
 			return true;
@@ -2934,9 +2944,9 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 				pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
 			if (pWeaponPickup)
 			{
-				pPlayerActor->GetState().stats[STAT_WEAPONS] |= 1 << pWeaponPickup->GetId();
-				if (!pPlayerActor->GetState().ammo[pWeaponPickup->GetId()])
-					pPlayerActor->GetState().ammo[pWeaponPickup->GetId()] = 1;
+				pPlayerActor->GetState().stats[STAT_WEAPONS] |= 1 << pWeaponPickup->GetCode();
+				if (!pPlayerActor->GetState().ammo[pWeaponPickup->GetCode()])
+					pPlayerActor->GetState().ammo[pWeaponPickup->GetCode()] = 1;
 			}
 		}
 	}
