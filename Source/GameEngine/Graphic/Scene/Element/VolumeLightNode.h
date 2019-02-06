@@ -15,10 +15,10 @@ public:
 
 	//! constructor
 	VolumeLightNode(const ActorId actorId, PVWUpdater* updater, 
-		WeakBaseRenderComponentPtr renderComponent,
-		const unsigned int subdivU = 32, const unsigned int subdivV = 32,
-		const eastl::array<float, 4> foot = eastl::array<float, 4>{51.f, 0.f, 230.f, 180.f},
-		const eastl::array<float, 4> tail = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f});
+		WeakBaseRenderComponentPtr renderComponent, const Vector2<float>& textureSize,
+		const eastl::shared_ptr<Texture2>& texture, const Vector2<int>& subdivision = Vector2<int>{32, 32},
+		const eastl::array<float, 4>& foot = eastl::array<float, 4>{51.f, 0.f, 230.f, 180.f},
+		const eastl::array<float, 4>& tail = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f});
 
 	virtual ~VolumeLightNode();
 
@@ -77,7 +77,24 @@ private:
 
 	void ConstructLight();
 
-	eastl::shared_ptr<BaseMesh> mMesh;
+	struct Vertex
+	{
+		Vector3<float> position;
+		Vector2<float> tcoord;
+		Vector4<float> color;
+	};
+	void AddToBuffer(Vector3<float>& position,
+		eastl::array<float, 4U>& color, Vector2<float>& tcoord,
+		Vertex* vertex, unsigned int& vtx, unsigned int* index, unsigned int& idx);
+
+	eastl::shared_ptr<BlendState> mBlendState;
+	eastl::shared_ptr<DepthStencilState> mDepthStencilState;
+	eastl::shared_ptr<RasterizerState> mRasterizerState;
+
+	eastl::shared_ptr<Texture2> mTexture;
+	eastl::shared_ptr<VisualEffect> mEffect;
+	eastl::shared_ptr<MeshBuffer> mMeshBuffer;
+	eastl::shared_ptr<Visual> mVisual;
 
 	float  mLPDistance;		// Distance to hypothetical lightsource point -- affects fov angle
 

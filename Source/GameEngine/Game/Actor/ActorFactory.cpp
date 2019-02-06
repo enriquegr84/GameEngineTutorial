@@ -63,6 +63,7 @@ ActorFactory::ActorFactory(void)
     mComponentFactory.Register<GridRenderComponent>(ActorComponent::GetIdFromName(GridRenderComponent::Name));
     mComponentFactory.Register<ParticleEffectRenderComponent>(ActorComponent::GetIdFromName(ParticleEffectRenderComponent::Name));
 	mComponentFactory.Register<BillboardRenderComponent>(ActorComponent::GetIdFromName(BillboardRenderComponent::Name));
+	mComponentFactory.Register<VolumeLightRenderComponent>(ActorComponent::GetIdFromName(VolumeLightRenderComponent::Name));
     mComponentFactory.Register<LightRenderComponent>(ActorComponent::GetIdFromName(LightRenderComponent::Name));
     mComponentFactory.Register<SkyRenderComponent>(ActorComponent::GetIdFromName(SkyRenderComponent::Name));
     mComponentFactory.Register<AudioComponent>(ActorComponent::GetIdFromName(AudioComponent::Name));
@@ -121,6 +122,7 @@ eastl::shared_ptr<Actor> ActorFactory::CreateActor(const wchar_t* actorResource,
 		pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 	if (pInitialTransform && pTransformComponent)
 	{
+		pTransformComponent->SetScale(pInitialTransform->GetScale());
 		pTransformComponent->SetRotation(pInitialTransform->GetRotation());
 		pTransformComponent->SetPosition(pInitialTransform->GetTranslation());
 	}

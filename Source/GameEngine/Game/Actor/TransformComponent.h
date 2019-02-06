@@ -62,6 +62,8 @@ public:
     // transform functions
 	Transform GetTransform(void) const { return mTransform; }
     void SetTransform(const Transform& newTransform) { mTransform = newTransform; }
+	Vector3<float> GetScale(void) const { return mTransform.GetScale(); }
+	void SetScale(const Vector3<float>& scale) { mTransform.SetScale(scale); }
     Vector3<float> GetPosition(void) const { return mTransform.GetTranslation(); }
     void SetPosition(const Vector3<float>& pos) { mTransform.SetTranslation(pos); }
 	Matrix4x4<float> GetRotation(void) const { return mTransform.GetRotation(); }

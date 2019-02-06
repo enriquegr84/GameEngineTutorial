@@ -295,12 +295,13 @@ eastl::shared_ptr<Node> Scene::AddSphereNode(
 //! adds Volume Lighting Scene Node.
 //! the returned pointer must not be dropped.
 eastl::shared_ptr<Node> Scene::AddVolumeLightNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id, 
-	const unsigned int subdivU, const unsigned int subdivV, eastl::array<float, 4> const foot, 
-	eastl::array<float, 4> const tail)
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+	const Vector2<float>& textureSize, const eastl::shared_ptr<Texture2>& texture, 
+	const Vector2<int>& subdivision, const eastl::array<float, 4>& foot, 
+	const eastl::array<float, 4>& tail, int id)
 {
-	eastl::shared_ptr<Node> node(
-		new VolumeLightNode(id, &mPVWUpdater, renderComponent, subdivU, subdivV, foot, tail));
+	eastl::shared_ptr<Node> node(new VolumeLightNode(
+		id, &mPVWUpdater, renderComponent, textureSize, texture, subdivision, foot, tail));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 

@@ -1260,6 +1260,15 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 			mWeaponMedia[weapon].loopFireSound = false;
 
+			char name[64];
+			for (int i = 1; i < 8; i++)
+			{
+				sprintf(name, "art/quake/gfx/misc/portal%i.bmp", i);
+				resHandle = ResCache::Get()->GetHandle(&BaseResource(ToWideString(name)));
+				resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+				resData->GetImage()->AutogenerateMipmaps();
+			}
+
 			mMedia.railExplosionShader[0] = eastl::wstring(L"art/quake/models/weaphits/ring02_1.png");
 			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.railExplosionShader[0]));
 			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());

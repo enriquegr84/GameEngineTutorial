@@ -284,12 +284,14 @@ private:
 		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
 		const Vector3<float>& forward, const Vector3<float>& right,
 		const Vector3<float>& up, const EulerAngles<float>& angles);
-	void PlasmagunFire(const eastl::shared_ptr<PlayerActor>& player,
-		const Vector3<float>& muzzle, const Vector3<float>& forward,
-		const Vector3<float>& right, const Vector3<float>& up);
-	void RailgunFire(const eastl::shared_ptr<PlayerActor>& player,
-		const Vector3<float>& muzzle, const Vector3<float>& forward,
-		const Vector3<float>& right, const Vector3<float>& up);
+	void PlasmagunFire(
+		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle, 
+		const Vector3<float>& forward, const Vector3<float>& right, 
+		const Vector3<float>& up, const EulerAngles<float>& angles);
+	void RailgunFire(
+		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
+		const Vector3<float>& forward, const Vector3<float>& right,
+		const Vector3<float>& up, const EulerAngles<float>& viewAngles);
 
 	bool SpotTelefrag(const eastl::shared_ptr<Actor>& spot);
 	const eastl::shared_ptr<Actor>& SelectRandomSpawnPoint();

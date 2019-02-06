@@ -143,6 +143,7 @@ public:
 	virtual void StopActor(ActorId actorId) { }
 	virtual Vector3<float> GetScale(ActorId actorId) { return Vector3<float>(); }
     virtual Vector3<float> GetVelocity(ActorId actorId) { return Vector3<float>(); }
+	virtual void SetGravity(ActorId actorId, const Vector3<float>& g) { }
     virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel) { }
 	virtual void SetPosition(ActorId actorId, const Vector3<float>& pos) { }
 	virtual void SetRotation(ActorId aid, const Transform &mat) { }
@@ -375,6 +376,7 @@ public:
 	virtual void StopActor(ActorId actorId);
 	virtual Vector3<float> GetScale(ActorId actorId);
     virtual Vector3<float> GetVelocity(ActorId actorId);
+	virtual void SetGravity(ActorId actorId, const Vector3<float>& g);
     virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel);
 	virtual void SetPosition(ActorId actorId, const Vector3<float>& pos);
 	virtual void SetRotation(ActorId aid, const Transform &mat);
@@ -666,7 +668,7 @@ void BulletPhysics::AddShape(eastl::shared_ptr<Actor> pGameActor, btCollisionSha
 	rbInfo.m_friction    = material.mFriction;
 	
 	btRigidBody* const body = new btRigidBody(rbInfo);
-	
+
 	mDynamicsWorld->addRigidBody( body );
 	
 	// add it to the collection to be checked for changes in SyncVisibleScene
@@ -1233,6 +1235,29 @@ Vector3<float> BulletPhysics::GetVelocity(ActorId actorId)
 		}
 	}
 	return Vector3<float>();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+void BulletPhysics::SetGravity(ActorId actorId, const Vector3<float>& g)
+{
+	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(actorId))
+	{
+		if (collisionObject->getCollisionFlags() & btCollisionObject::CF_CHARACTER_OBJECT)
+		{
+			if (btKinematicCharacterController* const controller =
+				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(actorId)))
+			{
+				btVector3 btGravity = Vector3TobtVector3(g);
+				controller->setGravity(btGravity);
+			}
+		}
+		else
+		{
+			btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(collisionObject);
+			btVector3 btGravity = Vector3TobtVector3(g);
+			rigidBody->setGravity(btGravity);
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////

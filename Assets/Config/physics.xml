@@ -17,7 +17,6 @@
         <!--  specific gravity (these numbers are easier to find) -->
         <air>0.0013</air>
         <water>1.000</water>
-		<custome>0.00035</custome>
 
         <!--  Synthetics -->
         <styrofoam>0.0100</styrofoam>

@@ -53,6 +53,7 @@ const char* SphereRenderComponent::Name = "SphereRenderComponent";
 const char* CubeRenderComponent::Name = "CubeRenderComponent";
 const char* GridRenderComponent::Name = "GridRenderComponent";
 const char* BillboardRenderComponent::Name = "BillboardRenderComponent";
+const char* VolumeLightRenderComponent::Name = "VolumeLightRenderComponent";
 const char* LightRenderComponent::Name = "LightRenderComponent";
 const char* SkyRenderComponent::Name = "SkyRenderComponent";
 const char* ParticleEffectRenderComponent::Name = "ParticleEffectRenderComponent";
@@ -658,7 +659,6 @@ void GridRenderComponent::CreateInheritedXMLElements(
 	pBaseElement->LinkEndChild(pExtent);
 }
 
-
 //---------------------------------------------------------------------------------------------------------------------
 // BillboardRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
@@ -667,7 +667,7 @@ BillboardRenderComponent::BillboardRenderComponent(void)
 	mAnimatorType = 0;
 	mAnimationTime = 0;
 
-
+	mTextureColor = Vector4<float>::Unit(3);
 }
 
 bool BillboardRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
@@ -706,6 +706,24 @@ bool BillboardRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 
 			textureBegin = textureEnd + 1;
 		} while (textureEnd != eastl::string::npos);
+	}
+
+	tinyxml2::XMLElement* pColor = pData->FirstChildElement("TextureColor");
+	if (pColor)
+	{
+		float temp = 0;
+
+		temp = pColor->FloatAttribute("r", temp);
+		mTextureColor[0] = temp;
+
+		temp = pColor->FloatAttribute("g", temp);
+		mTextureColor[1] = temp;
+
+		temp = pColor->FloatAttribute("b", temp);
+		mTextureColor[2] = temp;
+
+		temp = pColor->FloatAttribute("a", temp);
+		mTextureColor[3] = temp;
 	}
 
 	tinyxml2::XMLElement* pSize = pData->FirstChildElement("TextureSize");
@@ -774,7 +792,10 @@ eastl::shared_ptr<Node> BillboardRenderComponent::CreateSceneNode(void)
 				}
 
 				for (unsigned int i = 0; i < billboardNode->GetMaterialCount(); ++i)
+				{
 					billboardNode->GetMaterial(i)->mLighting = false;
+					billboardNode->GetMaterial(i)->mDiffuse = mTextureColor;
+				}
 				billboardNode->SetMaterialType((MaterialType)mMaterialType);
 
 				if (mMaterialType == MT_TRANSPARENT)
@@ -808,6 +829,250 @@ void BillboardRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLElement* pMaterial = doc.NewElement("Material");
 	pMaterial->SetAttribute("type", eastl::to_string(mMaterialType).c_str());
 	pBaseElement->LinkEndChild(pMaterial);
+
+	// animation
+	tinyxml2::XMLElement* pAnimator = doc.NewElement("Animator");
+	pAnimator->SetAttribute("type", eastl::to_string(mAnimatorType).c_str());
+	pAnimator->SetAttribute("time", eastl::to_string(mAnimationTime).c_str());
+	pBaseElement->LinkEndChild(pAnimator);
+
+	// texture
+	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
+	for (eastl::string texture : mTextures)
+	{
+		tinyxml2::XMLText* pBillboardTexture = doc.NewText(texture.c_str());
+		pBaseElement->LinkEndChild(pBillboardTexture);
+	}
+
+	tinyxml2::XMLElement* pColor = doc.NewElement("TextureColor");
+	pColor->SetAttribute("r", eastl::to_string(mTextureColor[0]).c_str());
+	pColor->SetAttribute("g", eastl::to_string(mTextureColor[1]).c_str());
+	pColor->SetAttribute("b", eastl::to_string(mTextureColor[2]).c_str());
+	pColor->SetAttribute("a", eastl::to_string(mTextureColor[3]).c_str());
+	pBaseElement->LinkEndChild(pColor);
+
+	tinyxml2::XMLElement* pSize = doc.NewElement("TextureSize");
+	pSize->SetAttribute("x", eastl::to_string(mTextureSize[0]).c_str());
+	pSize->SetAttribute("y", eastl::to_string(mTextureSize[1]).c_str());
+	pBaseElement->LinkEndChild(pSize);
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// VolumeLightRenderComponent
+//---------------------------------------------------------------------------------------------------------------------
+VolumeLightRenderComponent::VolumeLightRenderComponent(void)
+{
+	mAnimatorType = 0;
+	mAnimationTime = 0;
+
+	mSubdivision = Vector2<int>::Zero();
+	mFootColor = eastl::array<float, 4>();
+	mTailColor = eastl::array<float, 4>();
+}
+
+bool VolumeLightRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
+{
+	float temp = 0;
+
+	tinyxml2::XMLElement* pMaterial = pData->FirstChildElement("Material");
+	if (pMaterial)
+	{
+		unsigned int type = 0;
+		mMaterialType = pMaterial->IntAttribute("type", type);
+	}
+
+	tinyxml2::XMLElement* pSubdivision = pData->FirstChildElement("Subdivision");
+	if (pSubdivision)
+	{
+		unsigned int u = 0;
+		mSubdivision[0] = pSubdivision->IntAttribute("u", u);
+
+		unsigned int v = 0;
+		mSubdivision[1] = pSubdivision->IntAttribute("v", v);
+	}
+
+	tinyxml2::XMLElement* pFootColor = pData->FirstChildElement("FootColor");
+	if (pFootColor)
+	{
+		float temp = 0;
+
+		temp = pFootColor->FloatAttribute("r", temp);
+		mFootColor[0] = temp;
+
+		temp = pFootColor->FloatAttribute("g", temp);
+		mFootColor[1] = temp;
+
+		temp = pFootColor->FloatAttribute("b", temp);
+		mFootColor[2] = temp;
+
+		temp = pFootColor->FloatAttribute("a", temp);
+		mFootColor[3] = temp;
+	}
+
+	tinyxml2::XMLElement* pTailColor = pData->FirstChildElement("TailColor");
+	if (pFootColor)
+	{
+		float temp = 0;
+
+		temp = pTailColor->FloatAttribute("r", temp);
+		mTailColor[0] = temp;
+
+		temp = pTailColor->FloatAttribute("g", temp);
+		mTailColor[1] = temp;
+
+		temp = pTailColor->FloatAttribute("b", temp);
+		mTailColor[2] = temp;
+
+		temp = pTailColor->FloatAttribute("a", temp);
+		mTailColor[3] = temp;
+	}
+
+	tinyxml2::XMLElement* pAnimator = pData->FirstChildElement("Animator");
+	if (pAnimator)
+	{
+		unsigned int type = 0;
+		mAnimatorType = pAnimator->IntAttribute("type", type);
+
+		unsigned int time = 0;
+		mAnimationTime = pAnimator->IntAttribute("time", time);
+	}
+
+	tinyxml2::XMLElement* pTexture = pData->FirstChildElement("Texture");
+	if (pTexture)
+	{
+		eastl::string textures = pTexture->FirstChild()->Value();
+		textures.erase(eastl::remove(textures.begin(), textures.end(), '\r'), textures.end());
+		textures.erase(eastl::remove(textures.begin(), textures.end(), '\n'), textures.end());
+		textures.erase(eastl::remove(textures.begin(), textures.end(), '\t'), textures.end());
+		size_t textureBegin = 0, textureEnd = 0;
+		do
+		{
+			textureEnd = textures.find(',', textureBegin);
+			mTextures.push_back(textures.substr(textureBegin, textureEnd - textureBegin));
+
+			textureBegin = textureEnd + 1;
+		} while (textureEnd != eastl::string::npos);
+	}
+
+	tinyxml2::XMLElement* pSize = pData->FirstChildElement("TextureSize");
+	if (pSize)
+	{
+		temp = pSize->FloatAttribute("x", temp);
+		mTextureSize[0] = temp;
+
+		temp = pSize->FloatAttribute("y", temp);
+		mTextureSize[1] = temp;
+	}
+
+	return true;
+}
+
+eastl::shared_ptr<Node> VolumeLightRenderComponent::CreateSceneNode(void)
+{
+	const eastl::shared_ptr<TransformComponent>& pTransformComponent(
+		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+	if (pTransformComponent)
+	{
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
+		Transform transform = pTransformComponent->GetTransform();
+		WeakBaseRenderComponentPtr wbrcp(
+			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
+
+		eastl::shared_ptr<ResHandle>& resHandle =
+			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextures.front().c_str())));
+		if (resHandle)
+		{
+			const eastl::shared_ptr<ImageResourceExtraData>& extra =
+				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+			// Add volumelight
+			eastl::shared_ptr<Node> volumeLightNode = pScene->AddVolumeLightNode(wbrcp, 0, 
+				mTextureSize, extra->GetImage(), mSubdivision, mFootColor, mTailColor, mOwner->GetId());
+			if (volumeLightNode)
+			{
+				volumeLightNode->GetRelativeTransform() = transform;
+
+				if (mAnimatorType & NAT_TEXTURE)
+				{
+					eastl::vector<eastl::shared_ptr<Texture2>> textures;
+					for (auto texture : mTextures)
+					{
+						eastl::shared_ptr<ResHandle>& resHandle =
+							ResCache::Get()->GetHandle(&BaseResource(ToWideString(texture.c_str())));
+						if (resHandle)
+						{
+							const eastl::shared_ptr<ImageResourceExtraData>& extra =
+								eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+							textures.push_back(extra->GetImage());
+						}
+					}
+
+					eastl::shared_ptr<NodeAnimator> anim = 0;
+					anim = pScene->CreateTextureAnimator(textures, mAnimationTime / textures.size(), false);
+					volumeLightNode->AttachAnimator(anim);
+				}
+
+				if (mAnimatorType & NAT_DELETION)
+				{
+					eastl::shared_ptr<NodeAnimator> anim = pScene->CreateDeleteAnimator(mAnimationTime);
+					volumeLightNode->AttachAnimator(anim);
+				}
+
+				for (unsigned int i = 0; i < volumeLightNode->GetMaterialCount(); ++i)
+					volumeLightNode->GetMaterial(i)->mLighting = false;
+				volumeLightNode->SetMaterialType((MaterialType)mMaterialType);
+
+				if (mMaterialType == MT_TRANSPARENT)
+				{
+					for (unsigned int i = 0; i < volumeLightNode->GetMaterialCount(); ++i)
+					{
+						eastl::shared_ptr<Material> material = volumeLightNode->GetMaterial(i);
+						material->mBlendTarget.enable = true;
+						material->mBlendTarget.srcColor = BlendState::BM_ONE;
+						material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
+						material->mBlendTarget.srcAlpha = BlendState::BM_SRC_ALPHA;
+						material->mBlendTarget.dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+
+						material->mDepthBuffer = true;
+						material->mDepthMask = DepthStencilState::MASK_ZERO;
+
+						material->mFillMode = RasterizerState::FILL_SOLID;
+						material->mCullMode = RasterizerState::CULL_NONE;
+					}
+				}
+			}
+			return volumeLightNode;
+		}
+	}
+	return eastl::shared_ptr<Node>();
+}
+
+void VolumeLightRenderComponent::CreateInheritedXMLElements(
+	tinyxml2::XMLDocument doc, tinyxml2::XMLElement *pBaseElement)
+{
+	tinyxml2::XMLElement* pMaterial = doc.NewElement("Material");
+	pMaterial->SetAttribute("type", eastl::to_string(mMaterialType).c_str());
+	pBaseElement->LinkEndChild(pMaterial);
+
+	tinyxml2::XMLElement* pSubdivision = doc.NewElement("Subdivision");
+	pSubdivision->SetAttribute("u", eastl::to_string(mSubdivision[0]).c_str());
+	pSubdivision->SetAttribute("v", eastl::to_string(mSubdivision[1]).c_str());
+	pBaseElement->LinkEndChild(pSubdivision);
+
+	tinyxml2::XMLElement* pFootColor = doc.NewElement("FootColor");
+	pFootColor->SetAttribute("r", eastl::to_string(mFootColor[0]).c_str());
+	pFootColor->SetAttribute("g", eastl::to_string(mFootColor[1]).c_str());
+	pFootColor->SetAttribute("b", eastl::to_string(mFootColor[2]).c_str());
+	pFootColor->SetAttribute("a", eastl::to_string(mFootColor[3]).c_str());
+	pBaseElement->LinkEndChild(pFootColor);
+
+	tinyxml2::XMLElement* pTailColor = doc.NewElement("FootColor");
+	pTailColor->SetAttribute("r", eastl::to_string(mTailColor[0]).c_str());
+	pTailColor->SetAttribute("g", eastl::to_string(mTailColor[1]).c_str());
+	pTailColor->SetAttribute("b", eastl::to_string(mTailColor[2]).c_str());
+	pTailColor->SetAttribute("a", eastl::to_string(mTailColor[3]).c_str());
+	pBaseElement->LinkEndChild(pTailColor);
 
 	// animation
 	tinyxml2::XMLElement* pAnimator = doc.NewElement("Animator");

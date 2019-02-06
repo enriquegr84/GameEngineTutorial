@@ -61,9 +61,9 @@ QuakePlayerController::QuakePlayerController(
 	mPitchTarget = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
 	mMaxMoveSpeed = 8.0f;
-	mMaxJumpSpeed = 5.0f;
+	mMaxJumpSpeed = 6.0f;
 	mMaxRotateSpeed = 180.0f;
-	mJumpSpeed = 5.0f;
+	mJumpSpeed = 6.0f;
 	mMoveSpeed = 6.0f;
 	mRotateSpeed = 0.0f;
 
@@ -76,6 +76,7 @@ QuakePlayerController::QuakePlayerController(
 
 	memset(mKey, 0x00, sizeof(mKey));
 
+	mMouseUpdate = true;
 	mMouseRButtonDown = false;
 	mMouseLButtonDown = false;
 	mWheelRollDown = false;
@@ -132,15 +133,18 @@ bool QuakePlayerController::OnMouseButtonUp(
 
 bool QuakePlayerController::OnMouseMove(const Vector2<int> &mousePos, const int radius)
 {
-	// rotate the view
-	if (mLastMousePos != mousePos)
+	if (mMouseUpdate)
 	{
-		mRotateSpeed = mMaxRotateSpeed;
+		// rotate the view
+		if (mLastMousePos != mousePos)
+		{
+			mRotateSpeed = mMaxRotateSpeed;
 
-		System* system = System::Get();
-		mYaw += ((mLastMousePos[0] - mousePos[0]) / (float)system->GetWidth()) * mRotateSpeed;
-		mPitchTarget += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
-		mLastMousePos = mousePos;
+			System* system = System::Get();
+			mYaw += ((mLastMousePos[0] - mousePos[0]) / (float)system->GetWidth()) * mRotateSpeed;
+			mPitchTarget += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
+			mLastMousePos = mousePos;
+		}
 	}
 
 	return true;
@@ -171,11 +175,13 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		if (reset)
 		{
 			// Force a reset.
+			mMouseUpdate = false;
 			system->GetCursorControl()->SetPosition(0.5f, 0.5f);
 			cursorPosition = system->GetCursorControl()->GetPosition();
 			mLastMousePos[0] = cursorPosition[0];
 			mLastMousePos[1] = cursorPosition[1];
 		}
+		else mMouseUpdate = true;
 	}
 	//Handling rotation as a result of mouse position
 	Matrix4x4<float> rotation;

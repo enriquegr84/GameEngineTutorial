@@ -2093,7 +2093,7 @@ void QuakeLogic::GrenadeLauncherFire(
 		{
 			direction[PITCH] *= 800000.f;
 			direction[ROLL] *= 800000.f;
-			direction[YAW] *= 400000.f;
+			direction[YAW] *= 500000.f;
 			pPhysicalComponent->ApplyForce(direction);
 		}
 	}
@@ -2168,9 +2168,11 @@ void QuakeLogic::RocketLauncherFire(
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
 		{
-			direction[PITCH] *= 300.f;
-			direction[ROLL] *= 300.f;
-			direction[YAW] *= 300.f;
+			pPhysicalComponent->SetGravity(Vector3<float>::Zero());
+
+			direction[PITCH] *= 1000000.f;
+			direction[ROLL] *= 1000000.f;
+			direction[YAW] *= 1000000.f;
 			pPhysicalComponent->ApplyForce(direction);
 		}
 	}
@@ -2216,12 +2218,71 @@ PLASMA GUN
 */
 
 void QuakeLogic::PlasmagunFire(
-	const eastl::shared_ptr<PlayerActor>& player,
-	const Vector3<float>& muzzle, const Vector3<float>& forward,
-	const Vector3<float>& right, const Vector3<float>& up)
+	const eastl::shared_ptr<PlayerActor>& player, 
+	const Vector3<float>& muzzle, const Vector3<float>& forward, 
+	const Vector3<float>& right, const Vector3<float>& up, 
+	const EulerAngles<float>& viewAngles)
 {
+	Matrix4x4<float> yawRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
+	Matrix4x4<float> pitchRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
+
+	Transform initTransform;
+	initTransform.SetRotation(yawRotation * pitchRotation);
+	initTransform.SetTranslation(muzzle);
+
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
+	end += right * r;
+	end += up * u;
+	Vector3<float> direction = end - muzzle;
+	Normalize(direction);
+
+	eastl::shared_ptr<Actor> pGameActor =
+		CreateActor("actors/quake/effects/plasmagunfire.xml", nullptr, &initTransform);
+	if (pGameActor)
+	{
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+		{
+			pPhysicalComponent->SetGravity(Vector3<float>::Zero());
+
+			direction[PITCH] *= 4000.f;
+			direction[ROLL] *= 4000.f;
+			direction[YAW] *= 4000.f;
+			pPhysicalComponent->ApplyForce(direction);
+		}
+	}
+
+	// play firing sound
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/plasma/hyprbf1a.ogg"));
 	/*
-	Entity	*m;
+
+
+	bolt->damage = 20;
+	bolt->splashDamage = 15;
+	bolt->splashRadius = 20;
+	bolt->methodOfDeath = MOD_PLASMA;
+	bolt->splashMethodOfDeath = MOD_PLASMA_SPLASH;
+
+	// splash damage
+	if ( ent->splashDamage ) {
+	if( G_RadiusDamage( ent->r.currentOrigin, ent->parent, ent->splashDamage, ent->splashRadius, ent
+	, ent->splashMethodOfDeath ) ) {
+	g_entities[ent->r.ownerNum].client->accuracy_hits++;
+	}
+	}
+
+	mod = cgs.media.ringFlashModel;
+	shader = cgs.media.plasmaExplosionShader;
+	sfx = cgs.media.sfx_plasmaexp;
+	mark = cgs.media.energyMarkShader;
+	radius = 16;
 
 	m = FirePlasma(ent, muzzle, forward);
 	//	VectorAdd( m->state->pos.trDelta, ent->client->ps.velocity, m->state->pos.trDelta );	// "real" physics
@@ -2240,8 +2301,58 @@ RAILGUN
 void QuakeLogic::RailgunFire(
 	const eastl::shared_ptr<PlayerActor>& player,
 	const Vector3<float>& muzzle, const Vector3<float>& forward,
-	const Vector3<float>& right, const Vector3<float>& up)
+	const Vector3<float>& right, const Vector3<float>& up,
+	const EulerAngles<float>& viewAngles)
 {
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
+	end += right * r;
+	end += up * u;
+
+	Vector3<float> direction = end - muzzle;
+	Normalize(direction);
+
+	Matrix4x4<float> yawRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
+	Matrix4x4<float> pitchRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
+	
+	Transform initTransform;
+	initTransform.SetRotation(yawRotation * pitchRotation);
+	initTransform.SetScale(Vector3<float>{80.f, 4.f, 4.f});
+	initTransform.SetTranslation(muzzle);
+
+	// play firing sound
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/railgun/railgf1a.ogg"));
+
+	Vector3<float> collision, collisionNormal;
+	ActorId actorCollisionId = mPhysics->CastRay(muzzle, end, collision, collisionNormal);
+	if (collision == NULL) return; // no surface impact
+
+	if (actorCollisionId != INVALID_ACTOR_ID &&
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]))
+	{
+		eastl::shared_ptr<PlayerActor> target =
+			eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]);
+		if (LogAccuracyHit(target, player))
+			player->GetState().accuracyHits++;
+
+		//rotation = ((69069 * randSeed + 1) & 0x7fff) % 360;
+		CreateActor("actors/quake/effects/railgunfire.xml", nullptr, &initTransform);
+		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
+
+		int damage = 100;
+		Damage(damage, 0, MOD_RAILGUN, forward, collision, target, player, player);
+	}
+	else
+	{
+		//Length(collision - muzzle);
+		CreateActor("actors/quake/effects/railgunfire.xml", nullptr, &initTransform);
+		//CreateActor("actors/quake/effects/railexplosion.xml", nullptr, &initTransform);
+	}
 	/*
 	Vector3<float> end;
 
@@ -2454,7 +2565,7 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 	Vector3<float> muzzle = origin;
 	muzzle[2] += pPlayerActor->GetState().viewHeight;
 	muzzle += forward * 14.f;
-	muzzle -= right * 14.f;
+	muzzle -= right * 11.f;
 
 	// fire the specific weapon
 	switch (pPlayerActor->GetState().weapon)
@@ -2478,10 +2589,10 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 			RocketLauncherFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
 			break;
 		case WP_PLASMAGUN:
-			PlasmagunFire(pPlayerActor, muzzle, forward, right, up);
+			PlasmagunFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
 			break;
 		case WP_RAILGUN:
-			RailgunFire(pPlayerActor, muzzle, forward, right, up);
+			RailgunFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
 			break;
 		default:
 			// FIXME Error( "Bad ent->state->weapon" );

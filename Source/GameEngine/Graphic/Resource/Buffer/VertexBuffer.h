@@ -30,8 +30,7 @@ public:
     // are read from a structured buffer resource in the vertex shader.  The
     // input 'sbuffer' must be nonnull and its number of vertices is copied
     // to 'this' number of vertices.
-    VertexBuffer(VertexFormat const& vformat, 
-		eastl::shared_ptr<StructuredBuffer> const& sbuffer);
+    VertexBuffer(VertexFormat const& vformat, eastl::shared_ptr<StructuredBuffer> const& sbuffer);
 
     // This constructor is used for vertex-id-based drawing that does not
     // require vertices; for example, the shader itself can generate the
@@ -50,8 +49,7 @@ public:
     // required types (OR-ed bit flags).  If you do not care about the type,
     // pass DF_UNKNOWN for the required input.  If the request fails, a null
     // pointer is returned.
-    char* GetChannel(VASemantic semantic, uint32_t unit,
-		eastl::set<DFType> const& requiredTypes);
+    char* GetChannel(VASemantic semantic, uint32_t unit, eastl::set<DFType> const& requiredTypes);
 
 protected:
     VertexFormat mVFormat;

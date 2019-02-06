@@ -76,6 +76,7 @@ protected:
 	bool		mWheelRollDown;
 	bool		mMouseRButtonDown;
 	bool		mMouseLButtonDown;
+	bool		mMouseUpdate;
 
 	eastl::shared_ptr<Node> mTarget;
 

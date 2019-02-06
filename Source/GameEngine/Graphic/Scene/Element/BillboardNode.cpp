@@ -32,13 +32,13 @@ BillboardNode::BillboardNode(const ActorId actorId,
 	struct Vertex
 	{
 		Vector3<float> position;
-		Vector4<float> color;
 		Vector2<float> tcoord;
+		Vector4<float> color;
 	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 
 	MeshBuffer* meshBuffer = new MeshBuffer(vformat, 4, 2, sizeof(unsigned int));
 
@@ -169,6 +169,7 @@ void BillboardNode::DoBillboardBuffers(Scene *pScene)
 	if (!cameraNode)
 		return;
 
+	GetAbsoluteTransform().SetRotation(Matrix4x4<float>::Identity());
 	Vector3<float> scale = GetAbsoluteTransform().GetScale();
 
 	float f = 0.5f * mSize[0];

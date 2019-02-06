@@ -180,9 +180,10 @@ public:
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 	eastl::shared_ptr<Node> AddVolumeLightNode(
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
-		int id = -1, const unsigned int subdivU = 32, const unsigned int subdivV = 32,
-		eastl::array<float, 4> const foot = eastl::array<float, 4>{51/255.f, 0/255.f, 230/255.f, 180/255.f}, 
-		eastl::array<float, 4> const tail = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f});
+		const Vector2<float>& textureSize, const eastl::shared_ptr<Texture2>& texture,
+		const Vector2<int>& subdivision = Vector2<int>{32, 32},
+		const eastl::array<float, 4>& foot = eastl::array<float, 4>{51/255.f, 0/255.f, 230/255.f, 180/255.f},
+		const eastl::array<float, 4>& tail = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f}, int id = -1);
 
 	//! Adds a camera scene node to the scene graph and sets it as active camera.
 	/** This camera does not react on user input like for example the one created with

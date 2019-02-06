@@ -73,7 +73,11 @@ QuakeCameraController::QuakeCameraController(const eastl::shared_ptr<CameraNode>
 
 	memset(mKey, 0x00, sizeof(mKey));
 
+	mMouseUpdate = true;
+	mMouseRButtonDown = false;
 	mMouseLButtonDown = false;
+	mWheelRollDown = false;
+	mWheelRollUp = false;
 	mRotateWhenLButtonDown = rotateWhenLButtonDown;
 }
 
@@ -93,6 +97,16 @@ bool QuakeCameraController::OnMouseButtonDown(
 		mLastMousePos = mousePos;
 		return true;
 	}
+	else if (buttonName == "PointerRight")
+	{
+		mMouseRButtonDown = true;
+
+		// We want mouse movement to be relative to the position
+		// the cursor was at when the user first presses down on
+		// the right button
+		mLastMousePos = mousePos;
+		return true;
+	}
 	return false;
 }
 
@@ -104,6 +118,11 @@ bool QuakeCameraController::OnMouseButtonUp(
 		mMouseLButtonDown = false;
 		return true;
 	}
+	else if (buttonName == "PointerRight")
+	{
+		mMouseRButtonDown = false;
+		return true;
+	}
 	return false;
 }
 
@@ -113,30 +132,32 @@ bool QuakeCameraController::OnMouseButtonUp(
 bool QuakeCameraController::OnMouseMove(const Vector2<int> &mousePos, const int radius)
 {
 	// There are two modes supported by this controller.
-
-	if (mRotateWhenLButtonDown)
+	if (mMouseUpdate)
 	{
-		// Mode 1 - rotate the view only when the left mouse button is down
-		// Only look around if the left button is down
-		if (mLastMousePos != mousePos && mMouseLButtonDown)
+		if (mRotateWhenLButtonDown)
+		{
+			// Mode 1 - rotate the view only when the left mouse button is down
+			// Only look around if the left button is down
+			if (mLastMousePos != mousePos && mMouseLButtonDown)
+			{
+				mRotateSpeed = mMaxRotateSpeed;
+
+				System* system = System::Get();
+				mYaw += ((mLastMousePos[0] - mousePos[0]) / (float)system->GetWidth()) * mRotateSpeed;
+				mPitch += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
+				mLastMousePos = mousePos;
+			}
+		}
+		else if (mLastMousePos != mousePos)
 		{
 			mRotateSpeed = mMaxRotateSpeed;
 
+			// Mode 2 - rotate the controller when the mouse buttons are up
 			System* system = System::Get();
 			mYaw += ((mLastMousePos[0] - mousePos[0]) / (float)system->GetWidth()) * mRotateSpeed;
 			mPitch += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
 			mLastMousePos = mousePos;
 		}
-	}
-	else if (mLastMousePos != mousePos)
-	{
-		mRotateSpeed = mMaxRotateSpeed;
-
-		// Mode 2 - rotate the controller when the mouse buttons are up
-		System* system = System::Get();
-		mYaw += ((mLastMousePos[0] - mousePos[0]) / (float)system->GetWidth()) * mRotateSpeed;
-		mPitch += ((mousePos[1] - mLastMousePos[1]) / (float)system->GetHeight()) * mRotateSpeed;
-		mLastMousePos = mousePos;
 	}
 
 	return true;
@@ -167,11 +188,13 @@ void QuakeCameraController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		if (reset)
 		{
 			// Force a reset.
+			mMouseUpdate = false;
 			system->GetCursorControl()->SetPosition(0.5f, 0.5f);
 			cursorPosition = system->GetCursorControl()->GetPosition();
 			mLastMousePos[0] = cursorPosition[0];
 			mLastMousePos[1] = cursorPosition[1];
 		}
+		else mMouseUpdate = true;
 	}
 
 	//Handling rotation as a result of mouse position
@@ -263,4 +286,7 @@ void QuakeCameraController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 	// update transform matrix
 	mTarget->GetRelativeTransform() = mAbsoluteTransform;
+
+	mWheelRollDown = false;
+	mWheelRollUp = false;
 }

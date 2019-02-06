@@ -155,6 +155,64 @@ protected:
     virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
 
+//---------------------------------------------------------------------------------------------------------------------
+// Billboard
+//---------------------------------------------------------------------------------------------------------------------
+class BillboardRenderComponent : public BaseRenderComponent
+{
+	int mMaterialType;
+
+	int mAnimatorType;
+	unsigned int mAnimationTime;
+
+	Vector2<float> mTextureSize;
+	Vector4<float> mTextureColor;
+	eastl::vector<eastl::string> mTextures;
+
+public:
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
+
+	BillboardRenderComponent(void);
+
+protected:
+	virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+
+	// editor stuff
+	virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
+};
+
+
+//---------------------------------------------------------------------------------------------------------------------
+// VolumeLight
+//---------------------------------------------------------------------------------------------------------------------
+class VolumeLightRenderComponent : public BaseRenderComponent
+{
+	int mMaterialType;
+
+	Vector2<int> mSubdivision;
+	eastl::array<float, 4> mFootColor, mTailColor;
+
+	int mAnimatorType;
+	unsigned int mAnimationTime;
+
+	Vector2<float> mTextureSize;
+	eastl::vector<eastl::string> mTextures;
+
+public:
+	static const char *Name;
+	virtual const char *GetName() const { return Name; }
+
+	VolumeLightRenderComponent(void);
+
+protected:
+	virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
+	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
+
+																	 // editor stuff
+	virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
+};
 
 //---------------------------------------------------------------------------------------------------------------------
 // Lights
@@ -174,43 +232,15 @@ public:
 	static const char *Name;
 	virtual const char *GetName() const { return Name; }
 
-    LightRenderComponent(void);
-
-protected:
-    virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
-	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
-
-    // editor stuff
-    virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
-};
-
-//---------------------------------------------------------------------------------------------------------------------
-// Billboard
-//---------------------------------------------------------------------------------------------------------------------
-class BillboardRenderComponent : public BaseRenderComponent
-{
-	int mMaterialType;
-
-	int mAnimatorType;
-	unsigned int mAnimationTime;
-
-	Vector2<float> mTextureSize;
-	eastl::vector<eastl::string> mTextures;
-
-public:
-	static const char *Name;
-	virtual const char *GetName() const { return Name; }
-
-	BillboardRenderComponent(void);
+	LightRenderComponent(void);
 
 protected:
 	virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
 	virtual eastl::shared_ptr<Node> CreateSceneNode(void) override;  // factory method to create the appropriate scene node
 
-	// editor stuff
+																	 // editor stuff
 	virtual void CreateInheritedXMLElements(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* pBaseElement);
 };
-
 
 //---------------------------------------------------------------------------------------------------------------------
 // ParticleEffect
