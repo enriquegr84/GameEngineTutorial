@@ -110,6 +110,10 @@ bool BspLoader::LoadBSPFile( void* memoryBuffer) {
 		mDrawSurfaces.resize(length+extrasize);
 		mNumDrawSurfaces = CopyLump( header, LUMP_SURFACES, &mDrawSurfaces[0], sizeof(BSPSurface) );
 
+		length = (header->lumps[LUMP_DRAWVERTS].filelen) / sizeof(BSPVertice);
+		mDrawVertices.resize(length + extrasize);
+		mNumDrawVertices = CopyLump(header, LUMP_DRAWVERTS, &mDrawVertices[0], sizeof(BSPVertice));
+
 		length = (header->lumps[LUMP_DRAWINDEXES].filelen) / sizeof(mDrawIndexes[0]);
 		mDrawIndexes.resize(length+extrasize);
 		mNumDrawIndexes = CopyLump( header, LUMP_DRAWINDEXES, &mDrawIndexes[0], sizeof(mDrawIndexes[0]) );

@@ -60,10 +60,10 @@ QuakePlayerController::QuakePlayerController(
 	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
 	mPitchTarget = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
-	mMaxMoveSpeed = 8.0f;
-	mMaxJumpSpeed = 6.0f;
+	mMaxMoveSpeed = 7.3f;
+	mMaxJumpSpeed = 5.8f;
 	mMaxRotateSpeed = 180.0f;
-	mJumpSpeed = 6.0f;
+	mJumpSpeed = 5.8f;
 	mMoveSpeed = 6.0f;
 	mRotateSpeed = 0.0f;
 

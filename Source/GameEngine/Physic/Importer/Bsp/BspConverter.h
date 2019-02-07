@@ -26,6 +26,7 @@ class BspConverter
 {
 	public:
 
+		void CreateCurvedSurfaceBezier(BspLoader& bspLoader, BSPSurface* surface);
 		void ConvertBsp(BspLoader& bspLoader,float scaling);
 		virtual ~BspConverter()
 		{
