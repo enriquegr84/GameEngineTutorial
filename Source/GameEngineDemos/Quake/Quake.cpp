@@ -290,14 +290,35 @@ void QuakeLogic::JumpActorDelegate(BaseEventDataPtr pEventData)
 	eastl::shared_ptr<QuakeEventDataJumpActor> pCastEventData =
 		eastl::static_pointer_cast<QuakeEventDataJumpActor>(pEventData);
 
-	eastl::shared_ptr<Actor> pGameActor(
-		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
-	if (pGameActor)
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock()));
+	if (pPlayerActor)
 	{
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
-			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+			pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
 			pPhysicalComponent->KinematicJump(pCastEventData->GetDirection());
+
+		if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID)
+		{
+			pPlayerActor->GetAction().triggerPush = INVALID_ACTOR_ID;
+
+			// play jumppad sound
+			EventManager::Get()->TriggerEvent(
+				eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/jumppad.wav"));
+		}
+		else
+		{
+			if (pPlayerActor->GetState().jumpTime == 0)
+			{
+				pPlayerActor->GetState().jumpTime = 200;
+
+				// play jump sound
+				EventManager::Get()->TriggerEvent(
+					eastl::make_shared<EventDataPlaySound>("audio/quake/sound/player/jump1.wav"));
+			}
+		}
 	}
 }
 
@@ -314,6 +335,10 @@ void QuakeLogic::SpawnActorDelegate(BaseEventDataPtr pEventData)
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
 			pPhysicalComponent->SetTransform(pCastEventData->GetTransform());
+
+		// play teleporter sound
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/teleout.ogg"));
 	}
 }
 
@@ -322,14 +347,28 @@ void QuakeLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 	eastl::shared_ptr<QuakeEventDataMoveActor> pCastEventData =
 		eastl::static_pointer_cast<QuakeEventDataMoveActor>(pEventData);
 
-	eastl::shared_ptr<Actor> pGameActor(
-		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
-	if (pGameActor)
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+			GameLogic::Get()->GetActor(pCastEventData->GetId()).lock()));
+	if (pPlayerActor)
 	{
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
-			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+			pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
+		{
 			pPhysicalComponent->KinematicMove(pCastEventData->GetDirection());
+
+			if (pPhysicalComponent->OnGround() && 
+				pPlayerActor->GetState().moveTime == 0 &&
+				Length(pCastEventData->GetDirection()) > 0.f)
+			{
+				pPlayerActor->GetState().moveTime = 400;
+
+				// play footstep sound
+				EventManager::Get()->TriggerEvent(
+					eastl::make_shared<EventDataPlaySound>("audio/quake/sound/player/footsteps/boot1.ogg"));
+			}
+		}
 	}
 }
 
@@ -2297,7 +2336,6 @@ RAILGUN
 ======================================================================
 */
 
-#define	MAX_RAIL_HITS	4
 void QuakeLogic::RailgunFire(
 	const eastl::shared_ptr<PlayerActor>& player,
 	const Vector3<float>& muzzle, const Vector3<float>& forward,
@@ -2311,19 +2349,6 @@ void QuakeLogic::RailgunFire(
 	end += right * r;
 	end += up * u;
 
-	Vector3<float> direction = end - muzzle;
-	Normalize(direction);
-
-	Matrix4x4<float> yawRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
-	Matrix4x4<float> pitchRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
-	
-	Transform initTransform;
-	initTransform.SetRotation(yawRotation * pitchRotation);
-	initTransform.SetScale(Vector3<float>{80.f, 4.f, 4.f});
-	initTransform.SetTranslation(muzzle);
-
 	// play firing sound
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/railgun/railgf1a.ogg"));
@@ -2331,6 +2356,21 @@ void QuakeLogic::RailgunFire(
 	Vector3<float> collision, collisionNormal;
 	ActorId actorCollisionId = mPhysics->CastRay(muzzle, end, collision, collisionNormal);
 	if (collision == NULL) return; // no surface impact
+
+	Vector3<float> direction = collision - muzzle;
+	float scale = Length(direction);
+	Normalize(direction);
+
+	Matrix4x4<float> yawRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
+	Matrix4x4<float> pitchRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
+
+	Transform initTransform;
+	initTransform.SetRotation(yawRotation * pitchRotation);
+	initTransform.SetScale(Vector3<float>{scale, 4.f, 4.f});
+	initTransform.SetTranslation(muzzle + (collision - muzzle) / 2.f);
+	CreateActor("actors/quake/effects/railgunfire.xml", nullptr, &initTransform);
 
 	if (actorCollisionId != INVALID_ACTOR_ID &&
 		eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]))
@@ -2340,20 +2380,21 @@ void QuakeLogic::RailgunFire(
 		if (LogAccuracyHit(target, player))
 			player->GetState().accuracyHits++;
 
-		//rotation = ((69069 * randSeed + 1) & 0x7fff) % 360;
-		CreateActor("actors/quake/effects/railgunfire.xml", nullptr, &initTransform);
+		initTransform.MakeIdentity();
+		initTransform.SetTranslation(collision);
 		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
 
 		int damage = 100;
 		Damage(damage, 0, MOD_RAILGUN, forward, collision, target, player, player);
 	}
+	/*
 	else
 	{
-		//Length(collision - muzzle);
-		CreateActor("actors/quake/effects/railgunfire.xml", nullptr, &initTransform);
-		//CreateActor("actors/quake/effects/railexplosion.xml", nullptr, &initTransform);
+		initTransform.MakeIdentity();
+		initTransform.SetTranslation(collision);
+		CreateActor("actors/quake/effects/railexplosion.xml", nullptr, &initTransform);
 	}
-	/*
+
 	Vector3<float> end;
 
 	EntityTrace trace;
@@ -2472,9 +2513,62 @@ LIGHTNING GUN
 void QuakeLogic::LightningFire(
 	const eastl::shared_ptr<PlayerActor>& player,
 	const Vector3<float>& muzzle, const Vector3<float>& forward,
-	const Vector3<float>& right, const Vector3<float>& up)
+	const Vector3<float>& right, const Vector3<float>& up,
+	const EulerAngles<float>& viewAngles)
 {
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	Vector3<float> end = muzzle + forward * (float)LIGHTNING_RANGE;
+	end += right * r;
+	end += up * u;
+
+	// play firing sound
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/lightning/lg_hum.ogg"));
+
+	Vector3<float> collision, collisionNormal;
+	ActorId actorCollisionId = mPhysics->CastRay(muzzle, end, collision, collisionNormal);
+	if (collision == NULL) collision = end;
+
+	Vector3<float> direction = collision - muzzle;
+	float scale = Length(direction);
+	Normalize(direction);
+
+	Matrix4x4<float> yawRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
+	Matrix4x4<float> pitchRotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
+
+	Transform initTransform;
+	initTransform.SetRotation(yawRotation * pitchRotation);
+	initTransform.SetScale(Vector3<float>{scale, 4.f, 4.f});
+	initTransform.SetTranslation(muzzle + (collision - muzzle) / 2.f);
+	CreateActor("actors/quake/effects/lightningfire.xml", nullptr, &initTransform);
+
+	if (actorCollisionId != INVALID_ACTOR_ID &&
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]))
+	{
+		eastl::shared_ptr<PlayerActor> target =
+			eastl::dynamic_shared_pointer_cast<PlayerActor>(mActors[actorCollisionId]);
+		if (LogAccuracyHit(target, player))
+			player->GetState().accuracyHits++;
+
+		initTransform.MakeIdentity();
+		initTransform.SetTranslation(collision);
+		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
+
+		int damage = 8;
+		Damage(damage, 0, MOD_LIGHTNING, forward, collision, target, player, player);
+	}
 	/*
+	else
+	{
+		initTransform.MakeIdentity();
+		initTransform.SetTranslation(collision);
+		CreateActor("actors/quake/effects/lightningexplosion.xml", nullptr, &initTransform);
+	}
+
 	EntityTrace		tr;
 	Vector3<float>		end;
 	Entity	*traceEnt, *tent;
@@ -2522,7 +2616,6 @@ void QuakeLogic::LightningFire(
 	}
 	*/
 }
-
 
 void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 {
@@ -2573,9 +2666,6 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 		case WP_GAUNTLET:
 			GauntletAttack(pPlayerActor, muzzle, forward, right, up);
 			break;
-		case WP_LIGHTNING:
-			LightningFire(pPlayerActor, muzzle, forward, right, up);
-			break;
 		case WP_SHOTGUN:
 			ShotgunFire(pPlayerActor, muzzle, forward, right, up);
 			break;
@@ -2593,6 +2683,9 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 			break;
 		case WP_RAILGUN:
 			RailgunFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
+			break;
+		case WP_LIGHTNING:
+			LightningFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
 			break;
 		default:
 			// FIXME Error( "Bad ent->state->weapon" );
@@ -2875,7 +2968,6 @@ void QuakeLogic::PlayerSpawn(const eastl::shared_ptr<PlayerActor>& playerActor)
 
 	// don't allow full run speed for a bit
 	//playerActor->GetState().moveFlags |= PMF_TIME_KNOCKBACK;
-	playerActor->GetState().moveTime = 100;
 	//playerActor->GetState().respawnTime = level.time;
 
 	// set default animations
@@ -2886,6 +2978,358 @@ void QuakeLogic::PlayerSpawn(const eastl::shared_ptr<PlayerActor>& playerActor)
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<QuakeEventDataSpawnActor>(playerActor->GetId(), spawnTransform));
 }
+
+
+/*
+============
+Triggers
+============
+
+
+========================
+TouchJumpPad
+========================
+
+void TouchJumpPad(PlayerState *ps, EntityState *jumppad)
+{
+	Vector3<float>	angles;
+	float p;
+	int effectNum;
+
+	// spectators don't use jump pads
+	if (ps->pm_type != PM_NORMAL)
+	{
+		return;
+	}
+
+	// flying characters don't hit bounce pads
+	if (ps->powerups[PW_FLIGHT])
+	{
+		return;
+	}
+
+	// if we didn't hit this same jumppad the previous frame
+	// then don't play the event sound again if we are in a fat trigger
+	if (ps->jumppad_ent != jumppad->number)
+	{
+		vectoangles(jumppad->origin2, angles);
+		p = fabs(AngleNormalize180(angles[PITCH]));
+		if (p < 45)
+		{
+			effectNum = 0;
+		}
+		else
+		{
+			effectNum = 1;
+		}
+		AddPredictableEventToPlayerstate(EV_JUMP_PAD, effectNum, ps);
+	}
+	// remember hitting this jumppad this frame
+	ps->jumppad_ent = jumppad->number;
+	ps->jumppad_frame = ps->pmove_framecount;
+	// give the player the velocity from the jumppad
+	ps->velocity = Vector3<float>{ jumppad->origin2 };
+}
+
+
+//TriggerPush
+void TriggerPushTouch(Entity *self, Entity *other, EntityTrace *trace)
+{
+	if (!other->client)
+	{
+		return;
+	}
+
+	TouchJumpPad(&other->client->ps, &self->state);
+}
+
+=================
+AimAtTarget
+
+Calculate origin2 so the target apogee will be hit
+=================
+void AimAtTarget(Entity *self)
+{
+	Entity	*ent;
+	Vector3<float>		origin;
+	float		height, gravity, time, forward;
+	float		dist;
+
+	origin = self->absmin + self->absmax;
+	origin *= 0.5f;
+
+	ent = PickTarget(self->target);
+	if (!ent)
+	{
+		FreeEntity(self);
+		return;
+	}
+
+	height = ent->state.origin[2] - origin[2];
+	gravity = g_gravity.value;
+	time = sqrt(height / (.5 * gravity));
+	if (!time)
+	{
+		FreeEntity(self);
+		return;
+	}
+
+	// set s.origin2 to the push velocity
+	self->state.origin2 = ent->state.origin - origin;
+	self->state.origin2[2] = 0;
+	dist = Normalize(self->state.origin2);
+
+	forward = dist / time;
+	self->state.origin2 *= forward;
+
+	self->state.origin2[2] = time * gravity;
+}
+
+
+QUAKED trigger_push (.5 .5 .5) ?
+Must point at a target_position, which will be the apex of the leap.
+This will be client side predicted, unlike target_push
+void TriggerPush(Entity *self)
+{
+	InitTrigger(self);
+
+	// unlike other triggers, we need to send this one to the client
+	self->svFlags &= ~SVF_NOCLIENT;
+
+	// make sure the client precaches this sound
+	SoundIndex("sound/world/jumppad.wav");
+
+	self->state.eType = ET_PUSH_TRIGGER;
+	self->touch = TriggerPushTouch;
+	self->think = AimAtTarget;
+	self->nextthink = level.time + FRAMETIME;
+	trap_LinkEntity(self);
+}
+
+
+void UseTargetPush(Entity *self, Entity *other, Entity *activator)
+{
+	if (!activator->client)
+	{
+		return;
+	}
+
+	if (activator->client->ps.pm_type != PM_NORMAL)
+	{
+		return;
+	}
+	if (activator->client->ps.powerups[PW_FLIGHT])
+	{
+		return;
+	}
+
+	activator->client->ps.velocity = Vector3<float>{ self->s.origin2 };
+
+	// play fly sound every 1.5 seconds
+	if (activator->fly_sound_debounce_time < level.time)
+	{
+		activator->fly_sound_debounce_time = level.time + 1500;
+		Sound(activator, CHAN_AUTO, self->noise_index);
+	}
+}
+
+QUAKED target_push (.5 .5 .5) (-8 -8 -8) (8 8 8) bouncepad
+Pushes the activator in the direction.of angle, or towards a target apex.
+"speed"		defaults to 1000
+if "bouncepad", play bounce noise instead of windfly
+
+void TargetPush(Entity *self)
+{
+	if (!self->speed)
+	{
+		self->speed = 1000;
+	}
+	SetMovedir(self->state.angles, self->state.origin2);
+	self->s.origin2 *= self->speed;
+
+	if (self->spawnflags & 1)
+	{
+		self->noise_index = SoundIndex("sound/world/jumppad.wav");
+	}
+	else
+	{
+		self->noise_index = SoundIndex("sound/misc/windfly.wav");
+	}
+	if (self->target)
+	{
+		self->absmin = self->state.origin;
+		self->absmax = self->state.origin;
+		self->think = AimAtTarget;
+		self->nextthink = level.time + FRAMETIME;
+	}
+	self->use = UseTargetPush;
+}
+
+==============================================================================
+
+trigger_teleport
+
+==============================================================================
+
+void TriggerTeleporterTouch(Entity *self, Entity *other, EntityTrace *trace)
+{
+	Entity	*dest;
+
+	if (!other->client)
+	{
+		return;
+	}
+	if (other->client->ps.pm_type == PM_DEAD)
+	{
+		return;
+	}
+	// Spectators only?
+	if ((self->spawnflags & 1) &&
+		other->client->sess.sessionTeam != TEAM_SPECTATOR)
+	{
+		return;
+	}
+
+
+	dest = PickTarget(self->target);
+	if (!dest)
+	{
+		LogInformation("Couldn't find teleporter destination\n");
+		return;
+	}
+
+	TeleportPlayer(other, dest->state.origin, dest->state.angles);
+}
+
+
+QUAKED trigger_teleport (.5 .5 .5) ? SPECTATOR
+Allows client side prediction of teleportation events.
+Must point at a target_position, which will be the teleport destination.
+
+If spectator is set, only spectators can use this teleport
+Spectator teleporters are not normally placed in the editor, but are created
+automatically near doors to allow spectators to move through them
+
+void TriggerTeleport(Entity *self)
+{
+	InitTrigger(self);
+
+	// unlike other triggers, we need to send this one to the client
+	// unless is a spectator trigger
+	if (self->spawnflags & 1)
+	{
+		self->svFlags |= SVF_NOCLIENT;
+	}
+	else
+	{
+		self->svFlags &= ~SVF_NOCLIENT;
+	}
+
+	// make sure the client precaches this sound
+	SoundIndex("sound/world/jumppad.wav");
+
+	self->state.eType = ET_TELEPORT_TRIGGER;
+	self->touch = TriggerTeleporterTouch;
+
+	trap_LinkEntity(self);
+}
+
+============
+TouchTriggers
+
+Find all trigger entities that ent's current position touches.
+Spectators will only interact with teleporters.
+============
+
+void TouchTriggers(Entity *ent)
+{
+	int			i, num;
+	int			touch[MAX_GENTITIES];
+	Entity	*hit;
+	EntityTrace		trace;
+	Vector3<float>		mins, maxs;
+	static Vector3<float>	range = { 40, 40, 52 };
+
+	if (!ent->client)
+	{
+		return;
+	}
+
+	// dead clients don't activate triggers!
+	if (ent->client->ps.stats[STAT_HEALTH] <= 0)
+	{
+		return;
+	}
+
+	mins = ent->client->ps.origin - range;
+	maxs = ent->client->ps.origin + range;
+
+	num = trap_EntitiesInBox(mins, maxs, touch, MAX_GENTITIES);
+
+	// can't use ent->absmin, because that has a one unit pad
+	mins = ent->client->ps.origin + ent->mins;
+	maxs = ent->client->ps.origin + ent->maxs;
+
+	for (i = 0; i<num; i++)
+	{
+		hit = &entities[touch[i]];
+
+		if (!hit->touch && !ent->touch)
+		{
+			continue;
+		}
+		if (!(hit->contents & CONTENTS_TRIGGER))
+		{
+			continue;
+		}
+
+		// ignore most entities if a spectator
+		if (ent->client->sess.sessionTeam == TEAM_SPECTATOR)
+		{
+			if (hit->state->eType != ET_TELEPORT_TRIGGER)
+			{
+				continue;
+			}
+		}
+
+		// use seperate code for determining if an item is picked up
+		// so you don't have to actually contact its bounding box
+		if (hit->state->eType == ET_ITEM)
+		{
+			if (!PlayerTouchesItem(&ent->client->ps, &hit->s, level.time))
+			{
+				continue;
+			}
+		}
+		else
+		{
+			if (!trap_EntityContact(mins, maxs, hit))
+			{
+				continue;
+			}
+		}
+
+		memset(&trace, 0, sizeof(trace));
+
+		if (hit->touch)
+		{
+			hit->touch(hit, ent, &trace);
+		}
+
+		if ((ent->svFlags & SVF_BOT) && (ent->touch))
+		{
+			ent->touch(ent, hit, &trace);
+		}
+	}
+
+	// if we didn't touch a jump pad this pmove frame
+	if (ent->client->ps.jumppad_frame != ent->client->ps.pmove_framecount)
+	{
+		ent->client->ps.jumppad_frame = 0;
+		ent->client->ps.jumppad_ent = 0;
+	}
+}
+*/
 
 int PickupAmmo(const eastl::shared_ptr<PlayerActor>& player, const eastl::shared_ptr<AmmoPickup>& ammo)
 {
@@ -3042,13 +3486,6 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 			respawn = PickupHealth(pPlayerActor, pHealthPickup);
 		}
 
-		// play the normal pickup sound
-		//QueueEvent(EventType.EvtData_PlaySound, "audio\\computerbeep3.wav");
-		// global sound to play
-		//QueueEvent(EventType.EvtData_PlaySound, "audio\\computerbeep3.wav");
-		// dropped items will not respawn
-		//QueueEvent(EventType.EvtData_Request_Destroy_Actor, sphere:GetActorId());
-
 		if (pItemActor->GetType() == "Weapon")
 		{
 			eastl::shared_ptr<WeaponPickup> pWeaponPickup =
@@ -3111,18 +3548,13 @@ void QuakeLogic::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 
 		if (pItemActor->GetType() == "Trigger")
 		{
-			eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
-				pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
-			if (pTeleporterTrigger)
+			if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
 			{
-
+				pPlayerActor->GetAction().triggerPush = pItemActor->GetId();
 			}
-
-			eastl::shared_ptr<PushTrigger> pPushTrigger =
-				pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
-			if (pPushTrigger)
+			else if (pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock())
 			{
-
+				pPlayerActor->GetAction().triggerTeleporter = pItemActor->GetId();
 			}
 		}
 		else

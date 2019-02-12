@@ -49,6 +49,7 @@
 class AudioComponent : public ActorComponent
 {
 	eastl::vector<eastl::string> mAudios;
+	bool mPlaySound;
 	bool mLooping;
 	int mFadeTime;
 	int mVolume;

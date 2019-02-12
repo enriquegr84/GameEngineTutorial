@@ -143,6 +143,7 @@ public:
 	virtual void StopActor(ActorId actorId) { }
 	virtual Vector3<float> GetScale(ActorId actorId) { return Vector3<float>(); }
     virtual Vector3<float> GetVelocity(ActorId actorId) { return Vector3<float>(); }
+	virtual float GetJumpSpeed(ActorId actorId) { return 0; }
 	virtual void SetGravity(ActorId actorId, const Vector3<float>& g) { }
     virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel) { }
 	virtual void SetPosition(ActorId actorId, const Vector3<float>& pos) { }
@@ -376,6 +377,7 @@ public:
 	virtual void StopActor(ActorId actorId);
 	virtual Vector3<float> GetScale(ActorId actorId);
     virtual Vector3<float> GetVelocity(ActorId actorId);
+	virtual float GetJumpSpeed(ActorId actorId);
 	virtual void SetGravity(ActorId actorId, const Vector3<float>& g);
     virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel);
 	virtual void SetPosition(ActorId actorId, const Vector3<float>& pos);
@@ -1238,6 +1240,24 @@ Vector3<float> BulletPhysics::GetVelocity(ActorId actorId)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+float BulletPhysics::GetJumpSpeed(ActorId actorId)
+{
+	float jumpSpeed = 0;
+	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(actorId))
+	{
+		if (collisionObject->getCollisionFlags() & btCollisionObject::CF_CHARACTER_OBJECT)
+		{
+			if (btKinematicCharacterController* const controller =
+				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(actorId)))
+			{
+				jumpSpeed = controller->getJumpSpeed();
+			}
+		}
+	}
+	return jumpSpeed;
+}
+
+/////////////////////////////////////////////////////////////////////////////
 void BulletPhysics::SetGravity(ActorId actorId, const Vector3<float>& g)
 {
 	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(actorId))
@@ -1371,6 +1391,7 @@ void BulletPhysics::FallDirection(ActorId aid, const Vector3<float> &dir)
 		dynamic_cast<btKinematicCharacterController*>(FindBulletAction(aid)))
 	{
 		controller->setGravity(Vector3TobtVector3(dir));
+		controller->setFallSpeed(Length(dir));
 	}
 }
 

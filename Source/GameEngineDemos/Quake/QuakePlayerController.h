@@ -64,10 +64,12 @@ protected:
 	float		mYawOnDown;
 
 	// Speed Controls
+	float		mMaxFallSpeed;
 	float		mMaxJumpSpeed;
-	float		mMaxMoveSpeed;
 	float		mMaxRotateSpeed;
+	float		mFallSpeed;
 	float		mJumpSpeed;
+	float		mJumpMoveSpeed;
 	float		mMoveSpeed;
 	float		mRotateSpeed;
 

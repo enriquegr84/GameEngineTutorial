@@ -44,6 +44,7 @@
 #include "Physic/PhysicEventListener.h"
 
 #include "Actors/PlayerActor.h"
+#include "Actors/PushTrigger.h"
 #include "QuakePlayerController.h"
 #include "QuakeEvents.h"
 #include "QuakeApp.h"
@@ -60,11 +61,13 @@ QuakePlayerController::QuakePlayerController(
 	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
 	mPitchTarget = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
-	mMaxMoveSpeed = 7.3f;
-	mMaxJumpSpeed = 5.8f;
+	mMaxJumpSpeed = 4.0f;
+	mMaxFallSpeed = 220.0f;
 	mMaxRotateSpeed = 180.0f;
-	mJumpSpeed = 5.8f;
 	mMoveSpeed = 6.0f;
+	mJumpSpeed = 4.0f;
+	mJumpMoveSpeed = 9.0f;
+	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 
 	//Point cursor;
@@ -192,8 +195,8 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		GameLogic::Get()->GetActor(actorId).lock()));
 	if (pPlayerActor)
 	{
-		mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
-		mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
+		mPitchTarget = eastl::max(-90.f, eastl::min(90.f, mPitchTarget));
+		mPitch = 90 * ((mPitchTarget + 90.f) / 180.f) - 45.f;
 
 		// Calculate the new rotation matrix from the camera
 		// yaw and pitch (zrotate and xrotate).
@@ -280,28 +283,58 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			if (mWheelRollUp)
 				pPlayerActor->NextWeapon();
 
+			if (mKey[KEY_KEY_S])
+				pPlayerActor->GetAction().actionType |= ACTION_MOVEBACK;
+			else if (mKey[KEY_KEY_W])
+				pPlayerActor->GetAction().actionType |= ACTION_MOVEFORWARD;
+			else if (mKey[KEY_KEY_A])
+				pPlayerActor->GetAction().actionType |= ACTION_MOVELEFT;
+			else if (mKey[KEY_KEY_D])
+				pPlayerActor->GetAction().actionType |= ACTION_MOVERIGHT;
+
 			Vector4<float> velocity = Vector4<float>::Zero();
 			if (pPhysicComponent->OnGround())
 			{
-				if (mEnabled)
-				{
-					if (mKey[KEY_KEY_S])
-						pPlayerActor->GetAction().actionType |= ACTION_MOVEBACK;
-					else if (mKey[KEY_KEY_W])
-						pPlayerActor->GetAction().actionType |= ACTION_MOVEFORWARD;
-					else if (mKey[KEY_KEY_A])
-						pPlayerActor->GetAction().actionType |= ACTION_MOVELEFT;
-					else if (mKey[KEY_KEY_D])
-						pPlayerActor->GetAction().actionType |= ACTION_MOVERIGHT;
+				mFallSpeed = 0.0f;
 
+				if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID)
+				{
+					float push;
+					Vector3<float> direction;
+					eastl::shared_ptr<TransformComponent> pTransformComponent =
+						pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+					if (pTransformComponent)
+					{
+						eastl::shared_ptr<Actor> pItemActor(
+							eastl::dynamic_shared_pointer_cast<Actor>(
+							GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
+						eastl::shared_ptr<PushTrigger> pPushTrigger =
+							pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
+
+						Vector3<float> targetPosition = pPushTrigger->GetTarget().GetTranslation();
+						Vector3<float> playerPosition = pTransformComponent->GetPosition();
+						direction = targetPosition - playerPosition;
+						push = Length(direction);
+						Normalize(direction);
+					}
+
+					direction[PITCH] *= push / 90.f;
+					direction[ROLL] *= push / 90.f;
+					direction[YAW] = push / 30.f;
+					velocity = HLift(direction, 0.f);
+
+					pPlayerActor->GetAction().actionType |= ACTION_JUMP;
+				}
+				else if (mEnabled)
+				{
 					if (mMouseRButtonDown)
 					{
 						upWorld = Vector4<float>::Unit(YAW);
 						Vector4<float> direction = atWorld + rightWorld + upWorld;
 						Normalize(direction);
 
-						direction[PITCH] *= mMaxMoveSpeed;
-						direction[ROLL] *= mMaxMoveSpeed;
+						direction[PITCH] *= mJumpMoveSpeed;
+						direction[ROLL] *= mJumpMoveSpeed;
 						direction[YAW] *= mJumpSpeed;
 						velocity = direction;
 
@@ -320,13 +353,16 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			}
 			else
 			{
+				mFallSpeed += deltaMs/ (pPhysicComponent->GetJumpSpeed() * 0.5f);
+				if (mFallSpeed > mMaxFallSpeed) mFallSpeed = mMaxFallSpeed;
+
 				upWorld = -Vector4<float>::Unit(YAW);
 				Vector4<float> direction = atWorld + rightWorld + upWorld;
 				Normalize(direction);
-
-				direction[PITCH] *= 300;
-				direction[ROLL] *= 300;
-				direction[YAW] *= 1000;
+				
+				direction[PITCH] *= pPhysicComponent->GetJumpSpeed() * (mFallSpeed / 4.f);
+				direction[ROLL] *= pPhysicComponent->GetJumpSpeed() * (mFallSpeed / 4.f);
+				direction[YAW] = -pPhysicComponent->GetJumpSpeed() * mFallSpeed;
 				velocity = direction;
 
 				pPlayerActor->GetAction().actionType |= ACTION_FALLEN;

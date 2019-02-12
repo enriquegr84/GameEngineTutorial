@@ -133,6 +133,8 @@ class NetworkEventForwarder;
 #define EF_AWARD_DENIED		0x00040000		// denied
 #define EF_TEAMVOTED		0x00080000		// already cast a team vote
 
+#define	LIGHTNING_RANGE		768
+
 #define MACHINEGUN_SPREAD	200
 #define	MACHINEGUN_DAMAGE	7
 #define	MACHINEGUN_TEAM_DAMAGE	5		// wimpier MG in teamplay
@@ -265,12 +267,10 @@ private:
 	void GauntletAttack(const eastl::shared_ptr<PlayerActor>& player,
 		const Vector3<float>& origin, const Vector3<float>& forward,
 		const Vector3<float>& right, const Vector3<float>& up);
-	void LightningFire(const eastl::shared_ptr<PlayerActor>& player,
-		const Vector3<float>& muzzle, const Vector3<float>& forward,
-		const Vector3<float>& right, const Vector3<float>& up);
 	void BulletFire(const eastl::shared_ptr<PlayerActor>& player,
 		const Vector3<float>& muzzle, const Vector3<float>& forward,
-		const Vector3<float>& right, const Vector3<float>& up, float spread, int damage);
+		const Vector3<float>& right, const Vector3<float>& up, 
+		float spread, int damage);
 	void ShotgunFire(const eastl::shared_ptr<PlayerActor>& player,
 		const Vector3<float>& muzzle, const Vector3<float>& forward,
 		const Vector3<float>& right, const Vector3<float>& up);
@@ -292,6 +292,10 @@ private:
 		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
 		const Vector3<float>& forward, const Vector3<float>& right,
 		const Vector3<float>& up, const EulerAngles<float>& viewAngles);
+	void LightningFire(const eastl::shared_ptr<PlayerActor>& player,
+		const Vector3<float>& muzzle, const Vector3<float>& forward,
+		const Vector3<float>& right, const Vector3<float>& up,
+		const EulerAngles<float>& viewAngles);
 
 	bool SpotTelefrag(const eastl::shared_ptr<Actor>& spot);
 	const eastl::shared_ptr<Actor>& SelectRandomSpawnPoint();

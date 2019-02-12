@@ -109,6 +109,7 @@ public:
 	virtual void StopActor(ActorId actorId) = 0;
 	virtual Vector3<float> GetScale(ActorId actorId) = 0;
 	virtual Vector3<float> GetVelocity(ActorId actorId) = 0;
+	virtual float GetJumpSpeed(ActorId actorId) = 0;
 	virtual void SetGravity(ActorId actorId, const Vector3<float>& g) = 0;
 	virtual void SetVelocity(ActorId actorId, const Vector3<float>& vel) = 0;
 	virtual void SetPosition(ActorId actorId, const Vector3<float>& pos) = 0;

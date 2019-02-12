@@ -357,6 +357,12 @@ Vector3<float> PhysicComponent::GetVelocity(void)
     return gamePhysics->GetVelocity(mOwner->GetId());
 }
 
+float PhysicComponent::GetJumpSpeed()
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	return gamePhysics->GetJumpSpeed(mOwner->GetId());
+}
+
 void PhysicComponent::SetGravity(const Vector3<float>& gravity)
 {
 	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();

@@ -941,6 +941,10 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 			mWeaponMedia[weapon].loopFireSound = false;
 
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(eastl::wstring(L"art/quake/gfx/misc/sun.jpg")));
+			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
+
 			mMedia.lightningShader = eastl::wstring(L"art/quake/gfx/misc/lightning3new.jpg");
 			resHandle = ResCache::Get()->GetHandle(&BaseResource(mMedia.lightningShader));
 			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());

@@ -241,6 +241,9 @@ struct PlayerAction
 
 	int weaponSelectTime;
 	int weaponSelect;
+
+	int triggerPush;
+	int triggerTeleporter;
 };
 
 // PlayerState is the information from its current state
@@ -274,6 +277,7 @@ struct PlayerState
 
 	int moveType;
 	int moveTime;
+	int jumpTime;
 
 	//animation
 	int legsTimer;		// don't change low priority animations until this runs out

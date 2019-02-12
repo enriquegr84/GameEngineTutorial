@@ -450,7 +450,7 @@ void HumanView::PlaySoundDelegate(BaseEventDataPtr pEventData)
     BaseResource resource(ToWideString(pCastEventData->GetResource().c_str()));
     eastl::shared_ptr<ResHandle> srh = 
 		eastl::static_pointer_cast<ResHandle>(resCache->GetHandle(&resource));
-    eastl::shared_ptr<SoundProcess> sfx(new SoundProcess(srh, 100, false));
+    eastl::shared_ptr<SoundProcess> sfx(new SoundProcess(srh, 80, false));
     mProcessManager->AttachProcess(sfx);
 }
 

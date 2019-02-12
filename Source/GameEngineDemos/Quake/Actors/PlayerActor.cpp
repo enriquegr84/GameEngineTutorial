@@ -411,6 +411,14 @@ void PlayerActor::UpdateTimers(unsigned long deltaMs)
 			mState.moveTime -= deltaMs;
 	}
 
+	if (mState.jumpTime)
+	{
+		if (deltaMs >= mState.jumpTime)
+			mState.jumpTime = 0;
+		else
+			mState.jumpTime -= deltaMs;
+	}
+
 	// drop animation counter
 	if (mState.legsTimer > 0)
 	{
