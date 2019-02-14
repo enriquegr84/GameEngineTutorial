@@ -363,10 +363,10 @@ void PlayerActor::UpdateMovement(const Vector3<float>& velocity)
 
 	if (mAction.actionType & ACTION_JUMP)
 	{
-		if (mAction.actionType & ACTION_MOVEFORWARD)
-			ForceLegsAnim(LEGS_JUMP);
-		else
+		if (mAction.actionType & ACTION_MOVEBACK)
 			ForceLegsAnim(LEGS_JUMPB);
+		else
+			ForceLegsAnim(LEGS_JUMP);
 
 		EventManager::Get()->TriggerEvent(
 			eastl::make_shared<QuakeEventDataJumpActor>(GetId(), velocity));

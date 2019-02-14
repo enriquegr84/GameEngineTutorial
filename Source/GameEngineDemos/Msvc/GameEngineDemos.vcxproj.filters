@@ -107,7 +107,16 @@
     <ClInclude Include="..\Quake\Actors\LocationTarget.h">
       <Filter>Quake\Actors</Filter>
     </ClInclude>
-    <ClInclude Include="..\Quake\Actors\ProjectileActor.h">
+    <ClInclude Include="..\Quake\Actors\GrenadeFire.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\BaseFire.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\RocketFire.h">
+      <Filter>Quake\Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\Actors\PlasmaFire.h">
       <Filter>Quake\Actors</Filter>
     </ClInclude>
   </ItemGroup>
@@ -197,7 +206,13 @@
     <ClCompile Include="..\Quake\Actors\LocationTarget.cpp">
       <Filter>Quake\Actors</Filter>
     </ClCompile>
-    <ClCompile Include="..\Quake\Actors\ProjectileActor.cpp">
+    <ClCompile Include="..\Quake\Actors\GrenadeFire.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\RocketFire.cpp">
+      <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\Actors\PlasmaFire.cpp">
       <Filter>Quake\Actors</Filter>
     </ClCompile>
   </ItemGroup>

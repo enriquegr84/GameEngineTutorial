@@ -105,7 +105,12 @@ public:
 	virtual ActorId CastRay(
 		const Vector3<float>& origin, const Vector3<float>& end,
 		Vector3<float>& collisionPoint, Vector3<float>& collision) = 0;
+	virtual void CastRay(
+		const Vector3<float>& origin, const Vector3<float>& end,
+		eastl::map<ActorId, Vector3<float>>& collisionPoints,
+		eastl::map<ActorId, Vector3<float>>& collisionNormals) = 0;
 
+	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision) = 0;
 	virtual void StopActor(ActorId actorId) = 0;
 	virtual Vector3<float> GetScale(ActorId actorId) = 0;
 	virtual Vector3<float> GetVelocity(ActorId actorId) = 0;

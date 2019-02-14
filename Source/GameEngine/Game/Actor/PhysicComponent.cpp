@@ -402,5 +402,11 @@ void PhysicComponent::SetPosition(float x, float y, float z)
 void PhysicComponent::Stop(void)
 {
 	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
-    return gamePhysics->StopActor(mOwner->GetId());
+	gamePhysics->StopActor(mOwner->GetId());
+}
+
+void PhysicComponent::SetIgnoreCollision(ActorId actorId, bool ignoreCollision)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	gamePhysics->SetIgnoreCollision(mOwner->GetId(), actorId, ignoreCollision);
 }

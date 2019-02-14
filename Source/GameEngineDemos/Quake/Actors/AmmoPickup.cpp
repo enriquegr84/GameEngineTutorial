@@ -39,11 +39,23 @@
 #include "GameEngineStd.h"
 
 #include "AmmoPickup.h"
-#include "Game/Actor/Actor.h"
+
+#include "Graphic/Graphic.h"
+
+#include "Application/GameApplication.h"
 
 #include "Core/Logger/Logger.h"
+#include "Game/Actor/Actor.h"
 
 const char* AmmoPickup::Name = "AmmoPickup";
+
+//---------------------------------------------------------------------------------------------------------------------
+// AmmoPickup
+//---------------------------------------------------------------------------------------------------------------------
+AmmoPickup::AmmoPickup(void)
+{
+	mRespawnTime = 0.f;
+}
 
 bool AmmoPickup::Init(tinyxml2::XMLElement* pData)
 {
@@ -81,6 +93,31 @@ void AmmoPickup::Apply(eastl::weak_ptr<Actor> pActor)
 	if (pStrongActor)
 	{
 		LogInformation("Applying ammo pickup to actor id " + eastl::to_string(pStrongActor->GetId()));
+	}
+}
+
+void AmmoPickup::Update(float deltaMs)
+{
+	// drop misc timing counter
+	if (mRespawnTime)
+	{
+		GameApplication* gameApp = (GameApplication*)Application::App;
+		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
+
+		if (deltaMs >= mRespawnTime)
+		{
+			mRespawnTime = 0;
+
+			eastl::shared_ptr<Node> node = pScene->GetSceneNode(mOwner->GetId());
+			node->SetVisible(true);
+		}
+		else
+		{
+			mRespawnTime -= deltaMs;
+
+			eastl::shared_ptr<Node> node = pScene->GetSceneNode(mOwner->GetId());
+			node->SetVisible(false);
+		}
 	}
 }
 

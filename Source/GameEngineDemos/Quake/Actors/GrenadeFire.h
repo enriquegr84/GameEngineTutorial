@@ -1,5 +1,5 @@
 //========================================================================
-// WeaponPickup.h - A weapon pickup
+// GrenadeFire.h - Firing grenade
 //
 // Part of the GameCode4 Application
 //
@@ -36,34 +36,27 @@
 //
 //========================================================================
 
-#ifndef WEAPONPICKUP_H
-#define WEAPONPICKUP_H
+#ifndef GRENADEFIRE_H
+#define GRENADEFIRE_H
 
-#include "BasePickup.h"
+#include "BaseFire.h"
 
 //---------------------------------------------------------------------------------------------------------------------
-// WeaponPickup implementation class.
+// GrenadeFire implementation class.
 //---------------------------------------------------------------------------------------------------------------------
-class WeaponPickup : public BasePickup
+class GrenadeFire : public BaseFire
 {
 	unsigned int mCode;
 	unsigned int mType;
 
-	unsigned int mWait;
-	unsigned int mAmmo;
-
 public:
-	float mRespawnTime;
 
 	static const char* Name;
 	virtual const char* GetName() const { return Name; }
 	unsigned int GetCode(void) const { return mCode; }
 	unsigned int GetType() const { return mType; }
 
-	unsigned int GetWait() const { return mWait; }
-	unsigned int GetAmmo() const { return mAmmo; }
-
-	WeaponPickup(void);
+	GrenadeFire(void);
 
 	virtual bool Init(tinyxml2::XMLElement* pData) override;
 	virtual tinyxml2::XMLElement* GenerateXml(void) override;

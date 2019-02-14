@@ -54,6 +54,8 @@ class HealthPickup : public BasePickup
 	unsigned int mMaximum;
 
 public:
+	float mRespawnTime;
+
 	static const char* Name;
 	virtual const char* GetName() const { return Name; }
 	unsigned int GetCode(void) const { return mCode; }
@@ -63,9 +65,12 @@ public:
 	unsigned int GetAmount() const { return mAmount; }
 	unsigned int GetMaximum() const { return mMaximum; }
 
+	HealthPickup(void);
+
     virtual bool Init(tinyxml2::XMLElement* pData) override;
     virtual tinyxml2::XMLElement* GenerateXml(void) override;
     virtual void Apply(eastl::weak_ptr<Actor> pActor) override;
+	virtual void Update(float deltaMs) override;
 };
 
 #endif

@@ -135,7 +135,8 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 				
 				eastl::shared_ptr<AnimateMeshMD3> meshMD3 = 
 					eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(mesh);
-				AnimateMeshMD3* animMeshMD3 = dynamic_cast<AnimateMeshMD3*>(extra->GetMesh());
+				eastl::shared_ptr<AnimateMeshMD3> animMeshMD3 =
+					eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(extra->GetMesh());
 				if (meshMD3)
 				{
 					if (!animMeshMD3->GetMD3Mesh()->GetParent())

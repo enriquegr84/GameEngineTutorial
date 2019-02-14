@@ -882,11 +882,6 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 	{
 		case WP_GAUNTLET:
 
-			// calc midpoint for rotation
-			/*
-			for (unsigned int i = 0; i < 3; i++)
-				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
-			*/
 			// load cmodel before model so filecache works
 			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_gauntlet.png");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
@@ -916,11 +911,6 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 		case WP_LIGHTNING:
 
-			// calc midpoint for rotation
-			/*
-			for (unsigned int i = 0; i < 3; i++)
-				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
-			*/
 			// load cmodel before model so filecache works
 			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_lightning.png");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
@@ -970,11 +960,6 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 		case WP_MACHINEGUN:
 
-			// calc midpoint for rotation
-			/*
-			for (unsigned int i = 0; i < 3; i++)
-				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
-			*/
 			// load cmodel before model so filecache works
 			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_machinegun.png");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
@@ -1029,11 +1014,6 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 		case WP_SHOTGUN:
 
-			// calc midpoint for rotation
-			/*
-			for (unsigned int i = 0; i < 3; i++)
-				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
-			*/
 			// load cmodel before model so filecache works
 			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_shotgun.png");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
@@ -1063,11 +1043,6 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 		case WP_ROCKET_LAUNCHER:
 
-			// calc midpoint for rotation
-			/*
-			for (unsigned int i = 0; i < 3; i++)
-				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
-			*/
 			// load cmodel before model so filecache works
 			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_rocket.png");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
@@ -1138,11 +1113,6 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 		case WP_GRENADE_LAUNCHER:
 
-			// calc midpoint for rotation
-			/*
-			for (unsigned int i = 0; i < 3; i++)
-				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
-			*/
 			// load cmodel before model so filecache works
 			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_grenade.png");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
@@ -1194,11 +1164,6 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 		case WP_PLASMAGUN:
 
-			// calc midpoint for rotation
-			/*
-			for (unsigned int i = 0; i < 3; i++)
-				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
-			*/
 			// load cmodel before model so filecache works
 			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_plasma.png");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));
@@ -1239,11 +1204,6 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 		case WP_RAILGUN:
 
-			// calc midpoint for rotation
-			/*
-			for (unsigned int i = 0; i < 3; i++)
-				mWeaponMedia[weapon].weaponMidpoint[i] = mins[i] + 0.5 * (maxs[i] - mins[i]);
-			*/
 			// load cmodel before model so filecache works
 			mWeaponMedia[weapon].weaponIcon = eastl::wstring(L"art/quake/icons/iconw_railgun.png");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponIcon));

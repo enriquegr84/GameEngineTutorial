@@ -50,14 +50,19 @@ class ItemPickup : public BasePickup
 	unsigned int mType;
 
 public:
+	float mRespawnTime;
+
 	static const char* Name;
 	virtual const char* GetName() const { return Name; }
 	unsigned int GetCode(void) const { return mCode; }
 	unsigned int GetType() const { return mType; }
 
+	ItemPickup(void);
+
 	virtual bool Init(tinyxml2::XMLElement* pData) override;
 	virtual tinyxml2::XMLElement* GenerateXml(void) override;
 	virtual void Apply(eastl::weak_ptr<Actor> pActor) override;
+	virtual void Update(float deltaMs) override;
 };
 
 #endif

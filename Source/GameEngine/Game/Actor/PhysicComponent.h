@@ -93,6 +93,8 @@ public:
 	void SetRotation(const Transform& transform);
     void Stop(void);
 
+	void SetIgnoreCollision(ActorId actorId, bool ignoreCollision);
+
 	eastl::string GetMesh(void) { return mMesh; }
 	eastl::string GetShape(void) { return mShape; }
 	eastl::string GetDensity(void) { return mDensity; }

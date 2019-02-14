@@ -1,5 +1,5 @@
 //========================================================================
-// WeaponPickup.h - A weapon pickup
+// BaseFire.h - Interface class for all firing projectiles
 //
 // Part of the GameCode4 Application
 //
@@ -36,39 +36,24 @@
 //
 //========================================================================
 
-#ifndef WEAPONPICKUP_H
-#define WEAPONPICKUP_H
+#ifndef BASEFIRE_H
+#define BASEFIRE_H
 
-#include "BasePickup.h"
+#include "Game/Actor/ActorComponent.h"
 
-//---------------------------------------------------------------------------------------------------------------------
-// WeaponPickup implementation class.
-//---------------------------------------------------------------------------------------------------------------------
-class WeaponPickup : public BasePickup
+class BaseFire : public ActorComponent
 {
-	unsigned int mCode;
-	unsigned int mType;
-
-	unsigned int mWait;
-	unsigned int mAmmo;
 
 public:
-	float mRespawnTime;
+	float mExplosionTime;
 
-	static const char* Name;
-	virtual const char* GetName() const { return Name; }
-	unsigned int GetCode(void) const { return mCode; }
-	unsigned int GetType() const { return mType; }
+	eastl::shared_ptr<Actor> mAttacker;
 
-	unsigned int GetWait() const { return mWait; }
-	unsigned int GetAmmo() const { return mAmmo; }
+//    static ComponentId COMPONENT_ID;  // unique ID for this component type
+//    virtual ComponentId GetComponentId(void) const override { return COMPONENT_ID; }
 
-	WeaponPickup(void);
-
-	virtual bool Init(tinyxml2::XMLElement* pData) override;
-	virtual tinyxml2::XMLElement* GenerateXml(void) override;
-	virtual void Apply(eastl::weak_ptr<Actor> pActor) override;
-	virtual void Update(float deltaMs) override;
+    // Trigger interface
+    virtual void Apply(eastl::weak_ptr<Actor> pActor) = 0;
 };
 
 #endif

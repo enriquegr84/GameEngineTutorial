@@ -617,10 +617,8 @@ void Scene::SyncActorDelegate(BaseEventDataPtr pEventData)
 			pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pTransformComponent)
 			pTransformComponent->SetPosition(pCastEventData->GetTransform().GetTranslation());
-
-		Vector3<float> actorScale = pNode->GetRelativeTransform().GetScale();
-		pNode->GetRelativeTransform() = pCastEventData->GetTransform();
-		pNode->GetRelativeTransform().SetScale(actorScale);
+		pNode->GetRelativeTransform().SetRotation(pCastEventData->GetTransform().GetRotation());
+		pNode->GetRelativeTransform().SetTranslation(pCastEventData->GetTransform().GetTranslation());
 
 		eastl::shared_ptr<PhysicComponent> pPhysicComponent(
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());

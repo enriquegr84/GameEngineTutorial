@@ -14,12 +14,12 @@ class MeshResourceExtraData : public BaseResourceExtraData
 
 public:
     virtual eastl::wstring ToString() { return L"MeshResourceExtraData"; }
-	virtual BaseMesh* GetMesh() { return mMesh; }
-	virtual void SetMesh(BaseMesh* mesh) { mMesh = mesh; }
-	virtual ~MeshResourceExtraData() { delete mMesh; }
+	virtual eastl::shared_ptr<BaseMesh> GetMesh() { return mMesh; }
+	virtual void SetMesh(eastl::shared_ptr<BaseMesh> mesh) { mMesh = mesh; }
+	virtual ~MeshResourceExtraData() { }
 
 protected:
-	BaseMesh* mMesh;
+	eastl::shared_ptr<BaseMesh> mMesh;
 
 };
 

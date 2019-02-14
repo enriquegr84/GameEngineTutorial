@@ -1,9 +1,9 @@
 //========================================================================
-// Actor.h - Defines the Actor class
+// PlasmaFire.h - Firing plasma
 //
-// Part of the GameEngine Application
+// Part of the GameCode4 Application
 //
-// GameEngine is the sample application that encapsulates much of the source code
+// GameCode4 is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
 // "Rez" Graham, published by Charles River Media. 
 // ISBN-10: 1133776574 | ISBN-13: 978-1133776574
@@ -17,7 +17,7 @@
 // There's a companion web site at http://www.mcshaffry.com/GameCode/
 // 
 // The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/GameEngine/
+//    http://code.google.com/p/gamecode4/
 //
 // (c) Copyright 2012 Michael L. McShaffry and David Graham
 //
@@ -36,24 +36,32 @@
 //
 //========================================================================
 
-#ifndef PROJECTILEACTOR_H
-#define PROJECTILEACTOR_H
+#ifndef PLASMAFIRE_H
+#define PLASMAFIRE_H
 
-#include "Quake/QuakeStd.h"
+#include "BaseFire.h"
 
-#include "Game/Actor/Actor.h"
-
-/*
-	Player Actor class. Quake player actor is a character (NPC or human) in your game world.
-	Its entiry purpose is to manage characters data and and mantain components to make them 
-	as flexible and reusable as possible.
-*/
-class ProjectileActor : public Actor
+//---------------------------------------------------------------------------------------------------------------------
+// PlasmaFire implementation class.
+//---------------------------------------------------------------------------------------------------------------------
+class PlasmaFire : public BaseFire
 {
+	unsigned int mCode;
+	unsigned int mType;
 
 public:
-    explicit ProjectileActor(ActorId id);
-    virtual ~ProjectileActor(void);
+
+	static const char* Name;
+	virtual const char* GetName() const { return Name; }
+	unsigned int GetCode(void) const { return mCode; }
+	unsigned int GetType() const { return mType; }
+
+	PlasmaFire(void);
+
+	virtual bool Init(tinyxml2::XMLElement* pData) override;
+	virtual tinyxml2::XMLElement* GenerateXml(void) override;
+	virtual void Apply(eastl::weak_ptr<Actor> pActor) override;
+	virtual void Update(float deltaMs) override;
 };
 
 #endif

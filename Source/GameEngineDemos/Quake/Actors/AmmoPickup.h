@@ -53,6 +53,8 @@ class AmmoPickup : public BasePickup
 	unsigned int mAmount;
 
 public:
+	float mRespawnTime;
+
 	static const char* Name;
 	virtual const char* GetName() const { return Name; }
 	unsigned int GetCode(void) const { return mCode; }
@@ -61,9 +63,12 @@ public:
 	unsigned int GetWait() const { return mWait; }
 	unsigned int GetAmount() const { return mAmount; }
 
+	AmmoPickup(void);
+
 	virtual bool Init(tinyxml2::XMLElement* pData) override;
 	virtual tinyxml2::XMLElement* GenerateXml(void) override;
 	virtual void Apply(eastl::weak_ptr<Actor> pActor) override;
+	virtual void Update(float deltaMs) override;
 };
 
 #endif

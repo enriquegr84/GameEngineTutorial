@@ -14,6 +14,10 @@
     // http://www.phy.cmich.edu/people/andy/Physics110/Book/Chapters/Chapter8.htm
 -->
     <DensityTable>
+		<!-- custome -->
+		<soft>0.004</soft>
+		<heavy>50.000</heavy>
+		
         <!--  specific gravity (these numbers are easier to find) -->
         <air>0.0013</air>
         <water>1.000</water>

@@ -1,5 +1,5 @@
 //========================================================================
-// ArmorPickup.cpp - An armor pickup
+// RocketFire.cpp - Firing rocket
 //
 // Part of the GameCode4 Application
 //
@@ -38,50 +38,45 @@
 
 #include "GameEngineStd.h"
 
-#include "ArmorPickup.h"
+#include "RocketFire.h"
 
-#include "Graphic/Graphic.h"
-
-#include "Application/GameApplication.h"
+#include "Game/GameLogic.h"
+#include "Game/Actor/Actor.h"
+#include "Game/Actor/TransformComponent.h"
 
 #include "Core/Logger/Logger.h"
-#include "Game/Actor/Actor.h"
 
-const char* ArmorPickup::Name = "ArmorPickup";
+#include "Core/Event/EventManager.h"
+#include "Core/Event/Event.h"
+
+const char* RocketFire::Name = "RocketFire";
 
 //---------------------------------------------------------------------------------------------------------------------
-// ArmorPickup
+// RocketFire
 //---------------------------------------------------------------------------------------------------------------------
-ArmorPickup::ArmorPickup(void)
+RocketFire::RocketFire(void)
 {
-	mRespawnTime = 0.f;
+	mExplosionTime = 0.f;
 }
 
-bool ArmorPickup::Init(tinyxml2::XMLElement* pData)
+bool RocketFire::Init(tinyxml2::XMLElement* pData)
 {
-	tinyxml2::XMLElement* pArmor = pData->FirstChildElement("Armor");
-	if (pArmor)
+	tinyxml2::XMLElement* pProjectile = pData->FirstChildElement("Projectile");
+	if (pProjectile)
 	{
 		unsigned int temp = 0;
-		mType = pArmor->IntAttribute("type", temp);
+		mType = pProjectile->IntAttribute("type", temp);
 
 		temp = 0;
-		mCode = pArmor->IntAttribute("code", temp);
+		mCode = pProjectile->IntAttribute("code", temp);
 
-		temp = 0;
-		mWait = pArmor->IntAttribute("wait", temp);
-
-		temp = 0;
-		mAmount = pArmor->IntAttribute("amount", temp);
-
-		temp = 0;
-		mMaximum = pArmor->IntAttribute("maximum", temp);
+		mExplosionTime = pProjectile->FloatAttribute("explosion");
 	}
 
 	return true;
 }
 
-tinyxml2::XMLElement* ArmorPickup::GenerateXml(void)
+tinyxml2::XMLElement* RocketFire::GenerateXml(void)
 {
 	tinyxml2::XMLDocument doc;
 
@@ -90,37 +85,37 @@ tinyxml2::XMLElement* ArmorPickup::GenerateXml(void)
 	return pComponentElement;
 }
 
-void ArmorPickup::Apply(eastl::weak_ptr<Actor> pActor)
+void RocketFire::Apply(eastl::weak_ptr<Actor> pActor)
 {
 	eastl::shared_ptr<Actor> pStrongActor(pActor);
 	if (pStrongActor)
 	{
-		LogInformation("Applying armor pickup to actor id " + eastl::to_string(pStrongActor->GetId()));
+		LogInformation("Applying rocket firing to actor id " + eastl::to_string(pStrongActor->GetId()));
 	}
 }
 
-void ArmorPickup::Update(float deltaMs)
+void RocketFire::Update(float deltaMs)
 {
-	// drop misc timing counter
-	if (mRespawnTime)
+	// drop timing counter
+	if (mExplosionTime)
 	{
-		GameApplication* gameApp = (GameApplication*)Application::App;
-		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
-
-		if (deltaMs >= mRespawnTime)
+		if (deltaMs >= mExplosionTime)
 		{
-			mRespawnTime = 0;
+			mExplosionTime = 0;
 
-			eastl::shared_ptr<Node> node = pScene->GetSceneNode(mOwner->GetId());
-			node->SetVisible(true);
-		}
-		else
-		{
-			mRespawnTime -= deltaMs;
+			eastl::shared_ptr<EventDataRequestDestroyActor>
+				pRequestDestroyActorEvent(new EventDataRequestDestroyActor(mOwner->GetId()));
+			BaseEventManager::Get()->QueueEvent(pRequestDestroyActorEvent);
 
-			eastl::shared_ptr<Node> node = pScene->GetSceneNode(mOwner->GetId());
-			node->SetVisible(false);
+			eastl::shared_ptr<TransformComponent> pTransformComponent =
+				mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+			if (pTransformComponent)
+			{
+				Transform initTransform;
+				initTransform.SetTranslation(pTransformComponent->GetTransform().GetTranslation());
+				GameLogic::Get()->CreateActor("actors/quake/effects/rocketexplosion.xml", nullptr, &initTransform);
+			}
 		}
+		else mExplosionTime -= deltaMs;
 	}
 }
-

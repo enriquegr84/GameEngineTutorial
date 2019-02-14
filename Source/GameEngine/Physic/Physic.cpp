@@ -139,7 +139,12 @@ public:
 	virtual ActorId CastRay(
 		const Vector3<float>& origin, const Vector3<float>& end,
 		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal) { return INVALID_ACTOR_ID; }
+	virtual void CastRay(
+		const Vector3<float>& origin, const Vector3<float>& end,
+		eastl::map<ActorId, Vector3<float>>& collisionPoints,
+		eastl::map<ActorId, Vector3<float>>& collisionNormals) { }
 
+	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision) { }
 	virtual void StopActor(ActorId actorId) { }
 	virtual Vector3<float> GetScale(ActorId actorId) { return Vector3<float>(); }
     virtual Vector3<float> GetVelocity(ActorId actorId) { return Vector3<float>(); }
@@ -373,7 +378,12 @@ public:
 	virtual ActorId CastRay(
 		const Vector3<float>& origin, const Vector3<float>& end,
 		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal);
+	virtual void CastRay(
+		const Vector3<float>& origin, const Vector3<float>& end,
+		eastl::map<ActorId, Vector3<float>>& collisionPoints,
+		eastl::map<ActorId, Vector3<float>>& collisionNormals);
 
+	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision);
 	virtual void StopActor(ActorId actorId);
 	virtual Vector3<float> GetScale(ActorId actorId);
     virtual Vector3<float> GetVelocity(ActorId actorId);
@@ -887,7 +897,7 @@ void BulletPhysics::AddCharacterController(
 	mBroadphase->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
 	ghostObject->setCollisionShape(collisionShape);
 	ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
-	btKinematicCharacterController* controller = new btKinematicCharacterController(ghostObject, collisionShape, 8.f);
+	btKinematicCharacterController* controller = new btKinematicCharacterController(ghostObject, collisionShape, 16.f);
 	controller->setGravity(mDynamicsWorld->getGravity() * 600);
 	controller->setFallSpeed(600);
 
@@ -1109,6 +1119,20 @@ void BulletPhysics::StopActor(ActorId actorId)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::SetIgnoreCollision
+//
+void BulletPhysics::SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision) 
+{ 
+	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(actorId))
+	{
+		if (btCollisionObject * const ignoreCollisionObject = FindBulletCollisionObject(ignoreActorId))
+		{
+			collisionObject->setIgnoreCollisionCheck(ignoreCollisionObject, ignoreCollision);
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::FindIntersection		
 bool BulletPhysics::FindIntersection(ActorId actorId, const Vector3<float>& point)
 {
@@ -1179,6 +1203,34 @@ ActorId BulletPhysics::CastRay(
 		return INVALID_ACTOR_ID;
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::CastRay	
+void BulletPhysics::CastRay(
+	const Vector3<float>& origin, const Vector3<float>& end,
+	eastl::map<ActorId, Vector3<float>>& collisionPoints, 
+	eastl::map<ActorId, Vector3<float>>& collisionNormals)
+{
+	btVector3 from = Vector3TobtVector3(origin);
+	btVector3 to = Vector3TobtVector3(end);
+	btCollisionWorld::AllHitsRayResultCallback allHitsResults(from, to);
+	allHitsResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+
+	mDynamicsWorld->updateAabbs();
+	mDynamicsWorld->computeOverlappingPairs();
+	mDynamicsWorld->rayTest(from, to, allHitsResults);
+
+	if (allHitsResults.hasHit())
+	{
+		for (int i = 0; i<allHitsResults.m_collisionObjects.size(); i++)
+		{
+			const btCollisionObject* collisionObject = allHitsResults.m_collisionObjects[i];
+			collisionPoints[FindActorID(collisionObject)] = btVector3ToVector3(allHitsResults.m_hitPointWorld[i]);
+			collisionNormals[FindActorID(collisionObject)] = btVector3ToVector3(allHitsResults.m_hitNormalWorld[i]);
+		}
+	}
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::GetScale					
@@ -1532,12 +1584,6 @@ void BulletPhysics::SendCollisionPairAddEvent( btPersistentManifold const * mani
 		ActorId const id0 = FindActorID( body0 );
 		ActorId const id1 = FindActorID( body1 );
 		
-		if (id0 == INVALID_ACTOR_ID || id1 == INVALID_ACTOR_ID)
-		{
-			// something is colliding with a non-actor.  we currently don't send events for that
-			return;
-		}
-		
 		// this pair of colliding objects is new.  send a collision-begun event
 		eastl::list<Vector3<float>> collisionPoints;
 		Vector3<float> sumNormalForce = Vector3<float>::Zero();
@@ -1590,13 +1636,6 @@ void BulletPhysics::SendCollisionPairRemoveEvent(
 	{
 		ActorId const id0 = FindActorID( body0 );
 		ActorId const id1 = FindActorID( body1 );
-	
-		if ( id0 == INVALID_ACTOR_ID || id1 == INVALID_ACTOR_ID )
-		{
-			// collision is ending between some object(s) that don't have actors. 
-			// we don't send events for that.
-			return;
-		}
 
         eastl::shared_ptr<EventDataPhysSeparation> pEvent(new EventDataPhysSeparation(id0, id1));
         BaseEventManager::Get()->QueueEvent(pEvent);

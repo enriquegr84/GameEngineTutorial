@@ -45,6 +45,7 @@
 
 #include "Actors/PlayerActor.h"
 #include "Actors/PushTrigger.h"
+#include "Actors/TeleporterTrigger.h"
 #include "QuakePlayerController.h"
 #include "QuakeEvents.h"
 #include "QuakeApp.h"
@@ -58,15 +59,15 @@ QuakePlayerController::QuakePlayerController(
 	const eastl::shared_ptr<Node>& target, float initialYaw, float initialPitch)
 	: mTarget(target)
 {
-	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
-	mPitchTarget = (float)GE_C_RAD_TO_DEG * -initialPitch;
+	mYaw = initialYaw;
+	mPitchTarget = -initialPitch;
 
-	mMaxJumpSpeed = 4.0f;
-	mMaxFallSpeed = 220.0f;
+	mMaxJumpSpeed = 3.4f;
+	mMaxFallSpeed = 240.0f;
 	mMaxRotateSpeed = 180.0f;
 	mMoveSpeed = 6.0f;
-	mJumpSpeed = 4.0f;
-	mJumpMoveSpeed = 9.0f;
+	mJumpSpeed = 3.4f;
+	mJumpMoveSpeed = 10.0f;
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 
@@ -195,8 +196,8 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		GameLogic::Get()->GetActor(actorId).lock()));
 	if (pPlayerActor)
 	{
-		mPitchTarget = eastl::max(-90.f, eastl::min(90.f, mPitchTarget));
-		mPitch = 90 * ((mPitchTarget + 90.f) / 180.f) - 45.f;
+		mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
+		mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
 
 		// Calculate the new rotation matrix from the camera
 		// yaw and pitch (zrotate and xrotate).
@@ -253,23 +254,34 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		if (mKey[KEY_KEY_A])
 			rightWorld *= -1.f;
 	}
-	/*
-	if (mKey[KEY_SPACE] || mKey[KEY_KEY_C] || mKey[KEY_KEY_X])
-	{
-		//Unlike strafing, Up is always up no matter
-		//which way you are looking
-		upWorld = Vector4<float>::Unit(YAW); // up vector
-#if defined(GE_USE_MAT_VEC)
-		upWorld = rotation * upWorld;
-#else
-		upWorld = upWorld * rotation;
-#endif
 
-		if (mKey[KEY_SPACE])
-			upWorld *= -1.f;
+	if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
+	{
+		eastl::shared_ptr<TransformComponent> pTransformComponent =
+			pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+		if (pTransformComponent)
+		{
+			eastl::shared_ptr<Actor> pItemActor(
+				eastl::dynamic_shared_pointer_cast<Actor>(
+				GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerTeleporter).lock()));
+			eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
+				pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
+
+			EulerAngles<float> yawPitchRoll;
+			yawPitchRoll.mAxis[1] = 1;
+			yawPitchRoll.mAxis[2] = 2;
+			pTeleporterTrigger->GetTarget().GetRotation(yawPitchRoll);
+			mYaw = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
+			mPitchTarget = -yawPitchRoll.mAngle[ROLL] * (float)GE_C_RAD_TO_DEG;
+
+			pPlayerActor->GetAction().triggerTeleporter = INVALID_ACTOR_ID;
+
+			EventManager::Get()->TriggerEvent(
+				eastl::make_shared<QuakeEventDataSpawnActor>(
+				pPlayerActor->GetId(), pTeleporterTrigger->GetTarget()));
+		}
 	}
-	*/
-	if (pPlayerActor)
+	else
 	{
 		eastl::shared_ptr<PhysicComponent> pPhysicComponent(
 			pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());

@@ -764,7 +764,7 @@ void ReadNodeMesh(const aiScene* pScene,
 }
 
 // -------------------------------------------------------------------------------
-BaseMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
+eastl::shared_ptr<BaseMesh> MeshFileLoader::CreateMesh(BaseReadFile* file)
 {
 	// Create an instance of the Importer class
 	Assimp::Importer importer;
@@ -847,5 +847,5 @@ BaseMesh* MeshFileLoader::CreateMesh(BaseReadFile* file)
 	}
 
 	FileSystem::Get()->ChangeWorkingDirectoryTo(saveDir);
-	return mesh;
+	return eastl::shared_ptr<BaseMesh>(mesh);
 }

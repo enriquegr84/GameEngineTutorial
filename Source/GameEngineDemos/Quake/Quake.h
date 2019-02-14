@@ -51,6 +51,9 @@
 #include "Actors/TeleporterTrigger.h"
 #include "Actors/LocationTarget.h"
 #include "Actors/SpeakerTarget.h"
+#include "Actors/GrenadeFire.h"
+#include "Actors/PlasmaFire.h"
+#include "Actors/RocketFire.h"
 
 class BaseEventManager;
 class NetworkEventForwarder;

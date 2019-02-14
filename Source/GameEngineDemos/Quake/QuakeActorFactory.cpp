@@ -48,6 +48,9 @@
 #include "Actors/TeleporterTrigger.h"
 #include "Actors/LocationTarget.h"
 #include "Actors/SpeakerTarget.h"
+#include "Actors/RocketFire.h"
+#include "Actors/GrenadeFire.h"
+#include "Actors/PlasmaFire.h"
 
 #include "Game/Actor/TransformComponent.h"
 #include "Game/Actor/ActorComponent.h"
@@ -67,6 +70,9 @@ QuakeActorFactory::QuakeActorFactory(void) : ActorFactory()
 	mComponentFactory.Register<TeleporterTrigger>(ActorComponent::GetIdFromName(TeleporterTrigger::Name));
 	mComponentFactory.Register<LocationTarget>(ActorComponent::GetIdFromName(LocationTarget::Name));
 	mComponentFactory.Register<SpeakerTarget>(ActorComponent::GetIdFromName(SpeakerTarget::Name));
+	mComponentFactory.Register<RocketFire>(ActorComponent::GetIdFromName(RocketFire::Name));
+	mComponentFactory.Register<GrenadeFire>(ActorComponent::GetIdFromName(GrenadeFire::Name));
+	mComponentFactory.Register<PlasmaFire>(ActorComponent::GetIdFromName(PlasmaFire::Name));
 }
 
 eastl::shared_ptr<ActorComponent> QuakeActorFactory::CreateComponent(
