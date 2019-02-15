@@ -46,8 +46,7 @@
 
 #include "Core/Logger/Logger.h"
 
-#include "Core/Event/EventManager.h"
-#include "Core/Event/Event.h"
+#include "Quake/QuakeEvents.h"
 
 const char* RocketFire::Name = "RocketFire";
 
@@ -103,17 +102,18 @@ void RocketFire::Update(float deltaMs)
 		{
 			mExplosionTime = 0;
 
-			eastl::shared_ptr<EventDataRequestDestroyActor>
-				pRequestDestroyActorEvent(new EventDataRequestDestroyActor(mOwner->GetId()));
-			BaseEventManager::Get()->QueueEvent(pRequestDestroyActorEvent);
-
 			eastl::shared_ptr<TransformComponent> pTransformComponent =
 				mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 			if (pTransformComponent)
 			{
+				Vector3<float> location = pTransformComponent->GetTransform().GetTranslation();
+
 				Transform initTransform;
-				initTransform.SetTranslation(pTransformComponent->GetTransform().GetTranslation());
+				initTransform.SetTranslation(location);
 				GameLogic::Get()->CreateActor("actors/quake/effects/rocketexplosion.xml", nullptr, &initTransform);
+
+				EventManager::Get()->QueueEvent(
+					eastl::make_shared<QuakeEventDataSplashDamage>(mOwner->GetId(), location));
 			}
 		}
 		else mExplosionTime -= deltaMs;

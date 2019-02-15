@@ -85,6 +85,7 @@ void BspConverter::ConvertBsp(BspLoader& bspLoader, float scaling)
 	bspLoader.ParseEntities();
 
 	//progressBegin("Loading bsp");
+
 	for (int i = 0; i < bspLoader.mNumDrawSurfaces; i++)
 	{
 		char info[128];
@@ -95,6 +96,12 @@ void BspConverter::ConvertBsp(BspLoader& bspLoader, float scaling)
 		BSPSurface& surface = bspLoader.mDrawSurfaces[i];
 		if (surface.surfaceType == MST_PATCH)
 		{
+			eastl::string shader = bspLoader.mDShaders[surface.shaderNum].shader;
+
+			if (shader.find("base_floor") == eastl::string::npos &&
+				shader.find("gothic_floor") == eastl::string::npos)
+				continue;
+
 			int tesselation = 8;
 			CreateCurvedSurfaceBezier(bspLoader, &surface);
 		}

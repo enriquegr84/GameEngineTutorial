@@ -145,6 +145,68 @@ public:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
+// class QuakeEventDataSplashDamage
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataSplashDamage : public EventData
+{
+	ActorId mId;
+	Vector3<float> mOrigin;
+
+public:
+	static const BaseEventType skEventType;
+	virtual const BaseEventType & GetEventType() const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataSplashDamage(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataSplashDamage(ActorId id, const Vector3<float>& origin)
+		: mId(id), mOrigin(origin)
+	{
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataSplashDamage(mId, mOrigin));
+	}
+
+	virtual void Serialize(std::ostrstream &out) const
+	{
+		out << mId << " ";
+		for (int i = 0; i<3; ++i)
+			out << mOrigin[i] << " ";
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
+		for (int i = 0; i<3; ++i)
+			in >> mOrigin[i];
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataSplashDamage";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+
+	const Vector3<float>& GetOrigin(void) const
+	{
+		return mOrigin;
+	}
+};
+
+
+
+//---------------------------------------------------------------------------------------------------------------------
 // class QuakeEventDataDeadActor
 //---------------------------------------------------------------------------------------------------------------------
 class QuakeEventDataDeadActor : public EventData
@@ -201,7 +263,6 @@ public:
 class QuakeEventDataSpawnActor : public EventData
 {
 	ActorId mId;
-	Transform mTransform;
 
 public:
 	static const BaseEventType skEventType;
@@ -216,8 +277,8 @@ public:
 		mId = INVALID_ACTOR_ID;
 	}
 
-	QuakeEventDataSpawnActor(ActorId id, const Transform& trans)
-		: mId(id), mTransform(trans)
+	QuakeEventDataSpawnActor(ActorId id)
+		: mId(id)
 	{
 		//
 	}
@@ -225,24 +286,16 @@ public:
 	virtual void Serialize(std::ostrstream &out) const
 	{
 		out << mId << " ";
-		for (int i = 0; i<4; ++i)
-			for (int j = 0; j<4; ++j)
-				out << mTransform.GetMatrix()(i, j) << " ";
 	}
 
 	virtual void Deserialize(std::istrstream& in)
 	{
 		in >> mId;
-
-		Matrix4x4<float> transform = mTransform.GetMatrix();
-		for (int i = 0; i<4; ++i)
-			for (int j = 0; j<4; ++j)
-				in >> transform(i, j);
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new QuakeEventDataSpawnActor(mId, mTransform));
+		return BaseEventDataPtr(new QuakeEventDataSpawnActor(mId));
 	}
 
 	virtual const char* GetName(void) const
@@ -253,11 +306,6 @@ public:
 	ActorId GetId(void) const
 	{
 		return mId;
-	}
-
-	const Transform& GetTransform(void) const
-	{
-		return mTransform;
 	}
 };
 

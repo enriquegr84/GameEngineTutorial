@@ -195,6 +195,7 @@ HICON QuakeApp::VGetIcon()
 
 void QuakeApp::RegisterGameEvents(void)
 {
+	REGISTER_EVENT(QuakeEventDataSplashDamage);
 	REGISTER_EVENT(QuakeEventDataSpawnActor);
 	REGISTER_EVENT(QuakeEventDataPushActor);
 	REGISTER_EVENT(QuakeEventDataJumpActor);
@@ -218,6 +219,9 @@ void QuakeApp::CreateNetworkEventForwarder(void)
 		//	Then as events are created, they are automatically added to the right 
 		//	network forwarders. This could also detect a 
 
+		pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataSplashDamage::skEventType);
 		pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataSpawnActor::skEventType);
@@ -263,6 +267,9 @@ void QuakeApp::DestroyNetworkEventForwarder(void)
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataEnvironmentLoaded::skEventType);
 
+		eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataSplashDamage::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataSpawnActor::skEventType);

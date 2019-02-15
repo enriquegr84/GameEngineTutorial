@@ -237,6 +237,7 @@ public:
 	void PhysicsSeparationDelegate(BaseEventDataPtr pEventData);
 	void EnvironmentLoadedDelegate(BaseEventDataPtr pEventData);
 
+	void SplashDamageDelegate(BaseEventDataPtr pEventData);
 	void FireWeaponDelegate(BaseEventDataPtr pEventData);
 	void SpawnActorDelegate(BaseEventDataPtr pEventData);
 	void PushActorDelegate(BaseEventDataPtr pEventData);
@@ -266,6 +267,9 @@ private:
 	void RemoveAllDelegates(void);
 	void CreateNetworkEventForwarder(const int socketId);
 	void DestroyAllNetworkEventForwarders(void);
+
+	bool RadiusDamage(float damage, float radius, int mod,
+		Vector3<float> origin, const eastl::shared_ptr<PlayerActor>& attacker);
 
 	void GauntletAttack(const eastl::shared_ptr<PlayerActor>& player,
 		const Vector3<float>& origin, const Vector3<float>& forward,
@@ -308,8 +312,6 @@ private:
 	const eastl::shared_ptr<Actor>& SelectSpawnPoint(
 		const Vector3<float>& avoidPoint, Transform& transform);
 	const eastl::shared_ptr<Actor>& SelectInitialSpawnPoint(Transform& transform);
-
-	void PlayerSpawn(const eastl::shared_ptr<PlayerActor>& playerActor);
 };
 
 #endif

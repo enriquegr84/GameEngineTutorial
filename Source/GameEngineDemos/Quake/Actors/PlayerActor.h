@@ -321,6 +321,8 @@ public:
 	PlayerState& GetState() { return mState; }
 	PlayerAction& GetAction() { return mAction; }
 
+	void PlayerSpawn();
+
 	void NextWeapon();
 	void PrevWeapon();
 

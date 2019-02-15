@@ -1761,12 +1761,41 @@ void QuakeHumanView::DeadActorDelegate(BaseEventDataPtr pEventData)
 	eastl::shared_ptr<QuakeEventDataDeadActor> pCastEventData =
 		eastl::static_pointer_cast<QuakeEventDataDeadActor>(pEventData);
 
+	ActorId actorId = pCastEventData->GetId();
 	eastl::shared_ptr<PlayerActor> pPlayerActor(
 		eastl::dynamic_shared_pointer_cast<PlayerActor>(
-		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock()));
-	if (pPlayerActor)
+			GameLogic::Get()->GetActor(actorId).lock()));
+	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
+	if (pNode)
 	{
+		eastl::shared_ptr<AnimatedMeshNode> animatedNode =
+			eastl::dynamic_shared_pointer_cast<AnimatedMeshNode>(pNode);
+		eastl::shared_ptr<AnimateMeshMD3> animMeshMD3 =
+			eastl::dynamic_shared_pointer_cast<AnimateMeshMD3>(animatedNode->GetMesh());
 
+		eastl::vector<eastl::shared_ptr<MD3Mesh>> meshes;
+		animMeshMD3->GetMD3Mesh()->GetMeshes(meshes);
+
+		for (eastl::shared_ptr<MD3Mesh> mesh : meshes)
+		{
+			if (mesh->GetParent() && mesh->GetParent()->GetName() == "tag_weapon")
+				mesh->SetRenderMesh(false);
+
+			if (mesh->GetName() == "lower")
+			{
+				//run animation
+				int legsAnim = pPlayerActor->GetState().legsAnim;
+				mesh->SetCurrentAnimation(legsAnim);
+				mesh->SetCurrentFrame((float)mesh->GetAnimation(legsAnim).mBeginFrame);
+			}
+			else if (mesh->GetName() == "upper")
+			{
+				//run animation
+				int torsoAnim = pPlayerActor->GetState().torsoAnim;
+				mesh->SetCurrentAnimation(torsoAnim);
+				mesh->SetCurrentFrame((float)mesh->GetAnimation(torsoAnim).mBeginFrame);
+			}
+		}
 	}
 }
 

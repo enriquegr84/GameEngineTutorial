@@ -42,6 +42,7 @@
 const BaseEventType QuakeEventDataFireWeapon::skEventType(0x1b15b6a7);
 const BaseEventType QuakeEventDataChangeWeapon::skEventType(0xcee385cc);
 
+const BaseEventType QuakeEventDataSplashDamage::skEventType(0x23e5bdcb);
 const BaseEventType QuakeEventDataDeadActor::skEventType(0xaf50e7db);
 const BaseEventType QuakeEventDataSpawnActor::skEventType(0x92f851da);
 const BaseEventType QuakeEventDataPushActor::skEventType(0x47fda8e7);

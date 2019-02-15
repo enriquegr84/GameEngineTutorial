@@ -219,6 +219,71 @@ void PlayerActor::OutOfAmmoChange()
 	}
 }
 
+void PlayerActor::PlayerSpawn()
+{
+	// clear everything
+	int accuracyHits = mState.accuracyHits;
+	int accuracyShots = mState.accuracyShots;
+	int persistant[MAX_PERSISTANT];
+	for (int i = 0; i < MAX_PERSISTANT; i++)
+		persistant[i] = mState.persistant[i];
+
+	memset(&mState, 0, sizeof(mState));
+	memset(&mAction, 0, sizeof(mAction));
+
+	//	client->areabits = savedAreaBits;
+	mState.accuracyHits = accuracyHits;
+	mState.accuracyShots = accuracyShots;
+
+	for (int i = 0; i < MAX_PERSISTANT; i++)
+		mState.persistant[i] = persistant[i];
+
+	// increment the spawncount so the client will detect the respawn
+	mState.persistant[PERS_SPAWN_COUNT]++;
+	//mState.persistant[PERS_TEAM] = sessionTeam;
+	mState.stats[STAT_MAX_HEALTH] = 100;
+	mState.takeDamage = true;
+	mState.viewHeight = DEFAULT_VIEWHEIGHT;
+	mState.stats[STAT_WEAPONS] |= (1 << WP_SHOTGUN);
+	mState.ammo[WP_SHOTGUN] = 1000;
+	mState.stats[STAT_WEAPONS] |= (1 << WP_ROCKET_LAUNCHER);
+	mState.ammo[WP_ROCKET_LAUNCHER] = 1000;
+	mState.stats[STAT_WEAPONS] |= (1 << WP_RAILGUN);
+	mState.ammo[WP_RAILGUN] = 1000;
+	mState.stats[STAT_WEAPONS] |= (1 << WP_PLASMAGUN);
+	mState.ammo[WP_PLASMAGUN] = 1000;
+	mState.stats[STAT_WEAPONS] |= (1 << WP_MACHINEGUN);
+	mState.ammo[WP_MACHINEGUN] = 1000;
+	mState.stats[STAT_WEAPONS] |= (1 << WP_LIGHTNING);
+	mState.ammo[WP_LIGHTNING] = 1000;
+	mState.stats[STAT_WEAPONS] |= (1 << WP_GRENADE_LAUNCHER);
+	mState.ammo[WP_GRENADE_LAUNCHER] = 1000;
+	mState.stats[STAT_WEAPONS] |= (1 << WP_GAUNTLET);
+	mState.ammo[WP_GAUNTLET] = -1;
+
+	// health will count down towards max_health
+	mState.stats[STAT_HEALTH] = mState.stats[STAT_MAX_HEALTH] + 25;
+
+	// force the base weapon up
+	mAction.weaponSelect = WP_MACHINEGUN;
+	mAction.weaponSelectTime = 0;
+
+	mState.weapon = WP_MACHINEGUN;
+	mState.weaponState = WEAPON_READY;
+
+	// don't allow full run speed for a bit
+	//mState.moveFlags |= PMF_TIME_KNOCKBACK;
+	//mState.respawnTime = level.time;
+
+	// set default animations
+	mState.torsoAnim = TORSO_STAND;
+	mState.legsAnim = LEGS_IDLE;
+
+	// fire the targets of the spawn point
+	EventManager::Get()->TriggerEvent(
+		eastl::make_shared<QuakeEventDataSpawnActor>(GetId()));
+}
+
 void PlayerActor::UpdateWeapon(unsigned long deltaMs)
 {
 	int addTime;

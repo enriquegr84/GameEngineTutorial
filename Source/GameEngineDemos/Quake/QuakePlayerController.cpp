@@ -257,29 +257,33 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 	if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
 	{
+		eastl::shared_ptr<Actor> pItemActor(
+			eastl::dynamic_shared_pointer_cast<Actor>(
+			GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerTeleporter).lock()));
+		eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
+			pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
+		pPlayerActor->GetAction().triggerTeleporter = INVALID_ACTOR_ID;
+
+		EulerAngles<float> yawPitchRoll;
+		yawPitchRoll.mAxis[1] = 1;
+		yawPitchRoll.mAxis[2] = 2;
+		pTeleporterTrigger->GetTarget().GetRotation(yawPitchRoll);
+		mYaw = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
+		mPitchTarget = -yawPitchRoll.mAngle[ROLL] * (float)GE_C_RAD_TO_DEG;
+
 		eastl::shared_ptr<TransformComponent> pTransformComponent =
 			pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 		if (pTransformComponent)
-		{
-			eastl::shared_ptr<Actor> pItemActor(
-				eastl::dynamic_shared_pointer_cast<Actor>(
-				GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerTeleporter).lock()));
-			eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
-				pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
+			pTransformComponent->SetTransform(pTeleporterTrigger->GetTarget());
 
-			EulerAngles<float> yawPitchRoll;
-			yawPitchRoll.mAxis[1] = 1;
-			yawPitchRoll.mAxis[2] = 2;
-			pTeleporterTrigger->GetTarget().GetRotation(yawPitchRoll);
-			mYaw = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
-			mPitchTarget = -yawPitchRoll.mAngle[ROLL] * (float)GE_C_RAD_TO_DEG;
+		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+			pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+		if (pPhysicalComponent)
+			pPhysicalComponent->SetTransform(pTeleporterTrigger->GetTarget());
 
-			pPlayerActor->GetAction().triggerTeleporter = INVALID_ACTOR_ID;
-
-			EventManager::Get()->TriggerEvent(
-				eastl::make_shared<QuakeEventDataSpawnActor>(
-				pPlayerActor->GetId(), pTeleporterTrigger->GetTarget()));
-		}
+		// play teleporter sound
+		EventManager::Get()->TriggerEvent(
+			eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/teleout.ogg"));
 	}
 	else
 	{
@@ -287,6 +291,8 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
 		if (pPhysicComponent)
 		{
+			int prevActionType = pPlayerActor->GetAction().actionType;
+
 			pPlayerActor->GetAction().actionType = 0;
 			if (mMouseLButtonDown)
 				pPlayerActor->GetAction().actionType |= ACTION_ATTACK;
@@ -328,6 +334,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						direction = targetPosition - playerPosition;
 						push = Length(direction);
 						Normalize(direction);
+						printf("velocity %f %f %f %f\n", direction[0], direction[1], direction[2], push);
 					}
 
 					direction[PITCH] *= push / 90.f;
@@ -380,12 +387,20 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				pPlayerActor->GetAction().actionType |= ACTION_FALLEN;
 			}
 
-			EventManager::Get()->TriggerEvent(
-				eastl::make_shared<QuakeEventDataRotateActor>(actorId, mAbsoluteTransform));
+			if (pPlayerActor->GetState().moveType != PM_DEAD)
+			{
+				EventManager::Get()->TriggerEvent(
+					eastl::make_shared<QuakeEventDataRotateActor>(actorId, mAbsoluteTransform));
 
-			pPlayerActor->UpdateTimers(deltaMs);
-			pPlayerActor->UpdateWeapon(deltaMs);
-			pPlayerActor->UpdateMovement(HProject(velocity));
+				pPlayerActor->UpdateTimers(deltaMs);
+				pPlayerActor->UpdateWeapon(deltaMs);
+				pPlayerActor->UpdateMovement(HProject(velocity));
+			}
+			else if (!(prevActionType & ACTION_ATTACK))
+			{
+				if (pPlayerActor->GetAction().actionType & ACTION_ATTACK)
+					pPlayerActor->PlayerSpawn();
+			}
 		}
 	}
 

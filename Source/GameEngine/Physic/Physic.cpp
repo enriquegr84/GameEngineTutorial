@@ -1505,6 +1505,9 @@ void BulletPhysics::BulletInternalTickCallback(btDynamicsWorld * const world, bt
 		//   between two physics objects
 		btPersistentManifold const * const manifold = dispatcher->getManifoldByIndexInternal( manifoldIdx );
 		LogAssert( manifold, "invalid manifold" );
+
+		if (manifold->getNumContacts() == 0)
+			continue; //we consider a collision after we get contact
 		
 		// get the two bodies used in the manifold.  Bullet stores them as void*, so we must cast
 		//  them back to btRigidBody*s.  Manipulating void* pointers is usually a bad
@@ -1583,6 +1586,13 @@ void BulletPhysics::SendCollisionPairAddEvent( btPersistentManifold const * mani
 	{
 		ActorId const id0 = FindActorID( body0 );
 		ActorId const id1 = FindActorID( body1 );
+
+		if (id0 == INVALID_ACTOR_ID && id1 == INVALID_ACTOR_ID)
+		{
+			// collision is ending between some object(s) that don't have actors. 
+			// we don't send events for that.
+			return;
+		}
 		
 		// this pair of colliding objects is new.  send a collision-begun event
 		eastl::list<Vector3<float>> collisionPoints;
@@ -1636,6 +1646,13 @@ void BulletPhysics::SendCollisionPairRemoveEvent(
 	{
 		ActorId const id0 = FindActorID( body0 );
 		ActorId const id1 = FindActorID( body1 );
+
+		if (id0 == INVALID_ACTOR_ID && id1 == INVALID_ACTOR_ID)
+		{
+			// collision is ending between some object(s) that don't have actors. 
+			// we don't send events for that.
+			return;
+		}
 
         eastl::shared_ptr<EventDataPhysSeparation> pEvent(new EventDataPhysSeparation(id0, id1));
         BaseEventManager::Get()->QueueEvent(pEvent);

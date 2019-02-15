@@ -45,7 +45,7 @@ void QuakeLogic::UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView, bo
 	/*
 	if (pView->GetType() == GV_REMOTE)
 	{
-	mHumanPlayersAttached += add ? 1 : -1;
+		mHumanPlayersAttached += add ? 1 : -1;
 	}
 	*/
 	if (pView->GetType() == GV_HUMAN)
@@ -140,7 +140,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 						CreatePlayerActor("actors\\quake\\players\\player.xml", NULL);
 					if (pPlayerActor)
 					{
-						PlayerSpawn(pPlayerActor);
+						pPlayerActor->PlayerSpawn();
 						pView->OnAttach(pView->GetId(), pPlayerActor->GetId());
 
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
@@ -156,7 +156,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 						CreatePlayerActor("actors\\quake\\players\\remote_player.xml", NULL);
 					if (pPlayerActor)
 					{
-						PlayerSpawn(pPlayerActor);
+						pPlayerActor->PlayerSpawn();
 						pView->OnAttach(pView->GetId(), pPlayerActor->GetId());
 
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
@@ -172,7 +172,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 						CreatePlayerActor("actors\\quake\\players\\ai_player.xml", NULL);
 					if (pPlayerActor)
 					{
-						PlayerSpawn(pPlayerActor);
+						pPlayerActor->PlayerSpawn();
 						pView->OnAttach(pView->GetId(), pPlayerActor->GetId());
 
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
@@ -331,10 +331,22 @@ void QuakeLogic::SpawnActorDelegate(BaseEventDataPtr pEventData)
 		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
 	if (pGameActor)
 	{
+		// find a spawn point
+		Transform spawnTransform;
+		eastl::shared_ptr<Actor> spawnPoint;
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			spawnPoint = SelectSpawnPoint(
+				pTransformComponent->GetTransform().GetTranslation(), spawnTransform);
+			pTransformComponent->SetTransform(spawnTransform);
+		}
+
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
 			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
-			pPhysicalComponent->SetTransform(pCastEventData->GetTransform());
+			pPhysicalComponent->SetTransform(spawnTransform);
 
 		// play teleporter sound
 		EventManager::Get()->TriggerEvent(
@@ -503,6 +515,9 @@ void QuakeLogic::RegisterAllDelegates(void)
 		MakeDelegate(this, &QuakeLogic::SpawnActorDelegate),
 		QuakeEventDataSpawnActor::skEventType);
 	pGlobalEventManager->AddListener(
+		MakeDelegate(this, &QuakeLogic::SplashDamageDelegate),
+		QuakeEventDataSplashDamage::skEventType);
+	pGlobalEventManager->AddListener(
 		MakeDelegate(this, &QuakeLogic::PushActorDelegate),
 		QuakeEventDataPushActor::skEventType);
 	pGlobalEventManager->AddListener(
@@ -578,6 +593,9 @@ void QuakeLogic::RemoveAllDelegates(void)
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeLogic::SpawnActorDelegate),
 		QuakeEventDataSpawnActor::skEventType);
+	pGlobalEventManager->RemoveListener(
+		MakeDelegate(this, &QuakeLogic::SplashDamageDelegate),
+		QuakeEventDataSplashDamage::skEventType);
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeLogic::PushActorDelegate),
 		QuakeEventDataPushActor::skEventType);
@@ -656,6 +674,9 @@ void QuakeLogic::CreateNetworkEventForwarder(const int socketId)
 		QuakeEventDataDeadActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+		QuakeEventDataSplashDamage::skEventType);
+	pGlobalEventManager->AddListener(
+		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 		QuakeEventDataSpawnActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent),
@@ -723,6 +744,9 @@ void QuakeLogic::DestroyAllNetworkEventForwarders(void)
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataDeadActor::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataSplashDamage::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataSpawnActor::skEventType);
@@ -1148,26 +1172,32 @@ eastl::shared_ptr<Actor> CreateItemWeapon(WeaponType weapon, const Transform& in
 	eastl::shared_ptr<Actor> pActor;
 	switch (weapon)
 	{
-	case WP_SHOTGUN:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/shotgun.xml", nullptr, &initTransform);
-		break;
-	case WP_GRENADE_LAUNCHER:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/grenadelauncher.xml", nullptr, &initTransform);
-		break;
-	case WP_ROCKET_LAUNCHER:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/rocketlauncher.xml", nullptr, &initTransform);
-		break;
-	case WP_LIGHTNING:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/lightning.xml", nullptr, &initTransform);
-		break;
-	case WP_RAILGUN:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/railgun.xml", nullptr, &initTransform);
-		break;
-	case WP_PLASMAGUN:
-		pActor = GameLogic::Get()->CreateActor("actors/quake/models/weapon/plasmagun.xml", nullptr, &initTransform);
-		break;
-	default:
-		break;
+		case WP_SHOTGUN:
+			pActor = GameLogic::Get()->CreateActor(
+				"actors/quake/models/weapon/shotgun.xml", nullptr, &initTransform);
+			break;
+		case WP_GRENADE_LAUNCHER:
+			pActor = GameLogic::Get()->CreateActor(
+				"actors/quake/models/weapon/grenadelauncher.xml", nullptr, &initTransform);
+			break;
+		case WP_ROCKET_LAUNCHER:
+			pActor = GameLogic::Get()->CreateActor(
+				"actors/quake/models/weapon/rocketlauncher.xml", nullptr, &initTransform);
+			break;
+		case WP_LIGHTNING:
+			pActor = GameLogic::Get()->CreateActor(
+				"actors/quake/models/weapon/lightning.xml", nullptr, &initTransform);
+			break;
+		case WP_RAILGUN:
+			pActor = GameLogic::Get()->CreateActor(
+				"actors/quake/models/weapon/railgun.xml", nullptr, &initTransform);
+			break;
+		case WP_PLASMAGUN:
+			pActor = GameLogic::Get()->CreateActor(
+				"actors/quake/models/weapon/plasmagun.xml", nullptr, &initTransform);
+			break;
+		default:
+			break;
 	}
 
 	LogError("Couldn't find item for weapon " + eastl::to_string(weapon));
@@ -1287,8 +1317,6 @@ void Die(int damage, MeansOfDeath meansOfDeath,
 	const eastl::shared_ptr<PlayerActor>& player,
 	const eastl::shared_ptr<PlayerActor>& attacker)
 {
-	eastl::shared_ptr<Actor> ent;
-
 	if (player->GetState().moveType == PM_DEAD)
 		return;
 
@@ -1378,7 +1406,7 @@ int CheckArmor(eastl::shared_ptr<PlayerActor> playerActor, int damage, int dflag
 		return 0;
 
 	// armor
-	int save = ceil(damage * ARMOR_PROTECTION);
+	int save = (int)ceil(damage * ARMOR_PROTECTION);
 	if (save >= playerActor->GetState().stats[STAT_ARMOR])
 		save = playerActor->GetState().stats[STAT_ARMOR];
 
@@ -1446,10 +1474,7 @@ void Damage(int damage, int dflags, int mod,
 	const eastl::shared_ptr<PlayerActor>& attacker)
 {
 	if (!target->GetState().takeDamage)
-	{
 		return;
-	}
-
 
 	// reduce damage by the attacker's handicap value
 	// unless they are rocket jumping
@@ -1460,13 +1485,9 @@ void Damage(int damage, int dflags, int mod,
 	}
 
 	if (dir != Vector3<float>::Zero())
-	{
 		dflags |= DAMAGE_NO_KNOCKBACK;
-	}
 	else
-	{
 		Normalize(dir);
-	}
 
 	int knockback = damage;
 	if (knockback > 200)
@@ -1479,9 +1500,7 @@ void Damage(int damage, int dflags, int mod,
 	if (knockback && target)
 	{
 		Vector3<float>	kvel;
-		float	mass;
-
-		mass = 200;
+		float mass = 200;
 
 		//kvel = dir * (g_knockback.value * (float)knockback / mass));
 		//target->GetState().velocity += kvel;
@@ -1490,17 +1509,10 @@ void Damage(int damage, int dflags, int mod,
 		// out the movement immediately
 		if (!target->GetState().moveTime)
 		{
-			int		t;
+			int t = knockback * 2;
+			if (t < 50) t = 50;
+			if (t > 200) t = 200;
 
-			t = knockback * 2;
-			if (t < 50)
-			{
-				t = 50;
-			}
-			if (t > 200)
-			{
-				t = 200;
-			}
 			target->GetState().moveTime = t;
 			//target->GetState().moveFlags |= PMF_TIME_KNOCKBACK;
 		}
@@ -1514,7 +1526,7 @@ void Damage(int damage, int dflags, int mod,
 		if ((dflags & DAMAGE_RADIUS) || (mod == MOD_FALLING))
 			return;
 
-		damage *= 0.5;
+		damage *= 0.5f;
 	}
 
 	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
@@ -1531,7 +1543,7 @@ void Damage(int damage, int dflags, int mod,
 	// always give half damage if hurting self
 	// calculated after knockback, so rocket jumping works
 	if (target == attacker)
-		damage *= 0.5;
+		damage *= 0.5f;
 
 	if (damage < 1)
 		damage = 1;
@@ -1549,13 +1561,10 @@ void Damage(int damage, int dflags, int mod,
 	if (target)
 	{
 		if (attacker)
-		{
 			target->GetState().persistant[PERS_ATTACKER] = attacker->GetId();
-		}
 		else
-		{
 			target->GetState().persistant[PERS_ATTACKER] = ENTITYNUM_WORLD;
-		}
+
 		target->GetState().damageArmor += asave;
 		target->GetState().damageBlood += take;
 		target->GetState().damageKnockback += knockback;
@@ -1633,6 +1642,27 @@ void Damage(int damage, int dflags, int mod,
 	}
 }
 
+bool LogAccuracyHit(
+	const eastl::shared_ptr<PlayerActor>& target,
+	const eastl::shared_ptr<PlayerActor>& attacker)
+{
+	if (!target->GetState().takeDamage)
+		return false;
+
+	if (target == attacker)
+		return false;
+
+	if (!target)
+		return false;
+
+	if (!attacker)
+		return false;
+
+	if (target->GetState().stats[STAT_HEALTH] <= 0)
+		return false;
+
+	return true;
+}
 
 /*
 CanDamage
@@ -1645,94 +1675,95 @@ bool CanDamage(const eastl::shared_ptr<PlayerActor>& target, Vector3<float> orig
 	return true;
 }
 
-bool LogAccuracyHit(
-	const eastl::shared_ptr<PlayerActor>& target,
-	const eastl::shared_ptr<PlayerActor>& attacker)
+bool QuakeLogic::RadiusDamage(float damage, float radius, int mod,
+	Vector3<float> origin, const eastl::shared_ptr<PlayerActor>& attacker)
 {
-	if (!target->GetState().takeDamage)
-	{
-		return false;
-	}
-
-	if (target == attacker)
-	{
-		return false;
-	}
-
-	if (!target)
-	{
-		return false;
-	}
-
-	if (!attacker)
-	{
-		return false;
-	}
-
-	if (target->GetState().stats[STAT_HEALTH] <= 0)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-bool RadiusDamage(
-	float damage, float radius, int mod, Vector3<float> origin,
-	const eastl::shared_ptr<PlayerActor>& attacker,
-	const eastl::shared_ptr<Actor>& ignore)
-{
-	float points, dist;
-	int numListedEntities;
-	Vector3<float> mins, maxs;
-	Vector3<float> v;
-	Vector3<float> dir;
-	int i, e;
 	bool hitClient = false;
 
 	if (radius < 1)
 		radius = 1;
 
-	for (i = 0; i < 3; i++)
+	for (ActorMap::const_iterator it = mActors.begin(); it != mActors.end(); ++it)
 	{
-		mins[i] = origin[i] - radius;
-		maxs[i] = origin[i] + radius;
-	}
-
-	//numListedEntities = trap_EntitiesInBox(mins, maxs, entityList, MAX_GENTITIES);
-
-	for (e = 0; e < numListedEntities; e++)
-	{
-		eastl::shared_ptr<PlayerActor> actor; // ent = &entities[entityList[e]];
-
-		if (actor == ignore)
-			continue;
-		if (!actor->GetState().takeDamage)
-			continue;
-
-		dist = Length(v);
-		if (dist >= radius)
+		eastl::shared_ptr<PlayerActor> playerActor =
+			eastl::dynamic_shared_pointer_cast<PlayerActor>((*it).second);
+		if (playerActor)
 		{
-			continue;
-		}
+			if (!playerActor->GetState().takeDamage)
+				continue;
 
-		points = damage * (1.0 - dist / radius);
-
-		if (CanDamage(actor, origin))
-		{
-			if (LogAccuracyHit(actor, attacker))
+			eastl::shared_ptr<TransformComponent> pTransformComponent(
+				playerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+			if (pTransformComponent)
 			{
-				hitClient = true;
+				Vector3<float> location = pTransformComponent->GetTransform().GetTranslation();
+
+				float dist = Length(origin - location);
+				if (dist >= radius)
+					continue;
+
+				float points = damage * (1.f - dist / radius);
+				if (CanDamage(playerActor, origin))
+				{
+					if (LogAccuracyHit(playerActor, attacker))
+						hitClient = true;
+
+					Vector3<float> dir = location - origin;
+					// push the center of mass higher than the origin so players
+					// get knocked into the air more
+					dir[2] += 24;
+					Damage((int)points, DAMAGE_RADIUS, mod, dir, origin, playerActor, NULL, attacker);
+				}
 			}
-			//dir = actor->GetState().currentOrigin - origin;
-			// push the center of mass higher than the origin so players
-			// get knocked into the air more
-			dir[2] += 24;
-			Damage((int)points, DAMAGE_RADIUS, mod, dir, origin, actor, NULL, attacker);
 		}
 	}
 
 	return hitClient;
+}
+
+void QuakeLogic::SplashDamageDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataSplashDamage> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataSplashDamage>(pEventData);
+
+	eastl::shared_ptr<Actor> pGameActor(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
+	if (pGameActor && pGameActor->GetType() == "Fire")
+	{
+		if (pGameActor->GetComponent<GrenadeFire>(GrenadeFire::Name).lock())
+		{
+			eastl::shared_ptr<GrenadeFire> pGrenadeFire =
+				pGameActor->GetComponent<GrenadeFire>(GrenadeFire::Name).lock();
+			RadiusDamage(100, 150, MOD_GRENADE, pCastEventData->GetOrigin(), 
+				eastl::dynamic_shared_pointer_cast<PlayerActor>(pGrenadeFire->mAttacker));
+
+			eastl::shared_ptr<EventDataRequestDestroyActor>
+				pRequestDestroyActorEvent(new EventDataRequestDestroyActor(pGameActor->GetId()));
+			EventManager::Get()->QueueEvent(pRequestDestroyActorEvent);
+		}
+		else if (pGameActor->GetComponent<RocketFire>(RocketFire::Name).lock())
+		{
+			eastl::shared_ptr<RocketFire> pRocketFire =
+				pGameActor->GetComponent<RocketFire>(RocketFire::Name).lock();
+			RadiusDamage(100, 120, MOD_ROCKET, pCastEventData->GetOrigin(),
+				eastl::dynamic_shared_pointer_cast<PlayerActor>(pRocketFire->mAttacker));
+
+			eastl::shared_ptr<EventDataRequestDestroyActor>
+				pRequestDestroyActorEvent(new EventDataRequestDestroyActor(pGameActor->GetId()));
+			EventManager::Get()->QueueEvent(pRequestDestroyActorEvent);
+		}
+		else if (pGameActor->GetComponent<PlasmaFire>(PlasmaFire::Name).lock())
+		{
+			eastl::shared_ptr<PlasmaFire> pPlasmaFire =
+				pGameActor->GetComponent<PlasmaFire>(PlasmaFire::Name).lock();
+			RadiusDamage(15, 20, MOD_PLASMA, pCastEventData->GetOrigin(),
+				eastl::dynamic_shared_pointer_cast<PlayerActor>(pPlasmaFire->mAttacker));
+
+			eastl::shared_ptr<EventDataRequestDestroyActor>
+				pRequestDestroyActorEvent(new EventDataRequestDestroyActor(pGameActor->GetId()));
+			EventManager::Get()->QueueEvent(pRequestDestroyActorEvent);
+		}
+	}
 }
 
 /*
@@ -1813,9 +1844,9 @@ void QuakeLogic::BulletFire(
 	const Vector3<float>& muzzle, const Vector3<float>& forward,
 	const Vector3<float>& right, const Vector3<float>& up, float spread, int damage)
 {
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * spread * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * spread * 16.f;
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * spread * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * spread * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
 	end += right * r;
 	end += up * u;
@@ -1952,8 +1983,8 @@ void QuakeLogic::ShotgunFire(
 	// generate the "random" spread pattern
 	for (unsigned int i = 0; i < DEFAULT_SHOTGUN_COUNT; i++)
 	{
-		float r = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
-		float u = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
+		float r = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
+		float u = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
 		Vector3<float> end = muzzle + forward * 8192.f * 16.f;
 		end += right * r;
 		end += up * u;
@@ -1980,15 +2011,15 @@ void QuakeLogic::GrenadeLauncherFire(
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
 		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
 	Matrix4x4<float> pitchRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1] + GE_C_QUARTER_PI));
+		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1] + (float)GE_C_QUARTER_PI));
 
 	Transform initTransform;
 	initTransform.SetRotation(yawRotation * pitchRotation);
 	initTransform.SetTranslation(muzzle);
 
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
 	end += right * r;
 	end += up * u;
@@ -2044,9 +2075,9 @@ void QuakeLogic::RocketLauncherFire(
 	initTransform.SetRotation(yawRotation * pitchRotation);
 	initTransform.SetTranslation(muzzle);
 
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
 	end += right * r;
 	end += up * u;
@@ -2105,9 +2136,9 @@ void QuakeLogic::PlasmagunFire(
 	initTransform.SetRotation(yawRotation * pitchRotation);
 	initTransform.SetTranslation(muzzle);
 
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
 	end += right * r;
 	end += up * u;
@@ -2156,9 +2187,9 @@ void QuakeLogic::RailgunFire(
 	const Vector3<float>& right, const Vector3<float>& up,
 	const EulerAngles<float>& viewAngles)
 {
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
 	end += right * r;
 	end += up * u;
@@ -2242,9 +2273,9 @@ void QuakeLogic::LightningFire(
 	const Vector3<float>& right, const Vector3<float>& up,
 	const EulerAngles<float>& viewAngles)
 {
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5)) * 16.f;
+	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * (float)LIGHTNING_RANGE;
 	end += right * r;
 	end += up * u;
@@ -2414,14 +2445,9 @@ bool QuakeLogic::SpotTelefrag(const eastl::shared_ptr<Actor>& spot)
 
 const eastl::shared_ptr<Actor>& QuakeLogic::SelectNearestSpawnPoint(const Vector3<float>& from)
 {
-	Vector3<float> delta;
-	float dist, nearestDist;
-	eastl::shared_ptr<Actor> spot;
-	eastl::shared_ptr<Actor> nearestSpot;
-
-	nearestDist = 999999;
-	nearestSpot = NULL;
-	spot = NULL;
+	float nearestDist = 999999;
+	eastl::shared_ptr<Actor> spot = NULL;
+	eastl::shared_ptr<Actor> nearestSpot = NULL;
 	for (ActorMap::const_iterator it = mActors.begin(); it != mActors.end(); ++it)
 	{
 		spot = (*it).second;
@@ -2431,8 +2457,8 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectNearestSpawnPoint(const Vector
 				spot->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 			if (pTransformComponent)
 			{
-				delta = pTransformComponent->GetPosition() - from;
-				dist = Length(delta);
+				Vector3<float> delta = pTransformComponent->GetPosition() - from;
+				float dist = Length(delta);
 				if (dist < nearestDist)
 				{
 					nearestDist = dist;
@@ -2450,9 +2476,8 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectRandomSpawnPoint()
 {
 	eastl::shared_ptr<Actor> spot = NULL;
 	eastl::shared_ptr<Actor> spots[MAX_SPAWN_POINTS];
-	int count, selection;
 
-	count = 0;
+	int count = 0;
 	for (ActorMap::const_iterator it = mActors.begin(); it != mActors.end(); ++it)
 	{
 		spot = (*it).second;
@@ -2473,7 +2498,7 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectRandomSpawnPoint()
 		return spot;
 	}
 
-	selection = Randomizer::Rand() % count;
+	int selection = Randomizer::Rand() % count;
 	return spots[selection];
 }
 
@@ -2583,97 +2608,6 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectInitialSpawnPoint(Transform& t
 		transform.SetRotation(pTransformComponent->GetTransform().GetRotation());
 	}
 	return spot;
-}
-
-/*
-Called every time a player is placed fresh in the world:
-after the first PlayerBegin, and after each respawn
-*/
-void QuakeLogic::PlayerSpawn(const eastl::shared_ptr<PlayerActor>& playerActor)
-{
-	// always clear the kamikaze flag
-	playerActor->GetState().eFlags &= ~EF_KAMIKAZE;
-
-	// toggle the teleport bit so the client knows to not lerp
-	// and never clear the voted flag
-	int flags = playerActor->GetState().eFlags & (EF_TELEPORT_BIT | EF_VOTED | EF_TEAMVOTED);
-	flags ^= EF_TELEPORT_BIT;
-
-	// clear everything
-	int accuracyHits = playerActor->GetState().accuracyHits;
-	int accuracyShots = playerActor->GetState().accuracyShots;
-	int persistant[MAX_PERSISTANT];
-	for (int i = 0; i < MAX_PERSISTANT; i++)
-		persistant[i] = playerActor->GetState().persistant[i];
-
-	memset(&playerActor->GetState(), 0, sizeof(playerActor->GetState()));
-	memset(&playerActor->GetAction(), 0, sizeof(playerActor->GetAction()));
-
-	//	client->areabits = savedAreaBits;
-	playerActor->GetState().accuracyHits = accuracyHits;
-	playerActor->GetState().accuracyShots = accuracyShots;
-
-	for (int i = 0; i < MAX_PERSISTANT; i++)
-		playerActor->GetState().persistant[i] = persistant[i];
-
-	// increment the spawncount so the client will detect the respawn
-	playerActor->GetState().persistant[PERS_SPAWN_COUNT]++;
-	//playerActor->GetState().persistant[PERS_TEAM] = sessionTeam;
-	playerActor->GetState().stats[STAT_MAX_HEALTH] = 100;
-	playerActor->GetState().eFlags = flags;
-	playerActor->GetState().takeDamage = true;
-	playerActor->GetState().contents = CONTENTS_BODY;
-	playerActor->GetState().viewHeight = DEFAULT_VIEWHEIGHT;
-	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_SHOTGUN);
-	playerActor->GetState().ammo[WP_SHOTGUN] = 1000;
-	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_ROCKET_LAUNCHER);
-	playerActor->GetState().ammo[WP_ROCKET_LAUNCHER] = 1000;
-	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_RAILGUN);
-	playerActor->GetState().ammo[WP_RAILGUN] = 1000;
-	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_PLASMAGUN);
-	playerActor->GetState().ammo[WP_PLASMAGUN] = 1000;
-	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_MACHINEGUN);
-	playerActor->GetState().ammo[WP_MACHINEGUN] = 1000;
-	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_LIGHTNING);
-	playerActor->GetState().ammo[WP_LIGHTNING] = 1000;
-	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_GRENADE_LAUNCHER);
-	playerActor->GetState().ammo[WP_GRENADE_LAUNCHER] = 1000;
-	playerActor->GetState().stats[STAT_WEAPONS] |= (1 << WP_GAUNTLET);
-	playerActor->GetState().ammo[WP_GAUNTLET] = -1;
-
-	// health will count down towards max_health
-	playerActor->GetState().stats[STAT_HEALTH] = playerActor->GetState().stats[STAT_MAX_HEALTH] + 25;
-
-	// find a spawn point
-	Transform spawnTransform;
-	eastl::shared_ptr<Actor> spawnPoint;
-	eastl::shared_ptr<TransformComponent> pTransformComponent(
-		playerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-	if (pTransformComponent)
-	{
-		spawnPoint = SelectSpawnPoint(
-			pTransformComponent->GetTransform().GetTranslation(), spawnTransform);
-		pTransformComponent->SetTransform(spawnTransform);
-	}
-
-	// force the base weapon up
-	playerActor->GetAction().weaponSelect = WP_MACHINEGUN;
-	playerActor->GetAction().weaponSelectTime = 0;
-
-	playerActor->GetState().weapon = WP_MACHINEGUN;
-	playerActor->GetState().weaponState = WEAPON_READY;
-
-	// don't allow full run speed for a bit
-	//playerActor->GetState().moveFlags |= PMF_TIME_KNOCKBACK;
-	//playerActor->GetState().respawnTime = level.time;
-
-	// set default animations
-	playerActor->GetState().torsoAnim = TORSO_STAND;
-	playerActor->GetState().legsAnim = LEGS_IDLE;
-
-	// fire the targets of the spawn point
-	EventManager::Get()->TriggerEvent(
-		eastl::make_shared<QuakeEventDataSpawnActor>(playerActor->GetId(), spawnTransform));
 }
 
 int PickupAmmo(const eastl::shared_ptr<PlayerActor>& player, const eastl::shared_ptr<AmmoPickup>& ammo)
@@ -2858,7 +2792,7 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 			if (pWeaponPickup->mRespawnTime)
 				return;
 
-			pWeaponPickup->mRespawnTime = PickupWeapon(pPlayerActor, pWeaponPickup);
+			pWeaponPickup->mRespawnTime = (float)PickupWeapon(pPlayerActor, pWeaponPickup);
 		}
 		else if (pItemActor->GetType() == "Ammo")
 		{
@@ -2867,7 +2801,7 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 			if (pAmmoPickup->mRespawnTime)
 				return;
 
-			pAmmoPickup->mRespawnTime = PickupAmmo(pPlayerActor, pAmmoPickup);
+			pAmmoPickup->mRespawnTime = (float)PickupAmmo(pPlayerActor, pAmmoPickup);
 		}
 		else if (pItemActor->GetType() == "Armor")
 		{
@@ -2876,7 +2810,7 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 			if (pArmorPickup->mRespawnTime)
 				return;
 
-			pArmorPickup->mRespawnTime = PickupArmor(pPlayerActor, pArmorPickup);
+			pArmorPickup->mRespawnTime = (float)PickupArmor(pPlayerActor, pArmorPickup);
 		}
 		else if (pItemActor->GetType() == "Health")
 		{
@@ -2885,7 +2819,7 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 			if (pHealthPickup->mRespawnTime)
 				return;
 
-			pHealthPickup->mRespawnTime = PickupHealth(pPlayerActor, pHealthPickup);
+			pHealthPickup->mRespawnTime = (float)PickupHealth(pPlayerActor, pHealthPickup);
 		}
 
 		if (pItemActor->GetType() == "Weapon")
@@ -2961,13 +2895,7 @@ void QuakeLogic::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 		}
 		else if (pItemActor->GetType() == "Fire")
 		{
-			if (pItemActor->GetComponent<GrenadeFire>(GrenadeFire::Name).lock())
-			{
-				eastl::shared_ptr<GrenadeFire> pGrenadeFire =
-					pItemActor->GetComponent<GrenadeFire>(GrenadeFire::Name).lock();
-				//pGrenadeFire->mExplosionTime = 1.f;
-			}
-			else if (pItemActor->GetComponent<RocketFire>(RocketFire::Name).lock())
+			if (pItemActor->GetComponent<RocketFire>(RocketFire::Name).lock())
 			{
 				eastl::shared_ptr<RocketFire> pRocketFire =
 					pItemActor->GetComponent<RocketFire>(RocketFire::Name).lock();
@@ -2981,7 +2909,7 @@ void QuakeLogic::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 			}
 		}
 	}
-	else
+	else if (pGameActorA || pGameActorB)
 	{
 		eastl::shared_ptr<Actor> pItemActor;
 		if (pGameActorA)
@@ -2990,13 +2918,7 @@ void QuakeLogic::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 			pItemActor = eastl::dynamic_shared_pointer_cast<Actor>(pGameActorB);
 		if (pItemActor->GetType() == "Fire")
 		{
-			if (pItemActor->GetComponent<GrenadeFire>(GrenadeFire::Name).lock())
-			{
-				eastl::shared_ptr<GrenadeFire> pGrenadeFire =
-					pItemActor->GetComponent<GrenadeFire>(GrenadeFire::Name).lock();
-				//pGrenadeFire->mExplosionTime = 1.f;
-			}
-			else if (pItemActor->GetComponent<RocketFire>(RocketFire::Name).lock())
+			if (pItemActor->GetComponent<RocketFire>(RocketFire::Name).lock())
 			{
 				eastl::shared_ptr<RocketFire> pRocketFire =
 					pItemActor->GetComponent<RocketFire>(RocketFire::Name).lock();

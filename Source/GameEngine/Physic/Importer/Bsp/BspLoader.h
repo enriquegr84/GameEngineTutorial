@@ -28,8 +28,60 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	BSPMAXTOKEN	1024
 #define	BSPMAX_KEY				32
 #define	BSPMAX_VALUE			1024
-#define	BSPCONTENTS_SOLID			1
+
+#define	BSPCONTENTS_SOLID			1		// an eye is never valid in a solid
+#define	BSPCONTENTS_LAVA			8
+#define	BSPCONTENTS_SLIME			16
+#define	BSPCONTENTS_WATER			32
+#define	BSPCONTENTS_FOG				64
+
+#define BSPCONTENTS_NOTTEAM1		0x0080
+#define BSPCONTENTS_NOTTEAM2		0x0100
+#define BSPCONTENTS_NOBOTCLIP		0x0200
+
 #define	BSPCONTENTS_AREAPORTAL		0x8000
+
+#define	BSPCONTENTS_PLAYERCLIP		0x10000
+#define	BSPCONTENTS_MONSTERCLIP		0x20000
+//bot specific contents types
+#define	BSPCONTENTS_TELEPORTER		0x40000
+#define	BSPCONTENTS_JUMPPAD			0x80000
+#define BSPCONTENTS_CLUSTERPORTAL	0x100000
+#define BSPCONTENTS_DONOTENTER		0x200000
+#define BSPCONTENTS_BOTCLIP			0x400000
+#define BSPCONTENTS_MOVER			0x800000
+
+#define	BSPCONTENTS_ORIGIN			0x1000000	// removed before bsping an entity
+
+#define	BSPCONTENTS_BODY			0x2000000	// should never be on a brush, only in game
+#define	BSPCONTENTS_CORPSE			0x4000000
+#define	BSPCONTENTS_DETAIL			0x8000000	// brushes not used for the bsp
+#define	BSPCONTENTS_STRUCTURAL		0x10000000	// brushes used for the bsp
+#define	BSPCONTENTS_TRANSLUCENT		0x20000000	// don't consume surface fragments inside
+#define	BSPCONTENTS_TRIGGER			0x40000000
+#define	BSPCONTENTS_NODROP			0x80000000	// don't leave bodies or items (death fog, lava)
+
+#define	BSPSURF_NODAMAGE			0x1		// never give falling damage
+#define	BSPSURF_SLICK				0x2		// effects game physics
+#define	BSPSURF_SKY					0x4		// lighting from environment map
+#define	BSPSURF_LADDER				0x8
+#define	BSPSURF_NOIMPACT			0x10	// don't make missile explosions
+#define	BSPSURF_NOMARKS				0x20	// don't leave missile marks
+#define	BSPSURF_FLESH				0x40	// make flesh sounds and effects
+#define	BSPSURF_NODRAW				0x80	// don't generate a drawsurface at all
+#define	BSPSURF_HINT				0x100	// make a primary bsp splitter
+#define	BSPSURF_SKIP				0x200	// completely ignore, allowing non-closed brushes
+#define	BSPSURF_NOLIGHTMAP			0x400	// surface doesn't need a lightmap
+#define	BSPSURF_POINTLIGHT			0x800	// generate lighting info at vertexes
+#define	BSPSURF_METALSTEPS			0x1000	// clanking footsteps
+#define	BSPSURF_NOSTEPS				0x2000	// no footstep sounds
+#define	BSPSURF_NONSOLID			0x4000	// don't collide against curves with this set
+#define	BSPSURF_LIGHTFILTER			0x8000	// act as a light filter during q3map -light
+#define	BSPSURF_ALPHASHADOW			0x10000	// do per-pixel light shadow casting in q3map
+#define	BSPSURF_NODLIGHT			0x20000	// don't dlight even if solid (solid lava, skies)
+#define BSPSURF_DUST				0x40000 // leave a dust trail when walking on this surface
+
+
 #define	BSPLUMP_ENTITIES		0
 #define	BSPLUMP_SHADERS		1
 #define	BSPLUMP_PLANES			2
@@ -151,7 +203,7 @@ typedef struct {
 	int numVerts;
 	
 	int firstIndex;
-	int  numIndexes;
+	int numIndexes;
 	
 	int lightmapNum;
 	int lightmapX, lightmapY;
