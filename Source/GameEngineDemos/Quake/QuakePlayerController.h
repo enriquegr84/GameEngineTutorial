@@ -1,5 +1,5 @@
 //========================================================================
-// File: QuakeCameraController.h
+// File: QuakePlayerController.h
 //
 // Part of the GameEngine Application
 //
@@ -39,7 +39,7 @@
 #ifndef QUAKEPLAYERCONTROLLER_H
 #define QUAKEPLAYERCONTROLLER_H
 
-#include "GameEngineStd.h"
+#include "QuakeStd.h"
 
 #include "Application/System/EventSystem.h"
 

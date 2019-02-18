@@ -4,14 +4,14 @@
 //
 //========================================================================
 
-#include "QuakeView.h"
-
 #include "Physic/Physic.h"
 #include "Physic/PhysicEventListener.h"
 #include "Physic/Importer/PhysicResource.h"
 
 #include "Quake.h"
 #include "QuakeApp.h"
+#include "QuakeView.h"
+#include "QuakeAIView.h"
 #include "QuakeNetwork.h"
 #include "QuakeEvents.h"
 #include "QuakeActorFactory.h"
@@ -115,7 +115,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 			// spawn all AI's views on the game
 			for (int i = 0; i < mExpectedAI; ++i)
 			{
-				eastl::shared_ptr<BaseGameView> aiView(new QuakeAIPlayerView(eastl::shared_ptr<PathingGraph>()));
+				eastl::shared_ptr<BaseGameView> aiView(new QuakeAIView());
 				gameApp->AddView(aiView);
 			}
 
@@ -166,14 +166,14 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 				}
 				else if (pView->GetType() == GV_AI)
 				{
-					eastl::shared_ptr<QuakeAIPlayerView> pAiView = 
-						eastl::static_pointer_cast<QuakeAIPlayerView, BaseGameView>(pView);
+					eastl::shared_ptr<QuakeAIView> pAiView = 
+						eastl::static_pointer_cast<QuakeAIView, BaseGameView>(pView);
 					eastl::shared_ptr<PlayerActor> pPlayerActor =
 						CreatePlayerActor("actors\\quake\\players\\ai_player.xml", NULL);
 					if (pPlayerActor)
 					{
 						pPlayerActor->PlayerSpawn();
-						pView->OnAttach(pView->GetId(), pPlayerActor->GetId());
+						pAiView->OnAttach(pView->GetId(), pPlayerActor->GetId());
 
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
 							new EventDataNewActor(pPlayerActor->GetId(), pAiView->GetId()));

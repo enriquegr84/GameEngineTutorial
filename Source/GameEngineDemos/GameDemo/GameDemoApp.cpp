@@ -156,9 +156,9 @@ void GameDemoApp::CreateGameAndView()
 //
 // GameDemoLogic::AddView
 //
-void GameDemoApp::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actor)
+void GameDemoApp::AddView(const eastl::shared_ptr<BaseGameView>& pView)
 {
-	GameApplication::AddView(pView, actor);
+	GameApplication::AddView(pView);
 	GameLogic::Get()->UpdateViewType(pView, true);
 }
 

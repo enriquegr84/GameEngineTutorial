@@ -102,6 +102,9 @@ public:
 
 	// Collisions
 	virtual bool FindIntersection(ActorId actorId, const Vector3<float>& point) = 0;
+	virtual ActorId ConvexSweep(
+		ActorId aId, const Transform& origin, const Transform& end,
+		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal) = 0;
 	virtual ActorId CastRay(
 		const Vector3<float>& origin, const Vector3<float>& end,
 		Vector3<float>& collisionPoint, Vector3<float>& collision) = 0;

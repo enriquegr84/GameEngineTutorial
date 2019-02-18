@@ -1,5 +1,5 @@
 //========================================================================
-// QuakeView.cpp : source file for the sample game
+// QuakeView.cpp : Game View Class
 //
 // Part of the GameEngine Application
 //
@@ -63,6 +63,7 @@
 #include "Quake.h"
 #include "QuakeApp.h"
 #include "QuakeView.h"
+#include "QuakeAIView.h"
 #include "QuakeEvents.h"
 #include "QuakeLevelManager.h"
 #include "QuakeNetwork.h"
@@ -859,14 +860,6 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 			}
 		}
 	}
-
-	//score
-	{
-		mScore[0]->SetText(eastl::to_wstring(
-			player->GetState().persistant[PERS_SCORE]).c_str());
-		mScore[1]->SetText(eastl::to_wstring(
-			player->GetState().persistant[PERS_KILLED]).c_str());
-	}
 }
 
 
@@ -877,9 +870,13 @@ UpdateScores
 Update the small two score display
 =================
 */
-void QuakeStandardHUD::UpdateScores()
+void QuakeStandardHUD::UpdateScores(const eastl::shared_ptr<PlayerActor>& player)
 {
-	
+	//score
+	mScore[0]->SetText(eastl::to_wstring(
+		player->GetState().persistant[PERS_SCORE]).c_str());
+	mScore[1]->SetText(eastl::to_wstring(
+		player->GetState().persistant[PERS_KILLED]).c_str());
 }
 
 
@@ -932,7 +929,7 @@ void QuakeStandardHUD::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				//UpdateReward();
 			}
 
-			UpdateScores();
+			UpdateScores(playerActor);
 			UpdatePickupItem();
 		}
 		else
@@ -1070,8 +1067,8 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 								}
 								else if (pView->GetType() == GV_AI)
 								{
-									eastl::shared_ptr<QuakeAIPlayerView> pAiView =
-										eastl::static_pointer_cast<QuakeAIPlayerView, BaseGameView>(pView);
+									eastl::shared_ptr<QuakeAIView> pAiView =
+										eastl::static_pointer_cast<QuakeAIView, BaseGameView>(pView);
 									if (pAiView->GetActorId() != mPlayer->GetId())
 									{
 										mPlayer = mScene->GetSceneNode(pAiView->GetActorId());
@@ -2103,7 +2100,7 @@ void QuakeHumanView::DeadActorDelegate(BaseEventDataPtr pEventData)
 	ActorId actorId = pCastEventData->GetId();
 	eastl::shared_ptr<PlayerActor> pPlayerActor(
 		eastl::dynamic_shared_pointer_cast<PlayerActor>(
-			GameLogic::Get()->GetActor(actorId).lock()));
+		GameLogic::Get()->GetActor(actorId).lock()));
 	eastl::shared_ptr<Node> pNode = mScene->GetSceneNode(actorId);
 	if (pNode)
 	{
@@ -2339,22 +2336,4 @@ void QuakeHumanView::RemoveAllDelegates(void)
 	pGlobalEventManager->RemoveListener(
 		MakeDelegate(this, &QuakeHumanView::MoveActorDelegate),
 		QuakeEventDataMoveActor::skEventType);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//
-// QuakeAIPlayerView::QuakeAIPlayerView					- Chapter 19, page 737
-//
-QuakeAIPlayerView::QuakeAIPlayerView(eastl::shared_ptr<PathingGraph> pPathingGraph) 
-	: BaseGameView(), mPathingGraph(pPathingGraph)
-{
-    //
-}
-
-//
-// QuakeAIPlayerView::~QuakeAIPlayerView					- Chapter 19, page 737
-//
-QuakeAIPlayerView::~QuakeAIPlayerView(void)
-{
-    LogInformation("AI Destroying QuakeAIPlayerView");
 }

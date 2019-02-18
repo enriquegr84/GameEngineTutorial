@@ -136,6 +136,9 @@ public:
 
 	// Collisions
 	virtual bool FindIntersection(ActorId actorId, const Vector3<float>& point) { return false; }
+	virtual ActorId ConvexSweep(
+		ActorId aId, const Transform& origin, const Transform& end,
+		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal) { return INVALID_ACTOR_ID; }
 	virtual ActorId CastRay(
 		const Vector3<float>& origin, const Vector3<float>& end,
 		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal) { return INVALID_ACTOR_ID; }
@@ -376,6 +379,9 @@ public:
 
 	// Collisions
 	virtual bool FindIntersection(ActorId actorId, const Vector3<float>& point);
+	virtual ActorId ConvexSweep(
+		ActorId aId, const Transform& origin, const Transform& end,
+		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal);
 	virtual ActorId CastRay(
 		const Vector3<float>& origin, const Vector3<float>& end,
 		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal);
@@ -1235,6 +1241,35 @@ void BulletPhysics::CastRay(
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::ConvexSweep	
+ActorId BulletPhysics::ConvexSweep(
+	ActorId aId, const Transform& origin, const Transform& end,
+	Vector3<float>& collisionPoint, Vector3<float>& collisionNormal)
+{
+	btVector3 from = Vector3TobtVector3(origin.GetTranslation());
+	btVector3 to = Vector3TobtVector3(end.GetTranslation());
+	btCollisionWorld::ClosestConvexResultCallback closestResults(from, to);
+	btCollisionObject* collisionObject = FindBulletCollisionObject(aId);
+	btConvexShape* collisionShape = dynamic_cast<btConvexShape*>(collisionObject->getCollisionShape());
+	mDynamicsWorld->updateAabbs();
+	mDynamicsWorld->computeOverlappingPairs();
+	mDynamicsWorld->convexSweepTest(
+		collisionShape, TransformTobtTransform(origin), TransformTobtTransform(end), closestResults);
+
+	if (closestResults.hasHit())
+	{
+		collisionPoint = btVector3ToVector3(closestResults.m_hitPointWorld);
+		collisionNormal = btVector3ToVector3(closestResults.m_hitNormalWorld);
+		return FindActorID(closestResults.m_hitCollisionObject);
+	}
+	else
+	{
+		collisionPoint = NULL;
+		collisionNormal = NULL;
+		return INVALID_ACTOR_ID;
+	}
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::GetScale					

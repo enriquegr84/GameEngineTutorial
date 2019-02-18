@@ -119,6 +119,9 @@
     <ClInclude Include="..\Quake\Actors\PlasmaFire.h">
       <Filter>Quake\Actors</Filter>
     </ClInclude>
+    <ClInclude Include="..\Quake\QuakeAIView.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\TriangleDemoApp.cpp" />
@@ -214,6 +217,9 @@
     </ClCompile>
     <ClCompile Include="..\Quake\Actors\PlasmaFire.cpp">
       <Filter>Quake\Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeAIView.cpp">
+      <Filter>Quake</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

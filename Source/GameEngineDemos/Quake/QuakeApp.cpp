@@ -156,9 +156,9 @@ void QuakeApp::CreateGameAndView()
 //
 // QuakeLogic::AddView
 //
-void QuakeApp::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actor)
+void QuakeApp::AddView(const eastl::shared_ptr<BaseGameView>& pView)
 {
-	GameApplication::AddView(pView, actor);
+	GameApplication::AddView(pView);
 	GameLogic::Get()->UpdateViewType(pView, true);
 }
 

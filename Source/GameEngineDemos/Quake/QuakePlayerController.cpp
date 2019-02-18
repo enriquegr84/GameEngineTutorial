@@ -1,4 +1,4 @@
-// QuakeCameraController.cpp - Controller class for the player 
+// QuakePlayerController.cpp - Controller class for the player 
 //
 // Part of the GameEngine Application
 //
@@ -334,7 +334,6 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						direction = targetPosition - playerPosition;
 						push = Length(direction);
 						Normalize(direction);
-						printf("velocity %f %f %f %f\n", direction[0], direction[1], direction[2], push);
 					}
 
 					direction[PITCH] *= push / 90.f;

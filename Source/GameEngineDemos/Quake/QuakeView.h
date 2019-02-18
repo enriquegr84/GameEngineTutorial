@@ -1,5 +1,5 @@
 //========================================================================
-// QuakeView.h : source file for the sample game
+// QuakeView.h : Game View Class
 //
 // Part of the GameEngine Application
 //
@@ -399,8 +399,8 @@ protected:
 	eastl::vector<eastl::shared_ptr<BaseUIImage>> mAmmo, mArmor, mHealth;
 	eastl::vector<eastl::shared_ptr<BaseUIStaticText>> mScore;
 
-	void UpdateScores();
 	void UpdatePickupItem();
+	void UpdateScores(const eastl::shared_ptr<PlayerActor>& player);
 	void UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& player);
 };
 
@@ -472,34 +472,6 @@ private:
 
     void RegisterAllDelegates(void);
     void RemoveAllDelegates(void);
-};
-
-class QuakeAIPlayerView : public BaseGameView 
-{
-	friend class QuakeAIPlayerViewListener;
-
-private:
-	eastl::shared_ptr<PathingGraph> mPathingGraph;
-
-protected:
-	GameViewId	mViewId;
-	ActorId mPlayerId;
-
-public:
-	QuakeAIPlayerView(eastl::shared_ptr<PathingGraph> pPathingGraph);
-	virtual ~QuakeAIPlayerView();
-
-	virtual bool OnRestore() { return true; }
-	virtual void OnRender(double time, float elapsedTime) {}
-	virtual bool OnLostDevice() { return true; }
-	virtual GameViewType GetType() { return GV_AI; }
-	virtual GameViewId GetId() const { return mViewId; }
-	virtual ActorId GetActorId() const { return mPlayerId; }
-	virtual void OnAttach(GameViewId vid, ActorId actorId) { mViewId = vid; mPlayerId = actorId; }
-	virtual bool OnMsgProc( const Event& event ) {	return false; }
-	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs) {}
-	
-	eastl::shared_ptr<PathingGraph> GetPathingGraph(void) const { return mPathingGraph; }
 };
 
 #endif

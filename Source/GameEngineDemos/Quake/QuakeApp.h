@@ -54,7 +54,7 @@ public:
 
 	virtual void CreateGameAndView();
 
-	virtual void AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId = INVALID_ACTOR_ID);
+	virtual void AddView(const eastl::shared_ptr<BaseGameView>& pView);
 	virtual void RemoveView(const eastl::shared_ptr<BaseGameView>& pView);
 	virtual void RemoveViews();
 	virtual void RemoveView();

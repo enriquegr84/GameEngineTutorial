@@ -39,7 +39,7 @@
 #ifndef QUAKEACTORFACTORY_H
 #define QUAKEACTORFACTORY_H
 
-#include "GameEngineStd.h"
+#include "QuakeStd.h"
 
 #include "Game/Actor/ActorFactory.h"
 

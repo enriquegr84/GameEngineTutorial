@@ -39,7 +39,7 @@
 #ifndef QUAKECAMERACONTROLLER_H
 #define QUAKECAMERACONTROLLER_H
 
-#include "GameEngineStd.h"
+#include "QuakeStd.h"
 
 #include "Application/System/EventSystem.h"
 

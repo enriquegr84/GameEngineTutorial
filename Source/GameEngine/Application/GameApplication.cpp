@@ -556,12 +556,11 @@ void GameApplication::RegisterEngineEvents(void)
 	REGISTER_EVENT(EventDataNetworkPlayerActorAssignment);
 }
 
-void GameApplication::AddView(const eastl::shared_ptr<BaseGameView>& pView, ActorId actorId)
+void GameApplication::AddView(const eastl::shared_ptr<BaseGameView>& pView)
 {
 	// This makes sure that all views have a non-zero view id.
 	int viewId = static_cast<int>(mGameViews.size());
 	mGameViews.push_back(pView);
-	pView->OnAttach(viewId, actorId);
 	pView->OnRestore();
 }
 

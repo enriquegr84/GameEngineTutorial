@@ -39,7 +39,7 @@
 #ifndef GAMEDEMOCAMERACONTROLLER_H
 #define GAMEDEMOCAMERACONTROLLER_H
 
-#include "GameEngineStd.h"
+#include "GameDemoStd.h"
 
 #include "Application/System/EventSystem.h"
 

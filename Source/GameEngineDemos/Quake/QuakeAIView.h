@@ -1,5 +1,5 @@
 //========================================================================
-// File: DemoCameraController.h
+// QuakeAIView.h : AI Controller class
 //
 // Part of the GameEngine Application
 //
@@ -36,69 +36,63 @@
 //
 //========================================================================
 
-#ifndef GAMEDEMOPLAYERCONTROLLER_H
-#define GAMEDEMOPLAYERCONTROLLER_H
+#ifndef QUAKEAIVIEW_H
+#define QUAKEAIVIEW_H
 
-#include "GameDemoStd.h"
+#include "QuakeStd.h"
 
-#include "Application/System/EventSystem.h"
+#include "Core/Event/EventManager.h"
 
-#include "Mathematic/Algebra/Transform.h"
+#include "Game/View/GameView.h"
 
-class Node;
-
-class GameDemoPlayerController : public BaseMouseHandler, public BaseKeyboardHandler
+class QuakeAIView : public BaseGameView 
 {
+
+public:
+	QuakeAIView();
+	virtual ~QuakeAIView();
+
+	virtual bool OnRestore() { return true; }
+	virtual void OnRender(double time, float elapsedTime) {}
+	virtual bool OnLostDevice() { return true; }
+	virtual GameViewType GetType() { return GV_AI; }
+	virtual GameViewId GetId() const { return mViewId; }
+	virtual ActorId GetActorId() const { return mPlayerId; }
+	virtual void OnAttach(GameViewId vid, ActorId actorId);
+	virtual bool OnMsgProc( const Event& event ) {	return false; }
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
+
 protected:
-	bool mEnabled;
-	BYTE mKey[256];			// Which keys are up and down
+
+	Vector4<float> Stationary(unsigned long deltaMs);
+	Vector4<float> Smooth();
+	Vector4<float> Cliff();
+
+	GameViewId	mViewId;
+	ActorId mPlayerId;
 
 	Transform		mAbsoluteTransform;
-	Vector2<int>	mLastMousePos;
+
+	// Movement Controls
+	int				mOrientation;
+	unsigned long	mStationaryTime;
 
 	// Orientation Controls
 	float		mYaw;
 	float		mPitch;
+	float		mPitchTarget;
 	float		mPitchOnDown;
 	float		mYawOnDown;
 
 	// Speed Controls
+	float		mMaxFallSpeed;
 	float		mMaxJumpSpeed;
-	float		mMaxMoveSpeed;
 	float		mMaxRotateSpeed;
+	float		mFallSpeed;
 	float		mJumpSpeed;
+	float		mJumpMoveSpeed;
 	float		mMoveSpeed;
 	float		mRotateSpeed;
-
-	// Added for Ch19/20 refactor
-	bool		mWheelRollDown;
-	bool		mMouseRButtonDown;
-	bool		mMouseLButtonDown;
-
-	eastl::shared_ptr<Node> mTarget;
-
-public:
-	GameDemoPlayerController(
-		const eastl::shared_ptr<Node>& object, float initialYaw, float initialPitch);
-
-	//! Sets whether or not the controller is currently enabled.
-	void SetEnabled(bool enabled) { mEnabled = enabled; }
-
-	//! Gets whether or not the affector is currently enabled.
-	bool GetEnabled() const { return mEnabled; }
-
-	void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
-
-	bool OnMouseMove(const Vector2<int> &mousePos, const int radius);
-	bool OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
-	bool OnMouseButtonUp(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
-
-	bool OnKeyDown(const KeyCode c) { mKey[c] = true; return true; }
-	bool OnKeyUp(const KeyCode c) { mKey[c] = false; return true; }
-
-	bool OnWheelRollDown() { mWheelRollDown = true; return true; }
-	bool OnWheelRollUp() { mWheelRollDown = false; return true; }
-
 };
 
 #endif
