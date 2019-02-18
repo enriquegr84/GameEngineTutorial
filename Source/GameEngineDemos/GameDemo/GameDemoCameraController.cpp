@@ -52,9 +52,9 @@
 ////////////////////////////////////////////////////
 
 
-GameDemoCameraController::GameDemoCameraController(const eastl::shared_ptr<CameraNode>& target,
+GameDemoCameraController::GameDemoCameraController(const eastl::shared_ptr<CameraNode>& camera,
 	float initialYaw, float initialPitch, bool rotateWhenLButtonDown)
-	: mTarget(target)
+	: mCamera(camera)
 {
 	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
 	mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
@@ -184,7 +184,7 @@ void GameDemoCameraController::OnUpdate(unsigned int timeMs, unsigned long delta
 			AxisAngle<4, float>(Vector4<float>::Unit(0), -mPitch * (float)GE_C_DEG_TO_RAD));
 
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
-		mAbsoluteTransform.SetTranslation(mTarget->GetAbsoluteTransform().GetTranslation());
+		mAbsoluteTransform.SetTranslation(mCamera->GetAbsoluteTransform().GetTranslation());
 	}
 
 	bool isTranslating = false;
@@ -255,10 +255,10 @@ void GameDemoCameraController::OnUpdate(unsigned int timeMs, unsigned long delta
 
 		mMoveSpeed = mMaxMoveSpeed;
 		direction *= mMoveSpeed * elapsedTime;
-		Vector4<float> pos = mTarget->GetAbsoluteTransform().GetTranslationW0() + direction;
+		Vector4<float> pos = mCamera->GetAbsoluteTransform().GetTranslationW0() + direction;
 		mAbsoluteTransform.SetTranslation(pos);
 	}
 
 	// update transform matrix
-	mTarget->GetRelativeTransform() = mAbsoluteTransform;
+	mCamera->GetRelativeTransform() = mAbsoluteTransform;
 }

@@ -157,16 +157,16 @@ bool QuakeMainMenuUI::OnInit()
 	playerOptionsRectangle.mExtent[0] = 90;
 	playerOptionsRectangle.mCenter[1] = 42;
 	playerOptionsRectangle.mExtent[1] = 16;
-	eastl::shared_ptr<BaseUIStaticText> playerOptionsLine =
-		AddStaticText(L"AI Player:", playerOptionsRectangle, false, false, window, CID_NUM_AI_LABEL, true);
+	eastl::shared_ptr<BaseUIStaticText> playerOptionsLine = AddStaticText(
+		L"AI Player:", playerOptionsRectangle, false, false, window, CID_NUM_AI_LABEL, true);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.mCenter[0] = 250;
 	playerOptionsRectangle.mExtent[0] = 250;
 	playerOptionsRectangle.mCenter[1] = 40;
 	playerOptionsRectangle.mExtent[1] = 20;
-	eastl::shared_ptr<BaseUIScrollBar> gameAI = 
-		AddScrollBar(true, playerOptionsRectangle, window, CID_NUM_AI_SLIDER);
+	eastl::shared_ptr<BaseUIScrollBar> gameAI = AddScrollBar(
+		true, playerOptionsRectangle, window, CID_NUM_AI_SLIDER);
 	gameAI->SetMin(0);
 	gameAI->SetMax(gameApp->mOption.mMaxAIs);
 	gameAI->SetSmallStep(1);
@@ -178,16 +178,16 @@ bool QuakeMainMenuUI::OnInit()
 	playerOptionsRectangle.mExtent[0] = 90;
 	playerOptionsRectangle.mCenter[1] = 82;
 	playerOptionsRectangle.mExtent[1] = 16;
-	playerOptionsLine =
-		AddStaticText(L"Human Player:", playerOptionsRectangle, false, false, window, CID_NUM_PLAYER_LABEL, false);
+	playerOptionsLine = AddStaticText(
+		L"Human Player:", playerOptionsRectangle, false, false, window, CID_NUM_PLAYER_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.mCenter[0] = 250;
 	playerOptionsRectangle.mExtent[0] = 250;
 	playerOptionsRectangle.mCenter[1] = 80;
 	playerOptionsRectangle.mExtent[1] = 20;
-	eastl::shared_ptr<BaseUIScrollBar> gamePlayer = 
-		AddScrollBar(true, playerOptionsRectangle, window, CID_NUM_PLAYER_SLIDER);
+	eastl::shared_ptr<BaseUIScrollBar> gamePlayer = AddScrollBar(
+		true, playerOptionsRectangle, window, CID_NUM_PLAYER_SLIDER);
 	gamePlayer->SetMin(0);
 	gamePlayer->SetMax(gameApp->mOption.mMaxPlayers);
 	gamePlayer->SetSmallStep(1);
@@ -199,8 +199,8 @@ bool QuakeMainMenuUI::OnInit()
 	playerOptionsRectangle.mExtent[0] = 90;
 	playerOptionsRectangle.mCenter[1] = 122;
 	playerOptionsRectangle.mExtent[1] = 16;
-	playerOptionsLine =
-		AddStaticText(L"Game Host:", playerOptionsRectangle, false, false, window, CID_HOST_NAME_LABEL, false);
+	playerOptionsLine = AddStaticText(
+		L"Game Host:", playerOptionsRectangle, false, false, window, CID_HOST_NAME_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.mCenter[0] = 220;
@@ -214,8 +214,8 @@ bool QuakeMainMenuUI::OnInit()
 	playerOptionsRectangle.mExtent[0] = 50;
 	playerOptionsRectangle.mCenter[1] = 120;
 	playerOptionsRectangle.mExtent[1] = 20;
-	eastl::shared_ptr<BaseUIButton> gameStart = 
-		AddButton(playerOptionsRectangle, window, CID_START_BUTTON, L"Start");
+	eastl::shared_ptr<BaseUIButton> gameStart = AddButton(
+		playerOptionsRectangle, window, CID_START_BUTTON, L"Start");
 	gameStart->SetToolTipText(L"Start Game");
 
 	// add a status line help text
@@ -224,7 +224,8 @@ bool QuakeMainMenuUI::OnInit()
 	statusRectangle.mExtent[0] = screenSize[0] - 10;
 	statusRectangle.mCenter[1] = screenSize[1] - 20;
 	statusRectangle.mExtent[1] = 20;
-	eastl::shared_ptr<BaseUIStaticText> statusLine = AddStaticText(L"", statusRectangle, false, false, window, CID_STATUS_LABEL, true);
+	eastl::shared_ptr<BaseUIStaticText> statusLine = AddStaticText(
+		L"", statusRectangle, false, false, window, CID_STATUS_LABEL, true);
 	statusLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	RectangleShape<2, int> videoRectangle;
@@ -232,8 +233,8 @@ bool QuakeMainMenuUI::OnInit()
 	videoRectangle.mExtent[0] = 90;
 	videoRectangle.mCenter[1] = 42;
 	videoRectangle.mExtent[1] = 16;
-	eastl::shared_ptr<BaseUIStaticText> videoDriverLine = 
-		AddStaticText(L"VideoDriver:", videoRectangle, false, false, window, -1, true);
+	eastl::shared_ptr<BaseUIStaticText> videoDriverLine = AddStaticText(
+		L"VideoDriver:", videoRectangle, false, false, window, -1, true);
 	videoDriverLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 	
 	videoRectangle.mCenter[0] = screenSize[0] - 155;
@@ -367,30 +368,6 @@ bool QuakeMainMenuUI::OnInit()
 	settings->AddItem(L"Key 8 - Control player");
 	settings->AddItem(L"Key 9 - Control camera");
 
-	/*
-
-	eastl::shared_ptr<BaseUIEditBox> mGameHostPort;
-
-	eastl::shared_ptr<BaseUIScrollBar> mTesselation;
-
-	eastl::shared_ptr<BaseUIImage> mLogo;
-
-	// load the engine logo
-	BaseResource resource(L"Art/irrlichtlogo3.png");
-	const eastl::shared_ptr<ResHandle>& resHandle = gameApp->mResCache->GetHandle(&resource);
-	if (resHandle)
-	{
-		const eastl::shared_ptr<ImageResourceExtraData>& extra =
-		eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-		extra->GetImage()->AutogenerateMipmaps();
-
-		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true);
-		mLogo->SetToolTipText(L"The great Irrlicht Engine");
-	}
-	*/
-
-	//Set();
-
 	SetUIActive(1);
 	return true;
 }
@@ -437,38 +414,20 @@ void QuakeMainMenuUI::SetUIActive(int command)
 {
 	bool inputState = false;
 
-	//ICameraSceneNode * camera = Game->Device->getSceneManager()->getActiveCamera ();
 	int guiActive = -1;
 	switch (command)
 	{
 		case 0: guiActive = 0; inputState = !guiActive; break;
 		case 1: guiActive = 1; inputState = !guiActive; break;
 		case 2: guiActive ^= 1; inputState = !guiActive; break;
-		case 3:
-			//	if ( camera )
-			//		inputState = !camera->isInputReceiverEnabled();
-		break;
+		case 3: break;
 	}
-	/*
-	if ( camera )
-	{
-	camera->setInputReceiverEnabled ( inputState );
-	game->Device->getCursorControl()->setVisible( !inputState );
-	}
-	*/
+
 	const eastl::shared_ptr<BaseUIElement>& root = GetRootUIElement();
 	const eastl::shared_ptr<BaseUIElement>& window = root->GetElementFromId(CID_QUAKE_WINDOW);
 	if (window)
 		window->SetVisible(guiActive != 0);
-	/*
-	IGUITreeView* sceneTree = (IGUITreeView*)root->GetElementFromId(CID_SCENETREE_VIEW).get();
-	if (guiActive && sceneTree && GetFocus().get() != sceneTree)
-	{
-		sceneTree->GetRoot()->ClearChildren();
-		AddSceneTreeItem(
-			QuakeApp.GetHumanView()->mScene->GetRootNode().get(), sceneTree->GetRoot().get());
-	}
-	*/
+
 	SetFocus(guiActive ? window : 0);
 }
 
@@ -493,7 +452,6 @@ bool QuakeMainMenuUI::OnRender(double time, float elapsedTime)
 bool QuakeMainMenuUI::OnMsgProc( const Event& evt )
 {
 	return BaseUI::OnMsgProc(evt);
-	//return mSampleUI.MsgProc( msg.m_hWnd, msg.m_uMsg, msg.m_wParam, msg.m_lParam );
 }
 
 
@@ -524,7 +482,8 @@ bool QuakeMainMenuUI::OnEvent(const Event& evt)
 				{
 					const eastl::shared_ptr<BaseUIElement>& root = GetRootUIElement();
 					const eastl::shared_ptr<BaseUICheckBox>& fullscreen =
-						eastl::static_pointer_cast<BaseUICheckBox>(root->GetElementFromId(CID_FULLSCREEN_MODE, true));
+						eastl::static_pointer_cast<BaseUICheckBox>(
+						root->GetElementFromId(CID_FULLSCREEN_MODE, true));
 					if (!System::Get()->IsFullscreen() && fullscreen->IsChecked())
 						System::Get()->SetFullscreen(true);
 					else if (System::Get()->IsFullscreen() && !fullscreen->IsChecked())
@@ -562,7 +521,8 @@ bool QuakeMainMenuUI::OnEvent(const Event& evt)
 					Set();
 					SetVisible(false);
 
-					eastl::shared_ptr<EventDataRequestStartGame> pRequestStartGameEvent(new EventDataRequestStartGame());
+					eastl::shared_ptr<EventDataRequestStartGame> 
+						pRequestStartGameEvent(new EventDataRequestStartGame());
 					EventManager::Get()->QueueEvent(pRequestStartGameEvent);
 				}
 
@@ -629,11 +589,95 @@ bool QuakeMainMenuView::OnMsgProc( const Event& evt )
 #define IDC_TOGGLEREF           2
 #define IDC_CHANGEDEVICE        3
 
-QuakeStandardHUD::QuakeStandardHUD()
+QuakeStandardHUD::QuakeStandardHUD(const eastl::shared_ptr<QuakeHumanView>& view)
+	: mGameView(view)
 {
+	RectangleShape<2, int> rectangle;
+	rectangle.mCenter[0] = (ICON_SIZE / 2);
+	rectangle.mCenter[1] = 542 + (ICON_SIZE / 2);
+	rectangle.mExtent[0] = CHAR_WIDTH;
+	rectangle.mExtent[1] = CHAR_HEIGHT;
+	mAmmo.push_back(AddImage(rectangle, 0, true));
 
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	mAmmo.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	mAmmo.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	mAmmo.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] = CHAR_WIDTH * 3 + TEXT_ICON_SPACE * 2 + (ICON_SIZE / 2);
+	rectangle.mExtent[0] = ICON_SIZE;
+	rectangle.mExtent[1] = ICON_SIZE;
+	mAmmoIcon = AddImage(rectangle, 0, false);
+
+	rectangle.mCenter[0] = 185 + (ICON_SIZE / 2);
+	rectangle.mExtent[0] = CHAR_WIDTH;
+	rectangle.mExtent[1] = CHAR_HEIGHT;
+	mHealth.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	mHealth.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	mHealth.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	mHealth.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] = 185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE * 2 + (ICON_SIZE / 2);
+	rectangle.mExtent[0] = ICON_SIZE;
+	rectangle.mExtent[1] = ICON_SIZE;
+	mHealthIcon = AddImage(rectangle, 0, false);
+
+	rectangle.mCenter[0] = 370 + (ICON_SIZE / 2);
+	rectangle.mExtent[0] = CHAR_WIDTH;
+	rectangle.mExtent[1] = CHAR_HEIGHT;
+	mArmor.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	mArmor.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	mArmor.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	mArmor.push_back(AddImage(rectangle, 0, true));
+
+	rectangle.mCenter[0] = 370 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE * 2 + (ICON_SIZE / 2);
+	rectangle.mExtent[0] = ICON_SIZE;
+	rectangle.mExtent[1] = ICON_SIZE;
+	mArmorIcon = AddImage(rectangle, 0, false);
+
+	rectangle.mCenter[0] = 720;
+	rectangle.mExtent[0] = CHAR_WIDTH;
+	rectangle.mExtent[1] = CHAR_WIDTH;
+	eastl::shared_ptr<BaseUIStaticText> score =
+		AddStaticText(L"0", rectangle, false, false, 0, -1, true);
+	score->SetBackgroundColor(eastl::array<float, 4U>{0.f, 0.f, 1.f, 1.f});
+	score->SetOverrideColor(eastl::array<float, 4U>{1.f, 1.f, 1.f, 1.f});
+	score->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+	mScore.push_back(score);
+
+	rectangle.mCenter[0] += CHAR_WIDTH;
+	score = AddStaticText(L"0", rectangle, false, false, 0, -1, true);
+	score->SetBackgroundColor(eastl::array<float, 4U>{1.f, 0.f, 0.f, 1.f});
+	score->SetOverrideColor(eastl::array<float, 4U>{1.f, 1.f, 1.f, 1.f});
+	score->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+	mScore.push_back(score);
+
+	Renderer* renderer = Renderer::Get();
+	Vector2<unsigned int> screenSize = renderer->GetScreenSize();
+
+	eastl::shared_ptr<ResHandle> resHandle = 
+		ResCache::Get()->GetHandle(&BaseResource(mGameView->mMedia.crosshairShader[1]));
+	eastl::shared_ptr<ImageResourceExtraData> resData =
+		eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	mCrosshair = AddImage(
+		resData->GetImage(), Vector2<int>{ (int)screenSize[0] / 2, (int)screenSize[1] / 2});
 }
-
 
 QuakeStandardHUD::~QuakeStandardHUD() 
 { 
@@ -643,6 +687,14 @@ QuakeStandardHUD::~QuakeStandardHUD()
 bool QuakeStandardHUD::OnInit()
 {
 	BaseUI::OnInit();
+
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	System* system = System::Get();
+	system->GetCursorControl()->SetVisible(false);
+
+	// set a nicer font
+	const eastl::shared_ptr<BaseUIFont>& font = GetFont(L"DefaultFont");
+	if (font) GetSkin()->SetFont(font);
 
 	return true;
 }
@@ -666,8 +718,6 @@ bool QuakeStandardHUD::OnMsgProc( const Event& evt )
 //--------------------------------------------------------------------------------------
 // Handles the GUI events
 //--------------------------------------------------------------------------------------
-//    Note: pUserContext added to comply with DirectX 9c - June 2005 Update
-//
 bool QuakeStandardHUD::OnEvent(const Event& evt)
 {
 	if (evt.mEventType == ET_UI_EVENT)
@@ -676,6 +726,231 @@ bool QuakeStandardHUD::OnEvent(const Event& evt)
 	}
 
 	return false;
+}
+
+/*
+================
+UpdateStatusBar
+================
+*/
+void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& player)
+{
+	// weapon
+	unsigned int weapon = player->GetState().weapon - 1;
+	if (player->GetState().weapon)
+	{
+		if (!mGameView->mWeaponMedia[weapon].ammoIcon.empty())
+		{
+			eastl::shared_ptr<ResHandle> resHandle = ResCache::Get()->GetHandle(
+				&BaseResource(mGameView->mWeaponMedia[weapon].ammoIcon));
+			eastl::shared_ptr<ImageResourceExtraData> resData =
+				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			mAmmoIcon->SetImage(resData->GetImage());
+
+			char num[16];
+			sprintf(num, "%i", eastl::clamp(player->GetState().ammo[player->GetState().weapon], -999, 999));
+			for (unsigned int n = 0; n < strlen(num); n++)
+			{
+				if (num[n] == '-')
+				{
+					eastl::shared_ptr<ResHandle> resHandle = ResCache::Get()->GetHandle(
+						&BaseResource(mGameView->mMedia.numberShaders[STAT_MINUS]));
+					eastl::shared_ptr<ImageResourceExtraData> resData =
+						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+					mAmmo[n]->SetImage(resData->GetImage());
+					mAmmo[n]->SetVisible(true);
+				}
+				else
+				{
+					eastl::shared_ptr<ResHandle> resHandle = ResCache::Get()->GetHandle(
+						&BaseResource(mGameView->mMedia.numberShaders[num[n] - '0']));
+					eastl::shared_ptr<ImageResourceExtraData> resData =
+						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+					mAmmo[n]->SetImage(resData->GetImage());
+					mAmmo[n]->SetVisible(true);
+				}
+			}
+		}
+		else
+		{
+			eastl::shared_ptr<ResHandle> resHandle = 
+				ResCache::Get()->GetHandle(&BaseResource(mGameView->mMedia.deferShader));
+			eastl::shared_ptr<ImageResourceExtraData> resData =
+				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			mAmmoIcon->SetImage(resData->GetImage());
+		}
+	}
+
+	//DrawStatusBarHead(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE);
+
+	// health
+	{
+		eastl::shared_ptr<ResHandle> resHandle = 
+			ResCache::Get()->GetHandle(&BaseResource(mGameView->mMedia.healthIcon));
+		eastl::shared_ptr<ImageResourceExtraData> resData =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+		mHealthIcon->SetImage(resData->GetImage());
+
+		char num[16];
+		sprintf(num, "%i", eastl::clamp(player->GetState().stats[STAT_HEALTH], -999, 999));
+		for (unsigned int n = 0; n < strlen(num); n++)
+		{
+			if (num[n] == '-')
+			{
+				eastl::shared_ptr<ResHandle> resHandle = ResCache::Get()->GetHandle(
+					&BaseResource(mGameView->mMedia.numberShaders[STAT_MINUS]));
+				eastl::shared_ptr<ImageResourceExtraData> resData =
+					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+				mHealth[n]->SetImage(resData->GetImage());
+				mHealth[n]->SetVisible(true);
+			}
+			else
+			{
+				eastl::shared_ptr<ResHandle> resHandle = ResCache::Get()->GetHandle(
+					&BaseResource(mGameView->mMedia.numberShaders[num[n] - '0']));
+				eastl::shared_ptr<ImageResourceExtraData> resData =
+					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+				mHealth[n]->SetImage(resData->GetImage());
+				mHealth[n]->SetVisible(true);
+			}
+		}
+	}
+
+	// armor
+	{
+		eastl::shared_ptr<ResHandle> resHandle = 
+			ResCache::Get()->GetHandle(&BaseResource(mGameView->mMedia.armorIcon));
+		eastl::shared_ptr<ImageResourceExtraData> resData =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+		mArmorIcon->SetImage(resData->GetImage());
+
+		if (player->GetState().stats[STAT_ARMOR])
+		{
+			char num[16];
+			sprintf(num, "%i", eastl::clamp(player->GetState().stats[STAT_ARMOR], -999, 999));
+			for (unsigned int n = 0; n < strlen(num); n++)
+			{
+				if (num[n] == '-')
+				{
+					eastl::shared_ptr<ResHandle> resHandle = ResCache::Get()->GetHandle(
+						&BaseResource(mGameView->mMedia.numberShaders[STAT_MINUS]));
+					eastl::shared_ptr<ImageResourceExtraData> resData =
+						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+					mArmor[n]->SetImage(resData->GetImage());
+					mArmor[n]->SetVisible(true);
+				}
+				else
+				{
+					eastl::shared_ptr<ResHandle> resHandle = ResCache::Get()->GetHandle(
+						&BaseResource(mGameView->mMedia.numberShaders[num[n] - '0']));
+					eastl::shared_ptr<ImageResourceExtraData> resData =
+						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+
+					mArmor[n]->SetImage(resData->GetImage());
+					mArmor[n]->SetVisible(true);
+				}
+			}
+		}
+	}
+
+	//score
+	{
+		mScore[0]->SetText(eastl::to_wstring(
+			player->GetState().persistant[PERS_SCORE]).c_str());
+		mScore[1]->SetText(eastl::to_wstring(
+			player->GetState().persistant[PERS_KILLED]).c_str());
+	}
+}
+
+
+/*
+=================
+UpdateScores
+
+Update the small two score display
+=================
+*/
+void QuakeStandardHUD::UpdateScores()
+{
+	
+}
+
+
+/*
+===================
+UpdatePickupItem
+===================
+*/
+void QuakeStandardHUD::UpdatePickupItem()
+{
+
+}
+
+
+void QuakeStandardHUD::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
+{
+	if (mGameView)
+	{
+		eastl::shared_ptr<Node> target = mGameView->mPlayer;
+		if (target)
+		{
+			mCrosshair->SetVisible(true);
+			mAmmoIcon->SetVisible(true);
+			mArmorIcon->SetVisible(true);
+			mHealthIcon->SetVisible(true);
+			for (eastl::shared_ptr<BaseUIImage> ammo : mAmmo)
+				ammo->SetVisible(false);
+			for (eastl::shared_ptr<BaseUIImage> armor : mArmor)
+				armor->SetVisible(false);
+			for (eastl::shared_ptr<BaseUIImage> health : mHealth)
+				health->SetVisible(false);
+			for (eastl::shared_ptr<BaseUIStaticText> score : mScore)
+				score->SetVisible(true);
+
+			eastl::shared_ptr<PlayerActor> playerActor(
+				eastl::dynamic_shared_pointer_cast<PlayerActor>(
+				GameLogic::Get()->GetActor(target->GetId()).lock()));
+
+			// don't draw any status if dead or the scoreboard is being explicitly shown
+			if (playerActor->GetState().stats[STAT_HEALTH] > 0)
+			{
+				UpdateStatusBar(playerActor);
+
+				//UpdateAmmoWarning();
+
+				//UpdateCrosshair();
+				//UpdateCrosshairNames();
+				//UpdateWeaponSelect();
+
+				//UpdateReward();
+			}
+
+			UpdateScores();
+			UpdatePickupItem();
+		}
+		else
+		{
+			mCrosshair->SetVisible(false);
+			mAmmoIcon->SetVisible(false); 
+			mArmorIcon->SetVisible(false);
+			mHealthIcon->SetVisible(false);
+			for (eastl::shared_ptr<BaseUIImage> ammo : mAmmo)
+				ammo->SetVisible(false);
+			for (eastl::shared_ptr<BaseUIImage> armor : mArmor)
+				armor->SetVisible(false);
+			for (eastl::shared_ptr<BaseUIImage> health : mHealth)
+				health->SetVisible(false);
+			for (eastl::shared_ptr<BaseUIStaticText> score : mScore)
+				score->SetVisible(false);
+		}
+	}
 }
 
 //========================================================================
@@ -752,15 +1027,77 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 
 					case KEY_KEY_8:
 					{
-						if (!mPlayer)
+						if (mPlayer)
+						{
+							GameApplication* gameApp = (GameApplication*)Application::App;
+							const GameViewList& gameViews = gameApp->GetGameViews();
+							for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
+							{
+								eastl::shared_ptr<BaseGameView> pView = *it;
+								if (pView->GetType() == GV_HUMAN)
+								{
+									eastl::shared_ptr<QuakeHumanView> pHumanView =
+										eastl::static_pointer_cast<QuakeHumanView, BaseGameView>(pView);
+									if (pHumanView->GetActorId() != mPlayer->GetId())
+									{
+										mPlayer = mScene->GetSceneNode(pHumanView->GetActorId());
+
+										mGamePlayerController->SetEnabled(true);
+										mGameCameraController->SetEnabled(false);
+
+										mKeyboardHandler = mGamePlayerController;
+										mMouseHandler = mGamePlayerController;
+										mCamera->SetTarget(mPlayer);
+										break;
+									}
+								}
+								else if (pView->GetType() == GV_REMOTE)
+								{
+									eastl::shared_ptr<NetworkGameView> pNetworkGameView =
+										eastl::static_pointer_cast<NetworkGameView, BaseGameView>(pView);
+									if (pNetworkGameView->GetActorId() != mPlayer->GetId())
+									{
+										mPlayer = mScene->GetSceneNode(pNetworkGameView->GetActorId());
+
+										mGamePlayerController->SetEnabled(false);
+										mGameCameraController->SetEnabled(false);
+
+										mKeyboardHandler = NULL;
+										mMouseHandler = NULL;
+										mCamera->SetTarget(mPlayer);
+										break;
+									}
+								}
+								else if (pView->GetType() == GV_AI)
+								{
+									eastl::shared_ptr<QuakeAIPlayerView> pAiView =
+										eastl::static_pointer_cast<QuakeAIPlayerView, BaseGameView>(pView);
+									if (pAiView->GetActorId() != mPlayer->GetId())
+									{
+										mPlayer = mScene->GetSceneNode(pAiView->GetActorId());
+
+										mGamePlayerController->SetEnabled(false);
+										mGameCameraController->SetEnabled(false);
+
+										mKeyboardHandler = NULL;
+										mMouseHandler = NULL;
+										mCamera->SetTarget(mPlayer);
+										break;
+									}
+								}
+							}
+						}
+						else
+						{
 							SetControlledActor(mActorId);
 
-						mGamePlayerController->SetEnabled(true);
-						mGameCameraController->SetEnabled(false);
+							mGamePlayerController->SetEnabled(true);
+							mGameCameraController->SetEnabled(false);
 
-						mKeyboardHandler = mGamePlayerController;
-						mMouseHandler = mGamePlayerController;
-						mCamera->SetTarget(mPlayer);
+							mKeyboardHandler = mGamePlayerController;
+							mMouseHandler = mGamePlayerController;
+							mCamera->SetTarget(mPlayer);
+						}
 						return true;
 					}
 
@@ -827,9 +1164,9 @@ bool QuakeHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 	if (!HumanView::LoadGameDelegate(pLevelData))
 		return false;
 
-    mQuakeStandardHUD.reset(new QuakeStandardHUD());
-	mQuakeStandardHUD->OnInit();
-    PushElement(mQuakeStandardHUD);
+    mGameStandardHUD.reset(new QuakeStandardHUD(shared_from_this()));
+	mGameStandardHUD->OnInit();
+    PushElement(mGameStandardHUD);
 
     // A movement controller is going to control the camera, 
     // but it could be constructed with any of the objects you see in this
@@ -1020,7 +1357,7 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			mWeaponMedia[weapon].weaponModel = eastl::wstring(L"art/quake/models/weapons2/shotgun/shotgun.md3");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].weaponModel));
 			mWeaponMedia[weapon].ammoIcon = eastl::wstring(L"art/quake/icons/icona_shotgun.png");
-			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoIcon));
+			resHandle = ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoIcon));
 			mWeaponMedia[weapon].ammoModel = eastl::wstring(L"art/quake/models/powerups/ammo/shotgunam.md3");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].ammoModel));
 
@@ -1533,6 +1870,8 @@ void QuakeHumanView::RegisterMedia()
 	mMedia.noammoShader = eastl::wstring(ToWideString("art/quake/icons/noammo.png"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.noammoShader));
 
+	mMedia.healthIcon = eastl::wstring(ToWideString("art/quake/icons/iconh_yellow.png"));
+	ResCache::Get()->GetHandle(&BaseResource(mMedia.armorIcon));
 	mMedia.armorIcon = eastl::wstring(ToWideString("art/quake/icons/iconr_yellow.png"));
 	ResCache::Get()->GetHandle(&BaseResource(mMedia.armorIcon));
 
@@ -1648,7 +1987,7 @@ void QuakeHumanView::SetControlledActorDelegate(BaseEventDataPtr pEventData)
 		eastl::static_pointer_cast<QuakeEventDataSetControlledActor>(pEventData);
     //SetControlledActor(pCastEventData->GetActorId());
 
-	HumanView::SetControlledActor(mGameCameraController->GetTarget()->GetId());
+	HumanView::SetControlledActor(mGameCameraController->GetCamera()->GetId());
 	mKeyboardHandler = mGameCameraController;
 	mMouseHandler = mGameCameraController;
 

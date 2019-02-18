@@ -7,6 +7,7 @@
 
 #include "UIElement.h"
 
+#include "Graphic/State/BlendState.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 enum UIButtonState
@@ -238,6 +239,8 @@ private:
 
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<VisualEffect> mEffect;
+	eastl::shared_ptr<BlendState> mBlendState;
+
 	eastl::shared_ptr<BaseUISpriteBank> mSpriteBank;
 	eastl::shared_ptr<BaseUIFont> mOverrideFont;
 

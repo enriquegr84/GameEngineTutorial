@@ -53,6 +53,7 @@ public:
 	virtual bool OnLostDevice() = 0;
 	virtual GameViewType GetType() = 0;
 	virtual GameViewId GetId() const = 0;
+	virtual ActorId GetActorId() const = 0;
 	virtual void OnAttach(GameViewId vid, ActorId aid) = 0;
 
 	virtual bool OnMsgProc(const Event& event) = 0;

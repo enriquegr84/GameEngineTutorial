@@ -52,9 +52,10 @@
 ////////////////////////////////////////////////////
 
 
-QuakeCameraController::QuakeCameraController(const eastl::shared_ptr<CameraNode>& target,
+QuakeCameraController::QuakeCameraController(
+	const eastl::shared_ptr<CameraNode>& camera,
 	float initialYaw, float initialPitch, bool rotateWhenLButtonDown)
-	: mTarget(target)
+	: mCamera(camera)
 {
 	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
 	mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
@@ -209,7 +210,7 @@ void QuakeCameraController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			AxisAngle<4, float>(Vector4<float>::Unit(PITCH), -mPitch * (float)GE_C_DEG_TO_RAD));
 
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
-		mAbsoluteTransform.SetTranslation(mTarget->GetAbsoluteTransform().GetTranslation());
+		mAbsoluteTransform.SetTranslation(mCamera->GetAbsoluteTransform().GetTranslation());
 	}
 
 	bool isTranslating = false;
@@ -280,12 +281,12 @@ void QuakeCameraController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 		mMoveSpeed = mMaxMoveSpeed;
 		direction *= mMoveSpeed * elapsedTime;
-		Vector4<float> pos = mTarget->GetAbsoluteTransform().GetTranslationW0() + direction;
+		Vector4<float> pos = mCamera->GetAbsoluteTransform().GetTranslationW0() + direction;
 		mAbsoluteTransform.SetTranslation(pos);
 	}
 
 	// update transform matrix
-	mTarget->GetRelativeTransform() = mAbsoluteTransform;
+	mCamera->GetRelativeTransform() = mAbsoluteTransform;
 
 	mWheelRollDown = false;
 	mWheelRollUp = false;

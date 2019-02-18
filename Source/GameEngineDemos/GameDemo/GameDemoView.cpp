@@ -870,7 +870,7 @@ void GameDemoHumanView::SetControlledActorDelegate(BaseEventDataPtr pEventData)
 		eastl::static_pointer_cast<EventDataSetControlledActor>(pEventData);
     //SetControlledActor(pCastEventData->GetActorId());
 
-	HumanView::SetControlledActor(mGameCameraController->GetTarget()->GetId());
+	HumanView::SetControlledActor(mGameCameraController->GetCamera()->GetId());
 	mKeyboardHandler = mGameCameraController;
 	mMouseHandler = mGameCameraController;
 

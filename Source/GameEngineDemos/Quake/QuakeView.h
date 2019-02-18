@@ -48,6 +48,13 @@
 //! Macro for save Dropping an Element
 #define DropElement(x)	if (x) { x->Remove(); x = 0; }
 
+#define STAT_MINUS			10	// num frame for '-' stats digit
+
+#define	ICON_SIZE			48
+#define	CHAR_WIDTH			32
+#define	CHAR_HEIGHT			48
+#define	TEXT_ICON_SPACE		4
+
 #define	NUM_CROSSHAIRS		10
 
 enum FootStep 
@@ -146,6 +153,7 @@ struct WeaponResource
 // loaded at game load time are stored in Media
 struct MediaResource
 {
+	eastl::wstring healthIcon;
 	eastl::wstring armorIcon;
 
 	eastl::wstring deferShader;
@@ -352,12 +360,19 @@ public:
 	virtual void SetZOrder(int const zOrder) { }
 };
 
+//forwarding
+class BaseEventManager;
+class SoundProcess;
+class QuakeHumanView;
+class QuakePlayerController;
+class QuakeCameraController;
+class PlayerActor;
+class Node;
 
 class QuakeStandardHUD : public BaseUI
 {
-
 public:
-	QuakeStandardHUD();
+	QuakeStandardHUD(const eastl::shared_ptr<QuakeHumanView>& view);
 	virtual ~QuakeStandardHUD();
 
 	// IScreenElement Implementation
@@ -365,7 +380,7 @@ public:
 	virtual bool OnRestore();
 	virtual bool OnLostDevice() { return true; }
 
-	virtual void OnUpdate(int deltaMilliseconds) { }
+	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 
 	//! draws all gui elements
 	virtual bool OnRender(double time, float elapsedTime);
@@ -376,18 +391,22 @@ public:
 	virtual int GetZOrder() const { return 1; }
 	virtual void SetZOrder(int const zOrder) { }
 
-};
+protected:
+	eastl::shared_ptr<QuakeHumanView> mGameView;
 
-class BaseEventManager;
-class SoundProcess;
-class QuakePlayerController;
-class QuakeCameraController;
-class Node;
+	eastl::shared_ptr<BaseUIImage> mCrosshair;
+	eastl::shared_ptr<BaseUIImage> mAmmoIcon, mArmorIcon, mHealthIcon;
+	eastl::vector<eastl::shared_ptr<BaseUIImage>> mAmmo, mArmor, mHealth;
+	eastl::vector<eastl::shared_ptr<BaseUIStaticText>> mScore;
+
+	void UpdateScores();
+	void UpdatePickupItem();
+	void UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& player);
+};
 
 class QuakeMainMenuView : public HumanView
 {
-protected:
-	eastl::shared_ptr<QuakeMainMenuUI> mQuakeMainMenuUI; 
+
 public:
 
 	QuakeMainMenuView(); 
@@ -395,11 +414,16 @@ public:
 	virtual bool OnMsgProc( const Event& evt );
 	virtual void RenderText();	
 	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
+
+protected:
+	eastl::shared_ptr<QuakeMainMenuUI> mQuakeMainMenuUI;
 };
 
 
-class QuakeHumanView : public HumanView
+class QuakeHumanView : public HumanView, public eastl::enable_shared_from_this<QuakeHumanView>
 {
+	friend class QuakeStandardHUD;
+
 protected:
 
 	bool  mShowUI;					// If true, it renders the UI control text
@@ -412,8 +436,9 @@ protected:
 
 	eastl::shared_ptr<QuakePlayerController> mGamePlayerController;
 	eastl::shared_ptr<QuakeCameraController> mGameCameraController;
+
+	eastl::shared_ptr<QuakeStandardHUD> mGameStandardHUD;
 	eastl::shared_ptr<Node> mPlayer;
-	eastl::shared_ptr<QuakeStandardHUD> mQuakeStandardHUD;
 
 public:
 	QuakeHumanView();
@@ -458,7 +483,7 @@ private:
 
 protected:
 	GameViewId	mViewId;
-	ActorId mPlayerActorId;
+	ActorId mPlayerId;
 
 public:
 	QuakeAIPlayerView(eastl::shared_ptr<PathingGraph> pPathingGraph);
@@ -469,7 +494,8 @@ public:
 	virtual bool OnLostDevice() { return true; }
 	virtual GameViewType GetType() { return GV_AI; }
 	virtual GameViewId GetId() const { return mViewId; }
-	virtual void OnAttach(GameViewId vid, ActorId actorId) { mViewId = vid; mPlayerActorId = actorId; }
+	virtual ActorId GetActorId() const { return mPlayerId; }
+	virtual void OnAttach(GameViewId vid, ActorId actorId) { mViewId = vid; mPlayerId = actorId; }
 	virtual bool OnMsgProc( const Event& event ) {	return false; }
 	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs) {}
 	

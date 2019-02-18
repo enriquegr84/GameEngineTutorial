@@ -205,7 +205,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
 		rotation = -yawRotation;
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), -mPitch * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
 
 		// update node rotation matrix
@@ -214,7 +214,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		if (pTransformComponent)
 		{
 			pitchRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(1), -mPitchTarget * (float)GE_C_DEG_TO_RAD));
+				AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
 			pTransformComponent->SetRotation(yawRotation * pitchRotation);
 		}
 	}
@@ -297,7 +297,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			if (mMouseLButtonDown)
 				pPlayerActor->GetAction().actionType |= ACTION_ATTACK;
 			if (mWheelRollDown)
-				pPlayerActor->PrevWeapon();
+				pPlayerActor->PreviousWeapon();
 			if (mWheelRollUp)
 				pPlayerActor->NextWeapon();
 

@@ -324,7 +324,7 @@ public:
 	void PlayerSpawn();
 
 	void NextWeapon();
-	void PrevWeapon();
+	void PreviousWeapon();
 
 	void UpdateTimers(unsigned long deltaMs);
 	void UpdateWeapon(unsigned long deltaMs);

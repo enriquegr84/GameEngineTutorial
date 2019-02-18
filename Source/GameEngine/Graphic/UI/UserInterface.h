@@ -213,11 +213,11 @@ public:
 
 	//! Adds an image element.
 	virtual eastl::shared_ptr<BaseUIImage> AddImage(eastl::shared_ptr<Texture2> image, Vector2<int> pos, 
-		bool useAlphaChannel = true, const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0);
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, bool useAlphaChannel = true, int id = -1, const wchar_t* text = 0);
 
 	//! adds an image. The returned pointer must not be dropped.
 	virtual eastl::shared_ptr<BaseUIImage> AddImage(const RectangleShape<2, int>& rectangle,
-		const eastl::shared_ptr<BaseUIElement>& parent = 0, int id = -1, const wchar_t* text = 0, bool useAlphaChannel = true);
+		const eastl::shared_ptr<BaseUIElement>& parent = 0, bool useAlphaChannel = true, int id = -1, const wchar_t* text = 0);
 
 	//! adds a scrollbar. The returned pointer must not be dropped.
 	virtual eastl::shared_ptr<BaseUIScrollBar> AddScrollBar(bool horizontal, const RectangleShape<2, int>& rectangle,

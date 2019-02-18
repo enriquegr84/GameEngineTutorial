@@ -76,10 +76,10 @@ protected:
 	bool		mRotateWhenLButtonDown;
 	bool		mMouseUpdate;
 
-	eastl::shared_ptr<CameraNode> mTarget;
+	eastl::shared_ptr<CameraNode> mCamera;
 
 public:
-	QuakeCameraController(const eastl::shared_ptr<CameraNode>& target,
+	QuakeCameraController(const eastl::shared_ptr<CameraNode>& camera,
 		float initialYaw, float initialPitch, bool rotateWhenLButtonDown);
 
 	//! Sets whether or not the controller is currently enabled.
@@ -90,8 +90,8 @@ public:
 
 	void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 
-	const eastl::shared_ptr<CameraNode>& GetTarget() { return mTarget; }
-	void SetTarget(const eastl::shared_ptr<CameraNode>& newTarget) { mTarget = newTarget; }
+	const eastl::shared_ptr<CameraNode>& GetCamera() { return mCamera; }
+	void SetCamera(const eastl::shared_ptr<CameraNode>& newCamera) { mCamera = newCamera; }
 
 	bool OnMouseMove(const Vector2<int> &mousePos, const int radius);
 	bool OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);

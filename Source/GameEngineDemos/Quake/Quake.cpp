@@ -1786,27 +1786,28 @@ void QuakeLogic::GauntletAttack(
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/melee/fstrun.ogg"));
 
-	eastl::map<ActorId, Vector3<float>> collisions, collisionNormals;
-	mPhysics->CastRay(muzzle, end, collisions, collisionNormals);
+	eastl::vector<ActorId> collisionActors;
+	eastl::vector<Vector3<float>> collisions, collisionNormals;
+	mPhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
 
 	ActorId closestCollisionId = INVALID_ACTOR_ID;
 	Vector3<float> closestCollision = NULL;
-	for (auto collision : collisions)
+	for (unsigned int i = 0; i < collisionActors.size(); i++)
 	{
-		if (collision.first != player->GetId())
+		if (collisionActors[i] != player->GetId())
 		{
 			if (closestCollision != NULL)
 			{
-				if (Length(closestCollision - muzzle) > Length(collision.second - muzzle))
+				if (Length(closestCollision - muzzle) > Length(collisions[i] - muzzle))
 				{
-					closestCollisionId = collision.first;
-					closestCollision = collision.second;
+					closestCollisionId = collisionActors[i];
+					closestCollision = collisions[i];
 				}
 			}
 			else
 			{
-				closestCollisionId = collision.first;
-				closestCollision = collision.second;
+				closestCollisionId = collisionActors[i];
+				closestCollision = collisions[i];
 			}
 		}
 	}
@@ -1855,27 +1856,28 @@ void QuakeLogic::BulletFire(
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/machinegun/ric1.ogg"));
 
-	eastl::map<ActorId, Vector3<float>> collisions, collisionNormals;
-	mPhysics->CastRay(muzzle, end, collisions, collisionNormals);
+	eastl::vector<ActorId> collisionActors;
+	eastl::vector<Vector3<float>> collisions, collisionNormals;
+	mPhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
 
 	ActorId closestCollisionId = INVALID_ACTOR_ID;
 	Vector3<float> closestCollision = NULL;
-	for (auto collision : collisions)
+	for (unsigned int i = 0; i < collisionActors.size(); i++)
 	{
-		if (collision.first != player->GetId())
+		if (collisionActors[i] != player->GetId())
 		{
 			if (closestCollision != NULL)
 			{
-				if (Length(closestCollision - muzzle) > Length(collision.second - muzzle))
+				if (Length(closestCollision - muzzle) > Length(collisions[i] - muzzle))
 				{
-					closestCollisionId = collision.first;
-					closestCollision = collision.second;
+					closestCollisionId = collisionActors[i];
+					closestCollision = collisions[i];
 				}
 			}
 			else
 			{
-				closestCollisionId = collision.first;
-				closestCollision = collision.second;
+				closestCollisionId = collisionActors[i];
+				closestCollision = collisions[i];
 			}
 		}
 	}
@@ -1919,27 +1921,28 @@ SHOTGUN
 bool QuakeLogic::ShotgunPellet(const eastl::shared_ptr<PlayerActor>& player, 
 	const Vector3<float>& forward, const Vector3<float>& start, const Vector3<float>& end)
 {
-	eastl::map<ActorId, Vector3<float>> collisions, collisionNormals;
-	mPhysics->CastRay(start, end, collisions, collisionNormals);
+	eastl::vector<ActorId> collisionActors;
+	eastl::vector<Vector3<float>> collisions, collisionNormals;
+	mPhysics->CastRay(start, end, collisionActors, collisions, collisionNormals);
 
 	ActorId closestCollisionId = INVALID_ACTOR_ID;
 	Vector3<float> closestCollision = NULL;
-	for (auto collision : collisions)
+	for (unsigned int i = 0; i < collisionActors.size(); i++)
 	{
-		if (collision.first != player->GetId())
+		if (collisionActors[i] != player->GetId())
 		{
 			if (closestCollision != NULL)
 			{
-				if (Length(closestCollision - start) > Length(collision.second - start))
+				if (Length(closestCollision - start) > Length(collisions[i] - start))
 				{
-					closestCollisionId = collision.first;
-					closestCollision = collision.second;
+					closestCollisionId = collisionActors[i];
+					closestCollision = collisions[i];
 				}
 			}
 			else
 			{
-				closestCollisionId = collision.first;
-				closestCollision = collision.second;
+				closestCollisionId = collisionActors[i];
+				closestCollision = collisions[i];
 			}
 		}
 	}
@@ -2198,27 +2201,28 @@ void QuakeLogic::RailgunFire(
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/railgun/railgf1a.ogg"));
 
-	eastl::map<ActorId, Vector3<float>> collisions, collisionNormals;
-	mPhysics->CastRay(muzzle, end, collisions, collisionNormals);
+	eastl::vector<ActorId> collisionActors;
+	eastl::vector<Vector3<float>> collisions, collisionNormals;
+	mPhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
 
 	ActorId closestCollisionId = INVALID_ACTOR_ID;
 	Vector3<float> closestCollision = NULL;
-	for (auto collision : collisions)
+	for (unsigned int i = 0; i < collisionActors.size(); i++)
 	{
-		if (collision.first != player->GetId())
+		if (collisionActors[i] != player->GetId())
 		{
 			if (closestCollision != NULL)
 			{
-				if (Length(closestCollision - muzzle) > Length(collision.second - muzzle))
+				if (Length(closestCollision - muzzle) > Length(collisions[i] - muzzle))
 				{
-					closestCollisionId = collision.first;
-					closestCollision = collision.second;
+					closestCollisionId = collisionActors[i];
+					closestCollision = collisions[i];
 				}
 			}
 			else
 			{
-				closestCollisionId = collision.first;
-				closestCollision = collision.second;
+				closestCollisionId = collisionActors[i];
+				closestCollision = collisions[i];
 			}
 		}
 	}
@@ -2284,28 +2288,28 @@ void QuakeLogic::LightningFire(
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/weapons/lightning/lg_hum.ogg"));
 
-
-	eastl::map<ActorId, Vector3<float>> collisions, collisionNormals;
-	mPhysics->CastRay(muzzle, end, collisions, collisionNormals);
+	eastl::vector<ActorId> collisionActors;
+	eastl::vector<Vector3<float>> collisions, collisionNormals;
+	mPhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
 
 	ActorId closestCollisionId = INVALID_ACTOR_ID;
-	Vector3<float> closestCollision = NULL;
-	for (auto collision : collisions)
+	Vector3<float> closestCollision = end;
+	for (unsigned int i = 0; i < collisionActors.size(); i++)
 	{
-		if (collision.first != player->GetId())
+		if (collisionActors[i] != player->GetId())
 		{
 			if (closestCollision != NULL)
 			{
-				if (Length(closestCollision - muzzle) > Length(collision.second - muzzle))
+				if (Length(closestCollision - muzzle) > Length(collisions[i] - muzzle))
 				{
-					closestCollisionId = collision.first;
-					closestCollision = collision.second;
+					closestCollisionId = collisionActors[i];
+					closestCollision = collisions[i];
 				}
 			}
 			else
 			{
-				closestCollisionId = collision.first;
-				closestCollision = collision.second;
+				closestCollisionId = collisionActors[i];
+				closestCollision = collisions[i];
 			}
 		}
 	}

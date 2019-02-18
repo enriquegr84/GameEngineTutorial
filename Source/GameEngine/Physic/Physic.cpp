@@ -141,8 +141,9 @@ public:
 		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal) { return INVALID_ACTOR_ID; }
 	virtual void CastRay(
 		const Vector3<float>& origin, const Vector3<float>& end,
-		eastl::map<ActorId, Vector3<float>>& collisionPoints,
-		eastl::map<ActorId, Vector3<float>>& collisionNormals) { }
+		eastl::vector<ActorId>& collisionActors,
+		eastl::vector<Vector3<float>>& collisionPoints,
+		eastl::vector<Vector3<float>>& collisionNormals) { }
 
 	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision) { }
 	virtual void StopActor(ActorId actorId) { }
@@ -380,8 +381,9 @@ public:
 		Vector3<float>& collisionPoint, Vector3<float>& collisionNormal);
 	virtual void CastRay(
 		const Vector3<float>& origin, const Vector3<float>& end,
-		eastl::map<ActorId, Vector3<float>>& collisionPoints,
-		eastl::map<ActorId, Vector3<float>>& collisionNormals);
+		eastl::vector<ActorId>& collisionActors,
+		eastl::vector<Vector3<float>>& collisionPoints,
+		eastl::vector<Vector3<float>>& collisionNormals);
 
 	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision);
 	virtual void StopActor(ActorId actorId);
@@ -1208,8 +1210,9 @@ ActorId BulletPhysics::CastRay(
 // BulletPhysics::CastRay	
 void BulletPhysics::CastRay(
 	const Vector3<float>& origin, const Vector3<float>& end,
-	eastl::map<ActorId, Vector3<float>>& collisionPoints, 
-	eastl::map<ActorId, Vector3<float>>& collisionNormals)
+	eastl::vector<ActorId>& collisionActors,
+	eastl::vector<Vector3<float>>& collisionPoints, 
+	eastl::vector<Vector3<float>>& collisionNormals)
 {
 	btVector3 from = Vector3TobtVector3(origin);
 	btVector3 to = Vector3TobtVector3(end);
@@ -1225,8 +1228,9 @@ void BulletPhysics::CastRay(
 		for (int i = 0; i<allHitsResults.m_collisionObjects.size(); i++)
 		{
 			const btCollisionObject* collisionObject = allHitsResults.m_collisionObjects[i];
-			collisionPoints[FindActorID(collisionObject)] = btVector3ToVector3(allHitsResults.m_hitPointWorld[i]);
-			collisionNormals[FindActorID(collisionObject)] = btVector3ToVector3(allHitsResults.m_hitNormalWorld[i]);
+			collisionActors.push_back(FindActorID(collisionObject));
+			collisionPoints.push_back(btVector3ToVector3(allHitsResults.m_hitPointWorld[i]));
+			collisionNormals.push_back(btVector3ToVector3(allHitsResults.m_hitNormalWorld[i]));
 		}
 	}
 }

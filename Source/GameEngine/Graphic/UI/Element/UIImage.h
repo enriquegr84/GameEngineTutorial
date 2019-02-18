@@ -7,6 +7,7 @@
 
 #include "UIElement.h"
 
+#include "Graphic/State/BlendState.h"
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 //! BaseUI element displaying an image.
@@ -86,6 +87,7 @@ private:
 
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<VisualEffect> mEffect;
+	eastl::shared_ptr<BlendState> mBlendState;
 
 	eastl::shared_ptr<Texture2> mTexture;
 	eastl::array<float, 4> mColor;

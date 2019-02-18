@@ -162,7 +162,7 @@ void PlayerActor::NextWeapon()
 			mAction.weaponSelect = 1;
 
 		if (mAction.weaponSelect == WP_GAUNTLET)
-			continue;		// never cycle to gauntlet
+			break;		// never cycle to gauntlet
 
 		if (WeaponSelectable(mAction.weaponSelect))
 			break;
@@ -171,7 +171,7 @@ void PlayerActor::NextWeapon()
 		mAction.weaponSelect = original;
 }
 
-void PlayerActor::PrevWeapon()
+void PlayerActor::PreviousWeapon()
 {
 	//mAction.weaponSelectTime = cg.time;
 	int i;
@@ -183,7 +183,7 @@ void PlayerActor::PrevWeapon()
 			mAction.weaponSelect = MAX_WEAPONS;
 
 		if (mAction.weaponSelect == WP_GAUNTLET)
-			continue;		// never cycle to gauntlet
+			break;		// never cycle to gauntlet
 
 		if (WeaponSelectable(mAction.weaponSelect))
 			break;
@@ -259,7 +259,6 @@ void PlayerActor::PlayerSpawn()
 	mState.stats[STAT_WEAPONS] |= (1 << WP_GRENADE_LAUNCHER);
 	mState.ammo[WP_GRENADE_LAUNCHER] = 1000;
 	mState.stats[STAT_WEAPONS] |= (1 << WP_GAUNTLET);
-	mState.ammo[WP_GAUNTLET] = -1;
 
 	// health will count down towards max_health
 	mState.stats[STAT_HEALTH] = mState.stats[STAT_MAX_HEALTH] + 25;

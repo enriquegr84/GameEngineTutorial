@@ -59,7 +59,7 @@ const unsigned int SCREEN_REFRESH_RATE(1000/60);
 const GameViewId INVALID_GAME_VIEW_ID = 0xffffffff;
 
 template<class T>
-struct SortBy_SharedPtr_Content
+struct SortBySharedPtrContent
 {
 	bool operator()(const eastl::shared_ptr<T> &lhs, const eastl::shared_ptr<T> &rhs) const
 	{
@@ -146,7 +146,7 @@ void HumanView::OnRender(double time, float elapsedTime )
 	Renderer* renderer = Renderer::Get();
 	if( deltaTime > SCREEN_REFRESH_RATE)
 	{
-		mScreenElements.sort(SortBy_SharedPtr_Content<BaseScreenElement>());
+		mScreenElements.sort(SortBySharedPtrContent<BaseScreenElement>());
 
 		for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator it =
 			mScreenElements.begin(); it!=mScreenElements.end(); ++it)

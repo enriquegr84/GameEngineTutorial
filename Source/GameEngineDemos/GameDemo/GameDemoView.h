@@ -166,7 +166,7 @@ private:
 
 protected:
 	GameViewId	mViewId;
-	ActorId mPlayerActorId;
+	ActorId mPlayerId;
 
 public:
 	AIPlayerView(eastl::shared_ptr<PathingGraph> pPathingGraph);
@@ -177,7 +177,8 @@ public:
 	virtual bool OnLostDevice() { return true; }
 	virtual GameViewType GetType() { return GV_AI; }
 	virtual GameViewId GetId() const { return mViewId; }
-	virtual void OnAttach(GameViewId vid, ActorId actorId) { mViewId = vid; mPlayerActorId = actorId; }
+	virtual ActorId GetActorId() const { return mPlayerId; }
+	virtual void OnAttach(GameViewId vid, ActorId actorId) { mViewId = vid; mPlayerId = actorId; }
 	virtual bool OnMsgProc( const Event& event ) {	return false; }
 	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs) {}
 	

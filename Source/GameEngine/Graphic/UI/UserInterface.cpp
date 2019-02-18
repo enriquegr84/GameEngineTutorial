@@ -81,9 +81,11 @@ bool BaseUI::OnInit()
 	path.push_back("Effects/TextEffectVS.hlsl");
 	path.push_back("Effects/TextEffectPS.hlsl");
 #endif
-	eastl::shared_ptr<Font> builtInFont = eastl::make_shared<FontArialW400H18>(ProgramFactory::Get(), path, 256);
+	eastl::shared_ptr<Font> builtInFont = 
+		eastl::make_shared<FontArialW400H18>(ProgramFactory::Get(), path, 256);
 	Renderer::Get()->SetDefaultFont(builtInFont);
-	mFonts[L"DefaultFont"] = eastl::shared_ptr<BaseUIFont>(new UIFont(this, L"DefaultFont", builtInFont));
+	mFonts[L"DefaultFont"] = 
+		eastl::shared_ptr<BaseUIFont>(new UIFont(this, L"DefaultFont", builtInFont));
 
 	const eastl::shared_ptr<BaseUISkin>& skin = CreateSkin( STT_WINDOWS_CLASSIC );
 	SetSkin(skin);
@@ -1024,7 +1026,7 @@ eastl::shared_ptr<BaseUIScrollBar> BaseUI::AddScrollBar(bool horizontal, const R
 
 //! Adds an image element.
 eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(eastl::shared_ptr<Texture2> image, Vector2<int> pos,
-	bool useAlphaChannel, const eastl::shared_ptr<BaseUIElement>& parent , int id, const wchar_t* text)
+	const eastl::shared_ptr<BaseUIElement>& parent , bool useAlphaChannel, int id, const wchar_t* text)
 {
 	Vector2<int> size;
 	if (image)
@@ -1056,7 +1058,7 @@ eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(eastl::shared_ptr<Texture2> imag
 
 //! adds an image. The returned pointer must not be dropped.
 eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(const RectangleShape<2, int>& rectangle, 
-	const eastl::shared_ptr<BaseUIElement>& parent, int id, const wchar_t* text, bool useAlphaChannel)
+	const eastl::shared_ptr<BaseUIElement>& parent, bool useAlphaChannel, int id, const wchar_t* text)
 {
 	eastl::shared_ptr<BaseUIImage> img(new UIImage(this, id, rectangle));
 	img->SetParent(parent ? parent : mRoot);
@@ -1072,7 +1074,8 @@ eastl::shared_ptr<BaseUIImage> BaseUI::AddImage(const RectangleShape<2, int>& re
 
 
 //! adds a checkbox
-eastl::shared_ptr<BaseUICheckBox> BaseUI::AddCheckBox(bool checked, const RectangleShape<2, int>& rectangle, 
+eastl::shared_ptr<BaseUICheckBox> BaseUI::AddCheckBox(
+	bool checked, const RectangleShape<2, int>& rectangle, 
 	const eastl::shared_ptr<BaseUIElement>& parent, int id, const wchar_t* text)
 {
 	eastl::shared_ptr<BaseUICheckBox> check(new UICheckBox(this, id, rectangle, checked));
@@ -1090,7 +1093,8 @@ eastl::shared_ptr<BaseUICheckBox> BaseUI::AddCheckBox(bool checked, const Rectan
 eastl::shared_ptr<BaseUIListBox> BaseUI::AddListBox(const RectangleShape<2, int>& rectangle,
 	const eastl::shared_ptr<BaseUIElement>& parent, int id, bool drawBackground)
 {
-	eastl::shared_ptr<BaseUIListBox> listBox(new UIListBox(this, id, rectangle, true, drawBackground, false));
+	eastl::shared_ptr<BaseUIListBox> listBox(
+		new UIListBox(this, id, rectangle, true, drawBackground, false));
 	listBox->SetParent(parent ? parent : mRoot);
 	listBox->OnInit();
 

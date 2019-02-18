@@ -374,6 +374,7 @@ public:
 	virtual bool OnLostDevice() { return true; }
 	virtual GameViewType GetType() { return GV_REMOTE; }
 	virtual GameViewId GetId() const { return mViewId; }
+	virtual ActorId GetActorId() const { return mActorId; }
 	virtual void OnAttach(GameViewId vid, ActorId aid);
 	virtual bool OnMsgProc( const Event& event ) { return false; }
 

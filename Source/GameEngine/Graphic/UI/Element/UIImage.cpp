@@ -22,6 +22,8 @@ UIImage::UIImage(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 		extra->GetImage()->AutogenerateMipmaps();
 
+		mBlendState = eastl::make_shared<BlendState>();
+
 		// Create a vertex buffer for a two-triangles square. The PNG is stored
 		// in left-handed coordinates. The texture coordinates are chosen to
 		// reflect the texture in the y-direction.
@@ -103,12 +105,17 @@ void UIImage::Draw()
 		*/
 		auto effect = eastl::dynamic_pointer_cast<Texture2Effect>(mEffect);
 		effect->SetTexture(mTexture);
+
+		Renderer::Get()->SetBlendState(mBlendState);
 		skin->Draw2DTexture(shared_from_this(), mVisual, mAbsoluteRect, mAbsoluteClippingRect.mExtent / 2);
+		Renderer::Get()->SetDefaultBlendState();
 	}
 	else
 	{
+		Renderer::Get()->SetBlendState(mBlendState);
 		skin->Draw2DRectangle(shared_from_this(), skin->GetColor(DC_3D_DARK_SHADOW), 
 			mVisual, mAbsoluteRect, &mAbsoluteClippingRect);
+		Renderer::Get()->SetDefaultBlendState();
 	}
 
 	BaseUIElement::Draw();
@@ -119,6 +126,18 @@ void UIImage::Draw()
 void UIImage::SetUseAlphaChannel(bool use)
 {
 	mUseAlphaChannel = use;
+
+	if (mUseAlphaChannel)
+	{
+		mBlendState->mTarget[0].enable = true;
+		mBlendState->mTarget[0].srcColor = BlendState::BM_ONE;
+		mBlendState->mTarget[0].dstColor = BlendState::BM_INV_SRC_COLOR;
+		mBlendState->mTarget[0].srcAlpha = BlendState::BM_SRC_ALPHA;
+		mBlendState->mTarget[0].dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+	}
+	else mBlendState->mTarget[0] = BlendState::Target();
+
+	Renderer::Get()->Unbind(mBlendState);
 }
 
 

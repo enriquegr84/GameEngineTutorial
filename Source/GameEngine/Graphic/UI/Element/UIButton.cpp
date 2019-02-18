@@ -23,6 +23,8 @@ UIButton::UIButton(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 		extra->GetImage()->AutogenerateMipmaps();
 
+		mBlendState = eastl::make_shared<BlendState>();
+
 		// Create a vertex buffer for a two-triangles square. The PNG is stored
 		// in left-handed coordinates. The texture coordinates are chosen to
 		// reflect the texture in the y-direction.
@@ -247,6 +249,8 @@ void UIButton::Draw( )
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 	auto effect = eastl::dynamic_pointer_cast<Texture2Effect>(mEffect);
 
+	Renderer::Get()->SetBlendState(mBlendState);
+
 	// todo: move sprite up and text down if the pressed state has a sprite
 	RectangleShape<2, int> spritePos = mAbsoluteRect;
 
@@ -324,6 +328,8 @@ void UIButton::Draw( )
 			}
 		}
 	}
+
+	Renderer::Get()->SetDefaultBlendState();
 
 	if (mText.size())
 	{
@@ -463,6 +469,18 @@ bool UIButton::IsPushButton() const
 void UIButton::SetUseAlphaChannel(bool useAlphaChannel)
 {
 	mUseAlphaChannel = useAlphaChannel;
+
+	if (mUseAlphaChannel)
+	{
+		mBlendState->mTarget[0].enable = true;
+		mBlendState->mTarget[0].srcColor = BlendState::BM_ONE;
+		mBlendState->mTarget[0].dstColor = BlendState::BM_INV_SRC_COLOR;
+		mBlendState->mTarget[0].srcAlpha = BlendState::BM_SRC_ALPHA;
+		mBlendState->mTarget[0].dstAlpha = BlendState::BM_INV_SRC_ALPHA;
+	}
+	else mBlendState->mTarget[0] = BlendState::Target();
+
+	Renderer::Get()->Unbind(mBlendState);
 }
 
 

@@ -81,6 +81,7 @@ public:
 
 	virtual GameViewType GetType() { return GV_HUMAN; }
 	virtual GameViewId GetId() const { return mViewId; }
+	virtual ActorId GetActorId() const { return mActorId; }
 
 	virtual void OnAttach(GameViewId vid, ActorId aid)
 	{
