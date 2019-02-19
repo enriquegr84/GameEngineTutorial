@@ -64,9 +64,9 @@ public:
 
 protected:
 
-	Vector4<float> Stationary(unsigned long deltaMs);
-	Vector4<float> Smooth();
-	Vector4<float> Cliff();
+	void Stationary(unsigned long deltaMs);
+	void Smooth(unsigned long deltaMs);
+	void Cliff();
 
 	GameViewId	mViewId;
 	ActorId mPlayerId;

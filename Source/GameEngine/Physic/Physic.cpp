@@ -1194,8 +1194,6 @@ ActorId BulletPhysics::CastRay(
 	btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
 	closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
 
-	mDynamicsWorld->updateAabbs();
-	mDynamicsWorld->computeOverlappingPairs();
 	mDynamicsWorld->rayTest(from, to, closestResults);
 
 	if (closestResults.hasHit())
@@ -1225,8 +1223,6 @@ void BulletPhysics::CastRay(
 	btCollisionWorld::AllHitsRayResultCallback allHitsResults(from, to);
 	allHitsResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
 
-	mDynamicsWorld->updateAabbs();
-	mDynamicsWorld->computeOverlappingPairs();
 	mDynamicsWorld->rayTest(from, to, allHitsResults);
 
 	if (allHitsResults.hasHit())
@@ -1252,8 +1248,7 @@ ActorId BulletPhysics::ConvexSweep(
 	btCollisionWorld::ClosestConvexResultCallback closestResults(from, to);
 	btCollisionObject* collisionObject = FindBulletCollisionObject(aId);
 	btConvexShape* collisionShape = dynamic_cast<btConvexShape*>(collisionObject->getCollisionShape());
-	mDynamicsWorld->updateAabbs();
-	mDynamicsWorld->computeOverlappingPairs();
+
 	mDynamicsWorld->convexSweepTest(
 		collisionShape, TransformTobtTransform(origin), TransformTobtTransform(end), closestResults);
 
