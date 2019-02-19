@@ -464,6 +464,58 @@ public:
 		}
 	}
 
+	virtual void AddTriangleMeshCollider(
+		btAlignedObjectArray<btScalar>& vertices,
+		btAlignedObjectArray<int>& indices)
+	{
+		///perhaps we can do something special with entities (isEntity)
+		///like adding a collision Triggering (as example)
+		if (vertices.size() > 0 && indices.size() > 0)
+		{
+			// Create triangles
+			btTriangleIndexVertexArray * triangleMesh = new btTriangleIndexVertexArray(
+				indices.size()/3, &indices[0], 3*sizeof(int),
+				vertices.size()/3, &vertices[0], 3*sizeof(btScalar));
+
+			// Create the shape
+			btCollisionShape *shape = new btBvhTriangleMeshShape(triangleMesh, true);
+
+			// lookup the material
+			MaterialData material(mPhysics->LookupMaterialData(mPhysicMaterial));
+
+			// localInertia defines how the object's mass is distributed
+			btVector3 localInertia(0.f, 0.f, 0.f);
+			if (mMass > 0.f)
+				shape->calculateLocalInertia(mMass, localInertia);
+
+			Transform transform;
+			eastl::shared_ptr<TransformComponent> pTransformComponent =
+				mGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+			LogAssert(pTransformComponent, "no transform");
+			if (pTransformComponent)
+			{
+				transform = pTransformComponent->GetTransform();
+			}
+			else
+			{
+				// Physics can't work on an actor that doesn't have a TransformComponent!
+				return;
+			}
+
+			// set the initial transform of the body from the actor
+			ActorMotionState * const motionState = new ActorMotionState(transform);
+
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(mMass, motionState, shape, localInertia);
+
+			// set up the materal properties
+			rbInfo.m_restitution = material.mRestitution;
+			rbInfo.m_friction = material.mFriction;
+
+			btRigidBody* const body = new btRigidBody(rbInfo);
+			mPhysics->mDynamicsWorld->addRigidBody(body);
+		}
+	}
+
 protected:
 	BulletPhysics* mPhysics;
 	eastl::shared_ptr<Actor> mGameActor;

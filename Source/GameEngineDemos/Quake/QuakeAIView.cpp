@@ -39,25 +39,22 @@
 #include "QuakeStd.h"
 
 #include "Core/OS/OS.h"
-
 #include "Core/Logger/Logger.h"
-
 #include "Core/Event/EventManager.h"
 
 #include "Physic/PhysicEventListener.h"
 
-#include "Actors/PlayerActor.h"
-#include "Actors/PushTrigger.h"
-#include "Actors/TeleporterTrigger.h"
 #include "QuakePlayerController.h"
 #include "QuakeAIView.h"
 #include "QuakeEvents.h"
 #include "QuakeApp.h"
+#include "Quake.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 //
 // QuakeAIView::QuakeAIView
 //
+
 QuakeAIView::QuakeAIView()
 	: BaseGameView()
 {
@@ -76,6 +73,26 @@ QuakeAIView::QuakeAIView()
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 }
+
+QuakeAIView::QuakeAIView(eastl::shared_ptr<PathingGraph> pPathingGraph)
+	: BaseGameView(), mPathingGraph(pPathingGraph)
+{
+	mYaw = 0.0f;
+	mPitchTarget = 0.0f;
+
+	mOrientation = 1;
+	mStationaryTime = 0;
+
+	mMaxJumpSpeed = 3.4f;
+	mMaxFallSpeed = 240.0f;
+	mMaxRotateSpeed = 180.0f;
+	mMoveSpeed = 6.0f;
+	mJumpSpeed = 3.4f;
+	mJumpMoveSpeed = 10.0f;
+	mFallSpeed = 0.0f;
+	mRotateSpeed = 0.0f;
+}
+
 
 //
 // QuakeAIView::~QuakeAIView
@@ -106,6 +123,127 @@ void QuakeAIView::OnAttach(GameViewId vid, ActorId actorId)
 
 		mAbsoluteTransform.SetRotation(pTransformComponent->GetRotation());
 		mAbsoluteTransform.SetTranslation(pTransformComponent->GetPosition());
+	}
+}
+
+//waypoint generation via physics simulation
+void QuakeAIView::CreateWaypoints()
+{
+	QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
+
+	//first we store the most important points of the map
+	eastl::vector<PathingNode*> waypoints;
+	for (auto ammo : game->GetAmmoActors())
+	{
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			ammo->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			PathingNode* pNode = new PathingNode(pTransformComponent->GetPosition());
+			mPathingGraph->InsertNode(pNode);
+			waypoints.push_back(pNode);
+		}
+	}
+	for (auto weapon : game->GetWeaponActors())
+	{
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			weapon->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			PathingNode* pNode = new PathingNode(pTransformComponent->GetPosition());
+			mPathingGraph->InsertNode(pNode);
+			waypoints.push_back(pNode);
+		}
+	}
+	for (auto health : game->GetHealthActors())
+	{
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			health->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			PathingNode* pNode = new PathingNode(pTransformComponent->GetPosition());
+			mPathingGraph->InsertNode(pNode);
+			waypoints.push_back(pNode);
+		}
+	}
+	for (auto armor : game->GetArmorActors())
+	{
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			armor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			PathingNode* pNode = new PathingNode(pTransformComponent->GetPosition());
+			mPathingGraph->InsertNode(pNode);
+			waypoints.push_back(pNode);
+		}
+	}
+	for (auto trigger : game->GetTriggerActors())
+	{
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			trigger->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			PathingNode* pNode = new PathingNode(pTransformComponent->GetPosition());
+			mPathingGraph->InsertNode(pNode);
+			waypoints.push_back(pNode);
+		}
+	}
+	for (auto target : game->GetTargetActors())
+	{
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			target->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			PathingNode* pNode = new PathingNode(pTransformComponent->GetPosition());
+			mPathingGraph->InsertNode(pNode);
+			waypoints.push_back(pNode);
+		}
+	}
+
+	// we create the waypoint according to the character controller physics system. Every
+	// step, it will be generated recursively new waypoints and its conections as result of 
+	// the simulation
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(mPlayerId).lock()));
+	for (PathingNode* waypoint : waypoints)
+	{
+		SimulateWaypoints(pPlayerActor, waypoint, 0.f);
+	}
+}
+
+void QuakeAIView::SimulateWaypoints(
+	const eastl::shared_ptr<PlayerActor>& pPlayerActor, PathingNode* pNode, float yaw)
+{
+	PathingNode* closestNode = mPathingGraph->FindClosestNode(pNode);
+	if (closestNode)
+	{
+		Vector3<float> diff = closestNode->GetPos() - pNode->GetPos();
+		if (Length(diff) <= 5.f) return;
+	}
+
+	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
+	if (gamePhysics)
+	{
+		if (gamePhysics->OnGround(pPlayerActor->GetId()))
+		{
+			//lets move the character towards different directions
+			for (int angle = 0; angle < 360; angle += 20)
+			{
+				Matrix4x4<float> rotation = Rotation<4, float>(
+					AxisAngle<4, float>(Vector4<float>::Unit(2), (yaw + angle) * (float)GE_C_DEG_TO_RAD));
+
+				Vector4<float> atWorld = Vector4<float>::Unit(PITCH); // forward vector
+#if defined(GE_USE_MAT_VEC)
+				atWorld = rotation * atWorld;
+#else
+				atWorld = atWorld * rotation;
+#endif
+
+				gamePhysics->WalkDirection(pPlayerActor->GetId(), HProject(atWorld * mMoveSpeed));
+				//gamePhysics->OnUpdate();
+			}
+		}
 	}
 }
 
@@ -372,7 +510,11 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		GameLogic::Get()->GetActor(mPlayerId).lock()));
 	if (!pPlayerActor) return;
 
-	if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
+	if (mPathingGraph)
+	{
+
+	}
+	else if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
 	{
 		eastl::shared_ptr<Actor> pItemActor(
 			eastl::dynamic_shared_pointer_cast<Actor>(
