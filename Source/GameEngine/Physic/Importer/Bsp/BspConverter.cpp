@@ -75,9 +75,26 @@ void BspConverter::CreateCurvedSurfaceBezier(BspLoader& bspLoader, BSPSurface* s
 	for (size_t i = 0; i < bezier.vertices.size(); i++)
 	{
 		S3DVertex2TCoords pVertex = bezier.vertices[i];
-		vertices.push_back(btVector3(pVertex.vPosition.x, pVertex.vPosition.y, pVertex.vPosition.z));
+		vertices.push_back(btVector3(
+			pVertex.vPosition.x, pVertex.vPosition.y, pVertex.vPosition.z));
 	}
 	AddConvexVerticesCollider(vertices);
+
+	/*
+	btAlignedObjectArray<btScalar> vertices;
+	for (size_t i = 0; i < bezier.vertices.size(); i++)
+	{
+		S3DVertex2TCoords pVertex = bezier.vertices[i];
+		vertices.push_back(pVertex.vPosition.x);
+		vertices.push_back(pVertex.vPosition.y);
+		vertices.push_back(pVertex.vPosition.z);
+	}
+	btAlignedObjectArray<int> indices;
+	for (size_t i = 0; i < bezier.indices.size(); i++)
+		indices.push_back(bezier.indices[i]);
+
+	AddTriangleMeshCollider(vertices, indices);
+	*/
 }
 
 void BspConverter::ConvertBsp(BspLoader& bspLoader, float scaling)
