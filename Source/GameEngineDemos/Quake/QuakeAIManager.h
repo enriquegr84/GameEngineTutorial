@@ -27,15 +27,19 @@
 #include "Physic/PhysicEventListener.h"
 #include "Mathematic/Algebra/Matrix4x4.h"
 
-enum AIActionType 
+enum AIActionType
 {
-	AT_MOVE,
-	AT_JUMP,
-	AT_FALL,
-	AT_PUSH,
-	AT_TELEPORT,
+	AIAT_MOVE,
+	AIAT_PUSH,
+	AIAT_PUSHTARGET,
+	AIAT_TELEPORT,
+	AIAT_TELEPORTTARGET,
+	AIAT_FALL,
+	AIAT_FALLTARGET,
+	AIAT_JUMP,
+	AIAT_JUMPTARGET,
 
-	AT_COUNT
+	AIAT_COUNT
 };
 
 class QuakeAIManager : public AIManager
@@ -50,10 +54,17 @@ public:
 protected:
 
 	void SimulateJump(PathingNode* pNode);
-	void SimulateMovement(PathingNode* pNode);
 	void SimulateFall(PathingNode* pNode);
+	void SimulateMovement(PathingNode* pNode);
+	void SimulateTriggerPush(PathingNode* pNode, const Vector3<float>& target);
+	void SimulateTriggerTeleport(PathingNode* pNode, const Vector3<float>& target);
 
 	void SimulateWaypoints();
+
+	unsigned int GetNewNodeID(void)
+	{
+		return ++mLastNodeId;
+	}
 
 	// event delegates
 	void PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData);
@@ -82,6 +93,9 @@ protected:
 
 
 private:
+
+	unsigned int mLastNodeId;
+
 	//we simulate doing the same rotations, so we store them
 	//in order to not recalculate it every time
 	eastl::map<int, Vector3<float>> mAngleDirection;
@@ -90,6 +104,9 @@ private:
 	//open set of nodes to be analized and also to
 	//inform whether they are on ground or not
 	eastl::map<PathingNode*, bool> mOpenSet, mClosedSet;
+
+	//pathing nodes which contains actors from game
+	eastl::map<Vector3<float>, ActorId> mActorNodes;
 
 	eastl::shared_ptr<PathingGraph> mPathingGraph;
 

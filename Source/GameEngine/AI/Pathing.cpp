@@ -82,6 +82,19 @@ PathingArc* PathingNode::FindArc(PathingNode* pLinkedNode)
 	return NULL;
 }
 
+PathingArc* PathingNode::FindArc(unsigned int arcType, PathingNode* pLinkedNode)
+{
+	LogAssert(pLinkedNode, "Invalid node");
+
+	for (PathingArcList::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		PathingArc* pArc = *it;
+		if (pArc->GetType() == arcType && pArc->GetNeighbor(this) == pLinkedNode)
+			return pArc;
+	}
+	return NULL;
+}
+
 
 //--------------------------------------------------------------------------------------------------------
 // PathingArc

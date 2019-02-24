@@ -66,17 +66,29 @@ const float PATHING_DEFAULT_ARC_WEIGHT = 1.0f;
 //--------------------------------------------------------------------------------------------------------
 class PathingNode
 {
-	float mTolerance;
+	unsigned int mId;
 	Vector3<float> mPos;
 	PathingArcList mArcs;
+
+	ActorId mActorId;
+	float mTolerance;
 	
 public:
-	explicit PathingNode(const Vector3<float>& pos, float tolerance = PATHING_DEFAULT_NODE_TOLERANCE) 
-		: mPos(pos) { mTolerance = tolerance; }
-	const Vector3<float>& GetPos(void) const { return mPos; }
+	explicit PathingNode(unsigned int id, ActorId actorId, 
+		const Vector3<float>& pos, float tolerance = PATHING_DEFAULT_NODE_TOLERANCE)
+		: mId(id), mActorId(actorId), mPos(pos) 
+	{ 
+		mTolerance = tolerance; 
+	}
+
+	void SetActorId(ActorId actorId) { mActorId = actorId; }
+	ActorId GetActorId(void) const { return mActorId; }
 	float GetTolerance(void) const { return mTolerance; }
+	const Vector3<float>& GetPos(void) const { return mPos; }
+
 	void AddArc(PathingArc* pArc);
 	PathingArc* FindArc(PathingNode* pLinkedNode);
+	PathingArc* FindArc(unsigned int arcType, PathingNode* pLinkedNode);
 	void GetNeighbors(PathingNodeList& outNeighbors);
 	float GetCostFromNode(PathingNode* pFromNode);
 };
@@ -90,16 +102,21 @@ class PathingArc
 {
 	float mWeight;
 	unsigned int mType;
+	Vector3<float> mConnection; //an optional interpolation vector which connects nodes 
 	PathingNode* mNodes[2];  // an arc always connects two nodes
 
 public:
-	explicit PathingArc(unsigned int type = 0, float weight = PATHING_DEFAULT_ARC_WEIGHT) 
+	explicit PathingArc(unsigned int type = 0, 
+		float weight = PATHING_DEFAULT_ARC_WEIGHT, 
+		const Vector3<float>& connect = Vector3<float>::Zero()) 
 	{ 
 		mType = type;
 		mWeight = weight; 
+		mConnection = connect;
 	}
 	float GetWeight(void) const { return mWeight; }
 	unsigned int GetType(void) const { return mType; }
+	const Vector3<float>& GetConnection(void) const { return mConnection; }
 	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
 	PathingNode* GetNeighbor(PathingNode* pMe);
 };
