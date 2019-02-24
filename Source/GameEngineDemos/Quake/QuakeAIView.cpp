@@ -381,6 +381,7 @@ void QuakeAIView::Cliff()
 //  class QuakeAIView::OnUpdate			- Chapter 10, page 283
 void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
+	return;
 	//Handling rotation as a result of mouse position
 	Matrix4x4<float> rotation;
 
