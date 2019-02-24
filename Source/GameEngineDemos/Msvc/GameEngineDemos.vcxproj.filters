@@ -122,6 +122,12 @@
     <ClInclude Include="..\Quake\QuakeAIView.h">
       <Filter>Quake</Filter>
     </ClInclude>
+    <ClInclude Include="..\GameDemo\GameDemoAIManager.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Quake\QuakeAIManager.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\TriangleDemoApp.cpp" />
@@ -219,6 +225,12 @@
       <Filter>Quake\Actors</Filter>
     </ClCompile>
     <ClCompile Include="..\Quake\QuakeAIView.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameDemo\GameDemoAIManager.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeAIManager.cpp">
       <Filter>Quake</Filter>
     </ClCompile>
   </ItemGroup>

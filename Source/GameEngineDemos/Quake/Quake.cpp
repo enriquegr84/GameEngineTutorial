@@ -16,6 +16,7 @@
 #include "QuakeEvents.h"
 #include "QuakeActorFactory.h"
 #include "QuakeLevelManager.h"
+#include "QuakeAIManager.h"
 
 //
 // QuakeLogic::QuakeLogic
@@ -71,6 +72,78 @@ void QuakeLogic::SetProxy()
 	GameLogic::SetProxy();
 }
 
+// Quake Actors
+eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetAmmoActors()
+{
+	eastl::vector<eastl::shared_ptr<Actor>> ammo;
+	for (auto actor : mActors)
+	{
+		eastl::shared_ptr<Actor> pActor = actor.second;
+		if (pActor->GetType() == "Ammo")
+			ammo.push_back(pActor);
+	}
+	return ammo;
+}
+
+eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetWeaponActors()
+{
+	eastl::vector<eastl::shared_ptr<Actor>> weapon;
+	for (auto actor : mActors)
+	{
+		eastl::shared_ptr<Actor> pActor = actor.second;
+		if (pActor->GetType() == "Weapon")
+			weapon.push_back(pActor);
+	}
+	return weapon;
+}
+
+eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetHealthActors()
+{
+	eastl::vector<eastl::shared_ptr<Actor>> health;
+	for (auto actor : mActors)
+	{
+		eastl::shared_ptr<Actor> pActor = actor.second;
+		if (pActor->GetType() == "Health")
+			health.push_back(pActor);
+	}
+	return health;
+}
+
+eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetArmorActors()
+{
+	eastl::vector<eastl::shared_ptr<Actor>> armor;
+	for (auto actor : mActors)
+	{
+		eastl::shared_ptr<Actor> pActor = actor.second;
+		if (pActor->GetType() == "Armor")
+			armor.push_back(pActor);
+	}
+	return armor;
+}
+
+eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetTriggerActors()
+{
+	eastl::vector<eastl::shared_ptr<Actor>> trigger;
+	for (auto actor : mActors)
+	{
+		eastl::shared_ptr<Actor> pActor = actor.second;
+		if (pActor->GetType() == "Trigger")
+			trigger.push_back(pActor);
+	}
+	return trigger;
+}
+
+eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetTargetActors()
+{
+	eastl::vector<eastl::shared_ptr<Actor>> target;
+	for (auto actor : mActors)
+	{
+		eastl::shared_ptr<Actor> pActor = actor.second;
+		if (pActor->GetType() == "Target")
+			target.push_back(pActor);
+	}
+	return target;
+}
 
 //
 // QuakeLogic::ChangeState
@@ -115,7 +188,8 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 			// spawn all AI's views on the game
 			for (int i = 0; i < mExpectedAI; ++i)
 			{
-				eastl::shared_ptr<BaseGameView> aiView(new QuakeAIView());
+				eastl::shared_ptr<BaseGameView> aiView(
+					new QuakeAIView(eastl::make_shared<PathingGraph>()));
 				gameApp->AddView(aiView);
 			}
 
@@ -786,6 +860,12 @@ LevelManager* QuakeLogic::CreateLevelManager(void)
 	return levelManager;
 }
 
+AIManager* QuakeLogic::CreateAIManager(void)
+{
+	QuakeAIManager* aiManager = new QuakeAIManager();
+	return aiManager;
+}
+
 
 eastl::shared_ptr<PlayerActor> QuakeLogic::CreatePlayerActor(const eastl::string &actorResource,
 	tinyxml2::XMLElement *overrides, const Transform *initialTransform, const ActorId serversActorId)
@@ -859,7 +939,7 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 					modelResources["item_health_large"] = "actors/quake/models/health/healthlarge.xml";
 					modelResources["item_health"] = "actors/quake/models/health/health.xml";
 					targetResources["info_player_deathmatch"] = "actors/quake/target/location.xml";
-					targetResources["target_speaker"] = "actors/quake/target/speaker.xml";
+					//targetResources["target_speaker"] = "actors/quake/target/speaker.xml";
 					triggerResources["trigger_teleport"] = "actors/quake/trigger/teleporter.xml";
 					triggerResources["trigger_push"] = "actors/quake/trigger/push.xml";
 

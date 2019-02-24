@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\AI\AIManager.cpp" />
     <ClCompile Include="..\AI\Pathing.cpp" />
     <ClCompile Include="..\Application\Application.cpp" />
     <ClCompile Include="..\Application\ConsoleApplication.cpp" />
@@ -786,6 +787,7 @@
     <ClCompile Include="..\Physic\PhysicEventListener.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\AI\AIManager.h" />
     <ClInclude Include="..\AI\Pathing.h" />
     <ClInclude Include="..\Application\Application.h" />
     <ClInclude Include="..\Application\ConsoleApplication.h" />

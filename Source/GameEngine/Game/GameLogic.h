@@ -51,6 +51,7 @@
 class PathingGraph;
 class ActorFactory;
 class LevelManager;
+class AIManager;
 class BaseGameView;
 class BaseGamePhysic;
 
@@ -114,10 +115,6 @@ public:
 		return ++mLastActorId;
 	}
 
-	//shared_ptr<PathingGraph> GetPathingGraph(void) { return mPathingGraph; }
-	//RandomGenerator& GetRNG(void) { return mRandom; }
-
-	// [rez] note: don't store this strong pointer outside of this class 
 	virtual eastl::shared_ptr<Actor> CreateActor(const eastl::string &actorResource,
 		tinyxml2::XMLElement *overrides, const Transform *initialTransform = NULL,
 		const ActorId serversActorId = INVALID_ACTOR_ID);
@@ -132,6 +129,7 @@ public:
 	eastl::string GetActorXml(const ActorId id);
 
 	LevelManager* GetLevelManager() { return mLevelManager; }
+	AIManager* GetAIManager() { return mAIManager; }
 
 	// [rez] Subclasses shouldn't override this function; use LoadGameDelegate() instead
 	virtual bool LoadGame(const char* levelResource) override;
@@ -171,6 +169,7 @@ protected:
 
 	virtual ActorFactory* CreateActorFactory(void);
 	virtual LevelManager* CreateLevelManager(void);
+	virtual AIManager* CreateAIManager(void);
 
 	// [rez] Override this function to do any game-specific loading.
 	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData) { return true; }
@@ -190,8 +189,8 @@ protected:
 	int mAIPlayersAttached;
 	int mHumanGamesLoaded;
 
-	//eastl::shared_ptr<PathingGraph> mPathingGraph;	// the pathing graph
-	LevelManager * mLevelManager;					// Manages loading and changing levels
+	AIManager*	mAIManager;
+	LevelManager* mLevelManager;					// Manages loading and changing levels
     ActorFactory* mActorFactory;
     
 	bool mIsProxy;									// set if this is a proxy game logic, not a real one

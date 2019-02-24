@@ -14,6 +14,7 @@
 #include "GameDemoNetwork.h"
 #include "GameDemoEvents.h"
 #include "GameDemoManager.h"
+#include "GameDemoAIManager.h"
 
 //
 // GameDemoLogic::GameDemoLogic
@@ -586,6 +587,12 @@ LevelManager* GameDemoLogic::CreateLevelManager(void)
 	demoManager->AddLevelSearchDir(L"world/demo/");
 	demoManager->LoadLevelList(L"*.xml");
 	return demoManager;
+}
+
+AIManager* GameDemoLogic::CreateAIManager(void)
+{
+	GameDemoAIManager* demoAIManager = new GameDemoAIManager();
+	return demoAIManager;
 }
 
 bool GameDemoLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)

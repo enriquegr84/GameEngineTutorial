@@ -13,20 +13,18 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#ifndef GAMEDEMOMANAGER_H
-#define GAMEDEMOMANAGER_H
+#include "GameDemoAIManager.h"
 
-#include "GameDemoStd.h"
 
-#include "Game/Level/LevelManager.h"
-
-class GameDemoManager : public LevelManager
+GameDemoAIManager::GameDemoAIManager()
+	: AIManager()
 {
 
-public:
-	GameDemoManager();
-	~GameDemoManager();
+}   // GameDemoAIManager
 
-};   // DemosManager
+//-----------------------------------------------------------------------------
 
-#endif
+GameDemoAIManager::~GameDemoAIManager()
+{
+
+}   // ~GameDemoAIManager

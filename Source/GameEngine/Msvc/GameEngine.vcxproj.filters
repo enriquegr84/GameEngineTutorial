@@ -1123,6 +1123,9 @@
     <ClCompile Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLShaderResource.cpp">
       <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
     </ClCompile>
+    <ClCompile Include="..\AI\AIManager.cpp">
+      <Filter>AI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -2649,6 +2652,9 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\Renderer\OpenGL4\Shader\GLSLShaderResource.h">
       <Filter>Graphic\Renderer\OpenGL4\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AI\AIManager.h">
+      <Filter>AI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

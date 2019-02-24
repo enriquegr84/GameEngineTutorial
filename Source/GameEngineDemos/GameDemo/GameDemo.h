@@ -83,6 +83,7 @@ public:
 protected:
 
 	virtual LevelManager* CreateLevelManager(void);
+	virtual AIManager* CreateAIManager(void);
 
 	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
 

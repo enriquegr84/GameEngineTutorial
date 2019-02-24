@@ -200,6 +200,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\GameDemo\GameDemo.h" />
+    <ClInclude Include="..\GameDemo\GameDemoAIManager.h" />
     <ClInclude Include="..\GameDemo\GameDemoApp.h" />
     <ClInclude Include="..\GameDemo\GameDemoCameraController.h" />
     <ClInclude Include="..\GameDemo\GameDemoPlayerController.h" />
@@ -228,6 +229,7 @@
     <ClInclude Include="..\Quake\Actors\WeaponPickup.h" />
     <ClInclude Include="..\Quake\Quake.h" />
     <ClInclude Include="..\Quake\QuakeActorFactory.h" />
+    <ClInclude Include="..\Quake\QuakeAIManager.h" />
     <ClInclude Include="..\Quake\QuakeAIView.h" />
     <ClInclude Include="..\Quake\QuakeApp.h" />
     <ClInclude Include="..\Quake\QuakeCameraController.h" />
@@ -243,6 +245,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameDemo\GameDemo.cpp" />
+    <ClCompile Include="..\GameDemo\GameDemoAIManager.cpp" />
     <ClCompile Include="..\GameDemo\GameDemoApp.cpp" />
     <ClCompile Include="..\GameDemo\GameDemoCameraController.cpp" />
     <ClCompile Include="..\GameDemo\GameDemoPlayerController.cpp" />
@@ -265,6 +268,7 @@
     <ClCompile Include="..\Quake\Actors\WeaponPickup.cpp" />
     <ClCompile Include="..\Quake\Quake.cpp" />
     <ClCompile Include="..\Quake\QuakeActorFactory.cpp" />
+    <ClCompile Include="..\Quake\QuakeAIManager.cpp" />
     <ClCompile Include="..\Quake\QuakeAIView.cpp" />
     <ClCompile Include="..\Quake\QuakeApp.cpp" />
     <ClCompile Include="..\Quake\QuakeCameraController.cpp" />

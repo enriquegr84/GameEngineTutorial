@@ -13,20 +13,26 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#ifndef GAMEDEMOMANAGER_H
-#define GAMEDEMOMANAGER_H
+#include "AIManager.h"
 
-#include "GameDemoStd.h"
+#include "Core/IO/FileSystem.h"
+#include "Core/IO/ResourceCache.h"
+#include "Core/Logger/Logger.h"
 
-#include "Game/Level/LevelManager.h"
 
-class GameDemoManager : public LevelManager
+//========================================================================
+//
+// AI Manager implementation
+//
+//========================================================================
+
+AIManager::AIManager()
 {
 
-public:
-	GameDemoManager();
-	~GameDemoManager();
+} // LevelManager
 
-};   // DemosManager
+//-----------------------------------------------------------------------------
+AIManager::~AIManager()
+{
 
-#endif
+}// ~AIManager

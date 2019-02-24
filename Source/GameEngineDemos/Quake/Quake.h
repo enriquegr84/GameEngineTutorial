@@ -209,11 +209,11 @@ enum EntityType
 //---------------------------------------------------------------------------------------------------------------------
 class QuakeLogic : public GameLogic
 {
+	friend class QuakeAIManager;
+
 public:
 	QuakeLogic();
 	virtual ~QuakeLogic();
-
-	// Quake Methods
 
 	// Update
 	virtual void SetProxy();
@@ -226,6 +226,14 @@ public:
 	// Overloads
 	virtual void ChangeState(BaseGameState newState);
 	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) { return mPhysics; }
+
+	// Quake Actors
+	eastl::vector<eastl::shared_ptr<Actor>> GetAmmoActors();
+	eastl::vector<eastl::shared_ptr<Actor>> GetWeaponActors();
+	eastl::vector<eastl::shared_ptr<Actor>> GetHealthActors();
+	eastl::vector<eastl::shared_ptr<Actor>> GetArmorActors();
+	eastl::vector<eastl::shared_ptr<Actor>> GetTriggerActors();
+	eastl::vector<eastl::shared_ptr<Actor>> GetTargetActors();
 
 	// event delegates
 	void RequestStartGameDelegate(BaseEventDataPtr pEventData);
@@ -251,6 +259,13 @@ public:
 	void EndSteerDelegate(BaseEventDataPtr pEventData);
 
 protected:
+
+	// event registers
+	void RegisterAllDelegates(void);
+	void RemoveAllDelegates(void);
+	void CreateNetworkEventForwarder(const int socketId);
+	void DestroyAllNetworkEventForwarders(void);
+
 	eastl::list<NetworkEventForwarder*> mNetworkEventForwarders;
 
 	eastl::shared_ptr<PlayerActor> CreatePlayerActor(const eastl::string &actorResource,
@@ -259,14 +274,11 @@ protected:
 
 	virtual ActorFactory* CreateActorFactory(void);
 	virtual LevelManager* CreateLevelManager(void);
+	virtual AIManager* CreateAIManager(void);
 
 	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData);
 
 private:
-	void RegisterAllDelegates(void);
-	void RemoveAllDelegates(void);
-	void CreateNetworkEventForwarder(const int socketId);
-	void DestroyAllNetworkEventForwarders(void);
 
 	bool RadiusDamage(float damage, float radius, int mod,
 		Vector3<float> origin, const eastl::shared_ptr<PlayerActor>& attacker);

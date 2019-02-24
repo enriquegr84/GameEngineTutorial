@@ -45,11 +45,14 @@
 
 #include "Game/View/GameView.h"
 
+#include "AI/Pathing.h"
+
 class QuakeAIView : public BaseGameView 
 {
 
 public:
 	QuakeAIView();
+	QuakeAIView(eastl::shared_ptr<PathingGraph> pPathingGraph);
 	virtual ~QuakeAIView();
 
 	virtual bool OnRestore() { return true; }
@@ -93,6 +96,10 @@ protected:
 	float		mJumpMoveSpeed;
 	float		mMoveSpeed;
 	float		mRotateSpeed;
+
+private:
+
+	eastl::shared_ptr<PathingGraph> mPathingGraph;
 };
 
 #endif

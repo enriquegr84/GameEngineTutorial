@@ -419,7 +419,7 @@ PathingNode* PathingGraph::FindClosestNode(const Vector3<float>& pos)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
 	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
-	PathingNode* pClosestNode = mNodes.front();
+	PathingNode* pClosestNode = NULL;
 	float length = FLT_MAX;
 	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 	{
@@ -439,7 +439,7 @@ PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
 	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
-	PathingNode* pFurthestNode = mNodes.front();
+	PathingNode* pFurthestNode = NULL;
 	float length = 0;
 	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 	{
@@ -510,41 +510,11 @@ PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, PathingNode* pGoalNode
 	return aStar(pStartNode,pGoalNode);
 }
 
-void PathingGraph::BuildTestGraph(void)
+void PathingGraph::InsertNode(PathingNode* pNode)
 {
+	LogAssert(pNode, "Invalid node");
 
-	// this should never occur, but better safe than sorry
-	if (!mNodes.empty())
-		DestroyGraph();
-	
-	// keep from reallocating and copying the array
-	mNodes.reserve(81);
-
-	// Create a simple grid of nodes.  Using these hard-coded values is a bit hacky but it's okay 
-	// because this is just a debug function.
-	int index = 0;  // this is used to keep track of the node we just inserted so we can link it to adjacent nodes
-	for (float x = -45.0f; x < 45.0f; x += 10.0f)
-	{
-		for (float z = -45.0f; z < 45.0f; z += 10.0f)
-		{
-			// add the new node
-			PathingNode* pNode = new PathingNode(Vector3<float>{x, 0, z});
-			mNodes.push_back(pNode);
-			
-			// link it to the previous node
-			int tempNode = index - 1;
-			if (tempNode >= 0)
-				LinkNodes(mNodes[tempNode],pNode);
-				
-			// link it to the node above it
-			tempNode = index - 9;  // reusing tempNode
-			if (tempNode >= 0)
-				LinkNodes(mNodes[tempNode],pNode);
-				
-			index++;
-		}
-	}
-
+	mNodes.push_back(pNode);
 }
 
 void PathingGraph::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
@@ -558,15 +528,3 @@ void PathingGraph::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
 	pNodeB->AddArc(pArc);
 	mArcs.push_back(pArc);
 }
-
-
-//--------------------------------------------------------------------------------------------------------
-// Global functions
-//--------------------------------------------------------------------------------------------------------
-PathingGraph* CreatePathingGraph(void)
-{
-	PathingGraph* pPathingGraph = new PathingGraph();
-	pPathingGraph->BuildTestGraph();
-	return pPathingGraph;
-}
-

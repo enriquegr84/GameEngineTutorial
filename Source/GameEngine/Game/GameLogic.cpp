@@ -51,6 +51,8 @@
 #include "Game/Actor/ActorFactory.h"
 #include "Game/Level/LevelManager.h"
 
+#include "AI/AIManager.h"
+
 #include "Application/GameApplication.h"
 
 
@@ -85,8 +87,7 @@ GameLogic::GameLogic()
 	mHumanGamesLoaded = 0;
 	mActorFactory = NULL;
 	mLevelManager = NULL;
-
-	//mPathingGraph = NULL;
+	mAIManager = NULL;
 
 	mProcessManager = new ProcessManager();
 	LogAssert(mProcessManager, "Uninitialized process mngr");
@@ -115,10 +116,12 @@ GameLogic::~GameLogic()
 	delete mProcessManager;
 	delete mActorFactory;
 	delete mLevelManager;
+	delete mAIManager;
 
 	mProcessManager = nullptr;
 	mActorFactory = nullptr;
 	mLevelManager = nullptr;
+	mAIManager = nullptr;
 
     // destroy all actors
     for (auto it = mActors.begin(); it != mActors.end(); ++it)
@@ -137,7 +140,7 @@ bool GameLogic::Init(void)
 {
     mActorFactory = CreateActorFactory();
 	mLevelManager = CreateLevelManager();
-    //mPathingGraph.reset(CreatePathingGraph());
+	mAIManager = CreateAIManager();
 
     BaseEventManager::Get()->AddListener(
 		MakeDelegate(this, &GameLogic::RequestDestroyActorDelegate), 
@@ -484,6 +487,11 @@ void GameLogic::RenderDiagnostics()
 ActorFactory* GameLogic::CreateActorFactory(void)
 {
     return new ActorFactory();
+}
+
+AIManager* GameLogic::CreateAIManager(void)
+{
+	return new AIManager();
 }
 
 LevelManager* GameLogic::CreateLevelManager(void)

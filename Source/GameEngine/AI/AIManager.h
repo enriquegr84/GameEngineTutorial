@@ -13,20 +13,22 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#ifndef GAMEDEMOMANAGER_H
-#define GAMEDEMOMANAGER_H
+#ifndef AIMANAGER_H
+#define AIMANAGER_H
 
-#include "GameDemoStd.h"
+#include "GameEngineStd.h"
 
-#include "Game/Level/LevelManager.h"
-
-class GameDemoManager : public LevelManager
+/*
+	Simple class to load and manage artificial intelligence
+ */
+class AIManager
 {
-
 public:
-	GameDemoManager();
-	~GameDemoManager();
+	AIManager();
+	~AIManager();
 
-};   // DemosManager
+	virtual void CreateWaypoints(ActorId playerId) { };
+
+};   // AIManager
 
 #endif

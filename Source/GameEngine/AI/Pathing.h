@@ -52,8 +52,9 @@ class AStar;
 typedef eastl::list<PathingArc*> PathingArcList;
 typedef eastl::list<PathingNode*> PathingNodeList;
 typedef eastl::vector<PathingNode*> PathingNodeVec;
-typedef eastl::map<PathingNode*, PathPlanNode*> PathingNodeToPathPlanNodeMap;
 typedef eastl::list<PathPlanNode*> PathPlanNodeList;
+typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
+typedef eastl::map<PathingNode*, PathPlanNode*> PathingNodeToPathPlanNodeMap;
 
 const float PATHING_DEFAULT_NODE_TOLERANCE = 5.0f;
 const float PATHING_DEFAULT_ARC_WEIGHT = 1.0f;
@@ -75,10 +76,9 @@ public:
 	const Vector3<float>& GetPos(void) const { return mPos; }
 	float GetTolerance(void) const { return mTolerance; }
 	void AddArc(PathingArc* pArc);
+	PathingArc* FindArc(PathingNode* pLinkedNode);
 	void GetNeighbors(PathingNodeList& outNeighbors);
 	float GetCostFromNode(PathingNode* pFromNode);
-private:
-	PathingArc* FindArc(PathingNode* pLinkedNode);
 };
 
 
@@ -89,11 +89,17 @@ private:
 class PathingArc
 {
 	float mWeight;
+	unsigned int mType;
 	PathingNode* mNodes[2];  // an arc always connects two nodes
 
 public:
-	explicit PathingArc(float weight = PATHING_DEFAULT_ARC_WEIGHT) { mWeight = weight; }
+	explicit PathingArc(unsigned int type = 0, float weight = PATHING_DEFAULT_ARC_WEIGHT) 
+	{ 
+		mType = type;
+		mWeight = weight; 
+	}
 	float GetWeight(void) const { return mWeight; }
+	unsigned int GetType(void) const { return mType; }
 	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
 	PathingNode* GetNeighbor(PathingNode* pMe);
 };
@@ -199,7 +205,7 @@ public:
 	PathingGraph(void) {}
 	~PathingGraph(void) { DestroyGraph(); }
 	void DestroyGraph(void);
-	
+
 	PathingNode* FindClosestNode(const Vector3<float>& pos);
 	PathingNode* FindFurthestNode(const Vector3<float>& pos);
 	PathingNode* FindRandomNode(void);
@@ -208,16 +214,10 @@ public:
 	PathPlan* FindPath(PathingNode* pStartNode, const Vector3<float>& endPoint);
 	PathPlan* FindPath(PathingNode* pStartNode, PathingNode* pGoalNode);
 	
-	// debug functions
-	void BuildTestGraph(void);
-	
-private:
 	// helpers
+	void InsertNode(PathingNode* pNode);
 	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
 };
-
-// Global function for creating & initializing the pathing graph.
-PathingGraph* CreatePathingGraph(void);
 
 
 #endif

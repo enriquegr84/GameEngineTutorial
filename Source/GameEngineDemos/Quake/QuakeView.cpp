@@ -66,6 +66,7 @@
 #include "QuakeAIView.h"
 #include "QuakeEvents.h"
 #include "QuakeLevelManager.h"
+#include "QuakeAIManager.h"
 #include "QuakeNetwork.h"
 #include "QuakePlayerController.h"
 #include "QuakeCameraController.h"
@@ -998,8 +999,20 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 				{
 					case KEY_KEY_5:
 					{
-						mShowUI = !mShowUI;
-						//mQuakeStandardHUD->SetVisible(mShowUI);
+						GameApplication* gameApp = (GameApplication*)Application::App;
+						const GameViewList& gameViews = gameApp->GetGameViews();
+						for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
+						{
+							eastl::shared_ptr<BaseGameView> pView = *it;
+							if (pView->GetType() == GV_HUMAN)
+							{
+								eastl::shared_ptr<QuakeHumanView> pHumanView =
+									eastl::static_pointer_cast<QuakeHumanView, BaseGameView>(pView);
+								GameLogic::Get()->GetAIManager()->CreateWaypoints(pHumanView->GetActorId());
+								break;
+							}
+						}
+
 						return true;
 					}
 
@@ -1013,12 +1026,8 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 
 					case KEY_KEY_7:
 					{
-						QuakeLogic* twg = static_cast<QuakeLogic *>(GameLogic::Get());
-						twg->ToggleRenderDiagnostics();
-						/*
-						for (auto child : mScene->GetRootNode()->GetChildren())
-							child->SetVisible(!child->IsVisible());
-						*/
+						QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
+						game->ToggleRenderDiagnostics();
 						return true;
 					}	
 
