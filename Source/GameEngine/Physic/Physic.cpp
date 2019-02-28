@@ -125,8 +125,8 @@ public:
 	virtual void RenderDiagnostics() { }
 
 	// Physics world modifiers
-	virtual void ApplyForce(const Vector3<float> &velocity, ActorId aid) { }
-	virtual void ApplyTorque(const Vector3<float> &velocity, ActorId aid) { }
+	virtual void ApplyForce(ActorId aid, const Vector3<float> &velocity) { }
+	virtual void ApplyTorque(ActorId aid, const Vector3<float> &velocity) { }
 
 	// Physics actor states
 	virtual bool OnGround(ActorId actorId) { return false; }
@@ -373,8 +373,8 @@ public:
 	virtual void RenderDiagnostics() override;
 
 	// Physics world modifiers
-	virtual void ApplyForce(const Vector3<float> &velocity, ActorId aid) override;
-	virtual void ApplyTorque(const Vector3<float> &velocity, ActorId aid) override;
+	virtual void ApplyForce(ActorId aid, const Vector3<float> &velocity) override;
+	virtual void ApplyTorque(ActorId aid, const Vector3<float> &velocity) override;
 	
 	virtual bool OnGround(ActorId actorId);
 	virtual void Jump(ActorId actorId, const Vector3<float>& dir);
@@ -656,8 +656,8 @@ void BulletPhysics::OnUpdate( float const deltaSeconds )
 	// Bullet uses an internal fixed timestep (default 1/60th of a second)
 	//   We pass in 4 as a max number of sub steps.  Bullet will run the simulation
 	//   in increments of the fixed timestep until "deltaSeconds" amount of time has
-	//   passed, but will only run a maximum of 4 steps this way.
-	mDynamicsWorld->stepSimulation(deltaSeconds, 4 );
+	//   passed, but will only run a maximum of 10 steps this way.
+	mDynamicsWorld->stepSimulation(deltaSeconds, 10 );
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1121,7 +1121,7 @@ void BulletPhysics::RenderDiagnostics()
 /////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::ApplyForce					- Chapter 17, page 603
 //
-void BulletPhysics::ApplyForce(const Vector3<float> &velocity, ActorId aid)
+void BulletPhysics::ApplyForce(ActorId aid, const Vector3<float> &velocity)
 {
 	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(aid))
 	{
@@ -1144,7 +1144,7 @@ void BulletPhysics::ApplyForce(const Vector3<float> &velocity, ActorId aid)
 /////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::ApplyTorque					- Chapter 17, page 603
 //
-void BulletPhysics::ApplyTorque(const Vector3<float> &velocity, ActorId aid)
+void BulletPhysics::ApplyTorque(ActorId aid, const Vector3<float> &velocity)
 {
 	if (btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(FindBulletCollisionObject(aid)))
 		rigidBody->applyTorqueImpulse( Vector3TobtVector3(velocity) );

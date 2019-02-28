@@ -115,7 +115,7 @@ tinyxml2::XMLElement* TransformComponent::GenerateXml(void)
     Vector3<float> pos(mTransform.GetTranslation());
     pPosition->SetAttribute("x", eastl::to_string(pos[0]).c_str());
     pPosition->SetAttribute("y", eastl::to_string(pos[1]).c_str());
-    pPosition->SetAttribute("z", eastl::to_string(pos[3]).c_str());
+    pPosition->SetAttribute("z", eastl::to_string(pos[2]).c_str());
     pBaseElement->LinkEndChild(pPosition);
 
     // initial transform -> LookAt

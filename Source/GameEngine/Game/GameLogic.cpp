@@ -531,6 +531,6 @@ void GameLogic::RequestNewActorDelegate(BaseEventDataPtr pEventData)
 	{
 		eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
 			new EventDataNewActor(pActor->GetId(), pCastEventData->GetViewId()));
-        BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+        BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
 	}
 }

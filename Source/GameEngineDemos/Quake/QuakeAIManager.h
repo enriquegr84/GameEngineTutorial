@@ -51,6 +51,9 @@ public:
 
 	virtual void CreateWaypoints(ActorId playerId);
 
+	void SavePathingGraph(const eastl::string& path);
+	void LoadPathingGraph(const eastl::wstring& path);
+
 protected:
 
 	void SimulateJump(PathingNode* pNode);
@@ -59,11 +62,27 @@ protected:
 	void SimulateTriggerPush(PathingNode* pNode, const Vector3<float>& target);
 	void SimulateTriggerTeleport(PathingNode* pNode, const Vector3<float>& target);
 
-	void SimulateWaypoints();
+	void SimulateWaypoint();
+
+	void SimulateGauntletAttack(PathingNode* pNode);
+	void SimulateBulletFire(PathingNode* pNode, float spread, int damage);
+	void SimulateShotgunFire(PathingNode* pNode);
+	void SimulateRailgunFire(PathingNode* pNode);
+	void SimulateLightningFire(PathingNode* pNode);
+	void SimulateGrenadeLauncherFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor);
+	void SimulateRocketLauncherFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor);
+	void SimulatePlasmagunFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor);
+
+	void SimulateFiring();
 
 	unsigned int GetNewNodeID(void)
 	{
 		return ++mLastNodeId;
+	}
+
+	unsigned int GetNewArcID(void)
+	{
+		return ++mLastArcId;
 	}
 
 	// event delegates
@@ -94,19 +113,21 @@ protected:
 
 private:
 
+	unsigned int mLastArcId;
 	unsigned int mLastNodeId;
-
-	//we simulate doing the same rotations, so we store them
-	//in order to not recalculate it every time
-	eastl::map<int, Vector3<float>> mAngleDirection;
-	eastl::map<int, Matrix4x4<float>> mRotationDirection;
 
 	//open set of nodes to be analized and also to
 	//inform whether they are on ground or not
 	eastl::map<PathingNode*, bool> mOpenSet, mClosedSet;
 
 	//pathing nodes which contains actors from game
+	eastl::map<ActorId, bool> mActorCollisions;
 	eastl::map<Vector3<float>, ActorId> mActorNodes;
+	PathingNodeDoubleMap mWeaponGroundDamage[MAX_WEAPONS];
+	PathingNodeDoubleMap mWeaponGroundDamageTime[MAX_WEAPONS];
+	PathingNodeDirectionMap mWeaponGroundDirection[MAX_WEAPONS];
+	PathingNodeArcDoubleMap mWeaponDamage[MAX_WEAPONS];
+	PathingNodeArcDirectionMap mWeaponDirection[MAX_WEAPONS];
 
 	eastl::shared_ptr<PathingGraph> mPathingGraph;
 

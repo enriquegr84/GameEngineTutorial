@@ -2055,7 +2055,7 @@ bool QuakeLogic::ShotgunPellet(const eastl::shared_ptr<PlayerActor>& player,
 }
 
 void QuakeLogic::ShotgunFire(
-	const eastl::shared_ptr<PlayerActor>& player,
+	const eastl::shared_ptr<PlayerActor>& player, 
 	const Vector3<float>& muzzle, const Vector3<float>& forward,
 	const Vector3<float>& right, const Vector3<float>& up)
 {
@@ -2087,9 +2087,9 @@ GRENADE LAUNCHER
 */
 
 void QuakeLogic::GrenadeLauncherFire(
-	const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
-	const Vector3<float>& forward, const Vector3<float>& right,
-	const Vector3<float>& up, const EulerAngles<float>& viewAngles)
+	const eastl::shared_ptr<PlayerActor>& player, 
+	const Vector3<float>& muzzle, const Vector3<float>& forward, 
+	const Vector3<float>& right, const Vector3<float>& up, const EulerAngles<float>& viewAngles)
 {
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
 		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
@@ -2145,9 +2145,9 @@ ROCKET
 */
 
 void QuakeLogic::RocketLauncherFire(
-	const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
-	const Vector3<float>& forward, const Vector3<float>& right,
-	const Vector3<float>& up, const EulerAngles<float>& viewAngles)
+	const eastl::shared_ptr<PlayerActor>& player, 
+	const Vector3<float>& muzzle, const Vector3<float>& forward, 
+	const Vector3<float>& right, const Vector3<float>& up, const EulerAngles<float>& viewAngles)
 {
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
 		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
@@ -2207,8 +2207,7 @@ PLASMA GUN
 void QuakeLogic::PlasmagunFire(
 	const eastl::shared_ptr<PlayerActor>& player, 
 	const Vector3<float>& muzzle, const Vector3<float>& forward, 
-	const Vector3<float>& right, const Vector3<float>& up, 
-	const EulerAngles<float>& viewAngles)
+	const Vector3<float>& right, const Vector3<float>& up, const EulerAngles<float>& viewAngles)
 {
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
 		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
@@ -2264,11 +2263,9 @@ RAILGUN
 ======================================================================
 */
 
-void QuakeLogic::RailgunFire(
-	const eastl::shared_ptr<PlayerActor>& player,
+void QuakeLogic::RailgunFire(const eastl::shared_ptr<PlayerActor>& player,
 	const Vector3<float>& muzzle, const Vector3<float>& forward,
-	const Vector3<float>& right, const Vector3<float>& up,
-	const EulerAngles<float>& viewAngles)
+	const Vector3<float>& right, const Vector3<float>& up)
 {
 	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
 	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
@@ -2316,7 +2313,7 @@ void QuakeLogic::RailgunFire(
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
+			AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
 
 		Transform initTransform;
 		initTransform.SetRotation(yawRotation * pitchRotation);
@@ -2351,11 +2348,9 @@ LIGHTNING GUN
 ======================================================================
 */
 
-void QuakeLogic::LightningFire(
-	const eastl::shared_ptr<PlayerActor>& player,
+void QuakeLogic::LightningFire(const eastl::shared_ptr<PlayerActor>& player,
 	const Vector3<float>& muzzle, const Vector3<float>& forward,
-	const Vector3<float>& right, const Vector3<float>& up,
-	const EulerAngles<float>& viewAngles)
+	const Vector3<float>& right, const Vector3<float>& up)
 {
 	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
 	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
@@ -2403,7 +2398,7 @@ void QuakeLogic::LightningFire(
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
+			AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
 
 		Transform initTransform;
 		initTransform.SetRotation(yawRotation * pitchRotation);
@@ -2468,7 +2463,7 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 
 	//set muzzle location relative to pivoting eye
 	Vector3<float> muzzle = origin;
-	muzzle[2] += pPlayerActor->GetState().viewHeight;
+	muzzle += up * (float)pPlayerActor->GetState().viewHeight;
 	muzzle += forward * 10.f;
 	muzzle -= right * 11.f;
 
@@ -2494,10 +2489,10 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 			PlasmagunFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
 			break;
 		case WP_RAILGUN:
-			RailgunFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
+			RailgunFire(pPlayerActor, muzzle, forward, right, up);
 			break;
 		case WP_LIGHTNING:
-			LightningFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
+			LightningFire(pPlayerActor, muzzle, forward, right, up);
 			break;
 		default:
 			// FIXME Error( "Bad ent->state->weapon" );

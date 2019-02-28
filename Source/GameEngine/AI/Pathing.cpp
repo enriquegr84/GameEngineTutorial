@@ -468,6 +468,24 @@ PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos)
 	return pFurthestNode;
 }
 
+
+const PathingNodeVec& PathingGraph::FindNodes(const Vector3<float>& pos, float radius)
+{
+	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
+	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
+	PathingNodeVec nodes;
+	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
+	{
+		PathingNode* pNode = *it;
+		Vector3<float> diff = pos - pNode->GetPos();
+		if (Length(diff) <= radius)
+			nodes.push_back(pNode);
+	}
+
+	return nodes;
+}
+
+
 PathingNode* PathingGraph::FindRandomNode(void)
 {
 	// cache this since it's not guaranteed to be constant time

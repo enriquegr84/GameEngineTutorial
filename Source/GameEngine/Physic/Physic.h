@@ -91,8 +91,8 @@ public:
 	virtual void RenderDiagnostics() = 0;
 
 	// Physics world modifiers
-	virtual void ApplyForce(const Vector3<float> &velocity, ActorId aid) = 0;
-	virtual void ApplyTorque(const Vector3<float> &velocity, ActorId aid) = 0;
+	virtual void ApplyForce(ActorId aid, const Vector3<float> &velocity) = 0;
+	virtual void ApplyTorque(ActorId aid, const Vector3<float> &velocity) = 0;
 
 	// Physics actor states
 	virtual bool OnGround(ActorId actorId) = 0;

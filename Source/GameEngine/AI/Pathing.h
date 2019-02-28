@@ -55,6 +55,10 @@ typedef eastl::vector<PathingNode*> PathingNodeVec;
 typedef eastl::list<PathPlanNode*> PathPlanNodeList;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
 typedef eastl::map<PathingNode*, PathPlanNode*> PathingNodeToPathPlanNodeMap;
+typedef eastl::map<PathingNode*, eastl::map<PathingNode*, float>> PathingNodeDoubleMap;
+typedef eastl::map<PathingNode*, eastl::map<PathingNode*, Vector3<float>>> PathingNodeDirectionMap;
+typedef eastl::map<PathingNode*, eastl::map<PathingArc*, float>> PathingNodeArcDoubleMap;
+typedef eastl::map<PathingNode*, eastl::map<PathingArc*, Vector3<float>>> PathingNodeArcDirectionMap;
 
 const float PATHING_DEFAULT_NODE_TOLERANCE = 5.0f;
 const float PATHING_DEFAULT_ARC_WEIGHT = 1.0f;
@@ -70,17 +74,16 @@ class PathingNode
 	Vector3<float> mPos;
 	PathingArcList mArcs;
 
-	ActorId mActorId;
 	float mTolerance;
-	
+	ActorId mActorId;
+
 public:
 	explicit PathingNode(unsigned int id, ActorId actorId, 
 		const Vector3<float>& pos, float tolerance = PATHING_DEFAULT_NODE_TOLERANCE)
-		: mId(id), mActorId(actorId), mPos(pos) 
-	{ 
-		mTolerance = tolerance; 
-	}
+		: mId(id), mActorId(actorId), mPos(pos), mTolerance(tolerance)
+	{ }
 
+	unsigned int GetId(void) const { return mId; }
 	void SetActorId(ActorId actorId) { mActorId = actorId; }
 	ActorId GetActorId(void) const { return mActorId; }
 	float GetTolerance(void) const { return mTolerance; }
@@ -89,6 +92,7 @@ public:
 	void AddArc(PathingArc* pArc);
 	PathingArc* FindArc(PathingNode* pLinkedNode);
 	PathingArc* FindArc(unsigned int arcType, PathingNode* pLinkedNode);
+	const PathingArcList& GetArcs() { return mArcs; }
 	void GetNeighbors(PathingNodeList& outNeighbors);
 	float GetCostFromNode(PathingNode* pFromNode);
 };
@@ -100,25 +104,33 @@ public:
 //--------------------------------------------------------------------------------------------------------
 class PathingArc
 {
-	float mWeight;
+	unsigned int mId;
 	unsigned int mType;
+	float mWeight;
 	Vector3<float> mConnection; //an optional interpolation vector which connects nodes 
 	PathingNode* mNodes[2];  // an arc always connects two nodes
 
 public:
-	explicit PathingArc(unsigned int type = 0, 
+	explicit PathingArc(
+		unsigned int id = 0,
+		unsigned int type = 0, 
 		float weight = PATHING_DEFAULT_ARC_WEIGHT, 
-		const Vector3<float>& connect = Vector3<float>::Zero()) 
-	{ 
-		mType = type;
-		mWeight = weight; 
-		mConnection = connect;
-	}
+		const Vector3<float>& connect = NULL) 
+		: mId(id), mType(type), mWeight(weight), mConnection(connect)
+	{ }
+
+	unsigned int GetId(void) const { return mId; }
 	float GetWeight(void) const { return mWeight; }
 	unsigned int GetType(void) const { return mType; }
 	const Vector3<float>& GetConnection(void) const { return mConnection; }
+
 	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
 	PathingNode* GetNeighbor(PathingNode* pMe);
+	unsigned int GetLinkId(unsigned int link) 
+	{ 
+		LogAssert(link < 2, "Invalid node");
+		return mNodes[link]->GetId();
+	}
 };
 
 
@@ -223,6 +235,7 @@ public:
 	~PathingGraph(void) { DestroyGraph(); }
 	void DestroyGraph(void);
 
+	const PathingNodeVec& FindNodes(const Vector3<float>& pos, float radius);
 	PathingNode* FindClosestNode(const Vector3<float>& pos);
 	PathingNode* FindFurthestNode(const Vector3<float>& pos);
 	PathingNode* FindRandomNode(void);
@@ -233,6 +246,7 @@ public:
 	
 	// helpers
 	void InsertNode(PathingNode* pNode);
+	const PathingNodeVec& GetNodes() { return mNodes; }
 	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
 };
 

@@ -51,10 +51,10 @@ public:
     void Reset();
 
     // ------------------------------------------------------------------------
-    /** Returns a unique identifier for this level (the directory name). */
+    /** Returns a unique id for this level (the directory name). */
     const eastl::wstring& GetID() const {return mID;}
 	// ------------------------------------------------------------------------
-	/** Returns a unique identifier for this level (the directory name). */
+	/** Returns the name for this level (the directory name). */
 	const eastl::wstring& GetName() const { return mName; }
 	// ------------------------------------------------------------------------
     /** Returns the filename of this level. */

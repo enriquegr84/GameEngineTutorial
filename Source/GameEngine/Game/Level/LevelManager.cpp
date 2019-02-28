@@ -51,15 +51,15 @@ void LevelManager::AddLevelSearchDir(const eastl::wstring &dir)
 }   // addLevelSearchDir
 
 //-----------------------------------------------------------------------------
-/** Get LevelData by the level identifier.
- *  \param ident Identifier = basename of the directory the level is in.
- *  \return      The corresponding level object, or NULL if not found
+/** Get LevelData by the level id.
+ *  \param id = basename of the directory the level is in.
+ *  \return The corresponding level object, or NULL if not found
  */
-Level* LevelManager::GetLevel(const eastl::wstring& ident) const
+Level* LevelManager::GetLevel(const eastl::wstring& id) const
 {
     for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
     {
-        if ((*i)->GetID() == ident)
+        if ((*i)->GetID() == id)
             return *i;
     }
 
@@ -80,7 +80,7 @@ void LevelManager::RemoveAllCachedData()
 }   // RemoveAllCachedData
 //-----------------------------------------------------------------------------
 /** Sets all levels that are not in the list a to be unavailable.
- *  \param demos List of all levels identifiers (available on a client).
+ *  \param demos List of all levels id (available on a client).
  */
 void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::wstring> &levels)
 {
@@ -98,9 +98,9 @@ void LevelManager::SetUnavailableLevels(const eastl::vector<eastl::wstring> &lev
 }   // SetUnavailableLevels
 
 //-----------------------------------------------------------------------------
-/** Returns a list with all level identifiers.
+/** Returns a list with all level ids.
  */
-eastl::vector<eastl::wstring> LevelManager::GetAllLevelIdentifiers()
+eastl::vector<eastl::wstring> LevelManager::GetAllLevelIds()
 {
     eastl::vector<eastl::wstring> all;
     for(LevelList::const_iterator i = mLevels.begin(); i != mLevels.end(); ++i)
@@ -108,7 +108,7 @@ eastl::vector<eastl::wstring> LevelManager::GetAllLevelIdentifiers()
         all.push_back((*i)->GetID());
     }
     return all;
-}   // GetAllLevelIdentifiers
+}   // GetAllLevelIds
 
 //-----------------------------------------------------------------------------
 /** Loads all levels from the level directory (world/).
@@ -131,8 +131,8 @@ void LevelManager::LoadLevelList(const eastl::wstring& levelname)
         // ------------------------------------------------
 
 		eastl::vector<eastl::wstring> files = ResCache::Get()->Match(dir + levelname);
-        for(eastl::vector<eastl::wstring>::iterator itFile = files.begin(); 
-			itFile != files.end(); itFile++)
+		eastl::vector<eastl::wstring>::iterator itFile = files.begin();
+        for(; itFile != files.end(); itFile++)
         {
             LoadLevel(*itFile);
         }   // for dir in dirs
@@ -169,15 +169,15 @@ bool LevelManager::LoadLevel(const eastl::wstring& levelname)
 
 // ----------------------------------------------------------------------------
 /** Removes a level.
- *  \param ident Identifier of the level (i.e. the name of the directory).
+ *  \param id of the level (i.e. the name of the directory).
  */
-void LevelManager::RemoveLevel(const eastl::wstring& ident)
+void LevelManager::RemoveLevel(const eastl::wstring& id)
 {
-    Level* level = GetLevel(ident);
+    Level* level = GetLevel(id);
     if (level == NULL)
     {
 		wchar_t error[128];
-        wsprintf(error, L"There is no level named '%s'!!", ident.c_str());
+        wsprintf(error, L"There is no level named '%s'!!", id.c_str());
         LogError(error);
         return;
     }
@@ -188,7 +188,7 @@ void LevelManager::RemoveLevel(const eastl::wstring& ident)
     if (it == mLevels.end())
     {
 		wchar_t error[128];
-		wsprintf(error, L" Cannot find level '%s' in map!!", ident.c_str());
+		wsprintf(error, L" Cannot find level '%s' in map!!", id.c_str());
 		LogError(error);
         return;
     }

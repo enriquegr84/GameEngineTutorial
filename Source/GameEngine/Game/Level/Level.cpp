@@ -21,7 +21,7 @@
 #include "Core/Utility/StringUtil.h"
 
 // ----------------------------------------------------------------------------
-Level::Level(const eastl::wstring& filename) : mFileName(filename)
+Level::Level(const eastl::wstring& filename) : mID(filename), mFileName(filename)
 {
 	if (filename.rfind('.') != eastl::string::npos)
 	{

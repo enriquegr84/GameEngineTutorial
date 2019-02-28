@@ -31,13 +31,13 @@ public:
 	~LevelManager();
 
     static void AddLevelSearchDir(const eastl::wstring &dir);
-    /** Returns a list of all level identifiers. */
-    eastl::vector<eastl::wstring> GetAllLevelIdentifiers();
+    /** Returns a list of all level ids. */
+    eastl::vector<eastl::wstring> GetAllLevelIds();
 
 	/* Level */
 	virtual bool LoadLevel(const eastl::wstring& dirname);
-	Level* GetLevel(const eastl::wstring& ident) const;
-	void RemoveLevel(const eastl::wstring &ident);
+	Level* GetLevel(const eastl::wstring& id) const;
+	void RemoveLevel(const eastl::wstring &id);
 
     /** Load all level files from all directories */
     void  LoadLevelList(const eastl::wstring& levelname);
