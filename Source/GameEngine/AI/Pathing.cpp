@@ -51,12 +51,21 @@ void PathingNode::AddArc(PathingArc* pArc)
 	mArcs.push_back(pArc);
 }
 
-void PathingNode::GetNeighbors(PathingNodeList& outNeighbors)
+void PathingNode::GetNeighbors(unsigned int arcType, PathingNodeList& outNeighbors)
 {
 	for (PathingArcList::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		PathingArc* pArc = *it;
-		outNeighbors.push_back(pArc->GetNeighbor(this));
+		if (arcType == AT_NORMAL)
+		{
+			if (pArc->GetType() == AT_NORMAL)
+				outNeighbors.push_back(pArc->GetNeighbor(this));
+		}
+		else
+		{
+			if (pArc->GetType() & arcType)
+				outNeighbors.push_back(pArc->GetNeighbor(this));
+		}
 	}
 }
 
@@ -65,8 +74,7 @@ float PathingNode::GetCostFromNode(PathingNode* pFromNode)
 	LogAssert(pFromNode, "Invalid node");
 	PathingArc* pArc = FindArc(pFromNode);
 	LogAssert(pArc, "Invalid arc");
-	Vector3<float> diff = pFromNode->GetPos() - mPos;
-	return pArc->GetWeight() * Length(diff);
+	return pArc->GetWeight();
 }
 
 PathingArc* PathingNode::FindArc(PathingNode* pLinkedNode)
@@ -127,23 +135,8 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 	if (mIndex == mPath.end())
 		return false;
 
-	Vector3<float> diff = pos - (*mIndex)->GetPos();
-	
-	// DEBUG dump target orientation
-	/*
-	wchar_t str[64];  // I'm sure this is overkill
-	memset(str,0,sizeof(wchar_t));
-	wprintf_s(str,64,_T("distance: %f\n"),diff.Length());
-    GE_LOG("AI", str);
-	*/
-	// end DEBUG
-	
-	if (Length(diff) <= (*mIndex)->GetTolerance())
-	{
-		++mIndex;
-		return true;
-	}
-	return false;
+	++mIndex;
+	return true;
 }
 
 bool PathPlan::CheckForEnd(void)
@@ -191,7 +184,7 @@ void PathPlanNode::UpdateHeuristics(void)
 
 	// heuristic (h)
 	Vector3<float> diff = mPathingNode->GetPos() - mGoalNode->GetPos();
-	mHeuristic = Length(diff);
+	mHeuristic = PATHING_DEFAULT_ARC_WEIGHT * Length(diff);
 
 	// cost to goal (f)
 	mFitness = mGoal + mHeuristic;
@@ -264,7 +257,8 @@ PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 
 		// get the neighboring nodes
 		PathingNodeList neighbors;
-		pNode->GetPathingNode()->GetNeighbors(neighbors);
+		pNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
+		pNode->GetPathingNode()->GetNeighbors(AT_TARGET, neighbors);
 
 		// loop though all the neighboring nodes and evaluate each one
 		for (PathingNodeList::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
@@ -546,16 +540,4 @@ void PathingGraph::InsertNode(PathingNode* pNode)
 	LogAssert(pNode, "Invalid node");
 
 	mNodes.push_back(pNode);
-}
-
-void PathingGraph::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
-{
-	LogAssert(pNodeA, "Invalid node");
-	LogAssert(pNodeB, "Invalid node");
-	
-	PathingArc* pArc = new PathingArc();
-	pArc->LinkNodes(pNodeA,pNodeB);
-	pNodeA->AddArc(pArc);
-	pNodeB->AddArc(pArc);
-	mArcs.push_back(pArc);
 }
