@@ -60,8 +60,17 @@ typedef eastl::map<PathingNode*, eastl::map<PathingNode*, Vector3<float>>> Pathi
 typedef eastl::map<PathingNode*, eastl::map<PathingArc*, float>> PathingNodeArcDoubleMap;
 typedef eastl::map<PathingNode*, eastl::map<PathingArc*, Vector3<float>>> PathingNodeArcDirectionMap;
 
-const float PATHING_DEFAULT_NODE_TOLERANCE = 5.0f;
-const float PATHING_DEFAULT_ARC_WEIGHT = 1.0f;
+const float PATHING_DEFAULT_NODE_TOLERANCE = 1.0f;
+const float PATHING_DEFAULT_ARC_WEIGHT = 0.001f;
+
+enum ArcType
+{
+	AT_NORMAL = 0,
+	AT_ACTION = 1,
+	AT_TARGET = 2,
+
+	AT_COUNT
+};
 
 //--------------------------------------------------------------------------------------------------------
 // class PathingNode				- Chapter 18, page 636
@@ -93,7 +102,8 @@ public:
 	PathingArc* FindArc(PathingNode* pLinkedNode);
 	PathingArc* FindArc(unsigned int arcType, PathingNode* pLinkedNode);
 	const PathingArcList& GetArcs() { return mArcs; }
-	void GetNeighbors(PathingNodeList& outNeighbors);
+
+	void GetNeighbors(unsigned int arcType, PathingNodeList& outNeighbors);
 	float GetCostFromNode(PathingNode* pFromNode);
 };
 
@@ -247,7 +257,6 @@ public:
 	// helpers
 	void InsertNode(PathingNode* pNode);
 	const PathingNodeVec& GetNodes() { return mNodes; }
-	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
 };
 
 
