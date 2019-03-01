@@ -51,8 +51,8 @@ public:
 
 	virtual void CreateWaypoints(ActorId playerId);
 
-	void SavePathingGraph(const eastl::string& path);
-	void LoadPathingGraph(const eastl::wstring& path);
+	virtual void SavePathingGraph(const eastl::string& path);
+	virtual void LoadPathingGraph(const eastl::wstring& path);
 
 protected:
 

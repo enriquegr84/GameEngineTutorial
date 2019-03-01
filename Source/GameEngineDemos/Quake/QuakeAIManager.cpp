@@ -149,6 +149,14 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			pathNode->AddArc(pathArc);
 		}
 	}
+
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		for (PathingArc* pathArc : pathNode->GetArcs())
+		{
+
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -216,8 +224,6 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
-	Level* level = game->GetLevelManager()->GetLevel(ToWideString(gameApp->mOption.mLevel.c_str()));
-	eastl::string levelPath = "ai/quake/" + ToString(level->GetName().c_str()) + ".xml";
 
 	mPlayerActor = 
 		eastl::dynamic_shared_pointer_cast<PlayerActor>(
@@ -294,6 +300,8 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 	// movement, jumping or falling and its conections
 	SimulateWaypoint();
 
+	Level* level = game->GetLevelManager()->GetLevel(ToWideString(gameApp->mOption.mLevel.c_str()));
+	eastl::string levelPath = "ai/quake/" + ToString(level->GetName().c_str()) + ".xml";
 	SavePathingGraph(FileSystem::Get()->GetPath(levelPath));
 
 	SimulateFiring();

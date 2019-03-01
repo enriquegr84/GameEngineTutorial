@@ -997,6 +997,15 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 			{
 				switch (evt.mKeyInput.mKey)
 				{
+					case KEY_KEY_4:
+					{
+						GameApplication* gameApp = (GameApplication*)Application::App;
+						QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
+						Level* level = game->GetLevelManager()->GetLevel(ToWideString(gameApp->mOption.mLevel.c_str()));
+						eastl::string levelPath = "ai/quake/" + ToString(level->GetName().c_str()) + ".xml";
+						GameLogic::Get()->GetAIManager()->LoadPathingGraph(levelPath);
+						return true;
+					}
 					case KEY_KEY_5:
 					{
 						GameApplication* gameApp = (GameApplication*)Application::App;
