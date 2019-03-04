@@ -1538,40 +1538,38 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 
 								deltaTime = 0.f;
 							}
-						}
-					}
-					deltaTime += 0.02f;
-
-					if (pEndNode == NULL)
-					{
-						position = transform.GetTranslation();
-						pEndNode = mPathingGraph->FindClosestNode(position);
-						if (pCurrentNode != pEndNode)
-						{
-							Vector3<float> diff = pEndNode->GetPos() - position;
-							if (Length(diff) >= 16.f)
-							{
-								PathingNode* pNewNode = new PathingNode(
-									GetNewNodeID(), INVALID_ACTOR_ID, position);
-								mPathingGraph->InsertNode(pNewNode);
-								PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-								pArc->LinkNodes(pCurrentNode, pNewNode);
-								pCurrentNode->AddArc(pArc);
-
-								mOpenSet[pNewNode] = true;
-							}
 							else if (Length(diff) <= 6.f)
 							{
-								if (pCurrentNode->FindArc(AIAT_MOVE, pEndNode) == NULL)
-								{
-									PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-									pArc->LinkNodes(pCurrentNode, pEndNode);
-									pCurrentNode->AddArc(pArc);
-								}
+								PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+								pArc->LinkNodes(pCurrentNode, pClosestNode);
+								pCurrentNode->AddArc(pArc);
+
+								pCurrentNode = pClosestNode;
+
+								deltaTime = 0.f;
 							}
 						}
 					}
-					else if (pCurrentNode != pEndNode)
+				}
+				deltaTime += 0.02f;
+
+				position = transform.GetTranslation();
+				pEndNode = mPathingGraph->FindClosestNode(position);
+				if (pCurrentNode != pEndNode)
+				{
+					Vector3<float> diff = pEndNode->GetPos() - position;
+					if (Length(diff) >= 16.f)
+					{
+						PathingNode* pNewNode = new PathingNode(
+							GetNewNodeID(), INVALID_ACTOR_ID, position);
+						mPathingGraph->InsertNode(pNewNode);
+						PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+						pArc->LinkNodes(pCurrentNode, pNewNode);
+						pCurrentNode->AddArc(pArc);
+
+						mOpenSet[pNewNode] = false;
+					}
+					else if (Length(diff) <= 6.f)
 					{
 						if (pCurrentNode->FindArc(AIAT_MOVE, pEndNode) == NULL)
 						{
@@ -1579,10 +1577,11 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 							pArc->LinkNodes(pCurrentNode, pEndNode);
 							pCurrentNode->AddArc(pArc);
 						}
+						else break;
 					}
-
-					pCurrentNode = pEndNode;
 				}
+				pCurrentNode = pEndNode;
+
 				movements.clear();
 
 				nodes.clear();
@@ -1636,7 +1635,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 				if (!nodes.empty())
 				{
 					Vector3<float> position = transform.GetTranslation();
-					PathingNode* pEndNode = mPathingGraph->FindClosestNode(position);
+					pEndNode = mPathingGraph->FindClosestNode(position);
 					if (pEndNode != NULL && pNode->FindArc(AIAT_FALLTARGET, pEndNode) == NULL)
 					{
 						Vector3<float> diff = pEndNode->GetPos() - position;
@@ -1679,8 +1678,12 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 									pCurrentNode->AddArc(pArc);
 								}
 							}
+
+							pCurrentNode = pEndNode;
 						}
+						else break;
 					}
+					else break;
 				}
 			}
 			else
@@ -1746,6 +1749,18 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 						pCurrentNode = pNewNode;
 
 						deltaTime = 0.f;
+					}
+					else if (Length(diff) <= 6.f)
+					{
+						if (pCurrentNode->FindArc(AIAT_MOVE, pClosestNode) == NULL)
+						{
+							PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+							pArc->LinkNodes(pCurrentNode, pClosestNode);
+							pCurrentNode->AddArc(pArc);
+
+							pCurrentNode = pClosestNode;
+						}
+						else break;
 					}
 				}
 			}
