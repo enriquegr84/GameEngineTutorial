@@ -1204,11 +1204,11 @@ void QuakeAIManager::SimulateWaypoint()
 		// grab the candidate
 		eastl::map<PathingNode*, bool>::iterator itOpenSet = mClosedSet.begin();
 		PathingNode* pNode = itOpenSet->first;
-
+		/*
 		//check if its on ground
 		if (itOpenSet->second)
 			SimulateJump(pNode);
-
+		*/
 		// we have processed this node so remove it from the closed set
 		mClosedSet.erase(itOpenSet);
 	}
