@@ -407,7 +407,11 @@ void QuakeMainMenuUI::Set()
 	if (level->GetSelected() >= 0)
 	{
 		eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
-		gameApp->mOption.mLevel = ToString(levels[level->GetSelected()]->GetFileName().c_str());
+
+		Level* gameLevel = levels[level->GetSelected()];
+		gameApp->mOption.mLevel = ToString(gameLevel->GetFileName().c_str());
+		eastl::wstring levelPath = L"ai/quake/" + gameLevel->GetName() + L".xml";
+		GameLogic::Get()->GetAIManager()->LoadPathingGraph(levelPath);
 	}
 }
 
@@ -1001,8 +1005,9 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 					{
 						GameApplication* gameApp = (GameApplication*)Application::App;
 						QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
-						Level* level = game->GetLevelManager()->GetLevel(ToWideString(gameApp->mOption.mLevel.c_str()));
-						eastl::string levelPath = "ai/quake/" + ToString(level->GetName().c_str()) + ".xml";
+						Level* level = game->GetLevelManager()->GetLevel(
+							ToWideString(gameApp->mOption.mLevel.c_str()));
+						eastl::wstring levelPath = L"ai/quake/" + level->GetName() + L".xml";
 						GameLogic::Get()->GetAIManager()->LoadPathingGraph(levelPath);
 						return true;
 					}

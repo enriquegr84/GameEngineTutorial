@@ -235,6 +235,13 @@ public:
 	eastl::vector<eastl::shared_ptr<Actor>> GetTriggerActors();
 	eastl::vector<eastl::shared_ptr<Actor>> GetTargetActors();
 
+	//Quake Spawn Points
+	const eastl::shared_ptr<Actor>& SelectRandomSpawnPoint();
+	const eastl::shared_ptr<Actor>& SelectNearestSpawnPoint(const Vector3<float>& from);
+	void SelectSpawnPoint(const Vector3<float>& avoidPoint, Transform& transform);
+	void SelectRandomFurthestSpawnPoint(const Vector3<float>& avoidPoint, Transform& transform);
+	void SelectInitialSpawnPoint(Transform& transform);
+
 	// event delegates
 	void RequestStartGameDelegate(BaseEventDataPtr pEventData);
 	void RemoteClientDelegate(BaseEventDataPtr pEventData);
@@ -280,6 +287,8 @@ protected:
 
 private:
 
+	bool SpotTelefrag(const eastl::shared_ptr<Actor>& spot);
+
 	bool RadiusDamage(float damage, float radius, int mod,
 		Vector3<float> origin, const eastl::shared_ptr<PlayerActor>& attacker);
 
@@ -313,15 +322,6 @@ private:
 	void LightningFire(
 		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle, 
 		const Vector3<float>& forward, const Vector3<float>& right, const Vector3<float>& up);
-
-	bool SpotTelefrag(const eastl::shared_ptr<Actor>& spot);
-	const eastl::shared_ptr<Actor>& SelectRandomSpawnPoint();
-	const eastl::shared_ptr<Actor>& SelectNearestSpawnPoint(const Vector3<float>& from);
-	const eastl::shared_ptr<Actor>& SelectRandomFurthestSpawnPoint(
-		const Vector3<float>& avoidPoint, Transform& transform);
-	const eastl::shared_ptr<Actor>& SelectSpawnPoint(
-		const Vector3<float>& avoidPoint, Transform& transform);
-	const eastl::shared_ptr<Actor>& SelectInitialSpawnPoint(Transform& transform);
 };
 
 #endif

@@ -52,7 +52,6 @@ class QuakeAIView : public BaseGameView
 
 public:
 	QuakeAIView();
-	QuakeAIView(eastl::shared_ptr<PathingGraph> pPathingGraph);
 	virtual ~QuakeAIView();
 
 	virtual bool OnRestore() { return true; }
@@ -99,6 +98,7 @@ protected:
 
 private:
 
+	PathPlan*		mPlan;
 	eastl::shared_ptr<PathingGraph> mPathingGraph;
 };
 

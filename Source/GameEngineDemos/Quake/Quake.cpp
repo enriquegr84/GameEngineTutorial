@@ -188,8 +188,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 			// spawn all AI's views on the game
 			for (int i = 0; i < mExpectedAI; ++i)
 			{
-				eastl::shared_ptr<BaseGameView> aiView(
-					new QuakeAIView(eastl::make_shared<PathingGraph>()));
+				eastl::shared_ptr<BaseGameView> aiView(new QuakeAIView());
 				gameApp->AddView(aiView);
 			}
 
@@ -407,13 +406,11 @@ void QuakeLogic::SpawnActorDelegate(BaseEventDataPtr pEventData)
 	{
 		// find a spawn point
 		Transform spawnTransform;
-		eastl::shared_ptr<Actor> spawnPoint;
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
 			pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pTransformComponent)
 		{
-			spawnPoint = SelectSpawnPoint(
-				pTransformComponent->GetTransform().GetTranslation(), spawnTransform);
+			SelectSpawnPoint(pTransformComponent->GetTransform().GetTranslation(), spawnTransform);
 			pTransformComponent->SetTransform(spawnTransform);
 		}
 
@@ -2553,6 +2550,7 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectNearestSpawnPoint(const Vector
 #define	MAX_SPAWN_POINTS	128
 const eastl::shared_ptr<Actor>& QuakeLogic::SelectRandomSpawnPoint()
 {
+	Transform transform;
 	eastl::shared_ptr<Actor> spot = NULL;
 	eastl::shared_ptr<Actor> spots[MAX_SPAWN_POINTS];
 
@@ -2571,18 +2569,15 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectRandomSpawnPoint()
 		else spot = NULL;
 	}
 
-	if (!count)
+	if (count)
 	{
-		// no spots that won't telefrag
-		return spot;
+		int selection = Randomizer::Rand() % count;
+		spot = spots[selection];
 	}
-
-	int selection = Randomizer::Rand() % count;
-	return spots[selection];
+	return spot;
 }
 
-const eastl::shared_ptr<Actor>& QuakeLogic::SelectRandomFurthestSpawnPoint(
-	const Vector3<float>& avoidPoint, Transform& transform)
+void QuakeLogic::SelectRandomFurthestSpawnPoint(const Vector3<float>& avoidPoint, Transform& transform)
 {
 	float dists[64];
 
@@ -2639,29 +2634,29 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectRandomFurthestSpawnPoint(
 		if (!spot)
 			LogError("Couldn't find a spawn point");
 
-		return SelectSpawnPoint(Vector3<float>::Zero(), transform);
+		SelectSpawnPoint(Vector3<float>::Zero(), transform);
 	}
-
-	// select a random spot from the spawn points furthest away
-	int rnd = (int)(((Randomizer::Rand() & 0x7fff) / ((float)0x7fff)) * (numSpots / 2));
-
-	eastl::shared_ptr<TransformComponent> pTransformComponent(
-		spots[rnd]->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-	if (pTransformComponent)
+	else
 	{
-		transform.SetTranslation(pTransformComponent->GetTransform().GetTranslation());
-		transform.SetRotation(pTransformComponent->GetTransform().GetRotation());
+		// select a random spot from the spawn points furthest away
+		int rnd = (int)(((Randomizer::Rand() & 0x7fff) / ((float)0x7fff)) * (numSpots / 2));
+
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			spots[rnd]->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			transform.SetTranslation(pTransformComponent->GetTransform().GetTranslation());
+			transform.SetRotation(pTransformComponent->GetTransform().GetRotation());
+		}
 	}
-	return spots[rnd];
 }
 
-const eastl::shared_ptr<Actor>& QuakeLogic::SelectSpawnPoint(
-	const Vector3<float>& avoidPoint, Transform& transform)
+void QuakeLogic::SelectSpawnPoint(const Vector3<float>& avoidPoint, Transform& transform)
 {
 	return SelectRandomFurthestSpawnPoint(avoidPoint, transform);
 }
 
-const eastl::shared_ptr<Actor>& QuakeLogic::SelectInitialSpawnPoint(Transform& transform)
+void QuakeLogic::SelectInitialSpawnPoint(Transform& transform)
 {
 	eastl::shared_ptr<Actor> spot = NULL;
 	for (ActorMap::const_iterator it = mActors.begin(); it != mActors.end(); ++it)
@@ -2670,23 +2665,26 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectInitialSpawnPoint(Transform& t
 		if (spot->GetComponent<LocationTarget>(LocationTarget::Name).lock())
 		{
 			if (SpotTelefrag(spot))
-				return SelectSpawnPoint(Vector3<float>::Zero(), transform);
+			{
+				SelectSpawnPoint(Vector3<float>::Zero(), transform);
+				return;
+			}
 			break;
 		}
 		else spot = NULL;
 	}
 
-	if (!spot)
-		return SelectSpawnPoint(Vector3<float>::Zero(), transform);
-
-	eastl::shared_ptr<TransformComponent> pTransformComponent(
-		spot->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-	if (pTransformComponent)
+	if (spot)
 	{
-		transform.SetTranslation(pTransformComponent->GetTransform().GetTranslation());
-		transform.SetRotation(pTransformComponent->GetTransform().GetRotation());
+		eastl::shared_ptr<TransformComponent> pTransformComponent(
+			spot->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+		if (pTransformComponent)
+		{
+			transform.SetTranslation(pTransformComponent->GetTransform().GetTranslation());
+			transform.SetRotation(pTransformComponent->GetTransform().GetRotation());
+		}
 	}
-	return spot;
+	else SelectSpawnPoint(Vector3<float>::Zero(), transform);
 }
 
 int PickupAmmo(const eastl::shared_ptr<PlayerActor>& player, const eastl::shared_ptr<AmmoPickup>& ammo)

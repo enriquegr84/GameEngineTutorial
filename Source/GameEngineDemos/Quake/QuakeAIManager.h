@@ -19,7 +19,6 @@
 #include "QuakeStd.h"
 
 #include "AI/AIManager.h"
-#include "AI/Pathing.h"
 
 #include "Actors/PlayerActor.h"
 #include "Core/Event/EventManager.h"
@@ -32,11 +31,11 @@ enum AIActionType
 	AIAT_MOVE = 0x0000000,
 	AIAT_PUSH = 0x0000001,
 	AIAT_PUSHTARGET = 0x0000002,
-	AIAT_TELEPORT = 0x0000003,
+	AIAT_TELEPORT = 0x0000005,
 	AIAT_TELEPORTTARGET = 0x0000006,
-	AIAT_FALL = 0x0000005,
+	AIAT_FALL = 0x0000009,
 	AIAT_FALLTARGET = 0x000000A,
-	AIAT_JUMP = 0x0000007,
+	AIAT_JUMP = 0x000000D,
 	AIAT_JUMPTARGET = 0x00000E
 };
 
@@ -55,7 +54,6 @@ public:
 protected:
 
 	void SimulateJump(PathingNode* pNode);
-	void SimulateFall(PathingNode* pNode);
 	void SimulateMovement(PathingNode* pNode);
 	void SimulateTriggerPush(PathingNode* pNode, const Vector3<float>& target);
 	void SimulateTriggerTeleport(PathingNode* pNode, const Vector3<float>& target);
@@ -76,11 +74,6 @@ protected:
 	unsigned int GetNewNodeID(void)
 	{
 		return ++mLastNodeId;
-	}
-
-	unsigned int GetNewArcID(void)
-	{
-		return ++mLastArcId;
 	}
 
 	// event delegates
@@ -111,7 +104,6 @@ protected:
 
 private:
 
-	unsigned int mLastArcId;
 	unsigned int mLastNodeId;
 
 	//open set of nodes to be analized and also to
@@ -120,14 +112,12 @@ private:
 
 	//pathing nodes which contains actors from game
 	eastl::map<ActorId, bool> mActorCollisions;
-	eastl::map<Vector3<float>, ActorId> mActorNodes;
+	eastl::map<PathingNode*, ActorId> mActorNodes;
 	PathingNodeDoubleMap mWeaponGroundDamage[MAX_WEAPONS];
 	PathingNodeDoubleMap mWeaponGroundDamageTime[MAX_WEAPONS];
 	PathingNodeDirectionMap mWeaponGroundDirection[MAX_WEAPONS];
 	PathingNodeArcDoubleMap mWeaponDamage[MAX_WEAPONS];
 	PathingNodeArcDirectionMap mWeaponDirection[MAX_WEAPONS];
-
-	eastl::shared_ptr<PathingGraph> mPathingGraph;
 
 	void RegisterAllDelegates(void);
 	void RemoveAllDelegates(void);

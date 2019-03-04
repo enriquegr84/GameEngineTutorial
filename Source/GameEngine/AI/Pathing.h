@@ -49,8 +49,7 @@ class PathingNode;
 class PathPlanNode;
 class AStar;
 
-typedef eastl::list<PathingArc*> PathingArcList;
-typedef eastl::list<PathingNode*> PathingNodeList;
+typedef eastl::vector<PathingArc*> PathingArcVec;
 typedef eastl::vector<PathingNode*> PathingNodeVec;
 typedef eastl::list<PathPlanNode*> PathPlanNodeList;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
@@ -60,7 +59,7 @@ typedef eastl::map<PathingNode*, eastl::map<PathingNode*, Vector3<float>>> Pathi
 typedef eastl::map<PathingNode*, eastl::map<PathingArc*, float>> PathingNodeArcDoubleMap;
 typedef eastl::map<PathingNode*, eastl::map<PathingArc*, Vector3<float>>> PathingNodeArcDirectionMap;
 
-const float PATHING_DEFAULT_NODE_TOLERANCE = 1.0f;
+const float PATHING_DEFAULT_NODE_TOLERANCE = 5.0f;
 const float PATHING_DEFAULT_ARC_WEIGHT = 0.001f;
 
 enum ArcType
@@ -81,7 +80,7 @@ class PathingNode
 {
 	unsigned int mId;
 	Vector3<float> mPos;
-	PathingArcList mArcs;
+	PathingArcVec mArcs;
 
 	float mTolerance;
 	ActorId mActorId;
@@ -101,10 +100,10 @@ public:
 	void AddArc(PathingArc* pArc);
 	PathingArc* FindArc(PathingNode* pLinkedNode);
 	PathingArc* FindArc(unsigned int arcType, PathingNode* pLinkedNode);
-	const PathingArcList& GetArcs() { return mArcs; }
+	const PathingArcVec& GetArcs() { return mArcs; }
 
-	void GetNeighbors(unsigned int arcType, PathingNodeList& outNeighbors);
-	float GetCostFromNode(PathingNode* pFromNode);
+	void GetNeighbors(unsigned int arcType, PathingArcVec& outNeighbors);
+	float GetCostFromArc(PathingArc* pArc);
 };
 
 
@@ -114,7 +113,6 @@ public:
 //--------------------------------------------------------------------------------------------------------
 class PathingArc
 {
-	unsigned int mId;
 	unsigned int mType;
 	float mWeight;
 	Vector3<float> mConnection; //an optional interpolation vector which connects nodes 
@@ -122,25 +120,20 @@ class PathingArc
 
 public:
 	explicit PathingArc(
-		unsigned int id = 0,
 		unsigned int type = 0, 
 		float weight = PATHING_DEFAULT_ARC_WEIGHT, 
 		const Vector3<float>& connect = NULL) 
-		: mId(id), mType(type), mWeight(weight), mConnection(connect)
+		: mType(type), mWeight(weight), mConnection(connect)
 	{ }
 
-	unsigned int GetId(void) const { return mId; }
 	float GetWeight(void) const { return mWeight; }
 	unsigned int GetType(void) const { return mType; }
 	const Vector3<float>& GetConnection(void) const { return mConnection; }
 
 	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
 	PathingNode* GetNeighbor(PathingNode* pMe);
-	unsigned int GetLinkId(unsigned int link) 
-	{ 
-		LogAssert(link < 2, "Invalid node");
-		return mNodes[link]->GetId();
-	}
+	PathingNode* GetNeighbor() { return mNodes[1]; }
+	PathingNode* GetOrigin() { return mNodes[0]; }
 };
 
 
@@ -152,20 +145,33 @@ class PathPlan
 {
 	friend class AStar;
 
-	PathingNodeList mPath;
-	PathingNodeList::iterator mIndex;
+	PathingArcVec mPath;
+	PathingArcVec::iterator mIndex;
 	
 public:
 	PathPlan(void) { mIndex = mPath.end(); }
 	
 	void ResetPath(void) { mIndex = mPath.begin(); }
+	PathingArc* GetCurrentArc(void) const
+	{
+		LogAssert(mIndex != mPath.end(), "Invalid index");
+		return (*mIndex);
+	}
+	PathingNode* GetCurrentNode(void) const
+	{
+		LogAssert(mIndex != mPath.end(), "Invalid index");
+		return (*mIndex)->GetNeighbor();
+	}
 	const Vector3<float>& GetCurrentNodePosition(void) const 
-	{ LogAssert(mIndex != mPath.end(), "Invalid index"); return (*mIndex)->GetPos(); }
+	{ 
+		LogAssert(mIndex != mPath.end(), "Invalid index"); 
+		return (*mIndex)->GetNeighbor()->GetPos();
+	}
 	bool CheckForNextNode(const Vector3<float>& pos);
 	bool CheckForEnd(void);
 	
 private:
-	void AddNode(PathingNode* pNode);
+	void AddArc(PathingArc* pArc);
 };
 
 
@@ -176,7 +182,8 @@ private:
 //--------------------------------------------------------------------------------------------------------
 class PathPlanNode
 {
-	PathPlanNode* mPrev;  // node we just came from
+	PathPlanNode* mPrevNode;  // node we just came from
+	PathingArc* mPathingArc;  // pointer to the pathing arc from the pathing graph
 	PathingNode* mPathingNode;  // pointer to the pathing node from the pathing graph
 	PathingNode* mGoalNode;  // pointer to the goal node
 	bool mClosed;  // the node is closed if it's already been processed
@@ -185,8 +192,10 @@ class PathPlanNode
 	float mFitness;  // estimated cost from start to the goal through this node (often called f)
 	
 public:
+	explicit PathPlanNode(PathingArc* pArc, PathPlanNode* pPrevNode, PathingNode* pGoalNode);
 	explicit PathPlanNode(PathingNode* pNode, PathPlanNode* pPrevNode, PathingNode* pGoalNode);
-	PathPlanNode* GetPrev(void) const { return mPrev; }
+	PathPlanNode* GetPrev(void) const { return mPrevNode; }
+	PathingArc* GetPathingArc(void) const { return mPathingArc; }
 	PathingNode* GetPathingNode(void) const { return mPathingNode; }
 	bool IsClosed(void) const { return mClosed; }
 	float GetGoal(void) const { return mGoal; }
@@ -222,6 +231,7 @@ public:
 	PathPlan* operator()(PathingNode* pStartNode, PathingNode* pGoalNode);
 
 private:
+	PathPlanNode* AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode);
 	PathPlanNode* AddToOpenSet(PathingNode* pNode, PathPlanNode* pPrevNode);
 	void AddToClosedSet(PathPlanNode* pNode);
 	void InsertNode(PathPlanNode* pNode);
@@ -238,14 +248,14 @@ private:
 class PathingGraph
 {
 	PathingNodeVec mNodes;  // master list of all nodes
-	PathingArcList mArcs;  // master list of all arcs
+	PathingArcVec mArcs;  // master list of all arcs
 	
 public:
 	PathingGraph(void) {}
 	~PathingGraph(void) { DestroyGraph(); }
 	void DestroyGraph(void);
 
-	const PathingNodeVec& FindNodes(const Vector3<float>& pos, float radius);
+	void FindNodes(PathingNodeVec&, const Vector3<float>& pos, float radius);
 	PathingNode* FindClosestNode(const Vector3<float>& pos);
 	PathingNode* FindFurthestNode(const Vector3<float>& pos);
 	PathingNode* FindRandomNode(void);

@@ -18,6 +18,8 @@
 
 #include "GameEngineStd.h"
 
+#include "Pathing.h"
+
 /*
 	Simple class to load and manage artificial intelligence
  */
@@ -27,10 +29,16 @@ public:
 	AIManager();
 	~AIManager();
 
-	virtual void SavePathingGraph(const eastl::string& path);
-	virtual void LoadPathingGraph(const eastl::wstring& path);
+	virtual void SavePathingGraph(const eastl::string& path) { }
+	virtual void LoadPathingGraph(const eastl::wstring& path) { }
 
 	virtual void CreateWaypoints(ActorId playerId) { };
+
+	const eastl::shared_ptr<PathingGraph>& GetPathingGraph() { return mPathingGraph; }
+
+protected:
+
+	eastl::shared_ptr<PathingGraph> mPathingGraph;
 
 };   // AIManager
 

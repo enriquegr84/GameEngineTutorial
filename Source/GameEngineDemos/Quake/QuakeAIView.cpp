@@ -44,7 +44,10 @@
 
 #include "Physic/PhysicEventListener.h"
 
+#include "AI/AIManager.h"
+
 #include "QuakePlayerController.h"
+#include "QuakeAIManager.h"
 #include "QuakeAIView.h"
 #include "QuakeEvents.h"
 #include "QuakeApp.h"
@@ -72,27 +75,10 @@ QuakeAIView::QuakeAIView()
 	mJumpMoveSpeed = 10.0f;
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
+
+	mPlan = NULL;
+	mPathingGraph = GameLogic::Get()->GetAIManager()->GetPathingGraph();
 }
-
-QuakeAIView::QuakeAIView(eastl::shared_ptr<PathingGraph> pPathingGraph)
-	: BaseGameView(), mPathingGraph(pPathingGraph)
-{
-	mYaw = 0.0f;
-	mPitchTarget = 0.0f;
-
-	mOrientation = 1;
-	mStationaryTime = 0;
-
-	mMaxJumpSpeed = 3.4f;
-	mMaxFallSpeed = 240.0f;
-	mMaxRotateSpeed = 180.0f;
-	mMoveSpeed = 6.0f;
-	mJumpSpeed = 3.4f;
-	mJumpMoveSpeed = 10.0f;
-	mFallSpeed = 0.0f;
-	mRotateSpeed = 0.0f;
-}
-
 
 //
 // QuakeAIView::~QuakeAIView
@@ -100,6 +86,7 @@ QuakeAIView::QuakeAIView(eastl::shared_ptr<PathingGraph> pPathingGraph)
 QuakeAIView::~QuakeAIView(void)
 {
 	//LogInformation("AI Destroying QuakeAIView");
+	delete mPlan;
 }
 
 //  class QuakeAIView::OnAttach
@@ -381,7 +368,6 @@ void QuakeAIView::Cliff()
 //  class QuakeAIView::OnUpdate			- Chapter 10, page 283
 void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
-	return;
 	//Handling rotation as a result of mouse position
 	Matrix4x4<float> rotation;
 
@@ -390,11 +376,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		GameLogic::Get()->GetActor(mPlayerId).lock()));
 	if (!pPlayerActor) return;
 
-	if (mPathingGraph)
-	{
-
-	}
-	else if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
+	if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
 	{
 		eastl::shared_ptr<Actor> pItemActor(
 			eastl::dynamic_shared_pointer_cast<Actor>(
@@ -477,9 +459,50 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 					if (pTransformComponent)
 					{
-						Stationary(deltaMs);
-						Smooth(deltaMs);
-						Cliff();
+						if (mPathingGraph)
+						{
+							if (mPlan != NULL)
+								mPlan->CheckForNextNode(pTransformComponent->GetPosition());
+
+							if (mPlan == NULL || mPlan->CheckForEnd())
+							{
+								delete mPlan;
+								mPlan = NULL;
+
+								PathingNode* currentNode = 
+									mPathingGraph->FindClosestNode(pTransformComponent->GetPosition());
+
+								QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
+								game->SelectRandomFurthestSpawnPoint(currentNode->GetPos(), mAbsoluteTransform);
+								PathingNode* goalNode = mPathingGraph->FindClosestNode(mAbsoluteTransform.GetTranslation());
+								mPlan = mPathingGraph->FindPath(currentNode, mAbsoluteTransform.GetTranslation());
+								if (mPlan != NULL) mPlan->ResetPath();
+							}
+
+							if (mPlan != NULL)
+							{
+								/*
+								Vector3<float> pos = pTransformComponent->GetPosition();
+								Vector3<float> nextPos = mPlan->GetCurrentNodePosition();
+								printf("pos %f %f %f next pos %f %f %f\n", 
+									pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
+								*/
+								Vector3<float> direction =
+									mPlan->GetCurrentNodePosition() - pTransformComponent->GetPosition();
+								Normalize(direction);
+								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;;
+								/*
+								if (mPlan->GetCurrentArc()->GetType() == AIAT_JUMPTARGET)
+									pPlayerActor->GetAction().actionType |= ACTION_JUMP;
+								*/
+							}
+						}
+						else
+						{
+							Stationary(deltaMs);
+							Smooth(deltaMs);
+							Cliff();
+						}
 
 						// Calculate the new rotation matrix from the camera
 						// yaw and pitch (zrotate and xrotate).
@@ -501,8 +524,22 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 #endif
 						Normalize(atWorld);
 
-						atWorld *= mMoveSpeed;
-						velocity = atWorld;
+						if (pPlayerActor->GetAction().actionType & ACTION_JUMP)
+						{
+							Vector4<float> upWorld = Vector4<float>::Unit(YAW);
+							Vector4<float> direction = atWorld + upWorld;
+							Normalize(direction);
+
+							direction[PITCH] *= mJumpMoveSpeed;
+							direction[ROLL] *= mJumpMoveSpeed;
+							direction[YAW] *= mJumpSpeed;
+							velocity = direction;
+						}
+						else
+						{
+							atWorld *= mMoveSpeed;
+							velocity = atWorld;
+						}
 
 						// update node rotation matrix
 						pitchRotation = Rotation<4, float>(

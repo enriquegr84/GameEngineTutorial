@@ -228,14 +228,14 @@ bool GameApplication::OnInitialize()
 	mFileSystem->InsertDirectory(ProjectApplicationPath + "../../../Assets/");
 
 	/*
-		ResCache is created and initialized to 50MB and assocaited to a concreted mount point where 
+		ResCache is created and initialized to 100MB and assocaited to a concreted mount point where 
 		files will be taken. A resource cache can contain many different types of resources, such as 
 		sounds, music, textures, and more. The resource cache needs to know how each one of these 
 		files types is read and converted into something the game engine can use directly. The process
 		of registering a loader associates a specific loader class with a file type.
 	*/
 	BaseResourceFile *mountPointFile = new ResourceMountPointFile(L"../../../Assets");
-	mResCache = eastl::shared_ptr<ResCache>(new ResCache(50, mountPointFile));
+	mResCache = eastl::shared_ptr<ResCache>(new ResCache(100, mountPointFile));
 
 	if (!mResCache->Init())
 	{

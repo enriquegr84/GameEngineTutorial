@@ -116,7 +116,8 @@ void BspConverter::ConvertBsp(BspLoader& bspLoader, float scaling)
 			eastl::string shader = bspLoader.mDShaders[surface.shaderNum].shader;
 
 			if (shader.find("base_floor") == eastl::string::npos &&
-				shader.find("gothic_floor") == eastl::string::npos)
+				shader.find("gothic_floor") == eastl::string::npos &&
+				shader.find("gothic_block") == eastl::string::npos)
 				continue;
 
 			int tesselation = 8;
