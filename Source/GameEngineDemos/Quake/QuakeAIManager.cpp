@@ -1551,37 +1551,6 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 						}
 					}
 				}
-				deltaTime += 0.02f;
-
-				position = transform.GetTranslation();
-				pEndNode = mPathingGraph->FindClosestNode(position);
-				if (pCurrentNode != pEndNode)
-				{
-					Vector3<float> diff = pEndNode->GetPos() - position;
-					if (Length(diff) >= 16.f)
-					{
-						PathingNode* pNewNode = new PathingNode(
-							GetNewNodeID(), INVALID_ACTOR_ID, position);
-						mPathingGraph->InsertNode(pNewNode);
-						PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-						pArc->LinkNodes(pCurrentNode, pNewNode);
-						pCurrentNode->AddArc(pArc);
-
-						mOpenSet[pNewNode] = false;
-					}
-					else if (Length(diff) <= 6.f)
-					{
-						if (pCurrentNode->FindArc(AIAT_MOVE, pEndNode) == NULL)
-						{
-							PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-							pArc->LinkNodes(pCurrentNode, pEndNode);
-							pCurrentNode->AddArc(pArc);
-						}
-						else break;
-					}
-				}
-				pCurrentNode = pEndNode;
-
 				movements.clear();
 
 				nodes.clear();
@@ -1636,7 +1605,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 				{
 					Vector3<float> position = transform.GetTranslation();
 					pEndNode = mPathingGraph->FindClosestNode(position);
-					if (pEndNode != NULL && pNode->FindArc(AIAT_FALLTARGET, pEndNode) == NULL)
+					if (pEndNode != NULL && pCurrentNode->FindArc(AIAT_FALLTARGET, pEndNode) == NULL)
 					{
 						Vector3<float> diff = pEndNode->GetPos() - position;
 						if (Length(diff) >= 16.f || Length(diff) <= 6.f)
@@ -1645,10 +1614,10 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 							for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
 							{
 								pFallingNode = (*itNode);
-								if (pCurrentNode == pNode)
+								if (pCurrentNode == pFallingNode)
 								{
 									PathingArc* pArc = new PathingArc(AIAT_FALLTARGET, totalTime);
-									pArc->LinkNodes(pNode, pEndNode);
+									pArc->LinkNodes(pCurrentNode, pEndNode);
 									pCurrentNode->AddArc(pArc);
 								}
 								if (pCurrentNode->FindArc(AIAT_FALL, pEndNode) == NULL)
