@@ -1506,6 +1506,8 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 		PathingNode* pCurrentNode = pNode;
 		do
 		{
+			pEndNode = NULL;
+
 			if (!gamePhysics->OnGround(mPlayerActor->GetId()))
 			{
 				float deltaTime = 0.f;
@@ -1658,7 +1660,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 			else
 			{
 				PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position);
-				if (pClosestNode != pNode)
+				if (pClosestNode != pCurrentNode)
 				{
 					// if we find a link to the closest node then we stop
 					Vector3<float> diff = pClosestNode->GetPos() - position;
@@ -1735,46 +1737,18 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 			}
 			deltaTime += 0.02f;
 
-			if (pEndNode == NULL)
+			if (pEndNode != NULL)
 			{
-				position = transform.GetTranslation();
-				pEndNode = mPathingGraph->FindClosestNode(position);
 				if (pCurrentNode != pEndNode)
 				{
-					Vector3<float> diff = pEndNode->GetPos() - position;
-					if (Length(diff) >= 16.f)
+					if (pCurrentNode->FindArc(AIAT_MOVE, pEndNode) == NULL)
 					{
-						PathingNode* pNewNode = new PathingNode(
-							GetNewNodeID(), INVALID_ACTOR_ID, position);
-						mPathingGraph->InsertNode(pNewNode);
 						PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-						pArc->LinkNodes(pCurrentNode, pNewNode);
+						pArc->LinkNodes(pCurrentNode, pEndNode);
 						pCurrentNode->AddArc(pArc);
-
-						mOpenSet[pNewNode] = true;
-					}
-					else if (Length(diff) <= 6.f)
-					{
-						if (pCurrentNode->FindArc(AIAT_MOVE, pEndNode) == NULL)
-						{
-							PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-							pArc->LinkNodes(pCurrentNode, pEndNode);
-							pCurrentNode->AddArc(pArc);
-						}
 					}
 				}
 			}
-			else if (pCurrentNode != pEndNode)
-			{
-				if (pCurrentNode->FindArc(AIAT_MOVE, pEndNode) == NULL)
-				{
-					PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-					pArc->LinkNodes(pCurrentNode, pEndNode);
-					pCurrentNode->AddArc(pArc);
-				}
-			}
-
-			pCurrentNode = pEndNode;
 		}
 	}
 }
