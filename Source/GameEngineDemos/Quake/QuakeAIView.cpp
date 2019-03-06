@@ -474,23 +474,57 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 								QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
 								game->SelectRandomFurthestSpawnPoint(currentNode->GetPos(), mAbsoluteTransform);
-								PathingNode* goalNode = mPathingGraph->FindClosestNode(mAbsoluteTransform.GetTranslation());
 								mPlan = mPathingGraph->FindPath(currentNode, mAbsoluteTransform.GetTranslation());
 								if (mPlan != NULL) mPlan->ResetPath();
 							}
 
 							if (mPlan != NULL)
 							{
-								/*
-								Vector3<float> pos = pTransformComponent->GetPosition();
-								Vector3<float> nextPos = mPlan->GetCurrentNodePosition();
-								printf("pos %f %f %f next pos %f %f %f\n", 
-									pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
-								*/
-								Vector3<float> direction =
-									mPlan->GetCurrentNodePosition() - pTransformComponent->GetPosition();
-								Normalize(direction);
-								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;;
+
+								if (mPlan->GetCurrentArc()->GetType() == AIAT_MOVE)
+								{
+									Vector3<float> pos = pTransformComponent->GetPosition();
+									Vector3<float> nextPos = mPlan->GetNeighborNode()->GetPos();
+									printf("move %f %f %f next pos %f %f %f\n",
+										pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
+
+									Vector3<float> direction =
+										mPlan->GetNeighborNode()->GetPos() - pTransformComponent->GetPosition();
+									Normalize(direction);
+									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+								}
+								else if (mPlan->GetCurrentArc()->GetType() == AIAT_FALLTARGET)
+								{
+									PathingNode* currentNode = mPlan->GetCurrentNode();
+									PathingArc* pathArc = currentNode->FindArc(
+										AIAT_FALL, mPlan->GetCurrentArc()->GetNeighbor());
+
+									Vector3<float> pos = pTransformComponent->GetPosition();
+									Vector3<float> nextPos = pathArc->GetConnection();
+									printf("fall %f %f %f next pos %f %f %f\n",
+										pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
+
+									Vector3<float> direction =
+										pathArc->GetConnection() - pTransformComponent->GetPosition();
+									Normalize(direction);
+									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+								}
+								else if (mPlan->GetCurrentArc()->GetType() == AIAT_PUSHTARGET)
+								{
+									PathingNode* currentNode = mPlan->GetCurrentNode();
+									PathingArc* pathArc = currentNode->FindArc(
+										AIAT_PUSH, mPlan->GetCurrentArc()->GetNeighbor());
+
+									Vector3<float> pos = pTransformComponent->GetPosition();
+									Vector3<float> nextPos = pathArc->GetConnection();
+									printf("push %f %f %f next pos %f %f %f\n",
+										pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
+
+									Vector3<float> direction =
+										pathArc->GetConnection() - pTransformComponent->GetPosition();
+									Normalize(direction);
+									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+								}
 								/*
 								if (mPlan->GetCurrentArc()->GetType() == AIAT_JUMPTARGET)
 									pPlayerActor->GetAction().actionType |= ACTION_JUMP;

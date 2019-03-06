@@ -99,8 +99,18 @@ PathingArc* PathingNode::FindArc(unsigned int arcType, PathingNode* pLinkedNode)
 	for (PathingArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		PathingArc* pArc = *it;
-		if (pArc->GetType() == arcType && pArc->GetNeighbor(this) == pLinkedNode)
-			return pArc;
+		if (pArc->GetType() == arcType)
+		{
+			if (pArc->GetOrigin() == this)
+			{
+				if (pArc->GetNeighbor() == pLinkedNode)
+					return pArc;
+			}
+			else if (pArc->GetOrigin() == pLinkedNode)
+			{
+				return pArc;
+			}
+		}
 	}
 	return NULL;
 }
@@ -137,7 +147,7 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 	if (mIndex == mPath.end())
 		return false;
 
-	PathingNode* pNode = GetCurrentNode();
+	PathingNode* pNode = GetNeighborNode();
 	Vector3<float> diff = pos - pNode->GetPos();
 	if (Length(diff) <= pNode->GetTolerance())
 	{

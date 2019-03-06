@@ -160,12 +160,12 @@ public:
 	PathingNode* GetCurrentNode(void) const
 	{
 		LogAssert(mIndex != mPath.end(), "Invalid index");
-		return (*mIndex)->GetNeighbor();
+		return (*mIndex)->GetOrigin();
 	}
-	const Vector3<float>& GetCurrentNodePosition(void) const 
+	PathingNode* GetNeighborNode(void) const
 	{ 
 		LogAssert(mIndex != mPath.end(), "Invalid index"); 
-		return (*mIndex)->GetNeighbor()->GetPos();
+		return (*mIndex)->GetNeighbor();
 	}
 	bool CheckForNextNode(const Vector3<float>& pos);
 	bool CheckForEnd(void);

@@ -28,8 +28,7 @@
 #include "QuakeApp.h"
 #include "Quake.h"
 
-QuakeAIManager::QuakeAIManager()
-	: AIManager()
+QuakeAIManager::QuakeAIManager() : AIManager()
 {
 	mLastNodeId = 0;
 
@@ -167,31 +166,36 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 
 	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
 
-	Transform transform;
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
-		transform.SetTranslation(pathNode->GetPos());
-		gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-		gamePhysics->OnUpdate(0.02f);
-
-		if (gamePhysics->OnGround(mPlayerActor->GetId()))
+		if (pathNode->GetActorId() != INVALID_ACTOR_ID)
 		{
-			for (PathingArc* pathArc : pathNode->GetArcs())
+			eastl::shared_ptr<Actor> pItemActor(
+				GameLogic::Get()->GetActor(pathNode->GetActorId()).lock());
+
+			if (pItemActor->GetType() == "Trigger")
 			{
-				if (pathArc->GetType() == AIAT_MOVE)
+				if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
 				{
-					if (pathArc->GetNeighbor()->FindArc(AIAT_MOVE, pathNode) == NULL)
-					{
-						PathingArc* pArc = new PathingArc(AIAT_MOVE, pathArc->GetWeight());
-						pArc->LinkNodes(pathArc->GetNeighbor(), pathNode);
-						pathArc->GetNeighbor()->AddArc(pArc);
-					}
+					eastl::shared_ptr<PushTrigger> pPushTrigger =
+						pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
+
+					Vector3<float> targetPosition = pPushTrigger->GetTarget().GetTranslation();
+					SimulateTriggerPush(pathNode, targetPosition);
+				}
+				else if (pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock())
+				{
+					eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
+						pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
+
+					Vector3<float> targetPosition = pTeleporterTrigger->GetTarget().GetTranslation();
+					SimulateTriggerTeleport(pathNode, targetPosition);
 				}
 			}
 		}
 	}
 
-	eastl::string levelPath = "ai/quake/bloodrun - copy.xml";
+	eastl::string levelPath = "ai/quake/bloodrun - copia.xml";
 	SavePathingGraph(FileSystem::Get()->GetPath(levelPath));
 	*/
 }
@@ -1308,42 +1312,42 @@ void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<f
 
 	Vector3<float> position = transform.GetTranslation();
 	PathingNode* pEndNode = mPathingGraph->FindClosestNode(position);
-	if (pEndNode != NULL && pNode->FindArc(AIAT_TELEPORTTARGET, pEndNode) == NULL)
+	if (pNode != pEndNode)
 	{
-		Vector3<float> diff = pEndNode->GetPos() - position;
-		if (Length(diff) <= 6.f)
+		if (pEndNode != NULL && pNode->FindArc(AIAT_TELEPORTTARGET, pEndNode) == NULL)
 		{
-			PathingNode* pCurrentNode = pNode;
-			eastl::vector<PathingNode*>::iterator itNode;
-			for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
+			Vector3<float> diff = pEndNode->GetPos() - position;
+			if (Length(diff) <= 6.f)
 			{
-				PathingNode* pTeleportNode = (*itNode);
-				if (pCurrentNode == pNode)
+				PathingArc* pArc = new PathingArc(AIAT_TELEPORTTARGET, totalTime);
+				pArc->LinkNodes(pNode, pEndNode);
+				pNode->AddArc(pArc);
+
+				PathingNode* pCurrentNode = pNode;
+				eastl::vector<PathingNode*>::iterator itNode;
+				for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
 				{
-					PathingArc* pArc = new PathingArc(AIAT_TELEPORTTARGET, totalTime);
-					pArc->LinkNodes(pNode, pEndNode);
-					pCurrentNode->AddArc(pArc);
-				}
-				if (pCurrentNode->FindArc(AIAT_TELEPORT, pEndNode) == NULL)
-				{
-					PathingArc* pArc = new PathingArc(
-						AIAT_TELEPORT, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
-					pArc->LinkNodes(pEndNode, pTeleportNode);
-					pCurrentNode->AddArc(pArc);
+					pFallingNode = (*itNode);
+					if (pCurrentNode->FindArc(AIAT_TELEPORT, pEndNode) == NULL)
+					{
+						PathingArc* pArc = new PathingArc(
+							AIAT_TELEPORT, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
+						pArc->LinkNodes(pEndNode, pFallingNode);
+						pCurrentNode->AddArc(pArc);
+					}
+
+					pCurrentNode = pFallingNode;
 				}
 
-				pCurrentNode = pTeleportNode;
-			}
-
-			if (pCurrentNode != pEndNode)
-			{
-				if (pCurrentNode->FindArc(AIAT_TELEPORT, pEndNode) == NULL)
+				if (pCurrentNode != pEndNode)
 				{
-					deltaTime = 0.02f;
-					PathingArc* pArc = new PathingArc(
-						AIAT_TELEPORT, deltaTime, pEndNode->GetPos());
-					pArc->LinkNodes(pEndNode, pEndNode);
-					pCurrentNode->AddArc(pArc);
+					if (pCurrentNode->FindArc(AIAT_TELEPORT, pEndNode) == NULL)
+					{
+						deltaTime = 0.02f;
+						PathingArc* pArc = new PathingArc(AIAT_TELEPORT, deltaTime, pEndNode->GetPos());
+						pArc->LinkNodes(pEndNode, pEndNode);
+						pCurrentNode->AddArc(pArc);
+					}
 				}
 			}
 		}
@@ -1416,35 +1420,33 @@ void QuakeAIManager::SimulateTriggerPush(PathingNode* pNode, const Vector3<float
 	totalTime += 0.02f;
 
 	//we store the jump if we find a landing node
-	if (!nodes.empty())
+	Vector3<float> position = transform.GetTranslation();
+	PathingNode* pEndNode = mPathingGraph->FindClosestNode(position);
+	if (pNode != pEndNode)
 	{
-		Vector3<float> position = transform.GetTranslation();
-		PathingNode* pEndNode = mPathingGraph->FindClosestNode(position);
 		if (pEndNode != NULL && pNode->FindArc(AIAT_PUSHTARGET, pEndNode) == NULL)
 		{
 			Vector3<float> diff = pEndNode->GetPos() - position;
 			if (Length(diff) <= 6.f)
 			{
+				PathingArc* pArc = new PathingArc(AIAT_PUSHTARGET, totalTime);
+				pArc->LinkNodes(pNode, pEndNode);
+				pNode->AddArc(pArc);
+
 				PathingNode* pCurrentNode = pNode;
 				eastl::vector<PathingNode*>::iterator itNode;
 				for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
 				{
-					PathingNode* pJumpNode = (*itNode);
-					if (pCurrentNode == pNode)
-					{
-						PathingArc* pArc = new PathingArc(AIAT_PUSHTARGET, totalTime);
-						pArc->LinkNodes(pNode, pEndNode);
-						pCurrentNode->AddArc(pArc);
-					}
+					pFallingNode = (*itNode);
 					if (pCurrentNode->FindArc(AIAT_PUSH, pEndNode) == NULL)
 					{
 						PathingArc* pArc = new PathingArc(
 							AIAT_PUSH, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
-						pArc->LinkNodes(pEndNode, pJumpNode);
+						pArc->LinkNodes(pEndNode, pFallingNode);
 						pCurrentNode->AddArc(pArc);
 					}
 
-					pCurrentNode = pJumpNode;
+					pCurrentNode = pFallingNode;
 				}
 
 				if (pCurrentNode != pEndNode)
@@ -1519,7 +1521,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 					{
 						deltaTime += 0.02f;
 						PathingNode* pClosestNode = mPathingGraph->FindClosestNode((*itMove));
-						if (pClosestNode != NULL)
+						if (pCurrentNode != pClosestNode)
 						{
 							Vector3<float> diff = pClosestNode->GetPos() - (*itMove);
 							if (Length(diff) >= 16.f)
@@ -1531,10 +1533,6 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 								pArc->LinkNodes(pCurrentNode, pNewNode);
 								pCurrentNode->AddArc(pArc);
 
-								pArc = new PathingArc(AIAT_MOVE, deltaTime);
-								pArc->LinkNodes(pNewNode, pCurrentNode);
-								pNewNode->AddArc(pArc);
-
 								mOpenSet[pNewNode] = true;
 								pCurrentNode = pNewNode;
 
@@ -1542,11 +1540,14 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 							}
 							else if (Length(diff) <= 6.f)
 							{
-								PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-								pArc->LinkNodes(pCurrentNode, pClosestNode);
-								pCurrentNode->AddArc(pArc);
+								if (pCurrentNode->FindArc(AIAT_MOVE, pClosestNode) == NULL)
+								{
+									PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+									pArc->LinkNodes(pCurrentNode, pClosestNode);
+									pCurrentNode->AddArc(pArc);
 
-								pCurrentNode = pClosestNode;
+									pCurrentNode = pClosestNode;
+								}
 
 								deltaTime = 0.f;
 							}
@@ -1603,25 +1604,29 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 				} while (!gamePhysics->OnGround(mPlayerActor->GetId()));
 
 				//we store the fall if we find a landing node
-				if (!nodes.empty())
+				Vector3<float> position = transform.GetTranslation();
+				pEndNode = mPathingGraph->FindClosestNode(position);
+				if (pCurrentNode != pEndNode)
 				{
-					Vector3<float> position = transform.GetTranslation();
-					pEndNode = mPathingGraph->FindClosestNode(position);
 					if (pEndNode != NULL && pCurrentNode->FindArc(AIAT_FALLTARGET, pEndNode) == NULL)
 					{
 						Vector3<float> diff = pEndNode->GetPos() - position;
 						if (Length(diff) >= 16.f || Length(diff) <= 6.f)
 						{
+							if (Length(diff) >= 16.f)
+							{
+								pEndNode = new PathingNode(GetNewNodeID(), INVALID_ACTOR_ID, position);
+								mPathingGraph->InsertNode(pEndNode);
+							}
+
+							PathingArc* pArc = new PathingArc(AIAT_FALLTARGET, totalTime);
+							pArc->LinkNodes(pCurrentNode, pEndNode);
+							pCurrentNode->AddArc(pArc);
+
 							eastl::vector<PathingNode*>::iterator itNode;
 							for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
 							{
 								pFallingNode = (*itNode);
-								if (pCurrentNode == pFallingNode)
-								{
-									PathingArc* pArc = new PathingArc(AIAT_FALLTARGET, totalTime);
-									pArc->LinkNodes(pCurrentNode, pEndNode);
-									pCurrentNode->AddArc(pArc);
-								}
 								if (pCurrentNode->FindArc(AIAT_FALL, pEndNode) == NULL)
 								{
 									PathingArc* pArc = new PathingArc(
@@ -1633,12 +1638,6 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 								pCurrentNode = pFallingNode;
 							}
 
-							if (Length(diff) >= 16.f)
-							{
-								pEndNode = new PathingNode(GetNewNodeID(), INVALID_ACTOR_ID, position);
-								mPathingGraph->InsertNode(pEndNode);
-							}
-
 							if (pCurrentNode != pEndNode)
 							{
 								if (pCurrentNode->FindArc(AIAT_FALL, pEndNode) == NULL)
@@ -1648,9 +1647,8 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 									pArc->LinkNodes(pEndNode, pEndNode);
 									pCurrentNode->AddArc(pArc);
 								}
+								pCurrentNode = pEndNode;
 							}
-
-							pCurrentNode = pEndNode;
 						}
 						else break;
 					}
@@ -1700,7 +1698,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 			{
 				deltaTime += 0.02f;
 				PathingNode* pClosestNode = mPathingGraph->FindClosestNode((*itMove));
-				if (pClosestNode != NULL)
+				if (pCurrentNode != pClosestNode)
 				{
 					Vector3<float> diff = pClosestNode->GetPos() - (*itMove);
 					if (Length(diff) >= 16.f)
@@ -1711,10 +1709,6 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 						PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
 						pArc->LinkNodes(pCurrentNode, pNewNode);
 						pCurrentNode->AddArc(pArc);
-
-						pArc = new PathingArc(AIAT_MOVE, deltaTime);
-						pArc->LinkNodes(pNewNode, pCurrentNode);
-						pNewNode->AddArc(pArc);
 
 						mOpenSet[pNewNode] = true;
 						pCurrentNode = pNewNode;
@@ -1737,16 +1731,13 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 			}
 			deltaTime += 0.02f;
 
-			if (pEndNode != NULL)
+			if (pEndNode != NULL && pCurrentNode != pEndNode)
 			{
-				if (pCurrentNode != pEndNode)
+				if (pCurrentNode->FindArc(AIAT_MOVE, pEndNode) == NULL)
 				{
-					if (pCurrentNode->FindArc(AIAT_MOVE, pEndNode) == NULL)
-					{
-						PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-						pArc->LinkNodes(pCurrentNode, pEndNode);
-						pCurrentNode->AddArc(pArc);
-					}
+					PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+					pArc->LinkNodes(pCurrentNode, pEndNode);
+					pCurrentNode->AddArc(pArc);
 				}
 			}
 		}
@@ -1758,105 +1749,8 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 	//lets move the character towards different directions
 	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
 
-	Vector3<float> direction = Vector3<float>::Unit(YAW); // jump up vector
-	direction[YAW] *= mJumpSpeed;
-
 	Transform transform;
-	transform.SetTranslation(pNode->GetPos());
-	gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-	gamePhysics->WalkDirection(mPlayerActor->GetId(), direction);
-	gamePhysics->Jump(mPlayerActor->GetId(), direction);
-	gamePhysics->OnUpdate(0.02f);
-
-	// nodes closed to jump position
-	eastl::vector<PathingNode*> nodes;
-	eastl::map<PathingNode*, float> nodeTimes;
-	eastl::map<PathingNode*, Vector3<float>> nodePositions;
-
-	// gravity falling simulation
-	transform = gamePhysics->GetTransform(mPlayerActor->GetId());
-
-	float fallSpeed = 0.f, deltaTime = 0.f, totalTime = 0.f;
-	PathingNode* pFallingNode = pNode;
-	while (!gamePhysics->OnGround(mPlayerActor->GetId()))
-	{
-		float jumpSpeed = gamePhysics->GetJumpSpeed(mPlayerActor->GetId());
-
-		totalTime += 0.02f;
-		deltaTime += 0.02f;
-		fallSpeed += (20.f / (jumpSpeed * 0.5f));
-		if (fallSpeed > mMaxFallSpeed) fallSpeed = mMaxFallSpeed;
-
-		PathingNode* pClosestNode = 
-			mPathingGraph->FindClosestNode(transform.GetTranslation());
-		if (pClosestNode != NULL)
-		{
-			if (pClosestNode != pFallingNode)
-				deltaTime = 0.02f;
-
-			if (eastl::find(nodes.begin(), nodes.end(), pClosestNode) == nodes.end())
-				nodes.push_back(pClosestNode);
-			nodeTimes[pClosestNode] = deltaTime;
-			nodePositions[pClosestNode] = transform.GetTranslation();
-			pFallingNode = pClosestNode;
-		}
-
-		Vector3<float> direction = Vector3<float>::Unit(YAW); // jump up vector
-		direction[YAW] *= -jumpSpeed * fallSpeed;
-
-		gamePhysics->FallDirection(mPlayerActor->GetId(), direction);
-		gamePhysics->OnUpdate(0.02f);
-
-		transform = gamePhysics->GetTransform(mPlayerActor->GetId());
-	}
-	totalTime += 0.02f;
-
-	//we store the jump if we find a landing node
-	if (!nodes.empty())
-	{
-		Vector3<float> position = transform.GetTranslation();
-		PathingNode* pEndNode = mPathingGraph->FindClosestNode(position);
-		if (pEndNode != NULL && pNode->FindArc(AIAT_JUMPTARGET, pEndNode) == NULL)
-		{
-			Vector3<float> diff = pEndNode->GetPos() - position;
-			if (Length(diff) <= 6.f)
-			{
-				PathingNode* pCurrentNode = pNode;
-				eastl::vector<PathingNode*>::iterator itNode;
-				for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
-				{
-					PathingNode* pJumpNode = (*itNode);
-					if (pCurrentNode == pNode)
-					{
-						PathingArc* pArc = new PathingArc(AIAT_JUMPTARGET, totalTime);
-						pArc->LinkNodes(pNode, pEndNode);
-						pCurrentNode->AddArc(pArc);
-					}
-					if (pCurrentNode->FindArc(AIAT_JUMP, pEndNode) == NULL)
-					{
-						PathingArc* pArc = new PathingArc(
-							AIAT_JUMP, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
-						pArc->LinkNodes(pEndNode, pJumpNode);
-						pCurrentNode->AddArc(pArc);
-					}
-
-					pCurrentNode = pJumpNode;
-				}
-
-				if (pCurrentNode != pEndNode)
-				{
-					if (pCurrentNode->FindArc(AIAT_JUMP, pEndNode) == NULL)
-					{
-						deltaTime = 0.02f;
-						PathingArc* pArc = new PathingArc(AIAT_JUMP, deltaTime, pEndNode->GetPos());
-						pArc->LinkNodes(pEndNode, pEndNode);
-						pCurrentNode->AddArc(pArc);
-					}
-				}
-			}
-		}
-	}
-
+	Vector3<float> direction;
 	for (int angle = 0; angle < 360; angle += 20)
 	{
 		Matrix4x4<float> rotation = Rotation<4, float>(
@@ -1881,13 +1775,15 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 
 		transform = gamePhysics->GetTransform(mPlayerActor->GetId());
 
+		// nodes closed to jump position
+		eastl::vector<PathingNode*> nodes;
+		eastl::map<PathingNode*, float> nodeTimes;
+		eastl::map<PathingNode*, Vector3<float>> nodePositions;
+
+		float fallSpeed = 0.f, deltaTime = 0.f, totalTime = 0.f;
+		PathingNode* pFallingNode = pNode;
+
 		// gravity falling simulation
-		nodePositions.clear();
-		nodes.clear();
-		totalTime = 0.f;
-		deltaTime = 0.f;
-		fallSpeed = 0.f;
-		pFallingNode = pNode;
 		while (!gamePhysics->OnGround(mPlayerActor->GetId()))
 		{
 			float jumpSpeed = gamePhysics->GetJumpSpeed(mPlayerActor->GetId());
@@ -1929,35 +1825,33 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 		totalTime += 0.02f;
 
 		//we store the jump if we find a landing node
-		if (!nodes.empty())
+		Vector3<float> position = transform.GetTranslation();
+		PathingNode* pEndNode = mPathingGraph->FindClosestNode(position);
+		if (pNode != pEndNode)
 		{
-			Vector3<float> position = transform.GetTranslation();
-			PathingNode* pEndNode = mPathingGraph->FindClosestNode(position);
 			if (pEndNode != NULL && pNode->FindArc(AIAT_JUMPTARGET, pEndNode) == NULL)
 			{
 				Vector3<float> diff = pEndNode->GetPos() - position;
 				if (Length(diff) <= 6.f)
 				{
+					PathingArc* pArc = new PathingArc(AIAT_JUMPTARGET, totalTime);
+					pArc->LinkNodes(pNode, pEndNode);
+					pNode->AddArc(pArc);
+
 					PathingNode* pCurrentNode = pNode;
 					eastl::vector<PathingNode*>::iterator itNode;
 					for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
 					{
-						PathingNode* pJumpNode = (*itNode);
-						if (pCurrentNode == pNode)
-						{
-							PathingArc* pArc = new PathingArc(AIAT_JUMPTARGET, totalTime);
-							pArc->LinkNodes(pNode, pEndNode);
-							pCurrentNode->AddArc(pArc);
-						}
+						pFallingNode = (*itNode);
 						if (pCurrentNode->FindArc(AIAT_JUMP, pEndNode) == NULL)
 						{
 							PathingArc* pArc = new PathingArc(
 								AIAT_JUMP, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
-							pArc->LinkNodes(pEndNode, pJumpNode);
+							pArc->LinkNodes(pEndNode, pFallingNode);
 							pCurrentNode->AddArc(pArc);
 						}
 
-						pCurrentNode = pJumpNode;
+						pCurrentNode = pFallingNode;
 					}
 
 					if (pCurrentNode != pEndNode)
