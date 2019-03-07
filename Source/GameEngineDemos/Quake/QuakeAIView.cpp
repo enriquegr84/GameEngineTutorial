@@ -480,51 +480,17 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 							if (mPlan != NULL)
 							{
+								/*
+								Vector3<float> pos = pTransformComponent->GetPosition();
+								Vector3<float> nextPos = mPlan->GetNeighborNode()->GetPos();
+								printf("move %f %f %f next pos %f %f %f\n",
+									pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
+								*/
+								Vector3<float> direction =
+									mPlan->GetNeighborNode()->GetPos() - pTransformComponent->GetPosition();
+								Normalize(direction);
+								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
-								if (mPlan->GetCurrentArc()->GetType() == AIAT_MOVE)
-								{
-									Vector3<float> pos = pTransformComponent->GetPosition();
-									Vector3<float> nextPos = mPlan->GetNeighborNode()->GetPos();
-									printf("move %f %f %f next pos %f %f %f\n",
-										pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
-
-									Vector3<float> direction =
-										mPlan->GetNeighborNode()->GetPos() - pTransformComponent->GetPosition();
-									Normalize(direction);
-									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-								}
-								else if (mPlan->GetCurrentArc()->GetType() == AIAT_FALLTARGET)
-								{
-									PathingNode* currentNode = mPlan->GetCurrentNode();
-									PathingArc* pathArc = currentNode->FindArc(
-										AIAT_FALL, mPlan->GetCurrentArc()->GetNeighbor());
-
-									Vector3<float> pos = pTransformComponent->GetPosition();
-									Vector3<float> nextPos = pathArc->GetConnection();
-									printf("fall %f %f %f next pos %f %f %f\n",
-										pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
-
-									Vector3<float> direction =
-										pathArc->GetConnection() - pTransformComponent->GetPosition();
-									Normalize(direction);
-									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-								}
-								else if (mPlan->GetCurrentArc()->GetType() == AIAT_PUSHTARGET)
-								{
-									PathingNode* currentNode = mPlan->GetCurrentNode();
-									PathingArc* pathArc = currentNode->FindArc(
-										AIAT_PUSH, mPlan->GetCurrentArc()->GetNeighbor());
-
-									Vector3<float> pos = pTransformComponent->GetPosition();
-									Vector3<float> nextPos = pathArc->GetConnection();
-									printf("push %f %f %f next pos %f %f %f\n",
-										pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
-
-									Vector3<float> direction =
-										pathArc->GetConnection() - pTransformComponent->GetPosition();
-									Normalize(direction);
-									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-								}
 								/*
 								if (mPlan->GetCurrentArc()->GetType() == AIAT_JUMPTARGET)
 									pPlayerActor->GetAction().actionType |= ACTION_JUMP;
@@ -588,13 +554,30 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				mFallSpeed += deltaMs / (pPhysicComponent->GetJumpSpeed() * 0.5f);
 				if (mFallSpeed > mMaxFallSpeed) mFallSpeed = mMaxFallSpeed;
 
-				Vector3<float> direction = pPhysicComponent->GetVelocity();
+				// Calculate the new rotation matrix from the camera
+				// yaw and pitch (zrotate and xrotate).
+				Matrix4x4<float> yawRotation = Rotation<4, float>(
+					AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
+				rotation = yawRotation;
+
+				// This will give us the "look at" vector 
+				// in world space - we'll use that to move.
+				Vector4<float> atWorld = Vector4<float>::Unit(PITCH); // forward vector
+#if defined(GE_USE_MAT_VEC)
+				atWorld = rotation * atWorld;
+#else
+				atWorld = atWorld * rotation;
+#endif
+				Normalize(atWorld);
+
+				Vector4<float> upWorld = -Vector4<float>::Unit(YAW);
+				Vector4<float> direction = atWorld + upWorld;
 				Normalize(direction);
 
 				direction[PITCH] *= pPhysicComponent->GetJumpSpeed() * (mFallSpeed / 4.f);
 				direction[ROLL] *= pPhysicComponent->GetJumpSpeed() * (mFallSpeed / 4.f);
 				direction[YAW] = -pPhysicComponent->GetJumpSpeed() * mFallSpeed;
-				velocity = HLift(direction, 0.f);
+				velocity = direction;
 
 				pPlayerActor->GetAction().actionType |= ACTION_FALLEN;
 			}

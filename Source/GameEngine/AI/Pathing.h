@@ -47,7 +47,7 @@
 class PathingArc;
 class PathingNode;
 class PathPlanNode;
-class AStar;
+class PathFinder;
 
 typedef eastl::vector<PathingArc*> PathingArcVec;
 typedef eastl::vector<PathingNode*> PathingNodeVec;
@@ -103,7 +103,6 @@ public:
 	const PathingArcVec& GetArcs() { return mArcs; }
 
 	void GetNeighbors(unsigned int arcType, PathingArcVec& outNeighbors);
-	float GetCostFromArc(PathingArc* pArc);
 };
 
 
@@ -120,8 +119,7 @@ class PathingArc
 
 public:
 	explicit PathingArc(
-		unsigned int type = 0, 
-		float weight = PATHING_DEFAULT_ARC_WEIGHT, 
+		unsigned int type = 0, float weight = 0.f, 
 		const Vector3<float>& connect = NULL) 
 		: mType(type), mWeight(weight), mConnection(connect)
 	{ }
@@ -143,13 +141,14 @@ public:
 //--------------------------------------------------------------------------------------------------------
 class PathPlan
 {
-	friend class AStar;
+	friend class PathFinder;
 
 	PathingArcVec mPath;
 	PathingArcVec::iterator mIndex;
+	Vector3<float> mDirection;
 	
 public:
-	PathPlan(void) { mIndex = mPath.end(); }
+	PathPlan(void) { mIndex = mPath.end(); mDirection = Vector3<float>::Zero(); }
 	
 	void ResetPath(void) { mIndex = mPath.begin(); }
 	PathingArc* GetCurrentArc(void) const
@@ -177,8 +176,7 @@ private:
 
 //--------------------------------------------------------------------------------------------------------
 // class PathPlanNode						- Chapter 18, page 636
-// This class is a helper used in PathingGraph::FindPath().  It tracks the heuristical and cost data for
-// a given node when building a path.
+// This class is a helper used in PathingGraph::FindPath().
 //--------------------------------------------------------------------------------------------------------
 class PathPlanNode
 {
@@ -188,8 +186,6 @@ class PathPlanNode
 	PathingNode* mGoalNode;  // pointer to the goal node
 	bool mClosed;  // the node is closed if it's already been processed
 	float mGoal;  // cost of the entire path up to this point (often called g)
-	float mHeuristic;  // estimated cost of this node to the goal (often called h)
-	float mFitness;  // estimated cost from start to the goal through this node (often called f)
 	
 public:
 	explicit PathPlanNode(PathingArc* pArc, PathPlanNode* pPrevNode, PathingNode* pGoalNode);
@@ -199,24 +195,21 @@ public:
 	PathingNode* GetPathingNode(void) const { return mPathingNode; }
 	bool IsClosed(void) const { return mClosed; }
 	float GetGoal(void) const { return mGoal; }
-	float GetHeuristic(void) const { return mHeuristic; }
-	float GetFitness(void) const { return mFitness; }
 	
 	void UpdatePrevNode(PathPlanNode* pPrev);
 	void SetClosed(bool toClose = true) { mClosed = toClose; }
-	
-	bool IsBetterChoiceThan(PathPlanNode* pRight) { return (mFitness < pRight->GetFitness()); }
+	bool IsBetterChoiceThan(PathPlanNode* pRight) { return (mGoal < pRight->GetGoal()); }
 	
 private:
-	void UpdateHeuristics(void);
+	void UpdatePathCost(void);
 };
 
 
 //--------------------------------------------------------------------------------------------------------
-// class AStar								- Chapter 18, page 638
-// This class implements the A* algorithm.
+// class PathFinder								- Chapter 18, page 638
+// This class implements the PathFinder algorithm.
 //--------------------------------------------------------------------------------------------------------
-class AStar
+class PathFinder
 {
 	PathingNodeToPathPlanNodeMap mNodes;
 	PathingNode* mStartNode;
@@ -224,8 +217,8 @@ class AStar
 	PathPlanNodeList mOpenSet;
 	
 public:
-	AStar(void);
-	~AStar(void);
+	PathFinder(void);
+	~PathFinder(void);
 	void Destroy(void);
 	
 	PathPlan* operator()(PathingNode* pStartNode, PathingNode* pGoalNode);

@@ -69,16 +69,6 @@ void PathingNode::GetNeighbors(unsigned int arcType, PathingArcVec& outNeighbors
 	}
 }
 
-float PathingNode::GetCostFromArc(PathingArc* pArc)
-{
-	if (pArc != NULL)
-	{
-		Vector3<float> diff = pArc->GetNeighbor(this)->GetPos() - mPos;
-		return pArc->GetWeight() * Length(diff);
-	}
-	else return 0.f;
-}
-
 PathingArc* PathingNode::FindArc(PathingNode* pLinkedNode)
 {
 	LogAssert(pLinkedNode, "Invalid node");
@@ -147,13 +137,26 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 	if (mIndex == mPath.end())
 		return false;
 
-	PathingNode* pNode = GetNeighborNode();
-	Vector3<float> diff = pos - pNode->GetPos();
-	if (Length(diff) <= pNode->GetTolerance())
+	Vector3<float> oldDirection = mDirection;
+	mDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
+	Normalize(mDirection);
+	printf("pos %f %f %f destiny %f %f %f\n", 
+		pos[0], pos[1], pos[2],
+		(*mIndex)->GetNeighbor()->GetPos()[0], 
+		(*mIndex)->GetNeighbor()->GetPos()[1], 
+		(*mIndex)->GetNeighbor()->GetPos()[2]);
+	printf("dot %f\n", Dot(mDirection, oldDirection));
+	if (Dot(mDirection, oldDirection) < 0.f)
 	{
-		++mIndex;
+		mIndex++;
+		if (mIndex != mPath.end())
+		{
+			mDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
+			Normalize(mDirection);
+		}
 		return true;
 	}
+
 	return false;
 }
 
@@ -183,7 +186,7 @@ PathPlanNode::PathPlanNode(PathingArc* pArc, PathPlanNode* pPrevNode, PathingNod
 	mPrevNode = pPrevNode;  // NULL is a valid value, though it should only be NULL for the start node
 	mGoalNode = pGoalNode;
 	mClosed = false;
-	UpdateHeuristics();
+	UpdatePathCost();
 }
 
 PathPlanNode::PathPlanNode(PathingNode* pNode, PathPlanNode* pPrevNode, PathingNode* pGoalNode)
@@ -195,48 +198,41 @@ PathPlanNode::PathPlanNode(PathingNode* pNode, PathPlanNode* pPrevNode, PathingN
 	mPrevNode = pPrevNode;  // NULL is a valid value, though it should only be NULL for the start node
 	mGoalNode = pGoalNode;
 	mClosed = false;
-	UpdateHeuristics();
+	UpdatePathCost();
 }
 
 void PathPlanNode::UpdatePrevNode(PathPlanNode* pPrev)
 {
 	LogAssert(pPrev, "Invalid node");
 	mPrevNode = pPrev;
-	UpdateHeuristics();
+	UpdatePathCost();
 }
 
-void PathPlanNode::UpdateHeuristics(void)
+void PathPlanNode::UpdatePathCost(void)
 {
 	// total cost (g)
 	if (mPrevNode)
-		mGoal = mPrevNode->GetGoal() + mPathingNode->GetCostFromArc(mPathingArc);
+		mGoal = mPrevNode->GetGoal() + mPathingArc->GetWeight();
 	else
 		mGoal = 0;
-
-	// heuristic (h)
-	Vector3<float> diff = mPathingNode->GetPos() - mGoalNode->GetPos();
-	mHeuristic = PATHING_DEFAULT_ARC_WEIGHT * Length(diff);
-
-	// cost to goal (f)
-	mFitness = mGoal + mHeuristic;
 }
 
 
 //--------------------------------------------------------------------------------------------------------
-// AStar
+// PathFinder
 //--------------------------------------------------------------------------------------------------------
-AStar::AStar(void)
+PathFinder::PathFinder(void)
 {
 	mStartNode = NULL;
 	mGoalNode = NULL;
 }
 
-AStar::~AStar(void)
+PathFinder::~PathFinder(void)
 {
 	Destroy();
 }
 
-void AStar::Destroy(void)
+void PathFinder::Destroy(void)
 {
 	// destroy all the PathPlanNode objects and clear the map
 	for (PathingNodeToPathPlanNodeMap::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
@@ -251,11 +247,10 @@ void AStar::Destroy(void)
 	mGoalNode = NULL;
 }
 
-
 //
-// AStar::operator()					- Chapter 18, page 638
+// PathFinder::operator()					- Chapter 18, page 638
 //
-PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
+PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 {
 	LogAssert(pStartNode, "Invalid node");
 	LogAssert(pGoalNode, "Invalid node");
@@ -276,25 +271,21 @@ PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 	while (!mOpenSet.empty())
 	{
 		// grab the most likely candidate
-		PathPlanNode* pNode = mOpenSet.front();
-
-		// If this node is our goal node, we've successfully found a path.
-		if (pNode->GetPathingNode() == mGoalNode)
-			return RebuildPath(pNode);
+		PathPlanNode* planNode = mOpenSet.front();
 
 		// we're processing this node so remove it from the open set and add it to the closed set
 		mOpenSet.pop_front();
-		AddToClosedSet(pNode);
+		AddToClosedSet(planNode);
 
 		// get the neighboring nodes
 		PathingArcVec neighbors;
-		pNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
-		pNode->GetPathingNode()->GetNeighbors(AT_TARGET, neighbors);
+		planNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
+		planNode->GetPathingNode()->GetNeighbors(AT_TARGET, neighbors);
 
 		// loop though all the neighboring nodes and evaluate each one
 		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
-			PathingNode* pNodeToEvaluate = (*it)->GetNeighbor(pNode->GetPathingNode());
+			PathingNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetPathingNode());
 
 			// Try and find a PathPlanNode object for this node.
 			PathingNodeToPathPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
@@ -303,13 +294,13 @@ PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 			// safely skip it.
 			if (findIt != mNodes.end() && findIt->second->IsClosed())
 				continue;
-			
+
 			// figure out the cost for this route through the node
-			float costForThisPath = 
-				pNode->GetGoal() + pNodeToEvaluate->GetCostFromArc((*it));
+			float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
 			bool isPathBetter = false;
+
 			/*
-			printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
+			fprintf(pFile, "arc node %f %f %f to node %f %f %f type %u cost %f\n",
 				(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
 				(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2], 
 				(*it)->GetType(), costForThisPath);
@@ -320,33 +311,33 @@ PathPlan* AStar::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
 				pPathPlanNodeToEvaluate = findIt->second;
 
 			// No PathPlanNode means we've never evaluated this pathing node so we need to add it to 
-			// the open set, which has the side effect of setting all the heuristic data.  It also 
-			// means that this is the best path through this node that we've found so the nodes are 
-			// linked together (which is why we don't bother setting isPathBetter to true; it's done
-			// for us in AddToOpenSet()).
+			// the open set, which has the side effect of setting all the cost data.
 			if (!pPathPlanNodeToEvaluate)
-				pPathPlanNodeToEvaluate = AddToOpenSet((*it), pNode);
+				pPathPlanNodeToEvaluate = AddToOpenSet((*it), planNode);
 			
 			// If this node is already in the open set, check to see if this route to it is better than
 			// the last.
 			else if (costForThisPath < pPathPlanNodeToEvaluate->GetGoal())
 				isPathBetter = true;
 			
-			// If this path is better, relink the nodes appropriately, update the heuristics data, and
+			// If this path is better, relink the nodes appropriately, update the cost data, and
 			// reinsert the node into the open list priority queue.
 			if (isPathBetter)
 			{
-				pPathPlanNodeToEvaluate->UpdatePrevNode(pNode);
+				pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
 				ReinsertNode(pPathPlanNodeToEvaluate);
 			}
 		}
 	}
-	
-	// If we get here, there's no path to the goal.
-	return NULL;
+
+	// lets find out if we successfully found a path.
+	if (mNodes.find(mGoalNode) != mNodes.end())
+		return RebuildPath(mNodes[mGoalNode]);
+	else
+		return NULL;
 }
 
-PathPlanNode* AStar::AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode)
+PathPlanNode* PathFinder::AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode)
 {
 	LogAssert(pArc, "Invalid arc");
 
@@ -372,7 +363,7 @@ PathPlanNode* AStar::AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode)
 	return pThisNode;
 }
 
-PathPlanNode* AStar::AddToOpenSet(PathingNode* pNode, PathPlanNode* pPrevNode)
+PathPlanNode* PathFinder::AddToOpenSet(PathingNode* pNode, PathPlanNode* pPrevNode)
 {
 	LogAssert(pNode, "Invalid node");
 
@@ -397,16 +388,16 @@ PathPlanNode* AStar::AddToOpenSet(PathingNode* pNode, PathPlanNode* pPrevNode)
 	return pThisNode;
 }
 
-void AStar::AddToClosedSet(PathPlanNode* pNode)
+void PathFinder::AddToClosedSet(PathPlanNode* pNode)
 {
 	LogAssert(pNode, "Invalid node");
 	pNode->SetClosed();
 }
 
 //
-// AStar::InsertNode					- Chapter 17, page 636
+// PathFinder::InsertNode					- Chapter 17, page 636
 //
-void AStar::InsertNode(PathPlanNode* pNode)
+void PathFinder::InsertNode(PathPlanNode* pNode)
 {
 	LogAssert(pNode, "Invalid node");
 	
@@ -432,7 +423,7 @@ void AStar::InsertNode(PathPlanNode* pNode)
 	mOpenSet.insert(it,pNode);
 }
 
-void AStar::ReinsertNode(PathPlanNode* pNode)
+void PathFinder::ReinsertNode(PathPlanNode* pNode)
 {
 	LogAssert(pNode, "Invalid node");
 
@@ -451,7 +442,7 @@ void AStar::ReinsertNode(PathPlanNode* pNode)
 	InsertNode(pNode);
 }
 
-PathPlan* AStar::RebuildPath(PathPlanNode* pGoalNode)
+PathPlan* PathFinder::RebuildPath(PathPlanNode* pGoalNode)
 {
 	LogAssert(pGoalNode, "Invalid node");
 
@@ -591,8 +582,8 @@ PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, const Vector3<float>& 
 PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, PathingNode* pGoalNode)
 {
 	// find the best path using an A* search algorithm
-	AStar aStar;
-	return aStar(pStartNode,pGoalNode);
+	PathFinder pathFinder;
+	return pathFinder(pStartNode,pGoalNode);
 }
 
 void PathingGraph::InsertNode(PathingNode* pNode)

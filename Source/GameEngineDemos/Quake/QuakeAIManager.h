@@ -57,6 +57,7 @@ protected:
 	void SimulateMovement(PathingNode* pNode);
 	void SimulateTriggerPush(PathingNode* pNode, const Vector3<float>& target);
 	void SimulateTriggerTeleport(PathingNode* pNode, const Vector3<float>& target);
+	void SimulateActorPosition(ActorId actorId, const Vector3<float>& position);
 
 	void SimulateWaypoint();
 

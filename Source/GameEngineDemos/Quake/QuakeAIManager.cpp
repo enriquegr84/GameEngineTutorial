@@ -268,6 +268,7 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 	RegisterAllDelegates();
 
 	//first we store the most important points of the map
+	/*
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
 	for (auto ammo : game->GetAmmoActors())
@@ -275,66 +276,48 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
 			ammo->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pTransformComponent)
-		{
-			PathingNode* pNode = new PathingNode(
-				GetNewNodeID(), ammo->GetId(), pTransformComponent->GetPosition());
-			mPathingGraph->InsertNode(pNode);
-			mOpenSet[pNode] = true;
-		}
+			SimulateActorPosition(ammo->GetId(), pTransformComponent->GetPosition());
 	}
 	for (auto weapon : game->GetWeaponActors())
 	{
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
 			weapon->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pTransformComponent)
-		{
-			PathingNode* pNode = new PathingNode(
-				GetNewNodeID(), weapon->GetId(), pTransformComponent->GetPosition());
-			mPathingGraph->InsertNode(pNode);
-			mOpenSet[pNode] = true;
-		}
+			SimulateActorPosition(weapon->GetId(), pTransformComponent->GetPosition());
 	}
 	for (auto health : game->GetHealthActors())
 	{
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
 			health->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pTransformComponent)
-		{
-			PathingNode* pNode = new PathingNode(
-				GetNewNodeID(), health->GetId(), pTransformComponent->GetPosition());
-			mPathingGraph->InsertNode(pNode);
-			mOpenSet[pNode] = true;
-		}
+			SimulateActorPosition(health->GetId(), pTransformComponent->GetPosition());
 	}
 	for (auto armor : game->GetArmorActors())
 	{
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
 			armor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pTransformComponent)
-		{
-			PathingNode* pNode = new PathingNode(
-				GetNewNodeID(), armor->GetId(), pTransformComponent->GetPosition());
-			mPathingGraph->InsertNode(pNode);
-			mOpenSet[pNode] = true;
-		}
+			SimulateActorPosition(armor->GetId(), pTransformComponent->GetPosition());
 	}
 	for (auto target : game->GetTargetActors())
 	{
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
 			target->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pTransformComponent)
-		{
-			PathingNode* pNode = new PathingNode(
-				GetNewNodeID(), target->GetId(), pTransformComponent->GetPosition());
-			mPathingGraph->InsertNode(pNode);
-			mOpenSet[pNode] = true;
-		}
+			SimulateActorPosition(target->GetId(), pTransformComponent->GetPosition());
 	}
 
 	// we create the waypoint according to the character controller physics system. Every
 	// simulation step, it will be generated new waypoints from different actions such as
 	// movement, jumping or falling and its conections
 	SimulateWaypoint();
+	*/
+
+	for (PathingNode* pNode : mPathingGraph->GetNodes())
+	{
+		// simulate the candidate
+		SimulateJump(pNode);
+	}
 
 	Level* level = game->GetLevelManager()->GetLevel(ToWideString(gameApp->mOption.mLevel.c_str()));
 	eastl::string levelPath = "ai/quake/" + ToString(level->GetName().c_str()) + ".xml";
@@ -1208,11 +1191,11 @@ void QuakeAIManager::SimulateWaypoint()
 		// grab the candidate
 		eastl::map<PathingNode*, bool>::iterator itOpenSet = mClosedSet.begin();
 		PathingNode* pNode = itOpenSet->first;
-		/*
+
 		//check if its on ground
 		if (itOpenSet->second)
 			SimulateJump(pNode);
-		*/
+
 		// we have processed this node so remove it from the closed set
 		mClosedSet.erase(itOpenSet);
 	}
@@ -1251,6 +1234,23 @@ void QuakeAIManager::SimulateWaypoint()
 		}
 	}
 	mActorNodes.clear();
+}
+
+void QuakeAIManager::SimulateActorPosition(ActorId actorId, const Vector3<float>& position)
+{
+	//lets move the character towards different directions
+	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
+
+	Transform transform;
+	transform.SetTranslation(position);
+	gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
+	gamePhysics->OnUpdate(0.02f);
+
+	transform = gamePhysics->GetTransform(mPlayerActor->GetId());
+	PathingNode* pNewNode = new PathingNode(
+		GetNewNodeID(), actorId, transform.GetTranslation());
+	mPathingGraph->InsertNode(pNewNode);
+	mOpenSet[pNewNode] = true;
 }
 
 void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<float>& target)
