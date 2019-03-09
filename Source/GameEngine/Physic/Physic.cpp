@@ -1311,27 +1311,49 @@ ActorId BulletPhysics::ConvexSweep(
 	ActorId aId, const Transform& origin, const Transform& end,
 	Vector3<float>& collisionPoint, Vector3<float>& collisionNormal)
 {
-	btVector3 from = Vector3TobtVector3(origin.GetTranslation());
-	btVector3 to = Vector3TobtVector3(end.GetTranslation());
-	btCollisionWorld::ClosestConvexResultCallback closestResults(from, to);
-	btCollisionObject* collisionObject = FindBulletCollisionObject(aId);
-	btConvexShape* collisionShape = dynamic_cast<btConvexShape*>(collisionObject->getCollisionShape());
-
-	mDynamicsWorld->convexSweepTest(
-		collisionShape, TransformTobtTransform(origin), TransformTobtTransform(end), closestResults);
-
-	if (closestResults.hasHit())
+	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(aId))
 	{
-		collisionPoint = btVector3ToVector3(closestResults.m_hitPointWorld);
-		collisionNormal = btVector3ToVector3(closestResults.m_hitNormalWorld);
-		return FindActorID(closestResults.m_hitCollisionObject);
+		if (collisionObject->getCollisionFlags() & btCollisionObject::CF_CHARACTER_OBJECT)
+		{
+			if (btKinematicCharacterController* const controller =
+				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(aId)))
+			{
+				btVector3 from = Vector3TobtVector3(origin.GetTranslation());
+				btVector3 to = Vector3TobtVector3(end.GetTranslation());
+				btCollisionWorld::ClosestConvexResultCallback closestResults(from, to);
+				btConvexShape* collisionShape = dynamic_cast<btConvexShape*>(collisionObject->getCollisionShape());
+
+				controller->getGhostObject()->convexSweepTest(
+					collisionShape, TransformTobtTransform(origin), TransformTobtTransform(end), closestResults);
+				if (closestResults.hasHit())
+				{
+					collisionPoint = btVector3ToVector3(closestResults.m_hitPointWorld);
+					collisionNormal = btVector3ToVector3(closestResults.m_hitNormalWorld);
+					return FindActorID(closestResults.m_hitCollisionObject);
+				}
+			}
+		}
+		else
+		{
+			btVector3 from = Vector3TobtVector3(origin.GetTranslation());
+			btVector3 to = Vector3TobtVector3(end.GetTranslation());
+			btCollisionWorld::ClosestConvexResultCallback closestResults(from, to);
+			btConvexShape* collisionShape = dynamic_cast<btConvexShape*>(collisionObject->getCollisionShape());
+
+			mDynamicsWorld->convexSweepTest(
+				collisionShape, TransformTobtTransform(origin), TransformTobtTransform(end), closestResults);
+			if (closestResults.hasHit())
+			{
+				collisionPoint = btVector3ToVector3(closestResults.m_hitPointWorld);
+				collisionNormal = btVector3ToVector3(closestResults.m_hitNormalWorld);
+				return FindActorID(closestResults.m_hitCollisionObject);
+			}
+		}
 	}
-	else
-	{
-		collisionPoint = NULL;
-		collisionNormal = NULL;
-		return INVALID_ACTOR_ID;
-	}
+
+	collisionPoint = NULL;
+	collisionNormal = NULL;
+	return INVALID_ACTOR_ID;
 }
 
 /////////////////////////////////////////////////////////////////////////////

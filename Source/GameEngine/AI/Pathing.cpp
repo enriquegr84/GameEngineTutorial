@@ -137,22 +137,24 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 	if (mIndex == mPath.end())
 		return false;
 
-	Vector3<float> oldDirection = mDirection;
-	mDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
-	Normalize(mDirection);
+	Vector3<float> oldPathDirection = mPathDirection;
+	mPathDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
+	Normalize(mPathDirection);
+
 	printf("pos %f %f %f destiny %f %f %f\n", 
 		pos[0], pos[1], pos[2],
 		(*mIndex)->GetNeighbor()->GetPos()[0], 
 		(*mIndex)->GetNeighbor()->GetPos()[1], 
 		(*mIndex)->GetNeighbor()->GetPos()[2]);
-	printf("dot %f\n", Dot(mDirection, oldDirection));
-	if (Dot(mDirection, oldDirection) < 0.f)
+	printf("dot %f\n", Dot(mPathDirection, oldPathDirection));
+
+	if (Dot(mPathDirection, oldPathDirection) < 0.5f)
 	{
 		mIndex++;
 		if (mIndex != mPath.end())
 		{
-			mDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
-			Normalize(mDirection);
+			mPathDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
+			Normalize(mPathDirection);
 		}
 		return true;
 	}

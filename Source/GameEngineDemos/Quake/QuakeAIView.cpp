@@ -157,108 +157,6 @@ void QuakeAIView::Stationary(unsigned long deltaMs)
 	else mStationaryTime = 0;
 }
 
-//Smooth movement
-void QuakeAIView::Smooth(unsigned long deltaMs)
-{
-	Vector3<float> position = mAbsoluteTransform.GetTranslation();
-	Matrix4x4<float> rotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
-
-	// This will give us the "look at" vector 
-	// in world space - we'll use that to move.
-	Vector4<float> atWorld = Vector4<float>::Unit(PITCH); // forward vector
-#if defined(GE_USE_MAT_VEC)
-	atWorld = rotation * atWorld;
-#else
-	atWorld = atWorld * rotation;
-#endif
-
-	Transform start;
-	start.SetRotation(rotation);
-	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() + atWorld * 10.f);
-
-	Transform end;
-	end.SetRotation(rotation);
-	end.SetTranslation(mAbsoluteTransform.GetTranslationW1() + atWorld * 500.f);
-
-	Vector3<float> collision, collisionNormal;
-	collision = end.GetTranslation();
-	ActorId actorId = GameLogic::Get()->GetGamePhysics()->CastRay(
-		start.GetTranslation(), end.GetTranslation(), collision, collisionNormal);
-	//printf("distance smooth %f \n", Length(collision - position));
-	if (Length(collision - position) < 60.f)
-	{
-		//Choose randomly which way too look for obstacles
-		int sign = Randomizer::Rand() % 2 ? 1 : -1;
-
-		// Smoothly turn 90º and check raycasting until we meet a minimum distance
-		for (int angle = 1; angle <= 90; angle++)
-		{
-			rotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(2),
-				(mYaw + angle * sign) * (float)GE_C_DEG_TO_RAD));
-
-			atWorld = Vector4<float>::Unit(PITCH); // forward vector
-#if defined(GE_USE_MAT_VEC)
-			atWorld = rotation * atWorld;
-#else
-			atWorld = atWorld * rotation;
-#endif
-
-			start.SetRotation(rotation);
-			end.SetRotation(rotation);
-			end.SetTranslation(mAbsoluteTransform.GetTranslationW1() + atWorld * 500.f);
-
-			collision = end.GetTranslation();
-			ActorId actorId = GameLogic::Get()->GetGamePhysics()->CastRay(
-				start.GetTranslation(), end.GetTranslation(), collision, collisionNormal);
-			if (Length(collision - position) > 60.f)
-			{
-				mOrientation = Randomizer::Rand() % 2 ? 1 : -1;
-				mYaw += angle * sign;
-				return;
-			}
-		}
-
-		//If we haven't find a way out we proceed exactly the same but in the opposite direction
-		sign *= -1;
-		for (int angle = 1; angle <= 90; angle++)
-		{
-			rotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(2),
-				(mYaw + angle * sign) * (float)GE_C_DEG_TO_RAD));
-
-			atWorld = Vector4<float>::Unit(PITCH); // forward vector
-#if defined(GE_USE_MAT_VEC)
-			atWorld = rotation * atWorld;
-#else
-			atWorld = atWorld * rotation;
-#endif
-
-			start.SetRotation(rotation);
-			end.SetRotation(rotation);
-			end.SetTranslation(mAbsoluteTransform.GetTranslationW1() + atWorld * 500.f);
-
-			collision = end.GetTranslation();
-			ActorId actorId = GameLogic::Get()->GetGamePhysics()->CastRay(
-				start.GetTranslation(), end.GetTranslation(), collision, collisionNormal);
-			if (Length(collision - position) > 60.f)
-			{
-				mOrientation = Randomizer::Rand() % 2 ? 1 : -1;
-				mYaw += angle * sign;
-				return;
-			}
-		}
-
-		//if we couldnt find any way out the stationary function will take care of it.
-		mOrientation = Randomizer::Rand() % 2 ? 1 : -1;
-	}
-	else
-	{
-		mYaw += 0.03f * deltaMs * mOrientation;
-	}
-}
-
 // Cliff control
 void QuakeAIView::Cliff()
 {
@@ -284,7 +182,7 @@ void QuakeAIView::Cliff()
 	Transform end;
 	end.SetRotation(rotation);
 	end.SetTranslation(mAbsoluteTransform.GetTranslationW1() + 
-		atWorld * 100.f - Vector4<float>::Unit(2) * 300.f);
+		atWorld * 10.f - Vector4<float>::Unit(2) * 300.f);
 
 	Vector3<float> collision, collisionNormal;
 	collision = end.GetTranslation();
@@ -362,6 +260,115 @@ void QuakeAIView::Cliff()
 		//if we couldnt find any way out then we make a hard turn
 		mOrientation = Randomizer::Rand() % 2 ? 1 : -1;
 		mYaw += 130.f * sign;
+	}
+}
+
+//Smooth movement
+void QuakeAIView::Smooth(unsigned long deltaMs)
+{
+	Vector3<float> position = mAbsoluteTransform.GetTranslation();
+	Matrix4x4<float> rotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
+
+	// This will give us the "look at" vector 
+	// in world space - we'll use that to move.
+	Vector4<float> atWorld = Vector4<float>::Unit(PITCH); // forward vector
+#if defined(GE_USE_MAT_VEC)
+	atWorld = rotation * atWorld;
+#else
+	atWorld = atWorld * rotation;
+#endif
+
+	Vector3<float> scale = 
+		GameLogic::Get()->GetGamePhysics()->GetScale(mPlayerId) / 2.f;
+
+	Transform start;
+	start.SetRotation(rotation);
+	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() + 
+		atWorld * 10.f + scale[YAW] * Vector4<float>::Unit(YAW));
+
+	Transform end;
+	end.SetRotation(rotation);
+	end.SetTranslation(mAbsoluteTransform.GetTranslationW1() + 
+		atWorld * 500.f + scale[YAW] * Vector4<float>::Unit(YAW));
+
+	Vector3<float> collision, collisionNormal;
+	collision = end.GetTranslation();
+	ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+		mPlayerId, start, end, collision, collisionNormal);
+	//printf("distance smooth %f \n", Length(collision - position));
+	if (Length(collision - position) < 60.f)
+	{
+		//Choose randomly which way too look for obstacles
+		int sign = Randomizer::Rand() % 2 ? 1 : -1;
+
+		// Smoothly turn 90º and check raycasting until we meet a minimum distance
+		for (int angle = 1; angle <= 90; angle++)
+		{
+			rotation = Rotation<4, float>(
+				AxisAngle<4, float>(Vector4<float>::Unit(2),
+				(mYaw + angle * sign) * (float)GE_C_DEG_TO_RAD));
+
+			atWorld = Vector4<float>::Unit(PITCH); // forward vector
+#if defined(GE_USE_MAT_VEC)
+			atWorld = rotation * atWorld;
+#else
+			atWorld = atWorld * rotation;
+#endif
+
+			start.SetRotation(rotation);
+			end.SetRotation(rotation);
+			end.SetTranslation(mAbsoluteTransform.GetTranslationW1() + 
+				atWorld * 500.f + scale[YAW] * Vector4<float>::Unit(YAW));
+
+			collision = end.GetTranslation();
+			actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+				mPlayerId, start, end, collision, collisionNormal);
+			if (Length(collision - position) > 60.f)
+			{
+				mOrientation = Randomizer::Rand() % 2 ? 1 : -1;
+				mYaw += angle * sign;
+				return;
+			}
+		}
+
+		//If we haven't find a way out we proceed exactly the same but in the opposite direction
+		sign *= -1;
+		for (int angle = 1; angle <= 90; angle++)
+		{
+			rotation = Rotation<4, float>(
+				AxisAngle<4, float>(Vector4<float>::Unit(2),
+				(mYaw + angle * sign) * (float)GE_C_DEG_TO_RAD));
+
+			atWorld = Vector4<float>::Unit(PITCH); // forward vector
+#if defined(GE_USE_MAT_VEC)
+			atWorld = rotation * atWorld;
+#else
+			atWorld = atWorld * rotation;
+#endif
+
+			start.SetRotation(rotation);
+			end.SetRotation(rotation);
+			end.SetTranslation(mAbsoluteTransform.GetTranslationW1() + 
+				atWorld * 500.f + scale[YAW] * Vector4<float>::Unit(YAW));
+
+			collision = end.GetTranslation();
+			actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+				mPlayerId, start, end, collision, collisionNormal);
+			if (Length(collision - position) > 60.f)
+			{
+				mOrientation = Randomizer::Rand() % 2 ? 1 : -1;
+				mYaw += angle * sign;
+				return;
+			}
+		}
+
+		//if we couldnt find any way out the stationary function will take care of it.
+		mOrientation = Randomizer::Rand() % 2 ? 1 : -1;
+	}
+	else
+	{
+		mYaw += 0.03f * deltaMs * mOrientation;
 	}
 }
 

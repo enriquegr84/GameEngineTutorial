@@ -268,7 +268,6 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 	RegisterAllDelegates();
 
 	//first we store the most important points of the map
-	/*
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
 	for (auto ammo : game->GetAmmoActors())
@@ -311,13 +310,6 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 	// simulation step, it will be generated new waypoints from different actions such as
 	// movement, jumping or falling and its conections
 	SimulateWaypoint();
-	*/
-
-	for (PathingNode* pNode : mPathingGraph->GetNodes())
-	{
-		// simulate the candidate
-		SimulateJump(pNode);
-	}
 
 	Level* level = game->GetLevelManager()->GetLevel(ToWideString(gameApp->mOption.mLevel.c_str()));
 	eastl::string levelPath = "ai/quake/" + ToString(level->GetName().c_str()) + ".xml";
@@ -1317,7 +1309,7 @@ void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<f
 		if (pEndNode != NULL && pNode->FindArc(AIAT_TELEPORTTARGET, pEndNode) == NULL)
 		{
 			Vector3<float> diff = pEndNode->GetPos() - position;
-			if (Length(diff) <= 6.f)
+			if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 			{
 				PathingArc* pArc = new PathingArc(AIAT_TELEPORTTARGET, totalTime);
 				pArc->LinkNodes(pNode, pEndNode);
@@ -1427,7 +1419,7 @@ void QuakeAIManager::SimulateTriggerPush(PathingNode* pNode, const Vector3<float
 		if (pEndNode != NULL && pNode->FindArc(AIAT_PUSHTARGET, pEndNode) == NULL)
 		{
 			Vector3<float> diff = pEndNode->GetPos() - position;
-			if (Length(diff) <= 6.f)
+			if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 			{
 				PathingArc* pArc = new PathingArc(AIAT_PUSHTARGET, totalTime);
 				pArc->LinkNodes(pNode, pEndNode);
@@ -1478,6 +1470,47 @@ float FindClosestMovement(eastl::vector<Vector3<float>>& movements, const Vector
 	return length;
 }
 
+
+// Cliff control
+bool Cliff(const Vector3<float>& translation)
+{
+	for (int angle = 0; angle < 360; angle += 20)
+	{
+		Matrix4x4<float> rotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
+
+		// This will give us the "look at" vector 
+		// in world space - we'll use that to move.
+		Vector4<float> atWorld = Vector4<float>::Unit(PITCH); // forward vector
+#if defined(GE_USE_MAT_VEC)
+		atWorld = rotation * atWorld;
+#else
+		atWorld = atWorld * rotation;
+#endif
+
+		Vector3<float> position = translation + HProject(atWorld * 10.f);
+
+		Transform start;
+		start.SetRotation(rotation);
+		start.SetTranslation(position);
+
+		Transform end;
+		end.SetRotation(rotation);
+		end.SetTranslation(position - Vector3<float>::Unit(2) * 300.f);
+
+		Vector3<float> collision, collisionNormal;
+		collision = end.GetTranslation();
+		ActorId actorId = GameLogic::Get()->GetGamePhysics()->CastRay(
+			start.GetTranslation(), end.GetTranslation(), collision, collisionNormal);
+
+		//Check whether we are close to a cliff
+		//printf("distance cliff %f \n", abs(collision[2] - position[2]));
+		if (abs(collision[2] - position[2]) > 60.f)
+			return true;
+	}
+	return false;
+}
+
 void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 {
 	//lets move the character towards different directions
@@ -1493,7 +1526,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 	eastl::map<PathingNode*, float> nodeTimes;
 	eastl::map<PathingNode*, Vector3<float>> nodePositions;
 
-	for (int angle = 0; angle < 360; angle += 20)
+	for (int angle = 0; angle < 360; angle += 10)
 	{
 		Matrix4x4<float> rotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
@@ -1524,32 +1557,47 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 						if (pCurrentNode != pClosestNode)
 						{
 							Vector3<float> diff = pClosestNode->GetPos() - (*itMove);
-							if (Length(diff) >= 16.f)
+							if (Length(diff) >= 12.f)
 							{
-								PathingNode* pNewNode = new PathingNode(
-									GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
-								mPathingGraph->InsertNode(pNewNode);
-								PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-								pArc->LinkNodes(pCurrentNode, pNewNode);
-								pCurrentNode->AddArc(pArc);
+								if (!Cliff(*itMove))
+								{
+									PathingNode* pNewNode = new PathingNode(
+										GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
+									mPathingGraph->InsertNode(pNewNode);
+									PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+									pArc->LinkNodes(pCurrentNode, pNewNode);
+									pCurrentNode->AddArc(pArc);
 
-								mOpenSet[pNewNode] = true;
-								pCurrentNode = pNewNode;
+									mOpenSet[pNewNode] = true;
+									pCurrentNode = pNewNode;
 
-								deltaTime = 0.f;
+									deltaTime = 0.f;
+								}
 							}
-							else if (Length(diff) <= 6.f)
+							else if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 							{
 								if (pCurrentNode->FindArc(AIAT_MOVE, pClosestNode) == NULL)
 								{
-									PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-									pArc->LinkNodes(pCurrentNode, pClosestNode);
-									pCurrentNode->AddArc(pArc);
+									Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
 
-									pCurrentNode = pClosestNode;
+									Transform start;
+									start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+									Transform end;
+									end.SetTranslation(pClosestNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+									Vector3<float> collision, collisionNormal;
+									ActorId actorId = gamePhysics->ConvexSweep(
+										mPlayerActor->GetId(), start, end, collision, collisionNormal);
+									if (collision == NULL || actorId != INVALID_ACTOR_ID)
+									{
+										PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+										pArc->LinkNodes(pCurrentNode, pClosestNode);
+										pCurrentNode->AddArc(pArc);
+
+										pCurrentNode = pClosestNode;
+
+										deltaTime = 0.f;
+									}
 								}
-
-								deltaTime = 0.f;
 							}
 						}
 					}
@@ -1604,53 +1652,67 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 				} while (!gamePhysics->OnGround(mPlayerActor->GetId()));
 
 				//we store the fall if we find a landing node
-				Vector3<float> position = transform.GetTranslation();
+				position = transform.GetTranslation();
 				pEndNode = mPathingGraph->FindClosestNode(position);
 				if (pCurrentNode != pEndNode)
 				{
 					if (pEndNode != NULL && pCurrentNode->FindArc(AIAT_FALLTARGET, pEndNode) == NULL)
 					{
 						Vector3<float> diff = pEndNode->GetPos() - position;
-						if (Length(diff) >= 16.f || Length(diff) <= 6.f)
+						if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 						{
-							if (Length(diff) >= 16.f)
+							Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
+
+							Transform start;
+							start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+							Transform end;
+							end.SetTranslation(pEndNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+							Vector3<float> collision, collisionNormal;
+							ActorId actorId = gamePhysics->ConvexSweep(
+								mPlayerActor->GetId(), start, end, collision, collisionNormal);
+							if (collision != NULL && actorId == INVALID_ACTOR_ID) break;
+						}
+						else if (Length(diff) >= 12.f)
+						{
+							if (!Cliff(position))
 							{
 								pEndNode = new PathingNode(GetNewNodeID(), INVALID_ACTOR_ID, position);
 								mPathingGraph->InsertNode(pEndNode);
 							}
-
-							PathingArc* pArc = new PathingArc(AIAT_FALLTARGET, totalTime);
-							pArc->LinkNodes(pCurrentNode, pEndNode);
-							pCurrentNode->AddArc(pArc);
-
-							eastl::vector<PathingNode*>::iterator itNode;
-							for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
-							{
-								pFallingNode = (*itNode);
-								if (pCurrentNode->FindArc(AIAT_FALL, pEndNode) == NULL)
-								{
-									PathingArc* pArc = new PathingArc(
-										AIAT_FALL, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
-									pArc->LinkNodes(pEndNode, pFallingNode);
-									pCurrentNode->AddArc(pArc);
-								}
-
-								pCurrentNode = pFallingNode;
-							}
-
-							if (pCurrentNode != pEndNode)
-							{
-								if (pCurrentNode->FindArc(AIAT_FALL, pEndNode) == NULL)
-								{
-									deltaTime = 0.02f;
-									PathingArc* pArc = new PathingArc(AIAT_FALL, deltaTime);
-									pArc->LinkNodes(pEndNode, pEndNode);
-									pCurrentNode->AddArc(pArc);
-								}
-								pCurrentNode = pEndNode;
-							}
+							else break;
 						}
 						else break;
+
+						PathingArc* pArc = new PathingArc(AIAT_FALLTARGET, totalTime);
+						pArc->LinkNodes(pCurrentNode, pEndNode);
+						pCurrentNode->AddArc(pArc);
+
+						eastl::vector<PathingNode*>::iterator itNode;
+						for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
+						{
+							pFallingNode = (*itNode);
+							if (pCurrentNode->FindArc(AIAT_FALL, pEndNode) == NULL)
+							{
+								PathingArc* pArc = new PathingArc(
+									AIAT_FALL, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
+								pArc->LinkNodes(pEndNode, pFallingNode);
+								pCurrentNode->AddArc(pArc);
+							}
+
+							pCurrentNode = pFallingNode;
+						}
+
+						if (pCurrentNode != pEndNode)
+						{
+							if (pCurrentNode->FindArc(AIAT_FALL, pEndNode) == NULL)
+							{
+								deltaTime = 0.02f;
+								PathingArc* pArc = new PathingArc(AIAT_FALL, deltaTime);
+								pArc->LinkNodes(pEndNode, pEndNode);
+								pCurrentNode->AddArc(pArc);
+							}
+							pCurrentNode = pEndNode;
+						}
 					}
 					else break;
 				}
@@ -1662,12 +1724,24 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 				{
 					// if we find a link to the closest node then we stop
 					Vector3<float> diff = pClosestNode->GetPos() - position;
-					if (Length(diff) <= 6.f)
+					if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 					{
 						if (pCurrentNode->FindArc(AIAT_MOVE, pClosestNode) != NULL)
 						{
-							pEndNode = pClosestNode;
-							break;
+							Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
+
+							Transform start;
+							start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+							Transform end;
+							end.SetTranslation(pClosestNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+							Vector3<float> collision, collisionNormal;
+							ActorId actorId = gamePhysics->ConvexSweep(
+								mPlayerActor->GetId(), start, end, collision, collisionNormal);
+							if (collision == NULL || actorId != INVALID_ACTOR_ID)
+							{
+								pEndNode = pClosestNode;
+								break;
+							}
 						}
 					}
 				}
@@ -1701,31 +1775,47 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 				if (pCurrentNode != pClosestNode)
 				{
 					Vector3<float> diff = pClosestNode->GetPos() - (*itMove);
-					if (Length(diff) >= 16.f)
+					if (Length(diff) >= 12.f)
 					{
-						PathingNode* pNewNode = new PathingNode(
-							GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
-						mPathingGraph->InsertNode(pNewNode);
-						PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-						pArc->LinkNodes(pCurrentNode, pNewNode);
-						pCurrentNode->AddArc(pArc);
+						if (!Cliff(*itMove))
+						{
+							PathingNode* pNewNode = new PathingNode(
+								GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
+							mPathingGraph->InsertNode(pNewNode);
+							PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+							pArc->LinkNodes(pCurrentNode, pNewNode);
+							pCurrentNode->AddArc(pArc);
 
-						mOpenSet[pNewNode] = true;
-						pCurrentNode = pNewNode;
+							mOpenSet[pNewNode] = true;
+							pCurrentNode = pNewNode;
 
-						deltaTime = 0.f;
+							deltaTime = 0.f;
+						}
 					}
-					else if (Length(diff) <= 6.f)
+					else if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 					{
 						if (pCurrentNode->FindArc(AIAT_MOVE, pClosestNode) == NULL)
 						{
-							PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-							pArc->LinkNodes(pCurrentNode, pClosestNode);
-							pCurrentNode->AddArc(pArc);
+							Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
 
-							pCurrentNode = pClosestNode;
+							Transform start;
+							start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+							Transform end;
+							end.SetTranslation(pClosestNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+							Vector3<float> collision, collisionNormal;
+							ActorId actorId = gamePhysics->ConvexSweep(
+								mPlayerActor->GetId(), start, end, collision, collisionNormal);
+							if (collision == NULL || actorId != INVALID_ACTOR_ID)
+							{
+								PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+								pArc->LinkNodes(pCurrentNode, pClosestNode);
+								pCurrentNode->AddArc(pArc);
+
+								pCurrentNode = pClosestNode;
+
+								deltaTime = 0.f;
+							}
 						}
-						else break;
 					}
 				}
 			}
@@ -1832,7 +1922,7 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 			if (pEndNode != NULL && pNode->FindArc(AIAT_JUMPTARGET, pEndNode) == NULL)
 			{
 				Vector3<float> diff = pEndNode->GetPos() - position;
-				if (Length(diff) <= 6.f)
+				if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 				{
 					PathingArc* pArc = new PathingArc(AIAT_JUMPTARGET, totalTime);
 					pArc->LinkNodes(pNode, pEndNode);
@@ -1894,7 +1984,7 @@ void QuakeAIManager::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 				if (pClosestNode != NULL)
 				{
 					Vector3<float> diff = pClosestNode->GetPos() - position;
-					if (Length(diff) <= 6.f)
+					if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 						mActorNodes[pClosestNode] = pItemActor->GetId();
 				}
 			}
@@ -1965,7 +2055,7 @@ void QuakeAIManager::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 						if (pClosestNode != NULL)
 						{
 							Vector3<float> diff = pClosestNode->GetPos() - position;
-							if (Length(diff) <= 6.f)
+							if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 								mActorNodes[pClosestNode] = pItemActor->GetId();
 						}
 					}

@@ -59,7 +59,7 @@ typedef eastl::map<PathingNode*, eastl::map<PathingNode*, Vector3<float>>> Pathi
 typedef eastl::map<PathingNode*, eastl::map<PathingArc*, float>> PathingNodeArcDoubleMap;
 typedef eastl::map<PathingNode*, eastl::map<PathingArc*, Vector3<float>>> PathingNodeArcDirectionMap;
 
-const float PATHING_DEFAULT_NODE_TOLERANCE = 5.0f;
+const float PATHING_DEFAULT_NODE_TOLERANCE = 4.0f;
 const float PATHING_DEFAULT_ARC_WEIGHT = 0.001f;
 
 enum ArcType
@@ -144,28 +144,40 @@ class PathPlan
 	friend class PathFinder;
 
 	PathingArcVec mPath;
+	Vector3<float> mPathDirection;
 	PathingArcVec::iterator mIndex;
-	Vector3<float> mDirection;
 	
 public:
-	PathPlan(void) { mIndex = mPath.end(); mDirection = Vector3<float>::Zero(); }
+	PathPlan(void) 
+	{ 
+		mIndex = mPath.end();
+		mPathDirection = Vector3<float>::Zero(); 
+	}
 	
-	void ResetPath(void) { mIndex = mPath.begin(); }
+	void ResetPath(void) 
+	{ 
+		mIndex = mPath.begin(); 
+		mPathDirection = Vector3<float>::Zero();
+	}
+
 	PathingArc* GetCurrentArc(void) const
 	{
 		LogAssert(mIndex != mPath.end(), "Invalid index");
 		return (*mIndex);
 	}
+
 	PathingNode* GetCurrentNode(void) const
 	{
 		LogAssert(mIndex != mPath.end(), "Invalid index");
 		return (*mIndex)->GetOrigin();
 	}
+
 	PathingNode* GetNeighborNode(void) const
 	{ 
 		LogAssert(mIndex != mPath.end(), "Invalid index"); 
 		return (*mIndex)->GetNeighbor();
 	}
+
 	bool CheckForNextNode(const Vector3<float>& pos);
 	bool CheckForEnd(void);
 	
