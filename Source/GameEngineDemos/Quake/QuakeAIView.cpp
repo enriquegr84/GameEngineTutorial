@@ -285,7 +285,7 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 	Transform start;
 	start.SetRotation(rotation);
 	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() + 
-		atWorld * 10.f + scale[YAW] * Vector4<float>::Unit(YAW));
+		scale[YAW] * Vector4<float>::Unit(YAW));
 
 	Transform end;
 	end.SetRotation(rotation);
