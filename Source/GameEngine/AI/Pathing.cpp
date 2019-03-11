@@ -148,14 +148,14 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 	Vector3<float> diff = pos - (*mIndex)->GetNeighbor()->GetPos();
 	mCurrentDirection = diff;
 	Normalize(mCurrentDirection);
-
+	/*
 	printf("pos %f %f %f destiny %f %f %f\n", 
 		pos[0], pos[1], pos[2],
 		(*mIndex)->GetNeighbor()->GetPos()[0], 
 		(*mIndex)->GetNeighbor()->GetPos()[1], 
 		(*mIndex)->GetNeighbor()->GetPos()[2]);
 	printf("dot %f\n", Dot(mCurrentDirection, prevDirection));
-
+	*/
 	if ((*mIndex)->GetType() & AT_TARGET)
 	{
 		if (Dot(mCurrentDirection, prevDirection) < 0.95f) 
