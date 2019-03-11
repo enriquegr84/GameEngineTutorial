@@ -228,12 +228,13 @@ public:
 	virtual eastl::shared_ptr<BaseGamePhysic> GetGamePhysics(void) { return mPhysics; }
 
 	// Quake Actors
-	eastl::vector<eastl::shared_ptr<Actor>> GetAmmoActors();
-	eastl::vector<eastl::shared_ptr<Actor>> GetWeaponActors();
-	eastl::vector<eastl::shared_ptr<Actor>> GetHealthActors();
-	eastl::vector<eastl::shared_ptr<Actor>> GetArmorActors();
-	eastl::vector<eastl::shared_ptr<Actor>> GetTriggerActors();
-	eastl::vector<eastl::shared_ptr<Actor>> GetTargetActors();
+	eastl::shared_ptr<Actor> GetRandomActor();
+	void GetAmmoActors(eastl::vector<eastl::shared_ptr<Actor>>& ammo);
+	void GetWeaponActors(eastl::vector<eastl::shared_ptr<Actor>>& weapon);
+	void GetHealthActors(eastl::vector<eastl::shared_ptr<Actor>>& health);
+	void GetArmorActors(eastl::vector<eastl::shared_ptr<Actor>>& armor);
+	void GetTriggerActors(eastl::vector<eastl::shared_ptr<Actor>>& trigger);
+	void GetTargetActors(eastl::vector<eastl::shared_ptr<Actor>>& target);
 
 	//Quake Spawn Points
 	const eastl::shared_ptr<Actor>& SelectRandomSpawnPoint();

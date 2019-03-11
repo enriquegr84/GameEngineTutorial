@@ -73,76 +73,76 @@ void QuakeLogic::SetProxy()
 }
 
 // Quake Actors
-eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetAmmoActors()
+eastl::shared_ptr<Actor> QuakeLogic::GetRandomActor()
 {
-	eastl::vector<eastl::shared_ptr<Actor>> ammo;
+	eastl::vector<eastl::shared_ptr<Actor>> actors;
+	GetAmmoActors(actors);
+	GetWeaponActors(actors);
+	GetHealthActors(actors);
+	GetArmorActors(actors);
+
+	int selection = Randomizer::Rand() % actors.size();
+	return actors[selection];
+}
+
+void QuakeLogic::GetAmmoActors(eastl::vector<eastl::shared_ptr<Actor>>& ammo)
+{
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;
 		if (pActor->GetType() == "Ammo")
 			ammo.push_back(pActor);
 	}
-	return ammo;
 }
 
-eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetWeaponActors()
+void QuakeLogic::GetWeaponActors(eastl::vector<eastl::shared_ptr<Actor>>& weapon)
 {
-	eastl::vector<eastl::shared_ptr<Actor>> weapon;
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;
 		if (pActor->GetType() == "Weapon")
 			weapon.push_back(pActor);
 	}
-	return weapon;
 }
 
-eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetHealthActors()
+void QuakeLogic::GetHealthActors(eastl::vector<eastl::shared_ptr<Actor>>& health)
 {
-	eastl::vector<eastl::shared_ptr<Actor>> health;
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;
 		if (pActor->GetType() == "Health")
 			health.push_back(pActor);
 	}
-	return health;
 }
 
-eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetArmorActors()
+void QuakeLogic::GetArmorActors(eastl::vector<eastl::shared_ptr<Actor>>& armor)
 {
-	eastl::vector<eastl::shared_ptr<Actor>> armor;
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;
 		if (pActor->GetType() == "Armor")
 			armor.push_back(pActor);
 	}
-	return armor;
 }
 
-eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetTriggerActors()
+void QuakeLogic::GetTriggerActors(eastl::vector<eastl::shared_ptr<Actor>>& trigger)
 {
-	eastl::vector<eastl::shared_ptr<Actor>> trigger;
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;
 		if (pActor->GetType() == "Trigger")
 			trigger.push_back(pActor);
 	}
-	return trigger;
 }
 
-eastl::vector<eastl::shared_ptr<Actor>> QuakeLogic::GetTargetActors()
+void QuakeLogic::GetTargetActors(eastl::vector<eastl::shared_ptr<Actor>>& target)
 {
-	eastl::vector<eastl::shared_ptr<Actor>> target;
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;
 		if (pActor->GetType() == "Target")
 			target.push_back(pActor);
 	}
-	return target;
 }
 
 //

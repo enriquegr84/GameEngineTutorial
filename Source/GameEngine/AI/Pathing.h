@@ -101,6 +101,7 @@ public:
 	PathingArc* FindArc(PathingNode* pLinkedNode);
 	PathingArc* FindArc(unsigned int arcType, PathingNode* pLinkedNode);
 	const PathingArcVec& GetArcs() { return mArcs; }
+	void RemoveArcs();
 
 	void GetNeighbors(unsigned int arcType, PathingArcVec& outNeighbors);
 };
@@ -144,20 +145,20 @@ class PathPlan
 	friend class PathFinder;
 
 	PathingArcVec mPath;
-	Vector3<float> mPathDirection;
 	PathingArcVec::iterator mIndex;
-	
+	Vector3<float> mCurrentDirection;
+
 public:
 	PathPlan(void) 
 	{ 
 		mIndex = mPath.end();
-		mPathDirection = Vector3<float>::Zero(); 
+		mCurrentDirection = Vector3<float>::Zero(); 
 	}
 	
 	void ResetPath(void) 
 	{ 
 		mIndex = mPath.begin(); 
-		mPathDirection = Vector3<float>::Zero();
+		mCurrentDirection = Vector3<float>::Zero();
 	}
 
 	PathingArc* GetCurrentArc(void) const

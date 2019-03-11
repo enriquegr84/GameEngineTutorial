@@ -480,9 +480,17 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									mPathingGraph->FindClosestNode(pTransformComponent->GetPosition());
 
 								QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
-								game->SelectRandomFurthestSpawnPoint(currentNode->GetPos(), mAbsoluteTransform);
-								mPlan = mPathingGraph->FindPath(currentNode, mAbsoluteTransform.GetTranslation());
-								if (mPlan != NULL) mPlan->ResetPath();
+								eastl::shared_ptr<Actor> gameActor = game->GetRandomActor();
+								if (gameActor)
+								{
+									eastl::shared_ptr<TransformComponent> pActorTransformComponent(
+										gameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+									if (pActorTransformComponent)
+									{
+										mPlan = mPathingGraph->FindPath(currentNode, pActorTransformComponent->GetPosition());
+										if (mPlan != NULL) mPlan->ResetPath();
+									}
+								}
 							}
 
 							if (mPlan != NULL)

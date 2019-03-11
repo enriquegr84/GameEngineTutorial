@@ -142,62 +142,6 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			pathNode->AddArc(pathArc);
 		}
 	}
-	/*
-	GameApplication* gameApp = (GameApplication*)Application::App;
-	const GameViewList& gameViews = gameApp->GetGameViews();
-	for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
-	{
-		eastl::shared_ptr<BaseGameView> pView = *it;
-		if (pView->GetType() == GV_HUMAN)
-		{
-			eastl::shared_ptr<QuakeHumanView> pHumanView =
-				eastl::static_pointer_cast<QuakeHumanView, BaseGameView>(pView);
-			mPlayerActor =
-				eastl::dynamic_shared_pointer_cast<PlayerActor>(
-				GameLogic::Get()->GetActor(pHumanView->GetActorId()).lock());
-			break;
-		}
-	}
-
-	QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
-	game->GetGamePhysics()->SetTriggerCollision(true);
-	game->RemoveAllDelegates();
-	RegisterAllDelegates();
-
-	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
-
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		if (pathNode->GetActorId() != INVALID_ACTOR_ID)
-		{
-			eastl::shared_ptr<Actor> pItemActor(
-				GameLogic::Get()->GetActor(pathNode->GetActorId()).lock());
-
-			if (pItemActor->GetType() == "Trigger")
-			{
-				if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
-				{
-					eastl::shared_ptr<PushTrigger> pPushTrigger =
-						pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
-
-					Vector3<float> targetPosition = pPushTrigger->GetTarget().GetTranslation();
-					SimulateTriggerPush(pathNode, targetPosition);
-				}
-				else if (pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock())
-				{
-					eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
-						pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
-
-					Vector3<float> targetPosition = pTeleporterTrigger->GetTarget().GetTranslation();
-					SimulateTriggerTeleport(pathNode, targetPosition);
-				}
-			}
-		}
-	}
-
-	eastl::string levelPath = "ai/quake/bloodrun - copia.xml";
-	SavePathingGraph(FileSystem::Get()->GetPath(levelPath));
-	*/
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -270,40 +214,18 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 	//first we store the most important points of the map
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
-	for (auto ammo : game->GetAmmoActors())
+	eastl::vector<eastl::shared_ptr<Actor>> actors;
+	game->GetAmmoActors(actors);
+	game->GetWeaponActors(actors);
+	game->GetHealthActors(actors);
+	game->GetArmorActors(actors);
+	game->GetTargetActors(actors);
+	for (auto actor : actors)
 	{
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			ammo->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+			actor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pTransformComponent)
-			SimulateActorPosition(ammo->GetId(), pTransformComponent->GetPosition());
-	}
-	for (auto weapon : game->GetWeaponActors())
-	{
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			weapon->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-			SimulateActorPosition(weapon->GetId(), pTransformComponent->GetPosition());
-	}
-	for (auto health : game->GetHealthActors())
-	{
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			health->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-			SimulateActorPosition(health->GetId(), pTransformComponent->GetPosition());
-	}
-	for (auto armor : game->GetArmorActors())
-	{
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			armor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-			SimulateActorPosition(armor->GetId(), pTransformComponent->GetPosition());
-	}
-	for (auto target : game->GetTargetActors())
-	{
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			target->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-			SimulateActorPosition(target->GetId(), pTransformComponent->GetPosition());
+			SimulateActorPosition(actor->GetId(), pTransformComponent->GetPosition());
 	}
 
 	// we create the waypoint according to the character controller physics system. Every
@@ -1178,20 +1100,6 @@ void QuakeAIManager::SimulateWaypoint()
 		mOpenSet.erase(itOpenSet);
 	}
 
-	while (!mClosedSet.empty())
-	{
-		// grab the candidate
-		eastl::map<PathingNode*, bool>::iterator itOpenSet = mClosedSet.begin();
-		PathingNode* pNode = itOpenSet->first;
-
-		//check if its on ground
-		if (itOpenSet->second)
-			SimulateJump(pNode);
-
-		// we have processed this node so remove it from the closed set
-		mClosedSet.erase(itOpenSet);
-	}
-
 	//finally we process the item actors which we have met
 	eastl::map<PathingNode*, ActorId>::iterator itActorNode;
 	for (itActorNode = mActorNodes.begin(); itActorNode != mActorNodes.end(); itActorNode++)
@@ -1206,6 +1114,7 @@ void QuakeAIManager::SimulateWaypoint()
 
 			if (pItemActor->GetType() == "Trigger")
 			{
+				pClosestNode->RemoveArcs();
 				if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
 				{
 					eastl::shared_ptr<PushTrigger> pPushTrigger =
@@ -1224,6 +1133,30 @@ void QuakeAIManager::SimulateWaypoint()
 				}
 			}
 		}
+	}
+
+	while (!mClosedSet.empty())
+	{
+		// grab the candidate
+		eastl::map<PathingNode*, bool>::iterator itOpenSet = mClosedSet.begin();
+		PathingNode* pNode = itOpenSet->first;
+
+		//check if its on ground
+		if (itOpenSet->second)
+		{
+			// if the node is a trigger we don't simulate jump on it
+			if (mActorNodes.find(pNode) != mActorNodes.end())
+			{
+				eastl::shared_ptr<Actor> pGameActor(
+					GameLogic::Get()->GetActor(mActorNodes[pNode]).lock());
+				if (pGameActor->GetType() != "Trigger")
+					SimulateJump(pNode);
+			}
+			else SimulateJump(pNode);
+		}
+
+		// we have processed this node so remove it from the closed set
+		mClosedSet.erase(itOpenSet);
 	}
 	mActorNodes.clear();
 }
@@ -1526,7 +1459,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 	eastl::map<PathingNode*, float> nodeTimes;
 	eastl::map<PathingNode*, Vector3<float>> nodePositions;
 
-	for (int angle = 0; angle < 360; angle += 10)
+	for (int angle = 0; angle < 360; angle += 15)
 	{
 		Matrix4x4<float> rotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
@@ -1557,21 +1490,33 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 						if (pCurrentNode != pClosestNode)
 						{
 							Vector3<float> diff = pClosestNode->GetPos() - (*itMove);
-							if (Length(diff) >= 12.f)
+							if (Length(diff) >= 16.f)
 							{
 								if (!Cliff(*itMove))
 								{
-									PathingNode* pNewNode = new PathingNode(
-										GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
-									mPathingGraph->InsertNode(pNewNode);
-									PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-									pArc->LinkNodes(pCurrentNode, pNewNode);
-									pCurrentNode->AddArc(pArc);
+									Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
 
-									mOpenSet[pNewNode] = true;
-									pCurrentNode = pNewNode;
+									Transform start;
+									start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+									Transform end;
+									end.SetTranslation((*itMove) + scale[YAW] * Vector3<float>::Unit(YAW));
+									Vector3<float> collision, collisionNormal;
+									ActorId actorId = gamePhysics->ConvexSweep(
+										mPlayerActor->GetId(), start, end, collision, collisionNormal);
+									if (collision == NULL || actorId != INVALID_ACTOR_ID)
+									{
+										PathingNode* pNewNode = new PathingNode(
+											GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
+										mPathingGraph->InsertNode(pNewNode);
+										PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+										pArc->LinkNodes(pCurrentNode, pNewNode);
+										pCurrentNode->AddArc(pArc);
 
-									deltaTime = 0.f;
+										mOpenSet[pNewNode] = true;
+										pCurrentNode = pNewNode;
+
+										deltaTime = 0.f;
+									}
 								}
 							}
 							else if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
@@ -1672,7 +1617,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 								mPlayerActor->GetId(), start, end, collision, collisionNormal);
 							if (collision != NULL && actorId == INVALID_ACTOR_ID) break;
 						}
-						else if (Length(diff) >= 12.f)
+						else if (Length(diff) >= 16.f)
 						{
 							if (!Cliff(position))
 							{
@@ -1728,20 +1673,8 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 					{
 						if (pCurrentNode->FindArc(AIAT_MOVE, pClosestNode) != NULL)
 						{
-							Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
-
-							Transform start;
-							start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
-							Transform end;
-							end.SetTranslation(pClosestNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
-							Vector3<float> collision, collisionNormal;
-							ActorId actorId = gamePhysics->ConvexSweep(
-								mPlayerActor->GetId(), start, end, collision, collisionNormal);
-							if (collision == NULL || actorId != INVALID_ACTOR_ID)
-							{
-								pEndNode = pClosestNode;
-								break;
-							}
+							pEndNode = pClosestNode;
+							break;
 						}
 					}
 				}
@@ -1762,7 +1695,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 			transform = gamePhysics->GetTransform(mPlayerActor->GetId());
 			position = transform.GetTranslation();
 
-		} while (FindClosestMovement(movements, position) > 2.f); // stalling is a break condition
+		} while (FindClosestMovement(movements, position) >= 4.f); // stalling is a break condition
 
 		if (!movements.empty())
 		{
@@ -1775,21 +1708,33 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 				if (pCurrentNode != pClosestNode)
 				{
 					Vector3<float> diff = pClosestNode->GetPos() - (*itMove);
-					if (Length(diff) >= 12.f)
+					if (Length(diff) >= 16.f)
 					{
 						if (!Cliff(*itMove))
 						{
-							PathingNode* pNewNode = new PathingNode(
-								GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
-							mPathingGraph->InsertNode(pNewNode);
-							PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-							pArc->LinkNodes(pCurrentNode, pNewNode);
-							pCurrentNode->AddArc(pArc);
+							Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
 
-							mOpenSet[pNewNode] = true;
-							pCurrentNode = pNewNode;
+							Transform start;
+							start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+							Transform end;
+							end.SetTranslation((*itMove) + scale[YAW] * Vector3<float>::Unit(YAW));
+							Vector3<float> collision, collisionNormal;
+							ActorId actorId = gamePhysics->ConvexSweep(
+								mPlayerActor->GetId(), start, end, collision, collisionNormal);
+							if (collision == NULL || actorId != INVALID_ACTOR_ID)
+							{
+								PathingNode* pNewNode = new PathingNode(
+									GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
+								mPathingGraph->InsertNode(pNewNode);
+								PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+								pArc->LinkNodes(pCurrentNode, pNewNode);
+								pCurrentNode->AddArc(pArc);
 
-							deltaTime = 0.f;
+								mOpenSet[pNewNode] = true;
+								pCurrentNode = pNewNode;
+
+								deltaTime = 0.f;
+							}
 						}
 					}
 					else if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
@@ -1825,9 +1770,21 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 			{
 				if (pCurrentNode->FindArc(AIAT_MOVE, pEndNode) == NULL)
 				{
-					PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
-					pArc->LinkNodes(pCurrentNode, pEndNode);
-					pCurrentNode->AddArc(pArc);
+					Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
+
+					Transform start;
+					start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+					Transform end;
+					end.SetTranslation(pEndNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+					Vector3<float> collision, collisionNormal;
+					ActorId actorId = gamePhysics->ConvexSweep(
+						mPlayerActor->GetId(), start, end, collision, collisionNormal);
+					if (collision == NULL || actorId != INVALID_ACTOR_ID)
+					{
+						PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+						pArc->LinkNodes(pCurrentNode, pEndNode);
+						pCurrentNode->AddArc(pArc);
+					}
 				}
 			}
 		}
@@ -2047,17 +2004,13 @@ void QuakeAIManager::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 			{
 				if (pItemActor->GetType() == "Trigger")
 				{
-					if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock() ||
-						pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock())
+					Vector3<float> position = pPhysicComponent->GetTransform().GetTranslation();
+					PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position);
+					if (pClosestNode != NULL)
 					{
-						Vector3<float> position = pPhysicComponent->GetTransform().GetTranslation();
-						PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position);
-						if (pClosestNode != NULL)
-						{
-							Vector3<float> diff = pClosestNode->GetPos() - position;
-							if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
-								mActorNodes[pClosestNode] = pItemActor->GetId();
-						}
+						Vector3<float> diff = pClosestNode->GetPos() - position;
+						if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
+							mActorNodes[pClosestNode] = pItemActor->GetId();
 					}
 				}
 			}

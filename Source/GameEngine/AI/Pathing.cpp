@@ -105,6 +105,13 @@ PathingArc* PathingNode::FindArc(unsigned int arcType, PathingNode* pLinkedNode)
 	return NULL;
 }
 
+void PathingNode::RemoveArcs()
+{
+	for (PathingArc* pArc : mArcs)
+		delete pArc;
+	mArcs.clear();
+}
+
 
 //--------------------------------------------------------------------------------------------------------
 // PathingArc
@@ -137,26 +144,44 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 	if (mIndex == mPath.end())
 		return false;
 
-	Vector3<float> oldPathDirection = mPathDirection;
-	mPathDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
-	Normalize(mPathDirection);
+	Vector3<float> prevDirection = mCurrentDirection;
+	Vector3<float> diff = pos - (*mIndex)->GetNeighbor()->GetPos();
+	mCurrentDirection = diff;
+	Normalize(mCurrentDirection);
 
 	printf("pos %f %f %f destiny %f %f %f\n", 
 		pos[0], pos[1], pos[2],
 		(*mIndex)->GetNeighbor()->GetPos()[0], 
 		(*mIndex)->GetNeighbor()->GetPos()[1], 
 		(*mIndex)->GetNeighbor()->GetPos()[2]);
-	printf("dot %f\n", Dot(mPathDirection, oldPathDirection));
+	printf("dot %f\n", Dot(mCurrentDirection, prevDirection));
 
-	if (Dot(mPathDirection, oldPathDirection) < 0.5f)
+	if ((*mIndex)->GetType() & AT_TARGET)
 	{
-		mIndex++;
-		if (mIndex != mPath.end())
+		if (Dot(mCurrentDirection, prevDirection) < 0.95f) 
 		{
-			mPathDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
-			Normalize(mPathDirection);
+			mIndex++;
+			if (mIndex != mPath.end())
+			{
+				mCurrentDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
+				Normalize(mCurrentDirection);
+			}
+			return true;
 		}
-		return true;
+	}
+	else
+	{
+		if (Dot(mCurrentDirection, prevDirection) < 0.6f ||
+			Length(diff) <= 3.f * (float)PATHING_DEFAULT_NODE_TOLERANCE)
+		{
+			mIndex++;
+			if (mIndex != mPath.end())
+			{
+				mCurrentDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
+				Normalize(mCurrentDirection);
+			}
+			return true;
+		}
 	}
 
 	return false;
