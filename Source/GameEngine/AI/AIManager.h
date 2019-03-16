@@ -29,10 +29,10 @@ public:
 	AIManager();
 	~AIManager();
 
-	virtual void SavePathingGraph(const eastl::string& path) { }
-	virtual void LoadPathingGraph(const eastl::wstring& path) { }
+	virtual void SaveMapGraph(const eastl::string& path) { }
+	virtual void LoadMapGraph(const eastl::wstring& path) { }
 
-	virtual void CreateWaypoints(ActorId playerId) { };
+	virtual void CreateMap(ActorId playerId) { };
 
 	const eastl::shared_ptr<PathingGraph>& GetPathingGraph() { return mPathingGraph; }
 

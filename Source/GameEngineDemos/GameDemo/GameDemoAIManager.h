@@ -27,7 +27,7 @@ public:
 	GameDemoAIManager();
 	~GameDemoAIManager();
 
-	virtual void CreateWaypoints(ActorId playerId) { }
+	virtual void CreateMap(ActorId playerId) { }
 };   // GameDemoAIManager
 
 #endif

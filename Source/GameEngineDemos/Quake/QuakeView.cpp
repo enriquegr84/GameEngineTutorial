@@ -412,7 +412,7 @@ void QuakeMainMenuUI::Set()
 		gameApp->mOption.mLevel = ToString(gameLevel->GetFileName().c_str());
 
 		eastl::wstring levelPath = L"ai/quake/" + gameLevel->GetName() + L".xml";
-		GameLogic::Get()->GetAIManager()->LoadPathingGraph(levelPath);
+		GameLogic::Get()->GetAIManager()->LoadMapGraph(levelPath);
 	}
 }
 
@@ -1009,9 +1009,12 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 						Level* level = game->GetLevelManager()->GetLevel(
 							ToWideString(gameApp->mOption.mLevel.c_str()));
 						eastl::wstring levelPath = L"ai/quake/" + level->GetName() + L".xml";
-						GameLogic::Get()->GetAIManager()->SavePathingGraph(
+						GameLogic::Get()->GetAIManager()->SaveMapGraph(
 							FileSystem::Get()->GetPath(ToString(levelPath.c_str())));
-
+						/*
+						GameLogic::Get()->GetAIManager()->SaveMapGraph(
+							FileSystem::Get()->GetPath("ai/quake/bloodrun - copia.xml"));
+						*/
 						return true;
 					}
 					case KEY_KEY_5:
@@ -1025,7 +1028,7 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 							{
 								eastl::shared_ptr<QuakeHumanView> pHumanView =
 									eastl::static_pointer_cast<QuakeHumanView, BaseGameView>(pView);
-								GameLogic::Get()->GetAIManager()->CreateWaypoints(pHumanView->GetActorId());
+								GameLogic::Get()->GetAIManager()->CreateMap(pHumanView->GetActorId());
 								break;
 							}
 						}

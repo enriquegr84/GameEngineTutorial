@@ -59,16 +59,17 @@ QuakeAIManager::~QuakeAIManager()
 //
 //    Loads the AI pathing graph information from an XML file
 //
-void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
+void QuakeAIManager::LoadMapGraph(const eastl::wstring& path)
 {
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
-	// Load the physics config file and grab the root XML node
+	// Load the map graph file
 	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(path.c_str());
 	LogAssert(pRoot, "AI xml doesn't exists");
 
-	eastl::map<unsigned int, PathingNode*> pathingGraph;
-	for (tinyxml2::XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
+	eastl::map<unsigned int, PathingNode*> pathingNodeGraph;
+	tinyxml2::XMLElement* pPathingGraph = pRoot->FirstChildElement("PathingGraph");
+	for (tinyxml2::XMLElement* pNode = pPathingGraph->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
 	{
 		int pathNodeId = 0;
 		ActorId actorId = INVALID_ACTOR_ID;
@@ -93,15 +94,17 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 		}
 
 		PathingNode* pathNode = new PathingNode(pathNodeId, actorId, position, tolerance);
-		pathingGraph[pathNodeId] = pathNode;
 		mPathingGraph->InsertNode(pathNode);
+
+		pathingNodeGraph[pathNodeId] = pathNode;
 	}
 
-	for (tinyxml2::XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
+	eastl::map<unsigned int, PathingArc*> pathingArcGraph;
+	for (tinyxml2::XMLElement* pNode = pPathingGraph->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
 	{
 		int pathNodeId = 0;
 		pathNodeId = pNode->IntAttribute("id", pathNodeId);
-		PathingNode* pathNode = pathingGraph[pathNodeId];
+		PathingNode* pathNode = pathingNodeGraph[pathNodeId];
 
 		for (tinyxml2::XMLElement* pArc = pNode->FirstChildElement("Arc"); pArc; pArc = pArc->NextSiblingElement())
 		{
@@ -123,8 +126,8 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 				nodeA = pLinkElement->IntAttribute("a", nodeA);
 				nodeB = pLinkElement->IntAttribute("b", nodeB);
 
-				links[0] = pathingGraph[nodeA];
-				links[1] = pathingGraph[nodeB];
+				links[0] = pathingNodeGraph[nodeA];
+				links[1] = pathingNodeGraph[nodeB];
 			}
 
 			tinyxml2::XMLElement* pConnectionElement = pArc->FirstChildElement("Connection");
@@ -143,22 +146,109 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			PathingArc* pathArc = new PathingArc(arcId, arcType, weight, connection);
 			pathArc->LinkNodes(links[0], links[1]);
 			pathNode->AddArc(pathArc);
+
+			pathingArcGraph[arcId] = pathArc;
 		}
 	}
+	/*
+	tinyxml2::XMLElement* pVisibilityGraph = pRoot->FirstChildElement("VisibilityGraph");
+	for (tinyxml2::XMLElement* pElement = pVisibilityGraph->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
+	{
+		if (pElement->Name() == "VisibleNode")
+		{
+			int pathNodeId = 0;
+			pathNodeId = pElement->IntAttribute("id", pathNodeId);
+
+			for (tinyxml2::XMLElement* pVisibleNode = pElement->FirstChildElement("Node"); pVisibleNode; pVisibleNode = pVisibleNode->NextSiblingElement())
+			{
+				int visibleNodeId = 0;
+				visibleNodeId = pVisibleNode->IntAttribute("id", visibleNodeId);
+
+				float distance = 0.f;
+				distance = pVisibleNode->FloatAttribute("distance", distance);
+
+				mVisibleNodes[pathingNodeGraph[pathNodeId]][pathingNodeGraph[visibleNodeId]] = distance;
+			}
+		}
+		else if (pElement->Name() == "VisibleNodeArc")
+		{
+			int pathNodeId = 0;
+			pathNodeId = pElement->IntAttribute("id", pathNodeId);
+
+			for (tinyxml2::XMLElement* pVisibleArc = pElement->FirstChildElement("Arc"); pVisibleArc; pVisibleArc = pVisibleArc->NextSiblingElement())
+			{
+				int visibleArcId = 0;
+				visibleArcId = pVisibleArc->IntAttribute("id", visibleArcId);
+
+				float distance = 0.f;
+				distance = pVisibleArc->FloatAttribute("distance", distance);
+
+				float time = 0.f;
+				time = pVisibleArc->FloatAttribute("time", time);
+
+				mVisibleNodeArcs[pathingNodeGraph[pathNodeId]][pathingArcGraph[visibleArcId]] = distance;
+				mVisibleNodeArcsTime[pathingNodeGraph[pathNodeId]][pathingArcGraph[visibleArcId]] = time;
+			}
+		}
+		else if (pElement->Name() == "VisibleArcNode")
+		{
+			int pathArcId = 0;
+			pathArcId = pElement->IntAttribute("id", pathArcId);
+
+			for (tinyxml2::XMLElement* pVisibleNode = pElement->FirstChildElement("Node"); pVisibleNode; pVisibleNode = pVisibleNode->NextSiblingElement())
+			{
+				int visibleNodeId = 0;
+				visibleNodeId = pVisibleNode->IntAttribute("id", visibleNodeId);
+
+				float distance = 0.f;
+				distance = pVisibleNode->FloatAttribute("distance", distance);
+
+				float time = 0.f;
+				time = pVisibleNode->FloatAttribute("time", time);
+
+				mVisibleArcNodes[pathingArcGraph[pathArcId]][pathingNodeGraph[visibleNodeId]] = distance;
+				mVisibleArcNodesTime[pathingArcGraph[pathArcId]][pathingNodeGraph[visibleNodeId]] = time;
+			}
+		}
+		else if (pElement->Name() == "VisibleArc")
+		{
+			int pathArcId = 0;
+			pathArcId = pElement->IntAttribute("id", pathArcId);
+
+			for (tinyxml2::XMLElement* pVisibleArc = pElement->FirstChildElement("Arc"); pVisibleArc; pVisibleArc = pVisibleArc->NextSiblingElement())
+			{
+				int visibleArcId = 0;
+				visibleArcId = pVisibleArc->IntAttribute("id", visibleArcId);
+
+				float distance = 0.f;
+				distance = pVisibleArc->FloatAttribute("distance", distance);
+
+				float time = 0.f;
+				time = pVisibleArc->FloatAttribute("time", time);
+
+				mVisibleArcs[pathingArcGraph[pathArcId]][pathingArcGraph[visibleArcId]] = distance;
+				mVisibleArcsTime[pathingArcGraph[pathArcId]][pathingArcGraph[visibleArcId]] = time;
+			}
+		}
+	}
+	*/
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// QuakeAIManager::SavePathingGraph
+// QuakeAIManager::SaveMapGraph
 //
 //    Saves the AI pathing graph information to an XML file
 //
-void QuakeAIManager::SavePathingGraph(const eastl::string& path)
+void QuakeAIManager::SaveMapGraph(const eastl::string& path)
 {
 	tinyxml2::XMLDocument doc;
 
 	// base element
-	tinyxml2::XMLElement* pBaseElement = doc.NewElement("PathingGraph");
+	tinyxml2::XMLElement* pBaseElement = doc.NewElement("Map");
 	doc.InsertFirstChild(pBaseElement);
+
+	tinyxml2::XMLElement* pPathingGraph = doc.NewElement("PathingGraph");
+	pBaseElement->LinkEndChild(pPathingGraph);
 
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
@@ -166,7 +256,7 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 		pNode->SetAttribute("id", eastl::to_string(pathNode->GetId()).c_str());
 		pNode->SetAttribute("actorid", eastl::to_string(pathNode->GetActorId()).c_str());
 		pNode->SetAttribute("tolerance", eastl::to_string(pathNode->GetTolerance()).c_str());
-		pBaseElement->LinkEndChild(pNode);
+		pPathingGraph->LinkEndChild(pNode);
 
 		tinyxml2::XMLElement* pPosition = doc.NewElement("Position");
 		pPosition->SetAttribute("x", eastl::to_string((int)round(pathNode->GetPos()[0])).c_str());
@@ -198,11 +288,96 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 		}
 	}
 
+	tinyxml2::XMLElement* pVisibilityGraph = doc.NewElement("VisibilityGraph");
+	pBaseElement->LinkEndChild(pVisibilityGraph);
+
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		if (mVisibleNodes.find(pathNode) != mVisibleNodes.end())
+		{
+			tinyxml2::XMLElement* pNode = doc.NewElement("VisibleNode");
+			pNode->SetAttribute("id", eastl::to_string(pathNode->GetId()).c_str());
+			pVisibilityGraph->LinkEndChild(pNode);
+
+			for (auto visibilityNode : mVisibleNodes[pathNode])
+			{
+				PathingNode* visibleNode = visibilityNode.first;
+				tinyxml2::XMLElement* pVisibleNode = doc.NewElement("Node");
+				pVisibleNode->SetAttribute("id", eastl::to_string(visibleNode->GetId()).c_str());
+				pVisibleNode->SetAttribute("distance", eastl::to_string(visibilityNode.second).c_str());
+				pNode->LinkEndChild(pVisibleNode);
+			}
+		}
+	}
+
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		if (mVisibleNodeArcs.find(pathNode) != mVisibleNodeArcs.end())
+		{
+			tinyxml2::XMLElement* pNode = doc.NewElement("VisibleNodeArc");
+			pNode->SetAttribute("id", eastl::to_string(pathNode->GetId()).c_str());
+			pVisibilityGraph->LinkEndChild(pNode);
+
+			for (auto visibilityNodeArc : mVisibleNodeArcs[pathNode])
+			{
+				PathingArc* visibleArc = visibilityNodeArc.first;
+
+				tinyxml2::XMLElement* pArc = doc.NewElement("Arc");
+				pArc->SetAttribute("id", eastl::to_string(visibleArc->GetId()).c_str());
+				pArc->SetAttribute("distance", eastl::to_string(visibilityNodeArc.second).c_str());
+				pArc->SetAttribute("time", eastl::to_string(mVisibleNodeArcsTime[pathNode][visibleArc]).c_str());
+				pNode->LinkEndChild(pArc);
+			}
+		}
+	}
+
+	for (PathingArc* pathArc : mPathingGraph->GetArcs())
+	{
+		if (mVisibleArcNodes.find(pathArc) != mVisibleArcNodes.end())
+		{
+			tinyxml2::XMLElement* pArc = doc.NewElement("VisibleArcNode");
+			pArc->SetAttribute("id", eastl::to_string(pathArc->GetId()).c_str());
+			pVisibilityGraph->LinkEndChild(pArc);
+
+			for (auto visibilityArcNode : mVisibleArcNodes[pathArc])
+			{
+				PathingNode* visibleNode = visibilityArcNode.first;
+				
+				tinyxml2::XMLElement* pNode = doc.NewElement("Node");
+				pNode->SetAttribute("id", eastl::to_string(visibleNode->GetId()).c_str());
+				pArc->SetAttribute("distance", eastl::to_string(visibilityArcNode.second).c_str());
+				pArc->SetAttribute("time", eastl::to_string(mVisibleArcNodesTime[pathArc][visibleNode]).c_str());
+				pArc->LinkEndChild(pNode);
+			}
+		}
+	}
+
+	for (PathingArc* pathArc : mPathingGraph->GetArcs())
+	{
+		if (mVisibleArcNodes.find(pathArc) != mVisibleArcNodes.end())
+		{
+			tinyxml2::XMLElement* pArc = doc.NewElement("VisibleArc");
+			pArc->SetAttribute("id", eastl::to_string(pathArc->GetId()).c_str());
+			pVisibilityGraph->LinkEndChild(pArc);
+
+			for (auto visibilityArc : mVisibleArcs[pathArc])
+			{
+				PathingArc* visibleArc = visibilityArc.first;
+
+				tinyxml2::XMLElement* pVisibleArc = doc.NewElement("Arc");
+				pVisibleArc->SetAttribute("id", eastl::to_string(visibleArc->GetId()).c_str());
+				pVisibleArc->SetAttribute("distance", eastl::to_string(visibilityArc.second).c_str());
+				pVisibleArc->SetAttribute("time", eastl::to_string(mVisibleArcsTime[pathArc][visibleArc]).c_str());
+				pArc->LinkEndChild(pVisibleArc);
+			}
+		}
+	}
+
 	doc.SaveFile(path.c_str());
 }
 
-//waypoint generation via physics simulation
-void QuakeAIManager::CreateWaypoints(ActorId playerId)
+//map generation via physics simulation
+void QuakeAIManager::CreateMap(ActorId playerId)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
@@ -214,7 +389,7 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 	game->GetGamePhysics()->SetTriggerCollision(true);
 	game->RemoveAllDelegates();
 	RegisterAllDelegates();
-
+	/*
 	//first we store the most important points of the map
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
@@ -236,13 +411,12 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 	// simulation step, it will be generated new waypoints from different actions such as
 	// movement, jumping or falling and its conections
 	SimulateWaypoint();
-
+	*/
 	// we obtain visibility information from the created waypoint graph by using raycasting
 	SimulateVisibility();
 
-	Level* level = game->GetLevelManager()->GetLevel(ToWideString(gameApp->mOption.mLevel.c_str()));
-	eastl::string levelPath = "ai/quake/" + ToString(level->GetName().c_str()) + ".xml";
-	SavePathingGraph(FileSystem::Get()->GetPath(levelPath));
+	GameLogic::Get()->GetAIManager()->SaveMapGraph(
+		FileSystem::Get()->GetPath("ai/quake/bloodrun - copia.xml"));
 
 	// we need to handle firing grenades separately since they cannot be simulated by raycasting 
 	// as they describe different trajectories
@@ -290,7 +464,7 @@ void QuakeAIManager::SimulateVisibility()
 
 		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
 		{
-			// set upper aiming direction
+			// set aiming direction
 			Vector3<float> direction = visibleNode->GetPos() - muzzle +
 				(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
 			Normalize(direction);
@@ -1066,7 +1240,7 @@ float FindClosestMovement(eastl::vector<Vector3<float>>& movements, const Vector
 // Cliff control
 bool Cliff(const Vector3<float>& translation)
 {
-	for (int angle = 0; angle < 360; angle += 20)
+	for (int angle = 0; angle < 360; angle += 10)
 	{
 		Matrix4x4<float> rotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
@@ -1118,7 +1292,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 	eastl::map<PathingNode*, float> nodeTimes;
 	eastl::map<PathingNode*, Vector3<float>> nodePositions;
 
-	for (int angle = 0; angle < 360; angle += 15)
+	for (int angle = 0; angle < 360; angle += 10)
 	{
 		Matrix4x4<float> rotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
@@ -1459,7 +1633,7 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 
 	Transform transform;
 	Vector3<float> direction;
-	for (int angle = 0; angle < 360; angle += 20)
+	for (int angle = 0; angle < 360; angle += 10)
 	{
 		Matrix4x4<float> rotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));

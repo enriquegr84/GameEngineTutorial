@@ -506,10 +506,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								Normalize(direction);
 								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
-								/*
 								if (mPlan->GetCurrentArc()->GetType() == AIAT_JUMPTARGET)
 									pPlayerActor->GetAction().actionType |= ACTION_JUMP;
-								*/
 							}
 						}
 						else

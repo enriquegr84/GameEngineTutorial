@@ -171,10 +171,11 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 	}
 	else
 	{
-		if (Dot(mCurrentDirection, prevDirection) < 0.6f ||
-			Length(diff) <= 3.f * (float)PATHING_DEFAULT_NODE_TOLERANCE)
+		if (Dot(mCurrentDirection, prevDirection) < 0.6f &&
+			Length(diff) <= (float)PATHING_DEFAULT_NODE_TOLERANCE)
 		{
 			mIndex++;
+
 			if (mIndex != mPath.end())
 			{
 				mCurrentDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
