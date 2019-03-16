@@ -53,11 +53,14 @@ typedef eastl::vector<PathingArc*> PathingArcVec;
 typedef eastl::vector<PathingNode*> PathingNodeVec;
 typedef eastl::list<PathPlanNode*> PathPlanNodeList;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
+typedef eastl::map<PathingArc*, PathingNodeVec> PathingArcNodeMap;
 typedef eastl::map<PathingNode*, PathPlanNode*> PathingNodeToPathPlanNodeMap;
+typedef eastl::map<PathingArc*, eastl::map<PathingArc*, float>> PathingArcDoubleMap;
 typedef eastl::map<PathingNode*, eastl::map<PathingNode*, float>> PathingNodeDoubleMap;
-typedef eastl::map<PathingNode*, eastl::map<PathingNode*, Vector3<float>>> PathingNodeDirectionMap;
 typedef eastl::map<PathingNode*, eastl::map<PathingArc*, float>> PathingNodeArcDoubleMap;
-typedef eastl::map<PathingNode*, eastl::map<PathingArc*, Vector3<float>>> PathingNodeArcDirectionMap;
+typedef eastl::map<PathingArc*, eastl::map<PathingNode*, float>> PathingArcNodeDoubleMap;
+typedef eastl::map<PathingNode*, eastl::map<PathingNode*, Vector3<float>>> PathingNodeVecMap;
+typedef eastl::map<PathingNode*, eastl::map<PathingArc*, Vector3<float>>> PathingNodeArcVecMap;
 
 const float PATHING_DEFAULT_NODE_TOLERANCE = 4.0f;
 const float PATHING_DEFAULT_ARC_WEIGHT = 0.001f;
@@ -113,20 +116,23 @@ public:
 //--------------------------------------------------------------------------------------------------------
 class PathingArc
 {
+	unsigned int mId;
 	unsigned int mType;
 	float mWeight;
 	Vector3<float> mConnection; //an optional interpolation vector which connects nodes 
 	PathingNode* mNodes[2];  // an arc always connects two nodes
 
 public:
-	explicit PathingArc(
-		unsigned int type = 0, float weight = 0.f, 
-		const Vector3<float>& connect = NULL) 
-		: mType(type), mWeight(weight), mConnection(connect)
-	{ }
+	explicit PathingArc(unsigned int id, unsigned int type, 
+		float weight = 0.f, const Vector3<float>& connect = NULL) 
+		: mId(id), mType(type), mWeight(weight), mConnection(connect)
+	{ 
 
-	float GetWeight(void) const { return mWeight; }
+	}
+
+	unsigned int GetId(void) const { return mId; }
 	unsigned int GetType(void) const { return mType; }
+	float GetWeight(void) const { return mWeight; }
 	const Vector3<float>& GetConnection(void) const { return mConnection; }
 
 	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
@@ -273,6 +279,7 @@ public:
 	// helpers
 	void InsertNode(PathingNode* pNode);
 	const PathingNodeVec& GetNodes() { return mNodes; }
+	const PathingArcVec& GetArcs() { return mArcs; }
 };
 
 

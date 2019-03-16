@@ -294,8 +294,7 @@ private:
 		Vector3<float> origin, const eastl::shared_ptr<PlayerActor>& attacker);
 
 	void GauntletAttack(const eastl::shared_ptr<PlayerActor>& player,
-		const Vector3<float>& origin, const Vector3<float>& forward,
-		const Vector3<float>& right, const Vector3<float>& up);
+		const Vector3<float>& origin, const Vector3<float>& forward);
 	void BulletFire(const eastl::shared_ptr<PlayerActor>& player,
 		const Vector3<float>& muzzle, const Vector3<float>& forward,
 		const Vector3<float>& right, const Vector3<float>& up, 
@@ -307,22 +306,17 @@ private:
 		const Vector3<float>& forward, const Vector3<float>& start, const Vector3<float>& end);
 	void GrenadeLauncherFire(
 		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle, 
-		const Vector3<float>& forward, const Vector3<float>& right, 
-		const Vector3<float>& up, const EulerAngles<float>& angles);
+		const Vector3<float>& forward, const EulerAngles<float>& angles);
 	void RocketLauncherFire(
 		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
-		const Vector3<float>& forward, const Vector3<float>& right,
-		const Vector3<float>& up, const EulerAngles<float>& angles);
+		const Vector3<float>& forward, const EulerAngles<float>& angles);
 	void PlasmagunFire(
 		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle, 
-		const Vector3<float>& forward, const Vector3<float>& right, 
-		const Vector3<float>& up, const EulerAngles<float>& angles);
-	void RailgunFire(
-		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle,
-		const Vector3<float>& forward, const Vector3<float>& right, const Vector3<float>& up);
-	void LightningFire(
-		const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle, 
-		const Vector3<float>& forward, const Vector3<float>& right, const Vector3<float>& up);
+		const Vector3<float>& forward, const EulerAngles<float>& angles);
+	void RailgunFire(const eastl::shared_ptr<PlayerActor>& player, 
+		const Vector3<float>& muzzle, const Vector3<float>& forward);
+	void LightningFire(const eastl::shared_ptr<PlayerActor>& player, 
+		const Vector3<float>& muzzle, const Vector3<float>& forward);
 };
 
 #endif

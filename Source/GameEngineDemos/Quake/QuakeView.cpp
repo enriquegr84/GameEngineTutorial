@@ -1009,7 +1009,9 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 						Level* level = game->GetLevelManager()->GetLevel(
 							ToWideString(gameApp->mOption.mLevel.c_str()));
 						eastl::wstring levelPath = L"ai/quake/" + level->GetName() + L".xml";
-						GameLogic::Get()->GetAIManager()->LoadPathingGraph(levelPath);
+						GameLogic::Get()->GetAIManager()->SavePathingGraph(
+							FileSystem::Get()->GetPath(ToString(levelPath.c_str())));
+
 						return true;
 					}
 					case KEY_KEY_5:

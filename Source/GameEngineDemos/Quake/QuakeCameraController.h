@@ -53,30 +53,30 @@ protected:
 	bool mEnabled;
 	BYTE mKey[256];			// Which keys are up and down
 
-	Transform		mAbsoluteTransform;
-	Vector2<int>	mLastMousePos;
-
 	// Orientation Controls
-	float		mYaw;
-	float		mPitch;
-	float		mPitchOnDown;
-	float		mYawOnDown;
+	float mYaw;
+	float mPitch;
+	float mPitchOnDown;
+	float mYawOnDown;
 
 	// Speed Controls
-	float		mMaxMoveSpeed;
-	float		mMaxRotateSpeed;
-	float		mMoveSpeed;
-	float		mRotateSpeed;
+	float mMaxMoveSpeed;
+	float mMaxRotateSpeed;
+	float mMoveSpeed;
+	float mRotateSpeed;
 
 	// Added for Ch19/20 refactor
-	bool		mWheelRollUp;
-	bool		mWheelRollDown;
-	bool		mMouseRButtonDown;
-	bool		mMouseLButtonDown;
-	bool		mRotateWhenLButtonDown;
-	bool		mMouseUpdate;
+	bool mWheelRollUp;
+	bool mWheelRollDown;
+	bool mMouseRButtonDown;
+	bool mMouseLButtonDown;
+	bool mRotateWhenLButtonDown;
+	bool mMouseUpdate;
 
 	eastl::shared_ptr<CameraNode> mCamera;
+
+	Transform mAbsoluteTransform;
+	Vector2<int> mLastMousePos;
 
 public:
 	QuakeCameraController(const eastl::shared_ptr<CameraNode>& camera,

@@ -1853,8 +1853,7 @@ GAUNTLET
 
 void QuakeLogic::GauntletAttack(
 	const eastl::shared_ptr<PlayerActor>& player, 
-	const Vector3<float>& muzzle, const Vector3<float>& forward,
-	const Vector3<float>& right, const Vector3<float>& up)
+	const Vector3<float>& muzzle, const Vector3<float>& forward)
 {
 	//set muzzle location relative to pivoting eye
 	Vector3<float> end = muzzle + forward * 32.f;
@@ -1922,9 +1921,9 @@ void QuakeLogic::BulletFire(
 	const Vector3<float>& muzzle, const Vector3<float>& forward,
 	const Vector3<float>& right, const Vector3<float>& up, float spread, int damage)
 {
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * spread * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * spread * 16.f;
+	float r = ((Randomizer::Rand() & 0x7fff) / (float)0x7fff) * (float)GE_C_PI * 2.f;
+	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / (float)0x7fff) - 0.5f) * spread * 16.f;
+	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / (float)0x7fff) - 0.5f) * spread * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
 	end += right * r;
 	end += up * u;
@@ -2063,8 +2062,8 @@ void QuakeLogic::ShotgunFire(
 	// generate the "random" spread pattern
 	for (unsigned int i = 0; i < DEFAULT_SHOTGUN_COUNT; i++)
 	{
-		float r = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
-		float u = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
+		float r = (2.f * ((Randomizer::Rand() & 0x7fff) / (float)0x7fff) - 0.5f) * DEFAULT_SHOTGUN_SPREAD * 16.f;
+		float u = (2.f * ((Randomizer::Rand() & 0x7fff) / (float)0x7fff) - 0.5f) * DEFAULT_SHOTGUN_SPREAD * 16.f;
 		Vector3<float> end = muzzle + forward * 8192.f * 16.f;
 		end += right * r;
 		end += up * u;
@@ -2084,9 +2083,8 @@ GRENADE LAUNCHER
 */
 
 void QuakeLogic::GrenadeLauncherFire(
-	const eastl::shared_ptr<PlayerActor>& player, 
-	const Vector3<float>& muzzle, const Vector3<float>& forward, 
-	const Vector3<float>& right, const Vector3<float>& up, const EulerAngles<float>& viewAngles)
+	const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle, 
+	const Vector3<float>& forward, const EulerAngles<float>& viewAngles)
 {
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
 		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
@@ -2097,12 +2095,7 @@ void QuakeLogic::GrenadeLauncherFire(
 	initTransform.SetRotation(yawRotation * pitchRotation);
 	initTransform.SetTranslation(muzzle);
 
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-	end += right * r;
-	end += up * u;
 	Vector3<float> direction = end - muzzle;
 	Normalize(direction);
 
@@ -2142,9 +2135,8 @@ ROCKET
 */
 
 void QuakeLogic::RocketLauncherFire(
-	const eastl::shared_ptr<PlayerActor>& player, 
-	const Vector3<float>& muzzle, const Vector3<float>& forward, 
-	const Vector3<float>& right, const Vector3<float>& up, const EulerAngles<float>& viewAngles)
+	const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle, 
+	const Vector3<float>& forward, const EulerAngles<float>& viewAngles)
 {
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
 		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
@@ -2155,12 +2147,7 @@ void QuakeLogic::RocketLauncherFire(
 	initTransform.SetRotation(yawRotation * pitchRotation);
 	initTransform.SetTranslation(muzzle);
 
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-	end += right * r;
-	end += up * u;
 	Vector3<float> direction = end - muzzle;
 	Normalize(direction);
 
@@ -2202,9 +2189,8 @@ PLASMA GUN
 */
 
 void QuakeLogic::PlasmagunFire(
-	const eastl::shared_ptr<PlayerActor>& player, 
-	const Vector3<float>& muzzle, const Vector3<float>& forward, 
-	const Vector3<float>& right, const Vector3<float>& up, const EulerAngles<float>& viewAngles)
+	const eastl::shared_ptr<PlayerActor>& player, const Vector3<float>& muzzle, 
+	const Vector3<float>& forward, const EulerAngles<float>& viewAngles)
 {
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
 		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
@@ -2215,12 +2201,7 @@ void QuakeLogic::PlasmagunFire(
 	initTransform.SetRotation(yawRotation * pitchRotation);
 	initTransform.SetTranslation(muzzle);
 
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-	end += right * r;
-	end += up * u;
 	Vector3<float> direction = end - muzzle;
 	Normalize(direction);
 
@@ -2261,15 +2242,9 @@ RAILGUN
 */
 
 void QuakeLogic::RailgunFire(const eastl::shared_ptr<PlayerActor>& player,
-	const Vector3<float>& muzzle, const Vector3<float>& forward,
-	const Vector3<float>& right, const Vector3<float>& up)
+	const Vector3<float>& muzzle, const Vector3<float>& forward)
 {
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-	end += right * r;
-	end += up * u;
 
 	// play firing sound
 	EventManager::Get()->TriggerEvent(
@@ -2346,15 +2321,9 @@ LIGHTNING GUN
 */
 
 void QuakeLogic::LightningFire(const eastl::shared_ptr<PlayerActor>& player,
-	const Vector3<float>& muzzle, const Vector3<float>& forward,
-	const Vector3<float>& right, const Vector3<float>& up)
+	const Vector3<float>& muzzle, const Vector3<float>& forward)
 {
-	float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-	float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-	r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 	Vector3<float> end = muzzle + forward * (float)LIGHTNING_RANGE;
-	end += right * r;
-	end += up * u;
 
 	// play firing sound
 	EventManager::Get()->TriggerEvent(
@@ -2468,7 +2437,7 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 	switch (pPlayerActor->GetState().weapon)
 	{
 		case WP_GAUNTLET:
-			GauntletAttack(pPlayerActor, muzzle, forward, right, up);
+			GauntletAttack(pPlayerActor, muzzle, forward);
 			break;
 		case WP_SHOTGUN:
 			ShotgunFire(pPlayerActor, muzzle, forward, right, up);
@@ -2477,19 +2446,19 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 			BulletFire(pPlayerActor, muzzle, forward, right, up, MACHINEGUN_SPREAD, MACHINEGUN_DAMAGE);
 			break;
 		case WP_GRENADE_LAUNCHER:
-			GrenadeLauncherFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
+			GrenadeLauncherFire(pPlayerActor, muzzle, forward, viewAngles);
 			break;
 		case WP_ROCKET_LAUNCHER:
-			RocketLauncherFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
+			RocketLauncherFire(pPlayerActor, muzzle, forward, viewAngles);
 			break;
 		case WP_PLASMAGUN:
-			PlasmagunFire(pPlayerActor, muzzle, forward, right, up, viewAngles);
+			PlasmagunFire(pPlayerActor, muzzle, forward, viewAngles);
 			break;
 		case WP_RAILGUN:
-			RailgunFire(pPlayerActor, muzzle, forward, right, up);
+			RailgunFire(pPlayerActor, muzzle, forward);
 			break;
 		case WP_LIGHTNING:
-			LightningFire(pPlayerActor, muzzle, forward, right, up);
+			LightningFire(pPlayerActor, muzzle, forward);
 			break;
 		default:
 			// FIXME Error( "Bad ent->state->weapon" );
@@ -2639,7 +2608,7 @@ void QuakeLogic::SelectRandomFurthestSpawnPoint(const Vector3<float>& avoidPoint
 	else
 	{
 		// select a random spot from the spawn points furthest away
-		int rnd = (int)(((Randomizer::Rand() & 0x7fff) / ((float)0x7fff)) * (numSpots / 2));
+		int rnd = (int)(((Randomizer::Rand() & 0x7fff) / (float)0x7fff) * (numSpots / 2));
 
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
 			spots[rnd]->GetComponent<TransformComponent>(TransformComponent::Name).lock());

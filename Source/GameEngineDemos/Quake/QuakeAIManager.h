@@ -58,23 +58,19 @@ protected:
 	void SimulateTriggerPush(PathingNode* pNode, const Vector3<float>& target);
 	void SimulateTriggerTeleport(PathingNode* pNode, const Vector3<float>& target);
 	void SimulateActorPosition(ActorId actorId, const Vector3<float>& position);
+	void SimulateGrenadeLauncherFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor);
 
 	void SimulateWaypoint();
-
-	void SimulateGauntletAttack(PathingNode* pNode);
-	void SimulateBulletFire(PathingNode* pNode, float spread, int damage);
-	void SimulateShotgunFire(PathingNode* pNode);
-	void SimulateRailgunFire(PathingNode* pNode);
-	void SimulateLightningFire(PathingNode* pNode);
-	void SimulateGrenadeLauncherFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor);
-	void SimulateRocketLauncherFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor);
-	void SimulatePlasmagunFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor);
-
-	void SimulateFiring();
+	void SimulateVisibility();
 
 	unsigned int GetNewNodeID(void)
 	{
 		return ++mLastNodeId;
+	}
+
+	unsigned int GetNewArcID(void)
+	{
+		return ++mLastArcId;
 	}
 
 	// event delegates
@@ -83,29 +79,29 @@ protected:
 	void PhysicsCollisionDelegate(BaseEventDataPtr pEventData);
 	void PhysicsSeparationDelegate(BaseEventDataPtr pEventData);
 
-	eastl::shared_ptr<PlayerActor> mPlayerActor;
-
 	// Orientation Controls
-	float		mYaw;
-	float		mPitch;
-	float		mPitchTarget;
-	float		mPitchOnDown;
-	float		mYawOnDown;
+	float mYaw;
+	float mPitch;
+	float mPitchTarget;
+	float mPitchOnDown;
+	float mYawOnDown;
 
 	// Speed Controls
-	float		mMaxFallSpeed;
-	float		mMaxJumpSpeed;
-	float		mMaxRotateSpeed;
-	float		mFallSpeed;
-	float		mJumpSpeed;
-	float		mJumpMoveSpeed;
-	float		mMoveSpeed;
-	float		mRotateSpeed;
+	float mMaxFallSpeed;
+	float mMaxJumpSpeed;
+	float mMaxRotateSpeed;
+	float mFallSpeed;
+	float mJumpSpeed;
+	float mJumpMoveSpeed;
+	float mMoveSpeed;
+	float mRotateSpeed;
 
+	eastl::shared_ptr<PlayerActor> mPlayerActor;
 
 private:
 
 	unsigned int mLastNodeId;
+	unsigned int mLastArcId;
 
 	//open set of nodes to be analized and also to
 	//inform whether they are on ground or not
@@ -114,11 +110,17 @@ private:
 	//pathing nodes which contains actors from game
 	eastl::map<ActorId, bool> mActorCollisions;
 	eastl::map<PathingNode*, ActorId> mActorNodes;
-	PathingNodeDoubleMap mWeaponGroundDamage[MAX_WEAPONS];
-	PathingNodeDoubleMap mWeaponGroundDamageTime[MAX_WEAPONS];
-	PathingNodeDirectionMap mWeaponGroundDirection[MAX_WEAPONS];
-	PathingNodeArcDoubleMap mWeaponDamage[MAX_WEAPONS];
-	PathingNodeArcDirectionMap mWeaponDirection[MAX_WEAPONS];
+
+	PathingArcDoubleMap mVisibleArcs;
+	PathingNodeDoubleMap mVisibleNodes;
+	PathingNodeArcDoubleMap mVisibleNodeArcs;
+	PathingArcNodeDoubleMap mVisibleArcNodes;
+
+	PathingArcDoubleMap mVisibleArcsTime;
+	PathingNodeArcDoubleMap mVisibleNodeArcsTime;
+	PathingArcNodeDoubleMap mVisibleArcNodesTime;
+
+	PathingNodeVecMap mProjectileDirections;
 
 	void RegisterAllDelegates(void);
 	void RemoveAllDelegates(void);

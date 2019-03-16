@@ -53,34 +53,34 @@ protected:
 	bool mEnabled;
 	BYTE mKey[256];			// Which keys are up and down
 
-	Transform		mAbsoluteTransform;
-	Vector2<int>	mLastMousePos;
-
 	// Orientation Controls
-	float		mYaw;
-	float		mPitch;
-	float		mPitchTarget;
-	float		mPitchOnDown;
-	float		mYawOnDown;
+	float mYaw;
+	float mPitch;
+	float mPitchTarget;
+	float mPitchOnDown;
+	float mYawOnDown;
 
 	// Speed Controls
-	float		mMaxFallSpeed;
-	float		mMaxJumpSpeed;
-	float		mMaxRotateSpeed;
-	float		mFallSpeed;
-	float		mJumpSpeed;
-	float		mJumpMoveSpeed;
-	float		mMoveSpeed;
-	float		mRotateSpeed;
+	float mMaxFallSpeed;
+	float mMaxJumpSpeed;
+	float mMaxRotateSpeed;
+	float mFallSpeed;
+	float mJumpSpeed;
+	float mJumpMoveSpeed;
+	float mMoveSpeed;
+	float mRotateSpeed;
 
 	// Added for Ch19/20 refactor
-	bool		mWheelRollUp;
-	bool		mWheelRollDown;
-	bool		mMouseRButtonDown;
-	bool		mMouseLButtonDown;
-	bool		mMouseUpdate;
+	bool mWheelRollUp;
+	bool mWheelRollDown;
+	bool mMouseRButtonDown;
+	bool mMouseLButtonDown;
+	bool mMouseUpdate;
 
 	eastl::shared_ptr<Node> mTarget;
+
+	Transform mAbsoluteTransform;
+	Vector2<int> mLastMousePos;
 
 public:
 	QuakePlayerController(

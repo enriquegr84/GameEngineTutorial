@@ -70,35 +70,35 @@ protected:
 	void Smooth(unsigned long deltaMs);
 	void Cliff();
 
+	// Movement Controls
+	int mOrientation;
+	unsigned long mStationaryTime;
+
+	// Orientation Controls
+	float mYaw;
+	float mPitch;
+	float mPitchTarget;
+	float mPitchOnDown;
+	float mYawOnDown;
+
+	// Speed Controls
+	float mMaxFallSpeed;
+	float mMaxJumpSpeed;
+	float mMaxRotateSpeed;
+	float mFallSpeed;
+	float mJumpSpeed;
+	float mJumpMoveSpeed;
+	float mMoveSpeed;
+	float mRotateSpeed;
+
 	GameViewId	mViewId;
 	ActorId mPlayerId;
 
-	Transform		mAbsoluteTransform;
-
-	// Movement Controls
-	int				mOrientation;
-	unsigned long	mStationaryTime;
-
-	// Orientation Controls
-	float		mYaw;
-	float		mPitch;
-	float		mPitchTarget;
-	float		mPitchOnDown;
-	float		mYawOnDown;
-
-	// Speed Controls
-	float		mMaxFallSpeed;
-	float		mMaxJumpSpeed;
-	float		mMaxRotateSpeed;
-	float		mFallSpeed;
-	float		mJumpSpeed;
-	float		mJumpMoveSpeed;
-	float		mMoveSpeed;
-	float		mRotateSpeed;
+	Transform mAbsoluteTransform;
 
 private:
 
-	PathPlan*		mPlan;
+	PathPlan* mPlan;
 	eastl::shared_ptr<PathingGraph> mPathingGraph;
 };
 

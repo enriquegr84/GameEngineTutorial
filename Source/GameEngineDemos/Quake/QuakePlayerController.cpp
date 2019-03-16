@@ -216,10 +216,9 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			pitchRotation = Rotation<4, float>(
 				AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
 			pTransformComponent->SetRotation(yawRotation * pitchRotation);
-			/*
+
 			Vector3<float> pos = pTransformComponent->GetPosition();
 			printf("pos %f %f %f\n", pos[0], pos[1], pos[2]);
-			*/
 		}
 	}
 

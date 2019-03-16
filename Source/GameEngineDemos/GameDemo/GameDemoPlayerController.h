@@ -53,29 +53,29 @@ protected:
 	bool mEnabled;
 	BYTE mKey[256];			// Which keys are up and down
 
-	Transform		mAbsoluteTransform;
-	Vector2<int>	mLastMousePos;
-
 	// Orientation Controls
-	float		mYaw;
-	float		mPitch;
-	float		mPitchOnDown;
-	float		mYawOnDown;
+	float mYaw;
+	float mPitch;
+	float mPitchOnDown;
+	float mYawOnDown;
 
 	// Speed Controls
-	float		mMaxJumpSpeed;
-	float		mMaxMoveSpeed;
-	float		mMaxRotateSpeed;
-	float		mJumpSpeed;
-	float		mMoveSpeed;
-	float		mRotateSpeed;
+	float mMaxJumpSpeed;
+	float mMaxMoveSpeed;
+	float mMaxRotateSpeed;
+	float mJumpSpeed;
+	float mMoveSpeed;
+	float mRotateSpeed;
 
 	// Added for Ch19/20 refactor
-	bool		mWheelRollDown;
-	bool		mMouseRButtonDown;
-	bool		mMouseLButtonDown;
+	bool mWheelRollDown;
+	bool mMouseRButtonDown;
+	bool mMouseLButtonDown;
 
 	eastl::shared_ptr<Node> mTarget;
+
+	Transform mAbsoluteTransform;
+	Vector2<int> mLastMousePos;
 
 public:
 	GameDemoPlayerController(

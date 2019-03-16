@@ -31,6 +31,7 @@
 QuakeAIManager::QuakeAIManager() : AIManager()
 {
 	mLastNodeId = 0;
+	mLastArcId = 0;
 
 	mYaw = 0.0f;
 	mPitchTarget = 0.0f;
@@ -104,11 +105,13 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 
 		for (tinyxml2::XMLElement* pArc = pNode->FirstChildElement("Arc"); pArc; pArc = pArc->NextSiblingElement())
 		{
+			int arcId = 0;
 			int arcType = 0;
 			float weight = 0.f;
 			PathingNode* links[2];
 			Vector3<float> connection = NULL;
 
+			arcId = pNode->IntAttribute("id", arcId);
 			arcType = pArc->IntAttribute("type", arcType);
 			weight = pArc->FloatAttribute("weight", weight);
 
@@ -137,7 +140,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 				connection = Vector3<float>{ x, y, z };
 			}
 
-			PathingArc* pathArc = new PathingArc(arcType, weight, connection);
+			PathingArc* pathArc = new PathingArc(arcId, arcType, weight, connection);
 			pathArc->LinkNodes(links[0], links[1]);
 			pathNode->AddArc(pathArc);
 		}
@@ -174,6 +177,7 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 		for (PathingArc* pathArc : pathNode->GetArcs())
 		{
 			tinyxml2::XMLElement* pArc = doc.NewElement("Arc");
+			pArc->SetAttribute("id", eastl::to_string(pathArc->GetId()).c_str());
 			pArc->SetAttribute("type", eastl::to_string(pathArc->GetType()).c_str());
 			pArc->SetAttribute("weight", eastl::to_string(pathArc->GetWeight()).c_str());
 			pNode->LinkEndChild(pArc);
@@ -233,49 +237,16 @@ void QuakeAIManager::CreateWaypoints(ActorId playerId)
 	// movement, jumping or falling and its conections
 	SimulateWaypoint();
 
+	// we obtain visibility information from the created waypoint graph by using raycasting
+	SimulateVisibility();
+
 	Level* level = game->GetLevelManager()->GetLevel(ToWideString(gameApp->mOption.mLevel.c_str()));
 	eastl::string levelPath = "ai/quake/" + ToString(level->GetName().c_str()) + ".xml";
 	SavePathingGraph(FileSystem::Get()->GetPath(levelPath));
 
-	SimulateFiring();
-
-	game->GetGamePhysics()->SetTriggerCollision(false);
-	game->RegisterAllDelegates();
-
-	RemoveAllDelegates();
-}
-
-void QuakeAIManager::SimulateFiring()
-{
-	for (PathingNode* pNode : mPathingGraph->GetNodes())
-	{
-		for (unsigned int weapon = 1; weapon <= 8; weapon++)
-		{
-			// fire the specific weapon
-			switch (weapon)
-			{
-				case WP_GAUNTLET:
-					SimulateGauntletAttack(pNode);
-					break;
-				case WP_SHOTGUN:
-					SimulateShotgunFire(pNode);
-					break;
-				case WP_MACHINEGUN:
-					SimulateBulletFire(pNode, MACHINEGUN_SPREAD, MACHINEGUN_DAMAGE);
-					break;
-				case WP_RAILGUN:
-					SimulateRailgunFire(pNode);
-					break;
-				case WP_LIGHTNING:
-					SimulateLightningFire(pNode);
-					break;
-				default:
-					// FIXME Error( "Bad weapon" );
-					break;
-			}
-		}
-	}
-
+	// we need to handle firing grenades separately since they cannot be simulated by raycasting 
+	// as they describe different trajectories
+	/*
 	eastl::shared_ptr<Actor> pGameActor(
 		GameLogic::Get()->CreateActor("actors/quake/effects/simulategrenadelauncherfire.xml", nullptr));
 	mActorCollisions[pGameActor->GetId()] = false;
@@ -287,55 +258,41 @@ void QuakeAIManager::SimulateFiring()
 		SimulateGrenadeLauncherFire(pNode, pGameActor);
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<EventDataRequestDestroyActor>(pGameActor->GetId()));
-
-	pGameActor = GameLogic::Get()->CreateActor("actors/quake/effects/simulaterocketlauncherfire.xml", nullptr);
-	mActorCollisions[pGameActor->GetId()] = false;
-	pPhysicalComponent = pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
-	if (pPhysicalComponent)
-	{
-		pPhysicalComponent->SetIgnoreCollision(mPlayerActor->GetId(), true);
-		pPhysicalComponent->SetGravity(Vector3<float>::Zero());
-	}
-	for (PathingNode* pNode : mPathingGraph->GetNodes())
-		SimulateRocketLauncherFire(pNode, pGameActor);
-	EventManager::Get()->TriggerEvent(
-		eastl::make_shared<EventDataRequestDestroyActor>(pGameActor->GetId()));
-
-	pGameActor = GameLogic::Get()->CreateActor("actors/quake/effects/simulateplasmagunfire.xml", nullptr);
-	mActorCollisions[pGameActor->GetId()] = false;
-	pPhysicalComponent = pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
-	if (pPhysicalComponent)
-	{
-		pPhysicalComponent->SetIgnoreCollision(mPlayerActor->GetId(), true);
-		pPhysicalComponent->SetGravity(Vector3<float>::Zero());
-	}
-	for (PathingNode* pNode : mPathingGraph->GetNodes())
-		SimulatePlasmagunFire(pNode, pGameActor);
-	EventManager::Get()->TriggerEvent(
-		eastl::make_shared<EventDataRequestDestroyActor>(pGameActor->GetId()));
-
+	*/
 	mActorCollisions.clear();
 	mActorNodes.clear();
+
+	game->GetGamePhysics()->SetTriggerCollision(false);
+	game->RegisterAllDelegates();
+
+	RemoveAllDelegates();
 }
 
-void QuakeAIManager::SimulateGauntletAttack(PathingNode* pNode)
+void QuakeAIManager::SimulateVisibility()
 {
 	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
 
 	Transform transform;
+	PathingArcNodeMap pathArcNodes;
+	PathingArcNodeDoubleMap pathArcNodesTime;
+
+	PathingNodeDoubleMap visibleNodes;
+	PathingNodeArcDoubleMap visibleNodeArcs;
+
+	// first we need to get visibility info such as distance and timing 
+	// from every node and arc by raycasting
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
-		// set aiming directions
-		Vector3<float> direction = pathNode->GetPos() - pNode->GetPos();
-		if (direction != Vector3<float>::Zero())
-		{
-			//set muzzle location relative to pivoting eye
-			Vector3<float> muzzle = pNode->GetPos();
-			muzzle[2] += mPlayerActor->GetState().viewHeight;
-			muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
+		//set muzzle location relative to pivoting eye
+		Vector3<float> muzzle = pathNode->GetPos();
+		muzzle[2] += mPlayerActor->GetState().viewHeight;
+		muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
 
-			direction = pathNode->GetPos() - muzzle;
-			float scale = Length(direction);
+		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
+		{
+			// set upper aiming direction
+			Vector3<float> direction = visibleNode->GetPos() - muzzle +
+				(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
 			Normalize(direction);
 
 			Matrix4x4<float> yawRotation = Rotation<4, float>(
@@ -345,134 +302,33 @@ void QuakeAIManager::SimulateGauntletAttack(PathingNode* pNode)
 			Matrix4x4<float> rotation = yawRotation * pitchRotation;
 
 			Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-			Vector3<float> end = muzzle + forward * 32.f;
-
-			transform.SetTranslation(pNode->GetPos());
-			gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-
-			Vector3<float> collision, collisionNormal;
-			ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
-			if (collisionId == mPlayerActor->GetId())
-			{
-				direction = collision - muzzle;
-				Normalize(direction);
-				mWeaponGroundDirection[WP_GAUNTLET - 1][pNode][pathNode] = direction;
-				mWeaponGroundDamageTime[WP_GAUNTLET - 1][pNode][pathNode] = 0.f;
-				mWeaponGroundDamage[WP_GAUNTLET - 1][pNode][pathNode] = 50;
-			}
-		}
-
-		// handle jumping and falling nodes
-		for (PathingArc* pathArc : pathNode->GetArcs())
-		{
-			if (pathArc->GetType() == AIAT_JUMP || pathArc->GetType() == AIAT_FALL)
-			{
-				direction = pathArc->GetConnection() - pNode->GetPos();
-				if (direction != Vector3<float>::Zero())
-				{
-					//set muzzle location relative to pivoting eye
-					Vector3<float> muzzle = pNode->GetPos();
-					muzzle[2] += mPlayerActor->GetState().viewHeight;
-					muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-					direction = pathArc->GetConnection() - muzzle;
-					float scale = Length(direction);
-					Normalize(direction);
-
-					Matrix4x4<float> yawRotation = Rotation<4, float>(
-						AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
-					Matrix4x4<float> pitchRotation = Rotation<4, float>(
-						AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
-					Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-					Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-					Vector3<float> end = muzzle + forward * 32.f;
-
-					transform.SetTranslation(pNode->GetPos());
-					gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-
-					Vector3<float> collision, collisionNormal;
-					ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
-					if (collisionId == mPlayerActor->GetId())
-					{
-						direction = collision - muzzle;
-						Normalize(direction);
-						mWeaponDirection[WP_GAUNTLET - 1][pNode][pathArc] = direction;
-						mWeaponDamage[WP_GAUNTLET - 1][pNode][pathArc] = 50;
-					}
-				}
-			}
-		}
-	}
-}
-
-void QuakeAIManager::SimulateBulletFire(PathingNode* pNode, float spread, int damage)
-{
-	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
-
-	Transform transform;
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		// set aiming directions
-		Vector3<float> direction = pathNode->GetPos() - pNode->GetPos();
-		if (direction != Vector3<float>::Zero())
-		{
-			//set muzzle location relative to pivoting eye
-			Vector3<float> muzzle = pNode->GetPos();
-			muzzle[2] += mPlayerActor->GetState().viewHeight;
-			muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-			direction = pathNode->GetPos() - muzzle;
-			float scale = Length(direction);
-			Normalize(direction);
-
-			Matrix4x4<float> yawRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
-			Matrix4x4<float> pitchRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
-			Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-			Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-			Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-			Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-			float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-			float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * spread  * 16.f;
-			r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * spread  * 16.f;
 			Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-			end += right * r;
-			end += up * u;
 
-			transform.SetTranslation(pNode->GetPos());
+			transform.SetTranslation(visibleNode->GetPos());
 			gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
 
 			Vector3<float> collision, collisionNormal;
 			ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
 			if (collisionId == mPlayerActor->GetId())
 			{
-				direction = collision - muzzle;
-				Normalize(direction);
-				mWeaponGroundDirection[WP_MACHINEGUN - 1][pNode][pathNode] = direction;
-				mWeaponGroundDamageTime[WP_MACHINEGUN - 1][pNode][pathNode] = 0.f;
-				mWeaponGroundDamage[WP_MACHINEGUN - 1][pNode][pathNode] = damage;
+				visibleNodes[pathNode][visibleNode] = 1.f;
+			}
+			else
+			{
+				visibleNodes[pathNode][visibleNode] = 0.f;
 			}
 		}
 
-		// handle jumping and falling nodes
-		for (PathingArc* pathArc : pathNode->GetArcs())
+		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
 		{
-			if (pathArc->GetType() == AIAT_JUMP || pathArc->GetType() == AIAT_FALL)
+			for (PathingArc* visibleArc : visibleNode->GetArcs())
 			{
-				direction = pathArc->GetConnection() - pNode->GetPos();
-				if (direction != Vector3<float>::Zero())
+				if (visibleArc->GetType() == AIAT_JUMP || 
+					visibleArc->GetType() == AIAT_FALL ||
+					visibleArc->GetType() == AIAT_PUSH)
 				{
-					//set muzzle location relative to pivoting eye
-					Vector3<float> muzzle = pNode->GetPos();
-					muzzle[2] += mPlayerActor->GetState().viewHeight;
-					muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-					direction = pathArc->GetConnection() - muzzle;
-					float scale = Length(direction);
+					Vector3<float> direction = visibleArc->GetConnection() - muzzle + 
+						(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
 					Normalize(direction);
 
 					Matrix4x4<float> yawRotation = Rotation<4, float>(
@@ -482,160 +338,331 @@ void QuakeAIManager::SimulateBulletFire(PathingNode* pNode, float spread, int da
 					Matrix4x4<float> rotation = yawRotation * pitchRotation;
 
 					Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-					Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-					Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-					float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-					float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * spread  * 16.f;
-					r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * spread  * 16.f;
 					Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-					end += right * r;
-					end += up * u;
 
-					transform.SetTranslation(pNode->GetPos());
+					transform.SetTranslation(visibleArc->GetConnection());
 					gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
 
 					Vector3<float> collision, collisionNormal;
 					ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
 					if (collisionId == mPlayerActor->GetId())
 					{
-						direction = collision - muzzle;
-						Normalize(direction);
-						mWeaponDirection[WP_MACHINEGUN - 1][pNode][pathArc] = direction;
-						mWeaponDamage[WP_MACHINEGUN - 1][pNode][pathArc] = damage;
+						visibleNodeArcs[pathNode][visibleArc] = 1.0f;
+					}
+					else
+					{
+						visibleNodeArcs[pathNode][visibleArc] = 0.f;
+					}
+				}
+			}
+		}
+
+		for (PathingArc* pathArc : pathNode->GetArcs())
+		{
+			if (pathArc->GetType() == AIAT_MOVE)
+			{
+				Vector3<float> pathDirection = 
+					pathArc->GetNeighbor()->GetPos() - pathArc->GetOrigin()->GetPos();
+				float pathDistance = Length(pathDirection) * (0.02f / pathArc->GetWeight());
+				Normalize(pathDirection);
+
+				float deltaTime = 0.f;
+				PathingNode* currentPathNode = NULL;
+				pathArcNodes[pathArc] = PathingNodeVec();
+				for (float w = 0; w <= pathArc->GetWeight(); w += 0.02f)
+				{
+					PathingNode* closestPathNode = 
+						mPathingGraph->FindClosestNode(pathArc->GetOrigin()->GetPos() + 
+						pathDirection * (pathDistance * w / pathArc->GetWeight()));
+
+					if (closestPathNode != currentPathNode)
+						deltaTime = 0.02f;
+
+					if (eastl::find(
+							pathArcNodes[pathArc].begin(), 
+							pathArcNodes[pathArc].end(), 
+							closestPathNode) == pathArcNodes[pathArc].end())
+					{
+						pathArcNodes[pathArc].push_back(closestPathNode);
+					}
+					pathArcNodesTime[pathArc][closestPathNode] = deltaTime;
+
+					deltaTime += 0.02f;
+					currentPathNode = closestPathNode;
+				}
+			}
+		}
+	}
+
+	// now we fill all the visibility graph from nodes to arcs, 
+	// arcs to nodes, arcs to arcs and between nodes
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		//between nodes
+		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
+		{
+			if (visibleNodes[pathNode][visibleNode])
+			{
+				mVisibleNodes[pathNode][visibleNode] = 
+					Length(visibleNode->GetPos() - pathNode->GetPos());
+			}
+		}
+
+		//nodes to arcs
+		for (PathingArc* pathArc : mPathingGraph->GetArcs())
+		{
+			if (pathArc->GetType() == AIAT_MOVE)
+			{
+				float totalTime = 0.f, distance = 0.f;
+				for (PathingNode* pathArcNode : pathArcNodes[pathArc])
+				{
+					if (visibleNodes[pathNode][pathArcNode])
+					{
+						float deltaTime = pathArcNodesTime[pathArc][pathNode];
+						distance += Length(
+							pathArcNode->GetPos() - pathNode->GetPos()) * deltaTime;
+						totalTime += deltaTime;
+					}
+				}
+				if (totalTime > 0.f)
+				{
+					distance /= totalTime;
+
+					mVisibleNodeArcs[pathNode][pathArc] = distance;
+					mVisibleNodeArcsTime[pathNode][pathArc] = totalTime;
+				}
+			}
+			else
+			{
+				if (pathArc->GetType() == AIAT_JUMPTARGET || 
+					pathArc->GetType() == AIAT_FALLTARGET ||
+					pathArc->GetType() == AIAT_PUSHTARGET)
+				{
+					PathingArc* visibleArc = pathArc->GetOrigin()->FindArc(
+						pathArc->GetType()-1, pathArc->GetNeighbor());
+
+					float totalTime = 0.f, distance = 0.f;
+					do
+					{
+						if (visibleNodeArcs[pathNode][visibleArc])
+						{
+							float deltaTime = visibleArc->GetWeight();
+							distance += Length(
+								visibleArc->GetConnection() - pathNode->GetPos()) * deltaTime;
+							totalTime += visibleArc->GetWeight();
+						}
+						visibleArc = visibleArc->GetNeighbor()->FindArc(
+							pathArc->GetType() - 1, pathArc->GetNeighbor());
+					} while(pathArc->GetNeighbor() != visibleArc->GetOrigin());
+
+					if (totalTime > 0.f)
+					{
+						distance /= totalTime;
+
+						mVisibleNodeArcs[pathNode][pathArc] = distance;
+						mVisibleNodeArcsTime[pathNode][pathArc] = totalTime;
 					}
 				}
 			}
 		}
 	}
-}
 
-// DEFAULT_SHOTGUN_SPREAD and DEFAULT_SHOTGUN_COUNT	are in bg_public.h, because
-// client predicts same spreads
-#define	DEFAULT_SHOTGUN_DAMAGE	10
-
-void QuakeAIManager::SimulateShotgunFire(PathingNode* pNode)
-{
-	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
-
-	Transform transform;
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	//arcs to nodes
+	for (PathingArc* pathArc : mPathingGraph->GetArcs())
 	{
-		// set aiming directions
-		Vector3<float> direction = pathNode->GetPos() - pNode->GetPos();
-		if (direction != Vector3<float>::Zero())
+		if (pathArc->GetType() == AIAT_MOVE)
 		{
-			//set muzzle location relative to pivoting eye
-			Vector3<float> muzzle = pNode->GetPos();
-			muzzle[2] += mPlayerActor->GetState().viewHeight;
-			muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-			direction = pathNode->GetPos() - muzzle;
-			float scale = Length(direction);
-			Normalize(direction);
-
-			Matrix4x4<float> yawRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
-			Matrix4x4<float> pitchRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
-			Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-			Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-			Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-			Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-			// generate the "random" spread pattern
-			for (unsigned int i = 0; i < DEFAULT_SHOTGUN_COUNT; i++)
+			for (PathingNode* pathNode : mPathingGraph->GetNodes())
 			{
-				float r = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
-				float u = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
-				Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-				end += right * r;
-				end += up * u;
-
-				transform.SetTranslation(pNode->GetPos());
-				gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-
-				Vector3<float> collision, collisionNormal;
-				ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
-				if (collisionId == mPlayerActor->GetId())
+				float totalTime = 0.f, distance = 0.f;
+				for (PathingNode* pathArcNode : pathArcNodes[pathArc])
 				{
-					direction = collision - muzzle;
-					Normalize(direction);
-					mWeaponGroundDirection[WP_SHOTGUN - 1][pNode][pathNode] = direction;
-					mWeaponGroundDamageTime[WP_SHOTGUN - 1][pNode][pathNode] = 0.f;
-					if (mWeaponGroundDamage[WP_SHOTGUN - 1].find(pNode) != 
-						mWeaponGroundDamage[WP_SHOTGUN - 1].end())
+					if (visibleNodes[pathNode][pathArcNode])
 					{
-						if (mWeaponGroundDamage[WP_SHOTGUN - 1][pNode].find(pathNode) ==
-							mWeaponGroundDamage[WP_SHOTGUN - 1][pNode].end())
+						float deltaTime = pathArcNodesTime[pathArc][pathNode];
+						distance += Length(pathArcNode->GetPos() - pathNode->GetPos()) * deltaTime;
+						totalTime += deltaTime;
+					}
+				}
+				if (totalTime > 0.f)
+				{
+					distance /= totalTime;
+
+					mVisibleArcNodes[pathArc][pathNode] = distance;
+					mVisibleArcNodesTime[pathArc][pathNode] = totalTime;
+				}
+			}
+		}
+	}
+
+	//arcs to arcs
+	for (PathingArc* pathArc : mPathingGraph->GetArcs())
+	{
+		if (pathArc->GetType() == AIAT_MOVE)
+		{
+			for (PathingArc* visibleArc : mPathingGraph->GetArcs())
+			{
+				float totalTime = 0.f, totalVisibleTime = 0.f, distance = 0.f;
+				if (visibleArc->GetType() == AIAT_MOVE)
+				{
+					if (visibleArc->GetWeight() > pathArc->GetWeight())
+					{
+						PathingNodeVec::iterator itVisibleArcNode = pathArcNodes[visibleArc].begin();
+						float totalArcTime = 0.f;
+						for (PathingNode* pathArcNode : pathArcNodes[pathArc])
 						{
-							mWeaponGroundDamage[WP_SHOTGUN - 1][pNode][pathNode] = 0;
+							if (visibleNodes[pathArcNode][(*itVisibleArcNode)])
+							{
+								float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
+								distance += Length((*itVisibleArcNode)->GetPos() - pathArcNode->GetPos()) * deltaTime;
+								totalVisibleTime += deltaTime;
+							}
+							while (totalArcTime <= totalTime)
+							{
+								totalArcTime += pathArcNodesTime[visibleArc][(*itVisibleArcNode)];
+								itVisibleArcNode++;
+							}
+							totalTime += pathArcNodesTime[pathArc][pathArcNode];
+						}
+
+						for (; itVisibleArcNode < pathArcNodes[visibleArc].end(); itVisibleArcNode++)
+						{
+							PathingNode* pathArcNode = pathArcNodes[pathArc].back();
+							if (visibleNodes[pathArcNode][(*itVisibleArcNode)])
+							{
+								float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
+								distance += Length((*itVisibleArcNode)->GetPos() - pathArcNode->GetPos()) * deltaTime;
+								totalVisibleTime += deltaTime;
+							}
 						}
 					}
-					else mWeaponGroundDamage[WP_SHOTGUN - 1][pNode][pathNode] = 0;
-					mWeaponGroundDamage[WP_SHOTGUN - 1][pNode][pathNode] += DEFAULT_SHOTGUN_DAMAGE;
-				}
-			}
-		}
-
-		// handle jumping and falling nodes
-		for (PathingArc* pathArc : pathNode->GetArcs())
-		{
-			if (pathArc->GetType() == AIAT_JUMP || pathArc->GetType() == AIAT_FALL)
-			{
-				direction = pathArc->GetConnection() - pNode->GetPos();
-				if (direction != Vector3<float>::Zero())
-				{
-					//set muzzle location relative to pivoting eye
-					Vector3<float> muzzle = pNode->GetPos();
-					muzzle[2] += mPlayerActor->GetState().viewHeight;
-					muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-					direction = pathArc->GetConnection() - muzzle;
-					float scale = Length(direction);
-					Normalize(direction);
-
-					Matrix4x4<float> yawRotation = Rotation<4, float>(
-						AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
-					Matrix4x4<float> pitchRotation = Rotation<4, float>(
-						AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
-					Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-					Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-					Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-					Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-					// generate the "random" spread pattern
-					for (unsigned int i = 0; i < DEFAULT_SHOTGUN_COUNT; i++)
+					else
 					{
-						float r = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
-						float u = (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * DEFAULT_SHOTGUN_SPREAD * 16.f;
-						Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-						end += right * r;
-						end += up * u;
+						PathingNodeVec::iterator itPathArcNode = pathArcNodes[pathArc].begin();
 
-						transform.SetTranslation(pNode->GetPos());
-						gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-
-						Vector3<float> collision, collisionNormal;
-						ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
-						if (collisionId == mPlayerActor->GetId())
+						float totalArcTime = 0.f;
+						for (PathingNode* visibleArcNode : pathArcNodes[visibleArc])
 						{
-							direction = collision - muzzle;
-							Normalize(direction);
-							mWeaponDirection[WP_SHOTGUN - 1][pNode][pathArc] = direction;
-							if (mWeaponDamage[WP_SHOTGUN - 1].find(pNode) != 
-								mWeaponDamage[WP_SHOTGUN - 1].end())
+							if (visibleNodes[visibleArcNode][(*itPathArcNode)])
 							{
-								if (mWeaponDamage[WP_SHOTGUN - 1][pNode].find(pathArc) ==
-									mWeaponDamage[WP_SHOTGUN - 1][pNode].end())
+								float deltaTime = pathArcNodesTime[visibleArc][visibleArcNode];
+								distance += Length((*itPathArcNode)->GetPos() - visibleArcNode->GetPos()) * deltaTime;
+								totalVisibleTime += deltaTime;
+							}
+							while (totalArcTime <= totalTime)
+							{
+								totalArcTime += pathArcNodesTime[pathArc][(*itPathArcNode)];
+								itPathArcNode++;
+							}
+							totalTime += pathArcNodesTime[visibleArc][visibleArcNode];
+						}
+
+						for (; itPathArcNode < pathArcNodes[pathArc].end(); itPathArcNode++)
+						{
+							PathingNode* visibleArcNode = pathArcNodes[visibleArc].back();
+							if (visibleNodes[visibleArcNode][(*itPathArcNode)])
+							{
+								float deltaTime = pathArcNodesTime[pathArc][visibleArcNode];
+								distance += Length((*itPathArcNode)->GetPos() - visibleArcNode->GetPos()) * deltaTime;
+								totalVisibleTime += deltaTime;
+							}
+						}
+					}
+
+					if (totalVisibleTime > 0.f)
+					{
+						distance /= totalVisibleTime;
+
+						mVisibleArcs[pathArc][visibleArc] = distance;
+						mVisibleArcsTime[pathArc][visibleArc] = totalVisibleTime;
+					}
+				}
+				else
+				{
+					if (visibleArc->GetType() == AIAT_JUMPTARGET ||
+						visibleArc->GetType() == AIAT_FALLTARGET ||
+						visibleArc->GetType() == AIAT_PUSHTARGET)
+					{
+						PathingArc* visiblePathArc = visibleArc->GetOrigin()->FindArc(
+							visibleArc->GetType() - 1, visibleArc->GetNeighbor());
+
+						if (visibleArc->GetWeight() > pathArc->GetWeight())
+						{
+							float totalArcTime = 0.f;
+							for (PathingNode* pathArcNode : pathArcNodes[pathArc])
+							{
+								if (visibleNodeArcs[pathArcNode][visiblePathArc])
 								{
-									mWeaponDamage[WP_SHOTGUN - 1][pNode][pathArc] = 0;
+									float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
+									distance += Length(
+										visiblePathArc->GetConnection() - pathArcNode->GetPos()) * deltaTime;
+									totalVisibleTime += deltaTime;
+								}
+								while (totalArcTime <= totalTime)
+								{
+									totalArcTime += visiblePathArc->GetWeight();
+									visiblePathArc = visiblePathArc->GetNeighbor()->FindArc(
+										pathArc->GetType() - 1, pathArc->GetNeighbor());
+								}
+								totalTime += pathArcNodesTime[pathArc][pathArcNode];
+							}
+
+							while(pathArc->GetNeighbor() != visiblePathArc->GetOrigin())
+							{
+								PathingNode* pathArcNode = pathArcNodes[pathArc].back();
+								if (visibleNodeArcs[pathArcNode][visiblePathArc])
+								{
+									float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
+									distance += Length(
+										visiblePathArc->GetConnection() - pathArcNode->GetPos()) * deltaTime;
+									totalVisibleTime += deltaTime;
 								}
 							}
-							else mWeaponDamage[WP_SHOTGUN - 1][pNode][pathArc] = 0;
-							mWeaponDamage[WP_SHOTGUN - 1][pNode][pathArc] += DEFAULT_SHOTGUN_DAMAGE;
+						}
+						else
+						{
+							float totalArcTime = 0.f;
+							PathingNodeVec::iterator itPathArcNode = pathArcNodes[pathArc].begin();
+
+							while (pathArc->GetNeighbor() != visiblePathArc->GetOrigin())
+							{
+								PathingNode* pathArcNode = (*itPathArcNode);
+								if (visibleNodeArcs[pathArcNode][visiblePathArc])
+								{
+									float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
+									distance += Length(
+										visiblePathArc->GetConnection() - pathArcNode->GetPos()) * deltaTime;
+									totalVisibleTime += deltaTime;
+								}
+								while (totalArcTime <= totalTime)
+								{
+									totalArcTime += visiblePathArc->GetWeight();
+									visiblePathArc = visiblePathArc->GetNeighbor()->FindArc(
+										pathArc->GetType() - 1, pathArc->GetNeighbor());
+								}
+								totalTime += pathArcNodesTime[pathArc][pathArcNode];
+								itPathArcNode++;
+							}
+
+							for (; itPathArcNode < pathArcNodes[pathArc].end(); itPathArcNode++)
+							{
+								PathingNode* pathArcNode = (*itPathArcNode);
+								if (visibleNodeArcs[pathArcNode][visiblePathArc])
+								{
+									float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
+									distance += Length(
+										visiblePathArc->GetConnection() - pathArcNode->GetPos()) * deltaTime;
+									totalVisibleTime += deltaTime;
+								}
+							}
+						}
+
+						if (totalVisibleTime > 0.f)
+						{
+							distance /= totalVisibleTime;
+
+							mVisibleArcs[pathArc][visibleArc] = distance;
+							mVisibleArcsTime[pathArc][visibleArc] = totalVisibleTime;
 						}
 					}
 				}
@@ -666,22 +693,13 @@ void QuakeAIManager::SimulateGrenadeLauncherFire(PathingNode* pNode, eastl::shar
 #else
 			direction = HProject(Vector4<float>::Unit(PITCH) * rotation);
 #endif
-
 			Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-			Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-			Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
 
 			//set muzzle location relative to pivoting eye
 			Vector3<float> muzzle = pNode->GetPos();
 			muzzle[2] += mPlayerActor->GetState().viewHeight;
 			muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-			float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-			float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-			r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
 			Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-			end += right * r;
-			end += up * u;
 
 			direction[PITCH] *= 800000.f;
 			direction[ROLL] *= 800000.f;
@@ -712,376 +730,11 @@ void QuakeAIManager::SimulateGrenadeLauncherFire(PathingNode* pNode, eastl::shar
 
 				direction = transform.GetTranslation() - muzzle;
 				Normalize(direction);
-				mWeaponGroundDirection[WP_GRENADE_LAUNCHER - 1][pNode][impactNode] = direction;
-				mWeaponGroundDamageTime[WP_GRENADE_LAUNCHER - 1][pNode][impactNode] = deltaTime;
-				mWeaponGroundDamage[WP_GRENADE_LAUNCHER - 1][pNode][impactNode] = damage;
+				//damage;
 			}
 		}
 	}
 }
-
-void QuakeAIManager::SimulateRocketLauncherFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor)
-{
-	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
-
-	Transform transform;
-	Vector3<float> direction;
-	for (int yawAngle = 0; yawAngle < 360; yawAngle += 20)
-	{
-		for (int pitchAngle = -80; pitchAngle <= 80; pitchAngle += 20)
-		{
-			Matrix4x4<float> yawRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(2), yawAngle * (float)GE_C_DEG_TO_RAD));
-			Matrix4x4<float> pitchRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(1), -pitchAngle * (float)GE_C_DEG_TO_RAD));
-			Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-			// forward vector
-#if defined(GE_USE_MAT_VEC)
-			direction = HProject(rotation * Vector4<float>::Unit(PITCH));
-#else
-			direction = HProject(Vector4<float>::Unit(PITCH) * rotation);
-#endif
-
-			Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-			Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-			Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-			//set muzzle location relative to pivoting eye
-			Vector3<float> muzzle = pNode->GetPos();
-			muzzle[2] += mPlayerActor->GetState().viewHeight;
-			muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-			float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-			float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-			r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-			Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-			end += right * r;
-			end += up * u;
-
-			direction[PITCH] *= 1000000.f;
-			direction[ROLL] *= 1000000.f;
-			direction[YAW] *= 1000000.f;
-
-			// projectile simulation
-			transform.SetTranslation(muzzle);
-			transform.SetRotation(rotation);
-			gamePhysics->SetTransform(pGameActor->GetId(), transform);
-			gamePhysics->ApplyForce(pGameActor->GetId(), direction);
-			gamePhysics->OnUpdate(0.01f);
-
-			float deltaTime = 0.f;
-			while (!mActorCollisions[pGameActor->GetId()] || deltaTime < 10.0f)
-			{
-				gamePhysics->OnUpdate(0.1f);
-				deltaTime += 0.1f;
-			}
-			mActorCollisions[pGameActor->GetId()] = false;
-
-			transform = gamePhysics->GetTransform(pGameActor->GetId());
-
-			PathingNodeVec impactNodes;
-			mPathingGraph->FindNodes(impactNodes, transform.GetTranslation(), 120);
-			for (PathingNode* impactNode : impactNodes)
-			{
-				float dist = Length(transform.GetTranslation() - impactNode->GetPos());
-				float damage = 100 * (1.f - dist / 120.f); // calculate radius damage
-
-				direction = transform.GetTranslation() - muzzle;
-				Normalize(direction);
-				mWeaponGroundDirection[WP_ROCKET_LAUNCHER - 1][pNode][impactNode] = direction;
-				mWeaponGroundDamageTime[WP_ROCKET_LAUNCHER - 1][pNode][impactNode] = deltaTime;
-				mWeaponGroundDamage[WP_ROCKET_LAUNCHER - 1][pNode][impactNode] = damage;
-			}
-		}
-	}
-}
-
-void QuakeAIManager::SimulatePlasmagunFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor)
-{
-	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
-
-	Transform transform;
-	Vector3<float> direction;
-	for (int yawAngle = 0; yawAngle < 360; yawAngle += 20)
-	{
-		for (int pitchAngle = -80; pitchAngle <= 80; pitchAngle += 20)
-		{
-			Matrix4x4<float> yawRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(2), yawAngle * (float)GE_C_DEG_TO_RAD));
-			Matrix4x4<float> pitchRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(1), -pitchAngle * (float)GE_C_DEG_TO_RAD));
-			Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-			// forward vector
-#if defined(GE_USE_MAT_VEC)
-			direction = HProject(rotation * Vector4<float>::Unit(PITCH));
-#else
-			direction = HProject(Vector4<float>::Unit(PITCH) * rotation);
-#endif
-
-			Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-			Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-			Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-			//set muzzle location relative to pivoting eye
-			Vector3<float> muzzle = pNode->GetPos();
-			muzzle[2] += mPlayerActor->GetState().viewHeight;
-			muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-			float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-			float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-			r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-			Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-			end += right * r;
-			end += up * u;
-
-			direction[PITCH] *= 4000.f;
-			direction[ROLL] *= 4000.f;
-			direction[YAW] *= 4000.f;
-
-			// projectile simulation
-			transform.SetTranslation(muzzle);
-			transform.SetRotation(rotation);
-			gamePhysics->SetTransform(pGameActor->GetId(), transform);
-			gamePhysics->ApplyForce(pGameActor->GetId(), direction);
-			gamePhysics->OnUpdate(0.01f);
-
-			float deltaTime = 0.f;
-			while (!mActorCollisions[pGameActor->GetId()] || deltaTime < 10.0f)
-			{
-				gamePhysics->OnUpdate(0.1f);
-				deltaTime += 0.1f;
-			}
-			mActorCollisions[pGameActor->GetId()] = false;
-
-			transform = gamePhysics->GetTransform(pGameActor->GetId());
-
-			PathingNodeVec impactNodes;
-			mPathingGraph->FindNodes(impactNodes, transform.GetTranslation(), 20);
-			for (PathingNode* impactNode : impactNodes)
-			{
-				float dist = Length(transform.GetTranslation() - impactNode->GetPos());
-				float damage = 15 * (1.f - dist / 20.f); // calculate radius damage
-
-				direction = transform.GetTranslation() - muzzle;
-				Normalize(direction);
-				mWeaponGroundDirection[WP_PLASMAGUN - 1][pNode][impactNode] = direction;
-				mWeaponGroundDamageTime[WP_PLASMAGUN - 1][pNode][impactNode] = deltaTime;
-				mWeaponGroundDamage[WP_PLASMAGUN - 1][pNode][impactNode] = damage;
-			}
-		}
-	}
-}
-
-void QuakeAIManager::SimulateRailgunFire(PathingNode* pNode)
-{
-	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
-
-	Transform transform;
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		// set aiming directions
-		Vector3<float> direction = pathNode->GetPos() - pNode->GetPos();
-		if (direction != Vector3<float>::Zero())
-		{
-			//set muzzle location relative to pivoting eye
-			Vector3<float> muzzle = pNode->GetPos();
-			muzzle[2] += mPlayerActor->GetState().viewHeight;
-			muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-			direction = pathNode->GetPos() - muzzle;
-			float scale = Length(direction);
-			Normalize(direction);
-
-			Matrix4x4<float> yawRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
-			Matrix4x4<float> pitchRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
-			Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-			Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-			Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-			Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-			float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-			float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-			r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-			Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-			end += right * r;
-			end += up * u;
-
-			transform.SetTranslation(pNode->GetPos());
-			gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-
-			Vector3<float> collision, collisionNormal;
-			ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
-			if (collisionId == mPlayerActor->GetId())
-			{
-				direction = collision - muzzle;
-				Normalize(direction);
-				mWeaponGroundDirection[WP_RAILGUN - 1][pNode][pathNode] = direction;
-				mWeaponGroundDamageTime[WP_RAILGUN - 1][pNode][pathNode] = 0.f;
-				mWeaponGroundDamage[WP_RAILGUN - 1][pNode][pathNode] = 100;
-			}
-		}
-
-		// handle jumping and falling nodes
-		for (PathingArc* pathArc : pathNode->GetArcs())
-		{
-			if (pathArc->GetType() == AIAT_JUMP || pathArc->GetType() == AIAT_FALL)
-			{
-				direction = pathArc->GetConnection() - pNode->GetPos();
-				if (direction != Vector3<float>::Zero())
-				{
-					//set muzzle location relative to pivoting eye
-					Vector3<float> muzzle = pNode->GetPos();
-					muzzle[2] += mPlayerActor->GetState().viewHeight;
-					muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-					direction = pathArc->GetConnection() - muzzle;
-					float scale = Length(direction);
-					Normalize(direction);
-
-					Matrix4x4<float> yawRotation = Rotation<4, float>(
-						AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
-					Matrix4x4<float> pitchRotation = Rotation<4, float>(
-						AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
-					Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-					Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-					Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-					Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-					float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-					float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-					r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-					Vector3<float> end = muzzle + forward * 8192.f * 16.f;
-					end += right * r;
-					end += up * u;
-
-					transform.SetTranslation(pNode->GetPos());
-					gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-
-					Vector3<float> collision, collisionNormal;
-					ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
-					if (collisionId == mPlayerActor->GetId())
-					{
-						direction = collision - muzzle;
-						Normalize(direction);
-						mWeaponDirection[WP_RAILGUN - 1][pNode][pathArc] = direction;
-						mWeaponDamage[WP_RAILGUN - 1][pNode][pathArc] = 100;
-					}
-				}
-			}
-		}
-	}
-}
-
-void QuakeAIManager::SimulateLightningFire(PathingNode* pNode)
-{
-	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
-
-	Transform transform;
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		// set aiming directions
-		Vector3<float> direction = pathNode->GetPos() - pNode->GetPos();
-		if (direction != Vector3<float>::Zero())
-		{
-			//set muzzle location relative to pivoting eye
-			Vector3<float> muzzle = pNode->GetPos();
-			muzzle[2] += mPlayerActor->GetState().viewHeight;
-			muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-			direction = pathNode->GetPos() - muzzle;
-			float scale = Length(direction);
-			Normalize(direction);
-
-			Matrix4x4<float> yawRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
-			Matrix4x4<float> pitchRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
-			Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-			Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-			Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-			Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-			float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-			float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-			r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-			Vector3<float> end = muzzle + forward * (float)LIGHTNING_RANGE;
-			end += right * r;
-			end += up * u;
-
-			transform.SetTranslation(pNode->GetPos());
-			gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-
-			Vector3<float> collision, collisionNormal;
-			ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
-			if (collisionId == mPlayerActor->GetId())
-			{
-				direction = collision - muzzle;
-				Normalize(direction);
-				mWeaponGroundDirection[WP_LIGHTNING-1][pNode][pathNode] = direction;
-				mWeaponGroundDamageTime[WP_LIGHTNING - 1][pNode][pathNode] = 0.f;
-				mWeaponGroundDamage[WP_LIGHTNING - 1][pNode][pathNode] = 8;
-			}
-		}
-
-		// handle jumping and falling nodes
-		for (PathingArc* pathArc : pathNode->GetArcs())
-		{
-			if (pathArc->GetType() == AIAT_JUMP || pathArc->GetType() == AIAT_FALL)
-			{
-				direction = pathArc->GetConnection() - pNode->GetPos();
-				if (direction != Vector3<float>::Zero())
-				{
-					//set muzzle location relative to pivoting eye
-					Vector3<float> muzzle = pNode->GetPos();
-					muzzle[2] += mPlayerActor->GetState().viewHeight;
-					muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-					direction = pathArc->GetConnection() - muzzle;
-					float scale = Length(direction);
-					Normalize(direction);
-
-					Matrix4x4<float> yawRotation = Rotation<4, float>(
-						AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
-					Matrix4x4<float> pitchRotation = Rotation<4, float>(
-						AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
-					Matrix4x4<float> rotation = yawRotation * pitchRotation;
-
-					Vector3<float> forward = HProject(rotation * Vector4<float>::Unit(PITCH));
-					Vector3<float> right = HProject(rotation * Vector4<float>::Unit(ROLL));
-					Vector3<float> up = HProject(rotation * Vector4<float>::Unit(YAW));
-
-					float r = (Randomizer::Rand() & 0x7fff) / ((float)0x7fff) * (float)GE_C_PI * 2.f;
-					float u = sin(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-					r = cos(r) * (2.f * ((Randomizer::Rand() & 0x7fff) / ((float)0x7fff) - 0.5f)) * 16.f;
-					Vector3<float> end = muzzle + forward * (float)LIGHTNING_RANGE;
-					end += right * r;
-					end += up * u;
-
-					transform.SetTranslation(pNode->GetPos());
-					gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-
-					Vector3<float> collision, collisionNormal;
-					ActorId collisionId = gamePhysics->CastRay(muzzle, end, collision, collisionNormal);
-					if (collisionId == mPlayerActor->GetId())
-					{
-						direction = collision - muzzle;
-						Normalize(direction);
-						mWeaponDirection[WP_LIGHTNING - 1][pNode][pathArc] = direction;
-						mWeaponDamage[WP_LIGHTNING - 1][pNode][pathArc] = 8;
-					}
-				}
-			}
-		}
-	}
-}
-
 
 void QuakeAIManager::SimulateWaypoint()
 {
@@ -1244,7 +897,7 @@ void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<f
 			Vector3<float> diff = pEndNode->GetPos() - position;
 			if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 			{
-				PathingArc* pArc = new PathingArc(AIAT_TELEPORTTARGET, totalTime);
+				PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_TELEPORTTARGET, totalTime);
 				pArc->LinkNodes(pNode, pEndNode);
 				pNode->AddArc(pArc);
 
@@ -1255,7 +908,7 @@ void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<f
 					pFallingNode = (*itNode);
 					if (pCurrentNode->FindArc(AIAT_TELEPORT, pEndNode) == NULL)
 					{
-						PathingArc* pArc = new PathingArc(
+						PathingArc* pArc = new PathingArc(GetNewArcID(),
 							AIAT_TELEPORT, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
 						pArc->LinkNodes(pEndNode, pFallingNode);
 						pCurrentNode->AddArc(pArc);
@@ -1269,7 +922,8 @@ void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<f
 					if (pCurrentNode->FindArc(AIAT_TELEPORT, pEndNode) == NULL)
 					{
 						deltaTime = 0.02f;
-						PathingArc* pArc = new PathingArc(AIAT_TELEPORT, deltaTime, pEndNode->GetPos());
+						PathingArc* pArc = new PathingArc(GetNewArcID(), 
+							AIAT_TELEPORT, deltaTime, pEndNode->GetPos());
 						pArc->LinkNodes(pEndNode, pEndNode);
 						pCurrentNode->AddArc(pArc);
 					}
@@ -1354,7 +1008,7 @@ void QuakeAIManager::SimulateTriggerPush(PathingNode* pNode, const Vector3<float
 			Vector3<float> diff = pEndNode->GetPos() - position;
 			if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 			{
-				PathingArc* pArc = new PathingArc(AIAT_PUSHTARGET, totalTime);
+				PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_PUSHTARGET, totalTime);
 				pArc->LinkNodes(pNode, pEndNode);
 				pNode->AddArc(pArc);
 
@@ -1365,7 +1019,7 @@ void QuakeAIManager::SimulateTriggerPush(PathingNode* pNode, const Vector3<float
 					pFallingNode = (*itNode);
 					if (pCurrentNode->FindArc(AIAT_PUSH, pEndNode) == NULL)
 					{
-						PathingArc* pArc = new PathingArc(
+						PathingArc* pArc = new PathingArc(GetNewArcID(),
 							AIAT_PUSH, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
 						pArc->LinkNodes(pEndNode, pFallingNode);
 						pCurrentNode->AddArc(pArc);
@@ -1379,7 +1033,8 @@ void QuakeAIManager::SimulateTriggerPush(PathingNode* pNode, const Vector3<float
 					if (pCurrentNode->FindArc(AIAT_PUSH, pEndNode) == NULL)
 					{
 						deltaTime = 0.02f;
-						PathingArc* pArc = new PathingArc(AIAT_PUSH, deltaTime, pEndNode->GetPos());
+						PathingArc* pArc = new PathingArc(GetNewArcID(), 
+							AIAT_PUSH, deltaTime, pEndNode->GetPos());
 						pArc->LinkNodes(pEndNode, pEndNode);
 						pCurrentNode->AddArc(pArc);
 					}
@@ -1508,7 +1163,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 										PathingNode* pNewNode = new PathingNode(
 											GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
 										mPathingGraph->InsertNode(pNewNode);
-										PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+										PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_MOVE, deltaTime);
 										pArc->LinkNodes(pCurrentNode, pNewNode);
 										pCurrentNode->AddArc(pArc);
 
@@ -1534,7 +1189,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 										mPlayerActor->GetId(), start, end, collision, collisionNormal);
 									if (collision == NULL || actorId != INVALID_ACTOR_ID)
 									{
-										PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+										PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_MOVE, deltaTime);
 										pArc->LinkNodes(pCurrentNode, pClosestNode);
 										pCurrentNode->AddArc(pArc);
 
@@ -1628,7 +1283,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 						}
 						else break;
 
-						PathingArc* pArc = new PathingArc(AIAT_FALLTARGET, totalTime);
+						PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_FALLTARGET, totalTime);
 						pArc->LinkNodes(pCurrentNode, pEndNode);
 						pCurrentNode->AddArc(pArc);
 
@@ -1638,7 +1293,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 							pFallingNode = (*itNode);
 							if (pCurrentNode->FindArc(AIAT_FALL, pEndNode) == NULL)
 							{
-								PathingArc* pArc = new PathingArc(
+								PathingArc* pArc = new PathingArc(GetNewArcID(),
 									AIAT_FALL, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
 								pArc->LinkNodes(pEndNode, pFallingNode);
 								pCurrentNode->AddArc(pArc);
@@ -1652,7 +1307,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 							if (pCurrentNode->FindArc(AIAT_FALL, pEndNode) == NULL)
 							{
 								deltaTime = 0.02f;
-								PathingArc* pArc = new PathingArc(AIAT_FALL, deltaTime);
+								PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_FALL, deltaTime);
 								pArc->LinkNodes(pEndNode, pEndNode);
 								pCurrentNode->AddArc(pArc);
 							}
@@ -1726,7 +1381,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 								PathingNode* pNewNode = new PathingNode(
 									GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
 								mPathingGraph->InsertNode(pNewNode);
-								PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+								PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_MOVE, deltaTime);
 								pArc->LinkNodes(pCurrentNode, pNewNode);
 								pCurrentNode->AddArc(pArc);
 
@@ -1752,7 +1407,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 								mPlayerActor->GetId(), start, end, collision, collisionNormal);
 							if (collision == NULL || actorId != INVALID_ACTOR_ID)
 							{
-								PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+								PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_MOVE, deltaTime);
 								pArc->LinkNodes(pCurrentNode, pClosestNode);
 								pCurrentNode->AddArc(pArc);
 
@@ -1781,7 +1436,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 						mPlayerActor->GetId(), start, end, collision, collisionNormal);
 					if (collision == NULL || actorId != INVALID_ACTOR_ID)
 					{
-						PathingArc* pArc = new PathingArc(AIAT_MOVE, deltaTime);
+						PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_MOVE, deltaTime);
 						pArc->LinkNodes(pCurrentNode, pEndNode);
 						pCurrentNode->AddArc(pArc);
 					}
@@ -1881,7 +1536,7 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 				Vector3<float> diff = pEndNode->GetPos() - position;
 				if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 				{
-					PathingArc* pArc = new PathingArc(AIAT_JUMPTARGET, totalTime);
+					PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_JUMPTARGET, totalTime);
 					pArc->LinkNodes(pNode, pEndNode);
 					pNode->AddArc(pArc);
 
@@ -1892,7 +1547,7 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 						pFallingNode = (*itNode);
 						if (pCurrentNode->FindArc(AIAT_JUMP, pEndNode) == NULL)
 						{
-							PathingArc* pArc = new PathingArc(
+							PathingArc* pArc = new PathingArc(GetNewArcID(),
 								AIAT_JUMP, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
 							pArc->LinkNodes(pEndNode, pFallingNode);
 							pCurrentNode->AddArc(pArc);
@@ -1906,7 +1561,8 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 						if (pCurrentNode->FindArc(AIAT_JUMP, pEndNode) == NULL)
 						{
 							deltaTime = 0.02f;
-							PathingArc* pArc = new PathingArc(AIAT_JUMP, deltaTime, pEndNode->GetPos());
+							PathingArc* pArc = new PathingArc(GetNewArcID(), 
+								AIAT_JUMP, deltaTime, pEndNode->GetPos());
 							pArc->LinkNodes(pEndNode, pEndNode);
 							pCurrentNode->AddArc(pArc);
 						}
