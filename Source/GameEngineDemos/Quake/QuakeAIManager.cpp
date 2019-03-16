@@ -1082,7 +1082,6 @@ void QuakeAIManager::SimulateLightningFire(PathingNode* pNode)
 	}
 }
 
-
 void QuakeAIManager::SimulateWaypoint()
 {
 	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
@@ -1200,7 +1199,7 @@ void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<f
 
 	PathingNode* pFallingNode = pNode;
 	float totalTime = 0.f, deltaTime = 0.f, fallSpeed = 0.f;
-	while (!gamePhysics->OnGround(mPlayerActor->GetId()))
+	while (!gamePhysics->OnGround(mPlayerActor->GetId()) && totalTime <= 10.f)
 	{
 		float jumpSpeed = gamePhysics->GetJumpSpeed(mPlayerActor->GetId());
 
@@ -1233,6 +1232,8 @@ void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<f
 
 		transform = gamePhysics->GetTransform(mPlayerActor->GetId());
 	}
+
+	if (totalTime > 10.f) return;
 	totalTime += 0.02f;
 
 	Vector3<float> position = transform.GetTranslation();
@@ -1309,7 +1310,7 @@ void QuakeAIManager::SimulateTriggerPush(PathingNode* pNode, const Vector3<float
 
 	PathingNode* pFallingNode = pNode;
 	float totalTime = 0.f, deltaTime = 0.f, fallSpeed = 0.f;
-	while (!gamePhysics->OnGround(mPlayerActor->GetId()))
+	while (!gamePhysics->OnGround(mPlayerActor->GetId()) && totalTime <= 10.f)
 	{
 		float jumpSpeed = gamePhysics->GetJumpSpeed(mPlayerActor->GetId());
 
@@ -1342,6 +1343,8 @@ void QuakeAIManager::SimulateTriggerPush(PathingNode* pNode, const Vector3<float
 
 		transform = gamePhysics->GetTransform(mPlayerActor->GetId());
 	}
+
+	if (totalTime > 10.f) return;
 	totalTime += 0.02f;
 
 	//we store the jump if we find a landing node
@@ -1594,7 +1597,9 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 					gamePhysics->OnUpdate(0.02f);
 
 					transform = gamePhysics->GetTransform(mPlayerActor->GetId());
-				} while (!gamePhysics->OnGround(mPlayerActor->GetId()));
+				} while (!gamePhysics->OnGround(mPlayerActor->GetId()) && totalTime <= 10.f);
+
+				if (totalTime > 10.f) break;
 
 				//we store the fall if we find a landing node
 				position = transform.GetTranslation();
@@ -1831,7 +1836,7 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 		PathingNode* pFallingNode = pNode;
 
 		// gravity falling simulation
-		while (!gamePhysics->OnGround(mPlayerActor->GetId()))
+		while (!gamePhysics->OnGround(mPlayerActor->GetId()) && totalTime <= 10.f)
 		{
 			float jumpSpeed = gamePhysics->GetJumpSpeed(mPlayerActor->GetId());
 
@@ -1869,6 +1874,8 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 
 			transform = gamePhysics->GetTransform(mPlayerActor->GetId());
 		}
+
+		if (totalTime > 10.f) continue;
 		totalTime += 0.02f;
 
 		//we store the jump if we find a landing node
