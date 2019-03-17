@@ -1126,7 +1126,7 @@
     <ClCompile Include="..\AI\AIManager.cpp">
       <Filter>AI</Filter>
     </ClCompile>
-    <ClCompile Include="KMeans.cpp">
+    <ClCompile Include="..\AI\KMeans.cpp">
       <Filter>AI</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2659,7 +2659,7 @@
     <ClInclude Include="..\AI\AIManager.h">
       <Filter>AI</Filter>
     </ClInclude>
-    <ClInclude Include="KMeans.h">
+    <ClInclude Include="..\AI\KMeans.h">
       <Filter>AI</Filter>
     </ClInclude>
   </ItemGroup>
