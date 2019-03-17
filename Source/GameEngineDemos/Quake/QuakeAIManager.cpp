@@ -410,7 +410,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	SimulateWaypoint();
 
 	// we obtain visibility information from the created waypoint graph by using raycasting
-	SimulateVisibility();
+	//SimulateVisibility();
 	/*
 	GameLogic::Get()->GetAIManager()->SaveMapGraph(
 		FileSystem::Get()->GetPath("ai/quake/bloodrun - copia.xml"));

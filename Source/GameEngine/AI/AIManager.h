@@ -19,6 +19,7 @@
 #include "GameEngineStd.h"
 
 #include "Pathing.h"
+#include "KMeans.h"
 
 /*
 	Simple class to load and manage artificial intelligence

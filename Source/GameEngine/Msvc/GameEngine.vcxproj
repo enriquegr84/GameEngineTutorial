@@ -785,6 +785,7 @@
     <ClCompile Include="..\Physic\Physic.cpp" />
     <ClCompile Include="..\Physic\PhysicDebugDrawer.cpp" />
     <ClCompile Include="..\Physic\PhysicEventListener.cpp" />
+    <ClCompile Include="KMeans.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\AI\AIManager.h" />
@@ -1777,6 +1778,7 @@
     <ClInclude Include="..\Physic\Physic.h" />
     <ClInclude Include="..\Physic\PhysicDebugDrawer.h" />
     <ClInclude Include="..\Physic\PhysicEventListener.h" />
+    <ClInclude Include="KMeans.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Assets\Effects\AmbientLightEffectPS.glsl">
