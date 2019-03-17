@@ -43,7 +43,7 @@ int KMeans::GetNearestClusterId(Point point)
 {
 	float sum = 0.0;
 	for (int i = 0; i < mDimension; i++)
-		sum += pow(mClusters[0].GetCenter(i) - point.GetValue(i), 2.0);
+		sum += (float)pow(mClusters[0].GetCenter(i) - point.GetValue(i), 2.0);
 
 	int nearestClusterId = 0;
 	float minDist = sqrt(sum);
@@ -51,9 +51,9 @@ int KMeans::GetNearestClusterId(Point point)
 	{
 		sum = 0.0;
 		for (int j = 0; j < mTotalPoints; j++)
-			sum += pow(mClusters[i].GetCenter(j) - point.GetValue(j), 2.0);
+			sum += (float)pow(mClusters[i].GetCenter(j) - point.GetValue(j), 2.0);
 
-		double dist = sqrt(sum);
+		float dist = sqrt(sum);
 		if (dist < minDist)
 		{
 			minDist = dist;
@@ -117,7 +117,7 @@ void KMeans::Run(eastl::vector<Point> & points)
 			int clusterSize = mClusters[i].GetSize();
 			for (int j = 0; j < mDimension; j++)
 			{
-				double sum = 0.0;
+				float sum = 0.0;
 				if (clusterSize > 0)
 				{
 					for (int p = 0; p < clusterSize; p++)

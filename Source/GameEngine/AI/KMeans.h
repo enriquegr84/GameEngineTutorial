@@ -46,11 +46,6 @@
 class Point
 {
 
-private:
-	int mDimension;
-	int mPointId, mClusterId;
-	eastl::vector<float> mValues;
-
 public:
 	Point(int pointId, eastl::vector<float>& values)
 	{
@@ -69,14 +64,15 @@ public:
 	void SetCluster(int clusterId) { mClusterId = clusterId; }
 	float GetValue(int index) { return mValues[index]; }
 	void AddValue(float value) { mValues.push_back(value); }
+
+private:
+	int mDimension;
+	int mPointId, mClusterId;
+	eastl::vector<float> mValues;
 };
 
 class Cluster
 {
-private:
-	int mClusterId;
-	eastl::vector<float> mCenters;
-	eastl::vector<Point> mPoints;
 
 public:
 	Cluster(int clusterId, Point point)
@@ -91,19 +87,12 @@ public:
 		mPoints.push_back(point);
 	}
 
-	int GetID()
-	{
-		return mClusterId;
-	}
+	int GetID() { return mClusterId; }
 
-	void AddPoint(Point point) 
-	{
-		mPoints.push_back(point); 
-	}
-
+	void AddPoint(Point point)  { mPoints.push_back(point);  }
 	bool RemovePoint(int pointId)
 	{
-		for (int i = 0; i < mPoints.size(); i++)
+		for (unsigned int i = 0; i < mPoints.size(); i++)
 		{
 			if (mPoints[i].GetID() == pointId)
 			{
@@ -114,25 +103,17 @@ public:
 		return false;
 	}
 
-	double GetCenter(int index)
-	{
-		return mCenters[index];
-	}
+	float GetCenter(int index) { return mCenters[index]; }
+	void SetCenter(int index, float value) { mCenters[index] = value; }
 
-	void SetCenter(int index, float value)
-	{
-		mCenters[index] = value;
-	}
+	Point GetPoint(int index) { return mPoints[index]; }
+	int GetSize() { return mPoints.size(); }
 
-	Point GetPoint(int index)
-	{
-		return mPoints[index];
-	}
+private:
+	int mClusterId;
+	eastl::vector<float> mCenters;
+	eastl::vector<Point> mPoints;
 
-	int GetSize()
-	{
-		return mPoints.size();
-	}
 };
 
 class KMeans
