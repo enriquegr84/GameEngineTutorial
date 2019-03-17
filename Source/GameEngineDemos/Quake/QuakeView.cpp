@@ -412,7 +412,7 @@ void QuakeMainMenuUI::Set()
 		gameApp->mOption.mLevel = ToString(gameLevel->GetFileName().c_str());
 
 		eastl::wstring levelPath = L"ai/quake/" + gameLevel->GetName() + L".xml";
-		GameLogic::Get()->GetAIManager()->LoadMapGraph(levelPath);
+		GameLogic::Get()->GetAIManager()->LoadPathingGraph(levelPath);
 	}
 }
 

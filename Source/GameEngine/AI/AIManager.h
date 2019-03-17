@@ -30,7 +30,7 @@ public:
 	~AIManager();
 
 	virtual void SaveMapGraph(const eastl::string& path) { }
-	virtual void LoadMapGraph(const eastl::wstring& path) { }
+	virtual void LoadPathingGraph(const eastl::wstring& path) { }
 
 	virtual void CreateMap(ActorId playerId) { };
 
