@@ -61,7 +61,6 @@ QuakeAIManager::~QuakeAIManager()
 //
 void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 {
-
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
 	// Load the map graph file
@@ -116,6 +115,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			arcId = pNode->IntAttribute("id", arcId);
 			arcType = pArc->IntAttribute("type", arcType);
 			weight = pArc->FloatAttribute("weight", weight);
+			if (arcType == 13 || arcType == 14) continue;
 
 			tinyxml2::XMLElement* pLinkElement = pArc->FirstChildElement("Link");
 			if (pLinkElement)
@@ -147,6 +147,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			pathNode->AddArc(pathArc);
 		}
 	}
+
 	/*
 	tinyxml2::XMLElement* pVisibilityGraph = pRoot->FirstChildElement("VisibilityGraph");
 	if (pVisibilityGraph != NULL)
@@ -410,8 +411,29 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	SimulateWaypoint();
 
 	// we obtain visibility information from the created waypoint graph by using raycasting
-	//SimulateVisibility();
+	SimulateVisibility();
+
 	/*
+	eastl::vector<Point> points;
+	eastl::map<int, eastl::map<int, float>> distances;
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		eastl::vector<float> pos{
+		pathNode->GetPos()[0], pathNode->GetPos()[1], pathNode->GetPos()[2]};
+		Point point(pathNode->GetId(), pos);
+		points.push_back(point);
+	}
+
+	//path distances
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+		for (auto node : mPathingGraph->FindPaths(pathNode, 1.0f))
+			distances[pathNode->GetId()][node.first->GetId()] = node.second;
+
+	//Running K-Means Clustering
+	int iters = 100;
+	KMeans kmeans(500, iters);
+	kmeans.Run(points, distances);
+
 	GameLogic::Get()->GetAIManager()->SaveMapGraph(
 		FileSystem::Get()->GetPath("ai/quake/bloodrun - copia.xml"));
 	*/
@@ -1691,38 +1713,43 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 		{
 			if (pEndNode != NULL && pNode->FindArc(AIAT_JUMPTARGET, pEndNode) == NULL)
 			{
-				Vector3<float> diff = pEndNode->GetPos() - position;
-				if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
+				//check if we have done a clean jump (no collisions)
+				if (Length(pEndNode->GetPos() - pNode->GetPos()) >= 300.f ||
+					pEndNode->GetPos()[2] - pNode->GetPos()[2] >= 30.f)
 				{
-					PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_JUMPTARGET, totalTime);
-					pArc->LinkNodes(pNode, pEndNode);
-					pNode->AddArc(pArc);
-
-					PathingNode* pCurrentNode = pNode;
-					eastl::vector<PathingNode*>::iterator itNode;
-					for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
+					Vector3<float> diff = pEndNode->GetPos() - position;
+					if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 					{
-						pFallingNode = (*itNode);
-						if (pCurrentNode->FindArc(AIAT_JUMP, pEndNode) == NULL)
+						PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_JUMPTARGET, totalTime);
+						pArc->LinkNodes(pNode, pEndNode);
+						pNode->AddArc(pArc);
+
+						PathingNode* pCurrentNode = pNode;
+						eastl::vector<PathingNode*>::iterator itNode;
+						for (itNode = nodes.begin(); itNode != nodes.end(); itNode++)
 						{
-							PathingArc* pArc = new PathingArc(GetNewArcID(),
-								AIAT_JUMP, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
-							pArc->LinkNodes(pEndNode, pFallingNode);
-							pCurrentNode->AddArc(pArc);
+							pFallingNode = (*itNode);
+							if (pCurrentNode->FindArc(AIAT_JUMP, pEndNode) == NULL)
+							{
+								PathingArc* pArc = new PathingArc(GetNewArcID(),
+									AIAT_JUMP, nodeTimes[pFallingNode], nodePositions[pFallingNode]);
+								pArc->LinkNodes(pEndNode, pFallingNode);
+								pCurrentNode->AddArc(pArc);
+							}
+
+							pCurrentNode = pFallingNode;
 						}
 
-						pCurrentNode = pFallingNode;
-					}
-
-					if (pCurrentNode != pEndNode)
-					{
-						if (pCurrentNode->FindArc(AIAT_JUMP, pEndNode) == NULL)
+						if (pCurrentNode != pEndNode)
 						{
-							deltaTime = 0.02f;
-							PathingArc* pArc = new PathingArc(GetNewArcID(), 
-								AIAT_JUMP, deltaTime, pEndNode->GetPos());
-							pArc->LinkNodes(pEndNode, pEndNode);
-							pCurrentNode->AddArc(pArc);
+							if (pCurrentNode->FindArc(AIAT_JUMP, pEndNode) == NULL)
+							{
+								deltaTime = 0.02f;
+								PathingArc* pArc = new PathingArc(GetNewArcID(),
+									AIAT_JUMP, deltaTime, pEndNode->GetPos());
+								pArc->LinkNodes(pEndNode, pEndNode);
+								pCurrentNode->AddArc(pArc);
+							}
 						}
 					}
 				}

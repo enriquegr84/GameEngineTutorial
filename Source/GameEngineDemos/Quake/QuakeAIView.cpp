@@ -129,18 +129,23 @@ void QuakeAIView::Stationary(unsigned long deltaMs)
 	atWorld = atWorld * rotation;
 #endif
 
+	Vector3<float> scale =
+		GameLogic::Get()->GetGamePhysics()->GetScale(mPlayerId) / 2.f;
+
 	Transform start;
 	start.SetRotation(rotation);
-	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() + atWorld * 10.f);
+	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() +
+		scale[YAW] * Vector4<float>::Unit(YAW));
 
 	Transform end;
 	end.SetRotation(rotation);
-	end.SetTranslation(mAbsoluteTransform.GetTranslationW1() + atWorld * 500.f);
+	end.SetTranslation(mAbsoluteTransform.GetTranslationW1() +
+		atWorld * 500.f + scale[YAW] * Vector4<float>::Unit(YAW));
 
 	Vector3<float> collision, collisionNormal;
 	collision = end.GetTranslation();
-	ActorId actorId = GameLogic::Get()->GetGamePhysics()->CastRay(
-		start.GetTranslation(), end.GetTranslation(), collision, collisionNormal);
+	ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+		mPlayerId, start, end, collision, collisionNormal);
 	//printf("distance stationary %f \n", Length(collision - position));
 	if (Length(collision - position) < 30.f)
 	{

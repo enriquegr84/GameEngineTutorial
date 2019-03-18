@@ -156,33 +156,17 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 		(*mIndex)->GetNeighbor()->GetPos()[2]);
 	printf("dot %f\n", Dot(mCurrentDirection, prevDirection));
 	*/
-	if ((*mIndex)->GetType() & AT_TARGET)
+	if (Dot(mCurrentDirection, prevDirection) < 0.6f &&
+		Length(diff) <= (float)PATHING_DEFAULT_NODE_TOLERANCE)
 	{
-		if (Dot(mCurrentDirection, prevDirection) < 0.95f) 
-		{
-			mIndex++;
-			if (mIndex != mPath.end())
-			{
-				mCurrentDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
-				Normalize(mCurrentDirection);
-			}
-			return true;
-		}
-	}
-	else
-	{
-		if (Dot(mCurrentDirection, prevDirection) < 0.6f &&
-			Length(diff) <= (float)PATHING_DEFAULT_NODE_TOLERANCE)
-		{
-			mIndex++;
+		mIndex++;
 
-			if (mIndex != mPath.end())
-			{
-				mCurrentDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
-				Normalize(mCurrentDirection);
-			}
-			return true;
+		if (mIndex != mPath.end())
+		{
+			mCurrentDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
+			Normalize(mCurrentDirection);
 		}
+		return true;
 	}
 
 	return false;
@@ -301,6 +285,10 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 		// grab the most likely candidate
 		PathPlanNode* planNode = mOpenSet.front();
 
+		// lets find out if we successfully found a path.
+		if (planNode->GetPathingNode() == mGoalNode)
+			return RebuildPath(planNode);
+
 		// we're processing this node so remove it from the open set and add it to the closed set
 		mOpenSet.pop_front();
 		AddToClosedSet(planNode);
@@ -357,12 +345,93 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 			}
 		}
 	}
+	
+	return NULL;
+}
 
-	// lets find out if we successfully found a path.
-	if (mNodes.find(mGoalNode) != mNodes.end())
-		return RebuildPath(mNodes[mGoalNode]);
-	else
-		return NULL;
+//
+// PathFinder::operator()					- Chapter 18, page 638
+//
+eastl::map<PathingNode*, float> PathFinder::operator()(PathingNode* pStartNode, float threshold)
+{
+	eastl::map<PathingNode*, float> pathingNodes;
+	LogAssert(pStartNode, "Invalid node");
+
+	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
+	// we couldn't find a path to the goal. The start node is the only node that is initially in 
+	// the open set.
+	AddToOpenSet(pStartNode, NULL);
+
+	while (!mOpenSet.empty())
+	{
+		// grab the most likely candidate
+		PathPlanNode* planNode = mOpenSet.front();
+
+		// added path nodes within the threshold
+		pathingNodes[planNode->GetPathingNode()] = planNode->GetGoal();
+
+		// we're processing this node so remove it from the open set and add it to the closed set
+		mOpenSet.pop_front();
+		AddToClosedSet(planNode);
+
+		// get the neighboring nodes
+		PathingArcVec neighbors;
+		planNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
+		planNode->GetPathingNode()->GetNeighbors(AT_TARGET, neighbors);
+
+		// loop though all the neighboring nodes and evaluate each one
+		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+		{
+			PathingNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetPathingNode());
+
+			// Try and find a PathPlanNode object for this node.
+			PathingNodeToPathPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
+
+			// If one exists and it's in the closed list, we've already evaluated the node.  We can
+			// safely skip it.
+			if (findIt != mNodes.end() && findIt->second->IsClosed())
+				continue;
+
+			// figure out the cost for this route through the node
+			float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
+			if (costForThisPath <= threshold)
+			{
+				bool isPathBetter = false;
+
+				/*
+				fprintf(pFile, "arc node %f %f %f to node %f %f %f type %u cost %f\n",
+				(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
+				(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
+				(*it)->GetType(), costForThisPath);
+				*/
+				// Grab the PathPlanNode if there is one.
+				PathPlanNode* pPathPlanNodeToEvaluate = NULL;
+				if (findIt != mNodes.end())
+					pPathPlanNodeToEvaluate = findIt->second;
+
+				// No PathPlanNode means we've never evaluated this pathing node so we need to add it to 
+				// the open set, which has the side effect of setting all the cost data.
+				if (!pPathPlanNodeToEvaluate)
+					pPathPlanNodeToEvaluate = AddToOpenSet((*it), planNode);
+
+				// If this node is already in the open set, check to see if this route to it is better than
+				// the last.
+				else if (costForThisPath < pPathPlanNodeToEvaluate->GetGoal())
+					isPathBetter = true;
+
+				// If this path is better, relink the nodes appropriately, update the cost data, and
+				// reinsert the node into the open list priority queue.
+				if (isPathBetter)
+				{
+					pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
+					ReinsertNode(pPathPlanNodeToEvaluate);
+				}
+			}
+			else AddToClosedSet(planNode);
+		}
+	}
+
+	return pathingNodes;
 }
 
 PathPlanNode* PathFinder::AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode)
@@ -584,6 +653,13 @@ PathingNode* PathingGraph::FindRandomNode(void)
 			--it;
 		return (*it);
 	}
+}
+
+eastl::map<PathingNode*, float> PathingGraph::FindPaths(PathingNode* pStartNode, float threshold)
+{
+	// find the best path using an A* search algorithm
+	PathFinder pathFinder;
+	return pathFinder(pStartNode, threshold);
 }
 
 PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint)
