@@ -115,7 +115,6 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			arcId = pNode->IntAttribute("id", arcId);
 			arcType = pArc->IntAttribute("type", arcType);
 			weight = pArc->FloatAttribute("weight", weight);
-			if (arcType == 13 || arcType == 14) continue;
 
 			tinyxml2::XMLElement* pLinkElement = pArc->FirstChildElement("Link");
 			if (pLinkElement)
