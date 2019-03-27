@@ -66,7 +66,7 @@ public:
 		mClusterId = -1;
 	}
 
-	int GetID() { return mPointId; }
+	int GetId() { return mPointId; }
 	int GetDimension() { return mDimension; }
 	int GetCluster() { return mClusterId; }
 	void SetCluster(int clusterId) { mClusterId = clusterId; }
@@ -79,11 +79,11 @@ private:
 	eastl::vector<float> mValues;
 };
 
-class Cluster
+class Clustering
 {
 
 public:
-	Cluster(int clusterId, Point point)
+	Clustering(int clusterId, Point point)
 	{
 		mClusterId = clusterId;
 
@@ -95,14 +95,14 @@ public:
 		mPoints.push_back(point);
 	}
 
-	int GetID() { return mClusterId; }
+	int GetId() { return mClusterId; }
 
 	void AddPoint(Point point)  { mPoints.push_back(point);  }
 	bool RemovePoint(int pointId)
 	{
 		for (unsigned int i = 0; i < mPoints.size(); i++)
 		{
-			if (mPoints[i].GetID() == pointId)
+			if (mPoints[i].GetId() == pointId)
 			{
 				mPoints.erase(mPoints.begin() + i);
 				return true;
@@ -149,11 +149,13 @@ public:
 	void Run(eastl::vector<Point> & points, 
 		eastl::map<int, eastl::map<int, float>>& distances);
 
+	const eastl::vector<Clustering>& GetClusters() { return mClusters; }
+
 private:
 
 	int mK; // number of clusters
 	int mIterations, mDimension, mTotalPoints;
-	eastl::vector<Cluster> mClusters;
+	eastl::vector<Clustering> mClusters;
 
 	// return nearest cluster Id (uses euclidean distance)
 	int GetNearestClusterId(Point point,

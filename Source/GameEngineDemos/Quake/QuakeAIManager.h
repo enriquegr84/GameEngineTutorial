@@ -36,7 +36,9 @@ enum AIActionType
 	AIAT_FALL = 0x0000009,
 	AIAT_FALLTARGET = 0x000000A,
 	AIAT_JUMP = 0x000000D,
-	AIAT_JUMPTARGET = 0x00000E
+	AIAT_JUMPTARGET = 0x00000E,
+	AIAT_CLUSTER = 0x0000011,
+	AIAT_CLUSTERTARGET = 0x000012
 };
 
 class QuakeAIManager : public AIManager
@@ -63,14 +65,21 @@ protected:
 	void SimulateWaypoint();
 	void SimulateVisibility();
 
+	void CreateClusters();
+
+	unsigned int GetNewArcID(void)
+	{
+		return ++mLastArcId;
+	}
+
 	unsigned int GetNewNodeID(void)
 	{
 		return ++mLastNodeId;
 	}
 
-	unsigned int GetNewArcID(void)
+	unsigned int GetNewClusterArcID(void)
 	{
-		return ++mLastArcId;
+		return ++mLastClusterArcId;
 	}
 
 	// event delegates
@@ -100,8 +109,9 @@ protected:
 
 private:
 
-	unsigned int mLastNodeId;
 	unsigned int mLastArcId;
+	unsigned int mLastNodeId;
+	unsigned int mLastClusterArcId;
 
 	//open set of nodes to be analized and also to
 	//inform whether they are on ground or not

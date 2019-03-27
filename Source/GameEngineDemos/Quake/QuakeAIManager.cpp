@@ -30,8 +30,9 @@
 
 QuakeAIManager::QuakeAIManager() : AIManager()
 {
-	mLastNodeId = 0;
 	mLastArcId = 0;
+	mLastNodeId = 0;
+	mLastClusterArcId = 0;
 
 	mYaw = 0.0f;
 	mPitchTarget = 0.0f;
@@ -387,8 +388,8 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	game->RemoveAllDelegates();
 	RegisterAllDelegates();
 
-	//first we store the most important points of the map
 	mPathingGraph = eastl::make_shared<PathingGraph>();
+	mClusteringGraph = eastl::make_shared<ClusteringGraph>();
 
 	eastl::vector<eastl::shared_ptr<Actor>> actors;
 	game->GetAmmoActors(actors);
@@ -409,33 +410,15 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	// movement, jumping or falling and its conections
 	SimulateWaypoint();
 
-	// we obtain visibility information from the created waypoint graph by using raycasting
-	SimulateVisibility();
-
-	/*
-	eastl::vector<Point> points;
-	eastl::map<int, eastl::map<int, float>> distances;
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		eastl::vector<float> pos{
-		pathNode->GetPos()[0], pathNode->GetPos()[1], pathNode->GetPos()[2]};
-		Point point(pathNode->GetId(), pos);
-		points.push_back(point);
-	}
-
-	//path distances
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-		for (auto node : mPathingGraph->FindPaths(pathNode, 1.0f))
-			distances[pathNode->GetId()][node.first->GetId()] = node.second;
-
-	//Running K-Means Clustering
-	int iters = 100;
-	KMeans kmeans(500, iters);
-	kmeans.Run(points, distances);
+	// we group the graph nodes in clusters
+	CreateClusters();
 
 	GameLogic::Get()->GetAIManager()->SaveMapGraph(
 		FileSystem::Get()->GetPath("ai/quake/bloodrun - copia.xml"));
-	*/
+
+	// we obtain visibility information from the cluster graph by using raycasting
+	SimulateVisibility();
+
 	// we need to handle firing grenades separately since they cannot be simulated by raycasting 
 	// as they describe different trajectories
 	/*
@@ -928,24 +911,21 @@ void QuakeAIManager::SimulateWaypoint()
 	eastl::map<PathingNode*, ActorId>::iterator itActorNode;
 	for (itActorNode = mActorNodes.begin(); itActorNode != mActorNodes.end(); itActorNode++)
 	{
-		Vector3<float> position = itActorNode->first->GetPos();
 		eastl::shared_ptr<Actor> pItemActor(
 			GameLogic::Get()->GetActor(itActorNode->second).lock());
-		PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position);
-		if (pClosestNode != NULL)
+		PathingNode* pNode = itActorNode->first;
+		if (pNode != NULL)
 		{
-			pClosestNode->SetActorId(pItemActor->GetId());
-
 			if (pItemActor->GetType() == "Trigger")
 			{
-				pClosestNode->RemoveArcs();
+				pNode->RemoveArcs();
 				if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
 				{
 					eastl::shared_ptr<PushTrigger> pPushTrigger =
 						pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
 
 					Vector3<float> targetPosition = pPushTrigger->GetTarget().GetTranslation();
-					SimulateTriggerPush(pClosestNode, targetPosition);
+					SimulateTriggerPush(pNode, targetPosition);
 				}
 				else if (pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock())
 				{
@@ -953,7 +933,7 @@ void QuakeAIManager::SimulateWaypoint()
 						pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
 
 					Vector3<float> targetPosition = pTeleporterTrigger->GetTarget().GetTranslation();
-					SimulateTriggerTeleport(pClosestNode, targetPosition);
+					SimulateTriggerTeleport(pNode, targetPosition);
 				}
 			}
 		}
@@ -982,7 +962,264 @@ void QuakeAIManager::SimulateWaypoint()
 		// we have processed this node so remove it from the closed set
 		mClosedSet.erase(itOpenSet);
 	}
-	mActorNodes.clear();
+}
+
+void QuakeAIManager::CreateClusters()
+{
+	eastl::vector<Point> points;
+	eastl::map<int, eastl::map<int, float>> distances;
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		eastl::vector<float> pos{
+			pathNode->GetPos()[0], pathNode->GetPos()[1], pathNode->GetPos()[2] };
+		Point point(pathNode->GetId(), pos);
+		points.push_back(point);
+	}
+
+	//path distances
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+		for (auto node : mPathingGraph->FindPaths(pathNode, 1.0f))
+			distances[pathNode->GetId()][node.first->GetId()] = node.second;
+
+	//Running K-Means Clustering
+	int iters = 100;
+	KMeans kmeans(500, iters);
+	kmeans.Run(points, distances);
+
+	eastl::map<unsigned int, ClusteringNode*> clusterNodes;
+	for (Clustering kCluster : kmeans.GetClusters())
+	{
+		Cluster* cluster = new Cluster(kCluster.GetId());
+		mClusteringGraph->InsertCluster(cluster);
+
+		for (unsigned int pIdx = 0; pIdx < kCluster.GetSize(); pIdx++)
+		{
+			Point point = kCluster.GetPoint(pIdx);
+			PathingNode* pathNode = mPathingGraph->FindNode(point.GetId());
+
+			ClusteringNode* clusterNode = new ClusteringNode(pathNode->GetId(), pathNode->GetPos());
+			clusterNode->SetActor(pathNode->GetActorId());
+			clusterNode->SetCluster(cluster);
+
+			clusterNodes[clusterNode->GetId()] = clusterNode;
+			cluster->AddActor(pathNode->GetActorId());
+			cluster->InsertNode(clusterNode);
+		}
+		Point center = kCluster.GetCenterPoint();
+		ClusteringNode* centerNode = cluster->FindNode(center.GetId());
+		cluster->SetCenter(centerNode);
+	}
+
+	for (Cluster* cluster : mClusteringGraph->GetClusters())
+	{
+		for (ClusteringNode* clusterNode : cluster->GetNodes())
+		{
+			PathingNode* pathNode = mPathingGraph->FindNode(clusterNode->GetId());
+
+			//we take arcs connection to other clusters and also nodes inside the same cluster
+			eastl::map<unsigned int, eastl::map<unsigned int, PathingArc*>> pathingArcs;
+			for (PathingArc* pathArc : pathNode->GetArcs())
+			{
+				ClusteringNode* targetNode = NULL;
+				if (pathArc->GetType() == AT_NORMAL)
+					targetNode = clusterNodes[pathArc->GetNeighbor()->GetId()];
+				else if (pathArc->GetType() & AT_TARGET)
+					targetNode = clusterNodes[pathArc->GetOrigin()->GetId()];
+
+				if (targetNode)
+				{
+					Cluster* targetCluster = targetNode->GetCluster();
+					if (targetNode->GetCluster() != cluster)
+					{
+						if (cluster->FindArc(pathArc->GetType(), targetCluster) == NULL)
+						{
+							ClusterArc* clusterArc = new ClusterArc(GetNewClusterArcID(), pathArc->GetType());
+							clusterArc->LinkClusters(cluster, targetCluster);
+							cluster->AddArc(clusterArc);
+						}
+
+						if (pathingArcs.find(pathArc->GetType()) != pathingArcs.end() &&
+							pathingArcs[pathArc->GetType()].find(cluster->GetId()) !=
+							pathingArcs[pathArc->GetType()].end())
+						{
+							PathingArc* pArc = pathingArcs[pathArc->GetType()][cluster->GetId()];
+							if (Length(targetCluster->GetCenter()->GetPos() - pArc->GetNeighbor()->GetPos()) >
+								Length(targetCluster->GetCenter()->GetPos() - pathArc->GetNeighbor()->GetPos()))
+							{
+								pathingArcs[pathArc->GetType()][cluster->GetId()] = pathArc;
+							}
+						}
+						else pathingArcs[pathArc->GetType()][cluster->GetId()] = pathArc;
+					}
+				}
+			}
+
+			//first we save the arcs within the cluster
+			for (PathingArc* pathArc : pathNode->GetArcs())
+			{
+				ClusteringNode* targetNode = NULL;
+				unsigned int clusterArcType = 0;
+				if (pathArc->GetType() == AT_NORMAL)
+				{
+					clusterArcType = AIAT_CLUSTER;
+					targetNode = clusterNodes[pathArc->GetNeighbor()->GetId()];
+				}
+				else if (pathArc->GetType() & AT_TARGET)
+				{
+					clusterArcType = AIAT_CLUSTERTARGET;
+					targetNode = clusterNodes[pathArc->GetOrigin()->GetId()];
+				}
+
+				if (targetNode)
+				{
+					Cluster* targetCluster = targetNode->GetCluster();
+					if (targetNode->GetCluster() == cluster)
+					{
+						ClusteringArc* clusterArc = new ClusteringArc(
+							pathArc->GetId(), pathArc->GetType() | clusterArcType, pathArc->GetWeight());
+
+						ClusteringNode* linkNodeA = clusterNodes[pathArc->GetOrigin()->GetId()];
+						ClusteringNode* linkNodeB = clusterNodes[pathArc->GetNeighbor()->GetId()];
+						clusterArc->LinkNodes(linkNodeA, linkNodeB);
+						clusterNode->AddArc(clusterArc);
+
+						if (pathArc->GetType() & AT_TARGET)
+						{
+							PathingNode* pNode = pathArc->GetNeighbor();
+							PathingArc* pArc = pathArc->GetOrigin()->FindArc(pathArc->GetType() - 1, pNode);
+
+							do
+							{
+								ClusteringNode* cNode = clusterNodes[pNode->GetId()];
+								ClusteringArc* cArc = new ClusteringArc(pArc->GetId(),
+									pArc->GetType() | AIAT_CLUSTER, pArc->GetWeight(), pArc->GetConnection());
+
+								linkNodeA = clusterNodes[pArc->GetOrigin()->GetId()];
+								linkNodeB = clusterNodes[pArc->GetNeighbor()->GetId()];
+								cArc->LinkNodes(linkNodeA, linkNodeB);
+								cNode->AddArc(cArc);
+
+								pNode = pArc->GetNeighbor();
+								pArc = pNode->FindArc(pArc->GetType() - 1, pNode);
+							} while (pathArc->GetNeighbor() != pArc->GetOrigin());
+						}
+					}
+				}
+			}
+
+			//next we save the arcs which connects other clusters
+			for (auto pathingArc : pathingArcs)
+			{
+				for (auto pathArc : pathingArc.second)
+				{
+					ClusteringNode* targetNode = NULL;
+					unsigned int clusterArcType = 0;
+					if (pathArc.second->GetType() == AT_NORMAL)
+					{
+						clusterArcType = AIAT_CLUSTER;
+						targetNode = clusterNodes[pathArc.second->GetNeighbor()->GetId()];
+					}
+					else if (pathArc.second->GetType() & AT_TARGET)
+					{
+						clusterArcType = AIAT_CLUSTERTARGET;
+						targetNode = clusterNodes[pathArc.second->GetOrigin()->GetId()];
+					}
+
+					if (targetNode)
+					{
+						Cluster* targetCluster = targetNode->GetCluster();
+						ClusteringArc* clusterArc = new ClusteringArc(pathArc.second->GetId(),
+							pathArc.second->GetType() | clusterArcType, pathArc.second->GetWeight());
+
+						ClusteringNode* linkNodeA = clusterNodes[pathArc.second->GetOrigin()->GetId()];
+						ClusteringNode* linkNodeB = clusterNodes[pathArc.second->GetNeighbor()->GetId()];
+						clusterArc->LinkNodes(linkNodeA, linkNodeB);
+						clusterNode->AddArc(clusterArc);
+
+						if (pathArc.second->GetType() & AT_TARGET)
+						{
+							PathingNode* pNode = pathArc.second->GetNeighbor();
+							PathingArc* pArc = pathArc.second->GetOrigin()->FindArc(
+								pathArc.second->GetType() - 1, pNode);
+
+							do
+							{
+								ClusteringNode* cNode = clusterNodes[pNode->GetId()];
+								ClusteringArc* cArc = new ClusteringArc(pArc->GetId(),
+									pArc->GetType() | AIAT_CLUSTER, pArc->GetWeight(), pArc->GetConnection());
+
+								linkNodeA = clusterNodes[pArc->GetOrigin()->GetId()];
+								linkNodeB = clusterNodes[pArc->GetNeighbor()->GetId()];
+								cArc->LinkNodes(linkNodeA, linkNodeB);
+								cNode->AddArc(cArc);
+
+								pNode = pArc->GetNeighbor();
+								pArc = pNode->FindArc(pArc->GetType() - 1, pNode);
+							} while (pathArc.second->GetNeighbor() != pArc->GetOrigin());
+						}
+					}
+				}
+			}
+		}
+
+		//we check that every node within the cluster has a connection to the linked clusters
+		for (ClusterArc* clusterArc : cluster->GetArcs())
+		{
+			for (ClusteringNode* clusterNode : cluster->GetNodes())
+			{
+				bool isLinked = false;
+				for (ClusteringArc* clusterNodeArc : clusterNode->GetArcs())
+				{
+					ClusteringNode* targetNode = NULL;
+					if (clusterNodeArc->GetType() == AT_NORMAL)
+						targetNode = clusterNodeArc->GetNeighbor();
+					else if (clusterNodeArc->GetType() & AT_TARGET)
+						targetNode = clusterNodeArc->GetOrigin();
+
+					if (targetNode && targetNode->GetCluster() == clusterArc->GetNeighbor())
+					{
+						isLinked = true;
+						break;
+					}
+				}
+
+				//if no one was found then we execute the cluster pathfinder
+				if (!isLinked)
+				{
+					ClusterPlan* clusterPlan =
+						cluster->FindNode(clusterNode, clusterArc->GetNeighbor());
+
+					float pCost = 0.f;
+					ClusteringArc* pBeginArc = clusterPlan->GetArcs().front();
+					ClusteringArc* pEndArc = clusterPlan->GetArcs().back();
+					for (auto cArcPlan : clusterPlan->GetArcs())
+						pCost += cArcPlan->GetWeight();
+
+					if (pBeginArc->GetType() == AT_NORMAL)
+					{
+						ClusteringArc* cArc = new ClusteringArc(
+							GetNewArcID(), pBeginArc->GetType() | AIAT_CLUSTERTARGET, pCost);
+						if (pEndArc->GetType() == AT_NORMAL)
+							cArc->LinkNodes(pEndArc->GetNeighbor(), pBeginArc->GetNeighbor());
+						else if (pEndArc->GetType() & AT_TARGET)
+							cArc->LinkNodes(pEndArc->GetOrigin(), pBeginArc->GetNeighbor());
+						clusterNode->AddArc(cArc);
+					}
+					else if (pBeginArc->GetType() & AT_TARGET)
+					{
+						ClusteringArc* cArc = new ClusteringArc(
+							GetNewArcID(), pBeginArc->GetType() | AIAT_CLUSTERTARGET, pCost);
+						if (pEndArc->GetType() == AT_NORMAL)
+							cArc->LinkNodes(pEndArc->GetNeighbor(), pBeginArc->GetOrigin());
+						else if (pEndArc->GetType() & AT_TARGET)
+							cArc->LinkNodes(pEndArc->GetOrigin(), pBeginArc->GetOrigin());
+						clusterNode->AddArc(cArc);
+					}
+					delete clusterPlan;
+				}
+			}
+		}
+	}
 }
 
 void QuakeAIManager::SimulateActorPosition(ActorId actorId, const Vector3<float>& position)
@@ -1330,18 +1567,18 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 									start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
 									Transform end;
 									end.SetTranslation((*itMove) + scale[YAW] * Vector3<float>::Unit(YAW));
+
 									Vector3<float> collision, collisionNormal;
 									ActorId actorId = gamePhysics->ConvexSweep(
 										mPlayerActor->GetId(), start, end, collision, collisionNormal);
 									if (collision == NULL || actorId != INVALID_ACTOR_ID)
 									{
-										PathingNode* pNewNode = new PathingNode(
-											GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
-										mPathingGraph->InsertNode(pNewNode);
+										PathingNode* pNewNode = new PathingNode(GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
 										PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_MOVE, deltaTime);
 										pArc->LinkNodes(pCurrentNode, pNewNode);
 										pCurrentNode->AddArc(pArc);
 
+										mPathingGraph->InsertNode(pNewNode);
 										mOpenSet[pNewNode] = true;
 										pCurrentNode = pNewNode;
 
@@ -1359,6 +1596,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 									start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
 									Transform end;
 									end.SetTranslation(pClosestNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+
 									Vector3<float> collision, collisionNormal;
 									ActorId actorId = gamePhysics->ConvexSweep(
 										mPlayerActor->GetId(), start, end, collision, collisionNormal);
@@ -1542,6 +1780,17 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 					Vector3<float> diff = pClosestNode->GetPos() - (*itMove);
 					if (Length(diff) >= 16.f)
 					{
+						Vector3<float> move = (*itMove);
+						Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
+
+						Transform start;
+						start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+						Transform end;
+						end.SetTranslation(move + scale[YAW] * Vector3<float>::Unit(YAW));
+
+						Vector3<float> collision, collisionNormal;
+						ActorId actorId = gamePhysics->ConvexSweep(
+							mPlayerActor->GetId(), start, end, collision, collisionNormal);
 						if (!Cliff(*itMove))
 						{
 							Vector3<float> scale = gamePhysics->GetScale(mPlayerActor->GetId()) / 2.f;
@@ -1550,18 +1799,18 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 							start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
 							Transform end;
 							end.SetTranslation((*itMove) + scale[YAW] * Vector3<float>::Unit(YAW));
+
 							Vector3<float> collision, collisionNormal;
 							ActorId actorId = gamePhysics->ConvexSweep(
 								mPlayerActor->GetId(), start, end, collision, collisionNormal);
 							if (collision == NULL || actorId != INVALID_ACTOR_ID)
 							{
-								PathingNode* pNewNode = new PathingNode(
-									GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
-								mPathingGraph->InsertNode(pNewNode);
+								PathingNode* pNewNode = new PathingNode(GetNewNodeID(), INVALID_ACTOR_ID, (*itMove));
 								PathingArc* pArc = new PathingArc(GetNewArcID(), AIAT_MOVE, deltaTime);
 								pArc->LinkNodes(pCurrentNode, pNewNode);
 								pCurrentNode->AddArc(pArc);
 
+								mPathingGraph->InsertNode(pNewNode);
 								mOpenSet[pNewNode] = true;
 								pCurrentNode = pNewNode;
 
@@ -1579,6 +1828,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 							start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
 							Transform end;
 							end.SetTranslation(pClosestNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+
 							Vector3<float> collision, collisionNormal;
 							ActorId actorId = gamePhysics->ConvexSweep(
 								mPlayerActor->GetId(), start, end, collision, collisionNormal);
@@ -1608,6 +1858,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 					start.SetTranslation(pCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
 					Transform end;
 					end.SetTranslation(pEndNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+
 					Vector3<float> collision, collisionNormal;
 					ActorId actorId = gamePhysics->ConvexSweep(
 						mPlayerActor->GetId(), start, end, collision, collisionNormal);
@@ -1782,7 +2033,7 @@ void QuakeAIManager::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 				{
 					Vector3<float> diff = pClosestNode->GetPos() - position;
 					if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
-						mActorNodes[pClosestNode] = pItemActor->GetId();
+						pClosestNode->SetActorId(pItemActor->GetId());
 				}
 			}
 		}

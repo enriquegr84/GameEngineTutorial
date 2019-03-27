@@ -39,7 +39,7 @@
 #include "KMeans.h"
 
 // return nearest point (uses euclidean distance)
-int Cluster::GetNearestPointIndex(const eastl::vector<float>& point)
+int Clustering::GetNearestPointIndex(const eastl::vector<float>& point)
 {
 	float sum = 0.0;
 	int dimension = point.size();
@@ -70,16 +70,16 @@ int KMeans::GetNearestClusterId(Point point,
 	eastl::map<int, eastl::map<int, float>>& distances)
 {
 	float sum = FLT_MAX;
-	if (distances.find(point.GetID()) != distances.end() &&
-		distances.find(mClusters[0].GetCenterPoint().GetID()) != distances.end())
+	if (distances.find(point.GetId()) != distances.end() &&
+		distances.find(mClusters[0].GetCenterPoint().GetId()) != distances.end())
 	{
-		if (distances[point.GetID()].find(mClusters[0].GetCenterPoint().GetID()) != 
-			distances[point.GetID()].end() &&
-			distances[mClusters[0].GetCenterPoint().GetID()].find(point.GetID()) !=
-			distances[mClusters[0].GetCenterPoint().GetID()].end())
+		if (distances[point.GetId()].find(mClusters[0].GetCenterPoint().GetId()) != 
+			distances[point.GetId()].end() &&
+			distances[mClusters[0].GetCenterPoint().GetId()].find(point.GetId()) !=
+			distances[mClusters[0].GetCenterPoint().GetId()].end())
 		{
-			sum = distances[mClusters[0].GetCenterPoint().GetID()][point.GetID()];
-			sum += distances[point.GetID()][mClusters[0].GetCenterPoint().GetID()];
+			sum = distances[mClusters[0].GetCenterPoint().GetId()][point.GetId()];
+			sum += distances[point.GetId()][mClusters[0].GetCenterPoint().GetId()];
 		}
 	}
 
@@ -88,16 +88,16 @@ int KMeans::GetNearestClusterId(Point point,
 	for (int i = 1; i < mK; i++)
 	{
 		sum = FLT_MAX;
-		if (distances.find(point.GetID()) != distances.end() &&
-			distances.find(mClusters[i].GetCenterPoint().GetID()) != distances.end())
+		if (distances.find(point.GetId()) != distances.end() &&
+			distances.find(mClusters[i].GetCenterPoint().GetId()) != distances.end())
 		{
-			if (distances[point.GetID()].find(mClusters[i].GetCenterPoint().GetID()) !=
-				distances[point.GetID()].end() &&
-				distances[mClusters[i].GetCenterPoint().GetID()].find(point.GetID()) !=
-				distances[mClusters[i].GetCenterPoint().GetID()].end())
+			if (distances[point.GetId()].find(mClusters[i].GetCenterPoint().GetId()) !=
+				distances[point.GetId()].end() &&
+				distances[mClusters[i].GetCenterPoint().GetId()].find(point.GetId()) !=
+				distances[mClusters[i].GetCenterPoint().GetId()].end())
 			{
-				sum = distances[mClusters[i].GetCenterPoint().GetID()][point.GetID()];
-				sum += distances[point.GetID()][mClusters[i].GetCenterPoint().GetID()];
+				sum = distances[mClusters[i].GetCenterPoint().GetId()][point.GetId()];
+				sum += distances[point.GetId()][mClusters[i].GetCenterPoint().GetId()];
 			}
 		}
 
@@ -130,7 +130,7 @@ void KMeans::Run(eastl::vector<Point> & points,
 			{
 				usedPointIds.push_back(index);
 				points[index].SetCluster(i);
-				Cluster cluster(i, points[index]);
+				Clustering cluster(i, points[index]);
 				mClusters.push_back(cluster);
 				break;
 			}
@@ -154,7 +154,7 @@ void KMeans::Run(eastl::vector<Point> & points,
 			if (currentClusterId != nearestClusterId)
 			{
 				if (currentClusterId != -1)
-					mClusters[currentClusterId].RemovePoint(points[i].GetID());
+					mClusters[currentClusterId].RemovePoint(points[i].GetId());
 
 				points[i].SetCluster(nearestClusterId);
 				mClusters[nearestClusterId].AddPoint(points[i]);
@@ -193,7 +193,7 @@ void KMeans::Run(eastl::vector<Point> & points,
 		int clusterSize = mClusters[i].GetSize();
 		totalPoints += clusterSize;
 
-		printf("\nCluster %i : ", mClusters[i].GetID());
+		printf("\nCluster %i : ", mClusters[i].GetId());
 		for (int j = 0; j < mDimension; j++)
 			printf("%f ", mClusters[i].GetCenterPoint().GetValue(j));
 		for (int j = 0; j < mDimension; j++)
@@ -201,7 +201,7 @@ void KMeans::Run(eastl::vector<Point> & points,
 
 		for (int j = 0; j < clusterSize; j++)
 		{
-			printf("\nPoint %i : ", mClusters[i].GetPoint(j).GetID());
+			printf("\nPoint %i : ", mClusters[i].GetPoint(j).GetId());
 			for (int p = 0; p < mDimension; p++)
 				printf("%f ", mClusters[i].GetPoint(j).GetValue(p));
 		}

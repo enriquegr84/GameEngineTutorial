@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\AI\AIManager.cpp" />
+    <ClCompile Include="..\AI\Clustering.cpp" />
     <ClCompile Include="..\AI\KMeans.cpp" />
     <ClCompile Include="..\AI\Pathing.cpp" />
     <ClCompile Include="..\Application\Application.cpp" />
@@ -789,6 +790,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\AI\AIManager.h" />
+    <ClInclude Include="..\AI\Clustering.h" />
     <ClInclude Include="..\AI\KMeans.h" />
     <ClInclude Include="..\AI\Pathing.h" />
     <ClInclude Include="..\Application\Application.h" />

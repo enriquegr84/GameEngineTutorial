@@ -1129,6 +1129,9 @@
     <ClCompile Include="..\AI\KMeans.cpp">
       <Filter>AI</Filter>
     </ClCompile>
+    <ClCompile Include="..\AI\Clustering.cpp">
+      <Filter>AI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -2660,6 +2663,9 @@
       <Filter>AI</Filter>
     </ClInclude>
     <ClInclude Include="..\AI\KMeans.h">
+      <Filter>AI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AI\Clustering.h">
       <Filter>AI</Filter>
     </ClInclude>
   </ItemGroup>

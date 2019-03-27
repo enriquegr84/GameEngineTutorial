@@ -119,6 +119,7 @@ class PathingArc
 	unsigned int mId;
 	unsigned int mType;
 	float mWeight;
+
 	Vector3<float> mConnection; //an optional interpolation vector which connects nodes 
 	PathingNode* mNodes[2];  // an arc always connects two nodes
 
@@ -133,6 +134,7 @@ public:
 	unsigned int GetId(void) const { return mId; }
 	unsigned int GetType(void) const { return mType; }
 	float GetWeight(void) const { return mWeight; }
+
 	const Vector3<float>& GetConnection(void) const { return mConnection; }
 
 	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
@@ -271,6 +273,7 @@ public:
 	void FindNodes(PathingNodeVec&, const Vector3<float>& pos, float radius);
 	PathingNode* FindClosestNode(const Vector3<float>& pos);
 	PathingNode* FindFurthestNode(const Vector3<float>& pos);
+	PathingNode* FindNode(unsigned int nodeId);
 	PathingNode* FindRandomNode(void);
 
 	eastl::map<PathingNode*, float> FindPaths(PathingNode* pStartNode, float threshold);

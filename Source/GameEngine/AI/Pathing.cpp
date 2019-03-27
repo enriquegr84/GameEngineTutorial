@@ -627,6 +627,17 @@ void PathingGraph::FindNodes(PathingNodeVec& nodes, const Vector3<float>& pos, f
 	}
 }
 
+PathingNode* PathingGraph::FindNode(unsigned int nodeId)
+{
+	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
+	{
+		PathingNode* pNode = *it;
+		if (pNode->GetId() == nodeId)
+			return pNode;
+	}
+
+	return NULL;
+}
 
 PathingNode* PathingGraph::FindRandomNode(void)
 {
@@ -664,8 +675,6 @@ eastl::map<PathingNode*, float> PathingGraph::FindPaths(PathingNode* pStartNode,
 
 PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint)
 {
-	// Find the closest nodes to the start and end points.  There really should be some ray-casting 
-	// to ensure that we can actually make it to the closest node, but this is good enough for now.
 	PathingNode* pStart = FindClosestNode(startPoint);
 	PathingNode* pGoal = FindClosestNode(endPoint);
 	return FindPath(pStart,pGoal);
