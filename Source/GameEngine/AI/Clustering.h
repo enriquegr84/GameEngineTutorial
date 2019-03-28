@@ -119,8 +119,6 @@ public:
 	ClusteringNode* FindNode(unsigned int nodeId);
 	ClusteringNode* FindRandomNode(void);
 
-	eastl::map<ClusteringNode*, float> FindNodes(ClusteringNode* pStartNode, float threshold);
-
 	ClusterPlan* FindNode(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
 	ClusterPlan* FindNode(const Vector3<float>& startPoint, ClusteringNode* pGoalNode);
 	ClusterPlan* FindNode(ClusteringNode* pStartNode, const Vector3<float>& endPoint);
@@ -299,9 +297,8 @@ public:
 	~ClusterFinder(void);
 	void Destroy(void);
 
-	ClusterPlan* operator()(ClusteringNode* pStartNode, ClusteringNode* pGoalNode);
-	ClusterPlan* operator()(ClusteringNode* pStartNode, Cluster* pGoalCluster);
-	eastl::map<ClusteringNode*, float> operator()(ClusteringNode* pStartNode, float threshold);
+	ClusterPlan* operator()(ClusteringNode* pStartNode, ClusteringNode* pGoalNode, bool searchInNodes = false);
+	ClusterPlan* operator()(ClusteringNode* pStartNode, Cluster* pGoalCluster, bool searchInNodes = false);
 
 private:
 	ClusterPlanNode * AddToOpenSet(ClusteringArc* pArc, ClusterPlanNode* pPrevNode);

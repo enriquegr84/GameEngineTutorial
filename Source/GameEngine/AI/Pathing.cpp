@@ -156,8 +156,7 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 		(*mIndex)->GetNeighbor()->GetPos()[2]);
 	printf("dot %f\n", Dot(mCurrentDirection, prevDirection));
 	*/
-	if (Dot(mCurrentDirection, prevDirection) < 0.6f &&
-		Length(diff) <= (float)PATHING_DEFAULT_NODE_TOLERANCE)
+	if (Length(diff) <= (float)PATHING_DEFAULT_NODE_TOLERANCE)
 	{
 		mIndex++;
 
@@ -352,7 +351,7 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 //
 // PathFinder::operator()					- Chapter 18, page 638
 //
-eastl::map<PathingNode*, float> PathFinder::operator()(PathingNode* pStartNode, float threshold)
+eastl::map<PathingNode*, float> PathFinder::operator()(PathingNode* pStartNode, unsigned int arcType, float threshold)
 {
 	eastl::map<PathingNode*, float> pathingNodes;
 	LogAssert(pStartNode, "Invalid node");
@@ -382,6 +381,10 @@ eastl::map<PathingNode*, float> PathFinder::operator()(PathingNode* pStartNode, 
 		// loop though all the neighboring nodes and evaluate each one
 		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
+			//search for specific arcs
+			if ((*it)->GetType() != AT_NORMAL && (*it)->GetType() != arcType) 
+				continue;
+
 			PathingNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetPathingNode());
 
 			// Try and find a PathPlanNode object for this node.
@@ -666,11 +669,11 @@ PathingNode* PathingGraph::FindRandomNode(void)
 	}
 }
 
-eastl::map<PathingNode*, float> PathingGraph::FindPaths(PathingNode* pStartNode, float threshold)
+eastl::map<PathingNode*, float> PathingGraph::FindPaths(PathingNode* pStartNode, unsigned int arcType, float threshold)
 {
 	// find the best path using an A* search algorithm
 	PathFinder pathFinder;
-	return pathFinder(pStartNode, threshold);
+	return pathFinder(pStartNode, arcType, threshold);
 }
 
 PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint)

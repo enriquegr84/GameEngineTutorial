@@ -243,7 +243,7 @@ public:
 	void Destroy(void);
 	
 	PathPlan* operator()(PathingNode* pStartNode, PathingNode* pGoalNode);
-	eastl::map<PathingNode*, float> operator()(PathingNode* pStartNode, float threshold);
+	eastl::map<PathingNode*, float> operator()(PathingNode* pStartNode, unsigned int arcType, float threshold);
 
 private:
 	PathPlanNode* AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode);
@@ -276,7 +276,7 @@ public:
 	PathingNode* FindNode(unsigned int nodeId);
 	PathingNode* FindRandomNode(void);
 
-	eastl::map<PathingNode*, float> FindPaths(PathingNode* pStartNode, float threshold);
+	eastl::map<PathingNode*, float> FindPaths(PathingNode* pStartNode, unsigned int arcType, float threshold);
 
 	PathPlan* FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
 	PathPlan* FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode);

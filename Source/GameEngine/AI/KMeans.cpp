@@ -69,25 +69,11 @@ int Clustering::GetNearestPointIndex(const eastl::vector<float>& point)
 int KMeans::GetNearestClusterId(Point point,
 	eastl::map<int, eastl::map<int, float>>& distances)
 {
-	float sum = FLT_MAX;
-	if (distances.find(point.GetId()) != distances.end() &&
-		distances.find(mClusters[0].GetCenterPoint().GetId()) != distances.end())
+	int nearestClusterId = -1;
+	float minDist = FLT_MAX;
+	for (int i = 0; i < mK; i++)
 	{
-		if (distances[point.GetId()].find(mClusters[0].GetCenterPoint().GetId()) != 
-			distances[point.GetId()].end() &&
-			distances[mClusters[0].GetCenterPoint().GetId()].find(point.GetId()) !=
-			distances[mClusters[0].GetCenterPoint().GetId()].end())
-		{
-			sum = distances[mClusters[0].GetCenterPoint().GetId()][point.GetId()];
-			sum += distances[point.GetId()][mClusters[0].GetCenterPoint().GetId()];
-		}
-	}
-
-	int nearestClusterId = 0;
-	float minDist = sqrt(sum);
-	for (int i = 1; i < mK; i++)
-	{
-		sum = FLT_MAX;
+		float dist = FLT_MAX;
 		if (distances.find(point.GetId()) != distances.end() &&
 			distances.find(mClusters[i].GetCenterPoint().GetId()) != distances.end())
 		{
@@ -96,12 +82,12 @@ int KMeans::GetNearestClusterId(Point point,
 				distances[mClusters[i].GetCenterPoint().GetId()].find(point.GetId()) !=
 				distances[mClusters[i].GetCenterPoint().GetId()].end())
 			{
-				sum = distances[mClusters[i].GetCenterPoint().GetId()][point.GetId()];
-				sum += distances[point.GetId()][mClusters[i].GetCenterPoint().GetId()];
+				dist = distances[mClusters[i].GetCenterPoint().GetId()][point.GetId()];
+				dist += distances[point.GetId()][mClusters[i].GetCenterPoint().GetId()];
+				dist = sqrt(dist);
 			}
 		}
 
-		float dist = sqrt(sum);
 		if (dist < minDist)
 		{
 			minDist = dist;
@@ -151,7 +137,7 @@ void KMeans::Run(eastl::vector<Point> & points,
 			int currentClusterId = points[i].GetCluster();
 			int nearestClusterId = GetNearestClusterId(points[i], distances);
 
-			if (currentClusterId != nearestClusterId)
+			if (nearestClusterId != -1 && currentClusterId != nearestClusterId)
 			{
 				if (currentClusterId != -1)
 					mClusters[currentClusterId].RemovePoint(points[i].GetId());
@@ -185,27 +171,4 @@ void KMeans::Run(eastl::vector<Point> & points,
 		}
 		iter++;
 	}
-
-	// shows elements of clusters
-	int totalPoints = 0;
-	for (int i = 0; i < mK; i++)
-	{
-		int clusterSize = mClusters[i].GetSize();
-		totalPoints += clusterSize;
-
-		printf("\nCluster %i : ", mClusters[i].GetId());
-		for (int j = 0; j < mDimension; j++)
-			printf("%f ", mClusters[i].GetCenterPoint().GetValue(j));
-		for (int j = 0; j < mDimension; j++)
-			printf("%f ", mClusters[i].GetCenter(j));
-
-		for (int j = 0; j < clusterSize; j++)
-		{
-			printf("\nPoint %i : ", mClusters[i].GetPoint(j).GetId());
-			for (int p = 0; p < mDimension; p++)
-				printf("%f ", mClusters[i].GetPoint(j).GetValue(p));
-		}
-	}
-
-	printf("total points %i \n", totalPoints);
 }

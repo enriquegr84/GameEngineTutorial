@@ -54,7 +54,6 @@ QuakeAIManager::~QuakeAIManager()
 
 }   // ~QuakeAIManager
 
-
 /////////////////////////////////////////////////////////////////////////////
 // QuakeAIManager::LoadPathingGraph
 //
@@ -113,7 +112,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			PathingNode* links[2];
 			Vector3<float> connection = NULL;
 
-			arcId = pNode->IntAttribute("id", arcId);
+			arcId = pArc->IntAttribute("id", arcId);
 			arcType = pArc->IntAttribute("type", arcType);
 			weight = pArc->FloatAttribute("weight", weight);
 
@@ -145,6 +144,205 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			PathingArc* pathArc = new PathingArc(arcId, arcType, weight, connection);
 			pathArc->LinkNodes(links[0], links[1]);
 			pathNode->AddArc(pathArc);
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// QuakeAIManager::SavePathingGraph
+//
+//    Saves the AI pathing graph information to an XML file
+//
+void QuakeAIManager::SavePathingGraph(const eastl::string& path)
+{
+	tinyxml2::XMLDocument doc;
+
+	// base element
+	tinyxml2::XMLElement* pBaseElement = doc.NewElement("PathingGraph");
+	doc.InsertFirstChild(pBaseElement);
+
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		tinyxml2::XMLElement* pNode = doc.NewElement("Node");
+		pNode->SetAttribute("id", eastl::to_string(pathNode->GetId()).c_str());
+		pNode->SetAttribute("actorid", eastl::to_string(pathNode->GetActorId()).c_str());
+		pNode->SetAttribute("tolerance", eastl::to_string(pathNode->GetTolerance()).c_str());
+		pBaseElement->LinkEndChild(pNode);
+
+		tinyxml2::XMLElement* pPosition = doc.NewElement("Position");
+		pPosition->SetAttribute("x", eastl::to_string((int)round(pathNode->GetPos()[0])).c_str());
+		pPosition->SetAttribute("y", eastl::to_string((int)round(pathNode->GetPos()[1])).c_str());
+		pPosition->SetAttribute("z", eastl::to_string((int)round(pathNode->GetPos()[2])).c_str());
+		pNode->LinkEndChild(pPosition);
+
+		for (PathingArc* pathArc : pathNode->GetArcs())
+		{
+			tinyxml2::XMLElement* pArc = doc.NewElement("Arc");
+			pArc->SetAttribute("id", eastl::to_string(pathArc->GetId()).c_str());
+			pArc->SetAttribute("type", eastl::to_string(pathArc->GetType()).c_str());
+			pArc->SetAttribute("weight", eastl::to_string(pathArc->GetWeight()).c_str());
+			pNode->LinkEndChild(pArc);
+
+			tinyxml2::XMLElement* pLink = doc.NewElement("Link");
+			pLink->SetAttribute("a", eastl::to_string(pathArc->GetOrigin()->GetId()).c_str());
+			pLink->SetAttribute("b", eastl::to_string(pathArc->GetNeighbor()->GetId()).c_str());
+			pArc->LinkEndChild(pLink);
+
+			if (pathArc->GetConnection() != NULL)
+			{
+				tinyxml2::XMLElement* pConnection = doc.NewElement("Connection");
+				pConnection->SetAttribute("x", eastl::to_string((int)round(pathArc->GetConnection()[0])).c_str());
+				pConnection->SetAttribute("y", eastl::to_string((int)round(pathArc->GetConnection()[1])).c_str());
+				pConnection->SetAttribute("z", eastl::to_string((int)round(pathArc->GetConnection()[2])).c_str());
+				pArc->LinkEndChild(pConnection);
+			}
+		}
+	}
+
+	doc.SaveFile(path.c_str());
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// QuakeAIManager::LoadClusteringGraph
+//
+//    Loads the AI clustering graph information from an XML file
+//
+void QuakeAIManager::LoadClusteringGraph(const eastl::wstring& path)
+{
+	mClusteringGraph = eastl::make_shared<ClusteringGraph>();
+
+	// Load the map graph file
+	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(path.c_str());
+	LogAssert(pRoot, "AI xml doesn't exists");
+
+	eastl::map<unsigned int, Cluster*> clusteringGraph;
+	eastl::map<unsigned int, ClusteringNode*> clusteringNodes;
+	for (tinyxml2::XMLElement* pCluster = pRoot->FirstChildElement(); pCluster; pCluster = pCluster->NextSiblingElement())
+	{
+		int clusterId = 0;
+		int centerId = 0;
+		clusterId = pCluster->IntAttribute("id", clusterId);
+		centerId = pCluster->IntAttribute("centerid", centerId);
+
+		Cluster* cluster = new Cluster(clusterId);
+		mClusteringGraph->InsertCluster(cluster);
+
+		clusteringGraph[clusterId] = cluster;
+
+		for (tinyxml2::XMLElement* pClusterNode = pCluster->FirstChildElement("Node"); pClusterNode; pClusterNode = pClusterNode->NextSiblingElement())
+		{
+			int clusterNodeId = 0;
+			ActorId actorId = INVALID_ACTOR_ID;
+			Vector3<float> position = Vector3<float>::Zero();
+
+			clusterNodeId = pClusterNode->IntAttribute("id", clusterNodeId);
+			actorId = pClusterNode->IntAttribute("actorid", actorId);
+
+			tinyxml2::XMLElement* pPositionElement = pClusterNode->FirstChildElement("Position");
+			if (pPositionElement)
+			{
+				float x = 0;
+				float y = 0;
+				float z = 0;
+				x = pPositionElement->FloatAttribute("x", x);
+				y = pPositionElement->FloatAttribute("y", y);
+				z = pPositionElement->FloatAttribute("z", z);
+
+				position = Vector3<float>{ x, y, z };
+			}
+
+			ClusteringNode* clusterNode = new ClusteringNode(clusterNodeId, position);
+			clusterNode->SetActor(actorId);
+			clusterNode->SetCluster(cluster);
+			cluster->InsertNode(clusterNode);
+			cluster->AddActor(actorId);
+
+			clusteringNodes[clusterNodeId] = clusterNode;
+		}
+		cluster->SetCenter(clusteringNodes[centerId]);
+
+	}
+
+	for (tinyxml2::XMLElement* pCluster = pRoot->FirstChildElement(); pCluster; pCluster = pCluster->NextSiblingElement())
+	{
+		int clusterId = 0;
+		clusterId = pCluster->IntAttribute("id", clusterId);
+		Cluster* cluster = clusteringGraph[clusterId];
+
+		for (tinyxml2::XMLElement* pClusterArc = pCluster->FirstChildElement("Arc"); pClusterArc; pClusterArc = pClusterArc->NextSiblingElement())
+		{
+			int arcId = 0;
+			int arcType = 0;
+			Cluster* links[2];
+
+			arcId = pClusterArc->IntAttribute("id", arcId);
+			arcType = pClusterArc->IntAttribute("type", arcType);
+
+			tinyxml2::XMLElement* pLinkElement = pClusterArc->FirstChildElement("Link");
+			if (pLinkElement)
+			{
+				int clusterA = 0;
+				int clusterB = 0;
+				clusterA = pLinkElement->IntAttribute("a", clusterA);
+				clusterB = pLinkElement->IntAttribute("b", clusterB);
+
+				links[0] = clusteringGraph[clusterA];
+				links[1] = clusteringGraph[clusterB];
+			}
+
+			ClusterArc* clusterArc = new ClusterArc(arcId, arcType);
+			clusterArc->LinkClusters(links[0], links[1]);
+			cluster->AddArc(clusterArc);
+		}
+
+		for (tinyxml2::XMLElement* pClusterNode = pCluster->FirstChildElement("Node"); pClusterNode; pClusterNode = pClusterNode->NextSiblingElement())
+		{
+			int clusterNodeId = 0;
+			clusterNodeId = pClusterNode->IntAttribute("id", clusterNodeId);
+			ClusteringNode* clusterNode = clusteringNodes[clusterNodeId];
+
+			for (tinyxml2::XMLElement* pClusterNodeArc = pClusterNode->FirstChildElement("Arc"); pClusterNodeArc; pClusterNodeArc = pClusterNodeArc->NextSiblingElement())
+			{
+				int arcId = 0;
+				int arcType = 0;
+				float weight = 0.f;
+				ClusteringNode* links[2];
+				Vector3<float> connection = NULL;
+
+				arcId = pClusterNodeArc->IntAttribute("id", arcId);
+				arcType = pClusterNodeArc->IntAttribute("type", arcType);
+				weight = pClusterNodeArc->FloatAttribute("weight", weight);
+
+				tinyxml2::XMLElement* pLinkElement = pClusterNodeArc->FirstChildElement("Link");
+				if (pLinkElement)
+				{
+					int nodeA = 0;
+					int nodeB = 0;
+					nodeA = pLinkElement->IntAttribute("a", nodeA);
+					nodeB = pLinkElement->IntAttribute("b", nodeB);
+
+					links[0] = clusteringNodes[nodeA];
+					links[1] = clusteringNodes[nodeB];
+				}
+
+				tinyxml2::XMLElement* pConnectionElement = pClusterNodeArc->FirstChildElement("Connection");
+				if (pConnectionElement)
+				{
+					float x = 0;
+					float y = 0;
+					float z = 0;
+					x = pConnectionElement->FloatAttribute("x", x);
+					y = pConnectionElement->FloatAttribute("y", y);
+					z = pConnectionElement->FloatAttribute("z", z);
+
+					connection = Vector3<float>{ x, y, z };
+				}
+
+				ClusteringArc* clusterArc = new ClusteringArc(arcId, arcType, weight, connection);
+				clusterArc->LinkNodes(links[0], links[1]);
+				clusterNode->AddArc(clusterArc);
+			}
 		}
 	}
 
@@ -236,52 +434,72 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// QuakeAIManager::SaveMapGraph
+// QuakeAIManager::SaveClusteringGraph
 //
-//    Saves the AI pathing graph information to an XML file
+//    Saves the AI clustering graph information to an XML file
 //
-void QuakeAIManager::SaveMapGraph(const eastl::string& path)
+void QuakeAIManager::SaveClusteringGraph(const eastl::string& path)
 {
 	tinyxml2::XMLDocument doc;
 
 	// base element
-	tinyxml2::XMLElement* pBaseElement = doc.NewElement("PathingGraph");
+	tinyxml2::XMLElement* pBaseElement = doc.NewElement("ClusteringGraph");
 	doc.InsertFirstChild(pBaseElement);
 
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	for (Cluster* cluster : mClusteringGraph->GetClusters())
 	{
-		tinyxml2::XMLElement* pNode = doc.NewElement("Node");
-		pNode->SetAttribute("id", eastl::to_string(pathNode->GetId()).c_str());
-		pNode->SetAttribute("actorid", eastl::to_string(pathNode->GetActorId()).c_str());
-		pNode->SetAttribute("tolerance", eastl::to_string(pathNode->GetTolerance()).c_str());
-		pBaseElement->LinkEndChild(pNode);
+		tinyxml2::XMLElement* pCluster = doc.NewElement("Cluster");
+		pCluster->SetAttribute("id", eastl::to_string(cluster->GetId()).c_str());
+		pCluster->SetAttribute("centerid", eastl::to_string(cluster->GetCenter()->GetId()).c_str());
+		pBaseElement->LinkEndChild(pCluster);
 
-		tinyxml2::XMLElement* pPosition = doc.NewElement("Position");
-		pPosition->SetAttribute("x", eastl::to_string((int)round(pathNode->GetPos()[0])).c_str());
-		pPosition->SetAttribute("y", eastl::to_string((int)round(pathNode->GetPos()[1])).c_str());
-		pPosition->SetAttribute("z", eastl::to_string((int)round(pathNode->GetPos()[2])).c_str());
-		pNode->LinkEndChild(pPosition);
-
-		for (PathingArc* pathArc : pathNode->GetArcs())
+		for (ClusterArc* clusterArc : cluster->GetArcs())
 		{
 			tinyxml2::XMLElement* pArc = doc.NewElement("Arc");
-			pArc->SetAttribute("id", eastl::to_string(pathArc->GetId()).c_str());
-			pArc->SetAttribute("type", eastl::to_string(pathArc->GetType()).c_str());
-			pArc->SetAttribute("weight", eastl::to_string(pathArc->GetWeight()).c_str());
-			pNode->LinkEndChild(pArc);
+			pArc->SetAttribute("id", eastl::to_string(clusterArc->GetId()).c_str());
+			pArc->SetAttribute("type", eastl::to_string(clusterArc->GetType()).c_str());
+			pCluster->LinkEndChild(pArc);
 
 			tinyxml2::XMLElement* pLink = doc.NewElement("Link");
-			pLink->SetAttribute("a", eastl::to_string(pathArc->GetOrigin()->GetId()).c_str());
-			pLink->SetAttribute("b", eastl::to_string(pathArc->GetNeighbor()->GetId()).c_str());
+			pLink->SetAttribute("a", eastl::to_string(clusterArc->GetOrigin()->GetId()).c_str());
+			pLink->SetAttribute("b", eastl::to_string(clusterArc->GetNeighbor()->GetId()).c_str());
 			pArc->LinkEndChild(pLink);
+		}
 
-			if (pathArc->GetConnection() != NULL)
+		for (ClusteringNode* clusterNode : cluster->GetNodes())
+		{
+			tinyxml2::XMLElement* pNode = doc.NewElement("Node");
+			pNode->SetAttribute("id", eastl::to_string(clusterNode->GetId()).c_str());
+			pNode->SetAttribute("actorid", eastl::to_string(clusterNode->GetActor()).c_str());
+			pCluster->LinkEndChild(pNode);
+
+			tinyxml2::XMLElement* pPosition = doc.NewElement("Position");
+			pPosition->SetAttribute("x", eastl::to_string((int)round(clusterNode->GetPos()[0])).c_str());
+			pPosition->SetAttribute("y", eastl::to_string((int)round(clusterNode->GetPos()[1])).c_str());
+			pPosition->SetAttribute("z", eastl::to_string((int)round(clusterNode->GetPos()[2])).c_str());
+			pNode->LinkEndChild(pPosition);
+
+			for (ClusteringArc* clusterNodeArc : clusterNode->GetArcs())
 			{
-				tinyxml2::XMLElement* pConnection = doc.NewElement("Connection");
-				pConnection->SetAttribute("x", eastl::to_string((int)round(pathArc->GetConnection()[0])).c_str());
-				pConnection->SetAttribute("y", eastl::to_string((int)round(pathArc->GetConnection()[1])).c_str());
-				pConnection->SetAttribute("z", eastl::to_string((int)round(pathArc->GetConnection()[2])).c_str());
-				pArc->LinkEndChild(pConnection);
+				tinyxml2::XMLElement* pNodeArc = doc.NewElement("Arc");
+				pNodeArc->SetAttribute("id", eastl::to_string(clusterNodeArc->GetId()).c_str());
+				pNodeArc->SetAttribute("type", eastl::to_string(clusterNodeArc->GetType()).c_str());
+				pNodeArc->SetAttribute("weight", eastl::to_string(clusterNodeArc->GetWeight()).c_str());
+				pNode->LinkEndChild(pNodeArc);
+
+				tinyxml2::XMLElement* pLink = doc.NewElement("Link");
+				pLink->SetAttribute("a", eastl::to_string(clusterNodeArc->GetOrigin()->GetId()).c_str());
+				pLink->SetAttribute("b", eastl::to_string(clusterNodeArc->GetNeighbor()->GetId()).c_str());
+				pNodeArc->LinkEndChild(pLink);
+
+				if (clusterNodeArc->GetConnection() != NULL)
+				{
+					tinyxml2::XMLElement* pConnection = doc.NewElement("Connection");
+					pConnection->SetAttribute("x", eastl::to_string((int)round(clusterNodeArc->GetConnection()[0])).c_str());
+					pConnection->SetAttribute("y", eastl::to_string((int)round(clusterNodeArc->GetConnection()[1])).c_str());
+					pConnection->SetAttribute("z", eastl::to_string((int)round(clusterNodeArc->GetConnection()[2])).c_str());
+					pNodeArc->LinkEndChild(pConnection);
+				}
 			}
 		}
 	}
@@ -387,9 +605,8 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	game->GetGamePhysics()->SetTriggerCollision(true);
 	game->RemoveAllDelegates();
 	RegisterAllDelegates();
-
+	/*
 	mPathingGraph = eastl::make_shared<PathingGraph>();
-	mClusteringGraph = eastl::make_shared<ClusteringGraph>();
 
 	eastl::vector<eastl::shared_ptr<Actor>> actors;
 	game->GetAmmoActors(actors);
@@ -409,12 +626,9 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	// simulation step, it will be generated new waypoints from different actions such as
 	// movement, jumping or falling and its conections
 	SimulateWaypoint();
-
+	*/
 	// we group the graph nodes in clusters
 	CreateClusters();
-
-	GameLogic::Get()->GetAIManager()->SaveMapGraph(
-		FileSystem::Get()->GetPath("ai/quake/bloodrun - copia.xml"));
 
 	// we obtain visibility information from the cluster graph by using raycasting
 	SimulateVisibility();
@@ -966,6 +1180,9 @@ void QuakeAIManager::SimulateWaypoint()
 
 void QuakeAIManager::CreateClusters()
 {
+	/*
+	mClusteringGraph = eastl::make_shared<ClusteringGraph>();
+
 	eastl::vector<Point> points;
 	eastl::map<int, eastl::map<int, float>> distances;
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
@@ -978,12 +1195,12 @@ void QuakeAIManager::CreateClusters()
 
 	//path distances
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-		for (auto node : mPathingGraph->FindPaths(pathNode, 1.0f))
+		for (auto node : mPathingGraph->FindPaths(pathNode, AIAT_FALLTARGET, 1.0f))
 			distances[pathNode->GetId()][node.first->GetId()] = node.second;
 
 	//Running K-Means Clustering
-	int iters = 100;
-	KMeans kmeans(500, iters);
+	unsigned int iters = 100;
+	KMeans kmeans(500, 100);
 	kmeans.Run(points, distances);
 
 	eastl::map<unsigned int, ClusteringNode*> clusterNodes;
@@ -992,7 +1209,7 @@ void QuakeAIManager::CreateClusters()
 		Cluster* cluster = new Cluster(kCluster.GetId());
 		mClusteringGraph->InsertCluster(cluster);
 
-		for (unsigned int pIdx = 0; pIdx < kCluster.GetSize(); pIdx++)
+		for (int pIdx = 0; pIdx < kCluster.GetSize(); pIdx++)
 		{
 			Point point = kCluster.GetPoint(pIdx);
 			PathingNode* pathNode = mPathingGraph->FindNode(point.GetId());
@@ -1008,6 +1225,18 @@ void QuakeAIManager::CreateClusters()
 		Point center = kCluster.GetCenterPoint();
 		ClusteringNode* centerNode = cluster->FindNode(center.GetId());
 		cluster->SetCenter(centerNode);
+	}
+
+	GameLogic::Get()->GetAIManager()->SaveClusteringGraph(
+		FileSystem::Get()->GetPath("ai/quake/bloodrunclustering.xml"));
+	*/
+	mLastArcId = 0;
+
+	eastl::map<unsigned int, ClusteringNode*> clusterNodes;
+	for (Cluster* cluster : mClusteringGraph->GetClusters())
+	{
+		for (ClusteringNode* clusterNode : cluster->GetNodes())
+			clusterNodes[clusterNode->GetId()] = clusterNode;
 	}
 
 	for (Cluster* cluster : mClusteringGraph->GetClusters())
@@ -1058,17 +1287,10 @@ void QuakeAIManager::CreateClusters()
 			for (PathingArc* pathArc : pathNode->GetArcs())
 			{
 				ClusteringNode* targetNode = NULL;
-				unsigned int clusterArcType = 0;
 				if (pathArc->GetType() == AT_NORMAL)
-				{
-					clusterArcType = AIAT_CLUSTER;
 					targetNode = clusterNodes[pathArc->GetNeighbor()->GetId()];
-				}
 				else if (pathArc->GetType() & AT_TARGET)
-				{
-					clusterArcType = AIAT_CLUSTERTARGET;
 					targetNode = clusterNodes[pathArc->GetOrigin()->GetId()];
-				}
 
 				if (targetNode)
 				{
@@ -1076,7 +1298,7 @@ void QuakeAIManager::CreateClusters()
 					if (targetNode->GetCluster() == cluster)
 					{
 						ClusteringArc* clusterArc = new ClusteringArc(
-							pathArc->GetId(), pathArc->GetType() | clusterArcType, pathArc->GetWeight());
+							GetNewArcID(), pathArc->GetType(), pathArc->GetWeight());
 
 						ClusteringNode* linkNodeA = clusterNodes[pathArc->GetOrigin()->GetId()];
 						ClusteringNode* linkNodeB = clusterNodes[pathArc->GetNeighbor()->GetId()];
@@ -1091,8 +1313,8 @@ void QuakeAIManager::CreateClusters()
 							do
 							{
 								ClusteringNode* cNode = clusterNodes[pNode->GetId()];
-								ClusteringArc* cArc = new ClusteringArc(pArc->GetId(),
-									pArc->GetType() | AIAT_CLUSTER, pArc->GetWeight(), pArc->GetConnection());
+								ClusteringArc* cArc = new ClusteringArc(GetNewArcID(),
+									pArc->GetType(), pArc->GetWeight(), pArc->GetConnection());
 
 								linkNodeA = clusterNodes[pArc->GetOrigin()->GetId()];
 								linkNodeB = clusterNodes[pArc->GetNeighbor()->GetId()];
@@ -1100,7 +1322,7 @@ void QuakeAIManager::CreateClusters()
 								cNode->AddArc(cArc);
 
 								pNode = pArc->GetNeighbor();
-								pArc = pNode->FindArc(pArc->GetType() - 1, pNode);
+								pArc = pNode->FindArc(pArc->GetType(), pArc->GetOrigin());
 							} while (pathArc->GetNeighbor() != pArc->GetOrigin());
 						}
 					}
@@ -1113,23 +1335,16 @@ void QuakeAIManager::CreateClusters()
 				for (auto pathArc : pathingArc.second)
 				{
 					ClusteringNode* targetNode = NULL;
-					unsigned int clusterArcType = 0;
 					if (pathArc.second->GetType() == AT_NORMAL)
-					{
-						clusterArcType = AIAT_CLUSTER;
 						targetNode = clusterNodes[pathArc.second->GetNeighbor()->GetId()];
-					}
 					else if (pathArc.second->GetType() & AT_TARGET)
-					{
-						clusterArcType = AIAT_CLUSTERTARGET;
 						targetNode = clusterNodes[pathArc.second->GetOrigin()->GetId()];
-					}
 
 					if (targetNode)
 					{
 						Cluster* targetCluster = targetNode->GetCluster();
-						ClusteringArc* clusterArc = new ClusteringArc(pathArc.second->GetId(),
-							pathArc.second->GetType() | clusterArcType, pathArc.second->GetWeight());
+						ClusteringArc* clusterArc = new ClusteringArc(
+							GetNewArcID(), pathArc.second->GetType(), pathArc.second->GetWeight());
 
 						ClusteringNode* linkNodeA = clusterNodes[pathArc.second->GetOrigin()->GetId()];
 						ClusteringNode* linkNodeB = clusterNodes[pathArc.second->GetNeighbor()->GetId()];
@@ -1145,8 +1360,8 @@ void QuakeAIManager::CreateClusters()
 							do
 							{
 								ClusteringNode* cNode = clusterNodes[pNode->GetId()];
-								ClusteringArc* cArc = new ClusteringArc(pArc->GetId(),
-									pArc->GetType() | AIAT_CLUSTER, pArc->GetWeight(), pArc->GetConnection());
+								ClusteringArc* cArc = new ClusteringArc(GetNewArcID(),
+									pArc->GetType(), pArc->GetWeight(), pArc->GetConnection());
 
 								linkNodeA = clusterNodes[pArc->GetOrigin()->GetId()];
 								linkNodeB = clusterNodes[pArc->GetNeighbor()->GetId()];
@@ -1154,7 +1369,7 @@ void QuakeAIManager::CreateClusters()
 								cNode->AddArc(cArc);
 
 								pNode = pArc->GetNeighbor();
-								pArc = pNode->FindArc(pArc->GetType() - 1, pNode);
+								pArc = pNode->FindArc(pArc->GetType(), pArc->GetOrigin());
 							} while (pathArc.second->GetNeighbor() != pArc->GetOrigin());
 						}
 					}
@@ -1195,25 +1410,24 @@ void QuakeAIManager::CreateClusters()
 					for (auto cArcPlan : clusterPlan->GetArcs())
 						pCost += cArcPlan->GetWeight();
 
+					ClusteringArc* clusteringArc = new ClusteringArc(
+						GetNewArcID(), pBeginArc->GetType() | AIAT_CLUSTERTARGET, pCost);
+					clusteringArc->LinkNodes(pBeginArc->GetOrigin(), pEndArc->GetNeighbor());
+					clusterNode->AddArc(clusteringArc);
+
 					if (pBeginArc->GetType() == AT_NORMAL)
 					{
-						ClusteringArc* cArc = new ClusteringArc(
-							GetNewArcID(), pBeginArc->GetType() | AIAT_CLUSTERTARGET, pCost);
-						if (pEndArc->GetType() == AT_NORMAL)
-							cArc->LinkNodes(pEndArc->GetNeighbor(), pBeginArc->GetNeighbor());
-						else if (pEndArc->GetType() & AT_TARGET)
-							cArc->LinkNodes(pEndArc->GetOrigin(), pBeginArc->GetNeighbor());
-						clusterNode->AddArc(cArc);
+						clusteringArc = new ClusteringArc(
+							GetNewArcID(), pBeginArc->GetType() | AIAT_CLUSTER, pCost);
+						clusteringArc->LinkNodes(pEndArc->GetNeighbor(), pBeginArc->GetNeighbor());
+						clusterNode->AddArc(clusteringArc);
 					}
 					else if (pBeginArc->GetType() & AT_TARGET)
 					{
-						ClusteringArc* cArc = new ClusteringArc(
-							GetNewArcID(), pBeginArc->GetType() | AIAT_CLUSTERTARGET, pCost);
-						if (pEndArc->GetType() == AT_NORMAL)
-							cArc->LinkNodes(pEndArc->GetNeighbor(), pBeginArc->GetOrigin());
-						else if (pEndArc->GetType() & AT_TARGET)
-							cArc->LinkNodes(pEndArc->GetOrigin(), pBeginArc->GetOrigin());
-						clusterNode->AddArc(cArc);
+						clusteringArc = new ClusteringArc(
+							GetNewArcID(), pBeginArc->GetType() - 1 | AIAT_CLUSTER, pCost);
+						clusteringArc->LinkNodes(pEndArc->GetNeighbor(), pBeginArc->GetNeighbor());
+						clusterNode->AddArc(clusteringArc);
 					}
 					delete clusterPlan;
 				}

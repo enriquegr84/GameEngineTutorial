@@ -228,13 +228,6 @@ ClusteringNode* Cluster::FindRandomNode(void)
 	}
 }
 
-eastl::map<ClusteringNode*, float> Cluster::FindNodes(ClusteringNode* pStartNode, float threshold)
-{
-	// find the best cluster using an A* search algorithm
-	ClusterFinder clusterFinder;
-	return clusterFinder(pStartNode, threshold);
-}
-
 ClusterPlan* Cluster::FindNode(const Vector3<float>& startPoint, const Vector3<float>& endPoint)
 {
 	ClusteringNode* pStart = FindClosestNode(startPoint);
@@ -258,14 +251,14 @@ ClusterPlan* Cluster::FindNode(ClusteringNode* pStartNode, ClusteringNode* pGoal
 {
 	// find the best cluster using an A* search algorithm
 	ClusterFinder clusterFinder;
-	return clusterFinder(pStartNode, pGoalNode);
+	return clusterFinder(pStartNode, pGoalNode, true);
 }
 
 ClusterPlan* Cluster::FindNode(ClusteringNode* pStartNode, Cluster* pGoalCluster)
 {
 	// find the best cluster using an A* search algorithm
 	ClusterFinder clusterFinder;
-	return clusterFinder(pStartNode, pGoalCluster);
+	return clusterFinder(pStartNode, pGoalCluster, true);
 }
 
 void Cluster::InsertNode(ClusteringNode* pNode)
@@ -476,7 +469,7 @@ void ClusterFinder::Destroy(void)
 //
 // ClusterFinder::operator()					- Chapter 18, page 638
 //
-ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNode* pGoalNode)
+ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNode* pGoalNode, bool searchInNodes)
 {
 	LogAssert(pStartNode, "Invalid node");
 	LogAssert(pGoalNode, "Invalid node");
@@ -516,9 +509,12 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNod
 		for (ClusteringArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
 			ClusteringNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetClusteringNode());
-			if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster() &&
-				pNodeToEvaluate->GetCluster() != mGoalNode->GetCluster())
-				continue;
+			if (!searchInNodes)
+			{
+				if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster() &&
+					pNodeToEvaluate->GetCluster() != mGoalNode->GetCluster())
+					continue;
+			}
 
 			// Try and find a ClusterPlanNode object for this node.
 			ClusteringNodeToClusterPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
@@ -569,7 +565,7 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNod
 //
 // ClusterFinder::operator()					- Chapter 18, page 638
 //
-ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoalCluster)
+ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoalCluster, bool searchInNodes)
 {
 	LogAssert(pStartNode, "Invalid node");
 	LogAssert(pGoalCluster, "Invalid cluster");
@@ -609,9 +605,11 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoa
 		for (ClusteringArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
 			ClusteringNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetClusteringNode());
-			if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster() &&
-				pNodeToEvaluate->GetCluster() != mGoalNode->GetCluster())
-				continue;
+			if (!searchInNodes)
+			{
+				if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster())
+					continue;
+			}
 
 			// Try and find a ClusterPlanNode object for this node.
 			ClusteringNodeToClusterPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
@@ -657,91 +655,6 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoa
 	}
 
 	return NULL;
-}
-
-//
-// ClusterFinder::operator()					- Chapter 18, page 638
-//
-eastl::map<ClusteringNode*, float> ClusterFinder::operator()(ClusteringNode* pStartNode, float threshold)
-{
-	eastl::map<ClusteringNode*, float> clusteringNodes;
-	LogAssert(pStartNode, "Invalid node");
-
-	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
-	// we couldn't find a Cluster to the goal. The start node is the only node that is initially in 
-	// the open set.
-	AddToOpenSet(pStartNode, NULL);
-
-	while (!mOpenSet.empty())
-	{
-		// grab the most likely candidate
-		ClusterPlanNode* planNode = mOpenSet.front();
-
-		// added Cluster nodes within the threshold
-		clusteringNodes[planNode->GetClusteringNode()] = planNode->GetGoal();
-
-		// we're processing this node so remove it from the open set and add it to the closed set
-		mOpenSet.pop_front();
-		AddToClosedSet(planNode);
-
-		// get the neighboring nodes
-		ClusteringArcVec neighbors;
-		planNode->GetClusteringNode()->GetNeighbors(AT_NORMAL, neighbors);
-		planNode->GetClusteringNode()->GetNeighbors(AT_TARGET, neighbors);
-
-		// loop though all the neighboring nodes and evaluate each one
-		for (ClusteringArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
-		{
-			ClusteringNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetClusteringNode());
-
-			// Try and find a ClusterPlanNode object for this node.
-			ClusteringNodeToClusterPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
-
-			// If one exists and it's in the closed list, we've already evaluated the node.  We can
-			// safely skip it.
-			if (findIt != mNodes.end() && findIt->second->IsClosed())
-				continue;
-
-			// figure out the cost for this route through the node
-			float costForThisCluster = planNode->GetGoal() + (*it)->GetWeight();
-			if (costForThisCluster <= threshold)
-			{
-				bool isClusterBetter = false;
-
-				/*
-				fprintf(pFile, "arc node %f %f %f to node %f %f %f type %u cost %f\n",
-				(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
-				(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
-				(*it)->GetType(), costForThisCluster);
-				*/
-				// Grab the ClusterPlanNode if there is one.
-				ClusterPlanNode* pClusterPlanNodeToEvaluate = NULL;
-				if (findIt != mNodes.end())
-					pClusterPlanNodeToEvaluate = findIt->second;
-
-				// No ClusterPlanNode means we've never evaluated this Clustering node so we need to add it to 
-				// the open set, which has the side effect of setting all the cost data.
-				if (!pClusterPlanNodeToEvaluate)
-					pClusterPlanNodeToEvaluate = AddToOpenSet((*it), planNode);
-
-				// If this node is already in the open set, check to see if this route to it is better than
-				// the last.
-				else if (costForThisCluster < pClusterPlanNodeToEvaluate->GetGoal())
-					isClusterBetter = true;
-
-				// If this Cluster is better, relink the nodes appropriately, update the cost data, and
-				// reinsert the node into the open list priority queue.
-				if (isClusterBetter)
-				{
-					pClusterPlanNodeToEvaluate->UpdatePrevNode(planNode);
-					ReinsertNode(pClusterPlanNodeToEvaluate);
-				}
-			}
-			else AddToClosedSet(planNode);
-		}
-	}
-
-	return clusteringNodes;
 }
 
 ClusterPlanNode* ClusterFinder::AddToOpenSet(ClusteringArc* pArc, ClusterPlanNode* pPrevNode)
