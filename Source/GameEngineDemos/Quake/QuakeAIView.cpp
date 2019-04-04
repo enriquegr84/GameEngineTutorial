@@ -507,11 +507,11 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									pos[0], pos[1], pos[2], nextPos[0], nextPos[1], nextPos[2]);
 								*/
 								Vector3<float> direction =
-									mPlan->GetNeighborNode()->GetPos() - pTransformComponent->GetPosition();
+									mPlan->GetCurrentArc()->GetNode()->GetPos() - pTransformComponent->GetPosition();
 								Normalize(direction);
 								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
-								if (mPlan->GetCurrentArc()->GetType() == AIAT_JUMPTARGET)
+								if (mPlan->GetCurrentArc()->GetType() == GAT_JUMP)
 									pPlayerActor->GetAction().actionType |= ACTION_JUMP;
 							}
 						}

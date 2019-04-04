@@ -26,19 +26,14 @@
 #include "Physic/PhysicEventListener.h"
 #include "Mathematic/Algebra/Matrix4x4.h"
 
-enum AIActionType
+enum GameActionType
 {
-	AIAT_MOVE = 0x0000000,
-	AIAT_PUSH = 0x0000001,
-	AIAT_PUSHTARGET = 0x0000002,
-	AIAT_TELEPORT = 0x0000005,
-	AIAT_TELEPORTTARGET = 0x0000006,
-	AIAT_FALL = 0x0000009,
-	AIAT_FALLTARGET = 0x000000A,
-	AIAT_JUMP = 0x000000D,
-	AIAT_JUMPTARGET = 0x00000E,
-	AIAT_CLUSTER = 0x0000011,
-	AIAT_CLUSTERTARGET = 0x000012
+	GAT_MOVE = 0x0000000,
+	GAT_PUSH = 0x0000002,
+	GAT_TELEPORT = 0x0000006,
+	GAT_FALL = 0x000000A,
+	GAT_JUMP = 0x00000E,
+	GAT_CLUSTER = 0x000012
 };
 
 class QuakeAIManager : public AIManager
@@ -122,17 +117,6 @@ private:
 	//pathing nodes which contains actors from game
 	eastl::map<ActorId, bool> mActorCollisions;
 	eastl::map<PathingNode*, ActorId> mActorNodes;
-
-	PathingArcDoubleMap mVisibleArcs;
-	PathingNodeDoubleMap mVisibleNodes;
-	PathingNodeArcDoubleMap mVisibleNodeArcs;
-	PathingArcNodeDoubleMap mVisibleArcNodes;
-
-	PathingArcDoubleMap mVisibleArcsTime;
-	PathingNodeArcDoubleMap mVisibleNodeArcsTime;
-	PathingArcNodeDoubleMap mVisibleArcNodesTime;
-
-	PathingNodeVecMap mProjectileDirections;
 
 	void RegisterAllDelegates(void);
 	void RemoveAllDelegates(void);

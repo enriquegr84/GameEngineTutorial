@@ -309,25 +309,53 @@ bool Vector<N, Real>::operator!=(Vector const& vec) const
 template <int N, typename Real> inline
 bool Vector<N, Real>::operator<(Vector const& vec) const
 {
-    return mTuple < vec.mTuple;
+	eastl::array<Real, N> thisTuple;
+	eastl::array<Real, N> otherTuple;
+	for (int i = 0; i < N; ++i)
+	{
+		thisTuple[i] = mTuple[i];
+		otherTuple[i] = vec.mTuple[i];
+	}
+	return thisTuple < otherTuple;
 }
 
 template <int N, typename Real> inline
 bool Vector<N, Real>::operator<=(Vector const& vec) const
 {
-    return mTuple <= vec.mTuple;
+	eastl::array<Real, N> thisTuple;
+	eastl::array<Real, N> otherTuple;
+	for (int i = 0; i < N; ++i)
+	{
+		thisTuple[i] = mTuple[i];
+		otherTuple[i] = vec.mTuple[i];
+	}
+	return thisTuple <= otherTuple;
 }
 
 template <int N, typename Real> inline
 bool Vector<N, Real>::operator>(Vector const& vec) const
 {
-    return mTuple > vec.mTuple;
+	eastl::array<Real, N> thisTuple;
+	eastl::array<Real, N> otherTuple;
+	for (int i = 0; i < N; ++i)
+	{
+		thisTuple[i] = mTuple[i];
+		otherTuple[i] = vec.mTuple[i];
+	}
+	return thisTuple > otherTuple;
 }
 
 template <int N, typename Real> inline
 bool Vector<N, Real>::operator>=(Vector const& vec) const
 {
-    return mTuple >= vec.mTuple;
+	eastl::array<Real, N> thisTuple;
+	eastl::array<Real, N> otherTuple;
+	for (int i = 0; i < N; ++i)
+	{
+		thisTuple[i] = mTuple[i];
+		otherTuple[i] = vec.mTuple[i];
+	}
+	return thisTuple >= otherTuple;
 }
 
 template <int N, typename Real>

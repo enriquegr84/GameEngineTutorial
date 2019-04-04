@@ -41,6 +41,8 @@
 
 #include "GameEngineStd.h"
 
+#include "Pathing.h"
+
 #include "Core/Logger/Logger.h"
 
 class Point
@@ -79,6 +81,30 @@ private:
 	eastl::vector<float> mValues;
 };
 
+class PointArc
+{
+
+public:
+
+	PointArc()
+	{
+		mArcId = -1;
+		mArcType = 0;
+	}
+
+	PointArc(int arcId, int arcType)
+	{
+		mArcId = arcId;
+		mArcType = arcType;
+	}
+
+	int GetId() { return mArcId; }
+	int GetType() { return mArcType; }
+
+private:
+	int mArcId, mArcType;
+};
+
 class Clustering
 {
 
@@ -98,6 +124,20 @@ public:
 	int GetId() { return mClusterId; }
 
 	void AddPoint(Point point)  { mPoints.push_back(point);  }
+	void AddIsolatedPoint(Point point) { mIsolatedPoints.push_back(point); }
+	void ClearPoints() { mPoints.clear(); }
+	void ClearIsolatedPoints() { mIsolatedPoints.clear(); }
+	int GetNearestPointIndex(const eastl::vector<float>& point);
+	Point GetPoint(int index) { return mPoints[index]; }
+	int GetPointIndex(int pointId)
+	{
+		for (unsigned int i = 0; i < mPoints.size(); i++)
+		{
+			if (mPoints[i].GetId() == pointId)
+				return i;
+		}
+		return -1;
+	}
 	bool RemovePoint(int pointId)
 	{
 		for (unsigned int i = 0; i < mPoints.size(); i++)
@@ -110,28 +150,46 @@ public:
 		}
 		return false;
 	}
+	bool RemoveIsolatedPoint(int pointId)
+	{
+		for (unsigned int i = 0; i < mIsolatedPoints.size(); i++)
+		{
+			if (mIsolatedPoints[i].GetId() == pointId)
+			{
+				mIsolatedPoints.erase(mIsolatedPoints.begin() + i);
+				return true;
+			}
+		}
+		return false;
+	}
 
 	float GetCenter(int index) { return mCenter[index]; }
-	void SetCenter(int index, float value) 
-	{ 
-		mCenter[index] = value; 
-		mCenterPoint = mPoints[GetNearestPointIndex(mCenter)];
-	}
 	Point GetCenterPoint() { return mCenterPoint; }
+	void SetCenter(int index, float value) { mCenter[index] = value; }
+	void SetCenterPoint(Point point) { mCenterPoint = point; }
+	void SetCenterPoint(int index) { mCenterPoint = mPoints[index]; }
 	const eastl::vector<float>& GetCenterValue() { return mCenter; }
-
-	Point GetPoint(int index) { return mPoints[index]; }
 	int GetSize() { return mPoints.size(); }
 
-private:
+	bool IsIsolatedPoint(Point point)
+	{
+		for (unsigned int i = 0; i < mIsolatedPoints.size(); i++)
+		{
+			if (mIsolatedPoints[i].GetId() == point.GetId())
+				return true;
+		}
+		return false;
+	}
+	Point GetIsolatedPoint(int index) { return mIsolatedPoints[index]; }
+	int GetIsolatedSize() { return mIsolatedPoints.size(); }
 
-	// return nearest point Id (uses euclidean distance)
-	int GetNearestPointIndex(const eastl::vector<float>& point);
+private:
 
 	int mClusterId;
 	Point mCenterPoint;
 	eastl::vector<float> mCenter;
 	eastl::vector<Point> mPoints;
+	eastl::vector<Point> mIsolatedPoints;
 
 };
 
@@ -140,27 +198,34 @@ class KMeans
 
 public:
 
-	KMeans(int K, int maxIterations)
+	KMeans(int K, int maxIterations, eastl::shared_ptr<PathingGraph> pPathingGraph)
 	{
 		mK = K;
 		mIterations = maxIterations;
+		mPathingGraph = pPathingGraph;
 	}
 
-	void Run(eastl::vector<Point> & points, 
-		eastl::map<int, eastl::map<int, float>>& distances);
+	void Run(eastl::vector<Point> & points);
 
+	bool IsArc(int arcId);
+	const eastl::vector<PointArc>& GetArcs() { return mArcs; }
 	const eastl::vector<Clustering>& GetClusters() { return mClusters; }
 
 private:
 
+	unsigned int FindClusterId(unsigned int pointId);
+	int GetNearestClusterId(Point point); // return nearest point (uses euclidean distance)
+
+	void AddArc(PointArc arc);
+	PointArc GetArc(int index) { return mArcs[index]; }
+	void ClearArcs() { mArcs.clear(); }
+
 	int mK; // number of clusters
 	int mIterations, mDimension, mTotalPoints;
+
+	eastl::vector<PointArc> mArcs;
 	eastl::vector<Clustering> mClusters;
-
-	// return nearest cluster Id (uses euclidean distance)
-	int GetNearestClusterId(Point point,
-		eastl::map<int, eastl::map<int, float>>& distances);
-
+	eastl::shared_ptr<PathingGraph> mPathingGraph;
 };
 
 

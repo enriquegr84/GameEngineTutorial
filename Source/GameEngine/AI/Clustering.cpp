@@ -44,8 +44,8 @@
 enum ArcType
 {
 	AT_NORMAL = 0,
-	AT_ACTION = 1,
-	AT_TARGET = 2,
+	AT_TARGET = 1,
+	AT_ACTION = 2,
 
 	AT_COUNT
 };
@@ -98,7 +98,7 @@ ClusterArc* Cluster::FindArc(Cluster* pLinkedCluster)
 	for (ClusterArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		ClusterArc* pArc = *it;
-		if (pArc->GetNeighbor(this) == pLinkedCluster)
+		if (pArc->GetCluster() == pLinkedCluster)
 			return pArc;
 	}
 	return NULL;
@@ -113,25 +113,25 @@ ClusterArc* Cluster::FindArc(unsigned int arcType, Cluster* pLinkedCluster)
 		ClusterArc* pArc = *it;
 		if (pArc->GetType() == arcType)
 		{
-			if (pArc->GetOrigin() == this)
-			{
-				if (pArc->GetNeighbor() == pLinkedCluster)
-					return pArc;
-			}
-			else if (pArc->GetOrigin() == pLinkedCluster)
-			{
+			if (pArc->GetCluster() == pLinkedCluster)
 				return pArc;
-			}
 		}
 	}
 	return NULL;
 }
 
-void Cluster::RemoveArcs()
+void Cluster::RemoveArcs(unsigned int arcType)
 {
-	for (ClusterArc* pArc : mArcs)
-		delete pArc;
-	mArcs.clear();
+	ClusterArcVec keepArcs;
+	for (ClusterArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		ClusterArc* pArc = (*it);
+		if (pArc->GetType() != arcType)
+			keepArcs.push_back(pArc);
+		else
+			delete pArc;
+	}
+	mArcs = keepArcs;
 }
 
 
@@ -251,45 +251,15 @@ ClusterPlan* Cluster::FindNode(ClusteringNode* pStartNode, ClusteringNode* pGoal
 {
 	// find the best cluster using an A* search algorithm
 	ClusterFinder clusterFinder;
-	return clusterFinder(pStartNode, pGoalNode, true);
+	return clusterFinder(pStartNode, pGoalNode);
 }
 
 ClusterPlan* Cluster::FindNode(ClusteringNode* pStartNode, Cluster* pGoalCluster)
 {
 	// find the best cluster using an A* search algorithm
 	ClusterFinder clusterFinder;
-	return clusterFinder(pStartNode, pGoalCluster, true);
+	return clusterFinder(pStartNode, pGoalCluster);
 }
-
-void Cluster::InsertNode(ClusteringNode* pNode)
-{
-	LogAssert(pNode, "Invalid node");
-
-	mNodes.push_back(pNode);
-}
-
-//--------------------------------------------------------------------------------------------------------
-// ClusterArc
-//--------------------------------------------------------------------------------------------------------
-void ClusterArc::LinkClusters(Cluster* pClusterA, Cluster* pClusterB)
-{
-	LogAssert(pClusterA, "Invalid cluster");
-	LogAssert(pClusterB, "Invalid cluster");
-
-	mClusters[0] = pClusterA;
-	mClusters[1] = pClusterB;
-}
-
-Cluster* ClusterArc::GetNeighbor(Cluster* pMe)
-{
-	LogAssert(pMe, "Invalid cluster");
-
-	if (mClusters[0] == pMe)
-		return mClusters[1];
-	else
-		return mClusters[0];
-}
-
 
 //--------------------------------------------------------------------------------------------------------
 // ClusteringNode
@@ -326,7 +296,7 @@ ClusteringArc* ClusteringNode::FindArc(ClusteringNode* pLinkedNode)
 	for (ClusteringArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		ClusteringArc* pArc = *it;
-		if (pArc->GetNeighbor(this) == pLinkedNode)
+		if (pArc->GetNode() == pLinkedNode)
 			return pArc;
 	}
 	return NULL;
@@ -341,50 +311,87 @@ ClusteringArc* ClusteringNode::FindArc(unsigned int arcType, ClusteringNode* pLi
 		ClusteringArc* pArc = *it;
 		if (pArc->GetType() == arcType)
 		{
-			if (pArc->GetOrigin() == this)
-			{
-				if (pArc->GetNeighbor() == pLinkedNode)
-					return pArc;
-			}
-			else if (pArc->GetOrigin() == pLinkedNode)
-			{
+			if (pArc->GetNode() == pLinkedNode)
 				return pArc;
-			}
 		}
 	}
 	return NULL;
 }
 
-void ClusteringNode::RemoveArcs()
+void ClusteringNode::RemoveArcs(unsigned int arcType)
 {
-	for (ClusteringArc* pArc : mArcs)
-		delete pArc;
-	mArcs.clear();
+	ClusteringArcVec keepArcs;
+	for (ClusteringArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		ClusteringArc* pArc = (*it);
+		if (pArc->GetType() != arcType)
+			keepArcs.push_back(pArc);
+		else
+			delete pArc;
+	}
+	mArcs = keepArcs;
 }
 
-
-//--------------------------------------------------------------------------------------------------------
-// ClusteringArc
-//--------------------------------------------------------------------------------------------------------
-void ClusteringArc::LinkNodes(ClusteringNode* pNodeA, ClusteringNode* pNodeB)
+void ClusteringNode::AddTransition(ClusteringTransition* pTransition)
 {
-	LogAssert(pNodeA, "Invalid node");
-	LogAssert(pNodeB, "Invalid node");
-
-	mNodes[0] = pNodeA;
-	mNodes[1] = pNodeB;
+	LogAssert(pTransition, "Invalid transition");
+	mTransitions.push_back(pTransition);
 }
 
-ClusteringNode* ClusteringArc::GetNeighbor(ClusteringNode* pMe)
+ClusteringTransition* ClusteringNode::FindTransition(unsigned int id)
 {
-	LogAssert(pMe, "Invalid node");
-	
-	if (mNodes[0] == pMe)
-		return mNodes[1];
-	else
-		return mNodes[0];
+	for (ClusteringTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
+	{
+		ClusteringTransition* pTransition = *it;
+		if (pTransition->GetId() == id)
+			return pTransition;
+	}
+	return NULL;
 }
 
+ClusteringTransition* ClusteringNode::FindTransition(ClusteringNode* pTransitionNode)
+{
+	LogAssert(pTransitionNode, "Invalid node");
+
+	for (ClusteringTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
+	{
+		ClusteringTransition* pTransition = *it;
+		if (pTransition->GetNode() == pTransitionNode)
+			return pTransition;
+	}
+	return NULL;
+}
+
+ClusteringTransition* ClusteringNode::FindTransition(unsigned int arcType, ClusteringNode* pTransitionNode)
+{
+	LogAssert(pTransitionNode, "Invalid node");
+
+	for (ClusteringTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
+	{
+		ClusteringTransition* pTransition = *it;
+		if (pTransition->GetType() == arcType)
+		{
+			if (pTransition->GetNode() == pTransitionNode)
+				return pTransition;
+		}
+	}
+	return NULL;
+}
+
+void ClusteringNode::RemoveTransitions(unsigned int arcType)
+{
+	ClusteringTransitionVec keepTransitions;
+	for (ClusteringTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
+	{
+		ClusteringTransition* pTransition = *it;
+		if (pTransition->GetType() == arcType)
+			keepTransitions.push_back(pTransition);
+		else
+			delete pTransition;
+	}
+
+	mTransitions = keepTransitions;
+}
 
 //--------------------------------------------------------------------------------------------------------
 // ClusterPlan
@@ -404,7 +411,7 @@ ClusterPlanNode::ClusterPlanNode(ClusteringArc* pArc, ClusterPlanNode* pPrevNode
 	LogAssert(pArc, "Invalid arc");
 	
 	mClusteringArc = pArc;
-	mClusteringNode = pArc->GetNeighbor();
+	mClusteringNode = pArc->GetNode();
 	mPrevNode = pPrevNode;  // NULL is a valid value, though it should only be NULL for the start node
 	mClosed = false;
 	UpdateClusterCost();
@@ -469,7 +476,7 @@ void ClusterFinder::Destroy(void)
 //
 // ClusterFinder::operator()					- Chapter 18, page 638
 //
-ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNode* pGoalNode, bool searchInNodes)
+ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNode* pGoalNode)
 {
 	LogAssert(pStartNode, "Invalid node");
 	LogAssert(pGoalNode, "Invalid node");
@@ -481,6 +488,9 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNod
 	// set our members
 	mStartNode = pStartNode;
 	mGoalNode = pGoalNode;
+
+	ClusterArcVec clusterArcs;
+	mGoalNode->GetCluster()->GetNeighbors(AT_ACTION, clusterArcs);
 
 	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
 	// we couldn't find a Cluster to the goal. The start node is the only node that is initially in 
@@ -503,19 +513,33 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNod
 		// get the neighboring nodes
 		ClusteringArcVec neighbors;
 		planNode->GetClusteringNode()->GetNeighbors(AT_NORMAL, neighbors);
-		planNode->GetClusteringNode()->GetNeighbors(AT_TARGET, neighbors);
+		planNode->GetClusteringNode()->GetNeighbors(AT_ACTION, neighbors);
 
-		// loop though all the neighboring nodes and evaluate each one
+		// loop through all the neighboring nodes and evaluate each one
 		for (ClusteringArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
-			ClusteringNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetClusteringNode());
-			if (!searchInNodes)
-			{
-				if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster() &&
-					pNodeToEvaluate->GetCluster() != mGoalNode->GetCluster())
-					continue;
-			}
+			ClusteringNode* pNodeToEvaluate = (*it)->GetNode();
 
+			// we traverse only through clusters except when we are closer to the goal cluster
+			// in which case we traverse through nodes
+			/*
+			if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster())
+			{
+				if (pNodeToEvaluate->GetCluster() != mGoalNode->GetCluster())
+				{
+					bool skipNode = true;
+					for (ClusterArc* clusterArc : clusterArcs)
+					{
+						if (pNodeToEvaluate->GetCluster() == clusterArc->GetNeighbor())
+						{
+							skipNode = false;
+							break;
+						}
+					}
+					if (skipNode) continue;
+				}
+			}
+			*/
 			// Try and find a ClusterPlanNode object for this node.
 			ClusteringNodeToClusterPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
 
@@ -558,14 +582,14 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNod
 			}
 		}
 	}
-
+	
 	return NULL;
 }
 
 //
 // ClusterFinder::operator()					- Chapter 18, page 638
 //
-ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoalCluster, bool searchInNodes)
+ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoalCluster)
 {
 	LogAssert(pStartNode, "Invalid node");
 	LogAssert(pGoalCluster, "Invalid cluster");
@@ -577,6 +601,9 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoa
 	// set our members
 	mStartNode = pStartNode;
 	mGoalNode = NULL;
+
+	ClusterArcVec clusterArcs;
+	pGoalCluster->GetNeighbors(AT_ACTION, clusterArcs);
 
 	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
 	// we couldn't find a Cluster to the goal. The start node is the only node that is initially in 
@@ -599,18 +626,33 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoa
 		// get the neighboring nodes
 		ClusteringArcVec neighbors;
 		planNode->GetClusteringNode()->GetNeighbors(AT_NORMAL, neighbors);
-		planNode->GetClusteringNode()->GetNeighbors(AT_TARGET, neighbors);
+		planNode->GetClusteringNode()->GetNeighbors(AT_ACTION, neighbors);
 
 		// loop though all the neighboring nodes and evaluate each one
 		for (ClusteringArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
-			ClusteringNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetClusteringNode());
-			if (!searchInNodes)
-			{
-				if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster())
-					continue;
-			}
+			ClusteringNode* pNodeToEvaluate = (*it)->GetNode();
 
+			// we traverse only through clusters except when we are closer to the goal cluster
+			// in which case we traverse through nodes
+			/*
+			if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster())
+			{
+				if (pNodeToEvaluate->GetCluster() != mGoalNode->GetCluster())
+				{
+					bool skipNode = true;
+					for (ClusterArc* clusterArc : clusterArcs)
+					{
+						if (pNodeToEvaluate->GetCluster() == clusterArc->GetNeighbor())
+						{
+							skipNode = false;
+							break;
+						}
+					}
+					if (skipNode) continue;
+				}
+			}
+			*/
 			// Try and find a ClusterPlanNode object for this node.
 			ClusteringNodeToClusterPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
 
@@ -662,7 +704,7 @@ ClusterPlanNode* ClusterFinder::AddToOpenSet(ClusteringArc* pArc, ClusterPlanNod
 	LogAssert(pArc, "Invalid arc");
 
 	// create a new ClusterPlanNode if necessary
-	ClusteringNode* pNode = pArc->GetNeighbor(pPrevNode->GetClusteringNode());
+	ClusteringNode* pNode = pArc->GetNode();
 	ClusteringNodeToClusterPlanNodeMap::iterator it = mNodes.find(pNode);
 	ClusterPlanNode* pThisNode = NULL;
 	if (it == mNodes.end())

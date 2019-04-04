@@ -235,7 +235,7 @@ bool GameApplication::OnInitialize()
 		of registering a loader associates a specific loader class with a file type.
 	*/
 	BaseResourceFile *mountPointFile = new ResourceMountPointFile(L"../../../Assets");
-	mResCache = eastl::shared_ptr<ResCache>(new ResCache(100, mountPointFile));
+	mResCache = eastl::shared_ptr<ResCache>(new ResCache(200, mountPointFile));
 
 	if (!mResCache->Init())
 	{

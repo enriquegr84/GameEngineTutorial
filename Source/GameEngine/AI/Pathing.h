@@ -44,23 +44,23 @@
 #include "Core/Logger/Logger.h"
 #include "Mathematic/Algebra/Vector3.h"
 
-class PathingArc;
+class PathingTransition;
 class PathingNode;
+class PathingArc;
+
 class PathPlanNode;
 class PathFinder;
+class PathPlan;
 
 typedef eastl::vector<PathingArc*> PathingArcVec;
 typedef eastl::vector<PathingNode*> PathingNodeVec;
 typedef eastl::list<PathPlanNode*> PathPlanNodeList;
+typedef eastl::vector<PathingTransition*> PathingTransitionVec;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
 typedef eastl::map<PathingArc*, PathingNodeVec> PathingArcNodeMap;
 typedef eastl::map<PathingNode*, PathPlanNode*> PathingNodeToPathPlanNodeMap;
-typedef eastl::map<PathingArc*, eastl::map<PathingArc*, float>> PathingArcDoubleMap;
-typedef eastl::map<PathingNode*, eastl::map<PathingNode*, float>> PathingNodeDoubleMap;
-typedef eastl::map<PathingNode*, eastl::map<PathingArc*, float>> PathingNodeArcDoubleMap;
-typedef eastl::map<PathingArc*, eastl::map<PathingNode*, float>> PathingArcNodeDoubleMap;
-typedef eastl::map<PathingNode*, eastl::map<PathingNode*, Vector3<float>>> PathingNodeVecMap;
-typedef eastl::map<PathingNode*, eastl::map<PathingArc*, Vector3<float>>> PathingNodeArcVecMap;
+typedef eastl::map<Vector3<float>, eastl::map<Vector3<float>, float>> PathingDoubleMap;
+typedef eastl::map<PathingNode*, eastl::map<PathingNode*, PathPlan*>> PathingNodePlanDoubleMap;
 
 const float PATHING_DEFAULT_NODE_TOLERANCE = 4.0f;
 const float PATHING_DEFAULT_ARC_WEIGHT = 0.001f;
@@ -68,8 +68,9 @@ const float PATHING_DEFAULT_ARC_WEIGHT = 0.001f;
 enum ArcType
 {
 	AT_NORMAL = 0,
-	AT_ACTION = 1,
-	AT_TARGET = 2,
+	AT_TARGET = 1,
+	AT_ACTION = 2,
+
 
 	AT_COUNT
 };
@@ -84,6 +85,7 @@ class PathingNode
 	unsigned int mId;
 	Vector3<float> mPos;
 	PathingArcVec mArcs;
+	PathingTransitionVec mTransitions;
 
 	float mTolerance;
 	ActorId mActorId;
@@ -104,9 +106,16 @@ public:
 	PathingArc* FindArc(PathingNode* pLinkedNode);
 	PathingArc* FindArc(unsigned int arcType, PathingNode* pLinkedNode);
 	const PathingArcVec& GetArcs() { return mArcs; }
-	void RemoveArcs();
+	void RemoveArcs(unsigned int arcType);
 
 	void GetNeighbors(unsigned int arcType, PathingArcVec& outNeighbors);
+
+	void AddTransition(PathingTransition* pTransition);
+	PathingTransition* FindTransition(unsigned int id);
+	PathingTransition* FindTransition(PathingNode* pTransitionNode);
+	PathingTransition* FindTransition(unsigned int arcType, PathingNode* pTransitionNode);
+	const PathingTransitionVec& GetTransitions() { return mTransitions; }
+	void RemoveTransitions(unsigned int arcType);
 };
 
 
@@ -120,13 +129,11 @@ class PathingArc
 	unsigned int mType;
 	float mWeight;
 
-	Vector3<float> mConnection; //an optional interpolation vector which connects nodes 
-	PathingNode* mNodes[2];  // an arc always connects two nodes
+	PathingNode* mNode;  // node which is linked to
 
 public:
-	explicit PathingArc(unsigned int id, unsigned int type, 
-		float weight = 0.f, const Vector3<float>& connect = NULL) 
-		: mId(id), mType(type), mWeight(weight), mConnection(connect)
+	explicit PathingArc(unsigned int id, unsigned int type, PathingNode* pNode, float weight = 0.f) 
+		: mId(id), mType(type), mNode(pNode), mWeight(weight)
 	{ 
 
 	}
@@ -134,13 +141,38 @@ public:
 	unsigned int GetId(void) const { return mId; }
 	unsigned int GetType(void) const { return mType; }
 	float GetWeight(void) const { return mWeight; }
+	PathingNode* GetNode() const { return mNode; }
+};
 
-	const Vector3<float>& GetConnection(void) const { return mConnection; }
 
-	void LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB);
-	PathingNode* GetNeighbor(PathingNode* pMe);
-	PathingNode* GetNeighbor() { return mNodes[1]; }
-	PathingNode* GetOrigin() { return mNodes[0]; }
+//--------------------------------------------------------------------------------------------------------
+// class PathingTransition
+// This class represents the transitions which an arc may do.
+//--------------------------------------------------------------------------------------------------------
+class PathingTransition
+{
+	unsigned int mId;
+	unsigned int mType;
+	PathingNode* mNode;  // transition destiny
+
+	eastl::vector<float> mWeights;
+	eastl::vector<Vector3<float>> mConnections; // transition interpolation
+
+public:
+	explicit PathingTransition(unsigned int id, unsigned int type, PathingNode* node,
+		const eastl::vector<float>& weights = eastl::vector<float>(),
+		const eastl::vector<Vector3<float>>& connections = eastl::vector<Vector3<float>>())
+		: mId(id), mType(type), mNode(node), mWeights(weights), mConnections(connections)
+	{
+
+	}
+
+	unsigned int GetId(void) const { return mId; }
+	unsigned int GetType(void) const { return mType; }
+	PathingNode* GetNode(void) const { return mNode; }
+
+	const eastl::vector<float>& GetWeights(void) const { return mWeights; }
+	const eastl::vector<Vector3<float>>& GetConnections(void) const { return mConnections; }
 };
 
 
@@ -163,6 +195,8 @@ public:
 		mCurrentDirection = Vector3<float>::Zero(); 
 	}
 	
+	const PathingArcVec& GetArcs(void) const { return mPath; }
+
 	void ResetPath(void) 
 	{ 
 		mIndex = mPath.begin(); 
@@ -173,18 +207,6 @@ public:
 	{
 		LogAssert(mIndex != mPath.end(), "Invalid index");
 		return (*mIndex);
-	}
-
-	PathingNode* GetCurrentNode(void) const
-	{
-		LogAssert(mIndex != mPath.end(), "Invalid index");
-		return (*mIndex)->GetOrigin();
-	}
-
-	PathingNode* GetNeighborNode(void) const
-	{ 
-		LogAssert(mIndex != mPath.end(), "Invalid index"); 
-		return (*mIndex)->GetNeighbor();
 	}
 
 	bool CheckForNextNode(const Vector3<float>& pos);
@@ -243,7 +265,8 @@ public:
 	void Destroy(void);
 	
 	PathPlan* operator()(PathingNode* pStartNode, PathingNode* pGoalNode);
-	eastl::map<PathingNode*, float> operator()(PathingNode* pStartNode, unsigned int arcType, float threshold);
+	PathingNode* operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes);
+	void operator()(PathingNodeVec& searchNodes, PathingNodePlanDoubleMap& nodeConnections, float threshold);
 
 private:
 	PathPlanNode* AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode);
@@ -276,8 +299,8 @@ public:
 	PathingNode* FindNode(unsigned int nodeId);
 	PathingNode* FindRandomNode(void);
 
-	eastl::map<PathingNode*, float> FindPaths(PathingNode* pStartNode, unsigned int arcType, float threshold);
-
+	void FindConnections(PathingNodeVec& searchNodes, PathingNodePlanDoubleMap& nodeConnections, float threshold);
+	PathingNode* FindClosestNode(PathingNode* pStartNode, PathingNodeVec& searchNodes);
 	PathPlan* FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
 	PathPlan* FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode);
 	PathPlan* FindPath(PathingNode* pStartNode, const Vector3<float>& endPoint);

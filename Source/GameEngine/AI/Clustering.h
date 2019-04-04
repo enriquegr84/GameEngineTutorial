@@ -50,6 +50,7 @@ class ClusterPlanNode;
 class ClusterFinder;
 class ClusterArc; 
 
+class ClusteringTransition;
 class ClusteringNode;
 class ClusteringArc;
 
@@ -58,15 +59,12 @@ typedef eastl::vector<ClusterArc*> ClusterArcVec;
 typedef eastl::vector<ClusteringArc*> ClusteringArcVec;
 typedef eastl::vector<ClusteringNode*> ClusteringNodeVec;
 typedef eastl::list<ClusterPlanNode*> ClusterPlanNodeList;
+typedef eastl::vector<ClusteringTransition*> ClusteringTransitionVec;
 typedef eastl::map<ClusteringNode*, ClusteringNodeVec> ClusteringNodeMap;
+typedef eastl::map<ClusteringNode*, ClusteringArcVec> ClusteringNodeArcMap;
 typedef eastl::map<ClusteringArc*, ClusteringNodeVec> ClusteringArcNodeMap;
 typedef eastl::map<ClusteringNode*, ClusterPlanNode*> ClusteringNodeToClusterPlanNodeMap;
-typedef eastl::map<ClusteringArc*, eastl::map<ClusteringArc*, float>> ClusteringArcDoubleMap;
-typedef eastl::map<ClusteringNode*, eastl::map<ClusteringNode*, float>> ClusteringNodeDoubleMap;
-typedef eastl::map<ClusteringNode*, eastl::map<ClusteringArc*, float>> ClusteringNodeArcDoubleMap;
-typedef eastl::map<ClusteringArc*, eastl::map<ClusteringNode*, float>> ClusteringArcNodeDoubleMap;
-typedef eastl::map<ClusteringNode*, eastl::map<ClusteringNode*, Vector3<float>>> ClusteringNodeVecMap;
-typedef eastl::map<ClusteringNode*, eastl::map<ClusteringArc*, Vector3<float>>> ClusteringNodeArcVecMap;
+typedef eastl::map<Vector3<float>, eastl::map<Vector3<float>, float>> ClusteringDoubleMap;
 
 const float CLUSTERING_DEFAULT_NODE_TOLERANCE = 4.0f;
 const float CLUSTERING_DEFAULT_ARC_WEIGHT = 0.001f;
@@ -83,6 +81,7 @@ class Cluster
 
 	ClusterArcVec mArcs;  // master list of all arcs
 	ClusteringNodeVec mNodes;  // master list of all nodes
+	ClusteringNodeVec mIsolatedNodes;  // nodes without connection in the cluster
 
 	eastl::vector<ActorId> mActors; //actors within the cluster
 
@@ -109,7 +108,7 @@ public:
 	ClusterArc* FindArc(Cluster* pLinkedCluster);
 	ClusterArc* FindArc(unsigned int arcType, Cluster* pLinkedCluster);
 	const ClusterArcVec& GetArcs() { return mArcs; }
-	void RemoveArcs();
+	void RemoveArcs(unsigned int arcType);
 
 	void GetNeighbors(unsigned int arcType, ClusterArcVec& outNeighbors);
 
@@ -126,8 +125,29 @@ public:
 	ClusterPlan* FindNode(ClusteringNode* pStartNode, Cluster* pGoalCluster);
 
 	// helpers
-	void InsertNode(ClusteringNode* pNode);
+	bool IsIsolatedNode(ClusteringNode* pNode) 
+	{ 
+		ClusteringNodeVec::iterator itNode =
+			eastl::find(mIsolatedNodes.begin(), mIsolatedNodes.end(), pNode);
+		if (itNode == mIsolatedNodes.end())
+			return false;
+		else
+			return true;
+	}
+	void InsertIsolatedNode(ClusteringNode* pNode)
+	{
+		LogAssert(pNode, "Invalid node");
+
+		mIsolatedNodes.push_back(pNode);
+	}
+	void InsertNode(ClusteringNode* pNode)
+	{
+		LogAssert(pNode, "Invalid node");
+
+		mNodes.push_back(pNode);
+	}
 	const ClusteringNodeVec& GetNodes() { return mNodes; }
+	const ClusteringNodeVec& GetIsolatedNodes() { return mIsolatedNodes; }
 };
 
 //--------------------------------------------------------------------------------------------------------
@@ -138,25 +158,19 @@ class ClusterArc
 {
 	unsigned int mId;
 	unsigned int mType;
-	float mWeight;
 
-	Cluster* mClusters[2];  // an arc always connects two nodes
+	Cluster* mCluster;  // cluster which is linked to
 
 public:
-	explicit ClusterArc(unsigned int id, unsigned int type, float weight = 0.f)
-		: mId(id), mType(type), mWeight(weight)
+	explicit ClusterArc(unsigned int id, unsigned int type, Cluster* pCluster)
+		: mId(id), mType(type), mCluster(pCluster)
 	{
 
 	}
 
 	unsigned int GetId(void) const { return mId; }
 	unsigned int GetType(void) const { return mType; }
-	float GetWeight(void) const { return mWeight; }
-
-	void LinkClusters(Cluster* pClusterA, Cluster* pClusterB);
-	Cluster* GetNeighbor(Cluster* pMe);
-	Cluster* GetNeighbor() { return mClusters[1]; }
-	Cluster* GetOrigin() { return mClusters[0]; }
+	Cluster* GetCluster() const { return mCluster; }
 };
 
 
@@ -172,6 +186,7 @@ class ClusteringNode
 
 	Vector3<float> mPos;
 	ClusteringArcVec mArcs;
+	ClusteringTransitionVec mTransitions;
 
 	ActorId mActor;
 
@@ -192,9 +207,16 @@ public:
 	ClusteringArc* FindArc(ClusteringNode* pLinkedNode);
 	ClusteringArc* FindArc(unsigned int arcType, ClusteringNode* pLinkedNode);
 	const ClusteringArcVec& GetArcs() { return mArcs; }
-	void RemoveArcs();
+	void RemoveArcs(unsigned int arcType);
 
 	void GetNeighbors(unsigned int arcType, ClusteringArcVec& outNeighbors);
+
+	void AddTransition(ClusteringTransition* pTransition);
+	ClusteringTransition* FindTransition(unsigned int id);
+	ClusteringTransition* FindTransition(ClusteringNode* pTransitionNode);
+	ClusteringTransition* FindTransition(unsigned int arcType, ClusteringNode* pTransitionNode);
+	const ClusteringTransitionVec& GetTransitions() { return mTransitions; }
+	void RemoveTransitions(unsigned int arcType);
 };
 
 
@@ -207,13 +229,12 @@ class ClusteringArc
 	unsigned int mId;
 	unsigned int mType;
 	float mWeight;
-	Vector3<float> mConnection; //an optional interpolation vector which connects nodes 
-	ClusteringNode* mNodes[2];  // an arc always connects two nodes
+
+	ClusteringNode* mNode;  // node which is linked to
 
 public:
-	explicit ClusteringArc(unsigned int id, unsigned int type, 
-		float weight = 0.f, const Vector3<float>& connect = NULL) 
-		: mId(id), mType(type), mWeight(weight), mConnection(connect)
+	explicit ClusteringArc(unsigned int id, unsigned int type, ClusteringNode* pNode, float weight = 0.f)
+		: mId(id), mType(type), mNode(pNode), mWeight(weight)
 	{ 
 
 	}
@@ -221,12 +242,38 @@ public:
 	unsigned int GetId(void) const { return mId; }
 	unsigned int GetType(void) const { return mType; }
 	float GetWeight(void) const { return mWeight; }
-	const Vector3<float>& GetConnection(void) const { return mConnection; }
+	ClusteringNode* GetNode() const { return mNode; }
+};
 
-	void LinkNodes(ClusteringNode* pNodeA, ClusteringNode* pNodeB);
-	ClusteringNode* GetNeighbor(ClusteringNode* pMe);
-	ClusteringNode* GetNeighbor() { return mNodes[1]; }
-	ClusteringNode* GetOrigin() { return mNodes[0]; }
+
+//--------------------------------------------------------------------------------------------------------
+// class ClusteringTransition
+// This class represents the transitions which an arc may do.
+//--------------------------------------------------------------------------------------------------------
+class ClusteringTransition
+{
+	unsigned int mId;
+	unsigned int mType;
+	ClusteringNode* mNode;  // transition destiny
+
+	eastl::vector<float> mWeights;
+	eastl::vector<Vector3<float>> mConnections; // transition interpolation
+
+public:
+	explicit ClusteringTransition(unsigned int id, unsigned int type, ClusteringNode* node,
+		const eastl::vector<float>& weights = eastl::vector<float>(), 
+		const eastl::vector<Vector3<float>>& connections = eastl::vector<Vector3<float>>())
+		: mId(id), mType(type), mNode(node), mWeights(weights), mConnections(connections)
+	{
+
+	}
+
+	unsigned int GetId(void) const { return mId; }
+	unsigned int GetType(void) const { return mType; }
+	ClusteringNode* GetNode(void) const { return mNode; }
+
+	const eastl::vector<float>& GetWeights(void) const { return mWeights; }
+	const eastl::vector<Vector3<float>>& GetConnections(void) const { return mConnections; }
 };
 
 
@@ -297,8 +344,8 @@ public:
 	~ClusterFinder(void);
 	void Destroy(void);
 
-	ClusterPlan* operator()(ClusteringNode* pStartNode, ClusteringNode* pGoalNode, bool searchInNodes = false);
-	ClusterPlan* operator()(ClusteringNode* pStartNode, Cluster* pGoalCluster, bool searchInNodes = false);
+	ClusterPlan* operator()(ClusteringNode* pStartNode, ClusteringNode* pGoalNode);
+	ClusterPlan* operator()(ClusteringNode* pStartNode, Cluster* pGoalCluster);
 
 private:
 	ClusterPlanNode * AddToOpenSet(ClusteringArc* pArc, ClusterPlanNode* pPrevNode);

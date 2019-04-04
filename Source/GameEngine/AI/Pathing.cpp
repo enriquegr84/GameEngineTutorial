@@ -76,7 +76,7 @@ PathingArc* PathingNode::FindArc(PathingNode* pLinkedNode)
 	for (PathingArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		PathingArc* pArc = *it;
-		if (pArc->GetNeighbor(this) == pLinkedNode)
+		if (pArc->GetNode() == pLinkedNode)
 			return pArc;
 	}
 	return NULL;
@@ -91,50 +91,88 @@ PathingArc* PathingNode::FindArc(unsigned int arcType, PathingNode* pLinkedNode)
 		PathingArc* pArc = *it;
 		if (pArc->GetType() == arcType)
 		{
-			if (pArc->GetOrigin() == this)
-			{
-				if (pArc->GetNeighbor() == pLinkedNode)
-					return pArc;
-			}
-			else if (pArc->GetOrigin() == pLinkedNode)
-			{
+			if (pArc->GetNode() == pLinkedNode)
 				return pArc;
-			}
 		}
 	}
 	return NULL;
 }
 
-void PathingNode::RemoveArcs()
+void PathingNode::RemoveArcs(unsigned int arcType)
 {
-	for (PathingArc* pArc : mArcs)
-		delete pArc;
-	mArcs.clear();
+	PathingArcVec keepArcs;
+	for (PathingArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		PathingArc* pArc = (*it);
+		if (pArc->GetType() != arcType)
+			keepArcs.push_back(pArc);
+		else
+			delete pArc;
+	}
+
+	mArcs = keepArcs;
 }
 
-
-//--------------------------------------------------------------------------------------------------------
-// PathingArc
-//--------------------------------------------------------------------------------------------------------
-void PathingArc::LinkNodes(PathingNode* pNodeA, PathingNode* pNodeB)
+void PathingNode::AddTransition(PathingTransition* pTransition)
 {
-	LogAssert(pNodeA, "Invalid node");
-	LogAssert(pNodeB, "Invalid node");
-
-	mNodes[0] = pNodeA;
-	mNodes[1] = pNodeB;
+	LogAssert(pTransition, "Invalid transition");
+	mTransitions.push_back(pTransition);
 }
 
-PathingNode* PathingArc::GetNeighbor(PathingNode* pMe)
+PathingTransition* PathingNode::FindTransition(unsigned int id)
 {
-	LogAssert(pMe, "Invalid node");
-	
-	if (mNodes[0] == pMe)
-		return mNodes[1];
-	else
-		return mNodes[0];
+	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
+	{
+		PathingTransition* pTransition = *it;
+		if (pTransition->GetId() == id)
+			return pTransition;
+	}
+	return NULL;
 }
 
+PathingTransition* PathingNode::FindTransition(PathingNode* pTransitionNode)
+{
+	LogAssert(pTransitionNode, "Invalid node");
+
+	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
+	{
+		PathingTransition* pTransition = *it;
+		if (pTransition->GetNode() == pTransitionNode)
+			return pTransition;
+	}
+	return NULL;
+}
+
+PathingTransition* PathingNode::FindTransition(unsigned int arcType, PathingNode* pTransitionNode)
+{
+	LogAssert(pTransitionNode, "Invalid node");
+
+	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
+	{
+		PathingTransition* pTransition = *it;
+		if (pTransition->GetType() == arcType)
+		{
+			if (pTransition->GetNode() == pTransitionNode)
+				return pTransition;
+		}
+	}
+	return NULL;
+}
+
+void PathingNode::RemoveTransitions(unsigned int arcType)
+{
+	PathingTransitionVec keepTransitions;
+	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
+	{
+		PathingTransition* pTransition = *it;
+		if (pTransition->GetType() == arcType)
+			keepTransitions.push_back(pTransition);
+		else
+			delete pTransition;
+	}
+
+	mTransitions = keepTransitions;
+}
 
 //--------------------------------------------------------------------------------------------------------
 // PathPlan
@@ -145,7 +183,7 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 		return false;
 
 	Vector3<float> prevDirection = mCurrentDirection;
-	Vector3<float> diff = pos - (*mIndex)->GetNeighbor()->GetPos();
+	Vector3<float> diff = pos - (*mIndex)->GetNode()->GetPos();
 	mCurrentDirection = diff;
 	Normalize(mCurrentDirection);
 	/*
@@ -162,7 +200,7 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 
 		if (mIndex != mPath.end())
 		{
-			mCurrentDirection = pos - (*mIndex)->GetNeighbor()->GetPos();
+			mCurrentDirection = pos - (*mIndex)->GetNode()->GetPos();
 			Normalize(mCurrentDirection);
 		}
 		return true;
@@ -193,7 +231,7 @@ PathPlanNode::PathPlanNode(PathingArc* pArc, PathPlanNode* pPrevNode, PathingNod
 	LogAssert(pArc, "Invalid arc");
 	
 	mPathingArc = pArc;
-	mPathingNode = pArc->GetNeighbor();
+	mPathingNode = pArc->GetNode();
 	mPrevNode = pPrevNode;  // NULL is a valid value, though it should only be NULL for the start node
 	mGoalNode = pGoalNode;
 	mClosed = false;
@@ -295,12 +333,12 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 		// get the neighboring nodes
 		PathingArcVec neighbors;
 		planNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
-		planNode->GetPathingNode()->GetNeighbors(AT_TARGET, neighbors);
+		planNode->GetPathingNode()->GetNeighbors(AT_ACTION, neighbors);
 
 		// loop though all the neighboring nodes and evaluate each one
 		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
-			PathingNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetPathingNode());
+			PathingNode* pNodeToEvaluate = (*it)->GetNode();
 
 			// Try and find a PathPlanNode object for this node.
 			PathingNodeToPathPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
@@ -351,23 +389,37 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 //
 // PathFinder::operator()					- Chapter 18, page 638
 //
-eastl::map<PathingNode*, float> PathFinder::operator()(PathingNode* pStartNode, unsigned int arcType, float threshold)
+PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes)
 {
-	eastl::map<PathingNode*, float> pathingNodes;
 	LogAssert(pStartNode, "Invalid node");
+
+	// set our members
+	mStartNode = pStartNode;
+	mGoalNode = NULL;
 
 	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
 	// we couldn't find a path to the goal. The start node is the only node that is initially in 
 	// the open set.
-	AddToOpenSet(pStartNode, NULL);
+	AddToOpenSet(mStartNode, NULL);
 
+	float minCostGoal = FLT_MAX;
+	PathingNode* goalNode = NULL;
 	while (!mOpenSet.empty())
 	{
 		// grab the most likely candidate
 		PathPlanNode* planNode = mOpenSet.front();
 
-		// added path nodes within the threshold
-		pathingNodes[planNode->GetPathingNode()] = planNode->GetGoal();
+		// lets find out if we successfully found a path.
+		PathingNodeVec::iterator itNode = 
+			eastl::find(searchNodes.begin(), searchNodes.end(), planNode->GetPathingNode());
+		if (itNode != searchNodes.end())
+		{
+			if (planNode->GetGoal() < minCostGoal)
+			{
+				minCostGoal = planNode->GetGoal();
+				goalNode = (*itNode);
+			}
+		}
 
 		// we're processing this node so remove it from the open set and add it to the closed set
 		mOpenSet.pop_front();
@@ -376,16 +428,11 @@ eastl::map<PathingNode*, float> PathFinder::operator()(PathingNode* pStartNode, 
 		// get the neighboring nodes
 		PathingArcVec neighbors;
 		planNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
-		planNode->GetPathingNode()->GetNeighbors(AT_TARGET, neighbors);
 
 		// loop though all the neighboring nodes and evaluate each one
 		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
-			//search for specific arcs
-			if ((*it)->GetType() != AT_NORMAL && (*it)->GetType() != arcType) 
-				continue;
-
-			PathingNode* pNodeToEvaluate = (*it)->GetNeighbor(planNode->GetPathingNode());
+			PathingNode* pNodeToEvaluate = (*it)->GetNode();
 
 			// Try and find a PathPlanNode object for this node.
 			PathingNodeToPathPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
@@ -397,12 +444,102 @@ eastl::map<PathingNode*, float> PathFinder::operator()(PathingNode* pStartNode, 
 
 			// figure out the cost for this route through the node
 			float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
-			if (costForThisPath <= threshold)
-			{
-				bool isPathBetter = false;
+			if (costForThisPath >= minCostGoal)
+				continue;
 
+			bool isPathBetter = false;
+			/*
+			printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
+			(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
+			(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
+			(*it)->GetType(), costForThisPath);
+			*/
+			// Grab the PathPlanNode if there is one.
+			PathPlanNode* pPathPlanNodeToEvaluate = NULL;
+			if (findIt != mNodes.end())
+				pPathPlanNodeToEvaluate = findIt->second;
+
+			// No PathPlanNode means we've never evaluated this pathing node so we need to add it to 
+			// the open set, which has the side effect of setting all the cost data.
+			if (!pPathPlanNodeToEvaluate)
+				pPathPlanNodeToEvaluate = AddToOpenSet((*it), planNode);
+
+			// If this node is already in the open set, check to see if this route to it is better than
+			// the last.
+			else if (costForThisPath < pPathPlanNodeToEvaluate->GetGoal())
+				isPathBetter = true;
+
+			// If this path is better, relink the nodes appropriately, update the cost data, and
+			// reinsert the node into the open list priority queue.
+			if (isPathBetter)
+			{
+				pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
+				ReinsertNode(pPathPlanNodeToEvaluate);
+			}
+		}
+	}
+
+	return goalNode;
+}
+
+
+//
+// PathFinder::operator()					- Chapter 18, page 638
+//
+void PathFinder::operator()(PathingNodeVec& searchNodes, PathingNodePlanDoubleMap& nodeConnections, float threshold)
+{
+	for (PathingNode* searchNode : searchNodes)
+	{
+		LogAssert(searchNode, "Invalid node");
+
+		Destroy();
+
+		// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
+		// we couldn't find a path to the goal. The start node is the only node that is initially in 
+		// the open set.
+		AddToOpenSet(searchNode, NULL);
+
+		while (!mOpenSet.empty())
+		{
+			// grab the most likely candidate
+			PathPlanNode* planNode = mOpenSet.front();
+
+			// lets find out if we successfully found a path.
+			PathingNodeVec::iterator itNode =
+				eastl::find(searchNodes.begin(), searchNodes.end(), planNode->GetPathingNode());
+			if (itNode != searchNodes.end())
+				nodeConnections[searchNode][(*itNode)] = RebuildPath(planNode);
+
+			// we're processing this node so remove it from the open set and add it to the closed set
+			mOpenSet.pop_front();
+			AddToClosedSet(planNode);
+
+			// get the neighboring nodes
+			PathingArcVec neighbors;
+			planNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
+			planNode->GetPathingNode()->GetNeighbors(AT_ACTION, neighbors);
+
+			// loop though all the neighboring nodes and evaluate each one
+			for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+			{
+				PathingNode* pNodeToEvaluate = (*it)->GetNode();
+
+				// Try and find a PathPlanNode object for this node.
+				PathingNodeToPathPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
+
+				// If one exists and it's in the closed list, we've already evaluated the node.  We can
+				// safely skip it.
+				if (findIt != mNodes.end() && findIt->second->IsClosed())
+					continue;
+
+				// figure out the cost for this route through the node
+				float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
+				if (costForThisPath >= threshold)
+					continue;
+
+				bool isPathBetter = false;
 				/*
-				fprintf(pFile, "arc node %f %f %f to node %f %f %f type %u cost %f\n",
+				printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
 				(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
 				(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
 				(*it)->GetType(), costForThisPath);
@@ -430,11 +567,8 @@ eastl::map<PathingNode*, float> PathFinder::operator()(PathingNode* pStartNode, 
 					ReinsertNode(pPathPlanNodeToEvaluate);
 				}
 			}
-			else AddToClosedSet(planNode);
 		}
 	}
-
-	return pathingNodes;
 }
 
 PathPlanNode* PathFinder::AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode)
@@ -442,7 +576,7 @@ PathPlanNode* PathFinder::AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode
 	LogAssert(pArc, "Invalid arc");
 
 	// create a new PathPlanNode if necessary
-	PathingNode* pNode = pArc->GetNeighbor(pPrevNode->GetPathingNode());
+	PathingNode* pNode = pArc->GetNode();
 	PathingNodeToPathPlanNodeMap::iterator it = mNodes.find(pNode);
 	PathPlanNode* pThisNode = NULL;
 	if (it == mNodes.end())
@@ -669,11 +803,11 @@ PathingNode* PathingGraph::FindRandomNode(void)
 	}
 }
 
-eastl::map<PathingNode*, float> PathingGraph::FindPaths(PathingNode* pStartNode, unsigned int arcType, float threshold)
+void PathingGraph::FindConnections(PathingNodeVec& searchNodes, PathingNodePlanDoubleMap& nodeConnections, float threshold)
 {
 	// find the best path using an A* search algorithm
 	PathFinder pathFinder;
-	return pathFinder(pStartNode, arcType, threshold);
+	return pathFinder(searchNodes, nodeConnections, threshold);
 }
 
 PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint)
@@ -681,6 +815,13 @@ PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3
 	PathingNode* pStart = FindClosestNode(startPoint);
 	PathingNode* pGoal = FindClosestNode(endPoint);
 	return FindPath(pStart,pGoal);
+}
+
+PathingNode* PathingGraph::FindClosestNode(PathingNode* pStartNode, PathingNodeVec& searchNodes)
+{
+	// find the best path using an A* search algorithm
+	PathFinder pathFinder;
+	return pathFinder(pStartNode, searchNodes);
 }
 
 PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode)
