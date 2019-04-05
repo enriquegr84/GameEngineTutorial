@@ -117,12 +117,12 @@ public:
 	//! Determines if a directory exists and could be opened.
 	/** \param dirname is the string identifying the directory which should be tested for existence.
 	\return True if directory exists, and false if it does not exist or an error occured. */
-	virtual bool ExistDirectory(const eastl::wstring& dirname) const =0;
+	virtual bool ExistDirectory(const eastl::wstring& dirname) =0;
 
 	//! Determines if a file exists and could be opened.
 	/** \param filename is the string identifying the file which should be tested for existence.
 	\return True if file exists, and false if it does not exist or an error occured. */
-	virtual bool ExistFile(const eastl::wstring& filename) const =0;
+	virtual bool ExistFile(const eastl::wstring& filename) =0;
 
 	//! Converts a relative path to an absolute (unique) path, resolving symbolic links if required
 	/** \param filename Possibly relative file or directory name to query.

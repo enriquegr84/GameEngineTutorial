@@ -50,8 +50,6 @@ GameApplication::GameApplication(const char* windowTitle, int xPosition,
 	mLastTime(-1000.0), mAccumulatedTime(0.0), mFrameRate(0.0), mFramesPerSecond(0), 
 	mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
 {
-	ProjectApplicationPath = Environment::GetAbsolutePath("") + '/';
-
 	mIsRunning = false;
 	mIsEditorRunning = false;
 
@@ -223,9 +221,10 @@ bool GameApplication::OnInitialize()
 	RegisterGameEvents();
 
 	mFileSystem = eastl::shared_ptr<FileSystem>(new FileSystem());
+
 	// Always check the application directory.
 	mFileSystem->InsertDirectory(Application::ApplicationPath);
-	mFileSystem->InsertDirectory(ProjectApplicationPath + "../../../Assets/");
+	mFileSystem->InsertDirectory(ApplicationPath + "/../../Assets/");
 
 	/*
 		ResCache is created and initialized to 100MB and assocaited to a concreted mount point where 
@@ -234,7 +233,8 @@ bool GameApplication::OnInitialize()
 		files types is read and converted into something the game engine can use directly. The process
 		of registering a loader associates a specific loader class with a file type.
 	*/
-	BaseResourceFile *mountPointFile = new ResourceMountPointFile(L"../../../Assets");
+
+	BaseResourceFile *mountPointFile = new ResourceMountPointFile(L"/../../Assets");
 	mResCache = eastl::shared_ptr<ResCache>(new ResCache(200, mountPointFile));
 
 	if (!mResCache->Init())

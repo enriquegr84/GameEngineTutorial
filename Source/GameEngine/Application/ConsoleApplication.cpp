@@ -13,7 +13,6 @@ ConsoleApplication::ConsoleApplication (const char* consoleTitle)
     :
     mConsoleTitle(consoleTitle)
 {
-	ProjectApplicationPath = ApplicationPath + mConsoleTitle + "/";
 }
 //----------------------------------------------------------------------------
 ConsoleApplication::~ConsoleApplication ()

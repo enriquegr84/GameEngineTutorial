@@ -207,9 +207,9 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 
 				for (float weight : pathTransition->GetWeights())
 				{
-					tinyxml2::XMLElement* pConnection = doc.NewElement("Weight");
-					pConnection->SetAttribute("value", eastl::to_string(weight).c_str());
-					pTransition->LinkEndChild(pConnection);
+					tinyxml2::XMLElement* pWeight = doc.NewElement("Weight");
+					pWeight->SetAttribute("value", eastl::to_string(weight).c_str());
+					pTransition->LinkEndChild(pWeight);
 				}
 
 				for (Vector3<float> connection : pathTransition->GetConnections())
@@ -525,9 +525,9 @@ void QuakeAIManager::SaveClusteringGraph(const eastl::string& path)
 
 					for (float weight : clusterTransition->GetWeights())
 					{
-						tinyxml2::XMLElement* pConnection = doc.NewElement("Weight");
-						pConnection->SetAttribute("value", eastl::to_string(weight).c_str());
-						pTransition->LinkEndChild(pConnection);
+						tinyxml2::XMLElement* pWeight = doc.NewElement("Weight");
+						pWeight->SetAttribute("value", eastl::to_string(weight).c_str());
+						pTransition->LinkEndChild(pWeight);
 					}
 
 					for (Vector3<float> connection : clusterTransition->GetConnections())
@@ -1430,10 +1430,23 @@ void QuakeAIManager::CreateClusters()
 
 					ClusteringArc* clusteringArc = new ClusteringArc(
 						GetNewArcID(), GAT_CLUSTER, pEndArc->GetNode(), pCost);
-					ClusteringTransition* clusteringTransition = new ClusteringTransition(
-						clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
-					clusterNode->AddTransition(clusteringTransition);
-					clusterNodeArcs[clusterNode].push_back(clusteringArc);
+
+					ClusteringTransition* clusteringTransition = clusterNode->FindTransition(pBeginArc->GetId());
+					if (clusteringTransition)
+					{
+						clusteringTransition = new ClusteringTransition(
+							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode(), 
+							clusteringTransition->GetWeights(), clusteringTransition->GetConnections());
+						clusterNode->AddTransition(clusteringTransition);
+						clusterNodeArcs[clusterNode].push_back(clusteringArc);
+					}
+					else
+					{
+						clusteringTransition = new ClusteringTransition(
+							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
+						clusterNode->AddTransition(clusteringTransition);
+						clusterNodeArcs[clusterNode].push_back(clusteringArc);
+					}
 
 					delete clusterPlan;
 				}
@@ -1480,10 +1493,23 @@ void QuakeAIManager::CreateClusters()
 
 					ClusteringArc* clusteringArc = new ClusteringArc(
 						GetNewArcID(), GAT_CLUSTER, pEndArc->GetNode(), pCost);
-					ClusteringTransition* clusteringTransition = new ClusteringTransition(
-						clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
-					clusterNode->AddTransition(clusteringTransition);
-					clusterNodeArcs[clusterNode].push_back(clusteringArc);
+
+					ClusteringTransition* clusteringTransition = clusterNode->FindTransition(pBeginArc->GetId());
+					if (clusteringTransition)
+					{
+						clusteringTransition = new ClusteringTransition(
+							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode(),
+							clusteringTransition->GetWeights(), clusteringTransition->GetConnections());
+						clusterNode->AddTransition(clusteringTransition);
+						clusterNodeArcs[clusterNode].push_back(clusteringArc);
+					}
+					else
+					{
+						clusteringTransition = new ClusteringTransition(
+							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
+						clusterNode->AddTransition(clusteringTransition);
+						clusterNodeArcs[clusterNode].push_back(clusteringArc);
+					}
 
 					delete clusterPlan;
 				}
@@ -1907,7 +1933,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 
 									PathingTransition* pTransition = new PathingTransition(
 										pArc->GetId(), arcType, pNewNode, times, positions);
-									pNode->AddTransition(pTransition);
+									pCurrentNode->AddTransition(pTransition);
 								}
 
 								mPathingGraph->InsertNode(pNewNode);
@@ -1923,10 +1949,6 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 							}
 							else
 							{
-								if (!onGround)
-								{
-									break; //we stop processing movements if we find collision
-								}
 								break; //we stop processing movements if we find collision
 							}
 						}
@@ -1967,7 +1989,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 
 										PathingTransition* pTransition = new PathingTransition(
 											pArc->GetId(), arcType, pClosestNode, times, positions);
-										pNode->AddTransition(pTransition);
+										pCurrentNode->AddTransition(pTransition);
 									}
 								}
 								else

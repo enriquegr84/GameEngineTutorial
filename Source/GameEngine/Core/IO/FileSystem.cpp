@@ -40,7 +40,7 @@ FileSystem::FileSystem()
 {
 	SetFileSystemType(FILESYSTEM_NATIVE);
 	//! reset current working directory
-	GetWorkingDirectory();
+	ChangeWorkingDirectoryTo(GetAbsolutePath(L""));
 
 	if (FileSystem::mFileSystem)
 	{
@@ -50,8 +50,6 @@ FileSystem::FileSystem()
 	}
 
 	FileSystem::mFileSystem = this;
-
-	msDirectories = new eastl::vector<eastl::string>();
 }
 
 //! destructor
@@ -60,13 +58,8 @@ FileSystem::~FileSystem()
 	if (FileSystem::mFileSystem == this)
 		FileSystem::mFileSystem = nullptr;
 
-	if (msDirectories)
-	{
-		delete(msDirectories);
-		return;
-	}
-
-	LogError("No directory list to deallocate.\n");
+	msDirectories.clear();
+	//LogError("No directory list to deallocate.\n");
 }
 
 //! Creates an ReadFile interface for treating memory like a file.
@@ -100,8 +93,7 @@ BaseFileList* FileSystem::CreateFileList()
 {
 	BaseFileList* r = 0;
 	eastl::wstring filesPath = GetWorkingDirectory();
-	eastl::replace(filesPath.begin(), filesPath.end(), '\\', '/');
-	if (filesPath[filesPath.size() - 1] != '/') filesPath += '/';
+	filesPath += '/';
 
 	//! Construct from native filesystem
 	if (mFileSystemType == FILESYSTEM_NATIVE)
@@ -239,7 +231,7 @@ BaseFileArchive* FileSystem::CreateMountPointFileArchive(const eastl::wstring& f
 	eastl::wstring fullPath = GetAbsolutePath(filename);
 
 	if (ChangeWorkingDirectoryTo(fullPath))
-		archive = new MountPointReader(fullPath, ignoreCase, ignorePaths);
+		archive = new MountPointReader(GetWorkingDirectory(), ignoreCase, ignorePaths);
 
 	ChangeWorkingDirectoryTo(save);
 	SetFileSystemType(current);
@@ -263,7 +255,7 @@ const eastl::wstring& FileSystem::GetWorkingDirectory()
 			_wgetcwd(tmp, _MAX_PATH);
 			mWorkingDirectory[FILESYSTEM_NATIVE] = tmp;
 			eastl::replace(
-				mWorkingDirectory[FILESYSTEM_NATIVE].begin(), 
+				mWorkingDirectory[FILESYSTEM_NATIVE].begin(),
 				mWorkingDirectory[FILESYSTEM_NATIVE].end(), L'\\', L'/');
 		#endif
 
@@ -315,12 +307,16 @@ bool FileSystem::ChangeWorkingDirectoryTo(const eastl::wstring& newDirectory)
 eastl::wstring FileSystem::GetAbsolutePath(const eastl::wstring& filename) const
 {
 #if defined(_WINDOWS_API_)
-	wchar_t *p=0;
-	wchar_t fpath[_MAX_PATH];
-	p = _wfullpath(fpath, filename.c_str(), _MAX_PATH);
-	eastl::wstring tmp(p);
-	eastl::replace(tmp.begin(), tmp.end(), L'\\', L'/');
-	return tmp;
+	wchar_t tmp[_MAX_PATH];
+	GetModuleFileName(NULL, tmp, _MAX_PATH);
+	eastl::wstring wdir = tmp;
+	eastl::replace(wdir.begin(), wdir.end(), '\\', '/');
+	wdir = wdir.substr(0, wdir.find_last_of(L'/'));
+	wdir += filename;
+
+	wdir.validate();
+
+	return wdir;
 #elif (defined(_POSIX_API_) || defined(_OSX_PLATFORM_))
 	wchar_t* p=0;
 	wchar_t fpath[4096];
@@ -362,11 +358,8 @@ eastl::wstring FileSystem::GetFileDir(const eastl::wstring& filename) const
 //----------------------------------------------------------------------------
 bool FileSystem::InsertDirectory(const eastl::string& directory)
 {
-	if (!msDirectories)
-		msDirectories = new eastl::vector<eastl::string>();
-
-	eastl::vector<eastl::string>::iterator iter = msDirectories->begin();
-	eastl::vector<eastl::string>::iterator end = msDirectories->end();
+	eastl::vector<eastl::string>::iterator iter = msDirectories.begin();
+	eastl::vector<eastl::string>::iterator end = msDirectories.end();
 	for (/**/; iter != end; ++iter)
 	{
 		if (directory == *iter)
@@ -374,22 +367,19 @@ bool FileSystem::InsertDirectory(const eastl::string& directory)
 			return false;
 		}
 	}
-	msDirectories->push_back(directory);
+	msDirectories.push_back(directory);
 	return true;
 }
 //----------------------------------------------------------------------------
 bool FileSystem::RemoveDirectory(const eastl::string& directory)
 {
-	if (!msDirectories)
-		msDirectories = new eastl::vector<eastl::string>();
-
-	eastl::vector<eastl::string>::iterator iter = msDirectories->begin();
-	eastl::vector<eastl::string>::iterator end = msDirectories->end();
+	eastl::vector<eastl::string>::iterator iter = msDirectories.begin();
+	eastl::vector<eastl::string>::iterator end = msDirectories.end();
 	for (/**/; iter != end; ++iter)
 	{
 		if (directory == *iter)
 		{
-			msDirectories->erase(iter);
+			msDirectories.erase(iter);
 			return true;
 		}
 	}
@@ -398,19 +388,13 @@ bool FileSystem::RemoveDirectory(const eastl::string& directory)
 //----------------------------------------------------------------------------
 void FileSystem::RemoveAllDirectories()
 {
-	if (!msDirectories)
-		msDirectories = new eastl::vector<eastl::string>();
-
-	msDirectories->clear();
+	msDirectories.clear();
 }
 //----------------------------------------------------------------------------
 eastl::string FileSystem::GetPath(const eastl::string& fileName)
 {
-	if (!msDirectories)
-		msDirectories = new eastl::vector<eastl::string>();
-
-	eastl::vector<eastl::string>::iterator iter = msDirectories->begin();
-	eastl::vector<eastl::string>::iterator end = msDirectories->end();
+	eastl::vector<eastl::string>::iterator iter = msDirectories.begin();
+	eastl::vector<eastl::string>::iterator end = msDirectories.end();
 	for (/**/; iter != end; ++iter)
 	{
 		eastl::string decorated = *iter + fileName;
@@ -426,36 +410,32 @@ eastl::string FileSystem::GetPath(const eastl::string& fileName)
 //----------------------------------------------------------------------------
 
 //! determines if a directory exists and would be able to be opened.
-bool FileSystem::ExistDirectory(const eastl::wstring& dirname) const
+bool FileSystem::ExistDirectory(const eastl::wstring& dirname)
 {
-	if (msDirectories)
-	{
-		eastl::string dirName = ToString(dirname.c_str());
 
-		eastl::vector<eastl::string>::iterator iter = msDirectories->begin();
-		eastl::vector<eastl::string>::iterator end = msDirectories->end();
-		for (/**/; iter != end; ++iter)
-			if (dirName == *iter)
-				return true;
-	}
+	eastl::string dirName = ToString(dirname.c_str());
+
+	eastl::vector<eastl::string>::iterator iter = msDirectories.begin();
+	eastl::vector<eastl::string>::iterator end = msDirectories.end();
+	for (/**/; iter != end; ++iter)
+		if (dirName == *iter)
+			return true;
+
 	return false;
 }
 
 //! determines if a file exists and would be able to be opened.
-bool FileSystem::ExistFile(const eastl::wstring& filename) const
+bool FileSystem::ExistFile(const eastl::wstring& filename)
 {
-	if (msDirectories)
-	{
-		eastl::string fileName = ToString(filename.c_str());
+	eastl::string fileName = ToString(filename.c_str());
 
-		eastl::vector<eastl::string>::iterator iter = msDirectories->begin();
-		eastl::vector<eastl::string>::iterator end = msDirectories->end();
-		for (/**/; iter != end; ++iter)
-		{
-			eastl::string decorated = *iter + fileName;
-			if (access(decorated.c_str(), 0) != -1)
-				return true;
-		}
+	eastl::vector<eastl::string>::iterator iter = msDirectories.begin();
+	eastl::vector<eastl::string>::iterator end = msDirectories.end();
+	for (/**/; iter != end; ++iter)
+	{
+		eastl::string decorated = *iter + fileName;
+		if (access(decorated.c_str(), 0) != -1)
+			return true;
 	}
 
 	return false;

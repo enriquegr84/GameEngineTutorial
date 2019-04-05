@@ -35,9 +35,6 @@ public:
 
     // The installation directory of the application.
     static eastl::string ApplicationPath;
-
-    // The path to the application project directory.
-    static eastl::string ProjectApplicationPath;
 };
 
 #endif

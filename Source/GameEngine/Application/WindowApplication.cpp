@@ -36,8 +36,6 @@ WindowApplication::WindowApplication(const char* windowTitle, int xPosition,
 	mLastTime(-1000.0), mAccumulatedTime(0.0), mFrameRate(0.0), mFramesPerSecond(0), 
 	mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
 {
-	ProjectApplicationPath = Environment::GetAbsolutePath("") + '/';
-
 	mQuitRequested = false;
 	mQuitting = false;
 }
@@ -168,7 +166,7 @@ bool WindowApplication::OnInitialize()
 	mFileSystem = eastl::shared_ptr<FileSystem>(new FileSystem());
 	// Always check the application directory.
 	mFileSystem->InsertDirectory(Application::ApplicationPath);
-	mFileSystem->InsertDirectory(ProjectApplicationPath + "../../../Assets/");
+	mFileSystem->InsertDirectory(ApplicationPath + "../../../Assets/");
 
 	InitTime();
 

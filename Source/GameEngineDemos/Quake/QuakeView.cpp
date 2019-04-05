@@ -1012,6 +1012,7 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 						QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
 						Level* level = game->GetLevelManager()->GetLevel(
 							ToWideString(gameApp->mOption.mLevel.c_str()));
+
 						eastl::wstring levelPath = L"ai/quake/" + level->GetName() + L"pathing.xml";
 						GameLogic::Get()->GetAIManager()->SavePathingGraph(
 							FileSystem::Get()->GetPath(ToString(levelPath.c_str())));
@@ -1019,10 +1020,6 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 						levelPath = L"ai/quake/" + level->GetName() + L"clustering.xml";
 						GameLogic::Get()->GetAIManager()->SaveClusteringGraph(
 							FileSystem::Get()->GetPath(ToString(levelPath.c_str())));
-						/*
-						GameLogic::Get()->GetAIManager()->SavePathingGraph(
-							FileSystem::Get()->GetPath("ai/quake/bloodrun - copia.xml"));
-						*/
 						return true;
 					}
 					case KEY_KEY_5:

@@ -10,7 +10,6 @@
 
 Application* Application::App = 0;
 eastl::string Application::ApplicationPath;
-eastl::string Application::ProjectApplicationPath;
 
 //----------------------------------------------------------------------------
 Application::Application ()

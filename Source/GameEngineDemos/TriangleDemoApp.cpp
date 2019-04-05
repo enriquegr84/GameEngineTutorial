@@ -30,7 +30,7 @@ int main(int numArguments, char* arguments[])
 	// libraries. You need to create the APP_PATH environment variable in order for 
 	// the applications to find various data files.
 #ifndef __APPLE__
-	Application::ApplicationPath = Environment::GetAbsolutePath("../../../");
+	Application::ApplicationPath = Environment::GetAbsolutePath("");
 #else
 	// Mac OS X Lion returns NULL on any getenv call (such as the one in
 	// Environment::GetVariable).  This hack works around the problem.
