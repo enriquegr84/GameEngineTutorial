@@ -1516,21 +1516,10 @@ void QuakeAIManager::CreateClusters()
 					ClusteringArc* clusteringArc = new ClusteringArc(
 						GetNewArcID(), GAT_CLUSTER, pEndArc->GetNode(), pCost);
 
-					ClusteringTransition* clusteringTransition = clusterNode->FindTransition(pBeginArc->GetId());
-					if (clusteringTransition)
-					{
-						clusteringTransition = new ClusteringTransition(
-							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
-						clusterNode->AddTransition(clusteringTransition);
-						clusterNodeArcs[clusterNode].push_back(clusteringArc);
-					}
-					else
-					{
-						clusteringTransition = new ClusteringTransition(
-							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
-						clusterNode->AddTransition(clusteringTransition);
-						clusterNodeArcs[clusterNode].push_back(clusteringArc);
-					}
+					ClusteringTransition* clusteringTransition = new ClusteringTransition(
+						clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
+					clusterNode->AddTransition(clusteringTransition);
+					clusterNodeArcs[clusterNode].push_back(clusteringArc);
 
 					delete clusterPlan;
 				}
@@ -1578,21 +1567,10 @@ void QuakeAIManager::CreateClusters()
 					ClusteringArc* clusteringArc = new ClusteringArc(
 						GetNewArcID(), GAT_CLUSTER, pEndArc->GetNode(), pCost);
 
-					ClusteringTransition* clusteringTransition = clusterNode->FindTransition(pBeginArc->GetId());
-					if (clusteringTransition)
-					{
-						clusteringTransition = new ClusteringTransition(
-							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
-						clusterNode->AddTransition(clusteringTransition);
-						clusterNodeArcs[clusterNode].push_back(clusteringArc);
-					}
-					else
-					{
-						clusteringTransition = new ClusteringTransition(
-							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
-						clusterNode->AddTransition(clusteringTransition);
-						clusterNodeArcs[clusterNode].push_back(clusteringArc);
-					}
+					ClusteringTransition* clusteringTransition = new ClusteringTransition(
+						clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
+					clusterNode->AddTransition(clusteringTransition);
+					clusterNodeArcs[clusterNode].push_back(clusteringArc);
 
 					delete clusterPlan;
 				}
