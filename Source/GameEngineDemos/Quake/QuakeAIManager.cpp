@@ -764,14 +764,12 @@ void QuakeAIManager::SimulateVisibility()
 				for (Vector3<float> pathConnection : pathTransition->GetConnections())
 					pathingNodes[pathConnection] = mPathingGraph->FindClosestNode(pathConnection);
 			}
-			else
-			{
-				pathingNodes[pathArc->GetNode()->GetPos()] = pathArc->GetNode();
-			}
+			pathingNodes[pathArc->GetNode()->GetPos()] = pathArc->GetNode();
 		}
 	}
 
 	// we need to get visibility info from every node and arc by raycasting
+	// and we will only raycast the most representative nodes
 	PathingNodeDoubleMap visibleNodes;
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
@@ -799,190 +797,13 @@ void QuakeAIManager::SimulateVisibility()
 		}
 	}
 
-	// next we will only raycast those positions which were visible from its neareast node
-	eastl::map<Vector3<float>, eastl::map<Vector3<float>, float>> visiblePositions;
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		//set muzzle location relative to pivoting eye
-		Vector3<float> muzzle = pathNode->GetPos();
-		muzzle[2] += mPlayerActor->GetState().viewHeight;
-		muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
-		{
-			if (visibleNodes[pathNode][visibleNode])
-				visiblePositions[pathNode->GetPos()][visibleNode->GetPos()] = 1.0f;
-
-			for (PathingArc* visibleArc : visibleNode->GetArcs())
-			{
-				PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
-				if (visibleTransition)
-				{
-					for (Vector3<float> visibleConnection : visibleTransition->GetConnections())
-					{
-						if (visibleNodes[pathNode][pathingNodes[visibleConnection]])
-						{
-							Vector3<float> end = visibleConnection +
-								(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
-
-							eastl::vector<ActorId> collisionActors;
-							eastl::vector<Vector3<float>> collisions, collisionNormals;
-							gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
-
-							Vector3<float> collision = NULL;
-							for (unsigned int i = 0; i < collisionActors.size(); i++)
-								if (collisionActors[i] == INVALID_ACTOR_ID)
-									collision = collisions[i];
-
-							if (collision == NULL)
-								visiblePositions[pathNode->GetPos()][visibleConnection] = 1.0f;
-						}
-					}
-				}
-				else
-				{
-					if (visibleNodes[pathNode][visibleArc->GetNode()])
-						visiblePositions[pathNode->GetPos()][visibleArc->GetNode()->GetPos()] = 1.0f;
-				}
-			}
-		}
-
-		for (PathingArc* pathArc : pathNode->GetArcs())
-		{
-			PathingTransition* pathTransition = pathNode->FindTransition(pathArc->GetId());
-			if (pathTransition)
-			{
-				for (Vector3<float> pathConnection : pathTransition->GetConnections())
-				{
-					muzzle = pathConnection;
-					muzzle[2] += mPlayerActor->GetState().viewHeight;
-					muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-					for (PathingNode* visibleNode : mPathingGraph->GetNodes())
-					{
-						if (visibleNodes[pathingNodes[pathConnection]][visibleNode])
-						{
-							Vector3<float> end = visibleNode->GetPos() +
-								(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
-
-							eastl::vector<ActorId> collisionActors;
-							eastl::vector<Vector3<float>> collisions, collisionNormals;
-							gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
-
-							Vector3<float> collision = NULL;
-							for (unsigned int i = 0; i < collisionActors.size(); i++)
-								if (collisionActors[i] == INVALID_ACTOR_ID)
-									collision = collisions[i];
-
-							if (collision == NULL)
-								visiblePositions[pathConnection][visibleNode->GetPos()] = 1.0f;
-						}
-
-						for (PathingArc* visibleArc : visibleNode->GetArcs())
-						{
-							PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
-							if (visibleTransition)
-							{
-								for (Vector3<float> visibleConnection : visibleTransition->GetConnections())
-								{
-									if (visibleNodes[pathingNodes[pathConnection]][pathingNodes[visibleConnection]])
-									{
-										Vector3<float> end = visibleConnection +
-											(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
-
-										eastl::vector<ActorId> collisionActors;
-										eastl::vector<Vector3<float>> collisions, collisionNormals;
-										gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
-
-										Vector3<float> collision = NULL;
-										for (unsigned int i = 0; i < collisionActors.size(); i++)
-											if (collisionActors[i] == INVALID_ACTOR_ID)
-												collision = collisions[i];
-
-										if (collision == NULL)
-											visiblePositions[pathConnection][visibleConnection] = 1.0f;
-									}
-								}
-							}
-							else
-							{
-								if (visibleNodes[pathingNodes[pathConnection]][visibleArc->GetNode()])
-								{
-									Vector3<float> end = visibleArc->GetNode()->GetPos() +
-										(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
-
-									eastl::vector<ActorId> collisionActors;
-									eastl::vector<Vector3<float>> collisions, collisionNormals;
-									gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
-
-									Vector3<float> collision = NULL;
-									for (unsigned int i = 0; i < collisionActors.size(); i++)
-										if (collisionActors[i] == INVALID_ACTOR_ID)
-											collision = collisions[i];
-
-									if (collision == NULL)
-										visiblePositions[pathConnection][visibleArc->GetNode()->GetPos()] = 1.0f;
-								}
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				muzzle = pathArc->GetNode()->GetPos();
-				muzzle[2] += mPlayerActor->GetState().viewHeight;
-				muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-				for (PathingNode* visibleNode : mPathingGraph->GetNodes())
-				{
-					if (visibleNodes[pathArc->GetNode()][visibleNode])
-						visiblePositions[pathArc->GetNode()->GetPos()][visibleNode->GetPos()] = 1.0f;
-
-					for (PathingArc* visibleArc : visibleNode->GetArcs())
-					{
-						PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
-						if (visibleTransition)
-						{
-							for (Vector3<float> visibleConnection : visibleTransition->GetConnections())
-							{
-								if (visibleNodes[pathArc->GetNode()][pathingNodes[visibleConnection]])
-								{
-									Vector3<float> end = visibleConnection +
-										(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
-
-									eastl::vector<ActorId> collisionActors;
-									eastl::vector<Vector3<float>> collisions, collisionNormals;
-									gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
-
-									Vector3<float> collision = NULL;
-									for (unsigned int i = 0; i < collisionActors.size(); i++)
-										if (collisionActors[i] == INVALID_ACTOR_ID)
-											collision = collisions[i];
-
-									if (collision == NULL)
-										visiblePositions[pathArc->GetNode()->GetPos()][visibleConnection] = 1.0f;
-								}
-							}
-						}
-						else
-						{
-							if (visibleNodes[pathArc->GetNode()][visibleArc->GetNode()])
-								visiblePositions[pathArc->GetNode()->GetPos()][visibleArc->GetNode()->GetPos()] = 1.0f;
-						}
-					}
-				}
-			}
-		}
-	}
-
 	// now we fill all the visibility info from nodes to arcs, 
 	// arcs to nodes, arcs to arcs and between nodes
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
 		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
 		{
-			if (visiblePositions[pathNode->GetPos()][visibleNode->GetPos()])
+			if (visibleNodes[pathNode][visibleNode])
 			{
 				pathNode->AddVisibility(visibleNode, VT_DISTANCE,
 					Length(visibleNode->GetPos() - pathNode->GetPos()));
@@ -998,7 +819,7 @@ void QuakeAIManager::SimulateVisibility()
 					eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
 					for (unsigned int visibleConnection = 0; visibleConnection < visibleConnections.size(); visibleConnection++)
 					{
-						if (visiblePositions[pathNode->GetPos()][visibleConnections[visibleConnection]])
+						if (visibleNodes[pathNode][pathingNodes[visibleConnections[visibleConnection]]])
 						{
 							float deltaTime = visibleTransition->GetWeights()[visibleConnection];
 							distance += Length(visibleConnections[visibleConnection] - pathNode->GetPos()) * deltaTime;
@@ -1016,7 +837,7 @@ void QuakeAIManager::SimulateVisibility()
 				}
 				else
 				{
-					if (visiblePositions[pathNode->GetPos()][visibleArc->GetNode()->GetPos()])
+					if (visibleNodes[pathNode][visibleArc->GetNode()])
 					{
 						pathNode->AddVisibility(visibleArc, VT_DISTANCE, 
 							Length(visibleArc->GetNode()->GetPos() - pathNode->GetPos()));
@@ -1048,7 +869,7 @@ void QuakeAIManager::SimulateVisibility()
 								eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
 								for (; pathConnection < pathConnections.size(); pathConnection++)
 								{
-									if (visiblePositions[pathConnections[pathConnection]][visibleConnections[visibleConnection]])
+									if (visibleNodes[pathingNodes[pathConnections[pathConnection]]][pathingNodes[visibleConnections[visibleConnection]]])
 									{
 										float deltaTime = pathTransition->GetWeights()[pathConnection];
 										distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
@@ -1064,7 +885,7 @@ void QuakeAIManager::SimulateVisibility()
 
 								for (; visibleConnection < visibleConnections.size(); visibleConnection++)
 								{
-									if (visiblePositions[pathConnections[pathConnection]][visibleConnections[visibleConnection]])
+									if (visibleNodes[pathingNodes[pathConnections[pathConnection]]][pathingNodes[visibleConnections[visibleConnection]]])
 									{
 										float deltaTime = pathTransition->GetWeights()[pathConnection];
 										distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
@@ -1081,7 +902,7 @@ void QuakeAIManager::SimulateVisibility()
 								eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
 								for (; visibleConnection < visibleConnections.size(); visibleConnection++)
 								{
-									if (visiblePositions[visibleConnections[visibleConnection]][pathConnections[pathConnection]])
+									if (visibleNodes[pathingNodes[visibleConnections[visibleConnection]]][pathingNodes[pathConnections[pathConnection]]])
 									{
 										float deltaTime = visibleTransition->GetWeights()[visibleConnection];
 										distance += Length(pathConnections[pathConnection] - visibleConnections[visibleConnection]) * deltaTime;
@@ -1097,7 +918,7 @@ void QuakeAIManager::SimulateVisibility()
 
 								for (; pathConnection < pathConnections.size(); pathConnection++)
 								{
-									if (visiblePositions[visibleConnections[visibleConnection]][pathConnections[pathConnection]])
+									if (visibleNodes[pathingNodes[visibleConnections[visibleConnection]]][pathingNodes[pathConnections[pathConnection]]])
 									{
 										float deltaTime = visibleTransition->GetWeights()[visibleConnection];
 										distance += Length(pathConnections[pathConnection] - visibleConnections[visibleConnection]) * deltaTime;
@@ -1120,7 +941,7 @@ void QuakeAIManager::SimulateVisibility()
 							eastl::vector<Vector3<float>> pathConnections = pathTransition->GetConnections();
 							for (unsigned int pathConnection = 0; pathConnection < pathConnections.size(); pathConnection++)
 							{
-								if (visiblePositions[pathConnections[pathConnection]][visibleArc->GetNode()->GetPos()])
+								if (visibleNodes[pathingNodes[pathConnections[pathConnection]]][visibleArc->GetNode()])
 								{
 									float deltaTime = pathTransition->GetWeights()[pathConnection];
 									distance += Length(pathConnections[pathConnection] - visibleArc->GetNode()->GetPos()) * deltaTime;
@@ -1152,7 +973,7 @@ void QuakeAIManager::SimulateVisibility()
 							eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
 							for (unsigned int visibleConnection = 0; visibleConnection < visibleConnections.size(); visibleConnection++)
 							{
-								if (visiblePositions[pathArc->GetNode()->GetPos()][visibleConnections[visibleConnection]])
+								if (visibleNodes[pathArc->GetNode()][pathingNodes[visibleConnections[visibleConnection]]])
 								{
 									float deltaTime = visibleTransition->GetWeights()[visibleConnection];
 									distance += Length(visibleConnections[visibleConnection] - pathArc->GetNode()->GetPos()) * deltaTime;
@@ -1170,7 +991,7 @@ void QuakeAIManager::SimulateVisibility()
 						}
 						else
 						{
-							if (visiblePositions[pathArc->GetNode()->GetPos()][visibleArc->GetNode()->GetPos()])
+							if (visibleNodes[pathArc->GetNode()][pathingNodes[visibleArc->GetNode()->GetPos()]])
 							{
 								pathArc->GetNode()->AddVisibility(visibleArc, VT_DISTANCE, 
 									Length(visibleArc->GetNode()->GetPos() - pathArc->GetNode()->GetPos()));
