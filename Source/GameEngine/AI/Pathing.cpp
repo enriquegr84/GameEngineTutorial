@@ -45,6 +45,36 @@
 // PathingNode
 //--------------------------------------------------------------------------------------------------------
 
+void PathingNode::AddVisibility(PathingNode* pNode, unsigned int vT, float value)
+{
+	mVisibleNodes[vT][pNode] = value;
+}
+
+void PathingNode::AddVisibility(PathingArc* pArc, unsigned int vT, float value)
+{
+	mVisibleArcs[vT][pArc] = value;
+}
+
+float PathingNode::FindVisibility(PathingNode* pNode, unsigned int vT)
+{
+	return mVisibleNodes[vT][pNode];
+}
+
+float PathingNode::FindVisibility(PathingArc* pArc, unsigned int vT)
+{
+	return mVisibleArcs[vT][pArc];
+}
+
+void PathingNode::GetVisibilities(unsigned int vT, eastl::map<PathingNode*, float>& visibilities)
+{
+	visibilities = mVisibleNodes[vT];
+}
+
+void PathingNode::GetVisibilities(unsigned int vT, eastl::map<PathingArc*, float>& visibilities)
+{
+	visibilities = mVisibleArcs[vT];
+}
+
 void PathingNode::AddArc(PathingArc* pArc)
 {
 	LogAssert(pArc, "Invalid arc");
@@ -172,6 +202,39 @@ void PathingNode::RemoveTransitions(unsigned int arcType)
 	}
 
 	mTransitions = keepTransitions;
+}
+
+//--------------------------------------------------------------------------------------------------------
+// PathingArc
+//--------------------------------------------------------------------------------------------------------
+void PathingArc::AddVisibility(PathingNode* pNode, unsigned int vT, float value)
+{
+	mVisibleNodes[vT][pNode] = value;
+}
+
+void PathingArc::AddVisibility(PathingArc* pArc, unsigned int vT, float value)
+{
+	mVisibleArcs[vT][pArc] = value;
+}
+
+float PathingArc::FindVisibility(PathingNode* pNode, unsigned int vT)
+{
+	return mVisibleNodes[vT][pNode];
+}
+
+float PathingArc::FindVisibility(PathingArc* pArc, unsigned int vT)
+{
+	return mVisibleArcs[vT][pArc];
+}
+
+void PathingArc::GetVisibilities(unsigned int vT, eastl::map<PathingNode*, float>& visibilities)
+{
+	visibilities = mVisibleNodes[vT];
+}
+
+void PathingArc::GetVisibilities(unsigned int vT, eastl::map<PathingArc*, float>& visibilities)
+{
+	visibilities = mVisibleArcs[vT];
 }
 
 //--------------------------------------------------------------------------------------------------------
@@ -848,4 +911,11 @@ void PathingGraph::InsertNode(PathingNode* pNode)
 	LogAssert(pNode, "Invalid node");
 
 	mNodes.push_back(pNode);
+}
+
+void PathingGraph::InsertArc(PathingArc* pArc)
+{
+	LogAssert(pArc, "Invalid arc");
+
+	mArcs.push_back(pArc);
 }

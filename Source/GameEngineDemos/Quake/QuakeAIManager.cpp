@@ -98,63 +98,102 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 		pathingNodeGraph[pathNodeId] = pathNode;
 	}
 
+	eastl::map<unsigned int, PathingArc*> pathingArcGraph;
 	for (tinyxml2::XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
 	{
 		int pathNodeId = 0;
 		pathNodeId = pNode->IntAttribute("id", pathNodeId);
 		PathingNode* pathNode = pathingNodeGraph[pathNodeId];
 
-		for (tinyxml2::XMLElement* pArc = pNode->FirstChildElement("Arc"); pArc; pArc = pArc->NextSiblingElement())
+		for (tinyxml2::XMLElement* pElement = pNode->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
 		{
-			int arcId = 0;
-			int arcType = 0;
-			int arcNode = 0;
-			float weight = 0.f;
-
-			arcId = pArc->IntAttribute("id", arcId);
-			arcType = pArc->IntAttribute("type", arcType);
-			arcNode = pArc->IntAttribute("node", arcNode);
-			weight = pArc->FloatAttribute("weight", weight);
-
-			PathingArc* pathArc = new PathingArc(arcId, arcType, pathingNodeGraph[arcNode], weight);
-			pathNode->AddArc(pathArc);
-
-			for (tinyxml2::XMLElement* pTransition = pArc->FirstChildElement("Transition"); pTransition; pTransition = pTransition->NextSiblingElement())
+			if (pElement->Name() == "Arc")
 			{
-				int transitionId = 0;
-				int transitionType = 0;
-				int transitionNode = 0;
-				eastl::vector<float> transitionWeights;
-				eastl::vector<Vector3<float>> transitionConnections;
+				int arcId = 0;
+				int arcType = 0;
+				int arcNode = 0;
+				float weight = 0.f;
 
-				transitionId = pTransition->IntAttribute("id", transitionId);
-				transitionType = pTransition->IntAttribute("type", transitionType);
-				transitionNode = pTransition->IntAttribute("node", transitionNode);
+				arcId = pElement->IntAttribute("id", arcId);
+				arcType = pElement->IntAttribute("type", arcType);
+				arcNode = pElement->IntAttribute("node", arcNode);
+				weight = pElement->FloatAttribute("weight", weight);
 
-				for (tinyxml2::XMLElement* pElement= pTransition->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
+				PathingArc* pathArc = new PathingArc(arcId, arcType, pathingNodeGraph[arcNode], weight);
+				mPathingGraph->InsertArc(pathArc);
+
+				pathNode->AddArc(pathArc);
+				pathingArcGraph[arcId] = pathArc;
+			}
+		}
+	}
+
+	// load visibility
+	for (tinyxml2::XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
+	{
+		int pathNodeId = 0;
+		pathNodeId = pNode->IntAttribute("id", pathNodeId);
+		PathingNode* pathNode = pathingNodeGraph[pathNodeId];
+
+		for (tinyxml2::XMLElement* pElement = pNode->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
+		{
+			if (pElement->Name() == "Arc")
+			{
+				int pathArcId = 0;
+				pathArcId = pElement->IntAttribute("id", pathArcId);
+				PathingArc* pathArc = pathingArcGraph[pathArcId];
+
+				for (tinyxml2::XMLElement* pArc = pElement->FirstChildElement(); pArc; pArc = pArc->NextSiblingElement())
 				{
-					if (pElement->Name() == "Weight")
+					if (pArc->Name() == "VisibleNode")
 					{
-						float transitionWeight = 0;
-						transitionWeight = pElement->FloatAttribute("value", transitionWeight);
-						transitionWeights.push_back(transitionWeight);
-					}
-					else if (pElement->Name() == "Connection")
-					{
-						float x = 0;
-						float y = 0;
-						float z = 0;
-						x = pElement->FloatAttribute("x", x);
-						y = pElement->FloatAttribute("y", y);
-						z = pElement->FloatAttribute("z", z);
+						int nodeId = 0;
+						int visibilityType = 0;
+						float visibilityValue = 0;
 
-						transitionConnections.push_back(Vector3<float>{ x, y, z });
+						nodeId = pElement->IntAttribute("id", nodeId);
+						visibilityType = pElement->IntAttribute("type", visibilityType);
+						visibilityValue = pElement->FloatAttribute("value", visibilityValue);
+
+						pathArc->AddVisibility(pathingNodeGraph[nodeId], visibilityType, visibilityValue);
+					}
+					else if (pArc->Name() == "VisibleArc")
+					{
+						int arcId = 0;
+						int visibilityType = 0;
+						float visibilityValue = 0;
+
+						arcId = pElement->IntAttribute("id", arcId);
+						visibilityType = pElement->IntAttribute("type", visibilityType);
+						visibilityValue = pElement->FloatAttribute("value", visibilityValue);
+
+						pathArc->AddVisibility(pathingArcGraph[arcId], visibilityType, visibilityValue);
 					}
 				}
+			}
+			else if (pElement->Name() == "VisibleNode")
+			{
+				int nodeId = 0;
+				int visibilityType = 0;
+				float visibilityValue = 0;
 
-				PathingTransition* pathTransition = new PathingTransition(
-					transitionId, transitionType, pathingNodeGraph[transitionNode], transitionWeights, transitionConnections);
-				pathNode->AddTransition(pathTransition);
+				nodeId = pElement->IntAttribute("id", nodeId);
+				visibilityType = pElement->IntAttribute("type", visibilityType);
+				visibilityValue = pElement->FloatAttribute("value", visibilityValue);
+
+				pathNode->AddVisibility(pathingNodeGraph[nodeId], visibilityType, visibilityValue);
+			}
+			else if (pElement->Name() == "VisibleArc")
+			{
+				int arcId = 0;
+				int visibilityType = 0;
+				float visibilityValue = 0;
+
+				arcId = pElement->IntAttribute("id", arcId);
+				visibilityType = pElement->IntAttribute("type", visibilityType);
+				visibilityValue = pElement->FloatAttribute("value", visibilityValue);
+
+				pathNode->AddVisibility(pathingArcGraph[arcId], visibilityType, visibilityValue);
 			}
 		}
 	}
@@ -187,6 +226,34 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 		pPosition->SetAttribute("z", eastl::to_string((int)round(pathNode->GetPos()[2])).c_str());
 		pNode->LinkEndChild(pPosition);
 
+		for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+		{
+			eastl::map<PathingNode*, float> visibilityNodes;
+			pathNode->GetVisibilities(visibilityType, visibilityNodes);
+			for (auto visibilityNode : visibilityNodes)
+			{
+				tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
+				pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
+				pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
+				pVisibility->SetAttribute("value", eastl::to_string(visibilityNode.second).c_str());
+				pNode->LinkEndChild(pVisibility);
+			}
+		}
+
+		for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+		{
+			eastl::map<PathingArc*, float> visibilityArcs;
+			pathNode->GetVisibilities(visibilityType, visibilityArcs);
+			for (auto visibilityArc : visibilityArcs)
+			{
+				tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityArc");
+				pVisibility->SetAttribute("id", eastl::to_string(visibilityArc.first->GetId()).c_str());
+				pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
+				pVisibility->SetAttribute("value", eastl::to_string(visibilityArc.second).c_str());
+				pNode->LinkEndChild(pVisibility);
+			}
+		}
+
 		for (PathingArc* pathArc : pathNode->GetArcs())
 		{
 			tinyxml2::XMLElement* pArc = doc.NewElement("Arc");
@@ -196,29 +263,31 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 			pArc->SetAttribute("weight", eastl::to_string(pathArc->GetWeight()).c_str());
 			pNode->LinkEndChild(pArc);
 
-			PathingTransition* pathTransition = pathNode->FindTransition(pathArc->GetId());
-			if (pathTransition)
+			for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
 			{
-				tinyxml2::XMLElement* pTransition = doc.NewElement("Transition");
-				pTransition->SetAttribute("id", eastl::to_string(pathTransition->GetId()).c_str());
-				pTransition->SetAttribute("type", eastl::to_string(pathTransition->GetType()).c_str());
-				pTransition->SetAttribute("node", eastl::to_string(pathTransition->GetNode()->GetId()).c_str());
-				pArc->LinkEndChild(pTransition);
-
-				for (float weight : pathTransition->GetWeights())
+				eastl::map<PathingNode*, float> visibilityNodes;
+				pathArc->GetVisibilities(visibilityType, visibilityNodes);
+				for (auto visibilityNode : visibilityNodes)
 				{
-					tinyxml2::XMLElement* pWeight = doc.NewElement("Weight");
-					pWeight->SetAttribute("value", eastl::to_string(weight).c_str());
-					pTransition->LinkEndChild(pWeight);
+					tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
+					pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
+					pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
+					pVisibility->SetAttribute("value", eastl::to_string(visibilityNode.second).c_str());
+					pArc->LinkEndChild(pVisibility);
 				}
+			}
 
-				for (Vector3<float> connection : pathTransition->GetConnections())
+			for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+			{
+				eastl::map<PathingArc*, float> visibilityArcs;
+				pathArc->GetVisibilities(visibilityType, visibilityArcs);
+				for (auto visibilityArc : visibilityArcs)
 				{
-					tinyxml2::XMLElement* pConnection = doc.NewElement("Connection");
-					pConnection->SetAttribute("x", eastl::to_string((int)round(connection[0])).c_str());
-					pConnection->SetAttribute("y", eastl::to_string((int)round(connection[1])).c_str());
-					pConnection->SetAttribute("z", eastl::to_string((int)round(connection[2])).c_str());
-					pTransition->LinkEndChild(pConnection);
+					tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityArc");
+					pVisibility->SetAttribute("id", eastl::to_string(visibilityArc.first->GetId()).c_str());
+					pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
+					pVisibility->SetAttribute("value", eastl::to_string(visibilityArc.second).c_str());
+					pArc->LinkEndChild(pVisibility);
 				}
 			}
 		}
@@ -290,176 +359,177 @@ void QuakeAIManager::LoadClusteringGraph(const eastl::wstring& path)
 			clusteringNodes[clusterNodeId] = clusterNode;
 		}
 		cluster->SetCenter(clusteringNodes[centerId]);
-
 	}
 
+	eastl::map<unsigned int, ClusteringArc*> clusteringArcs;
 	for (tinyxml2::XMLElement* pCluster = pRoot->FirstChildElement(); pCluster; pCluster = pCluster->NextSiblingElement())
 	{
 		int clusterId = 0;
 		clusterId = pCluster->IntAttribute("id", clusterId);
 		Cluster* cluster = clusteringGraph[clusterId];
 
-		for (tinyxml2::XMLElement* pClusterArc = pCluster->FirstChildElement("Arc"); pClusterArc; pClusterArc = pClusterArc->NextSiblingElement())
+		for (tinyxml2::XMLElement* pClusterElement = pCluster->FirstChildElement(); pClusterElement; pClusterElement = pClusterElement->NextSiblingElement())
 		{
-			int arcId = 0;
-			int arcType = 0;
-			int arcCluster = 0;
-
-			arcId = pClusterArc->IntAttribute("id", arcId);
-			arcType = pClusterArc->IntAttribute("type", arcType);
-			arcCluster = pClusterArc->IntAttribute("cluster", arcCluster);
-
-			ClusterArc* clusterArc = new ClusterArc(arcId, arcType, clusteringGraph[arcCluster]);
-			cluster->AddArc(clusterArc);
-		}
-
-		for (tinyxml2::XMLElement* pClusterNode = pCluster->FirstChildElement("Node"); pClusterNode; pClusterNode = pClusterNode->NextSiblingElement())
-		{
-			int clusterNodeId = 0;
-			clusterNodeId = pClusterNode->IntAttribute("id", clusterNodeId);
-			ClusteringNode* clusterNode = clusteringNodes[clusterNodeId];
-
-			for (tinyxml2::XMLElement* pClusterNodeArc = pClusterNode->FirstChildElement("Arc"); pClusterNodeArc; pClusterNodeArc = pClusterNodeArc->NextSiblingElement())
+			if (pClusterElement->Name() == "Arc")
 			{
 				int arcId = 0;
 				int arcType = 0;
-				int arcNode = 0;
-				float weight = 0.f;
+				int arcCluster = 0;
 
-				arcId = pClusterNodeArc->IntAttribute("id", arcId);
-				arcType = pClusterNodeArc->IntAttribute("type", arcType);
-				arcNode = pClusterNodeArc->IntAttribute("node", arcNode);
-				weight = pClusterNodeArc->FloatAttribute("weight", weight);
+				arcId = pClusterElement->IntAttribute("id", arcId);
+				arcType = pClusterElement->IntAttribute("type", arcType);
+				arcCluster = pClusterElement->IntAttribute("cluster", arcCluster);
 
-				ClusteringArc* clusterArc = new ClusteringArc(arcId, arcType, clusteringNodes[arcNode], weight);
-				clusterNode->AddArc(clusterArc);
+				ClusterArc* clusterArc = new ClusterArc(arcId, arcType, clusteringGraph[arcCluster]);
+				cluster->AddArc(clusterArc);
+			}
+			else if (pClusterElement->Name() == "Node")
+			{
+				int clusterNodeId = 0;
+				clusterNodeId = pClusterElement->IntAttribute("id", clusterNodeId);
+				ClusteringNode* clusterNode = clusteringNodes[clusterNodeId];
 
-				for (tinyxml2::XMLElement* pTransition = pClusterNodeArc->FirstChildElement("Transition"); pTransition; pTransition = pTransition->NextSiblingElement())
+				for (tinyxml2::XMLElement* pClusterNode = pClusterElement->FirstChildElement(); pClusterNode; pClusterNode = pClusterNode->NextSiblingElement())
 				{
-					int transitionId = 0;
-					int transitionType = 0;
-					int transitionNode = 0;
-					eastl::vector<float> transitionWeights;
-					eastl::vector<Vector3<float>> transitionConnections;
-
-					transitionId = pTransition->IntAttribute("id", transitionId);
-					transitionType = pTransition->IntAttribute("type", transitionType);
-					transitionNode = pTransition->IntAttribute("node", transitionNode);
-
-					for (tinyxml2::XMLElement* pElement = pTransition->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
+					if (pClusterNode->Name() == "Arc")
 					{
-						if (pElement->Name() == "Weight")
-						{
-							float transitionWeight = 0;
-							transitionWeight = pElement->FloatAttribute("value", transitionWeight);
-							transitionWeights.push_back(transitionWeight);
-						}
-						else if (pElement->Name() == "Connection")
-						{
-							float x = 0;
-							float y = 0;
-							float z = 0;
-							x = pElement->FloatAttribute("x", x);
-							y = pElement->FloatAttribute("y", y);
-							z = pElement->FloatAttribute("z", z);
+						int arcId = 0;
+						int arcType = 0;
+						int arcNode = 0;
+						float weight = 0.f;
 
-							transitionConnections.push_back(Vector3<float>{ x, y, z });
+						arcId = pClusterNode->IntAttribute("id", arcId);
+						arcType = pClusterNode->IntAttribute("type", arcType);
+						arcNode = pClusterNode->IntAttribute("node", arcNode);
+						weight = pClusterNode->FloatAttribute("weight", weight);
+
+						ClusteringArc* clusterArc = new ClusteringArc(arcId, arcType, clusteringNodes[arcNode], weight);
+						clusterNode->AddArc(clusterArc);
+
+						clusteringArcs[clusterArc->GetId()] = clusterArc;
+
+						for (tinyxml2::XMLElement* pTransition = pClusterNode->FirstChildElement("Transition"); pTransition; pTransition = pTransition->NextSiblingElement())
+						{
+							int transitionId = 0;
+							int transitionType = 0;
+							int transitionNode = 0;
+							eastl::vector<float> transitionWeights;
+							eastl::vector<Vector3<float>> transitionConnections;
+
+							transitionId = pTransition->IntAttribute("id", transitionId);
+							transitionType = pTransition->IntAttribute("type", transitionType);
+							transitionNode = pTransition->IntAttribute("node", transitionNode);
+
+							for (tinyxml2::XMLElement* pElement = pTransition->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
+							{
+								if (pElement->Name() == "Weight")
+								{
+									float transitionWeight = 0;
+									transitionWeight = pElement->FloatAttribute("value", transitionWeight);
+									transitionWeights.push_back(transitionWeight);
+								}
+								else if (pElement->Name() == "Connection")
+								{
+									float x = 0;
+									float y = 0;
+									float z = 0;
+									x = pElement->FloatAttribute("x", x);
+									y = pElement->FloatAttribute("y", y);
+									z = pElement->FloatAttribute("z", z);
+
+									transitionConnections.push_back(Vector3<float>{ x, y, z });
+								}
+							}
+
+							ClusteringTransition* clusterTransition = new ClusteringTransition(
+								transitionId, transitionType, clusteringNodes[transitionNode], transitionWeights, transitionConnections);
+							clusterNode->AddTransition(clusterTransition);
 						}
 					}
-
-					ClusteringTransition* clusterTransition = new ClusteringTransition(
-						transitionId, transitionType, clusteringNodes[transitionNode], transitionWeights, transitionConnections);
-					clusterNode->AddTransition(clusterTransition);
 				}
 			}
 		}
 	}
 
-	/*
-	tinyxml2::XMLElement* pVisibilityGraph = pRoot->FirstChildElement("VisibilityGraph");
-	if (pVisibilityGraph != NULL)
+	// load visibility
+	for (tinyxml2::XMLElement* pCluster = pRoot->FirstChildElement(); pCluster; pCluster = pCluster->NextSiblingElement())
 	{
-		for (tinyxml2::XMLElement* pElement = pVisibilityGraph->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
+		int clusterId = 0;
+		clusterId = pCluster->IntAttribute("id", clusterId);
+		Cluster* cluster = clusteringGraph[clusterId];
+
+		for (tinyxml2::XMLElement* pClusterElement = pCluster->FirstChildElement(); pClusterElement; pClusterElement = pClusterElement->NextSiblingElement())
 		{
-			if (pElement->Name() == "VisibleNode")
+			if (pClusterElement->Name() == "Node")
 			{
-				int pathNodeId = 0;
-				pathNodeId = pElement->IntAttribute("id", pathNodeId);
+				int clusterNodeId = 0;
+				clusterNodeId = pClusterElement->IntAttribute("id", clusterNodeId);
+				ClusteringNode* clusterNode = clusteringNodes[clusterNodeId];
 
-				for (tinyxml2::XMLElement* pVisibleNode = pElement->FirstChildElement("Node"); pVisibleNode; pVisibleNode = pVisibleNode->NextSiblingElement())
+				for (tinyxml2::XMLElement* pElement = pClusterElement->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
 				{
-					int visibleNodeId = 0;
-					visibleNodeId = pVisibleNode->IntAttribute("id", visibleNodeId);
+					if (pElement->Name() == "Arc")
+					{
+						int clusterArcId = 0;
+						clusterArcId = pElement->IntAttribute("id", clusterArcId);
+						ClusteringArc* clusterArc = clusteringArcs[clusterArcId];
 
-					float distance = 0.f;
-					distance = pVisibleNode->FloatAttribute("distance", distance);
+						for (tinyxml2::XMLElement* pArc = pElement->FirstChildElement(); pArc; pArc = pArc->NextSiblingElement())
+						{
+							if (pArc->Name() == "VisibleNode")
+							{
+								int nodeId = 0;
+								int visibilityType = 0;
+								float visibilityValue = 0;
 
-					mVisibleNodes[pathingNodeGraph[pathNodeId]][pathingNodeGraph[visibleNodeId]] = distance;
-				}
-			}
-			else if (pElement->Name() == "VisibleNodeArc")
-			{
-				int pathNodeId = 0;
-				pathNodeId = pElement->IntAttribute("id", pathNodeId);
+								nodeId = pElement->IntAttribute("id", nodeId);
+								visibilityType = pElement->IntAttribute("type", visibilityType);
+								visibilityValue = pElement->FloatAttribute("value", visibilityValue);
 
-				for (tinyxml2::XMLElement* pVisibleArc = pElement->FirstChildElement("Arc"); pVisibleArc; pVisibleArc = pVisibleArc->NextSiblingElement())
-				{
-					int visibleArcId = 0;
-					visibleArcId = pVisibleArc->IntAttribute("id", visibleArcId);
+								clusterArc->AddVisibility(clusteringNodes[nodeId], visibilityType, visibilityValue);
+							}
+							else if (pArc->Name() == "VisibleArc")
+							{
+								int arcId = 0;
+								int visibilityType = 0;
+								float visibilityValue = 0;
 
-					float distance = 0.f;
-					distance = pVisibleArc->FloatAttribute("distance", distance);
+								arcId = pElement->IntAttribute("id", arcId);
+								visibilityType = pElement->IntAttribute("type", visibilityType);
+								visibilityValue = pElement->FloatAttribute("value", visibilityValue);
 
-					float time = 0.f;
-					time = pVisibleArc->FloatAttribute("time", time);
+								clusterArc->AddVisibility(clusteringArcs[arcId], visibilityType, visibilityValue);
+							}
+						}
+					}
+					else if (pElement->Name() == "VisibleNode")
+					{
+						int nodeId = 0;
+						int visibilityType = 0;
+						float visibilityValue = 0;
 
-					mVisibleNodeArcs[pathingNodeGraph[pathNodeId]][pathingArcGraph[visibleArcId]] = distance;
-					mVisibleNodeArcsTime[pathingNodeGraph[pathNodeId]][pathingArcGraph[visibleArcId]] = time;
-				}
-			}
-			else if (pElement->Name() == "VisibleArcNode")
-			{
-				int pathArcId = 0;
-				pathArcId = pElement->IntAttribute("id", pathArcId);
+						nodeId = pElement->IntAttribute("id", nodeId);
+						visibilityType = pElement->IntAttribute("type", visibilityType);
+						visibilityValue = pElement->FloatAttribute("value", visibilityValue);
 
-				for (tinyxml2::XMLElement* pVisibleNode = pElement->FirstChildElement("Node"); pVisibleNode; pVisibleNode = pVisibleNode->NextSiblingElement())
-				{
-					int visibleNodeId = 0;
-					visibleNodeId = pVisibleNode->IntAttribute("id", visibleNodeId);
+						clusterNode->AddVisibility(clusteringNodes[nodeId], visibilityType, visibilityValue);
+					}
+					else if (pElement->Name() == "VisibleArc")
+					{
+						int arcId = 0;
+						int visibilityType = 0;
+						float visibilityValue = 0;
 
-					float distance = 0.f;
-					distance = pVisibleNode->FloatAttribute("distance", distance);
+						arcId = pElement->IntAttribute("id", arcId);
+						visibilityType = pElement->IntAttribute("type", visibilityType);
+						visibilityValue = pElement->FloatAttribute("value", visibilityValue);
 
-					float time = 0.f;
-					time = pVisibleNode->FloatAttribute("time", time);
-
-					mVisibleArcNodes[pathingArcGraph[pathArcId]][pathingNodeGraph[visibleNodeId]] = distance;
-					mVisibleArcNodesTime[pathingArcGraph[pathArcId]][pathingNodeGraph[visibleNodeId]] = time;
-				}
-			}
-			else if (pElement->Name() == "VisibleArc")
-			{
-				int pathArcId = 0;
-				pathArcId = pElement->IntAttribute("id", pathArcId);
-
-				for (tinyxml2::XMLElement* pVisibleArc = pElement->FirstChildElement("Arc"); pVisibleArc; pVisibleArc = pVisibleArc->NextSiblingElement())
-				{
-					int visibleArcId = 0;
-					visibleArcId = pVisibleArc->IntAttribute("id", visibleArcId);
-
-					float distance = 0.f;
-					distance = pVisibleArc->FloatAttribute("distance", distance);
-
-					float time = 0.f;
-					time = pVisibleArc->FloatAttribute("time", time);
-
-					mVisibleArcs[pathingArcGraph[pathArcId]][pathingArcGraph[visibleArcId]] = distance;
-					mVisibleArcsTime[pathingArcGraph[pathArcId]][pathingArcGraph[visibleArcId]] = time;
+						clusterNode->AddVisibility(clusteringArcs[arcId], visibilityType, visibilityValue);
+					}
 				}
 			}
 		}
 	}
-	*/
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -505,6 +575,34 @@ void QuakeAIManager::SaveClusteringGraph(const eastl::string& path)
 			pPosition->SetAttribute("z", eastl::to_string((int)round(clusterNode->GetPos()[2])).c_str());
 			pNode->LinkEndChild(pPosition);
 
+			for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+			{
+				eastl::map<ClusteringNode*, float> visibilityNodes;
+				clusterNode->GetVisibilities(visibilityType, visibilityNodes);
+				for (auto visibilityNode : visibilityNodes)
+				{
+					tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
+					pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
+					pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
+					pVisibility->SetAttribute("value", eastl::to_string(visibilityNode.second).c_str());
+					pNode->LinkEndChild(pVisibility);
+				}
+			}
+
+			for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+			{
+				eastl::map<ClusteringArc*, float> visibilityArcs;
+				clusterNode->GetVisibilities(visibilityType, visibilityArcs);
+				for (auto visibilityArc : visibilityArcs)
+				{
+					tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityArc");
+					pVisibility->SetAttribute("id", eastl::to_string(visibilityArc.first->GetId()).c_str());
+					pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
+					pVisibility->SetAttribute("value", eastl::to_string(visibilityArc.second).c_str());
+					pNode->LinkEndChild(pVisibility);
+				}
+			}
+
 			for (ClusteringArc* clusterNodeArc : clusterNode->GetArcs())
 			{
 				tinyxml2::XMLElement* pNodeArc = doc.NewElement("Arc");
@@ -539,95 +637,38 @@ void QuakeAIManager::SaveClusteringGraph(const eastl::string& path)
 						pTransition->LinkEndChild(pConnection);
 					}
 				}
+
+				for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+				{
+					eastl::map<ClusteringNode*, float> visibilityNodes;
+					clusterNodeArc->GetVisibilities(visibilityType, visibilityNodes);
+					for (auto visibilityNode : visibilityNodes)
+					{
+						tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
+						pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
+						pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
+						pVisibility->SetAttribute("value", eastl::to_string(visibilityNode.second).c_str());
+						pNodeArc->LinkEndChild(pVisibility);
+					}
+				}
+
+				for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+				{
+					eastl::map<ClusteringNode*, float> visibilityArcs;
+					clusterNodeArc->GetVisibilities(visibilityType, visibilityArcs);
+					for (auto visibilityArc : visibilityArcs)
+					{
+						tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityArc");
+						pVisibility->SetAttribute("id", eastl::to_string(visibilityArc.first->GetId()).c_str());
+						pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
+						pVisibility->SetAttribute("value", eastl::to_string(visibilityArc.second).c_str());
+						pNodeArc->LinkEndChild(pVisibility);
+					}
+				}
 			}
 		}
 	}
-	/*
-	tinyxml2::XMLElement* pVisibilityGraph = doc.NewElement("VisibilityGraph");
-	pBaseElement->LinkEndChild(pVisibilityGraph);
-
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		if (mVisibleNodes.find(pathNode) != mVisibleNodes.end())
-		{
-			tinyxml2::XMLElement* pNode = doc.NewElement("VisibleNode");
-			pNode->SetAttribute("id", eastl::to_string(pathNode->GetId()).c_str());
-			pVisibilityGraph->LinkEndChild(pNode);
-
-			for (auto visibilityNode : mVisibleNodes[pathNode])
-			{
-				PathingNode* visibleNode = visibilityNode.first;
-				tinyxml2::XMLElement* pVisibleNode = doc.NewElement("Node");
-				pVisibleNode->SetAttribute("id", eastl::to_string(visibleNode->GetId()).c_str());
-				pVisibleNode->SetAttribute("distance", eastl::to_string(visibilityNode.second).c_str());
-				pNode->LinkEndChild(pVisibleNode);
-			}
-		}
-	}
-
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		if (mVisibleNodeArcs.find(pathNode) != mVisibleNodeArcs.end())
-		{
-			tinyxml2::XMLElement* pNode = doc.NewElement("VisibleNodeArc");
-			pNode->SetAttribute("id", eastl::to_string(pathNode->GetId()).c_str());
-			pVisibilityGraph->LinkEndChild(pNode);
-
-			for (auto visibilityNodeArc : mVisibleNodeArcs[pathNode])
-			{
-				PathingArc* visibleArc = visibilityNodeArc.first;
-
-				tinyxml2::XMLElement* pArc = doc.NewElement("Arc");
-				pArc->SetAttribute("id", eastl::to_string(visibleArc->GetId()).c_str());
-				pArc->SetAttribute("distance", eastl::to_string(visibilityNodeArc.second).c_str());
-				pArc->SetAttribute("time", eastl::to_string(mVisibleNodeArcsTime[pathNode][visibleArc]).c_str());
-				pNode->LinkEndChild(pArc);
-			}
-		}
-	}
-
-	for (PathingArc* pathArc : mPathingGraph->GetArcs())
-	{
-		if (mVisibleArcNodes.find(pathArc) != mVisibleArcNodes.end())
-		{
-			tinyxml2::XMLElement* pArc = doc.NewElement("VisibleArcNode");
-			pArc->SetAttribute("id", eastl::to_string(pathArc->GetId()).c_str());
-			pVisibilityGraph->LinkEndChild(pArc);
-
-			for (auto visibilityArcNode : mVisibleArcNodes[pathArc])
-			{
-				PathingNode* visibleNode = visibilityArcNode.first;
-				
-				tinyxml2::XMLElement* pNode = doc.NewElement("Node");
-				pNode->SetAttribute("id", eastl::to_string(visibleNode->GetId()).c_str());
-				pArc->SetAttribute("distance", eastl::to_string(visibilityArcNode.second).c_str());
-				pArc->SetAttribute("time", eastl::to_string(mVisibleArcNodesTime[pathArc][visibleNode]).c_str());
-				pArc->LinkEndChild(pNode);
-			}
-		}
-	}
-
-	for (PathingArc* pathArc : mPathingGraph->GetArcs())
-	{
-		if (mVisibleArcNodes.find(pathArc) != mVisibleArcNodes.end())
-		{
-			tinyxml2::XMLElement* pArc = doc.NewElement("VisibleArc");
-			pArc->SetAttribute("id", eastl::to_string(pathArc->GetId()).c_str());
-			pVisibilityGraph->LinkEndChild(pArc);
-
-			for (auto visibilityArc : mVisibleArcs[pathArc])
-			{
-				PathingArc* visibleArc = visibilityArc.first;
-
-				tinyxml2::XMLElement* pVisibleArc = doc.NewElement("Arc");
-				pVisibleArc->SetAttribute("id", eastl::to_string(visibleArc->GetId()).c_str());
-				pVisibleArc->SetAttribute("distance", eastl::to_string(visibilityArc.second).c_str());
-				pVisibleArc->SetAttribute("time", eastl::to_string(mVisibleArcsTime[pathArc][visibleArc]).c_str());
-				pArc->LinkEndChild(pVisibleArc);
-			}
-		}
-	}
-	*/
+	
 	doc.SaveFile(path.c_str());
 }
 
@@ -666,6 +707,9 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	// movement, jumping or falling and its conections
 	SimulateWaypoint();
 
+	// we obtain visibility information from pathing graph 
+	SimulateVisibility();
+
 	GameLogic::Get()->GetAIManager()->SavePathingGraph(
 		FileSystem::Get()->GetPath("ai/quake/bloodrunpathing.xml"));
 
@@ -674,9 +718,6 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	GameLogic::Get()->GetAIManager()->SaveClusteringGraph(
 		FileSystem::Get()->GetPath("ai/quake/bloodrunclustering.xml"));
-
-	// we obtain visibility information from the cluster graph by using raycasting
-	SimulateVisibility();
 
 	// we need to handle firing grenades separately since they cannot be simulated by raycasting 
 	// as they describe different trajectories
@@ -707,11 +748,31 @@ void QuakeAIManager::SimulateVisibility()
 	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
 
 	Transform transform;
-	PathingDoubleMap visibleNodesTime;
-	PathingDoubleMap visibleNodes;
 
-	// first we need to get visibility info such as distance and timing 
-	// from every node and arc by raycasting
+	// there are hundred of millions of combinations depending on the size of the map
+	// which will take forever to simulate visibility thats why we have to make an aproximation
+	// by grouping every position to its neareast node
+	eastl::map<Vector3<float>, PathingNode*> pathingNodes;
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		pathingNodes[pathNode->GetPos()] = pathNode;
+		for (PathingArc* pathArc : pathNode->GetArcs())
+		{
+			PathingTransition* pathTransition = pathNode->FindTransition(pathArc->GetId());
+			if (pathTransition)
+			{
+				for (Vector3<float> pathConnection : pathTransition->GetConnections())
+					pathingNodes[pathConnection] = mPathingGraph->FindClosestNode(pathConnection);
+			}
+			else
+			{
+				pathingNodes[pathArc->GetNode()->GetPos()] = pathArc->GetNode();
+			}
+		}
+	}
+
+	// we need to get visibility info from every node and arc by raycasting
+	PathingNodeDoubleMap visibleNodes;
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
 		//set muzzle location relative to pivoting eye
@@ -734,46 +795,32 @@ void QuakeAIManager::SimulateVisibility()
 					collision = collisions[i];
 
 			if (collision == NULL)
-				visibleNodes[pathNode->GetPos()][visibleNode->GetPos()] = 1.f;
+				visibleNodes[pathNode][visibleNode] = 1.0f;
 		}
+	}
+
+	// next we will only raycast those positions which were visible from its neareast node
+	eastl::map<Vector3<float>, eastl::map<Vector3<float>, float>> visiblePositions;
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		//set muzzle location relative to pivoting eye
+		Vector3<float> muzzle = pathNode->GetPos();
+		muzzle[2] += mPlayerActor->GetState().viewHeight;
+		muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
 
 		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
 		{
-			for (PathingTransition* visibleTransition : visibleNode->GetTransitions())
+			if (visibleNodes[pathNode][visibleNode])
+				visiblePositions[pathNode->GetPos()][visibleNode->GetPos()] = 1.0f;
+
+			for (PathingArc* visibleArc : visibleNode->GetArcs())
 			{
-				for (Vector3<float> visibleConnection : visibleTransition->GetConnections())
+				PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
+				if (visibleTransition)
 				{
-					Vector3<float> end = visibleConnection +
-						(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
-
-					eastl::vector<ActorId> collisionActors;
-					eastl::vector<Vector3<float>> collisions, collisionNormals;
-					gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
-
-					Vector3<float> collision = NULL;
-					for (unsigned int i = 0; i < collisionActors.size(); i++)
-						if (collisionActors[i] == INVALID_ACTOR_ID)
-							collision = collisions[i];
-
-					if (collision == NULL)
-						visibleNodes[pathNode->GetPos()][visibleConnection] = 1.0f;
-				}
-			}
-		}
-
-		for (PathingTransition* pathTransition : pathNode->GetTransitions())
-		{
-			for (Vector3<float> pathConnection : pathTransition->GetConnections())
-			{
-				muzzle = pathConnection;
-				muzzle[2] += mPlayerActor->GetState().viewHeight;
-				muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
-
-				for (PathingNode* visibleNode : mPathingGraph->GetNodes())
-				{
-					for (PathingTransition* visibleTransition : visibleNode->GetTransitions())
+					for (Vector3<float> visibleConnection : visibleTransition->GetConnections())
 					{
-						for (Vector3<float> visibleConnection : visibleTransition->GetConnections())
+						if (visibleNodes[pathNode][pathingNodes[visibleConnection]])
 						{
 							Vector3<float> end = visibleConnection +
 								(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
@@ -788,194 +835,174 @@ void QuakeAIManager::SimulateVisibility()
 									collision = collisions[i];
 
 							if (collision == NULL)
-								visibleNodes[pathConnection][visibleConnection] = 1.0f;
+								visiblePositions[pathNode->GetPos()][visibleConnection] = 1.0f;
 						}
 					}
 				}
-			}
-		}
-	}
-
-	// now we fill all the visibility graph from nodes to arcs, 
-	// arcs to nodes, arcs to arcs and between nodes
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		//between nodes
-		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
-		{
-			if (visibleNodes[pathNode->GetPos()][visibleNode->GetPos()])
-			{
-				/*
-				mVisibleNodes[pathNode][visibleNode] = 
-					Length(visibleNode->GetPos() - pathNode->GetPos());
-				*/
-			}
-		}
-
-		//nodes to arcs
-		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
-		{
-			for (PathingArc* visibleArc : visibleNode->GetArcs())
-			{
-				PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
-				if (visibleTransition)
+				else
 				{
-					unsigned int idx = 0;
-					float totalTime = 0.f, distance = 0.f;
-
-					for (Vector3<float> visibleConnection : visibleTransition->GetConnections())
-					{
-						if (visibleNodes[pathNode->GetPos()][visibleConnection])
-						{
-							float deltaTime = visibleTransition->GetWeights()[idx];
-							distance += Length(visibleConnection - pathNode->GetPos()) * deltaTime;
-							totalTime += deltaTime;
-						}
-						if (totalTime > 0.f)
-						{
-							distance /= totalTime;
-							/*
-							mVisibleNodeArcs[pathNode][pathArc] = distance;
-							mVisibleNodeArcsTime[pathNode][pathArc] = totalTime;
-							*/
-						}
-						idx++;
-					}
-				}
-				else if (visibleNodes[pathNode->GetPos()][visibleArc->GetNode()->GetPos()])
-				{
-					/*
-					mVisibleNodeArcs[pathNode][pathArc] =
-						Length(pathArc->GetNode()->GetPos() - pathNode->GetPos());
-					mVisibleNodeArcsTime[pathNode][pathArc] = pathArc->GetWeight();
-					*/
+					if (visibleNodes[pathNode][visibleArc->GetNode()])
+						visiblePositions[pathNode->GetPos()][visibleArc->GetNode()->GetPos()] = 1.0f;
 				}
 			}
 		}
-	}
 
-	//arcs to nodes
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
 		for (PathingArc* pathArc : pathNode->GetArcs())
 		{
 			PathingTransition* pathTransition = pathNode->FindTransition(pathArc->GetId());
 			if (pathTransition)
 			{
-				for (PathingNode* visibleNode : mPathingGraph->GetNodes())
+				for (Vector3<float> pathConnection : pathTransition->GetConnections())
 				{
-					unsigned int idx = 0;
-					float totalTime = 0.f, distance = 0.f;
+					muzzle = pathConnection;
+					muzzle[2] += mPlayerActor->GetState().viewHeight;
+					muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
 
-					for (Vector3<float> pathConnection : pathTransition->GetConnections())
+					for (PathingNode* visibleNode : mPathingGraph->GetNodes())
 					{
-						if (visibleNodes[pathConnection][visibleNode->GetPos()])
+						if (visibleNodes[pathingNodes[pathConnection]][visibleNode])
 						{
-							float deltaTime = pathTransition->GetWeights()[idx];
-							distance += Length(pathNode->GetPos() - pathConnection) * deltaTime;
-							totalTime += deltaTime;
+							Vector3<float> end = visibleNode->GetPos() +
+								(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
+
+							eastl::vector<ActorId> collisionActors;
+							eastl::vector<Vector3<float>> collisions, collisionNormals;
+							gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
+
+							Vector3<float> collision = NULL;
+							for (unsigned int i = 0; i < collisionActors.size(); i++)
+								if (collisionActors[i] == INVALID_ACTOR_ID)
+									collision = collisions[i];
+
+							if (collision == NULL)
+								visiblePositions[pathConnection][visibleNode->GetPos()] = 1.0f;
 						}
-						if (totalTime > 0.f)
+
+						for (PathingArc* visibleArc : visibleNode->GetArcs())
 						{
-							distance /= totalTime;
-							/*
-							mVisibleNodeArcs[pathNode][pathArc] = distance;
-							mVisibleNodeArcsTime[pathNode][pathArc] = totalTime;
-							*/
+							PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
+							if (visibleTransition)
+							{
+								for (Vector3<float> visibleConnection : visibleTransition->GetConnections())
+								{
+									if (visibleNodes[pathingNodes[pathConnection]][pathingNodes[visibleConnection]])
+									{
+										Vector3<float> end = visibleConnection +
+											(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
+
+										eastl::vector<ActorId> collisionActors;
+										eastl::vector<Vector3<float>> collisions, collisionNormals;
+										gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
+
+										Vector3<float> collision = NULL;
+										for (unsigned int i = 0; i < collisionActors.size(); i++)
+											if (collisionActors[i] == INVALID_ACTOR_ID)
+												collision = collisions[i];
+
+										if (collision == NULL)
+											visiblePositions[pathConnection][visibleConnection] = 1.0f;
+									}
+								}
+							}
+							else
+							{
+								if (visibleNodes[pathingNodes[pathConnection]][visibleArc->GetNode()])
+								{
+									Vector3<float> end = visibleArc->GetNode()->GetPos() +
+										(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
+
+									eastl::vector<ActorId> collisionActors;
+									eastl::vector<Vector3<float>> collisions, collisionNormals;
+									gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
+
+									Vector3<float> collision = NULL;
+									for (unsigned int i = 0; i < collisionActors.size(); i++)
+										if (collisionActors[i] == INVALID_ACTOR_ID)
+											collision = collisions[i];
+
+									if (collision == NULL)
+										visiblePositions[pathConnection][visibleArc->GetNode()->GetPos()] = 1.0f;
+								}
+							}
 						}
-						idx++;
 					}
 				}
 			}
 			else
 			{
+				muzzle = pathArc->GetNode()->GetPos();
+				muzzle[2] += mPlayerActor->GetState().viewHeight;
+				muzzle -= Vector3<float>::Unit(ROLL) * 11.f;
+
 				for (PathingNode* visibleNode : mPathingGraph->GetNodes())
 				{
-					if (visibleNodes[pathArc->GetNode()->GetPos()][visibleNode->GetPos()])
+					if (visibleNodes[pathArc->GetNode()][visibleNode])
+						visiblePositions[pathArc->GetNode()->GetPos()][visibleNode->GetPos()] = 1.0f;
+
+					for (PathingArc* visibleArc : visibleNode->GetArcs())
 					{
-						/*
-						mVisibleNodeArcs[pathNode][pathArc] =
-							Length(pathArc->GetNode()->GetPos() - pathNode->GetPos());
-						mVisibleNodeArcsTime[pathNode][pathArc] = pathArc->GetWeight();
-						*/
+						PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
+						if (visibleTransition)
+						{
+							for (Vector3<float> visibleConnection : visibleTransition->GetConnections())
+							{
+								if (visibleNodes[pathArc->GetNode()][pathingNodes[visibleConnection]])
+								{
+									Vector3<float> end = visibleConnection +
+										(float)mPlayerActor->GetState().viewHeight * Vector3<float>::Unit(YAW);
+
+									eastl::vector<ActorId> collisionActors;
+									eastl::vector<Vector3<float>> collisions, collisionNormals;
+									gamePhysics->CastRay(muzzle, end, collisionActors, collisions, collisionNormals);
+
+									Vector3<float> collision = NULL;
+									for (unsigned int i = 0; i < collisionActors.size(); i++)
+										if (collisionActors[i] == INVALID_ACTOR_ID)
+											collision = collisions[i];
+
+									if (collision == NULL)
+										visiblePositions[pathArc->GetNode()->GetPos()][visibleConnection] = 1.0f;
+								}
+							}
+						}
+						else
+						{
+							if (visibleNodes[pathArc->GetNode()][visibleArc->GetNode()])
+								visiblePositions[pathArc->GetNode()->GetPos()][visibleArc->GetNode()->GetPos()] = 1.0f;
+						}
 					}
 				}
 			}
 		}
 	}
 
-	//arcs to arcs
-	/*
-	for (PathingArc* pathArc : mPathingGraph->GetArcs())
+	// now we fill all the visibility info from nodes to arcs, 
+	// arcs to nodes, arcs to arcs and between nodes
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
-		if (pathArc->GetType() == AIAT_MOVE)
+		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
 		{
-			for (PathingArc* visibleArc : mPathingGraph->GetArcs())
+			if (visiblePositions[pathNode->GetPos()][visibleNode->GetPos()])
 			{
-				float totalTime = 0.f, totalVisibleTime = 0.f, distance = 0.f;
-				if (visibleArc->GetType() == AIAT_MOVE)
+				pathNode->AddVisibility(visibleNode, VT_DISTANCE,
+					Length(visibleNode->GetPos() - pathNode->GetPos()));
+				pathNode->AddVisibility(visibleNode, VT_WEIGHT, 0.f);
+			}
+
+			for (PathingArc* visibleArc : visibleNode->GetArcs())
+			{
+				PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
+				if (visibleTransition)
 				{
-					if (visibleArc->GetWeight() > pathArc->GetWeight())
+					float totalVisibleTime = 0.f, distance = 0.f;
+					eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
+					for (unsigned int visibleConnection = 0; visibleConnection < visibleConnections.size(); visibleConnection++)
 					{
-						PathingNodeVec::iterator itVisibleArcNode = pathArcNodes[visibleArc].begin();
-						float totalArcTime = 0.f;
-						for (PathingNode* pathArcNode : pathArcNodes[pathArc])
+						if (visiblePositions[pathNode->GetPos()][visibleConnections[visibleConnection]])
 						{
-							if (visibleNodes[pathArcNode][(*itVisibleArcNode)])
-							{
-								float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
-								distance += Length((*itVisibleArcNode)->GetPos() - pathArcNode->GetPos()) * deltaTime;
-								totalVisibleTime += deltaTime;
-							}
-							while (totalArcTime <= totalTime)
-							{
-								totalArcTime += pathArcNodesTime[visibleArc][(*itVisibleArcNode)];
-								itVisibleArcNode++;
-							}
-							totalTime += pathArcNodesTime[pathArc][pathArcNode];
-						}
-
-						for (; itVisibleArcNode < pathArcNodes[visibleArc].end(); itVisibleArcNode++)
-						{
-							PathingNode* pathArcNode = pathArcNodes[pathArc].back();
-							if (visibleNodes[pathArcNode][(*itVisibleArcNode)])
-							{
-								float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
-								distance += Length((*itVisibleArcNode)->GetPos() - pathArcNode->GetPos()) * deltaTime;
-								totalVisibleTime += deltaTime;
-							}
-						}
-					}
-					else
-					{
-						PathingNodeVec::iterator itPathArcNode = pathArcNodes[pathArc].begin();
-
-						float totalArcTime = 0.f;
-						for (PathingNode* visibleArcNode : pathArcNodes[visibleArc])
-						{
-							if (visibleNodes[visibleArcNode][(*itPathArcNode)])
-							{
-								float deltaTime = pathArcNodesTime[visibleArc][visibleArcNode];
-								distance += Length((*itPathArcNode)->GetPos() - visibleArcNode->GetPos()) * deltaTime;
-								totalVisibleTime += deltaTime;
-							}
-							while (totalArcTime <= totalTime)
-							{
-								totalArcTime += pathArcNodesTime[pathArc][(*itPathArcNode)];
-								itPathArcNode++;
-							}
-							totalTime += pathArcNodesTime[visibleArc][visibleArcNode];
-						}
-
-						for (; itPathArcNode < pathArcNodes[pathArc].end(); itPathArcNode++)
-						{
-							PathingNode* visibleArcNode = pathArcNodes[visibleArc].back();
-							if (visibleNodes[visibleArcNode][(*itPathArcNode)])
-							{
-								float deltaTime = pathArcNodesTime[pathArc][visibleArcNode];
-								distance += Length((*itPathArcNode)->GetPos() - visibleArcNode->GetPos()) * deltaTime;
-								totalVisibleTime += deltaTime;
-							}
+							float deltaTime = visibleTransition->GetWeights()[visibleConnection];
+							distance += Length(visibleConnections[visibleConnection] - pathNode->GetPos()) * deltaTime;
+							totalVisibleTime += deltaTime;
 						}
 					}
 
@@ -983,103 +1010,178 @@ void QuakeAIManager::SimulateVisibility()
 					{
 						distance /= totalVisibleTime;
 
-						mVisibleArcs[pathArc][visibleArc] = distance;
-						mVisibleArcsTime[pathArc][visibleArc] = totalVisibleTime;
+						pathNode->AddVisibility(visibleArc, VT_DISTANCE, distance);
+						pathNode->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
 					}
 				}
 				else
 				{
-					if (visibleArc->GetType() == AIAT_JUMPTARGET ||
-						visibleArc->GetType() == AIAT_FALLTARGET ||
-						visibleArc->GetType() == AIAT_PUSHTARGET)
+					if (visiblePositions[pathNode->GetPos()][visibleArc->GetNode()->GetPos()])
 					{
-						PathingArc* visiblePathArc = visibleArc->GetOrigin()->FindArc(
-							visibleArc->GetType() - 1, visibleArc->GetNeighbor());
+						pathNode->AddVisibility(visibleArc, VT_DISTANCE, 
+							Length(visibleArc->GetNode()->GetPos() - pathNode->GetPos()));
+						pathNode->AddVisibility(visibleArc, VT_WEIGHT, visibleArc->GetWeight());
+					}
+				}
+			}
+		}
 
-						if (visibleArc->GetWeight() > pathArc->GetWeight())
+		for (PathingArc* pathArc : pathNode->GetArcs())
+		{
+			PathingTransition* pathTransition = pathNode->FindTransition(pathArc->GetId());
+			if (pathTransition)
+			{
+				for (PathingNode* visibleNode : mPathingGraph->GetNodes())
+				{
+					for (PathingArc* visibleArc : visibleNode->GetArcs())
+					{
+						PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
+						if (visibleTransition)
 						{
-							float totalArcTime = 0.f;
-							for (PathingNode* pathArcNode : pathArcNodes[pathArc])
+							float totalTime = 0.f, totalVisibleTime = 0.f, distance = 0.f;
+							if (visibleArc->GetWeight() > pathArc->GetWeight())
 							{
-								if (visibleNodeArcs[pathArcNode][visiblePathArc])
+								float totalArcTime = 0.f;
+								unsigned int pathConnection = 0;
+								unsigned int visibleConnection = 0;
+								eastl::vector<Vector3<float>> pathConnections = pathTransition->GetConnections();
+								eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
+								for (; pathConnection < pathConnections.size(); pathConnection++)
 								{
-									float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
-									distance += Length(
-										visiblePathArc->GetConnection() - pathArcNode->GetPos()) * deltaTime;
-									totalVisibleTime += deltaTime;
+									if (visiblePositions[pathConnections[pathConnection]][visibleConnections[visibleConnection]])
+									{
+										float deltaTime = pathTransition->GetWeights()[pathConnection];
+										distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
+										totalVisibleTime += deltaTime;
+									}
+									while (totalArcTime <= totalTime)
+									{
+										totalArcTime += visibleTransition->GetWeights()[visibleConnection];
+										visibleConnection++;
+									}
+									totalTime += pathTransition->GetWeights()[pathConnection];
 								}
-								while (totalArcTime <= totalTime)
+
+								for (; visibleConnection < visibleConnections.size(); visibleConnection++)
 								{
-									totalArcTime += visiblePathArc->GetWeight();
-									visiblePathArc = visiblePathArc->GetNeighbor()->FindArc(
-										pathArc->GetType() - 1, pathArc->GetNeighbor());
+									if (visiblePositions[pathConnections[pathConnection]][visibleConnections[visibleConnection]])
+									{
+										float deltaTime = pathTransition->GetWeights()[pathConnection];
+										distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
+										totalVisibleTime += deltaTime;
+									}
 								}
-								totalTime += pathArcNodesTime[pathArc][pathArcNode];
+							}
+							else
+							{
+								float totalArcTime = 0.f;
+								unsigned int pathConnection = 0;
+								unsigned int visibleConnection = 0;
+								eastl::vector<Vector3<float>> pathConnections = pathTransition->GetConnections();
+								eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
+								for (; visibleConnection < visibleConnections.size(); visibleConnection++)
+								{
+									if (visiblePositions[visibleConnections[visibleConnection]][pathConnections[pathConnection]])
+									{
+										float deltaTime = visibleTransition->GetWeights()[visibleConnection];
+										distance += Length(pathConnections[pathConnection] - visibleConnections[visibleConnection]) * deltaTime;
+										totalVisibleTime += deltaTime;
+									}
+									while (totalArcTime <= totalTime)
+									{
+										totalArcTime += pathTransition->GetWeights()[pathConnection];
+										pathConnection++;
+									}
+									totalTime += visibleTransition->GetWeights()[visibleConnection];
+								}
+
+								for (; pathConnection < pathConnections.size(); pathConnection++)
+								{
+									if (visiblePositions[visibleConnections[visibleConnection]][pathConnections[pathConnection]])
+									{
+										float deltaTime = visibleTransition->GetWeights()[visibleConnection];
+										distance += Length(pathConnections[pathConnection] - visibleConnections[visibleConnection]) * deltaTime;
+										totalVisibleTime += deltaTime;
+									}
+								}
 							}
 
-							while(pathArc->GetNeighbor() != visiblePathArc->GetOrigin())
+							if (totalVisibleTime > 0.f)
 							{
-								PathingNode* pathArcNode = pathArcNodes[pathArc].back();
-								if (visibleNodeArcs[pathArcNode][visiblePathArc])
-								{
-									float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
-									distance += Length(
-										visiblePathArc->GetConnection() - pathArcNode->GetPos()) * deltaTime;
-									totalVisibleTime += deltaTime;
-								}
+								distance /= totalVisibleTime;
+
+								pathArc->AddVisibility(visibleArc, VT_DISTANCE, distance);
+								pathArc->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
 							}
 						}
 						else
 						{
-							float totalArcTime = 0.f;
-							PathingNodeVec::iterator itPathArcNode = pathArcNodes[pathArc].begin();
-
-							while (pathArc->GetNeighbor() != visiblePathArc->GetOrigin())
+							float totalVisibleTime = 0.f, distance = 0.f;
+							eastl::vector<Vector3<float>> pathConnections = pathTransition->GetConnections();
+							for (unsigned int pathConnection = 0; pathConnection < pathConnections.size(); pathConnection++)
 							{
-								PathingNode* pathArcNode = (*itPathArcNode);
-								if (visibleNodeArcs[pathArcNode][visiblePathArc])
+								if (visiblePositions[pathConnections[pathConnection]][visibleArc->GetNode()->GetPos()])
 								{
-									float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
-									distance += Length(
-										visiblePathArc->GetConnection() - pathArcNode->GetPos()) * deltaTime;
+									float deltaTime = pathTransition->GetWeights()[pathConnection];
+									distance += Length(pathConnections[pathConnection] - visibleArc->GetNode()->GetPos()) * deltaTime;
 									totalVisibleTime += deltaTime;
 								}
-								while (totalArcTime <= totalTime)
-								{
-									totalArcTime += visiblePathArc->GetWeight();
-									visiblePathArc = visiblePathArc->GetNeighbor()->FindArc(
-										pathArc->GetType() - 1, pathArc->GetNeighbor());
-								}
-								totalTime += pathArcNodesTime[pathArc][pathArcNode];
-								itPathArcNode++;
 							}
 
-							for (; itPathArcNode < pathArcNodes[pathArc].end(); itPathArcNode++)
+							if (totalVisibleTime > 0.f)
 							{
-								PathingNode* pathArcNode = (*itPathArcNode);
-								if (visibleNodeArcs[pathArcNode][visiblePathArc])
-								{
-									float deltaTime = pathArcNodesTime[pathArc][pathArcNode];
-									distance += Length(
-										visiblePathArc->GetConnection() - pathArcNode->GetPos()) * deltaTime;
-									totalVisibleTime += deltaTime;
-								}
+								distance /= totalVisibleTime;
+
+								pathArc->GetNode()->AddVisibility(visibleArc, VT_DISTANCE, distance);
+								pathArc->GetNode()->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
 							}
 						}
-
-						if (totalVisibleTime > 0.f)
+					}
+				}
+			}
+			else
+			{
+				for (PathingNode* visibleNode : mPathingGraph->GetNodes())
+				{
+					for (PathingArc* visibleArc : visibleNode->GetArcs())
+					{
+						PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
+						if (visibleTransition)
 						{
-							distance /= totalVisibleTime;
+							float totalVisibleTime = 0.f, distance = 0.f;
+							eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
+							for (unsigned int visibleConnection = 0; visibleConnection < visibleConnections.size(); visibleConnection++)
+							{
+								if (visiblePositions[pathArc->GetNode()->GetPos()][visibleConnections[visibleConnection]])
+								{
+									float deltaTime = visibleTransition->GetWeights()[visibleConnection];
+									distance += Length(visibleConnections[visibleConnection] - pathArc->GetNode()->GetPos()) * deltaTime;
+									totalVisibleTime += deltaTime;
+								}
+							}
 
-							mVisibleArcs[pathArc][visibleArc] = distance;
-							mVisibleArcsTime[pathArc][visibleArc] = totalVisibleTime;
+							if (totalVisibleTime > 0.f)
+							{
+								distance /= totalVisibleTime;
+
+								pathArc->GetNode()->AddVisibility(visibleArc, VT_DISTANCE, distance);
+								pathArc->GetNode()->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
+							}
+						}
+						else
+						{
+							if (visiblePositions[pathArc->GetNode()->GetPos()][visibleArc->GetNode()->GetPos()])
+							{
+								pathArc->GetNode()->AddVisibility(visibleArc, VT_DISTANCE, 
+									Length(visibleArc->GetNode()->GetPos() - pathArc->GetNode()->GetPos()));
+								pathArc->GetNode()->AddVisibility(visibleArc, VT_WEIGHT, visibleArc->GetWeight());
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-	*/
 }
 
 void QuakeAIManager::SimulateGrenadeLauncherFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor)
@@ -1196,7 +1298,7 @@ void QuakeAIManager::SimulateWaypoint()
 			}
 		}
 	}
-
+	/*
 	while (!mClosedSet.empty())
 	{
 		// grab the candidate
@@ -1220,6 +1322,7 @@ void QuakeAIManager::SimulateWaypoint()
 		// we have processed this node so remove it from the closed set
 		mClosedSet.erase(itOpenSet);
 	}
+	*/
 }
 
 void QuakeAIManager::CreateClusters()
@@ -1273,6 +1376,7 @@ void QuakeAIManager::CreateClusters()
 	}
 
 	mLastArcId = 0;
+	eastl::map<unsigned int, ClusteringArc*> clusterArcs;
 	for (Cluster* cluster : mClusteringGraph->GetClusters())
 	{
 		for (ClusteringNode* clusterNode : cluster->GetNodes())
@@ -1332,15 +1436,7 @@ void QuakeAIManager::CreateClusters()
 						ClusteringArc* clusterArc = new ClusteringArc(
 							GetNewArcID(), pathArc->GetType(), targetNode, pathArc->GetWeight());
 						clusterNode->AddArc(clusterArc);
-
-						PathingTransition* pTransition = pathNode->FindTransition(pathArc->GetId());
-						if (pTransition)
-						{
-							ClusteringNode* cNode = clusterNodes[pathNode->GetId()];
-							ClusteringTransition* cTransition = new ClusteringTransition(clusterArc->GetId(),
-								pTransition->GetType(), targetNode, pTransition->GetWeights(), pTransition->GetConnections());
-							cNode->AddTransition(cTransition);
-						}
+						clusterArcs[clusterArc->GetId()] = clusterArc;
 					}
 				}
 			}
@@ -1357,23 +1453,12 @@ void QuakeAIManager::CreateClusters()
 						ClusteringArc* clusterArc = new ClusteringArc(
 							GetNewArcID(), pathArc.second->GetType(), targetNode, pathArc.second->GetWeight());
 						clusterNode->AddArc(clusterArc);
-
-						PathingTransition* pTransition = pathNode->FindTransition(pathArc.second->GetId());
-						if (pTransition)
-						{
-							ClusteringNode* cNode = clusterNodes[pathNode->GetId()];
-							ClusteringTransition* cTransition = new ClusteringTransition(clusterArc->GetId(),
-								pTransition->GetType(), targetNode, pTransition->GetWeights(), pTransition->GetConnections());
-							cNode->AddTransition(cTransition);
-						}
+						clusterArcs[clusterArc->GetId()] = clusterArc;
 					}
 				}
 			}
 		}
 	}
-
-	GameLogic::Get()->GetAIManager()->SaveClusteringGraph(
-		FileSystem::Get()->GetPath("ai/quake/bloodrunclustering - copia.xml"));
 
 	//we check that every node within the cluster has a connection to cluster center and actors
 	ClusteringNodeArcMap clusterNodeArcs;
@@ -1435,8 +1520,7 @@ void QuakeAIManager::CreateClusters()
 					if (clusteringTransition)
 					{
 						clusteringTransition = new ClusteringTransition(
-							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode(), 
-							clusteringTransition->GetWeights(), clusteringTransition->GetConnections());
+							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
 						clusterNode->AddTransition(clusteringTransition);
 						clusterNodeArcs[clusterNode].push_back(clusteringArc);
 					}
@@ -1498,8 +1582,7 @@ void QuakeAIManager::CreateClusters()
 					if (clusteringTransition)
 					{
 						clusteringTransition = new ClusteringTransition(
-							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode(),
-							clusteringTransition->GetWeights(), clusteringTransition->GetConnections());
+							clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
 						clusterNode->AddTransition(clusteringTransition);
 						clusterNodeArcs[clusterNode].push_back(clusteringArc);
 					}
@@ -1522,7 +1605,67 @@ void QuakeAIManager::CreateClusters()
 	{
 		ClusteringNode* clusterNode = (*itNodeArc).first;
 		for (ClusteringArc* clusterArc : (*itNodeArc).second)
+		{
 			clusterNode->AddArc(clusterArc);
+			clusterArcs[clusterArc->GetId()] = clusterArc;
+		}
+	}
+
+	//finally we add visibility info to clusters
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		ClusteringNode* clusterNode = clusterNodes[pathNode->GetId()];
+		for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+		{
+			eastl::map<PathingNode*, float> visibilityNodes;
+			pathNode->GetVisibilities(visibilityType, visibilityNodes);
+			for (auto visibilityNode : visibilityNodes)
+			{
+				clusterNode->AddVisibility(
+					clusterNodes[visibilityNode.first->GetId()], visibilityType, visibilityNode.second);
+			}
+		}
+
+		for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+		{
+			eastl::map<PathingArc*, float> visibilityArcs;
+			pathNode->GetVisibilities(visibilityType, visibilityArcs);
+			for (auto visibilityArc : visibilityArcs)
+			{
+				clusterNode->AddVisibility(
+					clusterArcs[visibilityArc.first->GetId()], visibilityType, visibilityArc.second);
+			}
+		}
+
+		for (PathingArc* pathArc : pathNode->GetArcs())
+		{
+			ClusteringArc* clusterArc = clusterNode->FindArc(
+				pathArc->GetType(), clusterNodes[pathArc->GetNode()->GetId()]);
+			if (clusterArc)
+			{
+				for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+				{
+					eastl::map<PathingNode*, float> visibilityNodes;
+					pathArc->GetVisibilities(visibilityType, visibilityNodes);
+					for (auto visibilityNode : visibilityNodes)
+					{
+						clusterArc->AddVisibility(
+							clusterNodes[visibilityNode.first->GetId()], visibilityType, visibilityNode.second);
+					}
+				}
+
+				for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+				{
+					eastl::map<PathingArc*, float> visibilityArcs;
+					pathArc->GetVisibilities(visibilityType, visibilityArcs);
+					for (auto visibilityArc : visibilityArcs)
+					{
+						clusterArc->AddVisibility(
+							clusterArcs[visibilityArc.first->GetId()], visibilityType, visibilityArc.second);
+					}
+				}
+			}
+		}
 	}
 }
 

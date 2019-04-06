@@ -41,15 +41,6 @@
 
 #include "Core/OS/OS.h"
 
-enum ArcType
-{
-	AT_NORMAL = 0,
-	AT_TARGET = 1,
-	AT_ACTION = 2,
-
-	AT_COUNT
-};
-
 //--------------------------------------------------------------------------------------------------------
 // Cluster
 //--------------------------------------------------------------------------------------------------------
@@ -265,6 +256,31 @@ ClusterPlan* Cluster::FindNode(ClusteringNode* pStartNode, Cluster* pGoalCluster
 // ClusteringNode
 //--------------------------------------------------------------------------------------------------------
 
+void ClusteringNode::AddVisibility(ClusteringNode* pNode, unsigned int vT, float value)
+{
+	mVisibleNodes[vT][pNode] = value;
+}
+void ClusteringNode::AddVisibility(ClusteringArc* pArc, unsigned int vT, float value)
+{
+	mVisibleArcs[vT][pArc] = value;
+}
+float ClusteringNode::FindVisibility(ClusteringNode* pNode, unsigned int vT)
+{
+	return mVisibleNodes[vT][pNode];
+}
+float ClusteringNode::FindVisibility(ClusteringArc* pArc, unsigned int vT)
+{
+	return mVisibleArcs[vT][pArc];
+}
+void ClusteringNode::GetVisibilities(unsigned int vT, eastl::map<ClusteringNode*, float>& visibilities)
+{
+	visibilities = mVisibleNodes[vT];
+}
+void ClusteringNode::GetVisibilities(unsigned int vT, eastl::map<ClusteringArc*, float>& visibilities)
+{
+	visibilities = mVisibleArcs[vT];
+}
+
 void ClusteringNode::AddArc(ClusteringArc* pArc)
 {
 	LogAssert(pArc, "Invalid arc");
@@ -287,6 +303,17 @@ void ClusteringNode::GetNeighbors(unsigned int arcType, ClusteringArcVec& outNei
 				outNeighbors.push_back(pArc);
 		}
 	}
+}
+
+ClusteringArc* ClusteringNode::FindArc(unsigned int id)
+{
+	for (ClusteringArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		ClusteringArc* pArc = *it;
+		if (pArc->GetId() == id)
+			return pArc;
+	}
+	return NULL;
 }
 
 ClusteringArc* ClusteringNode::FindArc(ClusteringNode* pLinkedNode)
@@ -391,6 +418,36 @@ void ClusteringNode::RemoveTransitions(unsigned int arcType)
 	}
 
 	mTransitions = keepTransitions;
+}
+
+
+//--------------------------------------------------------------------------------------------------------
+// ClusteringArc
+//--------------------------------------------------------------------------------------------------------
+
+void ClusteringArc::AddVisibility(ClusteringNode* pNode, unsigned int vT, float value)
+{
+	mVisibleNodes[vT][pNode] = value;
+}
+void ClusteringArc::AddVisibility(ClusteringArc* pArc, unsigned int vT, float value)
+{
+	mVisibleArcs[vT][pArc] = value;
+}
+float ClusteringArc::FindVisibility(ClusteringNode* pNode, unsigned int vT)
+{
+	return mVisibleNodes[vT][pNode];
+}
+float ClusteringArc::FindVisibility(ClusteringArc* pArc, unsigned int vT)
+{
+	return mVisibleArcs[vT][pArc];
+}
+void ClusteringArc::GetVisibilities(unsigned int vT, eastl::map<ClusteringNode*, float>& visibilities)
+{
+	visibilities = mVisibleNodes[vT];
+}
+void ClusteringArc::GetVisibilities(unsigned int vT, eastl::map<ClusteringArc*, float>& visibilities)
+{
+	visibilities = mVisibleArcs[vT];
 }
 
 //--------------------------------------------------------------------------------------------------------

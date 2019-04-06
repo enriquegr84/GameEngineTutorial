@@ -64,7 +64,6 @@ typedef eastl::map<ClusteringNode*, ClusteringNodeVec> ClusteringNodeMap;
 typedef eastl::map<ClusteringNode*, ClusteringArcVec> ClusteringNodeArcMap;
 typedef eastl::map<ClusteringArc*, ClusteringNodeVec> ClusteringArcNodeMap;
 typedef eastl::map<ClusteringNode*, ClusterPlanNode*> ClusteringNodeToClusterPlanNodeMap;
-typedef eastl::map<Vector3<float>, eastl::map<Vector3<float>, float>> ClusteringDoubleMap;
 
 const float CLUSTERING_DEFAULT_NODE_TOLERANCE = 4.0f;
 const float CLUSTERING_DEFAULT_ARC_WEIGHT = 0.001f;
@@ -161,6 +160,9 @@ class ClusterArc
 
 	Cluster* mCluster;  // cluster which is linked to
 
+	eastl::map<Cluster*, ClusteringNodeVec> mVisibleNodes;
+	eastl::map<Cluster*, ClusteringArcVec> mVisibleArcs;
+
 public:
 	explicit ClusterArc(unsigned int id, unsigned int type, Cluster* pCluster)
 		: mId(id), mType(type), mCluster(pCluster)
@@ -171,6 +173,12 @@ public:
 	unsigned int GetId(void) const { return mId; }
 	unsigned int GetType(void) const { return mType; }
 	Cluster* GetCluster() const { return mCluster; }
+
+	const eastl::map<Cluster*, ClusteringNodeVec>& GetVisibleNodes() const { return mVisibleNodes; }
+	const eastl::map<Cluster*, ClusteringArcVec>& GetVisibleArcs() const { return mVisibleArcs; }
+
+	const ClusteringNodeVec& GetVisibleNodes(Cluster* cluster) { return mVisibleNodes[cluster]; }
+	const ClusteringArcVec& GetVisibleArcs(Cluster* cluster) { return mVisibleArcs[cluster]; }
 };
 
 
@@ -188,6 +196,9 @@ class ClusteringNode
 	ClusteringArcVec mArcs;
 	ClusteringTransitionVec mTransitions;
 
+	eastl::map<ClusteringNode*, float> mVisibleNodes[VT_COUNT];
+	eastl::map<ClusteringArc*, float> mVisibleArcs[VT_COUNT];
+
 	ActorId mActor;
 
 public:
@@ -200,10 +211,17 @@ public:
 	Cluster* GetCluster(void) const { return mCluster; }
 	void SetActor(ActorId actorId) { mActor = actorId; }
 	ActorId GetActor(void) const { return mActor; }
-
 	const Vector3<float>& GetPos(void) const { return mPos; }
 
+	void AddVisibility(ClusteringNode* pNode, unsigned int vT, float value);
+	void AddVisibility(ClusteringArc* pArc, unsigned int vT, float value);
+	float FindVisibility(ClusteringNode* pNode, unsigned int vT);
+	float FindVisibility(ClusteringArc* pArc, unsigned int vT);
+	void GetVisibilities(unsigned int vT, eastl::map<ClusteringNode*, float>& visibilities);
+	void GetVisibilities(unsigned int vT, eastl::map<ClusteringArc*, float>& visibilities);
+
 	void AddArc(ClusteringArc* pArc);
+	ClusteringArc* FindArc(unsigned int id);
 	ClusteringArc* FindArc(ClusteringNode* pLinkedNode);
 	ClusteringArc* FindArc(unsigned int arcType, ClusteringNode* pLinkedNode);
 	const ClusteringArcVec& GetArcs() { return mArcs; }
@@ -232,6 +250,9 @@ class ClusteringArc
 
 	ClusteringNode* mNode;  // node which is linked to
 
+	eastl::map<ClusteringNode*, float> mVisibleNodes[VT_COUNT];
+	eastl::map<ClusteringArc*, float> mVisibleArcs[VT_COUNT];
+
 public:
 	explicit ClusteringArc(unsigned int id, unsigned int type, ClusteringNode* pNode, float weight = 0.f)
 		: mId(id), mType(type), mNode(pNode), mWeight(weight)
@@ -243,6 +264,13 @@ public:
 	unsigned int GetType(void) const { return mType; }
 	float GetWeight(void) const { return mWeight; }
 	ClusteringNode* GetNode() const { return mNode; }
+
+	void AddVisibility(ClusteringNode* pNode, unsigned int vT, float value);
+	void AddVisibility(ClusteringArc* pArc, unsigned int vT, float value);
+	float FindVisibility(ClusteringNode* pNode, unsigned int vT);
+	float FindVisibility(ClusteringArc* pArc, unsigned int vT);
+	void GetVisibilities(unsigned int vT, eastl::map<ClusteringNode*, float>& visibilities);
+	void GetVisibilities(unsigned int vT, eastl::map<ClusteringArc*, float>& visibilities);
 };
 
 

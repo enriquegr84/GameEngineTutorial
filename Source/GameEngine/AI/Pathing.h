@@ -59,21 +59,11 @@ typedef eastl::vector<PathingTransition*> PathingTransitionVec;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
 typedef eastl::map<PathingArc*, PathingNodeVec> PathingArcNodeMap;
 typedef eastl::map<PathingNode*, PathPlanNode*> PathingNodeToPathPlanNodeMap;
-typedef eastl::map<Vector3<float>, eastl::map<Vector3<float>, float>> PathingDoubleMap;
+typedef eastl::map<PathingNode*, eastl::map<PathingNode*, float>> PathingNodeDoubleMap;
 typedef eastl::map<PathingNode*, eastl::map<PathingNode*, PathPlan*>> PathingNodePlanDoubleMap;
 
 const float PATHING_DEFAULT_NODE_TOLERANCE = 4.0f;
 const float PATHING_DEFAULT_ARC_WEIGHT = 0.001f;
-
-enum ArcType
-{
-	AT_NORMAL = 0,
-	AT_TARGET = 1,
-	AT_ACTION = 2,
-
-
-	AT_COUNT
-};
 
 //--------------------------------------------------------------------------------------------------------
 // class PathingNode				- Chapter 18, page 636
@@ -86,6 +76,9 @@ class PathingNode
 	Vector3<float> mPos;
 	PathingArcVec mArcs;
 	PathingTransitionVec mTransitions;
+
+	eastl::map<PathingNode*, float> mVisibleNodes[VT_COUNT];
+	eastl::map<PathingArc*, float> mVisibleArcs[VT_COUNT];
 
 	float mTolerance;
 	ActorId mActorId;
@@ -101,6 +94,13 @@ public:
 	ActorId GetActorId(void) const { return mActorId; }
 	float GetTolerance(void) const { return mTolerance; }
 	const Vector3<float>& GetPos(void) const { return mPos; }
+
+	void AddVisibility(PathingNode* pNode, unsigned int vT, float value);
+	void AddVisibility(PathingArc* pArc, unsigned int vT, float value);
+	float FindVisibility(PathingNode* pNode, unsigned int vT);
+	float FindVisibility(PathingArc* pArc, unsigned int vT);
+	void GetVisibilities(unsigned int vT, eastl::map<PathingNode*, float>& visibilities);
+	void GetVisibilities(unsigned int vT, eastl::map<PathingArc*, float>& visibilities);
 
 	void AddArc(PathingArc* pArc);
 	PathingArc* FindArc(PathingNode* pLinkedNode);
@@ -131,6 +131,9 @@ class PathingArc
 
 	PathingNode* mNode;  // node which is linked to
 
+	eastl::map<PathingNode*, float> mVisibleNodes[VT_COUNT];
+	eastl::map<PathingArc*, float> mVisibleArcs[VT_COUNT];
+
 public:
 	explicit PathingArc(unsigned int id, unsigned int type, PathingNode* pNode, float weight = 0.f) 
 		: mId(id), mType(type), mNode(pNode), mWeight(weight)
@@ -142,6 +145,13 @@ public:
 	unsigned int GetType(void) const { return mType; }
 	float GetWeight(void) const { return mWeight; }
 	PathingNode* GetNode() const { return mNode; }
+
+	void AddVisibility(PathingNode* pNode, unsigned int vT, float value);
+	void AddVisibility(PathingArc* pArc, unsigned int vT, float value);
+	float FindVisibility(PathingNode* pNode, unsigned int vT);
+	float FindVisibility(PathingArc* pArc, unsigned int vT);
+	void GetVisibilities(unsigned int vT, eastl::map<PathingNode*, float>& visibility);
+	void GetVisibilities(unsigned int vT, eastl::map<PathingArc*, float>& visibility);
 };
 
 
@@ -308,6 +318,7 @@ public:
 
 	// helpers
 	void InsertNode(PathingNode* pNode);
+	void InsertArc(PathingArc* pArc);
 	const PathingNodeVec& GetNodes() { return mNodes; }
 	const PathingArcVec& GetArcs() { return mArcs; }
 };
