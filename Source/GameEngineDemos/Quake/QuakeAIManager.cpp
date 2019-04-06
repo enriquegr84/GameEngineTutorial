@@ -1119,7 +1119,7 @@ void QuakeAIManager::SimulateWaypoint()
 			}
 		}
 	}
-	/*
+
 	while (!mClosedSet.empty())
 	{
 		// grab the candidate
@@ -1143,7 +1143,6 @@ void QuakeAIManager::SimulateWaypoint()
 		// we have processed this node so remove it from the closed set
 		mClosedSet.erase(itOpenSet);
 	}
-	*/
 }
 
 void QuakeAIManager::CreateClusters()
