@@ -28,6 +28,230 @@
 #include "QuakeApp.h"
 #include "Quake.h"
 
+#include <cereal/types/vector.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/archives/binary.hpp>
+#include <fstream>
+
+namespace CerealTypes
+{
+	struct Vec3 
+	{ 
+		int x, y, z; 
+	
+		template <class Archive>
+		void serialize(Archive & ar)
+		{
+			ar(x, y, z);
+		}
+	};
+
+	struct VisibleNode
+	{
+		int id;
+
+		template <class Archive>
+		void serialize(Archive & ar)
+		{
+			ar(id);
+		}
+	};
+
+	struct GraphArcNode
+	{
+		int id;
+		int type;
+		int nodeid;
+		float weight;
+
+		template <class Archive>
+		void serialize(Archive & ar)
+		{
+			ar(id, type, nodeid, weight);
+		}
+	};
+
+	struct GraphNodeTransition
+	{
+		int id;
+		int type;
+		std::vector<float> weights;
+		std::vector<int> nodes;
+		std::vector<Vec3> connections;
+
+		template <class Archive>
+		void save(Archive & ar) const
+		{
+			ar(id, type, weights, nodes, connections);
+		}
+
+		template <class Archive>
+		void load(Archive & ar)
+		{
+			ar(id, type, weights, nodes, connections);
+		}
+	};
+
+	struct GraphNode
+	{
+		int id;
+		int actorid;
+		float tolerance;
+		Vec3 position;
+		std::vector<GraphArcNode> arcs;
+		std::vector<GraphNodeTransition> transitions;
+		std::vector<VisibleNode> visiblenodes;
+
+		template <class Archive>
+		void save(Archive & ar) const
+		{
+			ar(id, actorid, tolerance, position, arcs, transitions, visiblenodes);
+		}
+
+		template <class Archive>
+		void load(Archive & ar)
+		{
+			ar(id, actorid, tolerance, position, arcs, transitions, visiblenodes);
+		}
+	};
+
+	struct Graph
+	{
+		std::vector<GraphNode> nodes;
+
+		template <class Archive>
+		void save(Archive & ar) const
+		{
+			ar(nodes);
+		}
+
+		template <class Archive>
+		void load(Archive & ar)
+		{
+			ar(nodes);
+		}
+	};
+
+	struct ClusterVisibleNode
+	{
+		int id;
+
+		template <class Archive>
+		void serialize(Archive & ar)
+		{
+			ar(id);
+		}
+	};
+
+	struct ClusterArcNode
+	{
+		int id;
+		int type;
+		int nodeid;
+		float weight;
+
+		template <class Archive>
+		void serialize(Archive & ar)
+		{
+			ar(id, type, nodeid, weight);
+		}
+	};
+
+	struct ClusterTransition
+	{
+		int id;
+		int type;
+		std::vector<float> weights;
+		std::vector<int> nodes;
+		std::vector<Vec3> connections;
+
+		template <class Archive>
+		void save(Archive & ar) const
+		{
+			ar(id, type, weights, nodes, connections);
+		}
+
+		template <class Archive>
+		void load(Archive & ar)
+		{
+			ar(id, type, weights, nodes, connections);
+		}
+	};
+
+	struct ClusterNode
+	{
+		int id;
+		int actorid;
+		bool isisolated;
+		Vec3 position;
+		std::vector<ClusterArcNode> arcs;
+		std::vector<ClusterTransition> transitions;
+		std::vector<ClusterVisibleNode> visiblenodes;
+
+		template <class Archive>
+		void save(Archive & ar) const
+		{
+			ar(id, actorid, isisolated, position, arcs, transitions, visiblenodes);
+		}
+
+		template <class Archive>
+		void load(Archive & ar)
+		{
+			ar(id, actorid, isisolated, position, arcs, transitions, visiblenodes);
+		}
+	};
+
+	struct ClusterLink
+	{
+		int id;
+		int type;
+		int clusterid;
+
+		template <class Archive>
+		void serialize(Archive & ar)
+		{
+			ar(id, type, clusterid);
+		}
+	};
+
+	struct ClusterData
+	{
+		int id;
+		int centerid;
+		std::vector<ClusterNode> nodes;
+		std::vector<ClusterLink> arcs;
+
+		template <class Archive>
+		void save(Archive & ar) const
+		{
+			ar(id, centerid, nodes, arcs);
+		}
+
+		template <class Archive>
+		void load(Archive & ar)
+		{
+			ar(id, centerid, nodes, arcs);
+		}
+	};
+
+	struct ClusterGraph
+	{
+		std::vector<ClusterData> clusters;
+
+		template <class Archive>
+		void save(Archive & ar) const
+		{
+			ar(clusters);
+		}
+
+		template <class Archive>
+		void load(Archive & ar)
+		{
+			ar(clusters);
+		}
+	};
+}
+
 QuakeAIManager::QuakeAIManager() : AIManager()
 {
 	mLastArcId = 0;
@@ -55,14 +279,212 @@ QuakeAIManager::~QuakeAIManager()
 }   // ~QuakeAIManager
 
 /////////////////////////////////////////////////////////////////////////////
+// QuakeAIManager::SavePathingGraph
+//
+//    Saves the AI pathing graph information to an XML file
+//
+void QuakeAIManager::SavePathingGraph(const eastl::string& path)
+{
+	//set some random data
+	CerealTypes::Graph data;
+
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		CerealTypes::GraphNode node;
+
+		node.id = pathNode->GetId();
+		node.actorid = pathNode->GetActorId();
+		node.tolerance = pathNode->GetTolerance();
+		node.position.x = (int)round(pathNode->GetPos()[0]);
+		node.position.y = (int)round(pathNode->GetPos()[1]);
+		node.position.z = (int)round(pathNode->GetPos()[2]);
+
+		eastl::map<PathingNode*, float> visibilityNodes;
+		pathNode->GetVisibileNodes(visibilityNodes);
+		for (auto visibilityNode : visibilityNodes)
+		{
+			CerealTypes::VisibleNode visibleNode;
+			visibleNode.id = visibilityNode.first->GetId();
+
+			node.visiblenodes.push_back(visibleNode);
+		}
+
+		for (PathingArc* pathArc : pathNode->GetArcs())
+		{
+			CerealTypes::GraphArcNode arcNode;
+			arcNode.id = pathArc->GetId();
+			arcNode.type = pathArc->GetType();
+			arcNode.nodeid = pathArc->GetNode()->GetId();
+			arcNode.weight = pathArc->GetWeight();
+
+			node.arcs.push_back(arcNode);
+		}
+
+		for (PathingTransition* pathTransition : pathNode->GetTransitions())
+		{
+			CerealTypes::GraphNodeTransition transitionNode;
+			transitionNode.id = pathTransition->GetId();
+			transitionNode.type = pathTransition->GetType();
+
+			for (PathingNode* pNode : pathTransition->GetNodes())
+			{
+				transitionNode.nodes.push_back(pNode->GetId());
+			}
+			for (float weight : pathTransition->GetWeights())
+			{
+				transitionNode.weights.push_back(weight);
+			}
+			for (Vector3<float> connection : pathTransition->GetConnections())
+			{
+				transitionNode.connections.push_back(CerealTypes::Vec3{
+					(int)round(connection[0]), (int)round(connection[1]), (int)round(connection[2]) });
+			}
+
+			node.transitions.push_back(transitionNode);
+		}
+
+		data.nodes.push_back(node);
+	}
+
+	std::ofstream os(path.c_str(), std::ios::binary);
+	cereal::BinaryOutputArchive archive(os);
+	archive(data);
+
+	/*
+	tinyxml2::XMLDocument doc;
+
+	// base element
+	tinyxml2::XMLElement* pBaseElement = doc.NewElement("PathingGraph");
+	doc.InsertFirstChild(pBaseElement);
+
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		tinyxml2::XMLElement* pNode = doc.NewElement("Node");
+		pNode->SetAttribute("id", eastl::to_string(pathNode->GetId()).c_str());
+		pNode->SetAttribute("actorid", eastl::to_string(pathNode->GetActorId()).c_str());
+		pNode->SetAttribute("tolerance", eastl::to_string(pathNode->GetTolerance()).c_str());
+		pBaseElement->LinkEndChild(pNode);
+
+		tinyxml2::XMLElement* pPosition = doc.NewElement("Position");
+		pPosition->SetAttribute("x", eastl::to_string((int)round(pathNode->GetPos()[0])).c_str());
+		pPosition->SetAttribute("y", eastl::to_string((int)round(pathNode->GetPos()[1])).c_str());
+		pPosition->SetAttribute("z", eastl::to_string((int)round(pathNode->GetPos()[2])).c_str());
+		pNode->LinkEndChild(pPosition);
+
+		eastl::map<PathingNode*, float> visibilityNodes;
+		pathNode->GetVisibilities(VT_DISTANCE, visibilityNodes);
+		for (auto visibilityNode : visibilityNodes)
+		{
+			tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
+			pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
+			pNode->LinkEndChild(pVisibility);
+		}
+
+		for (PathingArc* pathArc : pathNode->GetArcs())
+		{
+			tinyxml2::XMLElement* pArc = doc.NewElement("Arc");
+			pArc->SetAttribute("id", eastl::to_string(pathArc->GetId()).c_str());
+			pArc->SetAttribute("type", eastl::to_string(pathArc->GetType()).c_str());
+			pArc->SetAttribute("node", eastl::to_string(pathArc->GetNode()->GetId()).c_str());
+			pArc->SetAttribute("weight", eastl::to_string(pathArc->GetWeight()).c_str());
+			pNode->LinkEndChild(pArc);
+		}
+	}
+
+	doc.SaveFile(path.c_str());
+	*/
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
 // QuakeAIManager::LoadPathingGraph
 //
 //    Loads the AI pathing graph information from an XML file
 //
 void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 {
+	//set data
+	CerealTypes::Graph data;
+
+	std::ifstream is(path.c_str(), std::ios::binary);
+	if (is.fail())
+	{
+		LogError(strerror(errno));
+	}
+	cereal::BinaryInputArchive archive(is);
+	archive(data);
+
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
+	eastl::map<unsigned int, PathingNode*> pathingNodeGraph;
+	for (CerealTypes::GraphNode node : data.nodes)
+	{
+		int pathNodeId = node.id;
+		ActorId actorId = node.actorid;
+		float tolerance = node.tolerance;
+		Vector3<float> position{ 
+			(float)node.position.x, (float)node.position.y, (float)node.position.z };
+
+		PathingNode* pathNode = new PathingNode(pathNodeId, actorId, position, tolerance);
+		mPathingGraph->InsertNode(pathNode);
+
+		pathingNodeGraph[pathNodeId] = pathNode;
+	}
+
+	for (CerealTypes::GraphNode node : data.nodes)
+	{
+		int pathNodeId = node.id;
+		PathingNode* pathNode = pathingNodeGraph[pathNodeId];
+
+		for (CerealTypes::VisibleNode visibleNode : node.visiblenodes)
+		{
+			PathingNode* visibilityNode = pathingNodeGraph[visibleNode.id];
+			pathNode->AddVisibleNode(
+				visibilityNode, Length(visibilityNode->GetPos() - pathNode->GetPos()));
+		}
+
+		for (CerealTypes::GraphArcNode arc : node.arcs)
+		{
+			int arcId = arc.id;
+			int arcType = arc.type;
+			int arcNode = arc.nodeid;
+			float weight = arc.weight;
+
+			PathingArc* pathArc = new PathingArc(arcId, arcType, pathingNodeGraph[arcNode], weight);
+			mPathingGraph->InsertArc(pathArc);
+
+			pathNode->AddArc(pathArc);
+		}
+
+		for (CerealTypes::GraphNodeTransition transition : node.transitions)
+		{
+			int transitionId = transition.id;
+			int transitionType = transition.type;
+
+			eastl::vector<float> weights;
+			eastl::vector<PathingNode*> nodes;
+			eastl::vector<Vector3<float>> connections;
+			for (int nodeid : transition.nodes)
+			{
+				nodes.push_back(pathingNodeGraph[nodeid]);
+			}
+			for (float weight : transition.weights)
+			{
+				weights.push_back(weight);
+			}
+			for (CerealTypes::Vec3 connection : transition.connections)
+			{
+				connections.push_back(Vector3<float>{
+					(float)connection.x, (float)connection.y, (float)connection.z});
+			}
+
+			PathingTransition* pathTransition = new PathingTransition(
+				transitionId, transitionType, nodes, weights, connections);
+			pathNode->AddTransition(pathTransition);
+		}
+	}
+
+	/*
 	// Load the map graph file
 	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(path.c_str());
 	LogAssert(pRoot, "AI xml doesn't exists");
@@ -98,7 +520,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 		pathingNodeGraph[pathNodeId] = pathNode;
 	}
 
-	eastl::map<unsigned int, PathingArc*> pathingArcGraph;
+	PathingNodeDoubleMap visibleNodes;
 	for (tinyxml2::XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
 	{
 		int pathNodeId = 0;
@@ -123,179 +545,17 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 				mPathingGraph->InsertArc(pathArc);
 
 				pathNode->AddArc(pathArc);
-				pathingArcGraph[arcId] = pathArc;
-			}
-		}
-	}
-
-	// load visibility
-	for (tinyxml2::XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
-	{
-		int pathNodeId = 0;
-		pathNodeId = pNode->IntAttribute("id", pathNodeId);
-		PathingNode* pathNode = pathingNodeGraph[pathNodeId];
-
-		for (tinyxml2::XMLElement* pElement = pNode->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
-		{
-			if (pElement->Name() == "Arc")
-			{
-				int pathArcId = 0;
-				pathArcId = pElement->IntAttribute("id", pathArcId);
-				PathingArc* pathArc = pathingArcGraph[pathArcId];
-
-				for (tinyxml2::XMLElement* pArc = pElement->FirstChildElement(); pArc; pArc = pArc->NextSiblingElement())
-				{
-					if (pArc->Name() == "VisibleNode")
-					{
-						int nodeId = 0;
-						int visibilityType = 0;
-						float visibilityValue = 0;
-
-						nodeId = pElement->IntAttribute("id", nodeId);
-						visibilityType = pElement->IntAttribute("type", visibilityType);
-						visibilityValue = pElement->FloatAttribute("value", visibilityValue);
-
-						pathArc->AddVisibility(pathingNodeGraph[nodeId], visibilityType, visibilityValue);
-					}
-					else if (pArc->Name() == "VisibleArc")
-					{
-						int arcId = 0;
-						int visibilityType = 0;
-						float visibilityValue = 0;
-
-						arcId = pElement->IntAttribute("id", arcId);
-						visibilityType = pElement->IntAttribute("type", visibilityType);
-						visibilityValue = pElement->FloatAttribute("value", visibilityValue);
-
-						pathArc->AddVisibility(pathingArcGraph[arcId], visibilityType, visibilityValue);
-					}
-				}
 			}
 			else if (pElement->Name() == "VisibleNode")
 			{
 				int nodeId = 0;
-				int visibilityType = 0;
-				float visibilityValue = 0;
-
 				nodeId = pElement->IntAttribute("id", nodeId);
-				visibilityType = pElement->IntAttribute("type", visibilityType);
-				visibilityValue = pElement->FloatAttribute("value", visibilityValue);
-
-				pathNode->AddVisibility(pathingNodeGraph[nodeId], visibilityType, visibilityValue);
-			}
-			else if (pElement->Name() == "VisibleArc")
-			{
-				int arcId = 0;
-				int visibilityType = 0;
-				float visibilityValue = 0;
-
-				arcId = pElement->IntAttribute("id", arcId);
-				visibilityType = pElement->IntAttribute("type", visibilityType);
-				visibilityValue = pElement->FloatAttribute("value", visibilityValue);
-
-				pathNode->AddVisibility(pathingArcGraph[arcId], visibilityType, visibilityValue);
+				visibleNodes[pathNode][pathingNodeGraph[nodeId]] = 1.0f;
 			}
 		}
 	}
+	*/
 }
-
-/////////////////////////////////////////////////////////////////////////////
-// QuakeAIManager::SavePathingGraph
-//
-//    Saves the AI pathing graph information to an XML file
-//
-void QuakeAIManager::SavePathingGraph(const eastl::string& path)
-{
-	tinyxml2::XMLDocument doc;
-
-	// base element
-	tinyxml2::XMLElement* pBaseElement = doc.NewElement("PathingGraph");
-	doc.InsertFirstChild(pBaseElement);
-
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		tinyxml2::XMLElement* pNode = doc.NewElement("Node");
-		pNode->SetAttribute("id", eastl::to_string(pathNode->GetId()).c_str());
-		pNode->SetAttribute("actorid", eastl::to_string(pathNode->GetActorId()).c_str());
-		pNode->SetAttribute("tolerance", eastl::to_string(pathNode->GetTolerance()).c_str());
-		pBaseElement->LinkEndChild(pNode);
-
-		tinyxml2::XMLElement* pPosition = doc.NewElement("Position");
-		pPosition->SetAttribute("x", eastl::to_string((int)round(pathNode->GetPos()[0])).c_str());
-		pPosition->SetAttribute("y", eastl::to_string((int)round(pathNode->GetPos()[1])).c_str());
-		pPosition->SetAttribute("z", eastl::to_string((int)round(pathNode->GetPos()[2])).c_str());
-		pNode->LinkEndChild(pPosition);
-
-		for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-		{
-			eastl::map<PathingNode*, float> visibilityNodes;
-			pathNode->GetVisibilities(visibilityType, visibilityNodes);
-			for (auto visibilityNode : visibilityNodes)
-			{
-				tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
-				pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
-				pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
-				pVisibility->SetAttribute("value", eastl::to_string(visibilityNode.second).c_str());
-				pNode->LinkEndChild(pVisibility);
-			}
-		}
-
-		for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-		{
-			eastl::map<PathingArc*, float> visibilityArcs;
-			pathNode->GetVisibilities(visibilityType, visibilityArcs);
-			for (auto visibilityArc : visibilityArcs)
-			{
-				tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityArc");
-				pVisibility->SetAttribute("id", eastl::to_string(visibilityArc.first->GetId()).c_str());
-				pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
-				pVisibility->SetAttribute("value", eastl::to_string(visibilityArc.second).c_str());
-				pNode->LinkEndChild(pVisibility);
-			}
-		}
-
-		for (PathingArc* pathArc : pathNode->GetArcs())
-		{
-			tinyxml2::XMLElement* pArc = doc.NewElement("Arc");
-			pArc->SetAttribute("id", eastl::to_string(pathArc->GetId()).c_str());
-			pArc->SetAttribute("type", eastl::to_string(pathArc->GetType()).c_str());
-			pArc->SetAttribute("node", eastl::to_string(pathArc->GetNode()->GetId()).c_str());
-			pArc->SetAttribute("weight", eastl::to_string(pathArc->GetWeight()).c_str());
-			pNode->LinkEndChild(pArc);
-
-			for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-			{
-				eastl::map<PathingNode*, float> visibilityNodes;
-				pathArc->GetVisibilities(visibilityType, visibilityNodes);
-				for (auto visibilityNode : visibilityNodes)
-				{
-					tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
-					pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
-					pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
-					pVisibility->SetAttribute("value", eastl::to_string(visibilityNode.second).c_str());
-					pArc->LinkEndChild(pVisibility);
-				}
-			}
-
-			for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-			{
-				eastl::map<PathingArc*, float> visibilityArcs;
-				pathArc->GetVisibilities(visibilityType, visibilityArcs);
-				for (auto visibilityArc : visibilityArcs)
-				{
-					tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityArc");
-					pVisibility->SetAttribute("id", eastl::to_string(visibilityArc.first->GetId()).c_str());
-					pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
-					pVisibility->SetAttribute("value", eastl::to_string(visibilityArc.second).c_str());
-					pArc->LinkEndChild(pVisibility);
-				}
-			}
-		}
-	}
-
-	doc.SaveFile(path.c_str());
-}
-
 
 /////////////////////////////////////////////////////////////////////////////
 // QuakeAIManager::LoadClusteringGraph
@@ -304,8 +564,114 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 //
 void QuakeAIManager::LoadClusteringGraph(const eastl::wstring& path)
 {
+	//set data
+	CerealTypes::ClusterGraph data;
+
+	std::ifstream is(path.c_str(), std::ios::binary);
+	cereal::BinaryInputArchive archive(is);
+	archive(data);
+
 	mClusteringGraph = eastl::make_shared<ClusteringGraph>();
 
+	eastl::map<unsigned int, Cluster*> clusteringGraph;
+	eastl::map<unsigned int, ClusteringNode*> clusteringNodes;
+	for (CerealTypes::ClusterData cluster : data.clusters)
+	{
+		int clusterId = cluster.id;
+		int centerId = cluster.centerid;
+
+		clusteringGraph[clusterId] = new Cluster(clusterId);
+		mClusteringGraph->InsertCluster(clusteringGraph[clusterId]);
+
+		for (CerealTypes::ClusterNode node : cluster.nodes)
+		{
+			int clusterNodeId = node.id;
+			ActorId actorId = node.actorid;
+			Vector3<float> position{
+				(float)node.position.x, (float)node.position.y, (float)node.position.z };
+
+			ClusteringNode* clusterNode = new ClusteringNode(clusterNodeId, position);
+			clusterNode->SetActor(actorId);
+			clusterNode->SetCluster(clusteringGraph[clusterId]);
+			clusteringGraph[clusterId]->InsertNode(clusterNode);
+			clusteringGraph[clusterId]->AddActor(actorId);
+			if (node.isisolated)
+				clusteringGraph[clusterId]->InsertIsolatedNode(clusterNode);
+
+			clusteringNodes[clusterNodeId] = clusterNode;
+		}
+		clusteringGraph[clusterId]->SetCenter(clusteringNodes[centerId]);
+	}
+
+	ClusteringNodeDoubleMap visibleNodes;
+	for (CerealTypes::ClusterData cluster : data.clusters)
+	{
+		int clusterId = cluster.id;
+		int centerId = cluster.centerid;
+
+		for (CerealTypes::ClusterLink clusterLink : cluster.arcs)
+		{
+			int arcId = clusterLink.id;
+			int arcType = clusterLink.type;
+			int arcCluster = clusterLink.clusterid;
+
+			ClusterArc* clusterArc = new ClusterArc(arcId, arcType, clusteringGraph[arcCluster]);
+			clusteringGraph[clusterId]->AddArc(clusterArc);
+		}
+
+		for (CerealTypes::ClusterNode node : cluster.nodes)
+		{
+			int clusterNodeId = node.id;
+			ClusteringNode* clusterNode = clusteringNodes[clusterNodeId];
+
+			for (CerealTypes::ClusterVisibleNode visibleNode : node.visiblenodes)
+			{
+				ClusteringNode* visibilityNode = clusteringNodes[visibleNode.id];
+				clusterNode->AddVisibleNode(
+					visibilityNode, Length(visibilityNode->GetPos() - clusterNode->GetPos()));
+			}
+
+			for (CerealTypes::ClusterArcNode arc : node.arcs)
+			{
+				int arcId = arc.id;
+				int arcType = arc.type;
+				int arcNode = arc.nodeid;
+				float weight = arc.weight;
+
+				ClusteringArc* clusterArc = new ClusteringArc(arcId, arcType, clusteringNodes[arcNode], weight);
+				clusterNode->AddArc(clusterArc);
+			}
+
+			for (CerealTypes::ClusterTransition transition : node.transitions)
+			{
+				int transitionId = transition.id;
+				int transitionType = transition.type;
+
+				eastl::vector<float> weights;
+				eastl::vector<ClusteringNode*> nodes;
+				eastl::vector<Vector3<float>> connections;
+				for (int nodeid : transition.nodes)
+				{
+					nodes.push_back(clusteringNodes[nodeid]);
+				}
+				for (float weight : transition.weights)
+				{
+					weights.push_back(weight);
+				}
+				for (CerealTypes::Vec3 connection : transition.connections)
+				{
+					connections.push_back(Vector3<float>{
+						(float)connection.x, (float)connection.y, (float)connection.z});
+				}
+
+				ClusteringTransition* clusterTransition = new ClusteringTransition(
+					transitionId, transitionType, nodes, weights, connections);
+				clusterNode->AddTransition(clusterTransition);
+			}
+		}
+	}
+
+	/*
 	// Load the map graph file
 	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(path.c_str());
 	LogAssert(pRoot, "AI xml doesn't exists");
@@ -413,36 +779,13 @@ void QuakeAIManager::LoadClusteringGraph(const eastl::wstring& path)
 							int transitionId = 0;
 							int transitionType = 0;
 							int transitionNode = 0;
-							eastl::vector<float> transitionWeights;
-							eastl::vector<Vector3<float>> transitionConnections;
 
 							transitionId = pTransition->IntAttribute("id", transitionId);
 							transitionType = pTransition->IntAttribute("type", transitionType);
 							transitionNode = pTransition->IntAttribute("node", transitionNode);
 
-							for (tinyxml2::XMLElement* pElement = pTransition->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
-							{
-								if (pElement->Name() == "Weight")
-								{
-									float transitionWeight = 0;
-									transitionWeight = pElement->FloatAttribute("value", transitionWeight);
-									transitionWeights.push_back(transitionWeight);
-								}
-								else if (pElement->Name() == "Connection")
-								{
-									float x = 0;
-									float y = 0;
-									float z = 0;
-									x = pElement->FloatAttribute("x", x);
-									y = pElement->FloatAttribute("y", y);
-									z = pElement->FloatAttribute("z", z);
-
-									transitionConnections.push_back(Vector3<float>{ x, y, z });
-								}
-							}
-
-							ClusteringTransition* clusterTransition = new ClusteringTransition(
-								transitionId, transitionType, clusteringNodes[transitionNode], transitionWeights, transitionConnections);
+							ClusteringTransition* clusterTransition = 
+								new ClusteringTransition(transitionId, transitionType, clusteringNodes[transitionNode]);
 							clusterNode->AddTransition(clusterTransition);
 						}
 					}
@@ -452,84 +795,26 @@ void QuakeAIManager::LoadClusteringGraph(const eastl::wstring& path)
 	}
 
 	// load visibility
-	for (tinyxml2::XMLElement* pCluster = pRoot->FirstChildElement(); pCluster; pCluster = pCluster->NextSiblingElement())
+	ClusteringNodeeDoubleMap visibleNodes;
+	for (tinyxml2::XMLElement* pNode = pRoot->FirstChildElement(); pNode; pNode = pNode->NextSiblingElement())
 	{
-		int clusterId = 0;
-		clusterId = pCluster->IntAttribute("id", clusterId);
-		Cluster* cluster = clusteringGraph[clusterId];
+		int pathNodeId = 0;
+		pathNodeId = pNode->IntAttribute("id", pathNodeId);
+		ClusteringNode* clusterNode = clusteringNodes[pathNodeId];
 
-		for (tinyxml2::XMLElement* pClusterElement = pCluster->FirstChildElement(); pClusterElement; pClusterElement = pClusterElement->NextSiblingElement())
+		for (tinyxml2::XMLElement* pElement = pNode->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
 		{
-			if (pClusterElement->Name() == "Node")
+			if (pElement->Name() == "VisibleNode")
 			{
-				int clusterNodeId = 0;
-				clusterNodeId = pClusterElement->IntAttribute("id", clusterNodeId);
-				ClusteringNode* clusterNode = clusteringNodes[clusterNodeId];
-
-				for (tinyxml2::XMLElement* pElement = pClusterElement->FirstChildElement(); pElement; pElement = pElement->NextSiblingElement())
-				{
-					if (pElement->Name() == "Arc")
-					{
-						int clusterArcId = 0;
-						clusterArcId = pElement->IntAttribute("id", clusterArcId);
-						ClusteringArc* clusterArc = clusteringArcs[clusterArcId];
-
-						for (tinyxml2::XMLElement* pArc = pElement->FirstChildElement(); pArc; pArc = pArc->NextSiblingElement())
-						{
-							if (pArc->Name() == "VisibleNode")
-							{
-								int nodeId = 0;
-								int visibilityType = 0;
-								float visibilityValue = 0;
-
-								nodeId = pElement->IntAttribute("id", nodeId);
-								visibilityType = pElement->IntAttribute("type", visibilityType);
-								visibilityValue = pElement->FloatAttribute("value", visibilityValue);
-
-								clusterArc->AddVisibility(clusteringNodes[nodeId], visibilityType, visibilityValue);
-							}
-							else if (pArc->Name() == "VisibleArc")
-							{
-								int arcId = 0;
-								int visibilityType = 0;
-								float visibilityValue = 0;
-
-								arcId = pElement->IntAttribute("id", arcId);
-								visibilityType = pElement->IntAttribute("type", visibilityType);
-								visibilityValue = pElement->FloatAttribute("value", visibilityValue);
-
-								clusterArc->AddVisibility(clusteringArcs[arcId], visibilityType, visibilityValue);
-							}
-						}
-					}
-					else if (pElement->Name() == "VisibleNode")
-					{
-						int nodeId = 0;
-						int visibilityType = 0;
-						float visibilityValue = 0;
-
-						nodeId = pElement->IntAttribute("id", nodeId);
-						visibilityType = pElement->IntAttribute("type", visibilityType);
-						visibilityValue = pElement->FloatAttribute("value", visibilityValue);
-
-						clusterNode->AddVisibility(clusteringNodes[nodeId], visibilityType, visibilityValue);
-					}
-					else if (pElement->Name() == "VisibleArc")
-					{
-						int arcId = 0;
-						int visibilityType = 0;
-						float visibilityValue = 0;
-
-						arcId = pElement->IntAttribute("id", arcId);
-						visibilityType = pElement->IntAttribute("type", visibilityType);
-						visibilityValue = pElement->FloatAttribute("value", visibilityValue);
-
-						clusterNode->AddVisibility(clusteringArcs[arcId], visibilityType, visibilityValue);
-					}
-				}
+				int nodeId = 0;
+				nodeId = pElement->IntAttribute("id", nodeId);
+				visibleNodes[clusterNode][clusteringNodes[nodeId]] = 1.0f;
 			}
 		}
 	}
+
+	//AddVisibility(visibleNodes);
+	*/
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -539,6 +824,91 @@ void QuakeAIManager::LoadClusteringGraph(const eastl::wstring& path)
 //
 void QuakeAIManager::SaveClusteringGraph(const eastl::string& path)
 {
+	//set data
+	CerealTypes::ClusterGraph data;
+
+	for (Cluster* cluster : mClusteringGraph->GetClusters())
+	{
+		CerealTypes::ClusterData clusterData;
+		clusterData.id = cluster->GetId();
+		clusterData.centerid = cluster->GetCenter()->GetId();
+
+		for (ClusterArc* clusterArc : cluster->GetArcs())
+		{
+			CerealTypes::ClusterLink link;
+			link.id = clusterArc->GetId();
+			link.type = clusterArc->GetType();
+			link.clusterid = clusterArc->GetCluster()->GetId();
+
+			clusterData.arcs.push_back(link);
+		}
+
+		for (ClusteringNode* clusterNode : cluster->GetNodes())
+		{
+			CerealTypes::ClusterNode node;
+
+			node.id = clusterNode->GetId();
+			node.actorid = clusterNode->GetActor();
+			node.isisolated = cluster->IsIsolatedNode(clusterNode);
+			node.position.x = (int)round(clusterNode->GetPos()[0]);
+			node.position.y = (int)round(clusterNode->GetPos()[1]);
+			node.position.z = (int)round(clusterNode->GetPos()[2]);
+
+			eastl::map<ClusteringNode*, float> visibilityNodes;
+			clusterNode->GetVisibileNodes(visibilityNodes);
+			for (auto visibilityNode : visibilityNodes)
+			{
+				CerealTypes::ClusterVisibleNode visibleNode;
+				visibleNode.id = visibilityNode.first->GetId();
+
+				node.visiblenodes.push_back(visibleNode);
+			}
+
+			for (ClusteringArc* clusterArc : clusterNode->GetArcs())
+			{
+				CerealTypes::ClusterArcNode arcNode;
+				arcNode.id = clusterArc->GetId();
+				arcNode.type = clusterArc->GetType();
+				arcNode.nodeid = clusterArc->GetNode()->GetId();
+				arcNode.weight = clusterArc->GetWeight();
+
+				node.arcs.push_back(arcNode);
+			}
+
+			for (ClusteringTransition* clusterTransition : clusterNode->GetTransitions())
+			{
+				CerealTypes::ClusterTransition transition;
+				transition.id = clusterTransition->GetId();
+				transition.type = clusterTransition->GetType();
+
+				for (ClusteringNode* pNode : clusterTransition->GetNodes())
+				{
+					transition.nodes.push_back(pNode->GetId());
+				}
+				for (float weight : clusterTransition->GetWeights())
+				{
+					transition.weights.push_back(weight);
+				}
+				for (Vector3<float> connection : clusterTransition->GetConnections())
+				{
+					transition.connections.push_back(CerealTypes::Vec3{
+						(int)round(connection[0]), (int)round(connection[1]), (int)round(connection[2]) });
+				}
+
+				node.transitions.push_back(transition);
+			}
+
+			clusterData.nodes.push_back(node);
+		}
+
+		data.clusters.push_back(clusterData);
+	}
+
+	std::ofstream os(path.c_str(), std::ios::binary);
+	cereal::BinaryOutputArchive archive(os);
+	archive(data);
+
+/*
 	tinyxml2::XMLDocument doc;
 
 	// base element
@@ -575,32 +945,13 @@ void QuakeAIManager::SaveClusteringGraph(const eastl::string& path)
 			pPosition->SetAttribute("z", eastl::to_string((int)round(clusterNode->GetPos()[2])).c_str());
 			pNode->LinkEndChild(pPosition);
 
-			for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+			eastl::map<ClusteringNode*, float> visibilityNodes;
+			clusterNode->GetVisibilities(VT_DISTANCE, visibilityNodes);
+			for (auto visibilityNode : visibilityNodes)
 			{
-				eastl::map<ClusteringNode*, float> visibilityNodes;
-				clusterNode->GetVisibilities(visibilityType, visibilityNodes);
-				for (auto visibilityNode : visibilityNodes)
-				{
-					tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
-					pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
-					pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
-					pVisibility->SetAttribute("value", eastl::to_string(visibilityNode.second).c_str());
-					pNode->LinkEndChild(pVisibility);
-				}
-			}
-
-			for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-			{
-				eastl::map<ClusteringArc*, float> visibilityArcs;
-				clusterNode->GetVisibilities(visibilityType, visibilityArcs);
-				for (auto visibilityArc : visibilityArcs)
-				{
-					tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityArc");
-					pVisibility->SetAttribute("id", eastl::to_string(visibilityArc.first->GetId()).c_str());
-					pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
-					pVisibility->SetAttribute("value", eastl::to_string(visibilityArc.second).c_str());
-					pNode->LinkEndChild(pVisibility);
-				}
+				tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
+				pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
+				pNode->LinkEndChild(pVisibility);
 			}
 
 			for (ClusteringArc* clusterNodeArc : clusterNode->GetArcs())
@@ -620,56 +971,13 @@ void QuakeAIManager::SaveClusteringGraph(const eastl::string& path)
 					pTransition->SetAttribute("type", eastl::to_string(clusterTransition->GetType()).c_str());
 					pTransition->SetAttribute("node", eastl::to_string(clusterTransition->GetNode()->GetId()).c_str());
 					pNodeArc->LinkEndChild(pTransition);
-
-					for (float weight : clusterTransition->GetWeights())
-					{
-						tinyxml2::XMLElement* pWeight = doc.NewElement("Weight");
-						pWeight->SetAttribute("value", eastl::to_string(weight).c_str());
-						pTransition->LinkEndChild(pWeight);
-					}
-
-					for (Vector3<float> connection : clusterTransition->GetConnections())
-					{
-						tinyxml2::XMLElement* pConnection = doc.NewElement("Connection");
-						pConnection->SetAttribute("x", eastl::to_string((int)round(connection[0])).c_str());
-						pConnection->SetAttribute("y", eastl::to_string((int)round(connection[1])).c_str());
-						pConnection->SetAttribute("z", eastl::to_string((int)round(connection[2])).c_str());
-						pTransition->LinkEndChild(pConnection);
-					}
-				}
-
-				for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-				{
-					eastl::map<ClusteringNode*, float> visibilityNodes;
-					clusterNodeArc->GetVisibilities(visibilityType, visibilityNodes);
-					for (auto visibilityNode : visibilityNodes)
-					{
-						tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityNode");
-						pVisibility->SetAttribute("id", eastl::to_string(visibilityNode.first->GetId()).c_str());
-						pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
-						pVisibility->SetAttribute("value", eastl::to_string(visibilityNode.second).c_str());
-						pNodeArc->LinkEndChild(pVisibility);
-					}
-				}
-
-				for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-				{
-					eastl::map<ClusteringNode*, float> visibilityArcs;
-					clusterNodeArc->GetVisibilities(visibilityType, visibilityArcs);
-					for (auto visibilityArc : visibilityArcs)
-					{
-						tinyxml2::XMLElement* pVisibility = doc.NewElement("VisibilityArc");
-						pVisibility->SetAttribute("id", eastl::to_string(visibilityArc.first->GetId()).c_str());
-						pVisibility->SetAttribute("type", eastl::to_string(visibilityType).c_str());
-						pVisibility->SetAttribute("value", eastl::to_string(visibilityArc.second).c_str());
-						pNodeArc->LinkEndChild(pVisibility);
-					}
 				}
 			}
 		}
 	}
 	
 	doc.SaveFile(path.c_str());
+*/
 }
 
 //map generation via physics simulation
@@ -711,13 +1019,13 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	SimulateVisibility();
 
 	GameLogic::Get()->GetAIManager()->SavePathingGraph(
-		FileSystem::Get()->GetPath("ai/quake/bloodrunpathing.xml"));
+		FileSystem::Get()->GetPath("ai/quake/bloodrunpathing.bin"));
 
 	// we group the graph nodes in clusters
 	CreateClusters();
 
 	GameLogic::Get()->GetAIManager()->SaveClusteringGraph(
-		FileSystem::Get()->GetPath("ai/quake/bloodrunclustering.xml"));
+		FileSystem::Get()->GetPath("ai/quake/bloodrunclustering.bin"));
 
 	// we need to handle firing grenades separately since they cannot be simulated by raycasting 
 	// as they describe different trajectories
@@ -752,25 +1060,8 @@ void QuakeAIManager::SimulateVisibility()
 	// there are hundred of millions of combinations depending on the size of the map
 	// which will take forever to simulate visibility thats why we have to make an aproximation
 	// by grouping every position to its neareast node
-	eastl::map<Vector3<float>, PathingNode*> pathingNodes;
-	for (PathingNode* pathNode : mPathingGraph->GetNodes())
-	{
-		pathingNodes[pathNode->GetPos()] = pathNode;
-		for (PathingArc* pathArc : pathNode->GetArcs())
-		{
-			PathingTransition* pathTransition = pathNode->FindTransition(pathArc->GetId());
-			if (pathTransition)
-			{
-				for (Vector3<float> pathConnection : pathTransition->GetConnections())
-					pathingNodes[pathConnection] = mPathingGraph->FindClosestNode(pathConnection);
-			}
-			pathingNodes[pathArc->GetNode()->GetPos()] = pathArc->GetNode();
-		}
-	}
 
-	// we need to get visibility info from every node and arc by raycasting
-	// and we will only raycast the most representative nodes
-	PathingNodeDoubleMap visibleNodes;
+	// first we get visibility info from every node by raycasting
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
 		//set muzzle location relative to pivoting eye
@@ -793,216 +1084,105 @@ void QuakeAIManager::SimulateVisibility()
 					collision = collisions[i];
 
 			if (collision == NULL)
-				visibleNodes[pathNode][visibleNode] = 1.0f;
+				pathNode->AddVisibleNode(visibleNode, Length(visibleNode->GetPos() - pathNode->GetPos()));
 		}
 	}
 
-	// now we fill all the visibility info from nodes to arcs, 
-	// arcs to nodes, arcs to arcs and between nodes
+	//next we recreate each transition to its nearest node position
+	eastl::map<Vector3<float>, PathingNode*> pathingNodes;
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
-		for (PathingNode* visibleNode : mPathingGraph->GetNodes())
+		pathingNodes[pathNode->GetPos()] = pathNode;
+		for (PathingTransition* pathTransition : pathNode->GetTransitions())
 		{
-			if (visibleNodes[pathNode][visibleNode])
+			for (Vector3<float> pathConnection : pathTransition->GetConnections())
+				pathingNodes[pathConnection] = mPathingGraph->FindClosestNode(pathConnection);
+		}
+	}
+
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+	{
+		for (PathingTransition* pathTransition : pathNode->GetTransitions())
+		{
+			PathingNodeVec nodes;
+			eastl::map<PathingNode*, float> weights;
+			eastl::map<PathingNode*, Vector3<float>> positions;
+			for (unsigned int idx = 0; idx < pathTransition->GetConnections().size(); idx++)
 			{
-				pathNode->AddVisibility(visibleNode, VT_DISTANCE,
-					Length(visibleNode->GetPos() - pathNode->GetPos()));
-				pathNode->AddVisibility(visibleNode, VT_WEIGHT, 0.f);
+				PathingNode* pathConnection = pathingNodes[pathTransition->GetConnections()[idx]];
+				if (eastl::find(nodes.begin(), nodes.end(), pathConnection) == nodes.end())
+				{
+					weights[pathConnection] = 0;
+					nodes.push_back(pathConnection);
+				}
+
+				weights[pathConnection] += pathTransition->GetWeights()[idx];
+				positions[pathConnection] = pathTransition->GetConnections()[idx];
+			}
+			
+			eastl::vector<float> nodeWeights;
+			eastl::vector<Vector3<float>> nodePositions;
+			for (PathingNode* node : nodes)
+			{
+				nodeWeights.push_back(weights[node]);
+				nodePositions.push_back(positions[node]);
 			}
 
-			for (PathingArc* visibleArc : visibleNode->GetArcs())
+			pathNode->RemoveTransition(pathTransition->GetId());
+			pathNode->AddTransition(new PathingTransition(
+				pathTransition->GetId(), pathTransition->GetType(), nodes, nodeWeights, nodePositions));
+		}
+	}
+
+	//visibility between pathing transitions
+	/*
+	float totalTime = 0.f, totalVisibleTime = 0.f, distance = 0.f;
+	if (visibleArc->GetWeight() > pathArc->GetWeight())
+	{
+		float totalArcTime = 0.f;
+		unsigned int pathConnection = 0;
+		unsigned int visibleConnection = 0;
+		eastl::vector<Vector3<float>> pathConnections = pathTransition->GetConnections();
+		eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
+		for (; pathConnection < pathConnections.size(); pathConnection++)
+		{
+			if (visibleNodes[][pathingNodes[visibleConnections[visibleConnection]]])
 			{
-				PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
-				if (visibleTransition)
-				{
-					float totalVisibleTime = 0.f, distance = 0.f;
-					eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
-					for (unsigned int visibleConnection = 0; visibleConnection < visibleConnections.size(); visibleConnection++)
-					{
-						if (visibleNodes[pathNode][pathingNodes[visibleConnections[visibleConnection]]])
-						{
-							float deltaTime = visibleTransition->GetWeights()[visibleConnection];
-							distance += Length(visibleConnections[visibleConnection] - pathNode->GetPos()) * deltaTime;
-							totalVisibleTime += deltaTime;
-						}
-					}
-
-					if (totalVisibleTime > 0.f)
-					{
-						distance /= totalVisibleTime;
-
-						pathNode->AddVisibility(visibleArc, VT_DISTANCE, distance);
-						pathNode->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
-					}
-				}
+				float deltaTime = pathTransition->GetWeights()[pathConnection];
+				distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
+				totalVisibleTime += deltaTime;
+			}
+			while (totalArcTime <= totalTime)
+			{
+				totalArcTime += visibleTransition->GetWeights()[visibleConnection];
+				if (visibleConnection + 1 < visibleConnections.size())
+					visibleConnection++;
 				else
-				{
-					if (visibleNodes[pathNode][visibleArc->GetNode()])
-					{
-						pathNode->AddVisibility(visibleArc, VT_DISTANCE, 
-							Length(visibleArc->GetNode()->GetPos() - pathNode->GetPos()));
-						pathNode->AddVisibility(visibleArc, VT_WEIGHT, visibleArc->GetWeight());
-					}
-				}
+					break;
 			}
+			totalTime += pathTransition->GetWeights()[pathConnection];
 		}
 
-		for (PathingArc* pathArc : pathNode->GetArcs())
+		pathConnection--;
+		for (; visibleConnection < visibleConnections.size(); visibleConnection++)
 		{
-			PathingTransition* pathTransition = pathNode->FindTransition(pathArc->GetId());
-			if (pathTransition)
+			if (visibleNodes[pathingNodes[pathConnections[pathConnection]]][pathingNodes[visibleConnections[visibleConnection]]])
 			{
-				for (PathingNode* visibleNode : mPathingGraph->GetNodes())
-				{
-					for (PathingArc* visibleArc : visibleNode->GetArcs())
-					{
-						PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
-						if (visibleTransition)
-						{
-							float totalTime = 0.f, totalVisibleTime = 0.f, distance = 0.f;
-							if (visibleArc->GetWeight() > pathArc->GetWeight())
-							{
-								float totalArcTime = 0.f;
-								unsigned int pathConnection = 0;
-								unsigned int visibleConnection = 0;
-								eastl::vector<Vector3<float>> pathConnections = pathTransition->GetConnections();
-								eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
-								for (; pathConnection < pathConnections.size(); pathConnection++)
-								{
-									if (visibleNodes[pathingNodes[pathConnections[pathConnection]]][pathingNodes[visibleConnections[visibleConnection]]])
-									{
-										float deltaTime = pathTransition->GetWeights()[pathConnection];
-										distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
-										totalVisibleTime += deltaTime;
-									}
-									while (totalArcTime <= totalTime)
-									{
-										totalArcTime += visibleTransition->GetWeights()[visibleConnection];
-										visibleConnection++;
-									}
-									totalTime += pathTransition->GetWeights()[pathConnection];
-								}
-
-								for (; visibleConnection < visibleConnections.size(); visibleConnection++)
-								{
-									if (visibleNodes[pathingNodes[pathConnections[pathConnection]]][pathingNodes[visibleConnections[visibleConnection]]])
-									{
-										float deltaTime = pathTransition->GetWeights()[pathConnection];
-										distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
-										totalVisibleTime += deltaTime;
-									}
-								}
-							}
-							else
-							{
-								float totalArcTime = 0.f;
-								unsigned int pathConnection = 0;
-								unsigned int visibleConnection = 0;
-								eastl::vector<Vector3<float>> pathConnections = pathTransition->GetConnections();
-								eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
-								for (; visibleConnection < visibleConnections.size(); visibleConnection++)
-								{
-									if (visibleNodes[pathingNodes[visibleConnections[visibleConnection]]][pathingNodes[pathConnections[pathConnection]]])
-									{
-										float deltaTime = visibleTransition->GetWeights()[visibleConnection];
-										distance += Length(pathConnections[pathConnection] - visibleConnections[visibleConnection]) * deltaTime;
-										totalVisibleTime += deltaTime;
-									}
-									while (totalArcTime <= totalTime)
-									{
-										totalArcTime += pathTransition->GetWeights()[pathConnection];
-										pathConnection++;
-									}
-									totalTime += visibleTransition->GetWeights()[visibleConnection];
-								}
-
-								for (; pathConnection < pathConnections.size(); pathConnection++)
-								{
-									if (visibleNodes[pathingNodes[visibleConnections[visibleConnection]]][pathingNodes[pathConnections[pathConnection]]])
-									{
-										float deltaTime = visibleTransition->GetWeights()[visibleConnection];
-										distance += Length(pathConnections[pathConnection] - visibleConnections[visibleConnection]) * deltaTime;
-										totalVisibleTime += deltaTime;
-									}
-								}
-							}
-
-							if (totalVisibleTime > 0.f)
-							{
-								distance /= totalVisibleTime;
-
-								pathArc->AddVisibility(visibleArc, VT_DISTANCE, distance);
-								pathArc->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
-							}
-						}
-						else
-						{
-							float totalVisibleTime = 0.f, distance = 0.f;
-							eastl::vector<Vector3<float>> pathConnections = pathTransition->GetConnections();
-							for (unsigned int pathConnection = 0; pathConnection < pathConnections.size(); pathConnection++)
-							{
-								if (visibleNodes[pathingNodes[pathConnections[pathConnection]]][visibleArc->GetNode()])
-								{
-									float deltaTime = pathTransition->GetWeights()[pathConnection];
-									distance += Length(pathConnections[pathConnection] - visibleArc->GetNode()->GetPos()) * deltaTime;
-									totalVisibleTime += deltaTime;
-								}
-							}
-
-							if (totalVisibleTime > 0.f)
-							{
-								distance /= totalVisibleTime;
-
-								pathArc->GetNode()->AddVisibility(visibleArc, VT_DISTANCE, distance);
-								pathArc->GetNode()->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				for (PathingNode* visibleNode : mPathingGraph->GetNodes())
-				{
-					for (PathingArc* visibleArc : visibleNode->GetArcs())
-					{
-						PathingTransition* visibleTransition = visibleNode->FindTransition(visibleArc->GetId());
-						if (visibleTransition)
-						{
-							float totalVisibleTime = 0.f, distance = 0.f;
-							eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
-							for (unsigned int visibleConnection = 0; visibleConnection < visibleConnections.size(); visibleConnection++)
-							{
-								if (visibleNodes[pathArc->GetNode()][pathingNodes[visibleConnections[visibleConnection]]])
-								{
-									float deltaTime = visibleTransition->GetWeights()[visibleConnection];
-									distance += Length(visibleConnections[visibleConnection] - pathArc->GetNode()->GetPos()) * deltaTime;
-									totalVisibleTime += deltaTime;
-								}
-							}
-
-							if (totalVisibleTime > 0.f)
-							{
-								distance /= totalVisibleTime;
-
-								pathArc->GetNode()->AddVisibility(visibleArc, VT_DISTANCE, distance);
-								pathArc->GetNode()->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
-							}
-						}
-						else
-						{
-							if (visibleNodes[pathArc->GetNode()][pathingNodes[visibleArc->GetNode()->GetPos()]])
-							{
-								pathArc->GetNode()->AddVisibility(visibleArc, VT_DISTANCE, 
-									Length(visibleArc->GetNode()->GetPos() - pathArc->GetNode()->GetPos()));
-								pathArc->GetNode()->AddVisibility(visibleArc, VT_WEIGHT, visibleArc->GetWeight());
-							}
-						}
-					}
-				}
+				float deltaTime = pathTransition->GetWeights()[pathConnection];
+				distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
+				totalVisibleTime += deltaTime;
 			}
 		}
 	}
+
+	if (totalVisibleTime > 0.f)
+	{
+		distance /= totalVisibleTime;
+
+		pathArc->AddVisibility(visibleArc, VT_DISTANCE, distance);
+		pathArc->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
+	}
+	*/
 }
 
 void QuakeAIManager::SimulateGrenadeLauncherFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor)
@@ -1098,8 +1278,8 @@ void QuakeAIManager::SimulateWaypoint()
 		{
 			if (pItemActor->GetType() == "Trigger")
 			{
-				pNode->RemoveArcs(GAT_MOVE);
-				pNode->RemoveTransitions(GAT_MOVE);
+				pNode->RemoveArcs();
+				pNode->RemoveTransitions();
 				if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
 				{
 					eastl::shared_ptr<PushTrigger> pPushTrigger =
@@ -1196,7 +1376,6 @@ void QuakeAIManager::CreateClusters()
 	}
 
 	mLastArcId = 0;
-	eastl::map<unsigned int, ClusteringArc*> clusterArcs;
 	for (Cluster* cluster : mClusteringGraph->GetClusters())
 	{
 		for (ClusteringNode* clusterNode : cluster->GetNodes())
@@ -1256,7 +1435,17 @@ void QuakeAIManager::CreateClusters()
 						ClusteringArc* clusterArc = new ClusteringArc(
 							GetNewArcID(), pathArc->GetType(), targetNode, pathArc->GetWeight());
 						clusterNode->AddArc(clusterArc);
-						clusterArcs[clusterArc->GetId()] = clusterArc;
+
+						PathingTransition* pathTransition = pathNode->FindTransition(pathArc->GetId());
+						if (pathTransition)
+						{
+							ClusteringNodeVec clusteringNodes;
+							for (PathingNode* pNode : pathTransition->GetNodes())
+								clusteringNodes.push_back(clusterNodes[pNode->GetId()]);
+
+							clusterNode->AddTransition(new ClusteringTransition(clusterArc->GetId(), clusterArc->GetType(),
+								clusteringNodes, pathTransition->GetWeights(), pathTransition->GetConnections()));
+						}
 					}
 				}
 			}
@@ -1273,7 +1462,17 @@ void QuakeAIManager::CreateClusters()
 						ClusteringArc* clusterArc = new ClusteringArc(
 							GetNewArcID(), pathArc.second->GetType(), targetNode, pathArc.second->GetWeight());
 						clusterNode->AddArc(clusterArc);
-						clusterArcs[clusterArc->GetId()] = clusterArc;
+
+						PathingTransition* pathTransition = pathNode->FindTransition(pathArc.second->GetId());
+						if (pathTransition)
+						{
+							ClusteringNodeVec clusteringNodes;
+							for (PathingNode* pNode : pathTransition->GetNodes())
+								clusteringNodes.push_back(clusterNodes[pNode->GetId()]);
+
+							clusterNode->AddTransition(new ClusteringTransition(clusterArc->GetId(), clusterArc->GetType(),
+								clusteringNodes, pathTransition->GetWeights(), pathTransition->GetConnections()));
+						}
 					}
 				}
 			}
@@ -1336,8 +1535,9 @@ void QuakeAIManager::CreateClusters()
 					ClusteringArc* clusteringArc = new ClusteringArc(
 						GetNewArcID(), GAT_CLUSTER, pEndArc->GetNode(), pCost);
 
-					ClusteringTransition* clusteringTransition = new ClusteringTransition(
-						clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
+					ClusteringTransition* clusteringTransition = 
+						new ClusteringTransition(clusteringArc->GetId(), pBeginArc->GetType(), 
+						{ pBeginArc->GetNode() }, { pBeginArc->GetWeight() }, { clusterNode->GetPos() });
 					clusterNode->AddTransition(clusteringTransition);
 					clusterNodeArcs[clusterNode].push_back(clusteringArc);
 
@@ -1387,8 +1587,9 @@ void QuakeAIManager::CreateClusters()
 					ClusteringArc* clusteringArc = new ClusteringArc(
 						GetNewArcID(), GAT_CLUSTER, pEndArc->GetNode(), pCost);
 
-					ClusteringTransition* clusteringTransition = new ClusteringTransition(
-						clusteringArc->GetId(), pBeginArc->GetType(), pBeginArc->GetNode());
+					ClusteringTransition* clusteringTransition =
+						new ClusteringTransition(clusteringArc->GetId(), pBeginArc->GetType(),
+						{ pBeginArc->GetNode() }, { pBeginArc->GetWeight() }, { clusterNode->GetPos() });
 					clusterNode->AddTransition(clusteringTransition);
 					clusterNodeArcs[clusterNode].push_back(clusteringArc);
 
@@ -1403,66 +1604,19 @@ void QuakeAIManager::CreateClusters()
 	{
 		ClusteringNode* clusterNode = (*itNodeArc).first;
 		for (ClusteringArc* clusterArc : (*itNodeArc).second)
-		{
 			clusterNode->AddArc(clusterArc);
-			clusterArcs[clusterArc->GetId()] = clusterArc;
-		}
 	}
 
 	//finally we add visibility info to clusters
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
 		ClusteringNode* clusterNode = clusterNodes[pathNode->GetId()];
-		for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
+		eastl::map<PathingNode*, float> visibleNodes;
+		pathNode->GetVisibileNodes(visibleNodes);
+		for (auto visibleNode : visibleNodes)
 		{
-			eastl::map<PathingNode*, float> visibilityNodes;
-			pathNode->GetVisibilities(visibilityType, visibilityNodes);
-			for (auto visibilityNode : visibilityNodes)
-			{
-				clusterNode->AddVisibility(
-					clusterNodes[visibilityNode.first->GetId()], visibilityType, visibilityNode.second);
-			}
-		}
-
-		for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-		{
-			eastl::map<PathingArc*, float> visibilityArcs;
-			pathNode->GetVisibilities(visibilityType, visibilityArcs);
-			for (auto visibilityArc : visibilityArcs)
-			{
-				clusterNode->AddVisibility(
-					clusterArcs[visibilityArc.first->GetId()], visibilityType, visibilityArc.second);
-			}
-		}
-
-		for (PathingArc* pathArc : pathNode->GetArcs())
-		{
-			ClusteringArc* clusterArc = clusterNode->FindArc(
-				pathArc->GetType(), clusterNodes[pathArc->GetNode()->GetId()]);
-			if (clusterArc)
-			{
-				for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-				{
-					eastl::map<PathingNode*, float> visibilityNodes;
-					pathArc->GetVisibilities(visibilityType, visibilityNodes);
-					for (auto visibilityNode : visibilityNodes)
-					{
-						clusterArc->AddVisibility(
-							clusterNodes[visibilityNode.first->GetId()], visibilityType, visibilityNode.second);
-					}
-				}
-
-				for (unsigned int visibilityType = 0; visibilityType <= VT_COUNT; visibilityType++)
-				{
-					eastl::map<PathingArc*, float> visibilityArcs;
-					pathArc->GetVisibilities(visibilityType, visibilityArcs);
-					for (auto visibilityArc : visibilityArcs)
-					{
-						clusterArc->AddVisibility(
-							clusterArcs[visibilityArc.first->GetId()], visibilityType, visibilityArc.second);
-					}
-				}
-			}
+			clusterNode->AddVisibleNode(
+				clusterNodes[visibleNode.first->GetId()], visibleNode.second);
 		}
 	}
 }
@@ -1539,27 +1693,29 @@ void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<f
 
 				//lets interpolate transitions from the already created arc
 				float deltaTime = 0.f;
-				eastl::vector<float> times{ 0 };
-				eastl::vector<Vector3<float>> positions{ pNode->GetPos() };
+				Vector3<float> position = pNode->GetPos();
+
+				eastl::vector<float> weights;
+				eastl::vector<PathingNode*> nodes;
+				eastl::vector<Vector3<float>> positions;
 				for (unsigned int idx = 0; idx < nodePositions.size(); idx++)
 				{
 					deltaTime += 0.02f;
 
-					if (Length(nodePositions[idx] - positions.back()) >= 24.f)
+					if (Length(nodePositions[idx] - position) >= 16.f)
 					{
-						times.push_back(deltaTime);
+						nodes.push_back(pNode);
+						weights.push_back(deltaTime);
 						positions.push_back(nodePositions[idx]);
+
 						deltaTime = 0.f;
 					}
 				}
-				if (positions.size() > 1)
-				{
-					deltaTime += 0.02f;
-					times.push_back(deltaTime);
-					positions.push_back(pEndNode->GetPos());
 
+				if (!nodes.empty())
+				{
 					PathingTransition* pTransition = new PathingTransition(
-						pArc->GetId(), GAT_TELEPORT, pEndNode, times, positions);
+						pArc->GetId(), GAT_TELEPORT, nodes, weights, positions);
 					pNode->AddTransition(pTransition);
 				}
 			}
@@ -1631,27 +1787,29 @@ void QuakeAIManager::SimulateTriggerPush(PathingNode* pNode, const Vector3<float
 
 				//lets interpolate transitions from the already created arc
 				float deltaTime = 0.f;
-				eastl::vector<float> times{ 0 };
-				eastl::vector<Vector3<float>> positions{ pNode->GetPos() };
+				Vector3<float> position = pNode->GetPos();
+
+				eastl::vector<float> weights;
+				eastl::vector<PathingNode*> nodes;
+				eastl::vector<Vector3<float>> positions;
 				for (unsigned int idx = 0; idx < nodePositions.size(); idx++)
 				{
 					deltaTime += 0.02f;
 
-					if (Length(nodePositions[idx] - positions.back()) >= 24.f)
+					if (Length(nodePositions[idx] - position) >= 16.f)
 					{
-						times.push_back(deltaTime);
+						nodes.push_back(pNode);
+						weights.push_back(deltaTime);
 						positions.push_back(nodePositions[idx]);
+
 						deltaTime = 0.f;
 					}
 				}
-				if (positions.size() > 1)
-				{
-					deltaTime += 0.02f;
-					times.push_back(deltaTime);
-					positions.push_back(pEndNode->GetPos());
 
+				if (!nodes.empty())
+				{
 					PathingTransition* pTransition = new PathingTransition(
-						pArc->GetId(), GAT_PUSH, pEndNode, times, positions);
+						pArc->GetId(), GAT_PUSH, nodes, weights, positions);
 					pNode->AddTransition(pTransition);
 				}
 			}
@@ -1820,7 +1978,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 			{
 				totalTime += 0.02f;
 				deltaTime += 0.02f;
-				if (Length((*itMove) - positions.back()) >= 24.f)
+				if (Length((*itMove) - positions.back()) >= 16.f)
 				{
 					times.push_back(deltaTime);
 					positions.push_back((*itMove));
@@ -1864,16 +2022,11 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 								PathingArc* pArc = new PathingArc(GetNewArcID(), arcType, pNewNode, totalTime);
 								pCurrentNode->AddArc(pArc);
 
-								if (positions.size() > 1)
+								//lets interpolate transitions from the already created arc
+								if (!positions.empty())
 								{
-									if (deltaTime > 0.f)
-									{
-										times.push_back(deltaTime);
-										positions.push_back(pNewNode->GetPos());
-									}
-
 									PathingTransition* pTransition = new PathingTransition(
-										pArc->GetId(), arcType, pNewNode, times, positions);
+										pArc->GetId(), arcType, { pCurrentNode }, times, positions);
 									pCurrentNode->AddTransition(pTransition);
 								}
 
@@ -1920,16 +2073,11 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 									PathingArc* pArc = new PathingArc(GetNewArcID(), arcType, pClosestNode, totalTime);
 									pCurrentNode->AddArc(pArc);
 
-									if (positions.size() > 1)
+									//lets interpolate transitions from the already created arc
+									if (!positions.empty())
 									{
-										if (deltaTime > 0.f)
-										{
-											times.push_back(deltaTime);
-											positions.push_back(pClosestNode->GetPos());
-										}
-
 										PathingTransition* pTransition = new PathingTransition(
-											pArc->GetId(), arcType, pClosestNode, times, positions);
+											pArc->GetId(), arcType, { pCurrentNode }, times, positions);
 										pCurrentNode->AddTransition(pTransition);
 									}
 								}
@@ -2028,7 +2176,7 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 			{
 				//check if we have done a clean jump (no collisions)
 				if (Length(pEndNode->GetPos() - pNode->GetPos()) >= 300.f ||
-					pEndNode->GetPos()[2] - pNode->GetPos()[2] >= 30.f)
+					pEndNode->GetPos()[2] - pNode->GetPos()[2] >= 20.f)
 				{
 					Vector3<float> diff = pEndNode->GetPos() - position;
 					if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
@@ -2038,27 +2186,29 @@ void QuakeAIManager::SimulateJump(PathingNode* pNode)
 
 						//lets interpolate transitions from the already created arc
 						float deltaTime = 0.f;
-						eastl::vector<float> times{ 0 };
-						eastl::vector<Vector3<float>> positions{ pNode->GetPos() };
+						Vector3<float> position = pNode->GetPos();
+
+						eastl::vector<float> weights;
+						eastl::vector<PathingNode*> nodes;
+						eastl::vector<Vector3<float>> positions;
 						for (unsigned int idx = 0; idx < nodePositions.size(); idx++)
 						{
 							deltaTime += 0.02f;
 
-							if (Length(nodePositions[idx] - positions.back()) >= 24.f)
+							if (Length(nodePositions[idx] - position) >= 16.f)
 							{
-								times.push_back(deltaTime);
+								nodes.push_back(pNode);
+								weights.push_back(deltaTime);
 								positions.push_back(nodePositions[idx]);
+
 								deltaTime = 0.f;
 							}
 						}
-						if (positions.size() > 1)
-						{
-							deltaTime += 0.02f;
-							times.push_back(deltaTime);
-							positions.push_back(pEndNode->GetPos());
 
+						if (!nodes.empty())
+						{
 							PathingTransition* pTransition = new PathingTransition(
-								pArc->GetId(), GAT_JUMP, pEndNode, times, positions);
+								pArc->GetId(), GAT_JUMP, nodes, weights, positions);
 							pNode->AddTransition(pTransition);
 						}
 					}

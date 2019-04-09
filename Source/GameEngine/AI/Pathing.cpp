@@ -45,34 +45,24 @@
 // PathingNode
 //--------------------------------------------------------------------------------------------------------
 
-void PathingNode::AddVisibility(PathingNode* pNode, unsigned int vT, float value)
+void PathingNode::AddVisibleNode(PathingNode* pNode, float value)
 {
-	mVisibleNodes[vT][pNode] = value;
+	mVisibleNodes[pNode] = value;
 }
 
-void PathingNode::AddVisibility(PathingArc* pArc, unsigned int vT, float value)
+float PathingNode::FindVisibleNode(PathingNode* pNode)
 {
-	mVisibleArcs[vT][pArc] = value;
+	return mVisibleNodes[pNode];
 }
 
-float PathingNode::FindVisibility(PathingNode* pNode, unsigned int vT)
+bool PathingNode::IsVisibleNode(PathingNode* pNode)
 {
-	return mVisibleNodes[vT][pNode];
+	return mVisibleNodes.find(pNode) != mVisibleNodes.end();
 }
 
-float PathingNode::FindVisibility(PathingArc* pArc, unsigned int vT)
+void PathingNode::GetVisibileNodes(eastl::map<PathingNode*, float>& visibilities)
 {
-	return mVisibleArcs[vT][pArc];
-}
-
-void PathingNode::GetVisibilities(unsigned int vT, eastl::map<PathingNode*, float>& visibilities)
-{
-	visibilities = mVisibleNodes[vT];
-}
-
-void PathingNode::GetVisibilities(unsigned int vT, eastl::map<PathingArc*, float>& visibilities)
-{
-	visibilities = mVisibleArcs[vT];
+	visibilities = mVisibleNodes;
 }
 
 void PathingNode::AddArc(PathingArc* pArc)
@@ -128,19 +118,29 @@ PathingArc* PathingNode::FindArc(unsigned int arcType, PathingNode* pLinkedNode)
 	return NULL;
 }
 
-void PathingNode::RemoveArcs(unsigned int arcType)
+void PathingNode::RemoveArcs()
 {
-	PathingArcVec keepArcs;
 	for (PathingArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		PathingArc* pArc = (*it);
-		if (pArc->GetType() != arcType)
-			keepArcs.push_back(pArc);
-		else
-			delete pArc;
+		delete pArc;
 	}
 
-	mArcs = keepArcs;
+	mArcs.clear();
+}
+
+void PathingNode::RemoveArc(unsigned int id)
+{
+	for (PathingArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		PathingArc* pArc = (*it);
+		if (pArc->GetId() != id)
+		{
+			delete pArc;
+			mArcs.erase(it);
+			break;
+		}
+	}
 }
 
 void PathingNode::AddTransition(PathingTransition* pTransition)
@@ -160,81 +160,29 @@ PathingTransition* PathingNode::FindTransition(unsigned int id)
 	return NULL;
 }
 
-PathingTransition* PathingNode::FindTransition(PathingNode* pTransitionNode)
+void PathingNode::RemoveTransitions()
 {
-	LogAssert(pTransitionNode, "Invalid node");
-
 	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
 	{
 		PathingTransition* pTransition = *it;
-		if (pTransition->GetNode() == pTransitionNode)
-			return pTransition;
+		delete pTransition;
 	}
-	return NULL;
+
+	mTransitions.clear();
 }
 
-PathingTransition* PathingNode::FindTransition(unsigned int arcType, PathingNode* pTransitionNode)
+void PathingNode::RemoveTransition(unsigned int id)
 {
-	LogAssert(pTransitionNode, "Invalid node");
-
 	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
 	{
 		PathingTransition* pTransition = *it;
-		if (pTransition->GetType() == arcType)
+		if (pTransition->GetId() == id)
 		{
-			if (pTransition->GetNode() == pTransitionNode)
-				return pTransition;
+			delete pTransition;
+			mTransitions.erase(it);
+			break;
 		}
 	}
-	return NULL;
-}
-
-void PathingNode::RemoveTransitions(unsigned int arcType)
-{
-	PathingTransitionVec keepTransitions;
-	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
-	{
-		PathingTransition* pTransition = *it;
-		if (pTransition->GetType() == arcType)
-			keepTransitions.push_back(pTransition);
-		else
-			delete pTransition;
-	}
-
-	mTransitions = keepTransitions;
-}
-
-//--------------------------------------------------------------------------------------------------------
-// PathingArc
-//--------------------------------------------------------------------------------------------------------
-void PathingArc::AddVisibility(PathingNode* pNode, unsigned int vT, float value)
-{
-	mVisibleNodes[vT][pNode] = value;
-}
-
-void PathingArc::AddVisibility(PathingArc* pArc, unsigned int vT, float value)
-{
-	mVisibleArcs[vT][pArc] = value;
-}
-
-float PathingArc::FindVisibility(PathingNode* pNode, unsigned int vT)
-{
-	return mVisibleNodes[vT][pNode];
-}
-
-float PathingArc::FindVisibility(PathingArc* pArc, unsigned int vT)
-{
-	return mVisibleArcs[vT][pArc];
-}
-
-void PathingArc::GetVisibilities(unsigned int vT, eastl::map<PathingNode*, float>& visibilities)
-{
-	visibilities = mVisibleNodes[vT];
-}
-
-void PathingArc::GetVisibilities(unsigned int vT, eastl::map<PathingArc*, float>& visibilities)
-{
-	visibilities = mVisibleArcs[vT];
 }
 
 //--------------------------------------------------------------------------------------------------------

@@ -76,16 +76,7 @@ enum ArcType
 	AT_TARGET = 1,
 	AT_ACTION = 2,
 
-
 	AT_COUNT
-};
-
-enum VisibilityType
-{
-	VT_DISTANCE = 0,
-	VT_WEIGHT,
-
-	VT_COUNT
 };
 
 typedef unsigned int GameViewId;

@@ -805,6 +805,9 @@
     <ClInclude Include="..\Audio\DirectSoundAudio.h" />
     <ClInclude Include="..\Audio\SoundProcess.h" />
     <ClInclude Include="..\Audio\SoundResource.h" />
+    <ClInclude Include="..\Core\3rdParty\cereal\include\cereal\access.hpp" />
+    <ClInclude Include="..\Core\3rdParty\cereal\include\cereal\cereal.hpp" />
+    <ClInclude Include="..\Core\3rdParty\cereal\include\cereal\macros.hpp" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\algorithm.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\allocator.h" />
     <ClInclude Include="..\Core\3rdParty\EASTL\include\EASTL\allocator_malloc.h" />
@@ -2784,7 +2787,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\cereal\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">
@@ -2793,7 +2796,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\cereal\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -2802,7 +2805,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\cereal\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">
@@ -2811,7 +2814,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\cereal\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -2820,7 +2823,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\cereal\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">
@@ -2829,7 +2832,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\cereal\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x86);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -2838,7 +2841,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\cereal\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">
@@ -2847,7 +2850,7 @@
     <IntDir>$(SolutionDir)..\..\..\Temp\$(ProjectName)$(PlatformName)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\;$(ProjectDir)..\Graphic\3rdParty\assimp\include;$(ProjectDir)..\Core\3rdParty\cereal\include;$(ProjectDir)..\Core\3rdParty\EASTL\include;$(ProjectDir)..\Core\3rdParty\EASTL\source;$(ProjectDir)..\Core\3rdParty\fastdelegate;$(ProjectDir)..\Core\3rdParty\tinyxml2;$(ProjectDir)..\Audio\3rdParty\libvorbis\include;$(ProjectDir)..\Audio\3rdParty\libogg\include;$(ProjectDir)..\Physic\3rdParty\bullet3\src;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)PlatformSDK\lib;$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

@@ -77,8 +77,7 @@ class PathingNode
 	PathingArcVec mArcs;
 	PathingTransitionVec mTransitions;
 
-	eastl::map<PathingNode*, float> mVisibleNodes[VT_COUNT];
-	eastl::map<PathingArc*, float> mVisibleArcs[VT_COUNT];
+	eastl::map<PathingNode*, float> mVisibleNodes;
 
 	float mTolerance;
 	ActorId mActorId;
@@ -95,27 +94,26 @@ public:
 	float GetTolerance(void) const { return mTolerance; }
 	const Vector3<float>& GetPos(void) const { return mPos; }
 
-	void AddVisibility(PathingNode* pNode, unsigned int vT, float value);
-	void AddVisibility(PathingArc* pArc, unsigned int vT, float value);
-	float FindVisibility(PathingNode* pNode, unsigned int vT);
-	float FindVisibility(PathingArc* pArc, unsigned int vT);
-	void GetVisibilities(unsigned int vT, eastl::map<PathingNode*, float>& visibilities);
-	void GetVisibilities(unsigned int vT, eastl::map<PathingArc*, float>& visibilities);
+	void AddVisibleNode(PathingNode* pNode, float value);
+	void GetVisibileNodes(eastl::map<PathingNode*, float>& visibilities);
+	float FindVisibleNode(PathingNode* pNode);
+	bool IsVisibleNode(PathingNode* pNode);
 
 	void AddArc(PathingArc* pArc);
 	PathingArc* FindArc(PathingNode* pLinkedNode);
 	PathingArc* FindArc(unsigned int arcType, PathingNode* pLinkedNode);
 	const PathingArcVec& GetArcs() { return mArcs; }
-	void RemoveArcs(unsigned int arcType);
+	void RemoveArc(unsigned int id);
+	void RemoveArcs();
 
 	void GetNeighbors(unsigned int arcType, PathingArcVec& outNeighbors);
 
 	void AddTransition(PathingTransition* pTransition);
 	PathingTransition* FindTransition(unsigned int id);
-	PathingTransition* FindTransition(PathingNode* pTransitionNode);
-	PathingTransition* FindTransition(unsigned int arcType, PathingNode* pTransitionNode);
 	const PathingTransitionVec& GetTransitions() { return mTransitions; }
-	void RemoveTransitions(unsigned int arcType);
+	void RemoveTransition(unsigned int id);
+	void RemoveTransitions();
+
 };
 
 
@@ -131,9 +129,6 @@ class PathingArc
 
 	PathingNode* mNode;  // node which is linked to
 
-	eastl::map<PathingNode*, float> mVisibleNodes[VT_COUNT];
-	eastl::map<PathingArc*, float> mVisibleArcs[VT_COUNT];
-
 public:
 	explicit PathingArc(unsigned int id, unsigned int type, PathingNode* pNode, float weight = 0.f) 
 		: mId(id), mType(type), mNode(pNode), mWeight(weight)
@@ -145,13 +140,6 @@ public:
 	unsigned int GetType(void) const { return mType; }
 	float GetWeight(void) const { return mWeight; }
 	PathingNode* GetNode() const { return mNode; }
-
-	void AddVisibility(PathingNode* pNode, unsigned int vT, float value);
-	void AddVisibility(PathingArc* pArc, unsigned int vT, float value);
-	float FindVisibility(PathingNode* pNode, unsigned int vT);
-	float FindVisibility(PathingArc* pArc, unsigned int vT);
-	void GetVisibilities(unsigned int vT, eastl::map<PathingNode*, float>& visibility);
-	void GetVisibilities(unsigned int vT, eastl::map<PathingArc*, float>& visibility);
 };
 
 
@@ -163,24 +151,24 @@ class PathingTransition
 {
 	unsigned int mId;
 	unsigned int mType;
-	PathingNode* mNode;  // transition destiny
 
 	eastl::vector<float> mWeights;
+	eastl::vector<PathingNode*> mNodes;  // transition nodes
 	eastl::vector<Vector3<float>> mConnections; // transition interpolation
 
 public:
-	explicit PathingTransition(unsigned int id, unsigned int type, PathingNode* node,
-		const eastl::vector<float>& weights = eastl::vector<float>(),
-		const eastl::vector<Vector3<float>>& connections = eastl::vector<Vector3<float>>())
-		: mId(id), mType(type), mNode(node), mWeights(weights), mConnections(connections)
+	explicit PathingTransition(
+		unsigned int id, unsigned int type, const eastl::vector<PathingNode*>& nodes, 
+		const eastl::vector<float>& weights, const eastl::vector<Vector3<float>>& connections)
+		: mId(id), mType(type), mNodes(nodes), mWeights(weights), mConnections(connections)
 	{
 
 	}
 
 	unsigned int GetId(void) const { return mId; }
 	unsigned int GetType(void) const { return mType; }
-	PathingNode* GetNode(void) const { return mNode; }
 
+	const eastl::vector<PathingNode*>& GetNodes(void) const { return mNodes; }
 	const eastl::vector<float>& GetWeights(void) const { return mWeights; }
 	const eastl::vector<Vector3<float>>& GetConnections(void) const { return mConnections; }
 };

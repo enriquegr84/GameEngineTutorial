@@ -111,18 +111,28 @@ ClusterArc* Cluster::FindArc(unsigned int arcType, Cluster* pLinkedCluster)
 	return NULL;
 }
 
-void Cluster::RemoveArcs(unsigned int arcType)
+void Cluster::RemoveArcs()
 {
-	ClusterArcVec keepArcs;
 	for (ClusterArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		ClusterArc* pArc = (*it);
-		if (pArc->GetType() != arcType)
-			keepArcs.push_back(pArc);
-		else
-			delete pArc;
+		delete pArc;
 	}
-	mArcs = keepArcs;
+	mArcs.clear();
+}
+
+void Cluster::RemoveArc(unsigned int id)
+{
+	for (ClusterArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		ClusterArc* pArc = (*it);
+		if (pArc->GetId() != id)
+		{
+			delete pArc;
+			mArcs.erase(it);
+			break;
+		}
+	}
 }
 
 
@@ -256,29 +266,24 @@ ClusterPlan* Cluster::FindNode(ClusteringNode* pStartNode, Cluster* pGoalCluster
 // ClusteringNode
 //--------------------------------------------------------------------------------------------------------
 
-void ClusteringNode::AddVisibility(ClusteringNode* pNode, unsigned int vT, float value)
+void ClusteringNode::AddVisibleNode(ClusteringNode* pNode, float value)
 {
-	mVisibleNodes[vT][pNode] = value;
+	mVisibleNodes[pNode] = value;
 }
-void ClusteringNode::AddVisibility(ClusteringArc* pArc, unsigned int vT, float value)
+
+float ClusteringNode::FindVisibleNode(ClusteringNode* pNode)
 {
-	mVisibleArcs[vT][pArc] = value;
+	return mVisibleNodes[pNode];
 }
-float ClusteringNode::FindVisibility(ClusteringNode* pNode, unsigned int vT)
+
+bool ClusteringNode::IsVisibleNode(ClusteringNode* pNode)
 {
-	return mVisibleNodes[vT][pNode];
+	return mVisibleNodes.find(pNode) != mVisibleNodes.end();
 }
-float ClusteringNode::FindVisibility(ClusteringArc* pArc, unsigned int vT)
+
+void ClusteringNode::GetVisibileNodes(eastl::map<ClusteringNode*, float>& visibilities)
 {
-	return mVisibleArcs[vT][pArc];
-}
-void ClusteringNode::GetVisibilities(unsigned int vT, eastl::map<ClusteringNode*, float>& visibilities)
-{
-	visibilities = mVisibleNodes[vT];
-}
-void ClusteringNode::GetVisibilities(unsigned int vT, eastl::map<ClusteringArc*, float>& visibilities)
-{
-	visibilities = mVisibleArcs[vT];
+	visibilities = mVisibleNodes;
 }
 
 void ClusteringNode::AddArc(ClusteringArc* pArc)
@@ -345,18 +350,28 @@ ClusteringArc* ClusteringNode::FindArc(unsigned int arcType, ClusteringNode* pLi
 	return NULL;
 }
 
-void ClusteringNode::RemoveArcs(unsigned int arcType)
+void ClusteringNode::RemoveArcs()
 {
-	ClusteringArcVec keepArcs;
 	for (ClusteringArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		ClusteringArc* pArc = (*it);
-		if (pArc->GetType() != arcType)
-			keepArcs.push_back(pArc);
-		else
-			delete pArc;
+		delete pArc;
 	}
-	mArcs = keepArcs;
+	mArcs.clear();
+}
+
+void ClusteringNode::RemoveArc(unsigned int id)
+{
+	for (ClusteringArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		ClusteringArc* pArc = (*it);
+		if (pArc->GetId() != id)
+		{
+			delete pArc;
+			mArcs.erase(it);
+			break;
+		}
+	}
 }
 
 void ClusteringNode::AddTransition(ClusteringTransition* pTransition)
@@ -376,78 +391,29 @@ ClusteringTransition* ClusteringNode::FindTransition(unsigned int id)
 	return NULL;
 }
 
-ClusteringTransition* ClusteringNode::FindTransition(ClusteringNode* pTransitionNode)
+void ClusteringNode::RemoveTransitions()
 {
-	LogAssert(pTransitionNode, "Invalid node");
-
 	for (ClusteringTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
 	{
 		ClusteringTransition* pTransition = *it;
-		if (pTransition->GetNode() == pTransitionNode)
-			return pTransition;
+		delete pTransition;
 	}
-	return NULL;
+
+	mTransitions.clear();
 }
 
-ClusteringTransition* ClusteringNode::FindTransition(unsigned int arcType, ClusteringNode* pTransitionNode)
+void ClusteringNode::RemoveTransition(unsigned int id)
 {
-	LogAssert(pTransitionNode, "Invalid node");
-
 	for (ClusteringTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
 	{
 		ClusteringTransition* pTransition = *it;
-		if (pTransition->GetType() == arcType)
+		if (pTransition->GetId() == id)
 		{
-			if (pTransition->GetNode() == pTransitionNode)
-				return pTransition;
+			delete pTransition;
+			mTransitions.erase(it);
+			break;
 		}
 	}
-	return NULL;
-}
-
-void ClusteringNode::RemoveTransitions(unsigned int arcType)
-{
-	ClusteringTransitionVec keepTransitions;
-	for (ClusteringTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
-	{
-		ClusteringTransition* pTransition = *it;
-		if (pTransition->GetType() == arcType)
-			keepTransitions.push_back(pTransition);
-		else
-			delete pTransition;
-	}
-
-	mTransitions = keepTransitions;
-}
-
-
-//--------------------------------------------------------------------------------------------------------
-// ClusteringArc
-//--------------------------------------------------------------------------------------------------------
-
-void ClusteringArc::AddVisibility(ClusteringNode* pNode, unsigned int vT, float value)
-{
-	mVisibleNodes[vT][pNode] = value;
-}
-void ClusteringArc::AddVisibility(ClusteringArc* pArc, unsigned int vT, float value)
-{
-	mVisibleArcs[vT][pArc] = value;
-}
-float ClusteringArc::FindVisibility(ClusteringNode* pNode, unsigned int vT)
-{
-	return mVisibleNodes[vT][pNode];
-}
-float ClusteringArc::FindVisibility(ClusteringArc* pArc, unsigned int vT)
-{
-	return mVisibleArcs[vT][pArc];
-}
-void ClusteringArc::GetVisibilities(unsigned int vT, eastl::map<ClusteringNode*, float>& visibilities)
-{
-	visibilities = mVisibleNodes[vT];
-}
-void ClusteringArc::GetVisibilities(unsigned int vT, eastl::map<ClusteringArc*, float>& visibilities)
-{
-	visibilities = mVisibleArcs[vT];
 }
 
 //--------------------------------------------------------------------------------------------------------

@@ -410,12 +410,14 @@ void QuakeMainMenuUI::Set()
 
 		Level* gameLevel = levels[level->GetSelected()];
 		gameApp->mOption.mLevel = ToString(gameLevel->GetFileName().c_str());
-		/*
-		eastl::wstring levelPath = L"ai/quake/" + gameLevel->GetName() + L"pathing.xml";
-		GameLogic::Get()->GetAIManager()->LoadPathingGraph(levelPath);
 
-		levelPath = L"ai/quake/" + gameLevel->GetName() + L"clustering.xml";
-		GameLogic::Get()->GetAIManager()->LoadClusteringGraph(levelPath);
+		eastl::wstring levelPath = L"ai/quake/" + gameLevel->GetName() + L"pathing.bin";
+		GameLogic::Get()->GetAIManager()->LoadPathingGraph(
+			ToWideString(FileSystem::Get()->GetPath(ToString(levelPath.c_str())).c_str()));
+		/*
+		levelPath = L"ai/quake/" + gameLevel->GetName() + L"clustering.bin";
+		GameLogic::Get()->GetAIManager()->LoadClusteringGraph(
+			ToWideString(FileSystem::Get()->GetPath(ToString(levelPath.c_str())).c_str()));
 		*/
 	}
 }
@@ -1013,11 +1015,11 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 						Level* level = game->GetLevelManager()->GetLevel(
 							ToWideString(gameApp->mOption.mLevel.c_str()));
 
-						eastl::wstring levelPath = L"ai/quake/" + level->GetName() + L"pathing.xml";
+						eastl::wstring levelPath = L"ai/quake/" + level->GetName() + L"pathing.bin";
 						GameLogic::Get()->GetAIManager()->SavePathingGraph(
 							FileSystem::Get()->GetPath(ToString(levelPath.c_str())));
 
-						levelPath = L"ai/quake/" + level->GetName() + L"clustering.xml";
+						levelPath = L"ai/quake/" + level->GetName() + L"clustering.bin";
 						GameLogic::Get()->GetAIManager()->SaveClusteringGraph(
 							FileSystem::Get()->GetPath(ToString(levelPath.c_str())));
 						return true;

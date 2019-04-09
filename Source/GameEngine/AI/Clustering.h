@@ -63,6 +63,7 @@ typedef eastl::vector<ClusteringTransition*> ClusteringTransitionVec;
 typedef eastl::map<ClusteringNode*, ClusteringNodeVec> ClusteringNodeMap;
 typedef eastl::map<ClusteringNode*, ClusteringArcVec> ClusteringNodeArcMap;
 typedef eastl::map<ClusteringArc*, ClusteringNodeVec> ClusteringArcNodeMap;
+typedef eastl::map<ClusteringNode*, eastl::map<ClusteringNode*, float>> ClusteringNodeDoubleMap;
 typedef eastl::map<ClusteringNode*, ClusterPlanNode*> ClusteringNodeToClusterPlanNodeMap;
 
 const float CLUSTERING_DEFAULT_NODE_TOLERANCE = 4.0f;
@@ -107,7 +108,8 @@ public:
 	ClusterArc* FindArc(Cluster* pLinkedCluster);
 	ClusterArc* FindArc(unsigned int arcType, Cluster* pLinkedCluster);
 	const ClusterArcVec& GetArcs() { return mArcs; }
-	void RemoveArcs(unsigned int arcType);
+	void RemoveArc(unsigned int id);
+	void RemoveArcs();
 
 	void GetNeighbors(unsigned int arcType, ClusterArcVec& outNeighbors);
 
@@ -161,7 +163,6 @@ class ClusterArc
 	Cluster* mCluster;  // cluster which is linked to
 
 	eastl::map<Cluster*, ClusteringNodeVec> mVisibleNodes;
-	eastl::map<Cluster*, ClusteringArcVec> mVisibleArcs;
 
 public:
 	explicit ClusterArc(unsigned int id, unsigned int type, Cluster* pCluster)
@@ -175,10 +176,7 @@ public:
 	Cluster* GetCluster() const { return mCluster; }
 
 	const eastl::map<Cluster*, ClusteringNodeVec>& GetVisibleNodes() const { return mVisibleNodes; }
-	const eastl::map<Cluster*, ClusteringArcVec>& GetVisibleArcs() const { return mVisibleArcs; }
-
 	const ClusteringNodeVec& GetVisibleNodes(Cluster* cluster) { return mVisibleNodes[cluster]; }
-	const ClusteringArcVec& GetVisibleArcs(Cluster* cluster) { return mVisibleArcs[cluster]; }
 };
 
 
@@ -196,8 +194,7 @@ class ClusteringNode
 	ClusteringArcVec mArcs;
 	ClusteringTransitionVec mTransitions;
 
-	eastl::map<ClusteringNode*, float> mVisibleNodes[VT_COUNT];
-	eastl::map<ClusteringArc*, float> mVisibleArcs[VT_COUNT];
+	eastl::map<ClusteringNode*, float> mVisibleNodes;
 
 	ActorId mActor;
 
@@ -213,28 +210,26 @@ public:
 	ActorId GetActor(void) const { return mActor; }
 	const Vector3<float>& GetPos(void) const { return mPos; }
 
-	void AddVisibility(ClusteringNode* pNode, unsigned int vT, float value);
-	void AddVisibility(ClusteringArc* pArc, unsigned int vT, float value);
-	float FindVisibility(ClusteringNode* pNode, unsigned int vT);
-	float FindVisibility(ClusteringArc* pArc, unsigned int vT);
-	void GetVisibilities(unsigned int vT, eastl::map<ClusteringNode*, float>& visibilities);
-	void GetVisibilities(unsigned int vT, eastl::map<ClusteringArc*, float>& visibilities);
+	void AddVisibleNode(ClusteringNode* pNode, float value);
+	void GetVisibileNodes(eastl::map<ClusteringNode*, float>& visibilities);
+	float FindVisibleNode(ClusteringNode* pNode);
+	bool IsVisibleNode(ClusteringNode* pNode);
 
 	void AddArc(ClusteringArc* pArc);
 	ClusteringArc* FindArc(unsigned int id);
 	ClusteringArc* FindArc(ClusteringNode* pLinkedNode);
 	ClusteringArc* FindArc(unsigned int arcType, ClusteringNode* pLinkedNode);
 	const ClusteringArcVec& GetArcs() { return mArcs; }
-	void RemoveArcs(unsigned int arcType);
+	void RemoveArc(unsigned int id);
+	void RemoveArcs();
 
 	void GetNeighbors(unsigned int arcType, ClusteringArcVec& outNeighbors);
 
 	void AddTransition(ClusteringTransition* pTransition);
 	ClusteringTransition* FindTransition(unsigned int id);
-	ClusteringTransition* FindTransition(ClusteringNode* pTransitionNode);
-	ClusteringTransition* FindTransition(unsigned int arcType, ClusteringNode* pTransitionNode);
 	const ClusteringTransitionVec& GetTransitions() { return mTransitions; }
-	void RemoveTransitions(unsigned int arcType);
+	void RemoveTransition(unsigned int id);
+	void RemoveTransitions();
 };
 
 
@@ -250,9 +245,6 @@ class ClusteringArc
 
 	ClusteringNode* mNode;  // node which is linked to
 
-	eastl::map<ClusteringNode*, float> mVisibleNodes[VT_COUNT];
-	eastl::map<ClusteringArc*, float> mVisibleArcs[VT_COUNT];
-
 public:
 	explicit ClusteringArc(unsigned int id, unsigned int type, ClusteringNode* pNode, float weight = 0.f)
 		: mId(id), mType(type), mNode(pNode), mWeight(weight)
@@ -264,13 +256,6 @@ public:
 	unsigned int GetType(void) const { return mType; }
 	float GetWeight(void) const { return mWeight; }
 	ClusteringNode* GetNode() const { return mNode; }
-
-	void AddVisibility(ClusteringNode* pNode, unsigned int vT, float value);
-	void AddVisibility(ClusteringArc* pArc, unsigned int vT, float value);
-	float FindVisibility(ClusteringNode* pNode, unsigned int vT);
-	float FindVisibility(ClusteringArc* pArc, unsigned int vT);
-	void GetVisibilities(unsigned int vT, eastl::map<ClusteringNode*, float>& visibilities);
-	void GetVisibilities(unsigned int vT, eastl::map<ClusteringArc*, float>& visibilities);
 };
 
 
@@ -282,24 +267,24 @@ class ClusteringTransition
 {
 	unsigned int mId;
 	unsigned int mType;
-	ClusteringNode* mNode;  // transition destiny
 
 	eastl::vector<float> mWeights;
+	eastl::vector<ClusteringNode*> mNodes;  // transition nodes
 	eastl::vector<Vector3<float>> mConnections; // transition interpolation
 
 public:
-	explicit ClusteringTransition(unsigned int id, unsigned int type, ClusteringNode* node,
-		const eastl::vector<float>& weights = eastl::vector<float>(), 
-		const eastl::vector<Vector3<float>>& connections = eastl::vector<Vector3<float>>())
-		: mId(id), mType(type), mNode(node), mWeights(weights), mConnections(connections)
+	explicit ClusteringTransition(
+		unsigned int id, unsigned int type, const eastl::vector<ClusteringNode*>& nodes,
+		const eastl::vector<float>& weights, const eastl::vector<Vector3<float>>& connections)
+		: mId(id), mType(type), mNodes(nodes), mWeights(weights), mConnections(connections)
 	{
 
 	}
 
 	unsigned int GetId(void) const { return mId; }
 	unsigned int GetType(void) const { return mType; }
-	ClusteringNode* GetNode(void) const { return mNode; }
 
+	const eastl::vector<ClusteringNode*>& GetNodes(void) const { return mNodes; }
 	const eastl::vector<float>& GetWeights(void) const { return mWeights; }
 	const eastl::vector<Vector3<float>>& GetConnections(void) const { return mConnections; }
 };

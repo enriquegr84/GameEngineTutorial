@@ -256,6 +256,15 @@
     <Filter Include="Core\3rdParty\EASTL\include\EASTL\internal">
       <UniqueIdentifier>{84cfcfe1-7800-4db1-ab18-b6fa63e7a9c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\3rdParty\cereal">
+      <UniqueIdentifier>{98062c3d-c952-4c30-83a9-0d5748c7b7d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\cereal\include">
+      <UniqueIdentifier>{3083113c-e3a3-4d67-8337-0f300a03eb5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\3rdParty\cereal\include\cereal">
+      <UniqueIdentifier>{4a7042aa-7144-4282-acf2-935f4da7a8a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameEngineStd.cpp" />
@@ -2667,6 +2676,15 @@
     </ClInclude>
     <ClInclude Include="..\AI\Clustering.h">
       <Filter>AI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\cereal\include\cereal\access.hpp">
+      <Filter>Core\3rdParty\cereal\include\cereal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\cereal\include\cereal\cereal.hpp">
+      <Filter>Core\3rdParty\cereal\include\cereal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\3rdParty\cereal\include\cereal\macros.hpp">
+      <Filter>Core\3rdParty\cereal\include\cereal</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
