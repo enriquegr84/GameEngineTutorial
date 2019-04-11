@@ -410,15 +410,15 @@ void QuakeMainMenuUI::Set()
 
 		Level* gameLevel = levels[level->GetSelected()];
 		gameApp->mOption.mLevel = ToString(gameLevel->GetFileName().c_str());
-
+		/*
 		eastl::wstring levelPath = L"ai/quake/" + gameLevel->GetName() + L"pathing.bin";
 		GameLogic::Get()->GetAIManager()->LoadPathingGraph(
 			ToWideString(FileSystem::Get()->GetPath(ToString(levelPath.c_str())).c_str()));
-		/*
-		levelPath = L"ai/quake/" + gameLevel->GetName() + L"clustering.bin";
+		*/
+		eastl::wstring levelPath = L"ai/quake/" + gameLevel->GetName() + L"clustering.bin";
 		GameLogic::Get()->GetAIManager()->LoadClusteringGraph(
 			ToWideString(FileSystem::Get()->GetPath(ToString(levelPath.c_str())).c_str()));
-		*/
+
 	}
 }
 

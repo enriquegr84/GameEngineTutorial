@@ -224,8 +224,8 @@ void KMeans::Run(eastl::vector<Point> & points)
 				for (auto node : nodeConnection.second)
 				{
 					PathingNode* connectNode = node.first;
-					if (nodeConnections.find(connectNode) != nodeConnections.end() &&
-						nodeConnections[connectNode].find(pathNode) != nodeConnections[connectNode].end())
+					if (nodeConnections[connectNode][pathNode] &&
+						nodeConnections[pathNode][connectNode])
 					{
 						currentNodes.push_back(connectNode);
 					}
@@ -263,8 +263,11 @@ void KMeans::Run(eastl::vector<Point> & points)
 					for (auto node : nodeConnection.second)
 					{
 						PathPlan* pPlan = node.second;
-						for (PathingArc* pArc : pPlan->GetArcs())
-							AddArc(PointArc(pArc->GetId(), pArc->GetType()));
+						if (pPlan)
+						{
+							for (PathingArc* pArc : pPlan->GetArcs())
+								AddArc(PointArc(pArc->GetId(), pArc->GetType()));
+						}
 					}
 				}
 			}

@@ -712,12 +712,13 @@ void PathingGraph::DestroyGraph(void)
 {
 	// destroy all the nodes
 	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
+	{
+		// destroy all arcs and transitions
+		(*it)->RemoveTransitions();
+		(*it)->RemoveArcs();
 		delete (*it);
+	}
 	mNodes.clear();
-	
-	// destroy all the arcs
-	for (PathingArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
-		delete (*it);
 	mArcs.clear();
 }
 
