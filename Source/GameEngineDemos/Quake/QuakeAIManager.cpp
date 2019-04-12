@@ -160,11 +160,12 @@ namespace CerealTypes
 		unsigned short id;
 		unsigned short type;
 		unsigned short clusterid;
+		unsigned short clustertargetid;
 
 		template <class Archive>
 		void serialize(Archive & ar)
 		{
-			ar(id, type, clusterid);
+			ar(id, type, clusterid, clustertargetid);
 		}
 	};
 
@@ -576,9 +577,12 @@ void QuakeAIManager::LoadClusteringGraph(const eastl::wstring& path)
 			unsigned int arcId = clusterLink.id;
 			int arcType = clusterLink.type;
 			int arcCluster = clusterLink.clusterid;
+			int arcTarget = clusterLink.clustertargetid;
 			if (mLastClusterArcId < arcId) mLastClusterArcId = arcId;
 
-			ClusterArc* clusterArc = new ClusterArc(arcId, arcType, clusteringGraph[arcCluster]);
+			ClusterArc* clusterArc = new ClusterArc(arcId, arcType);
+			clusterArc->LinkClusters(clusteringGraph[arcCluster], clusteringGraph[arcTarget]);
+			mClusteringGraph->InsertArc(clusterArc);
 			clusteringGraph[clusterId]->AddArc(clusterArc);
 		}
 
@@ -803,6 +807,7 @@ void QuakeAIManager::SaveClusteringGraph(const eastl::string& path)
 			link.id = clusterArc->GetId();
 			link.type = clusterArc->GetType();
 			link.clusterid = clusterArc->GetCluster()->GetId();
+			link.clustertargetid = clusterArc->GetTarget()->GetId();
 
 			clusterData.arcs.push_back(link);
 		}
@@ -1412,9 +1417,10 @@ void QuakeAIManager::CreateClusters()
 					{
 						if (cluster->FindArc(AT_ACTION, targetCluster) == NULL)
 						{
-							ClusterArc* clusterArc = new ClusterArc(
-								GetNewClusterArcID(), AT_ACTION, targetCluster);
+							ClusterArc* clusterArc = new ClusterArc(GetNewClusterArcID(), AT_ACTION);
+							clusterArc->LinkClusters(targetCluster, targetCluster);
 							cluster->AddArc(clusterArc);
+							mClusteringGraph->InsertArc(clusterArc);
 						}
 
 						if (pathingArcs.find(pathArc->GetType()) != pathingArcs.end() &&
@@ -1579,6 +1585,79 @@ void QuakeAIManager::CreateClusters()
 		ClusteringNode* clusterNode = (*itNodeArc).first;
 		for (ClusteringArc* clusterArc : (*itNodeArc).second)
 			clusterNode->AddArc(clusterArc);
+	}
+
+	//find all cluster links
+	for (Cluster* cluster : mClusteringGraph->GetClusters())
+	{
+		ClusterVec searchClusters;
+		for (Cluster* clusterTarget : mClusteringGraph->GetClusters())
+		{
+			if (cluster == clusterTarget)
+				continue;
+
+			bool isLinked = false;
+			for (ClusterArc* clusterArc : cluster->GetArcs())
+			{
+				if (clusterArc->GetTarget() == clusterTarget)
+				{
+					isLinked = true;
+					break;
+				}
+			}
+
+			if (!isLinked) 
+				searchClusters.push_back(clusterTarget);
+		}
+
+		ClusterPlanMap clusterPlans;
+		mClusteringGraph->FindClusters(cluster->GetCenter(), searchClusters, clusterPlans);
+		for (auto clusterPlan : clusterPlans)
+		{
+			Cluster* clusterStart = NULL;
+			Cluster* clusterTarget = clusterPlan.first;
+			for (ClusteringArc* pArc : clusterPlan.second->GetArcs())
+			{
+				if (pArc->GetNode()->GetCluster() != cluster)
+				{
+					clusterStart = pArc->GetNode()->GetCluster();
+					break;
+				}
+			}
+
+			ClusterArc* clusterArc = new ClusterArc(GetNewArcID(), GAT_CLUSTER);
+			clusterArc->LinkClusters(clusterStart, clusterTarget);
+			cluster->AddArc(clusterArc);
+			mClusteringGraph->InsertArc(clusterArc);
+
+			delete clusterPlan.second;
+		}
+
+		clusterPlans.clear();
+		mClusteringGraph->FindClusters(cluster->GetCenter(), searchClusters, clusterPlans, GAT_JUMP);
+		for (auto clusterPlan : clusterPlans)
+		{
+			Cluster* clusterStart = NULL;
+			Cluster* clusterTarget = clusterPlan.first;
+			for (ClusteringArc* pArc : clusterPlan.second->GetArcs())
+			{
+				if (pArc->GetNode()->GetCluster() != cluster)
+				{
+					clusterStart = pArc->GetNode()->GetCluster();
+					break;
+				}
+			}
+
+			if (cluster->FindArc(clusterTarget)->GetCluster() != clusterStart)
+			{
+				ClusterArc* clusterArc = new ClusterArc(GetNewArcID(), GAT_CLUSTER);
+				clusterArc->LinkClusters(clusterStart, clusterTarget);
+				cluster->AddArc(clusterArc);
+				mClusteringGraph->InsertArc(clusterArc);
+			}
+
+			delete clusterPlan.second;
+		}
 	}
 }
 

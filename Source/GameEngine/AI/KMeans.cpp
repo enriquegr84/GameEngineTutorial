@@ -169,7 +169,7 @@ void KMeans::Run(eastl::vector<Point> & points)
 			int currentClusterId = points[i].GetCluster();
 
 			PathingNode* nearestClusterNode = 
-				mPathingGraph->FindClosestNode(nodes[points[i].GetId()], pathNodes);
+				mPathingGraph->FindNodes(nodes[points[i].GetId()], pathNodes);
 			if (nearestClusterNode == NULL)
 				nearestClusterId = GetNearestClusterId(points[i]);
 			else

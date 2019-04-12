@@ -829,7 +829,7 @@ PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3
 	return FindPath(pStart,pGoal);
 }
 
-PathingNode* PathingGraph::FindClosestNode(PathingNode* pStartNode, PathingNodeVec& searchNodes)
+PathingNode* PathingGraph::FindNodes(PathingNode* pStartNode, PathingNodeVec& searchNodes)
 {
 	// find the best path using an A* search algorithm
 	PathFinder pathFinder;

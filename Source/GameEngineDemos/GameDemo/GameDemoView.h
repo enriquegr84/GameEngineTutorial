@@ -104,6 +104,7 @@ public:
 
 };
 
+class PathingGraph;
 class BaseEventManager;
 class SoundProcess;
 class GameDemoPlayerController;

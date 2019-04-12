@@ -297,8 +297,8 @@ public:
 	PathingNode* FindNode(unsigned int nodeId);
 	PathingNode* FindRandomNode(void);
 
+	PathingNode* FindNodes(PathingNode* pStartNode, PathingNodeVec& searchNodes);
 	void FindConnections(PathingNodeVec& searchNodes, PathingNodePlanDoubleMap& nodeConnections, float threshold);
-	PathingNode* FindClosestNode(PathingNode* pStartNode, PathingNodeVec& searchNodes);
 	PathPlan* FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
 	PathPlan* FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode);
 	PathPlan* FindPath(PathingNode* pStartNode, const Vector3<float>& endPoint);

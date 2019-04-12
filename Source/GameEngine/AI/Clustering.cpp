@@ -90,7 +90,7 @@ ClusterArc* Cluster::FindArc(Cluster* pLinkedCluster)
 	for (ClusterArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
 		ClusterArc* pArc = *it;
-		if (pArc->GetCluster() == pLinkedCluster)
+		if (pArc->GetTarget() == pLinkedCluster)
 			return pArc;
 	}
 	return NULL;
@@ -105,7 +105,7 @@ ClusterArc* Cluster::FindArc(unsigned int arcType, Cluster* pLinkedCluster)
 		ClusterArc* pArc = *it;
 		if (pArc->GetType() == arcType)
 		{
-			if (pArc->GetCluster() == pLinkedCluster)
+			if (pArc->GetTarget() == pLinkedCluster)
 				return pArc;
 		}
 	}
@@ -136,6 +136,19 @@ void Cluster::RemoveArc(unsigned int id)
 	}
 }
 
+bool Cluster::IsIsolatedNode(ClusteringNode* pNode)
+{
+	ClusteringNodeVec::iterator itNode =
+		eastl::find(mIsolatedNodes.begin(), mIsolatedNodes.end(), pNode);
+	if (itNode == mIsolatedNodes.end())
+	{
+		if ((*itNode)->GetCluster()->GetArcs().empty())
+			return false;
+		else
+			return true;
+	}
+	else return true;
+}
 
 ClusteringNode* Cluster::FindClosestNode(const Vector3<float>& pos)
 {
@@ -146,11 +159,14 @@ ClusteringNode* Cluster::FindClosestNode(const Vector3<float>& pos)
 	for (ClusteringNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 	{
 		ClusteringNode* pNode = *it;
-		Vector3<float> diff = pos - pNode->GetPos();
-		if (Length(diff) < length)
+		if (!IsIsolatedNode(pNode))
 		{
-			pClosestNode = pNode;
-			length = Length(diff);
+			Vector3<float> diff = pos - pNode->GetPos();
+			if (Length(diff) < length)
+			{
+				pClosestNode = pNode;
+				length = Length(diff);
+			}
 		}
 	}
 
@@ -166,11 +182,14 @@ ClusteringNode* Cluster::FindFurthestNode(const Vector3<float>& pos)
 	for (ClusteringNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 	{
 		ClusteringNode* pNode = *it;
-		Vector3<float> diff = pos - pNode->GetPos();
-		if (Length(diff) > length)
+		if (!IsIsolatedNode(pNode))
 		{
-			pFurthestNode = pNode;
-			length = Length(diff);
+			Vector3<float> diff = pos - pNode->GetPos();
+			if (Length(diff) > length)
+			{
+				pFurthestNode = pNode;
+				length = Length(diff);
+			}
 		}
 	}
 
@@ -322,6 +341,35 @@ ClusteringArc* ClusteringNode::FindArc(unsigned int id)
 	return NULL;
 }
 
+ClusteringArc* ClusteringNode::FindArc(Cluster* pLinkedCluster)
+{
+	LogAssert(pLinkedCluster, "Invalid cluster");
+
+	for (ClusteringArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		ClusteringArc* pArc = *it;
+		if (pArc->GetNode()->GetCluster() == pLinkedCluster)
+			return pArc;
+	}
+	return NULL;
+}
+
+ClusteringArc* ClusteringNode::FindArc(unsigned int arcType, Cluster* pLinkedCluster)
+{
+	LogAssert(pLinkedCluster, "Invalid cluster");
+
+	for (ClusteringArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		ClusteringArc* pArc = *it;
+		if (pArc->GetType() == arcType)
+		{
+			if (pArc->GetNode()->GetCluster() == pLinkedCluster)
+				return pArc;
+		}
+	}
+	return NULL;
+}
+
 ClusteringArc* ClusteringNode::FindArc(ClusteringNode* pLinkedNode)
 {
 	LogAssert(pLinkedNode, "Invalid node");
@@ -427,6 +475,36 @@ void ClusterPlan::AddArc(ClusteringArc* pArc)
 	mPath.insert(mPath.begin(), pArc);
 }
 
+bool ClusterPlan::CheckForNextNode(const Vector3<float>& pos)
+{
+	if (mIndex == mPath.end())
+		return false;
+
+	/*
+	printf("pos %f %f %f destiny %f %f %f\n",
+	pos[0], pos[1], pos[2],
+	(*mIndex)->GetNeighbor()->GetPos()[0],
+	(*mIndex)->GetNeighbor()->GetPos()[1],
+	(*mIndex)->GetNeighbor()->GetPos()[2]);
+	printf("dot %f\n", Dot(mCurrentDirection, prevDirection));
+	*/
+	Vector3<float> diff = pos - (*mIndex)->GetNode()->GetPos();
+	if (Length(diff) <= (float)CLUSTERING_DEFAULT_NODE_TOLERANCE)
+	{
+		mIndex++;
+		return true;
+	}
+
+	return false;
+}
+
+bool ClusterPlan::CheckForEnd(void)
+{
+	if (mIndex == mPath.end())
+		return true;
+	return false;
+}
+
 //--------------------------------------------------------------------------------------------------------
 // ClusterPlanNode
 //--------------------------------------------------------------------------------------------------------
@@ -497,6 +575,107 @@ void ClusterFinder::Destroy(void)
 	mGoalNode = NULL;
 }
 
+void ClusterFinder::operator()(ClusteringNode* pStartNode, ClusterVec& searchClusters, ClusterPlanMap& clusters, int skipArc)
+{
+	LogAssert(pStartNode, "Invalid node");
+
+	// set our members
+	mStartNode = pStartNode;
+	mGoalNode = NULL;
+
+	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
+	// we couldn't find a Cluster to the goal. The start node is the only node that is initially in 
+	// the open set.
+	AddToOpenSet(mStartNode, NULL);
+
+	eastl::map<Cluster*, float> minCostCluster;
+	for (Cluster* cluster : searchClusters) 
+		minCostCluster[cluster] = FLT_MAX;
+
+	while (!mOpenSet.empty())
+	{
+		// grab the most likely candidate
+		ClusterPlanNode* planNode = mOpenSet.front();
+
+		// lets find out if we successfully found a Cluster.
+		ClusterVec::iterator itCluster =
+			eastl::find(searchClusters.begin(), searchClusters.end(), planNode->GetClusteringNode()->GetCluster());
+		if (itCluster != searchClusters.end())
+		{
+			if (clusters.find((*itCluster)) == clusters.end())
+			{
+				minCostCluster[(*itCluster)] = planNode->GetGoal();
+				clusters[(*itCluster)] = RebuildPath(planNode);
+			}
+			else if (planNode->GetGoal() < minCostCluster[(*itCluster)])
+			{
+				minCostCluster[(*itCluster)] = planNode->GetGoal();
+
+				delete clusters[(*itCluster)];
+				clusters[(*itCluster)] = RebuildPath(planNode);
+			}
+		}
+
+		// we're processing this node so remove it from the open set and add it to the closed set
+		mOpenSet.pop_front();
+		AddToClosedSet(planNode);
+
+		// get the neighboring nodes
+		ClusteringArcVec neighbors;
+		planNode->GetClusteringNode()->GetNeighbors(AT_NORMAL, neighbors);
+		planNode->GetClusteringNode()->GetNeighbors(AT_ACTION, neighbors);
+
+		// loop through all the neighboring nodes and evaluate each one
+		for (ClusteringArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+		{
+			if (skipArc == (*it)->GetType()) continue;
+
+			ClusteringNode* pNodeToEvaluate = (*it)->GetNode();
+
+			// Try and find a ClusterPlanNode object for this node.
+			ClusteringNodeToClusterPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
+
+			// If one exists and it's in the closed list, we've already evaluated the node.  We can
+			// safely skip it.
+			if (findIt != mNodes.end() && findIt->second->IsClosed())
+				continue;
+
+			// figure out the cost for this route through the node
+			float costForThisCluster = planNode->GetGoal() + (*it)->GetWeight();
+			bool isClusterBetter = false;
+
+			/*
+			fprintf(pFile, "arc node %f %f %f to node %f %f %f type %u cost %f\n",
+			(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
+			(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
+			(*it)->GetType(), costForThisCluster);
+			*/
+			// Grab the ClusterPlanNode if there is one.
+			ClusterPlanNode* pClusterPlanNodeToEvaluate = NULL;
+			if (findIt != mNodes.end())
+				pClusterPlanNodeToEvaluate = findIt->second;
+
+			// No ClusterPlanNode means we've never evaluated this Clustering node so we need to add it to 
+			// the open set, which has the side effect of setting all the cost data.
+			if (!pClusterPlanNodeToEvaluate)
+				pClusterPlanNodeToEvaluate = AddToOpenSet((*it), planNode);
+
+			// If this node is already in the open set, check to see if this route to it is better than
+			// the last.
+			else if (costForThisCluster < pClusterPlanNodeToEvaluate->GetGoal())
+				isClusterBetter = true;
+
+			// If this Cluster is better, relink the nodes appropriately, update the cost data, and
+			// reinsert the node into the open list priority queue.
+			if (isClusterBetter)
+			{
+				pClusterPlanNodeToEvaluate->UpdatePrevNode(planNode);
+				ReinsertNode(pClusterPlanNodeToEvaluate);
+			}
+		}
+	}
+}
+
 //
 // ClusterFinder::operator()					- Chapter 18, page 638
 //
@@ -512,9 +691,6 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNod
 	// set our members
 	mStartNode = pStartNode;
 	mGoalNode = pGoalNode;
-
-	ClusterArcVec clusterArcs;
-	mGoalNode->GetCluster()->GetNeighbors(AT_ACTION, clusterArcs);
 
 	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
 	// we couldn't find a Cluster to the goal. The start node is the only node that is initially in 
@@ -544,26 +720,6 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, ClusteringNod
 		{
 			ClusteringNode* pNodeToEvaluate = (*it)->GetNode();
 
-			// we traverse only through clusters except when we are closer to the goal cluster
-			// in which case we traverse through nodes
-			/*
-			if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster())
-			{
-				if (pNodeToEvaluate->GetCluster() != mGoalNode->GetCluster())
-				{
-					bool skipNode = true;
-					for (ClusterArc* clusterArc : clusterArcs)
-					{
-						if (pNodeToEvaluate->GetCluster() == clusterArc->GetNeighbor())
-						{
-							skipNode = false;
-							break;
-						}
-					}
-					if (skipNode) continue;
-				}
-			}
-			*/
 			// Try and find a ClusterPlanNode object for this node.
 			ClusteringNodeToClusterPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
 
@@ -626,9 +782,6 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoa
 	mStartNode = pStartNode;
 	mGoalNode = NULL;
 
-	ClusterArcVec clusterArcs;
-	pGoalCluster->GetNeighbors(AT_ACTION, clusterArcs);
-
 	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
 	// we couldn't find a Cluster to the goal. The start node is the only node that is initially in 
 	// the open set.
@@ -657,26 +810,6 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoa
 		{
 			ClusteringNode* pNodeToEvaluate = (*it)->GetNode();
 
-			// we traverse only through clusters except when we are closer to the goal cluster
-			// in which case we traverse through nodes
-			/*
-			if (pNodeToEvaluate->GetCluster() == planNode->GetClusteringNode()->GetCluster())
-			{
-				if (pNodeToEvaluate->GetCluster() != mGoalNode->GetCluster())
-				{
-					bool skipNode = true;
-					for (ClusterArc* clusterArc : clusterArcs)
-					{
-						if (pNodeToEvaluate->GetCluster() == clusterArc->GetNeighbor())
-						{
-							skipNode = false;
-							break;
-						}
-					}
-					if (skipNode) continue;
-				}
-			}
-			*/
 			// Try and find a ClusterPlanNode object for this node.
 			ClusteringNodeToClusterPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
 
@@ -722,6 +855,7 @@ ClusterPlan* ClusterFinder::operator()(ClusteringNode* pStartNode, Cluster* pGoa
 
 	return NULL;
 }
+
 
 ClusterPlanNode* ClusterFinder::AddToOpenSet(ClusteringArc* pArc, ClusterPlanNode* pPrevNode)
 {
@@ -853,8 +987,13 @@ void ClusteringGraph::DestroyGraph(void)
 {
 	// destroy all the clusters
 	for (ClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		// destroy all arcs and transitions
+		(*it)->RemoveArcs();
 		delete (*it);
+	}
 	mClusters.clear();
+	mArcs.clear();
 }
 
 ClusteringNode* ClusteringGraph::FindClosestNode(const Vector3<float>& pos)
@@ -955,31 +1094,38 @@ Cluster* ClusteringGraph::FindRandomCluster(void)
 	}
 }
 
-ClusterPlan* ClusteringGraph::FindCluster(const Vector3<float>& startPoint, const Vector3<float>& endPoint)
+ClusterPlan* ClusteringGraph::FindNode(const Vector3<float>& startPoint, const Vector3<float>& endPoint)
 {
 	ClusteringNode* pStart = FindClosestNode(startPoint);
 	ClusteringNode* pGoal = FindClosestNode(endPoint);
-	return FindCluster(pStart,pGoal);
+	return FindNode(pStart,pGoal);
 }
 
-ClusterPlan* ClusteringGraph::FindCluster(const Vector3<float>& startPoint, Cluster* pGoalCluster)
+ClusterPlan* ClusteringGraph::FindNode(const Vector3<float>& startPoint, Cluster* pGoalCluster)
 {
 	ClusteringNode* pStart = FindClosestNode(startPoint);
-	return FindCluster(pStart, pGoalCluster);
+	return FindNode(pStart, pGoalCluster);
 }
 
-ClusterPlan* ClusteringGraph::FindCluster(ClusteringNode* pStartNode, ClusteringNode* pGoalNode)
+ClusterPlan* ClusteringGraph::FindNode(ClusteringNode* pStartNode, ClusteringNode* pGoalNode)
 {
 	// find the best path using an A* search algorithm
 	ClusterFinder clusterFinder;
 	return clusterFinder(pStartNode, pGoalNode);
 }
 
-ClusterPlan* ClusteringGraph::FindCluster(ClusteringNode* pStartNode, Cluster* pGoalCluster)
+ClusterPlan* ClusteringGraph::FindNode(ClusteringNode* pStartNode, Cluster* pGoalCluster)
 {
 	// find the best path using an A* search algorithm
 	ClusterFinder clusterFinder;
 	return clusterFinder(pStartNode, pGoalCluster);
+}
+
+void ClusteringGraph::FindClusters(ClusteringNode* pStartNode, ClusterVec& searchClusters, ClusterPlanMap& clusters, int skipArc)
+{
+	// find the best path using an A* search algorithm
+	ClusterFinder clusterFinder;
+	return clusterFinder(pStartNode, searchClusters, clusters, skipArc);
 }
 
 void ClusteringGraph::InsertCluster(Cluster* pCluster)
@@ -987,4 +1133,11 @@ void ClusteringGraph::InsertCluster(Cluster* pCluster)
 	LogAssert(pCluster, "Invalid cluster");
 
 	mClusters.push_back(pCluster);
+}
+
+void ClusteringGraph::InsertArc(ClusterArc* pArc)
+{
+	LogAssert(pArc, "Invalid arc");
+
+	mArcs.push_back(pArc);
 }

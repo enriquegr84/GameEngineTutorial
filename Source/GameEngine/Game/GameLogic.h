@@ -48,7 +48,6 @@
 #include "Mathematic/Algebra/Transform.h"
 #include "Mathematic/Algebra/Matrix4x4.h"
 
-class PathingGraph;
 class ActorFactory;
 class LevelManager;
 class AIManager;

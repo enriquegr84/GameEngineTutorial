@@ -59,6 +59,7 @@ typedef eastl::vector<ClusterArc*> ClusterArcVec;
 typedef eastl::vector<ClusteringArc*> ClusteringArcVec;
 typedef eastl::vector<ClusteringNode*> ClusteringNodeVec;
 typedef eastl::list<ClusterPlanNode*> ClusterPlanNodeList;
+typedef eastl::map<Cluster*, ClusterPlan*> ClusterPlanMap;
 typedef eastl::vector<ClusteringTransition*> ClusteringTransitionVec;
 typedef eastl::map<ClusteringNode*, ClusteringNodeVec> ClusteringNodeMap;
 typedef eastl::map<ClusteringNode*, ClusteringArcVec> ClusteringNodeArcMap;
@@ -126,15 +127,7 @@ public:
 	ClusterPlan* FindNode(ClusteringNode* pStartNode, Cluster* pGoalCluster);
 
 	// helpers
-	bool IsIsolatedNode(ClusteringNode* pNode) 
-	{ 
-		ClusteringNodeVec::iterator itNode =
-			eastl::find(mIsolatedNodes.begin(), mIsolatedNodes.end(), pNode);
-		if (itNode == mIsolatedNodes.end())
-			return false;
-		else
-			return true;
-	}
+	bool IsIsolatedNode(ClusteringNode* pNode);
 	void InsertIsolatedNode(ClusteringNode* pNode)
 	{
 		LogAssert(pNode, "Invalid node");
@@ -160,23 +153,27 @@ class ClusterArc
 	unsigned int mId;
 	unsigned int mType;
 
-	Cluster* mCluster;  // cluster which is linked to
-
-	eastl::map<Cluster*, ClusteringNodeVec> mVisibleNodes;
+	Cluster* mCluster[2];  // cluster which is linked to
 
 public:
-	explicit ClusterArc(unsigned int id, unsigned int type, Cluster* pCluster)
-		: mId(id), mType(type), mCluster(pCluster)
+	explicit ClusterArc(unsigned int id, unsigned int type)
+		: mId(id), mType(type)
 	{
-
 	}
 
 	unsigned int GetId(void) const { return mId; }
 	unsigned int GetType(void) const { return mType; }
-	Cluster* GetCluster() const { return mCluster; }
+	Cluster* GetCluster() const { return mCluster[0]; }
+	Cluster* GetTarget() const { return mCluster[1]; }
 
-	const eastl::map<Cluster*, ClusteringNodeVec>& GetVisibleNodes() const { return mVisibleNodes; }
-	const ClusteringNodeVec& GetVisibleNodes(Cluster* cluster) { return mVisibleNodes[cluster]; }
+	void LinkClusters(Cluster* pStart, Cluster* pEnd)
+	{
+		LogAssert(pStart, "Invalid cluster");
+		LogAssert(pEnd, "Invalid cluster");
+
+		mCluster[0] = pStart;
+		mCluster[1] = pEnd;
+	}
 };
 
 
@@ -217,6 +214,8 @@ public:
 
 	void AddArc(ClusteringArc* pArc);
 	ClusteringArc* FindArc(unsigned int id);
+	ClusteringArc* FindArc(Cluster* pLinkedCluster);
+	ClusteringArc* FindArc(unsigned int arcType, Cluster* pLinkedCluster);
 	ClusteringArc* FindArc(ClusteringNode* pLinkedNode);
 	ClusteringArc* FindArc(unsigned int arcType, ClusteringNode* pLinkedNode);
 	const ClusteringArcVec& GetArcs() { return mArcs; }
@@ -299,12 +298,29 @@ class ClusterPlan
 	friend class ClusterFinder;
 
 	ClusteringArcVec mPath;
+	ClusteringArcVec::iterator mIndex;
 
 public:
-
-	ClusterPlan(void) { }
+	ClusterPlan(void)
+	{
+		mIndex = mPath.end();
+	}
 
 	const ClusteringArcVec& GetArcs(void) const { return mPath; }
+
+	void ResetPath(void)
+	{
+		mIndex = mPath.begin();
+	}
+
+	ClusteringArc* GetCurrentArc(void) const
+	{
+		LogAssert(mIndex != mPath.end(), "Invalid index");
+		return (*mIndex);
+	}
+
+	bool CheckForNextNode(const Vector3<float>& pos);
+	bool CheckForEnd(void);
 
 private:
 	void AddArc(ClusteringArc* pArc);
@@ -357,6 +373,7 @@ public:
 	~ClusterFinder(void);
 	void Destroy(void);
 
+	void operator()(ClusteringNode* pStartNode, ClusterVec& searchClusters, ClusterPlanMap& clusters, int skipArc = -1);
 	ClusterPlan* operator()(ClusteringNode* pStartNode, ClusteringNode* pGoalNode);
 	ClusterPlan* operator()(ClusteringNode* pStartNode, Cluster* pGoalCluster);
 
@@ -377,6 +394,7 @@ private:
 class ClusteringGraph
 {
 	ClusterVec mClusters;
+	ClusterArcVec mArcs;
 	
 public:
 	ClusteringGraph(void) {}
@@ -389,14 +407,17 @@ public:
 	Cluster* FindCluster(unsigned int clusterId);
 	Cluster* FindRandomCluster(void);
 
-	ClusterPlan* FindCluster(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
-	ClusterPlan* FindCluster(const Vector3<float>& startPoint, Cluster* pGoalCluster);
-	ClusterPlan* FindCluster(ClusteringNode* pStartNode, ClusteringNode* pGoalNode);
-	ClusterPlan* FindCluster(ClusteringNode* pStartNode, Cluster* pGoalCluster);
+	void FindClusters(ClusteringNode* pStartNode, ClusterVec& searchClusters, ClusterPlanMap& clusters, int skipArc = -1);
+	ClusterPlan* FindNode(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
+	ClusterPlan* FindNode(const Vector3<float>& startPoint, Cluster* pGoalCluster);
+	ClusterPlan* FindNode(ClusteringNode* pStartNode, ClusteringNode* pGoalNode);
+	ClusterPlan* FindNode(ClusteringNode* pStartNode, Cluster* pGoalCluster);
 
 	// helpers
 	void InsertCluster(Cluster* pCluster);
+	void InsertArc(ClusterArc* pArc);
 	const ClusterVec& GetClusters() { return mClusters; }
+	const ClusterArcVec& GetArcs() { return mArcs; }
 };
 
 

@@ -1010,6 +1010,7 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 				{
 					case KEY_KEY_4:
 					{
+						/*
 						GameApplication* gameApp = (GameApplication*)Application::App;
 						QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
 						Level* level = game->GetLevelManager()->GetLevel(
@@ -1022,6 +1023,7 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 						levelPath = L"ai/quake/" + level->GetName() + L"clustering.bin";
 						GameLogic::Get()->GetAIManager()->SaveClusteringGraph(
 							FileSystem::Get()->GetPath(ToString(levelPath.c_str())));
+						*/
 						return true;
 					}
 					case KEY_KEY_5:

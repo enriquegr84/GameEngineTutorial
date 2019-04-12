@@ -45,7 +45,7 @@
 
 #include "Game/View/GameView.h"
 
-#include "AI/Pathing.h"
+#include "AI/Clustering.h"
 
 class QuakeAIView : public BaseGameView 
 {
@@ -98,8 +98,9 @@ protected:
 
 private:
 
-	PathPlan* mPlan;
-	eastl::shared_ptr<PathingGraph> mPathingGraph;
+	Cluster* mGoalCluster;
+	ClusteringNode* mCurrentNode;
+	eastl::shared_ptr<ClusteringGraph> mClusteringGraph;
 };
 
 #endif
