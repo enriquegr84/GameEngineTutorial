@@ -41,6 +41,20 @@
 
 #include "Core/OS/OS.h"
 
+
+//--------------------------------------------------------------------------------------------------------
+// PathingCluster
+//--------------------------------------------------------------------------------------------------------
+
+void PathingCluster::LinkClusters(PathingNode* pNode, PathingNode* pTarget)
+{
+	LogAssert(pNode, "Invalid node");
+	LogAssert(pTarget, "Invalid node");
+
+	mNode = pNode;
+	mTarget = pTarget;
+}
+
 //--------------------------------------------------------------------------------------------------------
 // PathingNode
 //--------------------------------------------------------------------------------------------------------
@@ -71,7 +85,7 @@ void PathingNode::AddArc(PathingArc* pArc)
 	mArcs.push_back(pArc);
 }
 
-void PathingNode::GetNeighbors(unsigned int arcType, PathingArcVec& outNeighbors)
+void PathingNode::GetArcs(unsigned int arcType, PathingArcVec& outArcs)
 {
 	for (PathingArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
 	{
@@ -79,12 +93,12 @@ void PathingNode::GetNeighbors(unsigned int arcType, PathingArcVec& outNeighbors
 		if (arcType == AT_NORMAL)
 		{
 			if (pArc->GetType() == AT_NORMAL)
-				outNeighbors.push_back(pArc);
+				outArcs.push_back(pArc);
 		}
 		else
 		{
 			if (pArc->GetType() & arcType)
-				outNeighbors.push_back(pArc);
+				outArcs.push_back(pArc);
 		}
 	}
 }
@@ -143,21 +157,98 @@ void PathingNode::RemoveArc(unsigned int id)
 	}
 }
 
+void PathingNode::AddCluster(PathingCluster* pCluster)
+{
+	LogAssert(pCluster, "Invalid cluster");
+	mClusters.push_back(pCluster);
+}
+
+void PathingNode::GetClusters(unsigned int arcType, PathingClusterVec& outClusters)
+{
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (arcType == AT_NORMAL)
+		{
+			if (pCluster->GetType() == AT_NORMAL)
+				outClusters.push_back(pCluster);
+		}
+		else
+		{
+			if (pCluster->GetType() & arcType)
+				outClusters.push_back(pCluster);
+		}
+	}
+}
+
+PathingCluster* PathingNode::FindCluster(PathingNode* pTargetNode)
+{
+	LogAssert(pTargetNode, "Invalid node");
+
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetTarget() == pTargetNode)
+			return pCluster;
+	}
+	return NULL;
+}
+
+PathingCluster* PathingNode::FindCluster(unsigned int arcType, PathingNode* pTargetNode)
+{
+	LogAssert(pTargetNode, "Invalid node");
+
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetType() == arcType)
+		{
+			if (pCluster->GetTarget() == pTargetNode)
+				return pCluster;
+		}
+	}
+	return NULL;
+}
+
+void PathingNode::RemoveClusters()
+{
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		delete pCluster;
+	}
+
+	mClusters.clear();
+}
+
+void PathingNode::RemoveCluster(unsigned int type)
+{
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetType() != type)
+		{
+			delete pCluster;
+			mClusters.erase(it);
+			break;
+		}
+	}
+}
+
 void PathingNode::AddTransition(PathingTransition* pTransition)
 {
 	LogAssert(pTransition, "Invalid transition");
 	mTransitions.push_back(pTransition);
 }
 
-PathingTransition* PathingNode::FindTransition(unsigned int id)
+void PathingNode::GetTransitions(unsigned int id, PathingTransitionVec& transitions)
 {
 	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
 	{
 		PathingTransition* pTransition = *it;
 		if (pTransition->GetId() == id)
-			return pTransition;
+			transitions.push_back(pTransition);
 	}
-	return NULL;
 }
 
 void PathingNode::RemoveTransitions()
@@ -171,7 +262,7 @@ void PathingNode::RemoveTransitions()
 	mTransitions.clear();
 }
 
-void PathingNode::RemoveTransition(unsigned int id)
+void PathingNode::RemoveTransitions(unsigned int id)
 {
 	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
 	{
@@ -180,7 +271,6 @@ void PathingNode::RemoveTransition(unsigned int id)
 		{
 			delete pTransition;
 			mTransitions.erase(it);
-			break;
 		}
 	}
 }
@@ -343,8 +433,8 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 
 		// get the neighboring nodes
 		PathingArcVec neighbors;
-		planNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
-		planNode->GetPathingNode()->GetNeighbors(AT_ACTION, neighbors);
+		planNode->GetPathingNode()->GetArcs(AT_NORMAL, neighbors);
+		planNode->GetPathingNode()->GetArcs(AT_ACTION, neighbors);
 
 		// loop though all the neighboring nodes and evaluate each one
 		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
@@ -400,7 +490,7 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 //
 // PathFinder::operator()					- Chapter 18, page 638
 //
-PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes)
+PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold)
 {
 	LogAssert(pStartNode, "Invalid node");
 
@@ -438,7 +528,7 @@ PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& sea
 
 		// get the neighboring nodes
 		PathingArcVec neighbors;
-		planNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
+		planNode->GetPathingNode()->GetArcs(AT_NORMAL, neighbors);
 
 		// loop though all the neighboring nodes and evaluate each one
 		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
@@ -455,6 +545,9 @@ PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& sea
 
 			// figure out the cost for this route through the node
 			float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
+			if (costForThisPath >= threshold)
+				continue;
+
 			if (costForThisPath >= minCostGoal)
 				continue;
 
@@ -493,90 +586,105 @@ PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& sea
 	return goalNode;
 }
 
-
-//
-// PathFinder::operator()					- Chapter 18, page 638
-//
-void PathFinder::operator()(PathingNodeVec& searchNodes, PathingNodePlanDoubleMap& nodeConnections, float threshold)
+void PathFinder::operator()(PathingNode* pStartNode, 
+	PathingNodeVec& searchNodes, PathPlanMap& plans, int skipArc, float threshold)
 {
-	for (PathingNode* searchNode : searchNodes)
+	LogAssert(pStartNode, "Invalid node");
+
+	// set our members
+	mStartNode = pStartNode;
+	mGoalNode = NULL;
+
+	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
+	// we couldn't find a path to the goal. The start node is the only node that is initially in 
+	// the open set.
+	AddToOpenSet(mStartNode, NULL);
+
+	eastl::map<PathingNode*, float> minCostNode;
+	for (PathingNode* node : searchNodes)
+		minCostNode[node] = FLT_MAX;
+
+	while (!mOpenSet.empty())
 	{
-		LogAssert(searchNode, "Invalid node");
+		// grab the most likely candidate
+		PathPlanNode* planNode = mOpenSet.front();
 
-		Destroy();
-
-		// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
-		// we couldn't find a path to the goal. The start node is the only node that is initially in 
-		// the open set.
-		AddToOpenSet(searchNode, NULL);
-
-		while (!mOpenSet.empty())
+		// lets find out if we successfully found a node.
+		PathingNodeVec::iterator itNode =
+			eastl::find(searchNodes.begin(), searchNodes.end(), planNode->GetPathingNode());
+		if (itNode != searchNodes.end())
 		{
-			// grab the most likely candidate
-			PathPlanNode* planNode = mOpenSet.front();
-
-			// lets find out if we successfully found a path.
-			PathingNodeVec::iterator itNode =
-				eastl::find(searchNodes.begin(), searchNodes.end(), planNode->GetPathingNode());
-			if (itNode != searchNodes.end())
-				nodeConnections[searchNode][(*itNode)] = RebuildPath(planNode);
-
-			// we're processing this node so remove it from the open set and add it to the closed set
-			mOpenSet.pop_front();
-			AddToClosedSet(planNode);
-
-			// get the neighboring nodes
-			PathingArcVec neighbors;
-			planNode->GetPathingNode()->GetNeighbors(AT_NORMAL, neighbors);
-			planNode->GetPathingNode()->GetNeighbors(AT_ACTION, neighbors);
-
-			// loop though all the neighboring nodes and evaluate each one
-			for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+			if (plans.find((*itNode)) == plans.end())
 			{
-				PathingNode* pNodeToEvaluate = (*it)->GetNode();
+				minCostNode[(*itNode)] = planNode->GetGoal();
+				plans[(*itNode)] = RebuildPath(planNode);
+			}
+			else if (planNode->GetGoal() < minCostNode[(*itNode)])
+			{
+				minCostNode[(*itNode)] = planNode->GetGoal();
 
-				// Try and find a PathPlanNode object for this node.
-				PathingNodeToPathPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
+				delete plans[(*itNode)];
+				plans[(*itNode)] = RebuildPath(planNode);
+			}
+		}
 
-				// If one exists and it's in the closed list, we've already evaluated the node.  We can
-				// safely skip it.
-				if (findIt != mNodes.end() && findIt->second->IsClosed())
-					continue;
+		// we're processing this node so remove it from the open set and add it to the closed set
+		mOpenSet.pop_front();
+		AddToClosedSet(planNode);
 
-				// figure out the cost for this route through the node
-				float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
-				if (costForThisPath >= threshold)
-					continue;
+		// get the neighboring nodes
+		PathingArcVec neighbors;
+		planNode->GetPathingNode()->GetArcs(AT_NORMAL, neighbors);
+		planNode->GetPathingNode()->GetArcs(AT_ACTION, neighbors);
 
-				bool isPathBetter = false;
-				/*
-				printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
-				(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
-				(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
-				(*it)->GetType(), costForThisPath);
-				*/
-				// Grab the PathPlanNode if there is one.
-				PathPlanNode* pPathPlanNodeToEvaluate = NULL;
-				if (findIt != mNodes.end())
-					pPathPlanNodeToEvaluate = findIt->second;
+		// loop though all the neighboring nodes and evaluate each one
+		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+		{
+			if (skipArc == (*it)->GetType()) continue;
 
-				// No PathPlanNode means we've never evaluated this pathing node so we need to add it to 
-				// the open set, which has the side effect of setting all the cost data.
-				if (!pPathPlanNodeToEvaluate)
-					pPathPlanNodeToEvaluate = AddToOpenSet((*it), planNode);
+			PathingNode* pNodeToEvaluate = (*it)->GetNode();
 
-				// If this node is already in the open set, check to see if this route to it is better than
-				// the last.
-				else if (costForThisPath < pPathPlanNodeToEvaluate->GetGoal())
-					isPathBetter = true;
+			// Try and find a PathPlanNode object for this node.
+			PathingNodeToPathPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
 
-				// If this path is better, relink the nodes appropriately, update the cost data, and
-				// reinsert the node into the open list priority queue.
-				if (isPathBetter)
-				{
-					pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
-					ReinsertNode(pPathPlanNodeToEvaluate);
-				}
+			// If one exists and it's in the closed list, we've already evaluated the node.  We can
+			// safely skip it.
+			if (findIt != mNodes.end() && findIt->second->IsClosed())
+				continue;
+
+			// figure out the cost for this route through the node
+			float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
+			if (costForThisPath >= threshold)
+				continue;
+
+			bool isPathBetter = false;
+			/*
+			printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
+			(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
+			(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
+			(*it)->GetType(), costForThisPath);
+			*/
+			// Grab the PathPlanNode if there is one.
+			PathPlanNode* pPathPlanNodeToEvaluate = NULL;
+			if (findIt != mNodes.end())
+				pPathPlanNodeToEvaluate = findIt->second;
+
+			// No PathPlanNode means we've never evaluated this pathing node so we need to add it to 
+			// the open set, which has the side effect of setting all the cost data.
+			if (!pPathPlanNodeToEvaluate)
+				pPathPlanNodeToEvaluate = AddToOpenSet((*it), planNode);
+
+			// If this node is already in the open set, check to see if this route to it is better than
+			// the last.
+			else if (costForThisPath < pPathPlanNodeToEvaluate->GetGoal())
+				isPathBetter = true;
+
+			// If this path is better, relink the nodes appropriately, update the cost data, and
+			// reinsert the node into the open list priority queue.
+			if (isPathBetter)
+			{
+				pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
+				ReinsertNode(pPathPlanNodeToEvaluate);
 			}
 		}
 	}
@@ -762,7 +870,6 @@ PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos)
 	return pFurthestNode;
 }
 
-
 void PathingGraph::FindNodes(PathingNodeVec& nodes, const Vector3<float>& pos, float radius)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
@@ -815,13 +922,6 @@ PathingNode* PathingGraph::FindRandomNode(void)
 	}
 }
 
-void PathingGraph::FindConnections(PathingNodeVec& searchNodes, PathingNodePlanDoubleMap& nodeConnections, float threshold)
-{
-	// find the best path using an A* search algorithm
-	PathFinder pathFinder;
-	return pathFinder(searchNodes, nodeConnections, threshold);
-}
-
 PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint)
 {
 	PathingNode* pStart = FindClosestNode(startPoint);
@@ -829,11 +929,20 @@ PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3
 	return FindPath(pStart,pGoal);
 }
 
-PathingNode* PathingGraph::FindNodes(PathingNode* pStartNode, PathingNodeVec& searchNodes)
+PathingNode* PathingGraph::FindNodes(
+	PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold)
 {
 	// find the best path using an A* search algorithm
 	PathFinder pathFinder;
 	return pathFinder(pStartNode, searchNodes);
+}
+
+void PathingGraph::FindPlans(PathingNode* pStartNode, 
+	PathingNodeVec& searchNodes, PathPlanMap& plans, int skipArc, float threshold)
+{
+	// find the best path using an A* search algorithm
+	PathFinder pathFinder;
+	pathFinder(pStartNode, searchNodes, plans, skipArc, threshold);
 }
 
 PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode)
@@ -860,6 +969,13 @@ void PathingGraph::InsertNode(PathingNode* pNode)
 	LogAssert(pNode, "Invalid node");
 
 	mNodes.push_back(pNode);
+}
+
+void PathingGraph::InsertCluster(PathingCluster* pCluster)
+{
+	LogAssert(pCluster, "Invalid cluster");
+
+	mClusters.push_back(pCluster);
 }
 
 void PathingGraph::InsertArc(PathingArc* pArc)

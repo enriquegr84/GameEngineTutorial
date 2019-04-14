@@ -19,7 +19,6 @@
 #include "GameEngineStd.h"
 
 #include "Pathing.h"
-#include "Clustering.h"
 #include "KMeans.h"
 
 /*
@@ -39,12 +38,10 @@ public:
 	virtual void CreateMap(ActorId playerId) { };
 
 	const eastl::shared_ptr<PathingGraph>& GetPathingGraph() { return mPathingGraph; }
-	const eastl::shared_ptr<ClusteringGraph>& GetClusteringGraph() { return mClusteringGraph; }
 
 protected:
 
 	eastl::shared_ptr<PathingGraph> mPathingGraph;
-	eastl::shared_ptr<ClusteringGraph> mClusteringGraph;
 
 };   // AIManager
 

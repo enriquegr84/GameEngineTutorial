@@ -45,7 +45,7 @@
 
 #include "Game/View/GameView.h"
 
-#include "AI/Clustering.h"
+#include "AI/Pathing.h"
 
 class QuakeAIView : public BaseGameView 
 {
@@ -67,6 +67,7 @@ public:
 protected:
 
 	void Stationary(unsigned long deltaMs);
+	void Movement(unsigned long deltaMs);
 	void Smooth(unsigned long deltaMs);
 	void Cliff();
 
@@ -98,9 +99,12 @@ protected:
 
 private:
 
-	Cluster* mGoalCluster;
-	ClusteringNode* mCurrentNode;
-	eastl::shared_ptr<ClusteringGraph> mClusteringGraph;
+	float mCurrentNodeTime;
+	unsigned int mPlayerAction;
+
+	PathingNode* mGoalCluster;
+	PathingNode* mCurrentNode;
+	eastl::shared_ptr<PathingGraph> mPathingGraph;
 };
 
 #endif

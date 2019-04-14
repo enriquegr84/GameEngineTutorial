@@ -45,6 +45,7 @@
 #include "Mathematic/Algebra/Vector3.h"
 
 class PathingTransition;
+class PathingCluster;
 class PathingNode;
 class PathingArc;
 
@@ -54,13 +55,15 @@ class PathPlan;
 
 typedef eastl::vector<PathingArc*> PathingArcVec;
 typedef eastl::vector<PathingNode*> PathingNodeVec;
-typedef eastl::list<PathPlanNode*> PathPlanNodeList;
+typedef eastl::vector<PathingCluster*> PathingClusterVec;
 typedef eastl::vector<PathingTransition*> PathingTransitionVec;
+
+typedef eastl::list<PathPlanNode*> PathPlanNodeList;
+typedef eastl::map<PathingNode*, PathPlan*> PathPlanMap;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
 typedef eastl::map<PathingArc*, PathingNodeVec> PathingArcNodeMap;
+typedef eastl::map<PathingCluster*, PathingNodeVec> PathingClusterNodeMap;
 typedef eastl::map<PathingNode*, PathPlanNode*> PathingNodeToPathPlanNodeMap;
-typedef eastl::map<PathingNode*, eastl::map<PathingNode*, float>> PathingNodeDoubleMap;
-typedef eastl::map<PathingNode*, eastl::map<PathingNode*, PathPlan*>> PathingNodePlanDoubleMap;
 
 const float PATHING_DEFAULT_NODE_TOLERANCE = 4.0f;
 const float PATHING_DEFAULT_ARC_WEIGHT = 0.001f;
@@ -75,6 +78,7 @@ class PathingNode
 	unsigned int mId;
 	Vector3<float> mPos;
 	PathingArcVec mArcs;
+	PathingClusterVec mClusters;
 	PathingTransitionVec mTransitions;
 
 	eastl::map<PathingNode*, float> mVisibleNodes;
@@ -103,15 +107,22 @@ public:
 	PathingArc* FindArc(PathingNode* pLinkedNode);
 	PathingArc* FindArc(unsigned int arcType, PathingNode* pLinkedNode);
 	const PathingArcVec& GetArcs() { return mArcs; }
+	void GetArcs(unsigned int arcType, PathingArcVec& outArcs);
 	void RemoveArc(unsigned int id);
 	void RemoveArcs();
 
-	void GetNeighbors(unsigned int arcType, PathingArcVec& outNeighbors);
+	void AddCluster(PathingCluster* pCluster);
+	PathingCluster* FindCluster(PathingNode* pTargetNode);
+	PathingCluster* FindCluster(unsigned int clusterType, PathingNode* pTargetNode);
+	const PathingClusterVec& GetClusters() { return mClusters; }
+	void GetClusters(unsigned int arcType, PathingClusterVec& outClusters);
+	void RemoveCluster(unsigned int arcType);
+	void RemoveClusters();
 
 	void AddTransition(PathingTransition* pTransition);
-	PathingTransition* FindTransition(unsigned int id);
 	const PathingTransitionVec& GetTransitions() { return mTransitions; }
-	void RemoveTransition(unsigned int id);
+	void GetTransitions(unsigned int id, PathingTransitionVec& transitions);
+	void RemoveTransitions(unsigned int id);
 	void RemoveTransitions();
 
 };
@@ -142,6 +153,32 @@ public:
 	PathingNode* GetNode() const { return mNode; }
 };
 
+//--------------------------------------------------------------------------------------------------------
+// class PathingCluster
+// This class represents a transition that links two clusters.
+//--------------------------------------------------------------------------------------------------------
+class PathingCluster
+{
+	unsigned int mType;
+	ActorId mActor;
+
+	PathingNode* mNode;  // node transition
+	PathingNode* mTarget;  // node target
+
+public:
+	explicit PathingCluster(unsigned int type, ActorId actor = INVALID_ACTOR_ID)
+		: mType(type), mActor(actor)
+	{
+
+	}
+
+	unsigned int GetType(void) const { return mType; }
+	ActorId GetActor(void) const { return mActor; }
+	PathingNode* GetNode() const { return mNode; }
+	PathingNode* GetTarget() const { return mTarget; }
+
+	void LinkClusters(PathingNode* pNode, PathingNode* pTarget);
+};
 
 //--------------------------------------------------------------------------------------------------------
 // class PathingTransition
@@ -263,8 +300,10 @@ public:
 	void Destroy(void);
 	
 	PathPlan* operator()(PathingNode* pStartNode, PathingNode* pGoalNode);
-	PathingNode* operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes);
-	void operator()(PathingNodeVec& searchNodes, PathingNodePlanDoubleMap& nodeConnections, float threshold);
+	PathingNode* operator()(
+		PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold = FLT_MAX);
+	void operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes, 
+		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 
 private:
 	PathPlanNode* AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode);
@@ -283,6 +322,7 @@ private:
 //--------------------------------------------------------------------------------------------------------
 class PathingGraph
 {
+	PathingClusterVec mClusters; // master list of all clusters
 	PathingNodeVec mNodes;  // master list of all nodes
 	PathingArcVec mArcs;  // master list of all arcs
 	
@@ -297,16 +337,20 @@ public:
 	PathingNode* FindNode(unsigned int nodeId);
 	PathingNode* FindRandomNode(void);
 
-	PathingNode* FindNodes(PathingNode* pStartNode, PathingNodeVec& searchNodes);
-	void FindConnections(PathingNodeVec& searchNodes, PathingNodePlanDoubleMap& nodeConnections, float threshold);
+	PathingNode* FindNodes(
+		PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold = FLT_MAX);
+	void FindPlans(PathingNode* pStartNode, PathingNodeVec& searchNodes, 
+		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	PathPlan* FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
 	PathPlan* FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode);
 	PathPlan* FindPath(PathingNode* pStartNode, const Vector3<float>& endPoint);
 	PathPlan* FindPath(PathingNode* pStartNode, PathingNode* pGoalNode);
 
 	// helpers
+	void InsertCluster(PathingCluster* pCluster);
 	void InsertNode(PathingNode* pNode);
 	void InsertArc(PathingArc* pArc);
+	const PathingClusterVec& GetClusters() { return mClusters; }
 	const PathingNodeVec& GetNodes() { return mNodes; }
 	const PathingArcVec& GetArcs() { return mArcs; }
 };

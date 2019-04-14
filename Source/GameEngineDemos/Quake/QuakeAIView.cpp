@@ -66,6 +66,7 @@ QuakeAIView::QuakeAIView()
 
 	mOrientation = 1;
 	mStationaryTime = 0;
+	mCurrentNodeTime = 0;
 
 	mMaxJumpSpeed = 3.4f;
 	mMaxFallSpeed = 240.0f;
@@ -76,9 +77,10 @@ QuakeAIView::QuakeAIView()
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 
-	mClusteringGraph = GameLogic::Get()->GetAIManager()->GetClusteringGraph();
+	mPathingGraph = GameLogic::Get()->GetAIManager()->GetPathingGraph();
 	mCurrentNode = NULL;
 	mGoalCluster = NULL;
+	mPlayerAction = 0;
 }
 
 //
@@ -134,8 +136,8 @@ void QuakeAIView::Stationary(unsigned long deltaMs)
 
 	Transform start;
 	start.SetRotation(rotation);
-	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() +
-		scale[YAW] * Vector4<float>::Unit(YAW));
+	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() 
+		+ scale[YAW] * Vector4<float>::Unit(YAW));
 
 	Transform end;
 	end.SetRotation(rotation);
@@ -147,17 +149,15 @@ void QuakeAIView::Stationary(unsigned long deltaMs)
 	ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
 		mPlayerId, start, end, collision, collisionNormal);
 	//printf("distance stationary %f \n", Length(collision - position));
-	if (Length(collision - position) < 30.f)
+	if (Length(collision - position) < 50.f)
 	{
-		if (mStationaryTime > 100.f)
+		mStationaryTime += deltaMs;
+		if (mStationaryTime > 100)
 		{
-			mStationaryTime = 0;
-
 			//Choose randomly which way too look for obstacles
 			int sign = Randomizer::Rand() % 2 ? 1 : -1;
 			mYaw += 130.f * sign;
 		}
-		else mStationaryTime += deltaMs;
 	}
 	else mStationaryTime = 0;
 }
@@ -268,6 +268,106 @@ void QuakeAIView::Cliff()
 	}
 }
 
+//Movement
+void QuakeAIView::Movement(unsigned long deltaMs)
+{
+	Vector3<float> position = mAbsoluteTransform.GetTranslation();
+	Matrix4x4<float> rotation = Rotation<4, float>(
+		AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
+
+	// This will give us the "look at" vector 
+	// in world space - we'll use that to move.
+	Vector4<float> atWorld = Vector4<float>::Unit(PITCH); // forward vector
+#if defined(GE_USE_MAT_VEC)
+	atWorld = rotation * atWorld;
+#else
+	atWorld = atWorld * rotation;
+#endif
+
+	Vector3<float> scale =
+		GameLogic::Get()->GetGamePhysics()->GetScale(mPlayerId) / 2.f;
+
+	Transform start;
+	start.SetRotation(rotation);
+	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() 
+		+ scale[YAW] * Vector4<float>::Unit(YAW));
+
+	Transform end;
+	end.SetRotation(rotation);
+	end.SetTranslation(mAbsoluteTransform.GetTranslationW1() +
+		atWorld * 500.f + scale[YAW] * Vector4<float>::Unit(YAW));
+
+	Vector3<float> collision, collisionNormal;
+	collision = end.GetTranslation();
+	ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+		mPlayerId, start, end, collision, collisionNormal);
+	//printf("distance smooth %f \n", Length(collision - position));
+	if (Length(collision - position) < 50.f)
+	{
+		//Choose randomly which way too look for obstacles
+		int sign = mOrientation;
+
+		// Smoothly turn 90º and check raycasting until we meet a minimum distance
+		for (int angle = 1; angle <= 90; angle++)
+		{
+			rotation = Rotation<4, float>(
+				AxisAngle<4, float>(Vector4<float>::Unit(2),
+				(mYaw + angle * sign) * (float)GE_C_DEG_TO_RAD));
+
+			atWorld = Vector4<float>::Unit(PITCH); // forward vector
+#if defined(GE_USE_MAT_VEC)
+			atWorld = rotation * atWorld;
+#else
+			atWorld = atWorld * rotation;
+#endif
+
+			start.SetRotation(rotation);
+			end.SetRotation(rotation);
+			end.SetTranslation(mAbsoluteTransform.GetTranslationW1() +
+				atWorld * 500.f + scale[YAW] * Vector4<float>::Unit(YAW));
+
+			collision = end.GetTranslation();
+			actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+				mPlayerId, start, end, collision, collisionNormal);
+			if (Length(collision - position) > 50.f)
+			{
+				mYaw += angle * sign;
+				return;
+			}
+		}
+
+		//If we haven't find a way out we proceed exactly the same but in the opposite direction
+		sign *= -1;
+		for (int angle = 1; angle <= 90; angle++)
+		{
+			rotation = Rotation<4, float>(
+				AxisAngle<4, float>(Vector4<float>::Unit(2),
+				(mYaw + angle * sign) * (float)GE_C_DEG_TO_RAD));
+
+			atWorld = Vector4<float>::Unit(PITCH); // forward vector
+#if defined(GE_USE_MAT_VEC)
+			atWorld = rotation * atWorld;
+#else
+			atWorld = atWorld * rotation;
+#endif
+
+			start.SetRotation(rotation);
+			end.SetRotation(rotation);
+			end.SetTranslation(mAbsoluteTransform.GetTranslationW1() +
+				atWorld * 500.f + scale[YAW] * Vector4<float>::Unit(YAW));
+
+			collision = end.GetTranslation();
+			actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+				mPlayerId, start, end, collision, collisionNormal);
+			if (Length(collision - position) > 50.f)
+			{
+				mYaw += angle * sign;
+				return;
+			}
+		}
+	}
+}
+
 //Smooth movement
 void QuakeAIView::Smooth(unsigned long deltaMs)
 {
@@ -289,8 +389,8 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 
 	Transform start;
 	start.SetRotation(rotation);
-	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() + 
-		scale[YAW] * Vector4<float>::Unit(YAW));
+	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() 
+		+ scale[YAW] * Vector4<float>::Unit(YAW));
 
 	Transform end;
 	end.SetRotation(rotation);
@@ -302,7 +402,7 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 	ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
 		mPlayerId, start, end, collision, collisionNormal);
 	//printf("distance smooth %f \n", Length(collision - position));
-	if (Length(collision - position) < 60.f)
+	if (Length(collision - position) < 80.f)
 	{
 		//Choose randomly which way too look for obstacles
 		int sign = Randomizer::Rand() % 2 ? 1 : -1;
@@ -329,7 +429,7 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 			collision = end.GetTranslation();
 			actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
 				mPlayerId, start, end, collision, collisionNormal);
-			if (Length(collision - position) > 60.f)
+			if (Length(collision - position) > 80.f)
 			{
 				mOrientation = Randomizer::Rand() % 2 ? 1 : -1;
 				mYaw += angle * sign;
@@ -360,7 +460,7 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 			collision = end.GetTranslation();
 			actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
 				mPlayerId, start, end, collision, collisionNormal);
-			if (Length(collision - position) > 60.f)
+			if (Length(collision - position) > 80.f)
 			{
 				mOrientation = Randomizer::Rand() % 2 ? 1 : -1;
 				mYaw += angle * sign;
@@ -380,6 +480,8 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 //  class QuakeAIView::OnUpdate			- Chapter 10, page 283
 void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
+	mCurrentNodeTime -= deltaMs / 1000.f;
+
 	//Handling rotation as a result of mouse position
 	Matrix4x4<float> rotation;
 
@@ -471,148 +573,111 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 					if (pTransformComponent)
 					{
-						if (mClusteringGraph)
+						if (mPathingGraph)
 						{
 							Vector3<float> currentPosition = pTransformComponent->GetPosition();
+							/*
 							printf("\n current position %f %f %f \n", 
 								currentPosition[0], currentPosition[1], currentPosition[2]);
+							*/
+							if (mCurrentNode == NULL)
+								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
 
-							ClusteringNode* currentNode = mClusteringGraph->FindClosestNode(currentPosition);
-							if (mCurrentNode == NULL) mCurrentNode = currentNode;
-
+							bool findNode = true;
 							Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
-							if (Length(diff) <= CLUSTERING_DEFAULT_NODE_TOLERANCE)
+							if (Length(diff) > PATHING_DEFAULT_NODE_TOLERANCE)
+								findNode = false;
+
+							if (mCurrentNodeTime <= 0.f)
 							{
-								if (mGoalCluster == NULL || currentNode->GetCluster() == mGoalCluster)
+								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
+								mGoalCluster = NULL;
+								mPlayerAction = 0;
+								findNode = true;
+							}
+
+							if (findNode)
+							{
+								PathingNode* currentNode = mCurrentNode;
+								if (mGoalCluster == NULL || currentNode == mGoalCluster)
 								{
-									printf("new goal ");
+									//printf("new goal %f node time", mCurrentNodeTime);
 									do
 									{
 										// choose a random cluster
-										ClusterArcVec clusterArcs = currentNode->GetCluster()->GetArcs();
-										printf("cluster size %u \n", clusterArcs.size());
-										if (!clusterArcs.empty())
+										PathingClusterVec clusterNodes;
+										currentNode->GetClusters(GAT_JUMP, clusterNodes);
+
+										PathingClusterVec clusterActors;
+										if (mCurrentNodeTime <= 0.f)
 										{
-											unsigned int clusterArc = Randomizer::Rand() % clusterArcs.size();
-											mGoalCluster = clusterArcs[clusterArc]->GetTarget();
+											for (PathingCluster* clusterNode : clusterNodes)
+												if (clusterNode->GetActor() != INVALID_ACTOR_ID)
+													clusterActors.push_back(clusterNode);
+										}
+
+										if (clusterActors.empty())
+										{
+											//printf("cluster size %u \n", clusterNodes.size());
+											if (!clusterNodes.empty())
+											{
+												unsigned int cluster = Randomizer::Rand() % clusterNodes.size();
+												mGoalCluster = clusterNodes[cluster]->GetTarget();
+											}
+											else
+											{
+												mGoalCluster = NULL;
+												break;
+											}
 										}
 										else
 										{
-											mGoalCluster = NULL;
-											break;
+											//printf("cluster actors size %u \n", clusterActors.size());
+											unsigned int cluster = Randomizer::Rand() % clusterActors.size();
+											mGoalCluster = clusterActors[cluster]->GetTarget();
 										}
-									} while (currentNode->GetCluster() == mGoalCluster || mGoalCluster->GetArcs().empty());
+									} while (currentNode == mGoalCluster || mGoalCluster->GetArcs().empty());
 								}
 
 								if (mGoalCluster != NULL)
 								{
 									float minPosDiff = FLT_MAX;
-									ClusterArc* currentArc = NULL;
-									ClusterArcVec clusterArcs = currentNode->GetCluster()->GetArcs();
-									for (ClusterArc* clusterArc : clusterArcs)
+									PathingCluster* currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalCluster);
+									if (currentCluster != NULL)
 									{
-										if (clusterArc->GetTarget() == mGoalCluster)
+										PathingArc* clusterArc = currentNode->FindArc(currentCluster->GetNode());
+										PathingNode* clusterNode = clusterArc->GetNode();
+										unsigned int clusterArcType = clusterArc->GetType();
+										/*
+										Vector3<float> nextPos = clusterNode->GetPos();
+										printf("next pos %f %f %f arc %u \n", 
+											nextPos[0], nextPos[1], nextPos[2], clusterArc->GetType());
+
+										printf("node %f %f %f node %u goal cluster %u\n",
+											currentNode->GetPos()[0], currentNode->GetPos()[1], currentNode->GetPos()[2],
+											currentNode->GetId(), mGoalCluster->GetId());
+										*/
+										mPlayerAction = clusterArcType;
+										mCurrentNode = clusterArc->GetNode();
+										mCurrentNodeTime = clusterArc->GetWeight() + 1.0f;
+										Vector3<float> direction = clusterNode->GetPos() - currentPosition;
+										Normalize(direction);
+										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+
+										printf("\n next nodes : ");
+										do
 										{
-											if (clusterArc->GetCluster() != clusterArc->GetTarget())
-											{
-												ClusteringArc* arc = currentNode->FindArc(clusterArc->GetCluster());
-												ClusteringNode* node = arc->GetNode();
-												float clusterDiff = Length(mGoalCluster->GetCenter()->GetPos() - node->GetPos());
-												if (clusterDiff < minPosDiff)
-												{
-													minPosDiff = clusterDiff;
-													currentArc = clusterArc;
-												}
-											}
-											else
-											{
-												ClusteringArc* arc = currentNode->FindArc(clusterArc->GetTarget());
-												ClusteringNode* node = arc->GetNode();
-												float clusterDiff = Length(mGoalCluster->GetCenter()->GetPos() - node->GetPos());
-												if (clusterDiff < minPosDiff)
-												{
-													minPosDiff = clusterDiff;
-													currentArc = clusterArc;
-												}
-											}
-										}
-									}
-
-									if (currentArc != NULL)
-									{
-										if (currentArc->GetCluster() != currentArc->GetTarget())
-										{
-											ClusteringArc* clusterArc = currentNode->FindArc(currentArc->GetCluster());
-											ClusteringNode* clusterNode = clusterArc->GetNode();
-											unsigned int clusterArcType = clusterArc->GetType();
-											if (clusterArc->GetType() == GAT_CLUSTER)
-											{
-												clusterArcType = currentNode->FindTransition(clusterArc->GetId())->GetType();
-												clusterNode = currentNode->FindTransition(clusterArc->GetId())->GetNodes().front();
-											}
-											Vector3<float> nextPos = clusterNode->GetPos();
-											printf("next pos1 %f %f %f\n", nextPos[0], nextPos[1], nextPos[2]);
-
-											printf("node1 %f %f %f cluster1 %u goal cluster1 %u\n",
-												currentNode->GetPos()[0], currentNode->GetPos()[1], currentNode->GetPos()[2],
-												currentArc->GetCluster()->GetId(), mGoalCluster->GetId());
-											/*
-											ClusteringTransition* clusterTransition = currentNode->FindTransition(clusterArc->GetId());
-											if (clusterTransition->GetType() == GAT_MOVE)
-											{
-												for (Vector3<float> connection : clusterTransition->GetConnections())
-												printf("%f %f %f  ", connection[0], connection[1], connection[2]);
-											}
-											else printf("%u ", clusterArc->GetType());
-											*/
-											mCurrentNode = clusterNode;
-											Vector3<float> direction = clusterNode->GetPos() - currentPosition;
-											Normalize(direction);
-											mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-
-											if (clusterArcType == GAT_JUMP)
-												pPlayerActor->GetAction().actionType |= ACTION_JUMP;
-										}
-										else
-										{
-											ClusteringArc* clusterArc = currentNode->FindArc(currentArc->GetTarget());
-											ClusteringNode* clusterNode = clusterArc->GetNode();
-											unsigned int clusterArcType = clusterArc->GetType();
-											if (clusterArc->GetType() == GAT_CLUSTER)
-											{
-												clusterArcType = currentNode->FindTransition(clusterArc->GetId())->GetType();
-												clusterNode = currentNode->FindTransition(clusterArc->GetId())->GetNodes().front();
-											}
-
-											Vector3<float> nextPos = clusterNode->GetPos();
-											printf("next pos2 %f %f %f\n", nextPos[0], nextPos[1], nextPos[2]);
-
-											printf("current node2 %f %f %f cluster2 %u goal cluster2 %u\n",
-												currentNode->GetPos()[0], currentNode->GetPos()[1], currentNode->GetPos()[2],
-												currentArc->GetTarget()->GetId(), mGoalCluster->GetId());
-											/*
-											ClusteringTransition* clusterTransition = currentNode->FindTransition(clusterArc->GetId());
-											if (clusterTransition->GetType() == GAT_MOVE)
-											{
-												for (Vector3<float> connection : clusterTransition->GetConnections())
-												printf("%f %f %f  ", connection[0], connection[1], connection[2]);
-											}
-											else printf("%u ", clusterArc->GetType());
-											*/
-											mCurrentNode = clusterNode;
-											Vector3<float> direction = clusterNode->GetPos() - currentPosition;
-											Normalize(direction);
-											mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-
-											if (clusterArcType == GAT_JUMP)
-												pPlayerActor->GetAction().actionType |= ACTION_JUMP;
-										}
+											currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalCluster);
+											clusterArc = currentNode->FindArc(currentCluster->GetNode());
+											currentNode = clusterArc->GetNode();
+											printf("%u ", currentNode->GetId());
+										} while (currentNode != mGoalCluster);
 									}
 									else
 									{
-										printf("arc not found \n");
-										mGoalCluster = NULL;
+										//printf("arc not found \n");
 										mCurrentNode = NULL;
+										mGoalCluster = NULL;
 									}
 								}
 								else
@@ -624,22 +689,54 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							}
 							else
 							{
-								if (currentNode->FindArc(mCurrentNode) == NULL)
+								if (mPlayerAction == GAT_JUMP ||
+									mPlayerAction == GAT_PUSH || 
+									mPlayerAction == GAT_TELEPORT)
 								{
-									if (currentNode->GetCluster()->FindArc(mCurrentNode->GetCluster()) != NULL)
+									if (mPlayerAction == GAT_JUMP)
 									{
-										for (auto clusterArc : currentNode->GetArcs())
-											if (clusterArc->GetNode()->GetCluster() == mCurrentNode->GetCluster())
-												mCurrentNode = clusterArc->GetNode();
-									}
-									else mCurrentNode = currentNode;
-								}
+										pPlayerActor->GetAction().actionType |= ACTION_JUMP;
 
-								printf("node approaching %f %f %f \n", 
-									mCurrentNode->GetPos()[0], mCurrentNode->GetPos()[1], mCurrentNode->GetPos()[2]);
-								Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
-								Normalize(direction);
-								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+										Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
+										Normalize(direction);
+										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+									}
+									else
+									{
+										Stationary(deltaMs);
+										Movement(deltaMs);
+									}
+									mPlayerAction = 0;
+								}
+								else
+								{
+									Vector3<float> scale =
+										GameLogic::Get()->GetGamePhysics()->GetScale(mPlayerId) / 2.f;
+
+									Transform start;
+									start.SetTranslation(currentPosition + scale[YAW] * Vector3<float>::Unit(YAW));
+									Transform end;
+									end.SetTranslation(mCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
+
+									Vector3<float> collision, collisionNormal;
+									ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+										mPlayerId, start, end, collision, collisionNormal);
+									if (collision == NULL)
+									{
+										/*
+										printf("node approaching %f %f %f \n",
+										mCurrentNode->GetPos()[0], mCurrentNode->GetPos()[1], mCurrentNode->GetPos()[2]);
+										*/
+										Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
+										Normalize(direction);
+										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+									}
+									else
+									{
+										Stationary(deltaMs);
+										Movement(deltaMs);
+									}
+								}
 							}
 						}
 						else

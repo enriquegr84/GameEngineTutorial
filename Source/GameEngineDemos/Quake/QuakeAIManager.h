@@ -32,8 +32,7 @@ enum GameActionType
 	GAT_PUSH = 0x0000002,
 	GAT_TELEPORT = 0x0000006,
 	GAT_FALL = 0x000000A,
-	GAT_JUMP = 0x00000E,
-	GAT_CLUSTER = 0x000012
+	GAT_JUMP = 0x00000E
 };
 
 class QuakeAIManager : public AIManager
@@ -47,8 +46,6 @@ public:
 
 	virtual void SavePathingGraph(const eastl::string& path);
 	virtual void LoadPathingGraph(const eastl::wstring& path);
-	virtual void SaveClusteringGraph(const eastl::string& path);
-	virtual void LoadClusteringGraph(const eastl::wstring& path);
 
 protected:
 
@@ -72,11 +69,6 @@ protected:
 	unsigned int GetNewNodeID(void)
 	{
 		return ++mLastNodeId;
-	}
-
-	unsigned int GetNewClusterArcID(void)
-	{
-		return ++mLastClusterArcId;
 	}
 
 	// event delegates
@@ -108,7 +100,6 @@ private:
 
 	unsigned int mLastArcId;
 	unsigned int mLastNodeId;
-	unsigned int mLastClusterArcId;
 
 	//open set of nodes to be analized and also to
 	//inform whether they are on ground or not
