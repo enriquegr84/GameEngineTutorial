@@ -99,10 +99,10 @@ protected:
 
 private:
 
-	float mCurrentNodeTime;
-	unsigned int mPlayerAction;
+	float mCurrentDirectionTime;
+	unsigned int mCurrentAction;
 
-	PathingNode* mGoalCluster;
+	PathingNode* mGoalNode;
 	PathingNode* mCurrentNode;
 	eastl::shared_ptr<PathingGraph> mPathingGraph;
 };

@@ -66,7 +66,6 @@ QuakeAIView::QuakeAIView()
 
 	mOrientation = 1;
 	mStationaryTime = 0;
-	mCurrentNodeTime = 0;
 
 	mMaxJumpSpeed = 3.4f;
 	mMaxFallSpeed = 240.0f;
@@ -78,9 +77,12 @@ QuakeAIView::QuakeAIView()
 	mRotateSpeed = 0.0f;
 
 	mPathingGraph = GameLogic::Get()->GetAIManager()->GetPathingGraph();
+
+	mCurrentAction = 0;
+	mCurrentDirectionTime = 0;
+
 	mCurrentNode = NULL;
-	mGoalCluster = NULL;
-	mPlayerAction = 0;
+	mGoalNode= NULL;
 }
 
 //
@@ -480,7 +482,7 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 //  class QuakeAIView::OnUpdate			- Chapter 10, page 283
 void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
-	mCurrentNodeTime -= deltaMs / 1000.f;
+	mCurrentDirectionTime -= deltaMs / 1000.f;
 
 	//Handling rotation as a result of mouse position
 	Matrix4x4<float> rotation;
@@ -490,63 +492,60 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		GameLogic::Get()->GetActor(mPlayerId).lock()));
 	if (!pPlayerActor) return;
 
-	if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
+	eastl::shared_ptr<TransformComponent> pTransformComponent(
+		pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+	if (pTransformComponent)
 	{
-		eastl::shared_ptr<Actor> pItemActor(
-			eastl::dynamic_shared_pointer_cast<Actor>(
-			GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerTeleporter).lock()));
-		eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
-			pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
-		pPlayerActor->GetAction().triggerTeleporter = INVALID_ACTOR_ID;
+		if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
+		{
+			eastl::shared_ptr<Actor> pItemActor(
+				eastl::dynamic_shared_pointer_cast<Actor>(
+					GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerTeleporter).lock()));
+			eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
+				pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
+			pPlayerActor->GetAction().triggerTeleporter = INVALID_ACTOR_ID;
 
-		EulerAngles<float> yawPitchRoll;
-		yawPitchRoll.mAxis[1] = 1;
-		yawPitchRoll.mAxis[2] = 2;
-		pTeleporterTrigger->GetTarget().GetRotation(yawPitchRoll);
-		mYaw = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
-		mPitchTarget = -yawPitchRoll.mAngle[ROLL] * (float)GE_C_RAD_TO_DEG;
-
-		eastl::shared_ptr<TransformComponent> pTransformComponent =
-			pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-		if (pTransformComponent)
+			EulerAngles<float> yawPitchRoll;
+			yawPitchRoll.mAxis[1] = 1;
+			yawPitchRoll.mAxis[2] = 2;
+			pTeleporterTrigger->GetTarget().GetRotation(yawPitchRoll);
 			pTransformComponent->SetTransform(pTeleporterTrigger->GetTarget());
 
-		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
-			pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
-		if (pPhysicalComponent)
-			pPhysicalComponent->SetTransform(pTeleporterTrigger->GetTarget());
+			mYaw = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
+			mPitchTarget = -yawPitchRoll.mAngle[ROLL] * (float)GE_C_RAD_TO_DEG;
 
-		// play teleporter sound
-		EventManager::Get()->TriggerEvent(
-			eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/teleout.ogg"));
-	}
-	else
-	{
-		eastl::shared_ptr<PhysicComponent> pPhysicComponent(
-			pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
-		if (pPhysicComponent)
+			eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
+				pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+			if (pPhysicalComponent)
+				pPhysicalComponent->SetTransform(pTeleporterTrigger->GetTarget());
+
+			// play teleporter sound
+			EventManager::Get()->TriggerEvent(
+				eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/teleout.ogg"));
+		}
+		else
 		{
-			int prevActionType = pPlayerActor->GetAction().actionType;
-
-			pPlayerActor->GetAction().actionType = 0;
-			pPlayerActor->GetAction().actionType |= ACTION_MOVEFORWARD;
-
-			Vector4<float> velocity = Vector4<float>::Zero();
-			if (pPhysicComponent->OnGround())
+			eastl::shared_ptr<PhysicComponent> pPhysicComponent(
+				pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
+			if (pPhysicComponent)
 			{
-				mFallSpeed = 0.0f;
+				int prevActionType = pPlayerActor->GetAction().actionType;
 
-				if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID)
+				pPlayerActor->GetAction().actionType = 0;
+				pPlayerActor->GetAction().actionType |= ACTION_MOVEFORWARD;
+
+				Vector4<float> velocity = Vector4<float>::Zero();
+				if (pPhysicComponent->OnGround())
 				{
-					float push;
-					Vector3<float> direction;
-					eastl::shared_ptr<TransformComponent> pTransformComponent =
-						pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-					if (pTransformComponent)
+					mFallSpeed = 0.0f;
+
+					if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID)
 					{
+						float push;
+						Vector3<float> direction;
 						eastl::shared_ptr<Actor> pItemActor(
 							eastl::dynamic_shared_pointer_cast<Actor>(
-							GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
+								GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
 						eastl::shared_ptr<PushTrigger> pPushTrigger =
 							pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
 
@@ -555,51 +554,48 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						direction = targetPosition - playerPosition;
 						push = Length(direction);
 						Normalize(direction);
+
+						direction[PITCH] *= push / 90.f;
+						direction[ROLL] *= push / 90.f;
+						direction[YAW] = push / 30.f;
+						velocity = HLift(direction, 0.f);
+
+						pPlayerActor->GetAction().actionType |= ACTION_JUMP;
 					}
-
-					direction[PITCH] *= push / 90.f;
-					direction[ROLL] *= push / 90.f;
-					direction[YAW] = push / 30.f;
-					velocity = HLift(direction, 0.f);
-
-					pPlayerActor->GetAction().actionType |= ACTION_JUMP;
-				}
-				else
-				{
-					mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
-					mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
-
-					eastl::shared_ptr<TransformComponent> pTransformComponent(
-						pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-					if (pTransformComponent)
+					else
 					{
+						mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
+						mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
+
 						if (mPathingGraph)
 						{
 							Vector3<float> currentPosition = pTransformComponent->GetPosition();
 							/*
-							printf("\n current position %f %f %f \n", 
+							printf("\n current position %f %f %f \n",
 								currentPosition[0], currentPosition[1], currentPosition[2]);
 							*/
 							if (mCurrentNode == NULL)
 								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
 
-							bool findNode = true;
+							bool searchNode = true;
 							Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
 							if (Length(diff) > PATHING_DEFAULT_NODE_TOLERANCE)
-								findNode = false;
+								searchNode = false;
 
-							if (mCurrentNodeTime <= 0.f)
+							if (mCurrentDirectionTime <= 0.f)
 							{
 								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
-								mGoalCluster = NULL;
-								mPlayerAction = 0;
-								findNode = true;
+								mCurrentDirectionTime = 0;
+								mCurrentAction = 0;
+
+								mGoalNode = NULL;
+								searchNode = true;
 							}
 
-							if (findNode)
+							if (searchNode)
 							{
 								PathingNode* currentNode = mCurrentNode;
-								if (mGoalCluster == NULL || currentNode == mGoalCluster)
+								if (mGoalNode == NULL || currentNode == mGoalNode)
 								{
 									//printf("new goal %f node time", mCurrentNodeTime);
 									do
@@ -609,7 +605,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										currentNode->GetClusters(GAT_JUMP, clusterNodes);
 
 										PathingClusterVec clusterActors;
-										if (mCurrentNodeTime <= 0.f)
+										if (mCurrentDirectionTime <= 0.f)
 										{
 											for (PathingCluster* clusterNode : clusterNodes)
 												if (clusterNode->GetActor() != INVALID_ACTOR_ID)
@@ -622,11 +618,11 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											if (!clusterNodes.empty())
 											{
 												unsigned int cluster = Randomizer::Rand() % clusterNodes.size();
-												mGoalCluster = clusterNodes[cluster]->GetTarget();
+												mGoalNode = clusterNodes[cluster]->GetTarget();
 											}
 											else
 											{
-												mGoalCluster = NULL;
+												mGoalNode = NULL;
 												break;
 											}
 										}
@@ -634,15 +630,15 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										{
 											//printf("cluster actors size %u \n", clusterActors.size());
 											unsigned int cluster = Randomizer::Rand() % clusterActors.size();
-											mGoalCluster = clusterActors[cluster]->GetTarget();
+											mGoalNode = clusterActors[cluster]->GetTarget();
 										}
-									} while (currentNode == mGoalCluster || mGoalCluster->GetArcs().empty());
+									} while (currentNode == mGoalNode || mGoalNode->GetArcs().empty());
 								}
 
-								if (mGoalCluster != NULL)
+								if (mGoalNode != NULL)
 								{
 									float minPosDiff = FLT_MAX;
-									PathingCluster* currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalCluster);
+									PathingCluster* currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
 									if (currentCluster != NULL)
 									{
 										PathingArc* clusterArc = currentNode->FindArc(currentCluster->GetNode());
@@ -650,16 +646,16 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										unsigned int clusterArcType = clusterArc->GetType();
 										/*
 										Vector3<float> nextPos = clusterNode->GetPos();
-										printf("next pos %f %f %f arc %u \n", 
+										printf("next pos %f %f %f arc %u \n",
 											nextPos[0], nextPos[1], nextPos[2], clusterArc->GetType());
 
 										printf("node %f %f %f node %u goal cluster %u\n",
 											currentNode->GetPos()[0], currentNode->GetPos()[1], currentNode->GetPos()[2],
 											currentNode->GetId(), mGoalCluster->GetId());
 										*/
-										mPlayerAction = clusterArcType;
+										mCurrentAction = clusterArcType;
 										mCurrentNode = clusterArc->GetNode();
-										mCurrentNodeTime = clusterArc->GetWeight() + 1.0f;
+										mCurrentDirectionTime = clusterArc->GetWeight() + 1.0f;
 										Vector3<float> direction = clusterNode->GetPos() - currentPosition;
 										Normalize(direction);
 										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
@@ -667,17 +663,19 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										printf("\n next nodes : ");
 										do
 										{
-											currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalCluster);
+											currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
 											clusterArc = currentNode->FindArc(currentCluster->GetNode());
 											currentNode = clusterArc->GetNode();
 											printf("%u ", currentNode->GetId());
-										} while (currentNode != mGoalCluster);
+										} while (currentNode != mGoalNode);
 									}
 									else
 									{
 										//printf("arc not found \n");
+										mGoalNode = NULL;
 										mCurrentNode = NULL;
-										mGoalCluster = NULL;
+										mCurrentDirectionTime = 0;
+										mCurrentAction = 0;
 									}
 								}
 								else
@@ -689,11 +687,11 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							}
 							else
 							{
-								if (mPlayerAction == GAT_JUMP ||
-									mPlayerAction == GAT_PUSH || 
-									mPlayerAction == GAT_TELEPORT)
+								if (mCurrentAction == GAT_JUMP ||
+									mCurrentAction == GAT_PUSH ||
+									mCurrentAction == GAT_TELEPORT)
 								{
-									if (mPlayerAction == GAT_JUMP)
+									if (mCurrentAction == GAT_JUMP)
 									{
 										pPlayerActor->GetAction().actionType |= ACTION_JUMP;
 
@@ -706,7 +704,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										Stationary(deltaMs);
 										Movement(deltaMs);
 									}
-									mPlayerAction = 0;
+									mCurrentAction = 0;
 								}
 								else
 								{
@@ -721,7 +719,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									Vector3<float> collision, collisionNormal;
 									ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
 										mPlayerId, start, end, collision, collisionNormal);
-									if (collision == NULL)
+									if (collision == NULL || actorId != INVALID_ACTOR_ID)
 									{
 										/*
 										printf("node approaching %f %f %f \n",
@@ -788,55 +786,55 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
 						pTransformComponent->SetRotation(yawRotation * pitchRotation);
 					}
+					pPlayerActor->GetAction().actionType |= ACTION_RUN;
 				}
-				pPlayerActor->GetAction().actionType |= ACTION_RUN;
-			}
-			else
-			{
-				mFallSpeed += deltaMs / (pPhysicComponent->GetJumpSpeed() * 0.5f);
-				if (mFallSpeed > mMaxFallSpeed) mFallSpeed = mMaxFallSpeed;
+				else
+				{
+					mFallSpeed += deltaMs / (pPhysicComponent->GetJumpSpeed() * 0.5f);
+					if (mFallSpeed > mMaxFallSpeed) mFallSpeed = mMaxFallSpeed;
 
-				// Calculate the new rotation matrix from the camera
-				// yaw and pitch (zrotate and xrotate).
-				Matrix4x4<float> yawRotation = Rotation<4, float>(
-					AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
-				rotation = yawRotation;
+					// Calculate the new rotation matrix from the camera
+					// yaw and pitch (zrotate and xrotate).
+					Matrix4x4<float> yawRotation = Rotation<4, float>(
+						AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
+					rotation = yawRotation;
 
-				// This will give us the "look at" vector 
-				// in world space - we'll use that to move.
-				Vector4<float> atWorld = Vector4<float>::Unit(PITCH); // forward vector
+					// This will give us the "look at" vector 
+					// in world space - we'll use that to move.
+					Vector4<float> atWorld = Vector4<float>::Unit(PITCH); // forward vector
 #if defined(GE_USE_MAT_VEC)
-				atWorld = rotation * atWorld;
+					atWorld = rotation * atWorld;
 #else
-				atWorld = atWorld * rotation;
+					atWorld = atWorld * rotation;
 #endif
-				Normalize(atWorld);
+					Normalize(atWorld);
 
-				Vector4<float> upWorld = -Vector4<float>::Unit(YAW);
-				Vector4<float> direction = atWorld + upWorld;
-				Normalize(direction);
+					Vector4<float> upWorld = -Vector4<float>::Unit(YAW);
+					Vector4<float> direction = atWorld + upWorld;
+					Normalize(direction);
 
-				direction[PITCH] *= pPhysicComponent->GetJumpSpeed() * (mFallSpeed / 4.f);
-				direction[ROLL] *= pPhysicComponent->GetJumpSpeed() * (mFallSpeed / 4.f);
-				direction[YAW] = -pPhysicComponent->GetJumpSpeed() * mFallSpeed;
-				velocity = direction;
+					direction[PITCH] *= pPhysicComponent->GetJumpSpeed() * (mFallSpeed / 4.f);
+					direction[ROLL] *= pPhysicComponent->GetJumpSpeed() * (mFallSpeed / 4.f);
+					direction[YAW] = -pPhysicComponent->GetJumpSpeed() * mFallSpeed;
+					velocity = direction;
 
-				pPlayerActor->GetAction().actionType |= ACTION_FALLEN;
-			}
+					pPlayerActor->GetAction().actionType |= ACTION_FALLEN;
+				}
 
-			if (pPlayerActor->GetState().moveType != PM_DEAD)
-			{
-				EventManager::Get()->TriggerEvent(
-					eastl::make_shared<QuakeEventDataRotateActor>(mPlayerId, mAbsoluteTransform));
+				if (pPlayerActor->GetState().moveType != PM_DEAD)
+				{
+					EventManager::Get()->TriggerEvent(
+						eastl::make_shared<QuakeEventDataRotateActor>(mPlayerId, mAbsoluteTransform));
 
-				pPlayerActor->UpdateTimers(deltaMs);
-				pPlayerActor->UpdateWeapon(deltaMs);
-				pPlayerActor->UpdateMovement(HProject(velocity));
-			}
-			else if (!(prevActionType & ACTION_ATTACK))
-			{
-				if (pPlayerActor->GetAction().actionType & ACTION_ATTACK)
-					pPlayerActor->PlayerSpawn();
+					pPlayerActor->UpdateTimers(deltaMs);
+					pPlayerActor->UpdateWeapon(deltaMs);
+					pPlayerActor->UpdateMovement(HProject(velocity));
+				}
+				else if (!(prevActionType & ACTION_ATTACK))
+				{
+					if (pPlayerActor->GetAction().actionType & ACTION_ATTACK)
+						pPlayerActor->PlayerSpawn();
+				}
 			}
 		}
 	}
