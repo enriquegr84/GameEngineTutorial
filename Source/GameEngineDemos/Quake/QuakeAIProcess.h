@@ -1,9 +1,9 @@
 //========================================================================
-// QuakeEvents.cpp : defines game-specific events for Quake
+// QuakeAIProcess.h : Defines real time ai process
 //
-// Part of the GameEngine Application
+// Part of the GameCode4 Application
 //
-// GameEngine is the sample application that encapsulates much of the source code
+// GameCode4 is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
 // "Rez" Graham, published by Charles River Media. 
 // ISBN-10: 1133776574 | ISBN-13: 978-1133776574
@@ -17,7 +17,7 @@
 // There's a companion web site at http://www.mcshaffry.com/GameCode/
 // 
 // The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/GameEngine/
+//    http://code.google.com/p/gamecode4/
 //
 // (c) Copyright 2012 Michael L. McShaffry and David Graham
 //
@@ -36,25 +36,37 @@
 //
 //========================================================================
 
-#include "QuakeStd.h"
-#include "QuakeEvents.h"
+#ifndef QUAKEAIPROCESS_H
+#define QUAKEAIPROCESS_H
 
-const BaseEventType QuakeEventDataFireWeapon::skEventType(0x1b15b6a7);
-const BaseEventType QuakeEventDataChangeWeapon::skEventType(0xcee385cc);
+#include "Core/Process/RealtimeProcess.h"
 
-const BaseEventType QuakeEventDataSplashDamage::skEventType(0x23e5bdcb);
-const BaseEventType QuakeEventDataDeadActor::skEventType(0xaf50e7db);
-const BaseEventType QuakeEventDataSpawnActor::skEventType(0x92f851da);
-const BaseEventType QuakeEventDataPushActor::skEventType(0x47fda8e7);
-const BaseEventType QuakeEventDataJumpActor::skEventType(0xfeee009e);
-const BaseEventType QuakeEventDataMoveActor::skEventType(0xeeaa0a40);
-const BaseEventType QuakeEventDataFallActor::skEventType(0x47d33df3);
-const BaseEventType QuakeEventDataRotateActor::skEventType(0xed6973fe);
-const BaseEventType QuakeEventDataStartThrust::skEventType(0x1d62d48c);
-const BaseEventType QuakeEventDataEndThrust::skEventType(0xe60f88a4);
-const BaseEventType QuakeEventDataStartSteer::skEventType(0xf0b5b4fd);
-const BaseEventType QuakeEventDataEndSteer::skEventType(0x176645ef);
+#include "Core/Event/EventManager.h"
 
-const BaseEventType QuakeEventDataAIDecisionMaking::skEventType(0xd0f0507e);
-const BaseEventType QuakeEventDataGameplayUIUpdate::skEventType(0x1002ded2);
-const BaseEventType QuakeEventDataSetControlledActor::skEventType(0xbe5e3388);
+#include "AI/Pathing.h"
+
+//
+// class QuakeAIProcess
+//
+class QuakeAIProcess : public RealtimeProcess
+{
+public:
+
+	QuakeAIProcess();
+	~QuakeAIProcess();
+
+	virtual void ThreadProc(void);
+
+protected:
+
+	void ConstructPath(PathingNode* playerClusterNode, unsigned int playerClusterType,
+		eastl::map<PathingNode*, float>& playerVisibleNodes, eastl::vector<PathingArcVec>& playerPathPlan);
+	void TraverseNode(PathingNode* playerNode, 
+		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType, bool expandNodes);
+	void TraverseNode(PathingCluster* playerCluster, unsigned int playerClusterType, 
+		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType, bool expandNodes);
+	void TraverseCluster(PathingNode* playerNode, PathingNode* otherPlayerNode, unsigned int* iteration, bool expandClusters);
+
+};
+
+#endif

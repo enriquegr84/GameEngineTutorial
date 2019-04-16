@@ -128,6 +128,9 @@
     <ClInclude Include="..\Quake\QuakeAIManager.h">
       <Filter>Quake</Filter>
     </ClInclude>
+    <ClInclude Include="..\Quake\QuakeAIProcess.h">
+      <Filter>Quake</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\TriangleDemoApp.cpp" />
@@ -231,6 +234,9 @@
       <Filter>Demo</Filter>
     </ClCompile>
     <ClCompile Include="..\Quake\QuakeAIManager.cpp">
+      <Filter>Quake</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Quake\QuakeAIProcess.cpp">
       <Filter>Quake</Filter>
     </ClCompile>
   </ItemGroup>

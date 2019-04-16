@@ -42,6 +42,7 @@
 
 #include "GameEngineStd.h"
 
+#include "Core/Process/CriticalSection.h"
 #include "Core/Threading/ThreadSafeQueue.h"
 
 #include <strstream>
@@ -97,7 +98,7 @@ class BaseEventData;
 typedef unsigned long BaseEventType;
 typedef eastl::shared_ptr<BaseEventData> BaseEventDataPtr;
 typedef fastdelegate::FastDelegate1<BaseEventDataPtr> EventListenerDelegate;
-typedef ThreadSafeQueue<BaseEventDataPtr> ThreadSafeEventQueue;
+typedef ConcurrentQueue<BaseEventDataPtr> ThreadSafeEventQueue;
 
 
 //---------------------------------------------------------------------------------------------------------------------

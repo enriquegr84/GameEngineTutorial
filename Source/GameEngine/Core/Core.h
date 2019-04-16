@@ -41,6 +41,7 @@
 //Process
 #include "Process/Process.h"
 #include "Process/ProcessManager.h"
+#include "Process/RealtimeProcess.h"
 
 //Threading
 #include "Threading/ThreadSafeMap.h"

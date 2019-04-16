@@ -1138,6 +1138,9 @@
     <ClCompile Include="..\AI\KMeans.cpp">
       <Filter>AI</Filter>
     </ClCompile>
+    <ClCompile Include="..\Core\Process\RealtimeProcess.cpp">
+      <Filter>Core\Process</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GameEngineStd.h" />
@@ -2679,6 +2682,12 @@
     </ClInclude>
     <ClInclude Include="..\Core\3rdParty\cereal\include\cereal\macros.hpp">
       <Filter>Core\3rdParty\cereal\include\cereal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Process\CriticalSection.h">
+      <Filter>Core\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Process\RealtimeProcess.h">
+      <Filter>Core\Process</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

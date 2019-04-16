@@ -237,8 +237,7 @@ public:
     }
 
     explicit EventDataNewRenderComponent(ActorId actorId, const eastl::shared_ptr<Node>& sceneNode)
-        : mActorId(actorId),
-          mSceneNode(sceneNode)
+        : mActorId(actorId), mSceneNode(sceneNode)
     {
     }
 

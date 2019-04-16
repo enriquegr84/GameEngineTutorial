@@ -76,13 +76,18 @@ QuakeAIView::QuakeAIView()
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 
-	mPathingGraph = GameLogic::Get()->GetAIManager()->GetPathingGraph();
-
 	mCurrentAction = 0;
 	mCurrentDirectionTime = 0;
 
 	mCurrentNode = NULL;
 	mGoalNode= NULL;
+
+	mViewId = INVALID_GAME_VIEW_ID;
+	mPlayerId = INVALID_ACTOR_ID;
+
+	BaseEventManager::Get()->AddListener(
+		MakeDelegate(this, &QuakeAIView::DecisionMakingUpdateDelegate),
+		QuakeEventDataAIDecisionMaking::skEventType);
 }
 
 //
@@ -91,6 +96,9 @@ QuakeAIView::QuakeAIView()
 QuakeAIView::~QuakeAIView(void)
 {
 	//LogInformation("AI Destroying QuakeAIView");
+	BaseEventManager::Get()->RemoveListener(
+		MakeDelegate(this, &QuakeAIView::DecisionMakingUpdateDelegate),
+		QuakeEventDataAIDecisionMaking::skEventType);
 }
 
 //  class QuakeAIView::OnAttach
@@ -99,6 +107,7 @@ void QuakeAIView::OnAttach(GameViewId vid, ActorId actorId)
 	mViewId = vid;
 	mPlayerId = actorId;
 
+	mPathingGraph = GameLogic::Get()->GetAIManager()->GetPathingGraph();
 	eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(mPlayerId).lock());
 	eastl::shared_ptr<TransformComponent> pTransformComponent(
 		pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
@@ -115,6 +124,13 @@ void QuakeAIView::OnAttach(GameViewId vid, ActorId actorId)
 		mAbsoluteTransform.SetRotation(pTransformComponent->GetRotation());
 		mAbsoluteTransform.SetTranslation(pTransformComponent->GetPosition());
 	}
+}
+
+void QuakeAIView::DecisionMakingUpdateDelegate(BaseEventDataPtr pEventData)
+{
+	eastl::shared_ptr<QuakeEventDataAIDecisionMaking> pCastEventData =
+		eastl::static_pointer_cast<QuakeEventDataAIDecisionMaking>(pEventData);
+
 }
 
 //Stationary movement
@@ -659,7 +675,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										Vector3<float> direction = clusterNode->GetPos() - currentPosition;
 										Normalize(direction);
 										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-
+										/*
 										printf("\n next nodes : ");
 										do
 										{
@@ -668,6 +684,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											currentNode = clusterArc->GetNode();
 											printf("%u ", currentNode->GetId());
 										} while (currentNode != mGoalNode);
+										*/
 									}
 									else
 									{

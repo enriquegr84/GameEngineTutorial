@@ -77,6 +77,7 @@ HumanView::HumanView()
 	mProcessManager = new ProcessManager();
 
 	mViewId = INVALID_GAME_VIEW_ID;
+	mActorId = INVALID_ACTOR_ID;
 
 	// Added post press for move, new, and destroy actor events and others
 	RegisterAllDelegates();

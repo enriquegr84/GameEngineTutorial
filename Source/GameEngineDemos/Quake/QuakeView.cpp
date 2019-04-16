@@ -64,6 +64,7 @@
 #include "QuakeApp.h"
 #include "QuakeView.h"
 #include "QuakeAIView.h"
+#include "QuakeAIProcess.h"
 #include "QuakeEvents.h"
 #include "QuakeLevelManager.h"
 #include "QuakeAIManager.h"
@@ -410,10 +411,6 @@ void QuakeMainMenuUI::Set()
 
 		Level* gameLevel = levels[level->GetSelected()];
 		gameApp->mOption.mLevel = ToString(gameLevel->GetFileName().c_str());
-
-		eastl::wstring levelPath = L"ai/quake/" + gameLevel->GetName() + L".bin";
-		GameLogic::Get()->GetAIManager()->LoadPathingGraph(
-			ToWideString(FileSystem::Get()->GetPath(ToString(levelPath.c_str())).c_str()));
 	}
 }
 
@@ -1190,13 +1187,18 @@ bool QuakeHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 	if (!HumanView::LoadGameDelegate(pLevelData))
 		return false;
 
+	eastl::string levelPath = "ai/quake/" + eastl::string(pLevelData->Attribute("name")) + ".bin";
+	GameLogic::Get()->GetAIManager()->LoadPathingGraph(
+		ToWideString(FileSystem::Get()->GetPath(levelPath.c_str()).c_str()));
+
+	mProcessManager->AttachProcess(eastl::shared_ptr<Process>(new QuakeAIProcess()));
+
     mGameStandardHUD.reset(new QuakeStandardHUD(shared_from_this()));
 	mGameStandardHUD->OnInit();
     PushElement(mGameStandardHUD);
 
     // A movement controller is going to control the camera, 
-    // but it could be constructed with any of the objects you see in this
-    // function. You can have your very own remote controlled sphere. What fun...
+    // but it could be constructed with any of the objects you see in this function.
     mGameCameraController.reset(new QuakeCameraController(mCamera, 0, 0, false));
 	mKeyboardHandler = mGameCameraController;
 	mMouseHandler = mGameCameraController;

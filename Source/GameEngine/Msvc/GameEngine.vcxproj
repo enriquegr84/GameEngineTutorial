@@ -79,6 +79,7 @@
     <ClCompile Include="..\Core\OS\OS.cpp" />
     <ClCompile Include="..\Core\Process\Process.cpp" />
     <ClCompile Include="..\Core\Process\ProcessManager.cpp" />
+    <ClCompile Include="..\Core\Process\RealtimeProcess.cpp" />
     <ClCompile Include="..\Core\Utility\StringUtil.cpp" />
     <ClCompile Include="..\GameEngineStd.cpp" />
     <ClCompile Include="..\Game\Actor\Actor.cpp" />
@@ -954,8 +955,10 @@
     <ClInclude Include="..\Core\Logger\Windows\LogToMessageBox.h" />
     <ClInclude Include="..\Core\Logger\Windows\LogToOutputWindow.h" />
     <ClInclude Include="..\Core\OS\OS.h" />
+    <ClInclude Include="..\Core\Process\CriticalSection.h" />
     <ClInclude Include="..\Core\Process\Process.h" />
     <ClInclude Include="..\Core\Process\ProcessManager.h" />
+    <ClInclude Include="..\Core\Process\RealtimeProcess.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeMap.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeQueue.h" />
     <ClInclude Include="..\Core\Utility\LexicoArray2.h" />

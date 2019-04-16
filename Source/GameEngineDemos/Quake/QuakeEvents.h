@@ -43,6 +43,8 @@
 #include "Core/Event/EventManager.h"
 #include "Core/Event/Event.h"
 
+#include "AI/Pathing.h"
+
 //---------------------------------------------------------------------------------------------------------------------
 // class QuakeEventDataFireWeapon
 //---------------------------------------------------------------------------------------------------------------------
@@ -868,6 +870,56 @@ public:
     {
         mId = id;
     }
+};
+
+//---------------------------------------------------------------------------------------------------------------------
+// class QuakeEventDataAIDecisionMaking
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataAIDecisionMaking : public EventData
+{
+	ActorId mPlayerId;
+
+public:
+	static const BaseEventType skEventType;
+	virtual const BaseEventType & GetEventType() const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataAIDecisionMaking(void)
+	{
+		mPlayerId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataAIDecisionMaking(ActorId playerId)
+		: mPlayerId(playerId)
+	{
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataAIDecisionMaking(mPlayerId));
+	}
+
+	virtual void Serialize(std::ostrstream& out) const
+	{
+		out << mPlayerId;
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mPlayerId;
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataAIDecisionMaking";
+	}
+
+	ActorId GetPlayerId(void) const
+	{
+		return mPlayerId;
+	}
 };
 
 //---------------------------------------------------------------------------------------------------------------------

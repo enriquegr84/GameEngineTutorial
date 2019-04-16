@@ -380,7 +380,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	game->GetGamePhysics()->SetTriggerCollision(true);
 	game->RemoveAllDelegates();
 	RegisterAllDelegates();
-	/*
+
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
 	eastl::vector<eastl::shared_ptr<Actor>> actors;
@@ -404,7 +404,6 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	// we obtain visibility information from pathing graph 
 	SimulateVisibility();
-	*/
 
 	// we group the graph nodes in clusters
 	CreateClusters();
@@ -739,7 +738,6 @@ void QuakeAIManager::CreateClusters()
 
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
-		unsigned int counter = 0;
 		PathPlanMap pathPlans;
 
 		//add cluster transitions with jumps and moves
@@ -766,7 +764,6 @@ void QuakeAIManager::CreateClusters()
 
 					if (addCluster)
 					{
-						counter++;
 						PathingCluster* pathCluster = 
 							new PathingCluster(GAT_JUMP, pathTarget->GetActorId());
 						pathCluster->LinkClusters(pArc->GetNode(), pathTarget);
@@ -808,7 +805,6 @@ void QuakeAIManager::CreateClusters()
 
 					if (addCluster)
 					{
-						counter++;
 						PathingCluster* pathCluster = 
 							new PathingCluster(GAT_MOVE, pathTarget->GetActorId());
 						pathCluster->LinkClusters(pArc->GetNode(), pathTarget);
@@ -824,7 +820,6 @@ void QuakeAIManager::CreateClusters()
 			delete pathPlan.second;
 		}
 
-		printf("counter %u\n", counter);
 		pathPlans.clear();
 	}
 
@@ -918,6 +913,9 @@ void QuakeAIManager::CreateClusters()
 		}
 		pathPlans.clear();
 	}
+
+	for (PathingNode* pathNode : mPathingGraph->GetNodes())
+		pathNode->OrderClusters();
 }
 
 void QuakeAIManager::SimulateActorPosition(ActorId actorId, const Vector3<float>& position)

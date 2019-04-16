@@ -906,8 +906,8 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 		{
 			if (pPhysicalComponent->GetShape() == "BSP")
 			{
-				eastl::shared_ptr<ResHandle>& resHandle =
-					ResCache::Get()->GetHandle(&BaseResource(ToWideString(pPhysicalComponent->GetMesh().c_str())));
+				eastl::shared_ptr<ResHandle>& resHandle = ResCache::Get()->GetHandle(
+					&BaseResource(ToWideString(pPhysicalComponent->GetMesh().c_str())));
 				if (resHandle)
 				{
 					eastl::map<eastl::string, eastl::string> modelResources;

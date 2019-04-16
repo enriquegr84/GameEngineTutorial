@@ -271,7 +271,7 @@ bool EventManager::Update(unsigned long maxTime)
 
 	// This section added to handle events from other threads.  Check out Chapter 20.
 	BaseEventDataPtr pRealtimeEvent;
-	while (mRealtimeEventQueue.Pop(pRealtimeEvent))
+	while (mRealtimeEventQueue.TryPop(pRealtimeEvent))
 	{
 		QueueEvent(pRealtimeEvent);
 

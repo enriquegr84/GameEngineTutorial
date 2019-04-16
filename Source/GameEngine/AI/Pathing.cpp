@@ -66,7 +66,10 @@ void PathingNode::AddVisibleNode(PathingNode* pNode, float value)
 
 float PathingNode::FindVisibleNode(PathingNode* pNode)
 {
-	return mVisibleNodes[pNode];
+	if (mVisibleNodes.find(pNode) != mVisibleNodes.end())
+		return mVisibleNodes[pNode];
+
+	return FLT_MAX;
 }
 
 bool PathingNode::IsVisibleNode(PathingNode* pNode)
@@ -208,6 +211,57 @@ PathingCluster* PathingNode::FindCluster(unsigned int arcType, PathingNode* pTar
 		}
 	}
 	return NULL;
+}
+
+void PathingNode::OrderClusters(bool ascending)
+{
+	eastl::map<unsigned int, eastl::vector<PathingCluster*>> clusterTypes;
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		clusterTypes[pCluster->GetType()].push_back(pCluster);
+	}
+
+	for (auto clusterType : clusterTypes)
+	{
+		eastl::map<float, eastl::vector<PathingCluster*>> clusters;
+		for (PathingCluster* cluster : clusterType.second)
+		{
+			float clusterWeight = 0.f;
+			PathingNode* currentNode = this;
+			while (currentNode != cluster->GetTarget())
+			{
+				PathingCluster* currentCluster = 
+					currentNode->FindCluster(clusterType.first, cluster->GetTarget());
+				PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
+				clusterWeight += currentArc->GetWeight();
+				currentNode = currentArc->GetNode();
+			}
+			clusters[clusterWeight].push_back(cluster);
+		}
+
+		clusterTypes[clusterType.first].clear();
+		for (auto cluster : clusters)
+		{
+			if (ascending)
+			{
+				for (PathingCluster* pathCluster : cluster.second)
+					clusterTypes[clusterType.first].push_back(pathCluster);
+			}
+			else
+			{
+				for (PathingCluster* pathCluster : cluster.second)
+					clusterTypes[clusterType.first].insert(0, pathCluster);
+			}
+		}
+	}
+
+	mClusters.clear();
+	for (auto clusterType : clusterTypes)
+	{
+		for (auto cluster : clusterType.second)
+			mClusters.push_back(cluster);
+	}
 }
 
 void PathingNode::RemoveClusters()

@@ -1,9 +1,9 @@
 //========================================================================
-// QuakeEvents.cpp : defines game-specific events for Quake
+// RealtimeProcess.h : Defines real time processes that can be used with ProcessManager
 //
-// Part of the GameEngine Application
+// Part of the GameCode4 Application
 //
-// GameEngine is the sample application that encapsulates much of the source code
+// GameCode4 is the sample application that encapsulates much of the source code
 // discussed in "Game Coding Complete - 4th Edition" by Mike McShaffry and David
 // "Rez" Graham, published by Charles River Media. 
 // ISBN-10: 1133776574 | ISBN-13: 978-1133776574
@@ -17,7 +17,7 @@
 // There's a companion web site at http://www.mcshaffry.com/GameCode/
 // 
 // The source code is managed and maintained through Google Code: 
-//    http://code.google.com/p/GameEngine/
+//    http://code.google.com/p/gamecode4/
 //
 // (c) Copyright 2012 Michael L. McShaffry and David Graham
 //
@@ -36,25 +36,37 @@
 //
 //========================================================================
 
-#include "QuakeStd.h"
-#include "QuakeEvents.h"
+#ifndef REALTIMEPROCESS_H
+#define REALTIMEPROCESS_H
 
-const BaseEventType QuakeEventDataFireWeapon::skEventType(0x1b15b6a7);
-const BaseEventType QuakeEventDataChangeWeapon::skEventType(0xcee385cc);
+#include "Process.h"
 
-const BaseEventType QuakeEventDataSplashDamage::skEventType(0x23e5bdcb);
-const BaseEventType QuakeEventDataDeadActor::skEventType(0xaf50e7db);
-const BaseEventType QuakeEventDataSpawnActor::skEventType(0x92f851da);
-const BaseEventType QuakeEventDataPushActor::skEventType(0x47fda8e7);
-const BaseEventType QuakeEventDataJumpActor::skEventType(0xfeee009e);
-const BaseEventType QuakeEventDataMoveActor::skEventType(0xeeaa0a40);
-const BaseEventType QuakeEventDataFallActor::skEventType(0x47d33df3);
-const BaseEventType QuakeEventDataRotateActor::skEventType(0xed6973fe);
-const BaseEventType QuakeEventDataStartThrust::skEventType(0x1d62d48c);
-const BaseEventType QuakeEventDataEndThrust::skEventType(0xe60f88a4);
-const BaseEventType QuakeEventDataStartSteer::skEventType(0xf0b5b4fd);
-const BaseEventType QuakeEventDataEndSteer::skEventType(0x176645ef);
+class RealtimeProcess : public Process
+{
+protected:
 
-const BaseEventType QuakeEventDataAIDecisionMaking::skEventType(0xd0f0507e);
-const BaseEventType QuakeEventDataGameplayUIUpdate::skEventType(0x1002ded2);
-const BaseEventType QuakeEventDataSetControlledActor::skEventType(0xbe5e3388);
+	DWORD mThreadID;
+	int mThreadPriority;
+	HANDLE mHandleThread;
+
+public:
+	// Other prioities can be:
+	// THREAD_PRIORITY_ABOVE_NORMAL
+	// THREAD_PRIORITY_BELOW_NORMAL
+	// THREAD_PRIORITY_HIGHEST
+	// THREAD_PRIORITY_LOWEST
+	// THREAD_PRIORITY_IDLE
+	// THREAD_PRIORITY_TIME_CRITICAL
+	//
+	//
+	RealtimeProcess(int priority = THREAD_PRIORITY_NORMAL);
+    virtual ~RealtimeProcess(void) { CloseHandle(mHandleThread); }
+	static DWORD WINAPI ThreadProc( LPVOID lpParam );
+
+protected:
+	virtual void OnInit(void);
+	virtual void OnUpdate(unsigned long deltaMs) override { }   // do nothing.
+	virtual void ThreadProc(void) = 0;							 // must be defined for all real time processes.
+};
+
+#endif

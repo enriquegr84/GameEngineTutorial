@@ -115,9 +115,6 @@ public:
 	bool InitAudio();
 	ProcessManager* GetProcessManager() { return mProcessManager; }
 
-	//Camera adjustments.
-	//virtual void VSetActiveCameraOffset(const Vec4 & camOffset );
-
 	// Added post press
 	eastl::shared_ptr<ScreenElementScene> mScene;
 	eastl::shared_ptr<CameraNode> mCamera;

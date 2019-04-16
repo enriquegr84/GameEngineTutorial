@@ -61,6 +61,7 @@ typedef eastl::vector<PathingTransition*> PathingTransitionVec;
 typedef eastl::list<PathPlanNode*> PathPlanNodeList;
 typedef eastl::map<PathingNode*, PathPlan*> PathPlanMap;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
+typedef eastl::map<PathingNode*, PathingArcVec> PathingNodeArcMap;
 typedef eastl::map<PathingArc*, PathingNodeVec> PathingArcNodeMap;
 typedef eastl::map<PathingCluster*, PathingNodeVec> PathingClusterNodeMap;
 typedef eastl::map<PathingNode*, PathPlanNode*> PathingNodeToPathPlanNodeMap;
@@ -116,6 +117,7 @@ public:
 	PathingCluster* FindCluster(unsigned int clusterType, PathingNode* pTargetNode);
 	const PathingClusterVec& GetClusters() { return mClusters; }
 	void GetClusters(unsigned int arcType, PathingClusterVec& outClusters);
+	void OrderClusters(bool ascending = true);
 	void RemoveCluster(unsigned int arcType);
 	void RemoveClusters();
 
