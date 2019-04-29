@@ -118,13 +118,12 @@ public:
 	const PathingClusterVec& GetClusters() { return mClusters; }
 	void GetClusters(unsigned int arcType, PathingClusterVec& outClusters);
 	void OrderClusters(bool ascending = true);
-	void RemoveCluster(unsigned int arcType);
 	void RemoveClusters();
 
 	void AddTransition(PathingTransition* pTransition);
 	const PathingTransitionVec& GetTransitions() { return mTransitions; }
-	void GetTransitions(unsigned int id, PathingTransitionVec& transitions);
-	void RemoveTransitions(unsigned int id);
+	PathingTransition* FindTransition(unsigned int id);
+	void RemoveTransition(unsigned int id);
 	void RemoveTransitions();
 
 };
@@ -223,13 +222,11 @@ class PathPlan
 
 	PathingArcVec mPath;
 	PathingArcVec::iterator mIndex;
-	Vector3<float> mCurrentDirection;
 
 public:
 	PathPlan(void) 
 	{ 
 		mIndex = mPath.end();
-		mCurrentDirection = Vector3<float>::Zero(); 
 	}
 	
 	const PathingArcVec& GetArcs(void) const { return mPath; }
@@ -237,7 +234,6 @@ public:
 	void ResetPath(void) 
 	{ 
 		mIndex = mPath.begin(); 
-		mCurrentDirection = Vector3<float>::Zero();
 	}
 
 	PathingArc* GetCurrentArc(void) const

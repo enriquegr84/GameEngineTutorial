@@ -46,6 +46,79 @@
 #include "AI/Pathing.h"
 
 //
+// struct NodeState
+//
+struct NodeState
+{
+	NodeState()
+	{
+		
+	}
+
+	NodeState(NodeState const& state) : arc(state.arc), node(state.node)
+	{
+		for (unsigned int i = 0; i < MAX_STATS; i++)
+		{
+			stats[i] = state.stats[i];
+		}
+
+		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
+		{
+			ammo[i] = state.ammo[i];
+			damage[i] = state.damage[i];
+		}
+	}
+
+	NodeState& NodeState::operator=(NodeState const& state)
+	{
+		arc = state.arc;
+		node = state.node;
+
+		for (unsigned int i = 0; i < MAX_STATS; i++)
+		{
+			stats[i] = state.stats[i];
+		}
+
+		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
+		{
+			ammo[i] = state.ammo[i];
+			damage[i] = state.damage[i];
+		}
+		return *this;
+	}
+
+	~NodeState()
+	{
+
+	}
+
+	PathingArc* arc;
+	PathingNode* node;
+	int stats[MAX_STATS];
+	int ammo[MAX_WEAPONS];
+	int damage[MAX_WEAPONS];
+};
+
+//
+// class ClusterState
+//
+class ClusterState
+{
+	ClusterState()
+	{
+
+	}
+
+	~ClusterState()
+	{
+
+	}
+
+	eastl::vector<NodeState> allies;
+	eastl::vector<NodeState> enemies;
+};
+
+//
 // class QuakeAIProcess
 //
 class QuakeAIProcess : public RealtimeProcess
@@ -59,13 +132,37 @@ public:
 
 protected:
 
-	void ConstructPath(PathingNode* playerClusterNode, unsigned int playerClusterType,
+	float Heuristic(NodeState& playerState, NodeState& otherPlayerState);
+	void Damage(NodeState& state, float visibleTime, float visibleDistance, float visibleHeight);
+	void Visibility(
+		PathingNode* playerNode, PathingArcVec& playerPathPlan,
+		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
+		float* visibleTime, float* visibleDistance, float* visibleHeight,
+		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
+	void Visibility(PathingNode* otherPlayerNode,
+		PathingNode* playerNode, PathingArcVec& playerPathPlan,
+		float* visibleTime, float* visibleDistance, float* visibleHeight,
+		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
+	void Combat(
+		NodeState& playerState, eastl::vector<PathingArcVec>& playerPathPlans,
+		NodeState& otherPlayerState, eastl::vector<PathingArcVec>& otherPlayerPathPlans);
+	void Combat(NodeState& playerState,
+		NodeState& otherPlayerState, eastl::vector<PathingArcVec>& otherPlayerPathPlans);
+	void Combat(
+		NodeState& playerState, NodeState& otherPlayerState);
+
+	void ConstructPath(
+		PathingNode* playerClusterNode, unsigned int playerClusterType,
 		eastl::map<PathingNode*, float>& playerVisibleNodes, eastl::vector<PathingArcVec>& playerPathPlan);
-	void TraverseNode(PathingNode* playerNode, 
-		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType, bool expandNodes);
-	void TraverseNode(PathingCluster* playerCluster, unsigned int playerClusterType, 
-		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType, bool expandNodes);
-	void TraverseCluster(PathingNode* playerNode, PathingNode* otherPlayerNode, unsigned int* iteration, bool expandClusters);
+	void EvaluateNode(
+		PathingCluster* playerCluster, unsigned int playerClusterType, 
+		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType);
+	void EvaluateNode(
+		PathingNode* playerNode, PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType);
+	void EvaluateNode(
+		PathingNode* playerNode, PathingNode* otherPlayerNode);
+	void EvaluateCluster(
+		PathingNode* playerNode, PathingNode* otherPlayerNode, unsigned int* iteration);
 
 };
 

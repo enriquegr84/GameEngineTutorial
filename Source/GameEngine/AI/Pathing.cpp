@@ -274,35 +274,22 @@ void PathingNode::RemoveClusters()
 
 	mClusters.clear();
 }
-
-void PathingNode::RemoveCluster(unsigned int type)
-{
-	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
-	{
-		PathingCluster* pCluster = *it;
-		if (pCluster->GetType() != type)
-		{
-			delete pCluster;
-			mClusters.erase(it);
-			break;
-		}
-	}
-}
-
 void PathingNode::AddTransition(PathingTransition* pTransition)
 {
 	LogAssert(pTransition, "Invalid transition");
 	mTransitions.push_back(pTransition);
 }
 
-void PathingNode::GetTransitions(unsigned int id, PathingTransitionVec& transitions)
+PathingTransition* PathingNode::FindTransition(unsigned int id)
 {
 	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
 	{
 		PathingTransition* pTransition = *it;
 		if (pTransition->GetId() == id)
-			transitions.push_back(pTransition);
+			return pTransition;
 	}
+
+	return NULL;
 }
 
 void PathingNode::RemoveTransitions()
@@ -316,7 +303,7 @@ void PathingNode::RemoveTransitions()
 	mTransitions.clear();
 }
 
-void PathingNode::RemoveTransitions(unsigned int id)
+void PathingNode::RemoveTransition(unsigned int id)
 {
 	for (PathingTransitionVec::iterator it = mTransitions.begin(); it != mTransitions.end(); ++it)
 	{
@@ -325,6 +312,7 @@ void PathingNode::RemoveTransitions(unsigned int id)
 		{
 			delete pTransition;
 			mTransitions.erase(it);
+			break;
 		}
 	}
 }
@@ -337,27 +325,10 @@ bool PathPlan::CheckForNextNode(const Vector3<float>& pos)
 	if (mIndex == mPath.end())
 		return false;
 
-	Vector3<float> prevDirection = mCurrentDirection;
 	Vector3<float> diff = pos - (*mIndex)->GetNode()->GetPos();
-	mCurrentDirection = diff;
-	Normalize(mCurrentDirection);
-	/*
-	printf("pos %f %f %f destiny %f %f %f\n", 
-		pos[0], pos[1], pos[2],
-		(*mIndex)->GetNeighbor()->GetPos()[0], 
-		(*mIndex)->GetNeighbor()->GetPos()[1], 
-		(*mIndex)->GetNeighbor()->GetPos()[2]);
-	printf("dot %f\n", Dot(mCurrentDirection, prevDirection));
-	*/
 	if (Length(diff) <= (float)PATHING_DEFAULT_NODE_TOLERANCE)
 	{
 		mIndex++;
-
-		if (mIndex != mPath.end())
-		{
-			mCurrentDirection = pos - (*mIndex)->GetNode()->GetPos();
-			Normalize(mCurrentDirection);
-		}
 		return true;
 	}
 

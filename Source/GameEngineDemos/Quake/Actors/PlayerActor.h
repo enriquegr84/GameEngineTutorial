@@ -87,7 +87,6 @@ enum PlayerMoveType
 	PM_SPINTERMISSION	// no movement or status bar
 };
 
-
 enum WeaponType
 {
 	WP_NONE,

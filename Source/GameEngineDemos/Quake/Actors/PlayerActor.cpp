@@ -244,6 +244,8 @@ void PlayerActor::PlayerSpawn()
 	mState.stats[STAT_MAX_HEALTH] = 100;
 	mState.takeDamage = true;
 	mState.viewHeight = DEFAULT_VIEWHEIGHT;
+	mState.stats[STAT_WEAPONS] |= (1 << WP_MACHINEGUN);
+	mState.ammo[WP_MACHINEGUN] = 1000;
 	mState.stats[STAT_WEAPONS] |= (1 << WP_SHOTGUN);
 	mState.ammo[WP_SHOTGUN] = 1000;
 	mState.stats[STAT_WEAPONS] |= (1 << WP_ROCKET_LAUNCHER);
@@ -252,8 +254,6 @@ void PlayerActor::PlayerSpawn()
 	mState.ammo[WP_RAILGUN] = 1000;
 	mState.stats[STAT_WEAPONS] |= (1 << WP_PLASMAGUN);
 	mState.ammo[WP_PLASMAGUN] = 1000;
-	mState.stats[STAT_WEAPONS] |= (1 << WP_MACHINEGUN);
-	mState.ammo[WP_MACHINEGUN] = 1000;
 	mState.stats[STAT_WEAPONS] |= (1 << WP_LIGHTNING);
 	mState.ammo[WP_LIGHTNING] = 1000;
 	mState.stats[STAT_WEAPONS] |= (1 << WP_GRENADE_LAUNCHER);
@@ -385,7 +385,6 @@ void PlayerActor::UpdateWeapon(unsigned long deltaMs)
 
 	switch (mState.weapon)
 	{
-		default:
 		case WP_GAUNTLET:
 			addTime = 400;
 			break;
@@ -409,6 +408,8 @@ void PlayerActor::UpdateWeapon(unsigned long deltaMs)
 			break;
 		case WP_RAILGUN:
 			addTime = 1500;
+			break;
+		default:
 			break;
 	}
 
