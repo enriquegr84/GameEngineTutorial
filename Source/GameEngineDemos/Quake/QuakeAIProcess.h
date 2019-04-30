@@ -100,25 +100,6 @@ struct NodeState
 };
 
 //
-// class ClusterState
-//
-class ClusterState
-{
-	ClusterState()
-	{
-
-	}
-
-	~ClusterState()
-	{
-
-	}
-
-	eastl::vector<NodeState> allies;
-	eastl::vector<NodeState> enemies;
-};
-
-//
 // class QuakeAIProcess
 //
 class QuakeAIProcess : public RealtimeProcess
@@ -134,6 +115,8 @@ protected:
 
 	float Heuristic(NodeState& playerState, NodeState& otherPlayerState);
 	void Damage(NodeState& state, float visibleTime, float visibleDistance, float visibleHeight);
+	void PickupItem(NodeState& playerState, eastl::map<ActorId, float>& actors);
+
 	void Visibility(
 		PathingNode* playerNode, PathingArcVec& playerPathPlan,
 		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
@@ -143,26 +126,32 @@ protected:
 		PathingNode* playerNode, PathingArcVec& playerPathPlan,
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
-	void Combat(
-		NodeState& playerState, eastl::vector<PathingArcVec>& playerPathPlans,
-		NodeState& otherPlayerState, eastl::vector<PathingArcVec>& otherPlayerPathPlans);
-	void Combat(NodeState& playerState,
-		NodeState& otherPlayerState, eastl::vector<PathingArcVec>& otherPlayerPathPlans);
-	void Combat(
-		NodeState& playerState, NodeState& otherPlayerState);
-
 	void ConstructPath(
 		PathingNode* playerClusterNode, unsigned int playerClusterType,
 		eastl::map<PathingNode*, float>& playerVisibleNodes, eastl::vector<PathingArcVec>& playerPathPlan);
+	void Simulation(
+		NodeState& playerState, eastl::vector<PathingArcVec>& playerPathPlans,
+		NodeState& otherPlayerState, eastl::vector<PathingArcVec>& otherPlayerPathPlans);
+	void Simulation(NodeState& playerState,
+		NodeState& otherPlayerState, eastl::vector<PathingArcVec>& otherPlayerPathPlans);
+	void Simulation(
+		NodeState& playerState, NodeState& otherPlayerState);
+
 	void EvaluateNode(
 		PathingCluster* playerCluster, unsigned int playerClusterType, 
 		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType);
 	void EvaluateNode(
-		PathingNode* playerNode, PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType);
+		bool isPlayerNode, PathingNode* playerNode,
+		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType);
 	void EvaluateNode(
 		PathingNode* playerNode, PathingNode* otherPlayerNode);
 	void EvaluateCluster(
 		PathingNode* playerNode, PathingNode* otherPlayerNode, unsigned int* iteration);
+
+private:
+
+	eastl::vector<NodeState> mAllies;
+	eastl::vector<NodeState> mEnemies;
 
 };
 

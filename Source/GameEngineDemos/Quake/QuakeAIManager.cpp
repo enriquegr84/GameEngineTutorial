@@ -513,7 +513,7 @@ void QuakeAIManager::SimulateVisibility()
 				nodePositions.push_back(positions[node]);
 			}
 
-			pathNode->RemoveTransitions(pathTransition->GetId());
+			pathNode->RemoveTransition(pathTransition->GetId());
 			pathNode->AddTransition(new PathingTransition(
 				pathTransition->GetId(), pathTransition->GetType(), nodes, nodeWeights, nodePositions));
 		}
