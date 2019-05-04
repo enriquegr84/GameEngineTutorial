@@ -32,8 +32,6 @@ public:
 
 	virtual void SavePathingGraph(const eastl::string& path) { }
 	virtual void LoadPathingGraph(const eastl::wstring& path) { }
-	virtual void SaveClusteringGraph(const eastl::string& path) { }
-	virtual void LoadClusteringGraph(const eastl::wstring& path) { }
 
 	virtual void CreateMap(ActorId playerId) { };
 

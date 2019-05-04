@@ -40,6 +40,10 @@
 #include "QuakeAIManager.h"
 #include "QuakeAIProcess.h"
 
+#include <ppl.h> 
+
+using namespace concurrency;
+
 QuakeAIProcess::QuakeAIProcess()
   :  RealtimeProcess()
 {
@@ -447,60 +451,64 @@ void QuakeAIProcess::PickupItem(NodeState& playerState, eastl::map<ActorId, floa
 
 void QuakeAIProcess::Visibility(
 	PathingNode* playerNode, PathingArcVec& playerPathPlan,
-	PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
 	float* visibleTime, float* visibleDistance, float* visibleHeight,
+	PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
 	float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight)
 {
 	float visibleWeight = 0.f;
 	float totalTime = 0.f, totalArcTime = 0.f;
 	unsigned int index = 0, otherIndex = 0, otherPathIndex = 0;
 
-	PathingTransition* playerTransition = NULL;
-	PathingTransition* otherPlayerTransition =
-		otherPlayerNode->FindTransition(otherPlayerPathPlan[otherPathIndex]->GetId());
-	for (PathingArc* playerArc : playerPathPlan)
+	PathingNode* currentNode = playerNode;
+	PathingNode* otherCurrentNode = otherPlayerNode;
+	PathingTransition* currentTransition = NULL;
+	PathingTransition* otherCurrentTransition =
+		otherCurrentNode->FindTransition(otherPlayerPathPlan[otherPathIndex]->GetId());
+	for (PathingArc* currentArc : playerPathPlan)
 	{
-		playerTransition = playerNode->FindTransition(playerArc->GetId());
-		for (; index < playerTransition->GetNodes().size(); index++)
+		index = 0;
+		currentTransition = currentNode->FindTransition(currentArc->GetId());
+		for (; index < currentTransition->GetNodes().size(); index++)
 		{
-			visibleWeight = playerTransition->GetWeights()[index];
+			visibleWeight = currentTransition->GetWeights()[index];
 
-			if (playerTransition->GetNodes()[index]->IsVisibleNode(
-				otherPlayerTransition->GetNodes()[otherIndex]))
+			if (currentTransition->GetNodes()[index]->IsVisibleNode(
+				otherCurrentTransition->GetNodes()[otherIndex]))
 			{
 				//we only take into consideration visibility from ground
-				if (playerArc->GetType() == GAT_MOVE)
+				if (currentArc->GetType() == GAT_MOVE)
 				{
 					(*visibleDistance) += Length(
-						otherPlayerTransition->GetConnections()[otherIndex] -
-						playerTransition->GetConnections()[index]) * visibleWeight;
+						otherCurrentTransition->GetConnections()[otherIndex] -
+						currentTransition->GetConnections()[index]) * visibleWeight;
 					(*visibleHeight) +=
-						(playerTransition->GetConnections()[index][2] -
-						otherPlayerTransition->GetConnections()[otherIndex][2]) * visibleWeight;
+						(currentTransition->GetConnections()[index][2] -
+						otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
 					(*visibleTime) += visibleWeight;
 				}
 				if (otherPlayerPathPlan[otherPathIndex]->GetType() == GAT_MOVE)
 				{
 					(*otherVisibleDistance) += Length(
-						otherPlayerTransition->GetConnections()[otherIndex] -
-						playerTransition->GetConnections()[index]) * visibleWeight;
+						otherCurrentTransition->GetConnections()[otherIndex] -
+						currentTransition->GetConnections()[index]) * visibleWeight;
 					(*otherVisibleHeight) +=
-						(otherPlayerTransition->GetConnections()[otherIndex][2] -
-						playerTransition->GetConnections()[index][2]) * visibleWeight;
+						(otherCurrentTransition->GetConnections()[otherIndex][2] -
+						currentTransition->GetConnections()[index][2]) * visibleWeight;
 					(*otherVisibleTime) += visibleWeight;
 				}
 			}
 			while (totalArcTime <= totalTime)
 			{
-				totalArcTime += otherPlayerTransition->GetWeights()[otherIndex];
-				if (otherIndex + 1 >= otherPlayerTransition->GetNodes().size())
+				totalArcTime += otherCurrentTransition->GetWeights()[otherIndex];
+				if (otherIndex + 1 >= otherCurrentTransition->GetNodes().size())
 				{
-					if (otherPathIndex < otherPlayerPathPlan.size())
+					if (otherPathIndex + 1 < otherPlayerPathPlan.size())
 					{
 						otherIndex = 0;
+						otherCurrentNode = otherPlayerPathPlan[otherPathIndex]->GetNode();
+
 						otherPathIndex++;
-						otherPlayerNode = otherPlayerPathPlan[otherPathIndex]->GetNode();
-						otherPlayerTransition = otherPlayerNode->FindTransition(
+						otherCurrentTransition = otherCurrentNode->FindTransition(
 							otherPlayerPathPlan[otherPathIndex]->GetId());
 					}
 					else break;
@@ -509,39 +517,39 @@ void QuakeAIProcess::Visibility(
 			}
 			totalTime += visibleWeight;
 		}
-		playerNode = playerArc->GetNode();
+		currentNode = currentArc->GetNode();
 	}
 
-	if (playerTransition)
+	if (currentTransition)
 	{
 		index--;
-		otherPlayerTransition =
-			otherPlayerNode->FindTransition(otherPlayerPathPlan[otherPathIndex]->GetId());
-		for (; otherIndex < otherPlayerTransition->GetNodes().size(); otherIndex++)
+		otherCurrentTransition = otherCurrentNode->FindTransition(
+			otherPlayerPathPlan[otherPathIndex]->GetId());
+		for (; otherIndex < otherCurrentTransition->GetNodes().size(); otherIndex++)
 		{
-			visibleWeight = playerTransition->GetWeights()[index];
+			visibleWeight = currentTransition->GetWeights()[index];
 
-			if (playerTransition->GetNodes()[index]->IsVisibleNode(
-				otherPlayerTransition->GetNodes()[otherIndex]))
+			if (currentTransition->GetNodes()[index]->IsVisibleNode(
+				otherCurrentTransition->GetNodes()[otherIndex]))
 			{
 				if (playerPathPlan.back()->GetType() == GAT_MOVE)
 				{
 					(*visibleDistance) += Length(
-						otherPlayerTransition->GetConnections()[otherIndex] -
-						playerTransition->GetConnections()[index]) * visibleWeight;
+						otherCurrentTransition->GetConnections()[otherIndex] -
+						currentTransition->GetConnections()[index]) * visibleWeight;
 					(*visibleHeight) +=
-						(playerTransition->GetConnections()[index][2] -
-						otherPlayerTransition->GetConnections()[otherIndex][2]) * visibleWeight;
+						(currentTransition->GetConnections()[index][2] -
+						otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
 					(*visibleTime) += visibleWeight;
 				}
 				if (otherPlayerPathPlan[otherPathIndex]->GetType() == GAT_MOVE)
 				{
 					(*otherVisibleDistance) += Length(
-						otherPlayerTransition->GetConnections()[otherIndex] -
-						playerTransition->GetConnections()[index]) * visibleWeight;
+						otherCurrentTransition->GetConnections()[otherIndex] -
+						currentTransition->GetConnections()[index]) * visibleWeight;
 					(*otherVisibleHeight) +=
-						(otherPlayerTransition->GetConnections()[otherIndex][2] -
-						playerTransition->GetConnections()[index][2]) * visibleWeight;
+						(otherCurrentTransition->GetConnections()[otherIndex][2] -
+						currentTransition->GetConnections()[index][2]) * visibleWeight;
 					(*otherVisibleTime) += visibleWeight;
 				}
 			}
@@ -553,31 +561,31 @@ void QuakeAIProcess::Visibility(
 		{
 			visibleWeight = 4.0f - totalTime;
 
-			if (playerTransition->GetNodes()[index]->IsVisibleNode(
-				otherPlayerTransition->GetNodes()[otherIndex]))
+			if (currentTransition->GetNodes()[index]->IsVisibleNode(
+				otherCurrentTransition->GetNodes()[otherIndex]))
 			{
 				if (playerPathPlan.back()->GetType() == GAT_MOVE)
 				{
 					(*visibleDistance) += Length(
-						otherPlayerTransition->GetConnections()[otherIndex] -
-						playerTransition->GetConnections()[index]) * visibleWeight;
+						otherCurrentTransition->GetConnections()[otherIndex] -
+						currentTransition->GetConnections()[index]) * visibleWeight;
 					(*visibleHeight) +=
-						(playerTransition->GetConnections()[index][2] -
-						otherPlayerTransition->GetConnections()[otherIndex][2]) * visibleWeight;
+						(currentTransition->GetConnections()[index][2] -
+						otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
 					(*visibleTime) += visibleWeight;
 				}
 			}
-			if (playerTransition->GetNodes()[index]->IsVisibleNode(
-				otherPlayerTransition->GetNodes()[otherIndex]))
+			if (currentTransition->GetNodes()[index]->IsVisibleNode(
+				otherCurrentTransition->GetNodes()[otherIndex]))
 			{
 				if (otherPlayerPathPlan[otherPathIndex]->GetType() == GAT_MOVE)
 				{
 					(*otherVisibleDistance) += Length(
-						otherPlayerTransition->GetConnections()[otherIndex] -
-						playerTransition->GetConnections()[index]) * visibleWeight;
+						otherCurrentTransition->GetConnections()[otherIndex] -
+						currentTransition->GetConnections()[index]) * visibleWeight;
 					(*otherVisibleHeight) +=
-						(otherPlayerTransition->GetConnections()[otherIndex][2] -
-							playerTransition->GetConnections()[index][2]) * visibleWeight;
+						(otherCurrentTransition->GetConnections()[otherIndex][2] -
+							currentTransition->GetConnections()[index][2]) * visibleWeight;
 					(*otherVisibleTime) += visibleWeight;
 				}
 			}
@@ -597,48 +605,51 @@ void QuakeAIProcess::Visibility(
 	}
 }
 
-void QuakeAIProcess::Visibility(PathingNode* otherPlayerNode, 
+void QuakeAIProcess::Visibility(
 	PathingNode* playerNode, PathingArcVec& playerPathPlan,
 	float* visibleTime, float* visibleDistance, float* visibleHeight,
+	PathingNode* otherPlayerNode,
 	float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight)
 {
 	float visibleWeight = 0.f;
 	float totalTime = 0.f;
 	unsigned int index = 0;
 
-	PathingTransition* playerTransition = NULL;
-	for (PathingArc* playerArc : playerPathPlan)
+	PathingNode* currentNode = playerNode;
+	PathingTransition* currentTransition = NULL;
+	for (PathingArc* currentArc : playerPathPlan)
 	{
-		playerTransition = playerNode->FindTransition(playerArc->GetId());
-		for (; index < playerTransition->GetNodes().size(); index++)
+		index = 0;
+		currentTransition = currentNode->FindTransition(currentArc->GetId());
+		for (; index < currentTransition->GetNodes().size(); index++)
 		{
-			visibleWeight = playerTransition->GetWeights()[index];
+			visibleWeight = currentTransition->GetWeights()[index];
 
-			if (playerTransition->GetNodes()[index]->IsVisibleNode(otherPlayerNode))
+			if (currentTransition->GetNodes()[index]->IsVisibleNode(otherPlayerNode))
 			{
 				//we only take into consideration visibility from ground
-				if (playerArc->GetType() == GAT_MOVE)
+				if (currentArc->GetType() == GAT_MOVE)
 				{
 					(*visibleDistance) += Length(otherPlayerNode->GetPos() -
-						playerTransition->GetConnections()[index]) * visibleWeight;
+						currentTransition->GetConnections()[index]) * visibleWeight;
 					(*visibleHeight) +=
-						(playerTransition->GetConnections()[index][2] -
+						(currentTransition->GetConnections()[index][2] -
 						otherPlayerNode->GetPos()[2]) * visibleWeight;
 					(*visibleTime) += visibleWeight;
 				}
 
 				(*otherVisibleDistance) += Length(otherPlayerNode->GetPos() -
-					playerTransition->GetConnections()[index]) * visibleWeight;
+					currentTransition->GetConnections()[index]) * visibleWeight;
 				(*otherVisibleHeight) += (otherPlayerNode->GetPos()[2] -
-					playerTransition->GetConnections()[index][2]) * visibleWeight;
+					currentTransition->GetConnections()[index][2]) * visibleWeight;
 				(*otherVisibleTime) += visibleWeight;
 			}
 			totalTime += visibleWeight;
 		}
-		playerNode = playerArc->GetNode();
+		currentNode = currentArc->GetNode();
 	}
 
-	if (playerTransition)
+	if (currentTransition)
 	{
 		index--;
 
@@ -647,23 +658,23 @@ void QuakeAIProcess::Visibility(PathingNode* otherPlayerNode,
 		{
 			visibleWeight = 4.0f - totalTime;
 
-			if (playerTransition->GetNodes()[index]->IsVisibleNode(otherPlayerNode))
+			if (currentTransition->GetNodes()[index]->IsVisibleNode(otherPlayerNode))
 			{
 				if (playerPathPlan.back()->GetType() == GAT_MOVE)
 				{
 					(*visibleDistance) += Length(otherPlayerNode->GetPos() -
-						playerTransition->GetConnections()[index]) * visibleWeight;
+						currentTransition->GetConnections()[index]) * visibleWeight;
 					(*visibleHeight) +=
-						(playerTransition->GetConnections()[index][2] -
+						(currentTransition->GetConnections()[index][2] -
 						otherPlayerNode->GetPos()[2]) * visibleWeight;
 					(*visibleTime) += visibleWeight;
 				}
 			}
 
 			(*otherVisibleDistance) += Length(otherPlayerNode->GetPos() -
-				playerTransition->GetConnections()[index]) * visibleWeight;
+				currentTransition->GetConnections()[index]) * visibleWeight;
 			(*otherVisibleHeight) += (otherPlayerNode->GetPos()[2] -
-				playerTransition->GetConnections()[index][2]) * visibleWeight;
+				currentTransition->GetConnections()[index][2]) * visibleWeight;
 			(*otherVisibleTime) += visibleWeight;
 		}
 
@@ -719,15 +730,16 @@ void QuakeAIProcess::Simulation(
 			float otherVisibleTime = 0, otherVisibleDistance = 0, otherVisibleHeight = 0;
 			if (pathPlanWeight > otherPathPlanWeight)
 			{
-				Visibility(playerNode, playerPathPlan, otherPlayerNode, otherPlayerPathPlan, 
+				Visibility(playerNode, playerPathPlan,
 					&visibleTime, &visibleDistance, &visibleHeight,
+					otherPlayerNode, otherPlayerPathPlan,
 					&otherVisibleTime, &otherVisibleDistance, &otherVisibleHeight);
 			}
 			else
 			{
-				Visibility(otherPlayerNode, otherPlayerPathPlan, playerNode, playerPathPlan, 
+				Visibility(otherPlayerNode, otherPlayerPathPlan, 
 					&otherVisibleTime, &otherVisibleDistance, &otherVisibleHeight,
-					&visibleTime, &visibleDistance, &visibleHeight);
+					playerNode, playerPathPlan, &visibleTime, &visibleDistance, &visibleHeight);
 			}
 
 			//calculate damage
@@ -880,9 +892,9 @@ void QuakeAIProcess::Simulation(NodeState& playerState,
 
 		float visibleTime = 0, visibleDistance = 0, visibleHeight = 0;
 		float otherVisibleTime = 0, otherVisibleDistance = 0, otherVisibleHeight = 0;
-		Visibility(playerNode, otherPlayerNode, otherPlayerPathPlan,
+		Visibility(otherPlayerNode, otherPlayerPathPlan,
 			&otherVisibleTime, &otherVisibleDistance, &otherVisibleHeight,
-			&visibleTime, &visibleDistance, &visibleHeight);
+			playerNode, &visibleTime, &visibleDistance, &visibleHeight);
 
 		//calculate damage
 		NodeState playerNodeState(playerState);
@@ -1014,14 +1026,11 @@ void QuakeAIProcess::ConstructPath(PathingNode* playerClusterNode, unsigned int 
 	eastl::map<PathingNode*, float>& playerVisibleNodes, eastl::vector<PathingArcVec>& playerPathPlan)
 {
 	//lets traverse the closest cluster nodes and actors from our current position
-	//it is the best way to expand the area uniformly
-	PathingClusterVec playerClusters;
-	playerClusterNode->GetClusters(playerClusterType, playerClusters);
-	unsigned int clusterSize = playerClusters.size() <= 30 ? playerClusters.size() : 30;
-	for (unsigned int clusterIdx = 0; clusterIdx < clusterSize; clusterIdx++)
+	//it is the best way to expand the area uniformely
+	PathingClusterVec pathClusters;
+	playerClusterNode->GetClusters(playerClusterType, 20, pathClusters);
+	for (PathingCluster* pathCluster : pathClusters)
 	{
-		PathingCluster* pathCluster = playerClusters[clusterIdx];
-
 		PathingArcVec pathPlan;
 		PathingNode* currentNode = playerClusterNode;
 		if (playerVisibleNodes.find(currentNode) != playerVisibleNodes.end())
@@ -1047,10 +1056,11 @@ void QuakeAIProcess::ConstructPath(PathingNode* playerClusterNode, unsigned int 
 	//if there are missing visible nodes we search deeper
 	if (!playerVisibleNodes.empty())
 	{
+		unsigned int clusterSize = pathClusters.size();
 		eastl::vector<PathingNodeArcMap> pathNodePlan = eastl::vector<PathingNodeArcMap>(clusterSize);
 		for (unsigned int clusterIdx = 0; clusterIdx < clusterSize; clusterIdx++)
 		{
-			PathingCluster* pathCluster = playerClusters[clusterIdx];
+			PathingCluster* pathCluster = pathClusters[clusterIdx];
 
 			PathingArcVec pathPlan;
 			PathingNode* currentNode = playerClusterNode;
@@ -1058,15 +1068,22 @@ void QuakeAIProcess::ConstructPath(PathingNode* playerClusterNode, unsigned int 
 			{
 				for (PathingArc* currentArc : currentNode->GetArcs())
 				{
-					bool addPath = false;
-					PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-					for (PathingNode* nodeTransition : currentTransition->GetNodes())
-						if (playerVisibleNodes.find(nodeTransition) != playerVisibleNodes.end())
-							addPath = true;
+					if (pathNodePlan[clusterIdx].find(currentArc->GetNode()) == pathNodePlan[clusterIdx].end())
+					{
+						bool addPath = false;
+						PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
+						for (PathingNode* nodeTransition : currentTransition->GetNodes())
+							if (playerVisibleNodes.find(nodeTransition) != playerVisibleNodes.end())
+								addPath = true;
 
-					if (addPath || playerVisibleNodes.find(currentArc->GetNode()) != playerVisibleNodes.end())
-						for (PathingArcVec::iterator itPath = pathPlan.begin(); itPath != pathPlan.end(); itPath++)
-							pathNodePlan[clusterIdx][currentArc->GetNode()].push_back(*itPath);
+						if (addPath || playerVisibleNodes.find(currentArc->GetNode()) != playerVisibleNodes.end())
+						{
+							for (PathingArcVec::iterator itPath = pathPlan.begin(); itPath != pathPlan.end(); itPath++)
+								pathNodePlan[clusterIdx][currentArc->GetNode()].push_back(*itPath);
+
+							pathNodePlan[clusterIdx][currentArc->GetNode()].push_back(currentArc);
+						}
+					}
 				}
 				PathingCluster* currentCluster = currentNode->FindCluster(playerClusterType, pathCluster->GetTarget());
 				PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
@@ -1089,9 +1106,12 @@ void QuakeAIProcess::ConstructPath(PathingNode* playerClusterNode, unsigned int 
 					PathingNode* visibleNode = playerVisibleNode.first;
 					if (pathNodePlan[clusterIdx].find(visibleNode) != pathNodePlan[clusterIdx].end())
 					{
+						minimumVisibleNodes++;
 						foundVisibleNode = true;
 						playerVisibleNodes.erase(visibleNode);
-						playerPathPlan.push_back(pathNodePlan[clusterIdx][visibleNode]);
+
+						PathingArcVec pathPlan = pathNodePlan[clusterIdx][visibleNode];
+						playerPathPlan.push_back(pathPlan);
 						break;
 					}
 				}
@@ -1102,24 +1122,25 @@ void QuakeAIProcess::ConstructPath(PathingNode* playerClusterNode, unsigned int 
 	}
 }
 
-void QuakeAIProcess::EvaluateNode(PathingNode* playerNode, PathingNode* otherPlayerNode)
+void QuakeAIProcess::EvaluateNode(NodeState& playerState, NodeState& otherPlayerState)
 {
-	NodeState playerState;
-	playerState.node = playerNode;
-	NodeState otherPlayerState;
-	otherPlayerState.node = otherPlayerNode;
-	Simulation(playerState, otherPlayerState);
-	mAllies.push_back(playerState);
-	mEnemies.push_back(otherPlayerState);
+	NodeState nodeState(playerState);
+	nodeState.node = playerState.node;
+	NodeState otherNodeState(otherPlayerState);
+	otherNodeState.node = otherPlayerState.node;
+	Simulation(nodeState, otherNodeState);
+	mAllies.push_back(nodeState);
+	mEnemies.push_back(otherNodeState);
 }
 
-void QuakeAIProcess::EvaluateNode(bool isPlayerNode, PathingNode* playerNode,
+void QuakeAIProcess::EvaluateNode(
+	bool isPlayer, NodeState& playerState, NodeState& otherPlayerState,
 	PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType)
 {
 	//first we find those nodes which contains actor or/and were visible
-	eastl::map<PathingNode*, float> otherPlayerVisibleNodes;
-	eastl::map<PathingNode*, float> otherPlayerNodes;
-	otherPlayerNodes[otherPlayerCluster->GetNode()] = 0.f;
+	eastl::map<PathingNode*, float> otherVisibleNodes;
+	eastl::map<PathingNode*, float> otherNodes;
+	otherNodes[otherPlayerCluster->GetNode()] = 0.f;
 
 	PathingNode* currentNode = otherPlayerCluster->GetNode();
 	while (currentNode != otherPlayerCluster->GetTarget())
@@ -1128,12 +1149,12 @@ void QuakeAIProcess::EvaluateNode(bool isPlayerNode, PathingNode* playerNode,
 		{
 			PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
 			for (PathingNode* nodeTransition : currentTransition->GetNodes())
-				if (nodeTransition->IsVisibleNode(playerNode))
-					otherPlayerVisibleNodes[nodeTransition] = currentArc->GetWeight();
+				if (nodeTransition->IsVisibleNode(playerState.node))
+					otherVisibleNodes[nodeTransition] = currentArc->GetWeight();
 
-			otherPlayerNodes[currentArc->GetNode()] = currentArc->GetWeight();
-			if (currentArc->GetNode()->IsVisibleNode(playerNode))
-				otherPlayerVisibleNodes[currentArc->GetNode()] = currentArc->GetWeight();
+			otherNodes[currentArc->GetNode()] = currentArc->GetWeight();
+			if (currentArc->GetNode()->IsVisibleNode(playerState.node))
+				otherVisibleNodes[currentArc->GetNode()] = currentArc->GetWeight();
 		}
 
 		PathingCluster* currentCluster = 
@@ -1142,46 +1163,46 @@ void QuakeAIProcess::EvaluateNode(bool isPlayerNode, PathingNode* playerNode,
 
 		PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
 		for (PathingNode* nodeTransition : currentTransition->GetNodes())
-			if (nodeTransition->IsVisibleNode(playerNode))
-				otherPlayerVisibleNodes[nodeTransition] = currentArc->GetWeight();
+			if (nodeTransition->IsVisibleNode(playerState.node))
+				otherVisibleNodes[nodeTransition] = currentArc->GetWeight();
 
-		otherPlayerNodes[currentArc->GetNode()] = currentArc->GetWeight();
-		if (currentArc->GetNode()->IsVisibleNode(playerNode))
-			otherPlayerVisibleNodes[currentArc->GetNode()] = currentArc->GetWeight();
+		otherNodes[currentArc->GetNode()] = currentArc->GetWeight();
+		if (currentArc->GetNode()->IsVisibleNode(playerState.node))
+			otherVisibleNodes[currentArc->GetNode()] = currentArc->GetWeight();
 
 		currentNode = currentArc->GetNode();
 	}
 
 	// next we construct path
-	eastl::vector<PathingArcVec> otherPlayerPathPlans;
+	eastl::vector<PathingArcVec> otherNodePathPlans;
 	ConstructPath(otherPlayerCluster->GetNode(), 
-		otherPlayerClusterType, otherPlayerVisibleNodes, otherPlayerPathPlans);
+		otherPlayerClusterType, otherVisibleNodes, otherNodePathPlans);
 
-	NodeState playerState;
-	playerState.node = playerNode;
-	NodeState otherPlayerState;
-	otherPlayerState.node = otherPlayerCluster->GetNode();
-	Simulation(playerState, otherPlayerState, otherPlayerPathPlans);
-	if (isPlayerNode)
+	NodeState nodeState(playerState);
+	nodeState.node = playerState.node;
+	NodeState otherNodeState(otherPlayerState);
+	otherNodeState.node = otherPlayerCluster->GetNode();
+	Simulation(nodeState, otherNodeState, otherNodePathPlans);
+	if (isPlayer)
 	{
-		mAllies.push_back(playerState);
-		mEnemies.push_back(otherPlayerState);
+		mAllies.push_back(nodeState);
+		mEnemies.push_back(otherNodeState);
 	}
 	else
 	{
-		mAllies.push_back(otherPlayerState);
-		mEnemies.push_back(playerState);
+		mEnemies.push_back(nodeState);
+		mAllies.push_back(otherNodeState);
 	}
 }
 
 void QuakeAIProcess::EvaluateNode(
+	NodeState& playerState, NodeState& otherPlayerState,
 	PathingCluster* playerCluster, unsigned int playerClusterType,
 	PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType)
 {
 	//first we find those nodes which contains actor or/and were visible
-	eastl::map<PathingNode*, float> playerVisibleNodes;
-	eastl::map<PathingNode*, float> playerNodes;
-	playerNodes[playerCluster->GetNode()] = 0.f;
+	eastl::map<PathingNode*, float> nodes;
+	nodes[playerCluster->GetNode()] = 0.f;
 
 	PathingNode* currentNode = playerCluster->GetNode();
 	while (currentNode != playerCluster->GetTarget())
@@ -1191,9 +1212,9 @@ void QuakeAIProcess::EvaluateNode(
 			PathingTransition* currentTransition = 
 				currentNode->FindTransition(currentArc->GetId());
 			for (PathingNode* nodeTransition : currentTransition->GetNodes())
-				playerNodes[nodeTransition] = currentArc->GetWeight();
+				nodes[nodeTransition] = currentArc->GetWeight();
 
-			playerNodes[currentArc->GetNode()] = currentArc->GetWeight();
+			nodes[currentArc->GetNode()] = currentArc->GetWeight();
 		}
 
 		PathingCluster* currentCluster = 
@@ -1202,35 +1223,29 @@ void QuakeAIProcess::EvaluateNode(
 		currentNode = currentArc->GetNode();
 	}
 
-	eastl::map<PathingNode*, float> otherPlayerVisibleNodes;
-	eastl::map<PathingNode*, float> otherPlayerNodes;
-	otherPlayerNodes[otherPlayerCluster->GetNode()] = 0.f;
-
+	eastl::map<PathingNode*, float> visibleNodes;
+	eastl::map<PathingNode*, float> otherVisibleNodes;
 	currentNode = otherPlayerCluster->GetNode();
 	while (currentNode != otherPlayerCluster->GetTarget())
 	{
 		for (PathingArc* currentArc : currentNode->GetArcs())
 		{
 			PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-			for (PathingNode* nodeTransition : currentTransition->GetNodes())
-				otherPlayerNodes[nodeTransition] = currentArc->GetWeight();
-
-			otherPlayerNodes[currentArc->GetNode()] = currentArc->GetWeight();
-			for (auto playerNode : playerNodes)
+			for (auto playerNode : nodes)
 			{
 				for (PathingNode* nodeTransition : currentTransition->GetNodes())
 				{
 					if (nodeTransition->IsVisibleNode(playerNode.first))
 					{
-						playerVisibleNodes[playerNode.first] = currentArc->GetWeight();
-						otherPlayerVisibleNodes[currentArc->GetNode()] = currentArc->GetWeight();
+						visibleNodes[playerNode.first] = currentArc->GetWeight();
+						otherVisibleNodes[currentArc->GetNode()] = currentArc->GetWeight();
 					}
 				}
 
 				if (currentArc->GetNode()->IsVisibleNode(playerNode.first))
 				{
-					playerVisibleNodes[playerNode.first] = currentArc->GetWeight();
-					otherPlayerVisibleNodes[currentArc->GetNode()] = currentArc->GetWeight();
+					visibleNodes[playerNode.first] = currentArc->GetWeight();
+					otherVisibleNodes[currentArc->GetNode()] = currentArc->GetWeight();
 				}
 			}
 		}
@@ -1242,65 +1257,69 @@ void QuakeAIProcess::EvaluateNode(
 	}
 
 	// next we construct path for those nodes which were visible
-	eastl::vector<PathingArcVec> playerPathPlans, otherPlayerPathPlans;
+	eastl::vector<PathingArcVec> nodePathPlans, otherNodePathPlans;
 	ConstructPath(playerCluster->GetNode(), 
-		playerClusterType, playerVisibleNodes, playerPathPlans);
+		playerClusterType, visibleNodes, nodePathPlans);
 	ConstructPath(otherPlayerCluster->GetNode(), 
-		otherPlayerClusterType, otherPlayerVisibleNodes, otherPlayerPathPlans);
+		otherPlayerClusterType, otherVisibleNodes, otherNodePathPlans);
 
-	NodeState playerState;
-	playerState.node = playerCluster->GetNode();
-	NodeState otherPlayerState;
-	otherPlayerState.node = otherPlayerCluster->GetNode();
-	Simulation(playerState, playerPathPlans, otherPlayerState, otherPlayerPathPlans);
-	mAllies.push_back(playerState);
-	mEnemies.push_back(otherPlayerState);
+	NodeState nodeState(playerState);
+	nodeState.node = playerCluster->GetNode();
+	NodeState otherNodeState(otherPlayerState);
+	otherNodeState.node = otherPlayerCluster->GetNode();
+	Simulation(nodeState, nodePathPlans, otherNodeState, otherNodePathPlans);
+	mAllies.push_back(nodeState);
+	mEnemies.push_back(otherNodeState);
 }
 
 void QuakeAIProcess::EvaluateCluster(
-	PathingNode* playerNode, PathingNode* otherPlayerNode, unsigned int* iteration)
+	NodeState& playerState, NodeState& otherPlayerState, unsigned int* iteration)
 {
 	(*iteration)++;
 	printf("it %u \n", (*iteration));
 
 	//single case playerNode - otherPlayerNode
-	EvaluateNode(playerNode, otherPlayerNode);
+	EvaluateNode(playerState, otherPlayerState);
 
 	PathingClusterVec playerClusters;
 	unsigned int playerClusterType = GAT_JUMP;
-	playerNode->GetClusters(playerClusterType, playerClusters);
-	unsigned int clusterSize = playerClusters.size() <= 30 ? playerClusters.size() : 30;
-	for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
+	playerState.node->GetClusters(playerClusterType, 20, playerClusters);
+	unsigned int clusterSize = playerClusters.size();
+	//for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
+	parallel_for(size_t(0), clusterSize, [&](size_t playerClusterIdx)
 	{
 		PathingCluster* playerCluster = playerClusters[playerClusterIdx];
-		EvaluateNode(false, otherPlayerNode, playerCluster, playerClusterType);
+		EvaluateNode(false, otherPlayerState, playerState, playerCluster, playerClusterType);
 
 		//EvaluateCluster(playerCluster->GetTarget(), otherPlayerNode, iteration);
-	}
+	});
 
 	PathingClusterVec otherPlayerClusters;
 	unsigned int otherPlayerClusterType = GAT_JUMP;
-	otherPlayerNode->GetClusters(otherPlayerClusterType, otherPlayerClusters);
-	unsigned int otherClusterSize = otherPlayerClusters.size() <= 30 ? otherPlayerClusters.size() : 30;
-	for (unsigned int otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
+	otherPlayerState.node->GetClusters(otherPlayerClusterType, 20, otherPlayerClusters);
+	unsigned int otherClusterSize = otherPlayerClusters.size();
+	//for (unsigned int otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
+	parallel_for(size_t(0), otherClusterSize, [&](size_t otherPlayerClusterIdx)
 	{
 		PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];
-		EvaluateNode(true, playerNode, otherPlayerCluster, otherPlayerClusterType);
+		EvaluateNode(true, playerState, otherPlayerState, otherPlayerCluster, otherPlayerClusterType);
 
 		//EvaluateCluster(playerNode, otherPlayerCluster->GetTarget(), iteration);
-	}
+	});
 
-	for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
+	//for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
+	parallel_for(size_t(0), clusterSize, [&](size_t playerClusterIdx)
 	{
 		PathingCluster* playerCluster = playerClusters[playerClusterIdx];
-		for (unsigned int otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
+		//for (unsigned int otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
+		parallel_for(size_t(0), otherClusterSize, [&](size_t otherPlayerClusterIdx)
 		{
 			PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];
-			EvaluateNode(playerCluster, playerClusterType, otherPlayerCluster, otherPlayerClusterType);
+			EvaluateNode(playerState, otherPlayerState, playerCluster, playerClusterType, otherPlayerCluster, otherPlayerClusterType);
 
 			//EvaluateCluster(playerCluster->GetTarget(), otherPlayerCluster->GetTarget(), iteration);
-		}
-	}
+		});
+	});
 }
 
 void QuakeAIProcess::ThreadProc( )
@@ -1308,6 +1327,8 @@ void QuakeAIProcess::ThreadProc( )
 	unsigned int iteration = 0;
 	while (true)
 	{
+		mAllies.clear();
+		mEnemies.clear();
 		eastl::map<GameViewType, eastl::vector<eastl::shared_ptr<PlayerActor>>> players;
 
 		GameApplication* gameApp = (GameApplication*)Application::App;
@@ -1353,9 +1374,15 @@ void QuakeAIProcess::ThreadProc( )
 
 			for (auto playerNode : playerNodes)
 			{
+				NodeState playerState(playerNode.first->GetState());
+				playerState.arc = NULL;
+				playerState.node = playerNode.second;
 				for (auto aiNode : aiNodes)
 				{
-					EvaluateCluster(playerNode.second, aiNode.second, &iteration);
+					NodeState aiPlayerState(aiNode.first->GetState());
+					aiPlayerState.arc = NULL;
+					aiPlayerState.node = aiNode.second;
+					EvaluateCluster(playerState, aiPlayerState, &iteration);
 				}
 			}
 		}

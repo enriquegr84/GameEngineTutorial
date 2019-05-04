@@ -166,21 +166,34 @@ void PathingNode::AddCluster(PathingCluster* pCluster)
 	mClusters.push_back(pCluster);
 }
 
-void PathingNode::GetClusters(unsigned int arcType, PathingClusterVec& outClusters)
+void PathingNode::GetClusters(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters)
+{
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		if (outClusters.size() < limit)
+		{
+			PathingCluster* pCluster = *it;
+
+			bool skipCluster = false;
+			if (pCluster->GetActor() != INVALID_ACTOR_ID)
+				for (PathingCluster* cluster : outClusters)
+					if (cluster->GetActor() == pCluster->GetActor())
+						skipCluster = true;
+
+			if (skipCluster == false && pCluster->GetType() == clusterType)
+				outClusters.push_back(pCluster);
+		}
+		else break;
+	}
+}
+
+void PathingNode::GetClusters(unsigned int clusterType, PathingClusterVec& outClusters)
 {
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
-		if (arcType == AT_NORMAL)
-		{
-			if (pCluster->GetType() == AT_NORMAL)
-				outClusters.push_back(pCluster);
-		}
-		else
-		{
-			if (pCluster->GetType() & arcType)
-				outClusters.push_back(pCluster);
-		}
+		if (pCluster->GetType() == clusterType)
+			outClusters.push_back(pCluster);
 	}
 }
 
@@ -197,14 +210,14 @@ PathingCluster* PathingNode::FindCluster(PathingNode* pTargetNode)
 	return NULL;
 }
 
-PathingCluster* PathingNode::FindCluster(unsigned int arcType, PathingNode* pTargetNode)
+PathingCluster* PathingNode::FindCluster(unsigned int clusterType, PathingNode* pTargetNode)
 {
 	LogAssert(pTargetNode, "Invalid node");
 
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
-		if (pCluster->GetType() == arcType)
+		if (pCluster->GetType() == clusterType)
 		{
 			if (pCluster->GetTarget() == pTargetNode)
 				return pCluster;

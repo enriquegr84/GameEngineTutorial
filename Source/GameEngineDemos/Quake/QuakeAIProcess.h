@@ -52,7 +52,36 @@ struct NodeState
 {
 	NodeState()
 	{
-		
+		arc = NULL;
+		node = NULL;
+
+		for (unsigned int i = 0; i < MAX_STATS; i++)
+		{
+			stats[i] = 0;
+		}
+
+		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
+		{
+			ammo[i] = 0;
+			damage[i] = 0;
+		}
+	}
+
+	NodeState(PlayerState const& playerState)
+	{
+		arc = NULL;
+		node = NULL;
+
+		for (unsigned int i = 0; i < MAX_STATS; i++)
+		{
+			stats[i] = playerState.stats[i];
+		}
+
+		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
+		{
+			ammo[i] = playerState.ammo[i];
+			damage[i] = 0;
+		}
 	}
 
 	NodeState(NodeState const& state) : arc(state.arc), node(state.node)
@@ -119,12 +148,13 @@ protected:
 
 	void Visibility(
 		PathingNode* playerNode, PathingArcVec& playerPathPlan,
-		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
+		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
-	void Visibility(PathingNode* otherPlayerNode,
+	void Visibility(
 		PathingNode* playerNode, PathingArcVec& playerPathPlan,
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
+		PathingNode* otherPlayerNode, 
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
 	void ConstructPath(
 		PathingNode* playerClusterNode, unsigned int playerClusterType,
@@ -138,15 +168,16 @@ protected:
 		NodeState& playerState, NodeState& otherPlayerState);
 
 	void EvaluateNode(
+		NodeState& playerState, NodeState& otherPlayerState,
 		PathingCluster* playerCluster, unsigned int playerClusterType, 
 		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType);
 	void EvaluateNode(
-		bool isPlayerNode, PathingNode* playerNode,
+		bool isPlayer, NodeState& playerState, NodeState& otherPlayerState,
 		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType);
 	void EvaluateNode(
-		PathingNode* playerNode, PathingNode* otherPlayerNode);
+		NodeState& playerState, NodeState& otherPlayerState);
 	void EvaluateCluster(
-		PathingNode* playerNode, PathingNode* otherPlayerNode, unsigned int* iteration);
+		NodeState& playerState, NodeState& otherPlayerState, unsigned int* iteration);
 
 private:
 

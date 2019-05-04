@@ -115,8 +115,11 @@ public:
 	void AddCluster(PathingCluster* pCluster);
 	PathingCluster* FindCluster(PathingNode* pTargetNode);
 	PathingCluster* FindCluster(unsigned int clusterType, PathingNode* pTargetNode);
+
+	void GetClusters(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters);
+	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters);
 	const PathingClusterVec& GetClusters() { return mClusters; }
-	void GetClusters(unsigned int arcType, PathingClusterVec& outClusters);
+
 	void OrderClusters(bool ascending = true);
 	void RemoveClusters();
 
