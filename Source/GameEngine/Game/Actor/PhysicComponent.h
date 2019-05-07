@@ -85,6 +85,7 @@ public:
 	void SetTransform(const Transform& transform);
 
     Vector3<float> GetScale(void);
+	Vector3<float> GetCenter(void);
 	Vector3<float> GetVelocity(void);
 	float GetJumpSpeed(void);
 	void SetGravity(const Vector3<float>& gravity);

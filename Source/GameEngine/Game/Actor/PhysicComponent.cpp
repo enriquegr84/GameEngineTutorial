@@ -345,6 +345,12 @@ bool PhysicComponent::OnGround()
 	return gamePhysics->OnGround(mOwner->GetId());
 }
 
+Vector3<float> PhysicComponent::GetCenter(void)
+{
+	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
+	return gamePhysics->GetCenter(mOwner->GetId());
+}
+
 Vector3<float> PhysicComponent::GetScale(void)
 {
 	BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();

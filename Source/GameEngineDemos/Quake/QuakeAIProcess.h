@@ -52,9 +52,14 @@ struct NodeState
 {
 	NodeState()
 	{
-		arc = NULL;
+		valid = false;
+		player = INVALID_ACTOR_ID;
+		target = INVALID_ACTOR_ID;
+
 		node = NULL;
 
+		weapon = WP_NONE;
+		heuristic = 0.f;
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
 			stats[i] = 0;
@@ -67,24 +72,34 @@ struct NodeState
 		}
 	}
 
-	NodeState(PlayerState const& playerState)
+	NodeState(eastl::shared_ptr<PlayerActor> playerActor)
 	{
-		arc = NULL;
+		valid = true;
+		player = playerActor->GetId();
+		target = INVALID_ACTOR_ID;
+
 		node = NULL;
+
+		weapon = WP_NONE;
+		heuristic = 0.f;
 
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
-			stats[i] = playerState.stats[i];
+			stats[i] = playerActor->GetState().stats[i];
 		}
 
 		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
 		{
-			ammo[i] = playerState.ammo[i];
+			ammo[i] = playerActor->GetState().ammo[i];
 			damage[i] = 0;
 		}
 	}
 
-	NodeState(NodeState const& state) : arc(state.arc), node(state.node)
+	NodeState(NodeState const& state) : 
+		valid(state.valid),
+		node(state.node), path(state.path),
+		player(state.player), target(state.target), 
+		weapon(state.weapon), heuristic(state.heuristic)
 	{
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
@@ -96,24 +111,6 @@ struct NodeState
 			ammo[i] = state.ammo[i];
 			damage[i] = state.damage[i];
 		}
-	}
-
-	NodeState& NodeState::operator=(NodeState const& state)
-	{
-		arc = state.arc;
-		node = state.node;
-
-		for (unsigned int i = 0; i < MAX_STATS; i++)
-		{
-			stats[i] = state.stats[i];
-		}
-
-		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
-		{
-			ammo[i] = state.ammo[i];
-			damage[i] = state.damage[i];
-		}
-		return *this;
 	}
 
 	~NodeState()
@@ -121,8 +118,39 @@ struct NodeState
 
 	}
 
-	PathingArc* arc;
+	void NodeState::Copy(NodeState const& state)
+	{
+		valid = state.valid;
+		player = state.player;
+		target = state.target;
+
+		node = state.node;
+		path = state.path;
+
+		weapon = state.weapon;
+		heuristic = state.heuristic;
+
+		for (unsigned int i = 0; i < MAX_STATS; i++)
+		{
+			stats[i] = state.stats[i];
+		}
+
+		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
+		{
+			ammo[i] = state.ammo[i];
+			damage[i] = state.damage[i];
+		}
+	}
+
+	bool valid;
+	ActorId player;
+	ActorId target;
+
 	PathingNode* node;
+	PathingArcVec path;
+
+	float heuristic;
+	WeaponType weapon;
 	int stats[MAX_STATS];
 	int ammo[MAX_WEAPONS];
 	int damage[MAX_WEAPONS];
@@ -142,7 +170,7 @@ public:
 
 protected:
 
-	float Heuristic(NodeState& playerState, NodeState& otherPlayerState);
+	void Heuristic(NodeState& playerState,NodeState& otherPlayerState);
 	void Damage(NodeState& state, float visibleTime, float visibleDistance, float visibleHeight);
 	void PickupItem(NodeState& playerState, eastl::map<ActorId, float>& actors);
 
@@ -172,7 +200,7 @@ protected:
 		PathingCluster* playerCluster, unsigned int playerClusterType, 
 		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType);
 	void EvaluateNode(
-		bool isPlayer, NodeState& playerState, NodeState& otherPlayerState,
+		NodeState& playerState, NodeState& otherPlayerState,
 		PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType);
 	void EvaluateNode(
 		NodeState& playerState, NodeState& otherPlayerState);
@@ -180,9 +208,7 @@ protected:
 		NodeState& playerState, NodeState& otherPlayerState, unsigned int* iteration);
 
 private:
-
-	eastl::vector<NodeState> mAllies;
-	eastl::vector<NodeState> mEnemies;
+	NodeState mPlayerState, mOtherPlayerState;
 
 };
 

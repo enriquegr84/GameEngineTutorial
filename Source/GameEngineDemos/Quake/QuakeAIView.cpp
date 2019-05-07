@@ -630,7 +630,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 										if (clusterActors.empty())
 										{
-											//printf("cluster size %u \n", clusterNodes.size());
+											printf("\n cluster size %u \n", clusterNodes.size());
 											if (!clusterNodes.empty())
 											{
 												unsigned int cluster = Randomizer::Rand() % clusterNodes.size();
@@ -644,7 +644,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										}
 										else
 										{
-											//printf("cluster actors size %u \n", clusterActors.size());
+											printf("\n cluster actors size %u \n", clusterActors.size());
 											unsigned int cluster = Randomizer::Rand() % clusterActors.size();
 											mGoalNode = clusterActors[cluster]->GetTarget();
 										}
@@ -665,9 +665,9 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										printf("next pos %f %f %f arc %u \n",
 											nextPos[0], nextPos[1], nextPos[2], clusterArc->GetType());
 
-										printf("node %f %f %f node %u goal cluster %u\n",
+										printf("node %f %f %f node %u goal node %u\n",
 											currentNode->GetPos()[0], currentNode->GetPos()[1], currentNode->GetPos()[2],
-											currentNode->GetId(), mGoalCluster->GetId());
+											currentNode->GetId(), mGoalNode->GetId());
 										*/
 										mCurrentAction = clusterArcType;
 										mCurrentNode = clusterArc->GetNode();
@@ -675,7 +675,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										Vector3<float> direction = clusterNode->GetPos() - currentPosition;
 										Normalize(direction);
 										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-										/*
+
 										printf("\n next nodes : ");
 										do
 										{
@@ -684,7 +684,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											currentNode = clusterArc->GetNode();
 											printf("%u ", currentNode->GetId());
 										} while (currentNode != mGoalNode);
-										*/
 									}
 									else
 									{

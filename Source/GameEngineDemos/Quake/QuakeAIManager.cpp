@@ -110,6 +110,7 @@ namespace CerealTypes
 	{
 		unsigned short id;
 		unsigned short actorid;
+		unsigned short clusterid;
 		float tolerance;
 		Vec3 position;
 		std::vector<ArcNode> arcs;
@@ -120,13 +121,13 @@ namespace CerealTypes
 		template <class Archive>
 		void save(Archive & ar) const
 		{
-			ar(id, actorid, tolerance, position, arcs, clusters, transitions, visibles);
+			ar(id, actorid, clusterid, tolerance, position, arcs, clusters, transitions, visibles);
 		}
 
 		template <class Archive>
 		void load(Archive & ar)
 		{
-			ar(id, actorid, tolerance, position, arcs, clusters, transitions, visibles);
+			ar(id, actorid, clusterid, tolerance, position, arcs, clusters, transitions, visibles);
 		}
 	};
 
@@ -160,8 +161,8 @@ QuakeAIManager::QuakeAIManager() : AIManager()
 	mMaxFallSpeed = 240.0f;
 	mMaxRotateSpeed = 180.0f;
 	mMoveSpeed = 6.0f;
-	mJumpSpeed = 3.4f;
-	mJumpMoveSpeed = 10.0f;
+	mJumpSpeed = 2.6f;
+	mJumpMoveSpeed = 7.2f;
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 }   // QuakeAIManager
@@ -189,6 +190,7 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 
 		node.id = pathNode->GetId();
 		node.actorid = pathNode->GetActorId();
+		node.clusterid = pathNode->GetCluster();
 		node.tolerance = pathNode->GetTolerance();
 		node.position.x = (short)round(pathNode->GetPos()[0]);
 		node.position.y = (short)round(pathNode->GetPos()[1]);
@@ -283,6 +285,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 	eastl::map<unsigned int, PathingNode*> pathingNodeGraph;
 	for (CerealTypes::GraphNode node : data.nodes)
 	{
+		unsigned int clusterId = node.clusterid;
 		unsigned int pathNodeId = node.id;
 		ActorId actorId = node.actorid;
 		float tolerance = node.tolerance;
@@ -291,6 +294,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 		if (mLastNodeId < pathNodeId) mLastNodeId = pathNodeId;
 
 		PathingNode* pathNode = new PathingNode(pathNodeId, actorId, position, tolerance);
+		pathNode->SetCluster(clusterId);
 		mPathingGraph->InsertNode(pathNode);
 
 		pathingNodeGraph[pathNodeId] = pathNode;
@@ -389,6 +393,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	game->GetHealthActors(actors);
 	game->GetArmorActors(actors);
 	game->GetTargetActors(actors);
+	game->GetTriggerActors(actors);
 	for (auto actor : actors)
 	{
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
@@ -417,7 +422,6 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	/*
 	eastl::shared_ptr<Actor> pGameActor(
 		GameLogic::Get()->CreateActor("actors/quake/effects/simulategrenadelauncherfire.xml", nullptr));
-	mActorCollisions[pGameActor->GetId()] = false;
 	eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
 		pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 	if (pPhysicalComponent)
@@ -427,7 +431,6 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<EventDataRequestDestroyActor>(pGameActor->GetId()));
 	*/
-	mActorCollisions.clear();
 	mActorNodes.clear();
 
 	game->GetGamePhysics()->SetTriggerCollision(false);
@@ -518,56 +521,6 @@ void QuakeAIManager::SimulateVisibility()
 				pathTransition->GetId(), pathTransition->GetType(), nodes, nodeWeights, nodePositions));
 		}
 	}
-
-	//visibility between pathing transitions
-	/*
-	float totalTime = 0.f, totalVisibleTime = 0.f, distance = 0.f;
-	if (visibleArc->GetWeight() > pathArc->GetWeight())
-	{
-		float totalArcTime = 0.f;
-		unsigned int pathConnection = 0;
-		unsigned int visibleConnection = 0;
-		eastl::vector<Vector3<float>> pathConnections = pathTransition->GetConnections();
-		eastl::vector<Vector3<float>> visibleConnections = visibleTransition->GetConnections();
-		for (; pathConnection < pathConnections.size(); pathConnection++)
-		{
-			if (visibleNodes[][pathingNodes[visibleConnections[visibleConnection]]])
-			{
-				float deltaTime = pathTransition->GetWeights()[pathConnection];
-				distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
-				totalVisibleTime += deltaTime;
-			}
-			while (totalArcTime <= totalTime)
-			{
-				totalArcTime += visibleTransition->GetWeights()[visibleConnection];
-				if (visibleConnection + 1 < visibleConnections.size())
-					visibleConnection++;
-				else
-					break;
-			}
-			totalTime += pathTransition->GetWeights()[pathConnection];
-		}
-
-		pathConnection--;
-		for (; visibleConnection < visibleConnections.size(); visibleConnection++)
-		{
-			if (visibleNodes[pathingNodes[pathConnections[pathConnection]]][pathingNodes[visibleConnections[visibleConnection]]])
-			{
-				float deltaTime = pathTransition->GetWeights()[pathConnection];
-				distance += Length(visibleConnections[visibleConnection] - pathConnections[pathConnection]) * deltaTime;
-				totalVisibleTime += deltaTime;
-			}
-		}
-	}
-
-	if (totalVisibleTime > 0.f)
-	{
-		distance /= totalVisibleTime;
-
-		pathArc->AddVisibility(visibleArc, VT_DISTANCE, distance);
-		pathArc->AddVisibility(visibleArc, VT_WEIGHT, totalVisibleTime);
-	}
-	*/
 }
 
 void QuakeAIManager::SimulateGrenadeLauncherFire(PathingNode* pNode, eastl::shared_ptr<Actor> pGameActor)
@@ -643,13 +596,12 @@ void QuakeAIManager::SimulateWaypoint()
 	while (!mOpenSet.empty())
 	{
 		// grab the candidate
-		eastl::map<PathingNode*, bool>::iterator itOpenSet = mOpenSet.begin();
-		PathingNode* pNode = itOpenSet->first;
+		PathingNode* pNode = mOpenSet.front();
 		SimulateMovement(pNode);
 
 		// we have processed this node so remove it from the open set
-		mClosedSet[pNode] = itOpenSet->second;
-		mOpenSet.erase(itOpenSet);
+		mClosedSet.push_back(pNode);
+		mOpenSet.erase(mOpenSet.begin());
 	}
 
 	//finally we process the item actors which we have met
@@ -663,8 +615,9 @@ void QuakeAIManager::SimulateWaypoint()
 		{
 			if (pItemActor->GetType() == "Trigger")
 			{
-				pNode->RemoveArcs();
 				pNode->RemoveTransitions();
+				pNode->RemoveArcs();
+
 				if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
 				{
 					eastl::shared_ptr<PushTrigger> pPushTrigger =
@@ -688,25 +641,20 @@ void QuakeAIManager::SimulateWaypoint()
 	while (!mClosedSet.empty())
 	{
 		// grab the candidate
-		eastl::map<PathingNode*, bool>::iterator itOpenSet = mClosedSet.begin();
-		PathingNode* pNode = itOpenSet->first;
+		PathingNode* pNode = mClosedSet.front();
 
-		//check if its on ground
-		if (itOpenSet->second)
+		// if the node is a trigger we don't simulate jump on it
+		if (mActorNodes.find(pNode) != mActorNodes.end())
 		{
-			// if the node is a trigger we don't simulate jump on it
-			if (mActorNodes.find(pNode) != mActorNodes.end())
-			{
-				eastl::shared_ptr<Actor> pGameActor(
-					GameLogic::Get()->GetActor(mActorNodes[pNode]).lock());
-				if (pGameActor->GetType() != "Trigger")
-					SimulateJump(pNode);
-			}
-			else SimulateJump(pNode);
+			eastl::shared_ptr<Actor> pGameActor(
+				GameLogic::Get()->GetActor(mActorNodes[pNode]).lock());
+			if (pGameActor->GetType() != "Trigger")
+				SimulateJump(pNode);
 		}
+		else SimulateJump(pNode);
 
 		// we have processed this node so remove it from the closed set
-		mClosedSet.erase(itOpenSet);
+		mClosedSet.erase(mClosedSet.begin());
 	}
 }
 
@@ -727,28 +675,29 @@ void QuakeAIManager::CreateClusters()
 	KMeans kmeans(200, iters);
 	kmeans.Run(points);
 
-	PathingNodeVec searchNodes;
-	for (Clustering kCluster : kmeans.GetClusters())
+	for (Point point : points)
 	{
-		Vector3<float> point{ 
-			kCluster.GetCenter(0), kCluster.GetCenter(1), kCluster.GetCenter(2) };
-		PathingNode* clusterNode = mPathingGraph->FindClosestNode(point);
-		searchNodes.push_back(clusterNode);
+		PathingNode* pathNode = mPathingGraph->FindNode(point.GetId());
+		pathNode->SetCluster(point.GetCluster());
 	}
+
+	eastl::vector<unsigned int> searchClusters;
+	for (Clustering kCluster : kmeans.GetClusters())
+		searchClusters.push_back(kCluster.GetId());
 
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
-		PathPlanMap pathPlans;
+		ClusterPlanMap clusterPlans;
 
 		//add cluster transitions with jumps and moves
-		mPathingGraph->FindPlans(pathNode, searchNodes, pathPlans);
-		for (auto pathPlan : pathPlans)
+		mPathingGraph->FindPlans(pathNode, searchClusters, clusterPlans);
+		for (auto clusterPlan : clusterPlans)
 		{
-			PathingNode* pathTarget = pathPlan.first;
+			PathingNode* pathTarget = clusterPlan.second->GetArcs().back()->GetNode();
 			if (pathTarget != pathNode)
 			{
 				PathingNode* currentNode = pathNode;
-				for (PathingArc* pArc : pathPlan.second->GetArcs())
+				for (PathingArc* pArc : clusterPlan.second->GetArcs())
 				{
 					bool addCluster = true;
 					PathingClusterVec clusters;
@@ -776,20 +725,19 @@ void QuakeAIManager::CreateClusters()
 				}
 			}
 
-			delete pathPlan.second;
+			delete clusterPlan.second;
 		}
-
-		pathPlans.clear();
+		clusterPlans.clear();
 
 		//add cluster transitions only with moves
-		mPathingGraph->FindPlans(pathNode, searchNodes, pathPlans, GAT_JUMP);
-		for (auto pathPlan : pathPlans)
+		mPathingGraph->FindPlans(pathNode, searchClusters, clusterPlans, GAT_JUMP);
+		for (auto clusterPlan : clusterPlans)
 		{
-			PathingNode* pathTarget = pathPlan.first;
+			PathingNode* pathTarget = clusterPlan.second->GetArcs().back()->GetNode();
 			if (pathTarget != pathNode)
 			{
 				PathingNode* currentNode = pathNode;
-				for (PathingArc* pArc : pathPlan.second->GetArcs())
+				for (PathingArc* pArc : clusterPlan.second->GetArcs())
 				{
 					bool addCluster = true;
 					PathingClusterVec clusters;
@@ -817,13 +765,11 @@ void QuakeAIManager::CreateClusters()
 				}
 			}
 
-			delete pathPlan.second;
+			delete clusterPlan.second;
 		}
-
-		pathPlans.clear();
 	}
 
-	searchNodes.clear();
+	PathingNodeVec searchNodes;
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 		if (pathNode->GetActorId() != INVALID_ACTOR_ID)
 			searchNodes.push_back(pathNode);
@@ -932,7 +878,7 @@ void QuakeAIManager::SimulateActorPosition(ActorId actorId, const Vector3<float>
 	PathingNode* pNewNode = new PathingNode(
 		GetNewNodeID(), actorId, transform.GetTranslation());
 	mPathingGraph->InsertNode(pNewNode);
-	mOpenSet[pNewNode] = true;
+	mOpenSet.push_back(pNewNode);
 }
 
 void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<float>& target)
@@ -982,39 +928,35 @@ void QuakeAIManager::SimulateTriggerTeleport(PathingNode* pNode, const Vector3<f
 	{
 		if (pEndNode != NULL && pNode->FindArc(GAT_TELEPORT, pEndNode) == NULL)
 		{
-			Vector3<float> diff = pEndNode->GetPos() - position;
-			if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
+			PathingArc* pArc = new PathingArc(GetNewArcID(), GAT_TELEPORT, pEndNode, totalTime);
+			pNode->AddArc(pArc);
+
+			//lets interpolate transitions from the already created arc
+			float deltaTime = 0.f;
+			Vector3<float> position = pNode->GetPos();
+
+			eastl::vector<float> weights;
+			eastl::vector<PathingNode*> nodes;
+			eastl::vector<Vector3<float>> positions;
+			for (unsigned int idx = 0; idx < nodePositions.size(); idx++)
 			{
-				PathingArc* pArc = new PathingArc(GetNewArcID(), GAT_TELEPORT, pEndNode, totalTime);
-				pNode->AddArc(pArc);
+				deltaTime += 0.02f;
 
-				//lets interpolate transitions from the already created arc
-				float deltaTime = 0.f;
-				Vector3<float> position = pNode->GetPos();
-
-				eastl::vector<float> weights;
-				eastl::vector<PathingNode*> nodes;
-				eastl::vector<Vector3<float>> positions;
-				for (unsigned int idx = 0; idx < nodePositions.size(); idx++)
+				if (Length(nodePositions[idx] - position) >= 16.f)
 				{
-					deltaTime += 0.02f;
+					nodes.push_back(pNode);
+					weights.push_back(deltaTime);
+					positions.push_back(nodePositions[idx]);
 
-					if (Length(nodePositions[idx] - position) >= 16.f)
-					{
-						nodes.push_back(pNode);
-						weights.push_back(deltaTime);
-						positions.push_back(nodePositions[idx]);
-
-						deltaTime = 0.f;
-					}
+					deltaTime = 0.f;
 				}
+			}
 
-				if (!nodes.empty())
-				{
-					PathingTransition* pTransition = new PathingTransition(
-						pArc->GetId(), GAT_TELEPORT, nodes, weights, positions);
-					pNode->AddTransition(pTransition);
-				}
+			if (!nodes.empty())
+			{
+				PathingTransition* pTransition = new PathingTransition(
+					pArc->GetId(), GAT_TELEPORT, nodes, weights, positions);
+				pNode->AddTransition(pTransition);
 			}
 		}
 	}
@@ -1025,89 +967,102 @@ void QuakeAIManager::SimulateTriggerPush(PathingNode* pNode, const Vector3<float
 	//lets move the character towards different directions
 	eastl::shared_ptr<BaseGamePhysic> gamePhysics = GameLogic::Get()->GetGamePhysics();
 
-	Vector3<float> direction = target - pNode->GetPos();
-	float push = Length(target - pNode->GetPos());
-	Normalize(direction);
-
-	direction[PITCH] *= push / 90.f;
-	direction[ROLL] *= push / 90.f;
-	direction[YAW] = push / 30.f;
-
-	Transform transform;
-	transform.SetTranslation(pNode->GetPos());
-	gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
-	gamePhysics->WalkDirection(mPlayerActor->GetId(), direction);
-	gamePhysics->Jump(mPlayerActor->GetId(), direction);
-	gamePhysics->OnUpdate(0.02f);
-
-	// gravity falling simulation
-	transform = gamePhysics->GetTransform(mPlayerActor->GetId());
-
-	float totalTime = 0.f, fallSpeed = 0.f;
-	eastl::vector<Vector3<float>> nodePositions;
-	while (!gamePhysics->OnGround(mPlayerActor->GetId()) && totalTime <= 10.f)
+	for (int angle = 0; angle < 360; angle++)
 	{
-		nodePositions.push_back(transform.GetTranslation());
-
-		float jumpSpeed = gamePhysics->GetJumpSpeed(mPlayerActor->GetId());
-
-		totalTime += 0.02f;
-		fallSpeed += (20.f / (jumpSpeed * 0.5f));
-		if (fallSpeed > mMaxFallSpeed) fallSpeed = mMaxFallSpeed;
-
+		Vector3<float> direction = target - pNode->GetPos();
+		float push = Length(target - pNode->GetPos());
 		Normalize(direction);
-		direction[PITCH] *= jumpSpeed * (fallSpeed / 4.f);
-		direction[ROLL] *= jumpSpeed * (fallSpeed / 4.f);
-		direction[YAW] = -jumpSpeed * fallSpeed;
 
-		gamePhysics->FallDirection(mPlayerActor->GetId(), direction);
+		direction[PITCH] *= push / 90.f;
+		direction[ROLL] *= push / 90.f;
+		direction[YAW] = push / 30.f;
+
+		Transform transform;
+		transform.SetTranslation(pNode->GetPos());
+		gamePhysics->SetTransform(mPlayerActor->GetId(), transform);
+		gamePhysics->WalkDirection(mPlayerActor->GetId(), direction);
+		gamePhysics->Jump(mPlayerActor->GetId(), direction);
 		gamePhysics->OnUpdate(0.02f);
 
+		Matrix4x4<float> rotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
+
+		// forward vector
+#if defined(GE_USE_MAT_VEC)
+		direction = HProject(rotation * Vector4<float>::Unit(PITCH));
+#else
+		direction = HProject(Vector4<float>::Unit(PITCH) * rotation);
+#endif
+
+		// gravity falling simulation
 		transform = gamePhysics->GetTransform(mPlayerActor->GetId());
-	}
 
-	if (totalTime >= 10.f) return;
-	totalTime += 0.02f;
-
-	//we store the jump if we find a landing node
-	Vector3<float> position = transform.GetTranslation();
-	PathingNode* pEndNode = mPathingGraph->FindClosestNode(position);
-	if (pNode != pEndNode)
-	{
-		if (pEndNode != NULL && pNode->FindArc(GAT_PUSH, pEndNode) == NULL)
+		float totalTime = 0.f, fallSpeed = 0.f;
+		eastl::vector<Vector3<float>> nodePositions;
+		while (!gamePhysics->OnGround(mPlayerActor->GetId()) && totalTime <= 10.f)
 		{
-			Vector3<float> diff = pEndNode->GetPos() - position;
-			if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
+			nodePositions.push_back(transform.GetTranslation());
+
+			float jumpSpeed = gamePhysics->GetJumpSpeed(mPlayerActor->GetId());
+
+			totalTime += 0.02f;
+			fallSpeed += (20.f / (jumpSpeed * 0.5f));
+			if (fallSpeed > mMaxFallSpeed) fallSpeed = mMaxFallSpeed;
+
+			Normalize(direction);
+			direction[PITCH] *= jumpSpeed * (fallSpeed / 4.f);
+			direction[ROLL] *= jumpSpeed * (fallSpeed / 4.f);
+			direction[YAW] = -jumpSpeed * fallSpeed;
+
+			gamePhysics->FallDirection(mPlayerActor->GetId(), direction);
+			gamePhysics->OnUpdate(0.02f);
+
+			transform = gamePhysics->GetTransform(mPlayerActor->GetId());
+		}
+
+		if (totalTime >= 10.f) return;
+		totalTime += 0.02f;
+
+		//we store the jump if we find a landing node
+		Vector3<float> position = transform.GetTranslation();
+		PathingNode* pEndNode = mPathingGraph->FindClosestNode(position);
+		if (pNode != pEndNode)
+		{
+			if (pEndNode != NULL && pNode->FindArc(GAT_PUSH, pEndNode) == NULL)
 			{
-				PathingArc* pArc = new PathingArc(GetNewArcID(), GAT_PUSH, pEndNode, totalTime);
-				pNode->AddArc(pArc);
-
-				//lets interpolate transitions from the already created arc
-				float deltaTime = 0.f;
-				Vector3<float> position = pNode->GetPos();
-
-				eastl::vector<float> weights;
-				eastl::vector<PathingNode*> nodes;
-				eastl::vector<Vector3<float>> positions;
-				for (unsigned int idx = 0; idx < nodePositions.size(); idx++)
+				Vector3<float> diff = pEndNode->GetPos() - position;
+				if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
 				{
-					deltaTime += 0.02f;
+					PathingArc* pArc = new PathingArc(GetNewArcID(), GAT_PUSH, pEndNode, totalTime);
+					pNode->AddArc(pArc);
 
-					if (Length(nodePositions[idx] - position) >= 16.f)
+					//lets interpolate transitions from the already created arc
+					float deltaTime = 0.f;
+					Vector3<float> position = pNode->GetPos();
+
+					eastl::vector<float> weights;
+					eastl::vector<PathingNode*> nodes;
+					eastl::vector<Vector3<float>> positions;
+					for (unsigned int idx = 0; idx < nodePositions.size(); idx++)
 					{
-						nodes.push_back(pNode);
-						weights.push_back(deltaTime);
-						positions.push_back(nodePositions[idx]);
+						deltaTime += 0.02f;
 
-						deltaTime = 0.f;
+						if (Length(nodePositions[idx] - position) >= 16.f)
+						{
+							nodes.push_back(pNode);
+							weights.push_back(deltaTime);
+							positions.push_back(nodePositions[idx]);
+
+							deltaTime = 0.f;
+						}
 					}
-				}
 
-				if (!nodes.empty())
-				{
-					PathingTransition* pTransition = new PathingTransition(
-						pArc->GetId(), GAT_PUSH, nodes, weights, positions);
-					pNode->AddTransition(pTransition);
+					if (!nodes.empty())
+					{
+						PathingTransition* pTransition = new PathingTransition(
+							pArc->GetId(), GAT_PUSH, nodes, weights, positions);
+						pNode->AddTransition(pTransition);
+					}
 				}
 			}
 		}
@@ -1317,7 +1272,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 								}
 
 								mPathingGraph->InsertNode(pNewNode);
-								mOpenSet[pNewNode] = true;
+								mOpenSet.push_back(pNewNode);
 								pCurrentNode = pNewNode;
 
 								deltaTime = 0.f;
@@ -1572,14 +1527,6 @@ void QuakeAIManager::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 		}
 		else
 		{
-			if (pGameActorA->GetType() == "Fire")
-			{
-				mActorCollisions[pGameActorA->GetId()] = true;
-			}
-			else if (pGameActorB->GetType() == "Fire")
-			{
-				mActorCollisions[pGameActorB->GetId()] = true;
-			}
 			return;
 		}
 
@@ -1597,7 +1544,10 @@ void QuakeAIManager::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 					{
 						Vector3<float> diff = pClosestNode->GetPos() - position;
 						if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
+						{
+							pClosestNode->SetActorId(pItemActor->GetId());
 							mActorNodes[pClosestNode] = pItemActor->GetId();
+						}
 					}
 				}
 			}

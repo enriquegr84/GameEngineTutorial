@@ -55,7 +55,7 @@ QuakeAIProcess::~QuakeAIProcess(void)
 
 }
 
-float QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerState)
+void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerState)
 {
 	//lets give priority to health(0.4), armor(0.2), weapon/ammo(0.4)
 	float heuristic = 0.f;
@@ -134,7 +134,10 @@ float QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSt
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
 	{
 		if (playerState.damage[weapon - 1] > maxDamage)
+		{
+			playerState.weapon = (WeaponType)weapon;
 			maxDamage = playerState.damage[weapon - 1];
+		}
 	}
 
 	//damage threshold to the max hp/armor
@@ -212,13 +215,17 @@ float QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSt
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
 	{
 		if (otherPlayerState.damage[weapon - 1] > maxDamage)
+		{
+			otherPlayerState.weapon = (WeaponType)weapon;
 			maxDamage = otherPlayerState.damage[weapon - 1];
+		}
 	}
 
 	//damage threshold to the max hp/armor
 	if (maxDamage > 400) maxDamage = 400;
 	heuristic -= (maxDamage / 400);
-	return heuristic;
+	playerState.heuristic = heuristic;
+	otherPlayerState.heuristic = heuristic;
 }
 
 void QuakeAIProcess::Damage(NodeState& state, float visibleTime, float visibleDistance, float visibleHeight)
@@ -699,7 +706,7 @@ void QuakeAIProcess::Simulation(
 	//visibility between pathing transitions
 	PathingNode* playerNode = playerState.node;
 	PathingNode* otherPlayerNode = otherPlayerState.node;
-	eastl::map<PathingArcVec, eastl::map<NodeState*, float>> playerHeuristics, otherPlayerHeuristics;
+	eastl::map<PathingArcVec, eastl::map<PathingArcVec, NodeState>> playerStates, otherPlayerStates;
 	for (PathingArcVec playerPathPlan : playerPathPlans)
 	{
 		float pathPlanWeight = 0.f;
@@ -744,7 +751,7 @@ void QuakeAIProcess::Simulation(
 
 			//calculate damage
 			NodeState playerNodeState(playerState);
-			playerNodeState.arc = playerPathPlan.back();
+			playerNodeState.path = playerPathPlan;
 			playerNodeState.node = playerPathPlan.back()->GetNode();
 			Damage(playerNodeState, visibleTime, visibleDistance, visibleHeight);
 
@@ -767,7 +774,7 @@ void QuakeAIProcess::Simulation(
 			PickupItem(playerNodeState, pathActors);
 
 			NodeState otherPlayerNodeState(otherPlayerState);
-			otherPlayerNodeState.arc = otherPlayerPathPlan.back();
+			otherPlayerNodeState.path = otherPlayerPathPlan;
 			otherPlayerNodeState.node = otherPlayerPathPlan.back()->GetNode();
 			Damage(otherPlayerNodeState, otherVisibleTime, otherVisibleDistance, otherVisibleHeight);
 			
@@ -789,80 +796,45 @@ void QuakeAIProcess::Simulation(
 			}
 			PickupItem(otherPlayerNodeState, otherPathActors);
 
-			float heuristic = Heuristic(playerNodeState, otherPlayerNodeState);
-			playerHeuristics[playerPathPlan][&playerNodeState] = heuristic;
-			otherPlayerHeuristics[otherPlayerPathPlan][&otherPlayerNodeState] = heuristic;
+			//we calculate the heuristic
+			Heuristic(playerNodeState, otherPlayerNodeState);
+			playerStates[playerPathPlan][otherPlayerPathPlan] = playerNodeState;
+			otherPlayerStates[otherPlayerPathPlan][playerPathPlan] = otherPlayerNodeState;
 		}
 	}
 
-	eastl::map<NodeState*, float> playerNodeStates;
-	for (auto playerHeuristic : playerHeuristics)
+	//we proceed with the minimax algorithm between players
+	NodeState bestPlayerState;
+	bestPlayerState.heuristic = FLT_MIN;
+	for (auto evaluatePlayerState : playerStates)
 	{
-		float playerHeuristicAverage = 0.f;
-		for (auto playerNodeHeuristic : playerHeuristic.second)
-			playerHeuristicAverage += playerNodeHeuristic.second;
+		NodeState playerNodeState;
+		playerNodeState.heuristic = FLT_MAX;
+		for (auto evaluatePlayerNodeState : evaluatePlayerState.second)
+			if (evaluatePlayerNodeState.second.heuristic < playerNodeState.heuristic)
+				playerNodeState = evaluatePlayerNodeState.second;
 
-		//we have all path combinations between players which occurs simultaneously, we will calculate 
-		//the average from all the combination and choose the closest one as the most representative
-		NodeState playerHeuristicState;
-		float playerHeuristicMinimum = FLT_MAX;
-		playerHeuristicAverage /= playerHeuristic.second.size();
-		for (auto playerNodeHeuristic : playerHeuristic.second)
-		{
-			if (abs(playerNodeHeuristic.second - playerHeuristicAverage) < playerHeuristicMinimum)
-			{
-				playerHeuristicMinimum = playerNodeHeuristic.second;
-				playerHeuristicState = (*playerNodeHeuristic.first);
-			}
-		}
-		playerNodeStates[&playerHeuristicState] = playerHeuristicMinimum;
-	}
-
-	//finally we choose the best of all the representative nodes
-	float heuristicMinimum = FLT_MIN;
-	for (auto playerNodeState : playerNodeStates)
-	{
-		if (playerNodeState.second > heuristicMinimum)
-		{
-			playerState = (*playerNodeState.first);
-			heuristicMinimum = playerNodeState.second;
-		}
+		if (playerNodeState.heuristic > bestPlayerState.heuristic)
+			bestPlayerState = playerNodeState;
 	}
 
 	//we do exactly the same for the other player
-	eastl::map<NodeState*, float> otherPlayerNodeStates;
-	for (auto otherPlayerHeuristic : otherPlayerHeuristics)
+	NodeState bestOtherPlayerState;
+	bestOtherPlayerState.heuristic = FLT_MAX;
+	for (auto evaluateOtherPlayerState : otherPlayerStates)
 	{
-		float otherPlayerHeuristicAverage = 0.f;
-		for (auto otherPlayerNodeHeuristic : otherPlayerHeuristic.second)
-			otherPlayerHeuristicAverage += otherPlayerNodeHeuristic.second;
+		NodeState otherPlayerNodeState;
+		otherPlayerNodeState.heuristic = FLT_MIN;
+		for (auto evaluateOtherPlayerNodeState : evaluateOtherPlayerState.second)
+			if (evaluateOtherPlayerNodeState.second.heuristic > otherPlayerNodeState.heuristic)
+				otherPlayerNodeState = evaluateOtherPlayerNodeState.second;
 
-		//we have all path combinations between players which occurs simultaneously, we will calculate 
-		//the average from all the combination and choose the closest one as the most representative
-		NodeState otherPlayerHeuristicState;
-		float otherPlayerHeuristicMinimum = FLT_MAX;
-		otherPlayerHeuristicAverage /= otherPlayerHeuristic.second.size();
-		for (auto otherPlayerNodeHeuristic : otherPlayerHeuristic.second)
-		{
-			if (abs(otherPlayerNodeHeuristic.second - otherPlayerHeuristicAverage) < otherPlayerHeuristicMinimum)
-			{
-				otherPlayerHeuristicMinimum = otherPlayerNodeHeuristic.second;
-				otherPlayerHeuristicState = (*otherPlayerNodeHeuristic.first);
-			}
-		}
-		otherPlayerNodeStates[&otherPlayerHeuristicState] = otherPlayerHeuristicMinimum;
+		if (otherPlayerNodeState.heuristic < bestOtherPlayerState.heuristic)
+			bestOtherPlayerState = otherPlayerNodeState;
 	}
 
-	//finally we choose the best of all the representative nodes
-	float otherHeuristicMinimum = FLT_MAX;
-	for (auto otherPlayerNodeState : otherPlayerNodeStates)
-	{
-		if (otherPlayerNodeState.second < otherHeuristicMinimum)
-		{
-			otherPlayerState = (*otherPlayerNodeState.first);
-			otherHeuristicMinimum = otherPlayerNodeState.second;
-		}
-	}
+	playerState.Copy(bestPlayerState);
+	otherPlayerState.Copy(bestOtherPlayerState);
 }
 
 void QuakeAIProcess::Simulation(NodeState& playerState,
@@ -876,7 +848,7 @@ void QuakeAIProcess::Simulation(NodeState& playerState,
 	if (playerNode->GetActorId() != INVALID_ACTOR_ID)
 		actors[playerNode->GetActorId()] = 0.f;
 
-	eastl::map<NodeState*, float> playerHeuristics, otherPlayerHeuristics;
+	eastl::map<PathingArcVec, NodeState> playerStates, otherPlayerStates;
 	for (PathingArcVec otherPlayerPathPlan : otherPlayerPathPlans)
 	{
 		float otherPathPlanWeight = 0.f;
@@ -898,7 +870,6 @@ void QuakeAIProcess::Simulation(NodeState& playerState,
 
 		//calculate damage
 		NodeState playerNodeState(playerState);
-		playerNodeState.arc = NULL;
 		playerNodeState.node = playerNode;
 		Damage(playerNodeState, visibleTime, visibleDistance, visibleHeight);
 
@@ -921,7 +892,7 @@ void QuakeAIProcess::Simulation(NodeState& playerState,
 		PickupItem(playerNodeState, pathActors);
 
 		NodeState otherPlayerNodeState(otherPlayerState);
-		otherPlayerNodeState.arc = otherPlayerPathPlan.back();
+		otherPlayerNodeState.path = otherPlayerPathPlan;
 		otherPlayerNodeState.node = otherPlayerPathPlan.back()->GetNode();
 		Damage(otherPlayerNodeState, otherVisibleTime, otherVisibleDistance, otherVisibleHeight);
 
@@ -943,42 +914,26 @@ void QuakeAIProcess::Simulation(NodeState& playerState,
 		}
 		PickupItem(otherPlayerNodeState, otherPathActors);
 
-		float heuristic = Heuristic(playerNodeState, otherPlayerNodeState);
-		playerHeuristics[&playerNodeState] = heuristic;
-		otherPlayerHeuristics[&otherPlayerNodeState] = heuristic;
+		//we calculate the heuristic
+		Heuristic(playerNodeState, otherPlayerNodeState);
+		playerStates[otherPlayerPathPlan] = playerNodeState;
+		otherPlayerStates[otherPlayerPathPlan] = otherPlayerNodeState;
 	}
 
-	if (!playerHeuristics.empty())
+	//we proceed with the minimax algorithm between players
+	NodeState bestPlayerState, bestOtherPlayerState;
+	bestOtherPlayerState.heuristic = FLT_MIN;
+	for (auto evaluateOtherPlayerState : otherPlayerStates)
 	{
-		float playerHeuristicAverage = 0.f;
-		for (auto playerHeuristic : playerHeuristics)
-			playerHeuristicAverage += playerHeuristic.second;
-
-		//we have all path combinations between players which occurs simultaneously, we will calculate 
-		//the average from all the combination and choose the closest one as the most representative
-		float playerHeuristicMinimum = FLT_MAX;
-		playerHeuristicAverage /= playerHeuristics.size();
-		for (auto playerHeuristic : playerHeuristics)
+		if (evaluateOtherPlayerState.second.heuristic > bestOtherPlayerState.heuristic)
 		{
-			if (abs(playerHeuristic.second - playerHeuristicAverage) < playerHeuristicMinimum)
-			{
-				playerState = (*playerHeuristic.first);
-				playerHeuristicMinimum = playerHeuristic.second;
-			}
+			bestPlayerState = playerStates[evaluateOtherPlayerState.first];
+			bestOtherPlayerState = evaluateOtherPlayerState.second;
 		}
 	}
 
-	//this time we don't need to calculate the average since there is only one state therefore
-	//we only have to choose the best one
-	float otherHeuristicMinimum = FLT_MAX;
-	for (auto otherPlayerHeuristic : otherPlayerHeuristics)
-	{
-		if (otherPlayerHeuristic.second < otherHeuristicMinimum)
-		{
-			otherPlayerState = (*otherPlayerHeuristic.first);
-			otherHeuristicMinimum = otherPlayerHeuristic.second;
-		}
-	}
+	playerState.Copy(bestPlayerState);
+	otherPlayerState.Copy(bestOtherPlayerState);
 }
 
 void QuakeAIProcess::Simulation(NodeState& playerState, NodeState& otherPlayerState)
@@ -995,10 +950,12 @@ void QuakeAIProcess::Simulation(NodeState& playerState, NodeState& otherPlayerSt
 	float otherVisibleTime = 4.0f;
 
 	//calculate damage
-	playerState.arc = NULL;
 	playerState.node = playerNode;
 	if (playerNode->IsVisibleNode(otherPlayerNode))
+	{
+		playerState.target = otherPlayerState.player;
 		Damage(playerState, visibleTime, visibleDistance, visibleHeight);
+	}
 
 	eastl::map<ActorId, float> pathActors;
 	if (playerNode->GetActorId() != INVALID_ACTOR_ID)
@@ -1008,10 +965,12 @@ void QuakeAIProcess::Simulation(NodeState& playerState, NodeState& otherPlayerSt
 	}
 	PickupItem(playerState, pathActors);
 
-	otherPlayerState.arc = NULL;
 	otherPlayerState.node = otherPlayerNode;
 	if (otherPlayerNode->IsVisibleNode(playerNode))
+	{
+		otherPlayerState.target = playerState.player;
 		Damage(otherPlayerState, otherVisibleTime, otherVisibleDistance, otherVisibleHeight);
+	}
 
 	eastl::map<ActorId, float> otherPathActors;
 	if (otherPlayerNode->GetActorId() != INVALID_ACTOR_ID)
@@ -1020,6 +979,8 @@ void QuakeAIProcess::Simulation(NodeState& playerState, NodeState& otherPlayerSt
 			otherPathActors[otherPlayerNode->GetActorId()] = 0.f;
 	}
 	PickupItem(otherPlayerState, otherPathActors);
+
+	Heuristic(playerState, otherPlayerState);
 }
 
 void QuakeAIProcess::ConstructPath(PathingNode* playerClusterNode, unsigned int playerClusterType,
@@ -1028,7 +989,7 @@ void QuakeAIProcess::ConstructPath(PathingNode* playerClusterNode, unsigned int 
 	//lets traverse the closest cluster nodes and actors from our current position
 	//it is the best way to expand the area uniformely
 	PathingClusterVec pathClusters;
-	playerClusterNode->GetClusters(playerClusterType, 20, pathClusters);
+	playerClusterNode->GetClusters(playerClusterType, 10, pathClusters);
 	for (PathingCluster* pathCluster : pathClusters)
 	{
 		PathingArcVec pathPlan;
@@ -1124,17 +1085,11 @@ void QuakeAIProcess::ConstructPath(PathingNode* playerClusterNode, unsigned int 
 
 void QuakeAIProcess::EvaluateNode(NodeState& playerState, NodeState& otherPlayerState)
 {
-	NodeState nodeState(playerState);
-	nodeState.node = playerState.node;
-	NodeState otherNodeState(otherPlayerState);
-	otherNodeState.node = otherPlayerState.node;
-	Simulation(nodeState, otherNodeState);
-	mAllies.push_back(nodeState);
-	mEnemies.push_back(otherNodeState);
+	Simulation(playerState, otherPlayerState);
 }
 
 void QuakeAIProcess::EvaluateNode(
-	bool isPlayer, NodeState& playerState, NodeState& otherPlayerState,
+	NodeState& playerState, NodeState& otherPlayerState,
 	PathingCluster* otherPlayerCluster, unsigned int otherPlayerClusterType)
 {
 	//first we find those nodes which contains actor or/and were visible
@@ -1178,21 +1133,8 @@ void QuakeAIProcess::EvaluateNode(
 	ConstructPath(otherPlayerCluster->GetNode(), 
 		otherPlayerClusterType, otherVisibleNodes, otherNodePathPlans);
 
-	NodeState nodeState(playerState);
-	nodeState.node = playerState.node;
-	NodeState otherNodeState(otherPlayerState);
-	otherNodeState.node = otherPlayerCluster->GetNode();
-	Simulation(nodeState, otherNodeState, otherNodePathPlans);
-	if (isPlayer)
-	{
-		mAllies.push_back(nodeState);
-		mEnemies.push_back(otherNodeState);
-	}
-	else
-	{
-		mEnemies.push_back(nodeState);
-		mAllies.push_back(otherNodeState);
-	}
+	otherPlayerState.node = otherPlayerCluster->GetNode();
+	Simulation(playerState, otherPlayerState, otherNodePathPlans);
 }
 
 void QuakeAIProcess::EvaluateNode(
@@ -1263,13 +1205,9 @@ void QuakeAIProcess::EvaluateNode(
 	ConstructPath(otherPlayerCluster->GetNode(), 
 		otherPlayerClusterType, otherVisibleNodes, otherNodePathPlans);
 
-	NodeState nodeState(playerState);
-	nodeState.node = playerCluster->GetNode();
-	NodeState otherNodeState(otherPlayerState);
-	otherNodeState.node = otherPlayerCluster->GetNode();
-	Simulation(nodeState, nodePathPlans, otherNodeState, otherNodePathPlans);
-	mAllies.push_back(nodeState);
-	mEnemies.push_back(otherNodeState);
+	playerState.node = playerCluster->GetNode();
+	otherPlayerState.node = otherPlayerCluster->GetNode();
+	Simulation(playerState, nodePathPlans, otherPlayerState, otherNodePathPlans);
 }
 
 void QuakeAIProcess::EvaluateCluster(
@@ -1279,34 +1217,70 @@ void QuakeAIProcess::EvaluateCluster(
 	printf("it %u \n", (*iteration));
 
 	//single case playerNode - otherPlayerNode
-	EvaluateNode(playerState, otherPlayerState);
+	{
+		NodeState state(playerState);
+		NodeState otherState(otherPlayerState);
+		EvaluateNode(state, otherState);
+
+		mPlayerState.Copy(state);
+		mOtherPlayerState.Copy(otherPlayerState);
+	}
 
 	PathingClusterVec playerClusters;
 	unsigned int playerClusterType = GAT_JUMP;
-	playerState.node->GetClusters(playerClusterType, 20, playerClusters);
+	playerState.node->GetClusters(playerClusterType, 10, playerClusters);
 	unsigned int clusterSize = playerClusters.size();
+
+	eastl::map<PathingCluster*, NodeState> playerClusterStates;
 	//for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
 	parallel_for(size_t(0), clusterSize, [&](size_t playerClusterIdx)
 	{
 		PathingCluster* playerCluster = playerClusters[playerClusterIdx];
-		EvaluateNode(false, otherPlayerState, playerState, playerCluster, playerClusterType);
 
-		//EvaluateCluster(playerCluster->GetTarget(), otherPlayerNode, iteration);
+		NodeState state(playerState);
+		NodeState otherState(otherPlayerState);
+		EvaluateNode(otherState, state, playerCluster, playerClusterType);
+		state.heuristic = -state.heuristic;
+		otherState.heuristic = -otherState.heuristic;
+
+		if (state.valid && otherState.valid)
+			playerClusterStates[playerCluster] = state;
 	});
+
+	//minimax
+	for (auto playerClusterState : playerClusterStates)
+	{
+		if (playerClusterState.second.heuristic > mPlayerState.heuristic)
+			mPlayerState.Copy(playerClusterState.second);
+	}
 
 	PathingClusterVec otherPlayerClusters;
 	unsigned int otherPlayerClusterType = GAT_JUMP;
-	otherPlayerState.node->GetClusters(otherPlayerClusterType, 20, otherPlayerClusters);
+	otherPlayerState.node->GetClusters(otherPlayerClusterType, 10, otherPlayerClusters);
 	unsigned int otherClusterSize = otherPlayerClusters.size();
+
+	eastl::map<PathingCluster*, NodeState> otherPlayerClusterStates;
 	//for (unsigned int otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
 	parallel_for(size_t(0), otherClusterSize, [&](size_t otherPlayerClusterIdx)
 	{
 		PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];
-		EvaluateNode(true, playerState, otherPlayerState, otherPlayerCluster, otherPlayerClusterType);
 
-		//EvaluateCluster(playerNode, otherPlayerCluster->GetTarget(), iteration);
+		NodeState state(playerState);
+		NodeState otherState(otherPlayerState);
+		EvaluateNode(state, otherState, otherPlayerCluster, otherPlayerClusterType);
+
+		if (state.valid && otherState.valid)
+			otherPlayerClusterStates[otherPlayerCluster] = otherState;
 	});
 
+	//minimax
+	for (auto otherPlayerClusterState : otherPlayerClusterStates)
+	{
+		if (otherPlayerClusterState.second.heuristic < mOtherPlayerState.heuristic)
+			mOtherPlayerState.Copy(otherPlayerClusterState.second);
+	}
+
+	eastl::map<PathingCluster*, eastl::map<PathingCluster*, NodeState>> playerClustersStates, otherPlayerClustersStates;
 	//for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
 	parallel_for(size_t(0), clusterSize, [&](size_t playerClusterIdx)
 	{
@@ -1315,11 +1289,43 @@ void QuakeAIProcess::EvaluateCluster(
 		parallel_for(size_t(0), otherClusterSize, [&](size_t otherPlayerClusterIdx)
 		{
 			PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];
-			EvaluateNode(playerState, otherPlayerState, playerCluster, playerClusterType, otherPlayerCluster, otherPlayerClusterType);
 
-			//EvaluateCluster(playerCluster->GetTarget(), otherPlayerCluster->GetTarget(), iteration);
+			NodeState state(playerState);
+			NodeState otherState(otherPlayerState);
+			EvaluateNode(state, otherState, playerCluster, playerClusterType, otherPlayerCluster, otherPlayerClusterType);
+
+			if (state.valid && otherState.valid)
+			{
+				playerClustersStates[playerCluster][otherPlayerCluster] = state;
+				otherPlayerClustersStates[otherPlayerCluster][playerCluster] = otherState;
+			}
 		});
 	});
+
+	//minimax
+	for (auto playerClustersState : playerClustersStates)
+	{
+		NodeState playerNodeState;
+		playerNodeState.heuristic = FLT_MAX;
+		for (auto playerClusterState : playerClustersState.second)
+			if (playerClusterState.second.heuristic < playerNodeState.heuristic)
+				playerNodeState = playerClusterState.second;
+
+		if (playerNodeState.heuristic > mPlayerState.heuristic)
+			mPlayerState.Copy(playerNodeState);
+	}
+
+	for (auto otherPlayerClustersState : otherPlayerClustersStates)
+	{
+		NodeState otherPlayerNodeState;
+		otherPlayerNodeState.heuristic = FLT_MIN;
+		for (auto otherPlayerClusterState : otherPlayerClustersState.second)
+			if (otherPlayerClusterState.second.heuristic > otherPlayerNodeState.heuristic)
+				otherPlayerNodeState = otherPlayerClusterState.second;
+
+		if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
+			mOtherPlayerState.Copy(otherPlayerNodeState);
+	}
 }
 
 void QuakeAIProcess::ThreadProc( )
@@ -1327,8 +1333,6 @@ void QuakeAIProcess::ThreadProc( )
 	unsigned int iteration = 0;
 	while (true)
 	{
-		mAllies.clear();
-		mEnemies.clear();
 		eastl::map<GameViewType, eastl::vector<eastl::shared_ptr<PlayerActor>>> players;
 
 		GameApplication* gameApp = (GameApplication*)Application::App;
@@ -1374,13 +1378,11 @@ void QuakeAIProcess::ThreadProc( )
 
 			for (auto playerNode : playerNodes)
 			{
-				NodeState playerState(playerNode.first->GetState());
-				playerState.arc = NULL;
+				NodeState playerState(playerNode.first);
 				playerState.node = playerNode.second;
 				for (auto aiNode : aiNodes)
 				{
-					NodeState aiPlayerState(aiNode.first->GetState());
-					aiPlayerState.arc = NULL;
+					NodeState aiPlayerState(aiNode.first);
 					aiPlayerState.node = aiNode.second;
 					EvaluateCluster(playerState, aiPlayerState, &iteration);
 				}

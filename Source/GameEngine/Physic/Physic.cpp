@@ -151,6 +151,7 @@ public:
 	virtual void SetTriggerCollision(bool active) { }
 	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision) { }
 	virtual void StopActor(ActorId actorId) { }
+	virtual Vector3<float> GetCenter(ActorId actorId) { return Vector3<float>(); }
 	virtual Vector3<float> GetScale(ActorId actorId) { return Vector3<float>(); }
     virtual Vector3<float> GetVelocity(ActorId actorId) { return Vector3<float>(); }
 	virtual float GetJumpSpeed(ActorId actorId) { return 0; }
@@ -398,6 +399,7 @@ public:
 	virtual void SetTriggerCollision(bool active);
 	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision);
 	virtual void StopActor(ActorId actorId);
+	virtual Vector3<float> GetCenter(ActorId actorId);
 	virtual Vector3<float> GetScale(ActorId actorId);
     virtual Vector3<float> GetVelocity(ActorId actorId);
 	virtual float GetJumpSpeed(ActorId actorId);
@@ -1354,6 +1356,40 @@ ActorId BulletPhysics::ConvexSweep(
 	collisionPoint = NULL;
 	collisionNormal = NULL;
 	return INVALID_ACTOR_ID;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// BulletPhysics::GetCenter					
+//
+Vector3<float> BulletPhysics::GetCenter(ActorId actorId)
+{
+	if (btCollisionObject * const collisionObject = FindBulletCollisionObject(actorId))
+	{
+		if (collisionObject->getCollisionFlags() & btCollisionObject::CF_CHARACTER_OBJECT)
+		{
+			if (btKinematicCharacterController* const controller =
+				dynamic_cast<btKinematicCharacterController*>(FindBulletAction(actorId)))
+			{
+				btCollisionShape* collisionShape = controller->getGhostObject()->getCollisionShape();
+
+				btVector3 aabbMin, aabbMax;
+				collisionShape->getAabb(controller->getGhostObject()->getWorldTransform(), aabbMin, aabbMax);
+				btVector3 const aabbCenter = aabbMin + (aabbMax - aabbMin);
+				return btVector3ToVector3(aabbCenter);
+			}
+		}
+		else
+		{
+			btRigidBody* const rigidBody = dynamic_cast<btRigidBody*>(collisionObject);
+
+			btVector3 aabbMin, aabbMax;
+			rigidBody->getAabb(aabbMin, aabbMax);
+			btVector3 const aabbCenter = aabbMin + (aabbMax - aabbMin);
+			return btVector3ToVector3(aabbCenter);
+		}
+	}
+	return Vector3<float>();
 }
 
 /////////////////////////////////////////////////////////////////////////////

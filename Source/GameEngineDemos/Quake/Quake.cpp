@@ -1103,7 +1103,6 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 											BSPVector3 origin;
 											if (bspLoader.GetVectorForKey(&targets[target], "origin", origin))
 												targetTransform.SetTranslation(origin[0], origin[1], origin[2]);
-
 											float angle = bspLoader.GetFloatForKey(&targets[target], "angle");
 											if (angle)
 											{
@@ -1125,7 +1124,6 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 											BSPVector3 origin;
 											if (bspLoader.GetVectorForKey(&targets[target], "origin", origin))
 												targetTransform.SetTranslation(origin[0], origin[1], origin[2]);
-
 											float angle = bspLoader.GetFloatForKey(&targets[target], "angle");
 											if (angle)
 											{
@@ -1164,6 +1162,11 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 													BaseGamePhysic* gamePhysics = GameLogic::Get()->GetGamePhysics().get();
 													gamePhysics->AddPointCloud(planes.data(), planes.size(), pActor, 
 														pPhysicComponent->GetDensity(), pPhysicComponent->GetMaterial());
+
+													eastl::shared_ptr<TransformComponent> pTransform(
+														pActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+													if (pTransform)
+														pTransform->SetPosition(gamePhysics->GetCenter(pActor->GetId()));
 												}
 											}
 										}

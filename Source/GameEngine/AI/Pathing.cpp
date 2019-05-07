@@ -728,6 +728,110 @@ void PathFinder::operator()(PathingNode* pStartNode,
 	}
 }
 
+void PathFinder::operator()(PathingNode* pStartNode,
+	eastl::vector<unsigned int>& searchClusters, ClusterPlanMap& plans, int skipArc, float threshold)
+{
+	LogAssert(pStartNode, "Invalid node");
+
+	// set our members
+	mStartNode = pStartNode;
+	mGoalNode = NULL;
+
+	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
+	// we couldn't find a path to the goal. The start node is the only node that is initially in 
+	// the open set.
+	AddToOpenSet(mStartNode, NULL);
+
+	eastl::map<unsigned int, float> minCostCluster;
+	for (unsigned int cluster : searchClusters)
+		minCostCluster[cluster] = FLT_MAX;
+
+	while (!mOpenSet.empty())
+	{
+		// grab the most likely candidate
+		PathPlanNode* planNode = mOpenSet.front();
+
+		// lets find out if we successfully found a cluster.
+		eastl::vector<unsigned int>::iterator itCluster =
+			eastl::find(searchClusters.begin(), searchClusters.end(), planNode->GetPathingNode()->GetCluster());
+		if (itCluster != searchClusters.end())
+		{
+			if (plans.find((*itCluster)) == plans.end())
+			{
+				minCostCluster[(*itCluster)] = planNode->GetGoal();
+				plans[(*itCluster)] = RebuildPath(planNode);
+			}
+			else if (planNode->GetGoal() < minCostCluster[(*itCluster)])
+			{
+				minCostCluster[(*itCluster)] = planNode->GetGoal();
+
+				delete plans[(*itCluster)];
+				plans[(*itCluster)] = RebuildPath(planNode);
+			}
+		}
+
+		// we're processing this node so remove it from the open set and add it to the closed set
+		mOpenSet.pop_front();
+		AddToClosedSet(planNode);
+
+		// get the neighboring nodes
+		PathingArcVec neighbors;
+		planNode->GetPathingNode()->GetArcs(AT_NORMAL, neighbors);
+		planNode->GetPathingNode()->GetArcs(AT_ACTION, neighbors);
+
+		// loop though all the neighboring nodes and evaluate each one
+		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+		{
+			if (skipArc == (*it)->GetType()) continue;
+
+			PathingNode* pNodeToEvaluate = (*it)->GetNode();
+
+			// Try and find a PathPlanNode object for this node.
+			PathingNodeToPathPlanNodeMap::iterator findIt = mNodes.find(pNodeToEvaluate);
+
+			// If one exists and it's in the closed list, we've already evaluated the node.  We can
+			// safely skip it.
+			if (findIt != mNodes.end() && findIt->second->IsClosed())
+				continue;
+
+			// figure out the cost for this route through the node
+			float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
+			if (costForThisPath >= threshold)
+				continue;
+
+			bool isPathBetter = false;
+			/*
+			printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
+			(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
+			(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
+			(*it)->GetType(), costForThisPath);
+			*/
+			// Grab the PathPlanNode if there is one.
+			PathPlanNode* pPathPlanNodeToEvaluate = NULL;
+			if (findIt != mNodes.end())
+				pPathPlanNodeToEvaluate = findIt->second;
+
+			// No PathPlanNode means we've never evaluated this pathing node so we need to add it to 
+			// the open set, which has the side effect of setting all the cost data.
+			if (!pPathPlanNodeToEvaluate)
+				pPathPlanNodeToEvaluate = AddToOpenSet((*it), planNode);
+
+			// If this node is already in the open set, check to see if this route to it is better than
+			// the last.
+			else if (costForThisPath < pPathPlanNodeToEvaluate->GetGoal())
+				isPathBetter = true;
+
+			// If this path is better, relink the nodes appropriately, update the cost data, and
+			// reinsert the node into the open list priority queue.
+			if (isPathBetter)
+			{
+				pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
+				ReinsertNode(pPathPlanNodeToEvaluate);
+			}
+		}
+	}
+}
+
 PathPlanNode* PathFinder::AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode)
 {
 	LogAssert(pArc, "Invalid arc");
@@ -981,6 +1085,15 @@ void PathingGraph::FindPlans(PathingNode* pStartNode,
 	// find the best path using an A* search algorithm
 	PathFinder pathFinder;
 	pathFinder(pStartNode, searchNodes, plans, skipArc, threshold);
+}
+
+
+void PathingGraph::FindPlans(PathingNode* pStartNode,
+	eastl::vector<unsigned int>& searchClusters, ClusterPlanMap& plans, int skipArc, float threshold)
+{
+	// find the best path using an A* search algorithm
+	PathFinder pathFinder;
+	pathFinder(pStartNode, searchClusters, plans, skipArc, threshold);
 }
 
 PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode)

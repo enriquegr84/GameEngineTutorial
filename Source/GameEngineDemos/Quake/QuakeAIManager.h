@@ -101,12 +101,10 @@ private:
 	unsigned int mLastArcId;
 	unsigned int mLastNodeId;
 
-	//open set of nodes to be analized and also to
-	//inform whether they are on ground or not
-	eastl::map<PathingNode*, bool> mOpenSet, mClosedSet;
+	//set of nodes to be analized from the ground
+	eastl::vector<PathingNode*> mOpenSet, mClosedSet;
 
 	//pathing nodes which contains actors from game
-	eastl::map<ActorId, bool> mActorCollisions;
 	eastl::map<PathingNode*, ActorId> mActorNodes;
 
 	void RegisterAllDelegates(void);

@@ -60,6 +60,7 @@ typedef eastl::vector<PathingTransition*> PathingTransitionVec;
 
 typedef eastl::list<PathPlanNode*> PathPlanNodeList;
 typedef eastl::map<PathingNode*, PathPlan*> PathPlanMap;
+typedef eastl::map<unsigned int, PathPlan*> ClusterPlanMap;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
 typedef eastl::map<PathingNode*, PathingArcVec> PathingNodeArcMap;
 typedef eastl::map<PathingArc*, PathingNodeVec> PathingArcNodeMap;
@@ -79,6 +80,8 @@ class PathingNode
 	unsigned int mId;
 	Vector3<float> mPos;
 	PathingArcVec mArcs;
+
+	unsigned int mClusterId;
 	PathingClusterVec mClusters;
 	PathingTransitionVec mTransitions;
 
@@ -116,6 +119,8 @@ public:
 	PathingCluster* FindCluster(PathingNode* pTargetNode);
 	PathingCluster* FindCluster(unsigned int clusterType, PathingNode* pTargetNode);
 
+	unsigned int GetCluster() { return mClusterId; }
+	void SetCluster(unsigned int clusterId) { mClusterId = clusterId; }
 	void GetClusters(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters);
 	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters);
 	const PathingClusterVec& GetClusters() { return mClusters; }
@@ -128,7 +133,6 @@ public:
 	PathingTransition* FindTransition(unsigned int id);
 	void RemoveTransition(unsigned int id);
 	void RemoveTransitions();
-
 };
 
 
@@ -305,7 +309,8 @@ public:
 		PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold = FLT_MAX);
 	void operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes, 
 		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
-
+	void operator()(PathingNode* pStartNode, eastl::vector<unsigned int>& searchClusters,
+		ClusterPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 private:
 	PathPlanNode* AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode);
 	PathPlanNode* AddToOpenSet(PathingNode* pNode, PathPlanNode* pPrevNode);
@@ -342,6 +347,8 @@ public:
 		PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold = FLT_MAX);
 	void FindPlans(PathingNode* pStartNode, PathingNodeVec& searchNodes, 
 		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
+	void FindPlans(PathingNode* pStartNode, eastl::vector<unsigned int>& searchClusters,
+		ClusterPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	PathPlan* FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
 	PathPlan* FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode);
 	PathPlan* FindPath(PathingNode* pStartNode, const Vector3<float>& endPoint);
