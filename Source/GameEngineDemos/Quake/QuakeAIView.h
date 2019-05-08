@@ -106,6 +106,7 @@ private:
 	unsigned int mCurrentAction;
 
 	PathingNode* mGoalNode;
+	PathingArc* mCurrentArc;
 	PathingNode* mCurrentNode;
 	eastl::shared_ptr<PathingGraph> mPathingGraph;
 };

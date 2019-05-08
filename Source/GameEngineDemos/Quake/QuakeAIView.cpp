@@ -80,6 +80,7 @@ QuakeAIView::QuakeAIView()
 	mCurrentDirectionTime = 0;
 
 	mCurrentNode = NULL;
+	mCurrentArc = NULL;
 	mGoalNode= NULL;
 
 	mViewId = INVALID_GAME_VIEW_ID;
@@ -512,6 +513,62 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 	if (pTransformComponent)
 	{
+		if (mPathingGraph)
+		{
+			if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID ||
+				pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
+			{
+				if (pPlayerActor->GetAction().triggerPush == mCurrentArc->GetNode()->GetActorId() ||
+					pPlayerActor->GetAction().triggerTeleporter == mCurrentArc->GetNode()->GetActorId())
+				{
+					do
+					{
+						Vector3<float> currentPosition = pTransformComponent->GetPosition();
+						PathingCluster* currentCluster = mCurrentArc->GetNode()->FindCluster(GAT_JUMP, mGoalNode);
+						if (currentCluster != NULL)
+						{
+							PathingArc* clusterArc = mCurrentArc->GetNode()->FindArc(currentCluster->GetNode());
+							PathingNode* clusterNode = clusterArc->GetNode();
+							unsigned int clusterArcType = clusterArc->GetType();
+							/*
+							Vector3<float> nextPos = clusterNode->GetPos();
+							printf("next pos %f %f %f arc %u \n",
+							nextPos[0], nextPos[1], nextPos[2], clusterArc->GetType());
+
+							printf("node %f %f %f node %u goal node %u\n",
+							currentNode->GetPos()[0], currentNode->GetPos()[1], currentNode->GetPos()[2],
+							currentNode->GetId(), mGoalNode->GetId());
+							*/
+							mCurrentArc = clusterArc;
+							mCurrentAction = clusterArcType;
+							mCurrentNode = clusterArc->GetNode();
+							mCurrentDirectionTime = clusterArc->GetWeight() + 1.5f;
+							Vector3<float> direction = clusterNode->GetPos() - currentPosition;
+							Normalize(direction);
+							mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+						}
+
+						if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
+							break;
+
+					} while (mCurrentNode != mGoalNode);
+
+					PathingNode* currentNode = mCurrentNode;
+					if (currentNode != mGoalNode)
+					{
+						printf("\n trigger next nodes : ");
+						do
+						{
+							PathingCluster* currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
+							PathingArc* clusterArc = currentNode->FindArc(currentCluster->GetNode());
+							currentNode = clusterArc->GetNode();
+							printf("%u ", currentNode->GetId());
+						} while (currentNode != mGoalNode);
+					}
+				}
+			}
+		}
+
 		if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
 		{
 			eastl::shared_ptr<Actor> pItemActor(
@@ -561,7 +618,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						Vector3<float> direction;
 						eastl::shared_ptr<Actor> pItemActor(
 							eastl::dynamic_shared_pointer_cast<Actor>(
-								GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
+							GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
 						eastl::shared_ptr<PushTrigger> pPushTrigger =
 							pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
 
@@ -594,6 +651,23 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
 
 							bool searchNode = true;
+							if (mCurrentNode->GetActorId() != INVALID_ACTOR_ID)
+							{
+								eastl::shared_ptr<Actor> pItemActor(
+									eastl::dynamic_shared_pointer_cast<Actor>(
+									GameLogic::Get()->GetActor(mCurrentNode->GetActorId()).lock()));
+								if (pItemActor->GetType() == "Trigger")
+								{
+									searchNode = false;
+									eastl::shared_ptr<PushTrigger> pPushTrigger =
+										pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
+									if (pPushTrigger)
+										mCurrentAction = GAT_PUSH;
+									else
+										mCurrentAction = GAT_TELEPORT;
+								}
+							}
+
 							Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
 							if (Length(diff) > PATHING_DEFAULT_NODE_TOLERANCE)
 								searchNode = false;
@@ -603,6 +677,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
 								mCurrentDirectionTime = 0;
 								mCurrentAction = 0;
+								mCurrentArc = 0;
 
 								mGoalNode = NULL;
 								searchNode = true;
@@ -669,9 +744,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											currentNode->GetPos()[0], currentNode->GetPos()[1], currentNode->GetPos()[2],
 											currentNode->GetId(), mGoalNode->GetId());
 										*/
+										mCurrentArc = clusterArc;
 										mCurrentAction = clusterArcType;
 										mCurrentNode = clusterArc->GetNode();
-										mCurrentDirectionTime = clusterArc->GetWeight() + 1.0f;
+										mCurrentDirectionTime = clusterArc->GetWeight() + 1.5f;
 										Vector3<float> direction = clusterNode->GetPos() - currentPosition;
 										Normalize(direction);
 										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
@@ -692,6 +768,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										mCurrentNode = NULL;
 										mCurrentDirectionTime = 0;
 										mCurrentAction = 0;
+										mCurrentArc = 0;
 									}
 								}
 								else
@@ -707,18 +784,36 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									mCurrentAction == GAT_PUSH ||
 									mCurrentAction == GAT_TELEPORT)
 								{
-									if (mCurrentAction == GAT_JUMP)
+									if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
+									{
+										if (mCurrentNode->GetActorId() != INVALID_ACTOR_ID)
+										{
+											eastl::shared_ptr<Actor> pItemActor(
+												eastl::dynamic_shared_pointer_cast<Actor>(
+												GameLogic::Get()->GetActor(mCurrentNode->GetActorId()).lock()));
+											if (pItemActor->GetType() == "Trigger")
+											{
+												eastl::shared_ptr<TransformComponent> pTriggerTransform =
+													pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+
+												PathingNode* pathingNode = 
+													mPathingGraph->FindClosestNode(pTriggerTransform->GetPosition());
+												Vector3<float> direction = pathingNode->GetPos() - currentPosition;
+												Normalize(direction);
+												mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+											}
+										}
+
+										Stationary(deltaMs);
+										Movement(deltaMs);
+									}
+									else
 									{
 										pPlayerActor->GetAction().actionType |= ACTION_JUMP;
 
 										Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 										Normalize(direction);
 										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-									}
-									else
-									{
-										Stationary(deltaMs);
-										Movement(deltaMs);
 									}
 									mCurrentAction = 0;
 								}

@@ -41,6 +41,7 @@
 
 #include "GameEngineStd.h"
 
+#include "Game/Actor/Actor.h"
 #include "Core/Logger/Logger.h"
 #include "Mathematic/Algebra/Vector3.h"
 
@@ -61,6 +62,7 @@ typedef eastl::vector<PathingTransition*> PathingTransitionVec;
 typedef eastl::list<PathPlanNode*> PathPlanNodeList;
 typedef eastl::map<PathingNode*, PathPlan*> PathPlanMap;
 typedef eastl::map<unsigned int, PathPlan*> ClusterPlanMap;
+typedef eastl::map<eastl::shared_ptr<Actor>, PathPlan*> ActorPlanMap;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
 typedef eastl::map<PathingNode*, PathingArcVec> PathingNodeArcMap;
 typedef eastl::map<PathingArc*, PathingNodeVec> PathingArcNodeMap;
@@ -309,6 +311,8 @@ public:
 		PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold = FLT_MAX);
 	void operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes, 
 		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
+	void operator()(PathingNode* pStartNode, eastl::vector<eastl::shared_ptr<Actor>>& searchActors,
+		ActorPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	void operator()(PathingNode* pStartNode, eastl::vector<unsigned int>& searchClusters,
 		ClusterPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 private:
@@ -347,6 +351,8 @@ public:
 		PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold = FLT_MAX);
 	void FindPlans(PathingNode* pStartNode, PathingNodeVec& searchNodes, 
 		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
+	void FindPlans(PathingNode* pStartNode, eastl::vector<eastl::shared_ptr<Actor>>& searchActors,
+		ActorPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	void FindPlans(PathingNode* pStartNode, eastl::vector<unsigned int>& searchClusters,
 		ClusterPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	PathPlan* FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
