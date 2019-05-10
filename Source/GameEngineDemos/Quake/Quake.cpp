@@ -1836,7 +1836,7 @@ void QuakeLogic::SplashDamageDelegate(BaseEventDataPtr pEventData)
 		{
 			eastl::shared_ptr<PlasmaFire> pPlasmaFire =
 				pGameActor->GetComponent<PlasmaFire>(PlasmaFire::Name).lock();
-			RadiusDamage(15, 20, MOD_PLASMA, pCastEventData->GetOrigin(),
+			RadiusDamage(20, 40, MOD_PLASMA, pCastEventData->GetOrigin(),
 				eastl::dynamic_shared_pointer_cast<PlayerActor>(pPlasmaFire->mAttacker));
 
 			eastl::shared_ptr<EventDataRequestDestroyActor>

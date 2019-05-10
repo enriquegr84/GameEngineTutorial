@@ -285,8 +285,8 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 	eastl::map<unsigned int, PathingNode*> pathingNodeGraph;
 	for (CerealTypes::GraphNode node : data.nodes)
 	{
-		unsigned int clusterId = node.clusterid;
-		unsigned int pathNodeId = node.id;
+		unsigned short clusterId = node.clusterid;
+		unsigned short pathNodeId = node.id;
 		ActorId actorId = node.actorid;
 		float tolerance = node.tolerance;
 		Vector3<float> position{ 
@@ -302,7 +302,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 
 	for (CerealTypes::GraphNode node : data.nodes)
 	{
-		int pathNodeId = node.id;
+		unsigned short pathNodeId = node.id;
 		PathingNode* pathNode = pathingNodeGraph[pathNodeId];
 
 		for (CerealTypes::VisibleNode visibleNode : node.visibles)
@@ -315,7 +315,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 		for (CerealTypes::ArcNode arc : node.arcs)
 		{
 			unsigned int arcId = arc.id;
-			int arcType = arc.type;
+			unsigned short arcType = arc.type;
 			int arcNode = arc.nodeid;
 			float weight = arc.weight;
 			if (mLastArcId < arcId) mLastArcId = arcId;
@@ -342,8 +342,8 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 
 		for (CerealTypes::TransitionNode transition : node.transitions)
 		{
-			int transitionId = transition.id;
-			int transitionType = transition.type;
+			unsigned int transitionId = transition.id;
+			unsigned short transitionType = transition.type;
 
 			eastl::vector<float> weights;
 			eastl::vector<PathingNode*> nodes;
@@ -489,35 +489,44 @@ void QuakeAIManager::SimulateVisibility()
 
 	for (PathingNode* pathNode : mPathingGraph->GetNodes())
 	{
-		for (PathingTransition* pathTransition : pathNode->GetTransitions())
+		for (PathingArc* pathArc : pathNode->GetArcs())
 		{
-			PathingNodeVec nodes;
-			eastl::map<PathingNode*, float> weights;
-			eastl::map<PathingNode*, Vector3<float>> positions;
-			for (unsigned int idx = 0; idx < pathTransition->GetConnections().size(); idx++)
+			PathingTransition* pathTransition = pathNode->FindTransition(pathArc->GetId());
+			if (pathTransition)
 			{
-				PathingNode* pathConnection = pathingNodes[pathTransition->GetConnections()[idx]];
-				if (eastl::find(nodes.begin(), nodes.end(), pathConnection) == nodes.end())
+				PathingNodeVec nodes;
+				eastl::map<PathingNode*, float> weights;
+				eastl::map<PathingNode*, Vector3<float>> positions;
+				for (unsigned int idx = 0; idx < pathTransition->GetConnections().size(); idx++)
 				{
-					weights[pathConnection] = 0;
-					nodes.push_back(pathConnection);
+					PathingNode* pathConnection = pathingNodes[pathTransition->GetConnections()[idx]];
+					if (eastl::find(nodes.begin(), nodes.end(), pathConnection) == nodes.end())
+					{
+						weights[pathConnection] = 0;
+						nodes.push_back(pathConnection);
+					}
+
+					weights[pathConnection] += pathTransition->GetWeights()[idx];
+					positions[pathConnection] = pathTransition->GetConnections()[idx];
 				}
 
-				weights[pathConnection] += pathTransition->GetWeights()[idx];
-				positions[pathConnection] = pathTransition->GetConnections()[idx];
-			}
-			
-			eastl::vector<float> nodeWeights;
-			eastl::vector<Vector3<float>> nodePositions;
-			for (PathingNode* node : nodes)
-			{
-				nodeWeights.push_back(weights[node]);
-				nodePositions.push_back(positions[node]);
-			}
+				eastl::vector<float> nodeWeights;
+				eastl::vector<Vector3<float>> nodePositions;
+				for (PathingNode* node : nodes)
+				{
+					nodeWeights.push_back(weights[node]);
+					nodePositions.push_back(positions[node]);
+				}
 
-			pathNode->RemoveTransition(pathTransition->GetId());
-			pathNode->AddTransition(new PathingTransition(
-				pathTransition->GetId(), pathTransition->GetType(), nodes, nodeWeights, nodePositions));
+				pathNode->RemoveTransition(pathTransition->GetId());
+				pathNode->AddTransition(new PathingTransition(
+					pathArc->GetId(), pathArc->GetType(), nodes, nodeWeights, nodePositions));
+			}
+			else
+			{
+				pathNode->AddTransition(new PathingTransition(pathArc->GetId(), pathArc->GetType(), 
+					{ pathArc->GetNode() }, { pathArc->GetWeight() }, { pathArc->GetNode()->GetPos() }));
+			}
 		}
 	}
 }

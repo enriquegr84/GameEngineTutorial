@@ -524,10 +524,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					do
 					{
 						Vector3<float> currentPosition = pTransformComponent->GetPosition();
-						PathingCluster* currentCluster = mCurrentArc->GetNode()->FindCluster(GAT_JUMP, mGoalNode);
+						PathingCluster* currentCluster = mCurrentNode->FindCluster(GAT_JUMP, mGoalNode);
 						if (currentCluster != NULL)
 						{
-							PathingArc* clusterArc = mCurrentArc->GetNode()->FindArc(currentCluster->GetNode());
+							PathingArc* clusterArc = mCurrentNode->FindArc(currentCluster->GetNode());
 							PathingNode* clusterNode = clusterArc->GetNode();
 							unsigned int clusterArcType = clusterArc->GetType();
 							/*
@@ -542,15 +542,27 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							mCurrentArc = clusterArc;
 							mCurrentAction = clusterArcType;
 							mCurrentNode = clusterArc->GetNode();
-							mCurrentDirectionTime = clusterArc->GetWeight() + 1.5f;
+							mCurrentDirectionTime = clusterArc->GetWeight() + 2.0f;
 							Vector3<float> direction = clusterNode->GetPos() - currentPosition;
 							Normalize(direction);
 							mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 						}
 
 						if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
-							break;
+						{
+							if (mCurrentNode != mGoalNode)
+							{
+								currentCluster = mCurrentNode->FindCluster(GAT_JUMP, mGoalNode);
+								mCurrentArc = mCurrentNode->FindArc(currentCluster->GetNode());
+								mCurrentAction = mCurrentArc->GetType();
+								mCurrentNode = mCurrentArc->GetNode();
 
+								Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
+								Normalize(direction);
+								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+							}
+							break;
+						}
 					} while (mCurrentNode != mGoalNode);
 
 					PathingNode* currentNode = mCurrentNode;
@@ -747,7 +759,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										mCurrentArc = clusterArc;
 										mCurrentAction = clusterArcType;
 										mCurrentNode = clusterArc->GetNode();
-										mCurrentDirectionTime = clusterArc->GetWeight() + 1.5f;
+										mCurrentDirectionTime = clusterArc->GetWeight() + 1.0f;
 										Vector3<float> direction = clusterNode->GetPos() - currentPosition;
 										Normalize(direction);
 										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
