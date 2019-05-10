@@ -1190,9 +1190,9 @@ bool QuakeHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 	eastl::string levelPath = "ai/quake/" + eastl::string(pLevelData->Attribute("name")) + ".bin";
 	GameLogic::Get()->GetAIManager()->LoadPathingGraph(
 		ToWideString(FileSystem::Get()->GetPath(levelPath.c_str()).c_str()));
-	/*
+
 	mProcessManager->AttachProcess(eastl::shared_ptr<Process>(new QuakeAIProcess()));
-	*/
+
     mGameStandardHUD.reset(new QuakeStandardHUD(shared_from_this()));
 	mGameStandardHUD->OnInit();
     PushElement(mGameStandardHUD);

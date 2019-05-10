@@ -43,6 +43,8 @@
 #include "Core/Event/EventManager.h"
 #include "Core/Event/Event.h"
 
+#include "Actors/PlayerActor.h"
+
 #include "AI/Pathing.h"
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -877,7 +879,10 @@ public:
 //---------------------------------------------------------------------------------------------------------------------
 class QuakeEventDataAIDecisionMaking : public EventData
 {
-	ActorId mPlayerId;
+	eastl::vector<ActorId> mPlayers;
+	eastl::map<ActorId, ActorId> mPlayerTargets;
+	eastl::map<ActorId, WeaponType> mPlayerWeapons;
+	eastl::map<ActorId, PathingArcVec> mPlayerPaths;
 
 public:
 	static const BaseEventType skEventType;
@@ -888,27 +893,39 @@ public:
 
 	QuakeEventDataAIDecisionMaking(void)
 	{
-		mPlayerId = INVALID_ACTOR_ID;
+
 	}
 
-	QuakeEventDataAIDecisionMaking(ActorId playerId)
-		: mPlayerId(playerId)
+	QuakeEventDataAIDecisionMaking(
+		eastl::vector<ActorId> players,
+		eastl::map<ActorId, ActorId> playerTargets,
+		eastl::map<ActorId, WeaponType> payerWeapons,
+		eastl::map<ActorId, PathingArcVec> playerPaths)
 	{
+		for (ActorId player : players)
+		{
+			mPlayers.push_back(player);
+			mPlayerTargets[player] = playerTargets[player];
+			mPlayerWeapons[player] = payerWeapons[player];
+			for (PathingArc* pathArc : playerPaths[player])
+				mPlayerPaths[player].push_back(pathArc);
+		}
 	}
 
 	virtual BaseEventDataPtr Copy() const
 	{
-		return BaseEventDataPtr(new QuakeEventDataAIDecisionMaking(mPlayerId));
+		return BaseEventDataPtr(new QuakeEventDataAIDecisionMaking(
+			mPlayers, mPlayerTargets, mPlayerWeapons, mPlayerPaths));
 	}
 
 	virtual void Serialize(std::ostrstream& out) const
 	{
-		out << mPlayerId;
+
 	}
 
 	virtual void Deserialize(std::istrstream& in)
 	{
-		in >> mPlayerId;
+
 	}
 
 	virtual const char* GetName(void) const
@@ -916,9 +933,19 @@ public:
 		return "QuakeEventDataAIDecisionMaking";
 	}
 
-	ActorId GetPlayerId(void) const
+	ActorId GetTarget(ActorId player)
 	{
-		return mPlayerId;
+		return mPlayerTargets[player];
+	}
+
+	WeaponType GetWeapon(ActorId player)
+	{
+		return mPlayerWeapons[player];
+	}
+
+	PathingArcVec GetPath(ActorId player)
+	{
+		return mPlayerPaths[player];
 	}
 };
 

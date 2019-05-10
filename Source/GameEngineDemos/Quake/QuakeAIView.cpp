@@ -132,6 +132,11 @@ void QuakeAIView::DecisionMakingUpdateDelegate(BaseEventDataPtr pEventData)
 	eastl::shared_ptr<QuakeEventDataAIDecisionMaking> pCastEventData =
 		eastl::static_pointer_cast<QuakeEventDataAIDecisionMaking>(pEventData);
 
+	printf("\n target %u ", pCastEventData->GetTarget(mPlayerId));
+	printf("\n weapon %u ", pCastEventData->GetWeapon(mPlayerId));
+	printf("\n path nodes : ");
+	for (PathingArc* pathArc : pCastEventData->GetPath(mPlayerId))
+		printf("%u ", pathArc->GetNode()->GetId());
 }
 
 //Stationary movement
@@ -530,15 +535,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							PathingArc* clusterArc = mCurrentNode->FindArc(currentCluster->GetNode());
 							PathingNode* clusterNode = clusterArc->GetNode();
 							unsigned int clusterArcType = clusterArc->GetType();
-							/*
-							Vector3<float> nextPos = clusterNode->GetPos();
-							printf("next pos %f %f %f arc %u \n",
-							nextPos[0], nextPos[1], nextPos[2], clusterArc->GetType());
 
-							printf("node %f %f %f node %u goal node %u\n",
-							currentNode->GetPos()[0], currentNode->GetPos()[1], currentNode->GetPos()[2],
-							currentNode->GetId(), mGoalNode->GetId());
-							*/
 							mCurrentArc = clusterArc;
 							mCurrentAction = clusterArcType;
 							mCurrentNode = clusterArc->GetNode();
@@ -564,7 +561,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							break;
 						}
 					} while (mCurrentNode != mGoalNode);
-
+					/*
 					PathingNode* currentNode = mCurrentNode;
 					if (currentNode != mGoalNode)
 					{
@@ -577,6 +574,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							printf("%u ", currentNode->GetId());
 						} while (currentNode != mGoalNode);
 					}
+					*/
 				}
 			}
 		}
@@ -655,10 +653,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						if (mPathingGraph)
 						{
 							Vector3<float> currentPosition = pTransformComponent->GetPosition();
-							/*
-							printf("\n current position %f %f %f \n",
-								currentPosition[0], currentPosition[1], currentPosition[2]);
-							*/
 							if (mCurrentNode == NULL)
 								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
 
@@ -707,33 +701,16 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										PathingClusterVec clusterNodes;
 										currentNode->GetClusters(GAT_JUMP, clusterNodes);
 
-										PathingClusterVec clusterActors;
-										if (mCurrentDirectionTime <= 0.f)
+										//printf("\n cluster size %u \n", clusterNodes.size());
+										if (!clusterNodes.empty())
 										{
-											for (PathingCluster* clusterNode : clusterNodes)
-												if (clusterNode->GetActor() != INVALID_ACTOR_ID)
-													clusterActors.push_back(clusterNode);
-										}
-
-										if (clusterActors.empty())
-										{
-											printf("\n cluster size %u \n", clusterNodes.size());
-											if (!clusterNodes.empty())
-											{
-												unsigned int cluster = Randomizer::Rand() % clusterNodes.size();
-												mGoalNode = clusterNodes[cluster]->GetTarget();
-											}
-											else
-											{
-												mGoalNode = NULL;
-												break;
-											}
+											unsigned int cluster = Randomizer::Rand() % clusterNodes.size();
+											mGoalNode = clusterNodes[cluster]->GetTarget();
 										}
 										else
 										{
-											printf("\n cluster actors size %u \n", clusterActors.size());
-											unsigned int cluster = Randomizer::Rand() % clusterActors.size();
-											mGoalNode = clusterActors[cluster]->GetTarget();
+											mGoalNode = NULL;
+											break;
 										}
 									} while (currentNode == mGoalNode || mGoalNode->GetArcs().empty());
 								}
@@ -747,15 +724,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										PathingArc* clusterArc = currentNode->FindArc(currentCluster->GetNode());
 										PathingNode* clusterNode = clusterArc->GetNode();
 										unsigned int clusterArcType = clusterArc->GetType();
-										/*
-										Vector3<float> nextPos = clusterNode->GetPos();
-										printf("next pos %f %f %f arc %u \n",
-											nextPos[0], nextPos[1], nextPos[2], clusterArc->GetType());
 
-										printf("node %f %f %f node %u goal node %u\n",
-											currentNode->GetPos()[0], currentNode->GetPos()[1], currentNode->GetPos()[2],
-											currentNode->GetId(), mGoalNode->GetId());
-										*/
 										mCurrentArc = clusterArc;
 										mCurrentAction = clusterArcType;
 										mCurrentNode = clusterArc->GetNode();
@@ -764,6 +733,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										Normalize(direction);
 										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
+										/*
 										printf("\n next nodes : ");
 										do
 										{
@@ -772,6 +742,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											currentNode = clusterArc->GetNode();
 											printf("%u ", currentNode->GetId());
 										} while (currentNode != mGoalNode);
+										*/
 									}
 									else
 									{
@@ -844,10 +815,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										mPlayerId, start, end, collision, collisionNormal);
 									if (collision == NULL || actorId != INVALID_ACTOR_ID)
 									{
-										/*
-										printf("node approaching %f %f %f \n",
-										mCurrentNode->GetPos()[0], mCurrentNode->GetPos()[1], mCurrentNode->GetPos()[2]);
-										*/
 										Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 										Normalize(direction);
 										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
