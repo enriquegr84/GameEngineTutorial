@@ -46,7 +46,9 @@
 #include "Actors/PlayerActor.h"
 #include "Actors/PushTrigger.h"
 #include "Actors/TeleporterTrigger.h"
+
 #include "QuakePlayerController.h"
+#include "QuakeAIManager.h"
 #include "QuakeEvents.h"
 #include "QuakeApp.h"
 
@@ -315,17 +317,23 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			{
 				mFallSpeed = 0.0f;
 
-				if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID)
+				eastl::shared_ptr<TransformComponent> pTransformComponent =
+					pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+				if (pTransformComponent)
 				{
-					float push;
-					Vector3<float> direction;
-					eastl::shared_ptr<TransformComponent> pTransformComponent =
-						pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-					if (pTransformComponent)
+					QuakeAIManager* aiManager =
+						dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+					aiManager->SetPlayerNode(mTarget->GetId(),
+						aiManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition()));
+
+					if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID)
 					{
+						float push;
+						Vector3<float> direction;
+
 						eastl::shared_ptr<Actor> pItemActor(
 							eastl::dynamic_shared_pointer_cast<Actor>(
-							GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
+								GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
 						eastl::shared_ptr<PushTrigger> pPushTrigger =
 							pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
 
@@ -334,40 +342,40 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						direction = targetPosition - playerPosition;
 						push = Length(direction);
 						Normalize(direction);
-					}
 
-					direction[PITCH] *= push / 90.f;
-					direction[ROLL] *= push / 90.f;
-					direction[YAW] = push / 30.f;
-					velocity = HLift(direction, 0.f);
-
-					pPlayerActor->GetAction().actionType |= ACTION_JUMP;
-				}
-				else if (mEnabled)
-				{
-					if (mMouseRButtonDown)
-					{
-						upWorld = Vector4<float>::Unit(YAW);
-						Vector4<float> direction = atWorld + rightWorld + upWorld;
-						Normalize(direction);
-
-						direction[PITCH] *= mJumpMoveSpeed;
-						direction[ROLL] *= mJumpMoveSpeed;
-						direction[YAW] *= mJumpSpeed;
-						velocity = direction;
+						direction[PITCH] *= push / 90.f;
+						direction[ROLL] *= push / 90.f;
+						direction[YAW] = push / 30.f;
+						velocity = HLift(direction, 0.f);
 
 						pPlayerActor->GetAction().actionType |= ACTION_JUMP;
 					}
-					else
+					else if (mEnabled)
 					{
-						Vector4<float> direction = atWorld + rightWorld + upWorld;
-						Normalize(direction);
+						if (mMouseRButtonDown)
+						{
+							upWorld = Vector4<float>::Unit(YAW);
+							Vector4<float> direction = atWorld + rightWorld + upWorld;
+							Normalize(direction);
 
-						direction *= mMoveSpeed;
-						velocity = direction;
+							direction[PITCH] *= mJumpMoveSpeed;
+							direction[ROLL] *= mJumpMoveSpeed;
+							direction[YAW] *= mJumpSpeed;
+							velocity = direction;
+
+							pPlayerActor->GetAction().actionType |= ACTION_JUMP;
+						}
+						else
+						{
+							Vector4<float> direction = atWorld + rightWorld + upWorld;
+							Normalize(direction);
+
+							direction *= mMoveSpeed;
+							velocity = direction;
+						}
 					}
+					pPlayerActor->GetAction().actionType |= ACTION_RUN;
 				}
-				pPlayerActor->GetAction().actionType |= ACTION_RUN;
 			}
 			else
 			{
@@ -398,7 +406,10 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			else if (!(prevActionType & ACTION_ATTACK))
 			{
 				if (pPlayerActor->GetAction().actionType & ACTION_ATTACK)
+				{
 					pPlayerActor->PlayerSpawn();
+					pPlayerActor->GetAction().actionType = 0;
+				}
 			}
 		}
 	}

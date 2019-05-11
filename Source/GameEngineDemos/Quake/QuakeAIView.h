@@ -64,9 +64,6 @@ public:
 	virtual bool OnMsgProc( const Event& event ) {	return false; }
 	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 
-	// event delegates
-	void DecisionMakingUpdateDelegate(BaseEventDataPtr pEventData);
-
 protected:
 
 	void Stationary(unsigned long deltaMs);

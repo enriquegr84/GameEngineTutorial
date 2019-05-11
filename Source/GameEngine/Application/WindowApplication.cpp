@@ -78,54 +78,13 @@ unsigned int WindowApplication::UpdateTime()
 }
 //----------------------------------------------------------------------------
 
-
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 /*
-	Returns the current dt, which guarantees a limited frame rate. If dt is
-	too low (the frame rate too high), the process will sleep to reach the
-	maxium frame rate.
- */
-float WindowApplication::GetLimitedDt()
-{
-	unsigned int currTime = mTimer;
-	unsigned int prevTime = currTime;
-
-	float dt;  // needed outside of the while loop
-	while (1)
-	{
-		currTime = Timer::GetRealTime();
-		dt = (float)(currTime - prevTime);
-
-		// don't allow the game to run slower than a certain amount.
-		// when the computer can't keep it up, slow down the shown time instead
-		static const float maxElapsedTime = 3.0f*1.0f / 60.0f*1000.0f; /* time 3 internal substeps take */
-		if (dt > maxElapsedTime) dt = maxElapsedTime;
-
-		// Throttle fps if more than maximum, which can reduce
-		// the noise the fan on a graphics card makes.
-		// When in menus, reduce FPS much, it's not necessary to push to the maximum for plain menus
-		const int maxFPS = 60;//(StateManager::get()->throttleFPS() ? 35 : UserConfigParams::mMaxFPS);
-		const int currentFPS = (int)(1000.0f / dt);
-		if (currentFPS > maxFPS)// && !ProfileWorld::isProfileMode())
-		{
-			int waitTime = 1000 / maxFPS - 1000 / currentFPS;
-			if (waitTime < 1) waitTime = 1;
-
-			mSystem->OnPause(waitTime);
-		}
-		else break;
-	}
-	dt *= 0.001f;
-	return dt;
-}   // GetLimitedDt
-
-	//----------------------------------------------------------------------------
-	/*
-	This is the base class which provides general purpose initialization for platform-dependent
-	specifications. It creates a window for the application to draw to, set up graphics drivers,
-	and perform generic component initialization. It is intended to be inherited so this method
-	can be customized by derived class.
-	*/
+This is the base class which provides general purpose initialization for platform-dependent
+specifications. It creates a window for the application to draw to, set up graphics drivers,
+and perform generic component initialization. It is intended to be inherited so this method
+can be customized by derived class.
+*/
 bool WindowApplication::OnInitialize()
 {
 

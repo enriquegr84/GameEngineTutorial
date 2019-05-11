@@ -369,6 +369,91 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 	}
 }
 
+ActorId QuakeAIManager::GetPlayerTarget(ActorId player)
+{
+	mMutex.lock();
+	{
+		if (mPlayerTargets.find(player) != mPlayerTargets.end())
+			return mPlayerTargets[player];
+		else
+			return INVALID_ACTOR_ID;
+	}
+	mMutex.unlock();
+}
+
+WeaponType QuakeAIManager::GetPlayerWeapon(ActorId player)
+{
+	mMutex.lock();
+	{
+		if (mPlayerWeapons.find(player) != mPlayerWeapons.end())
+			return mPlayerWeapons[player];
+		else
+			return WP_NONE;
+	}
+	mMutex.unlock();
+}
+
+PathingArcVec QuakeAIManager::GetPlayerPath(ActorId player)
+{
+	mMutex.lock();
+	{
+		if (mPlayerPaths.find(player) != mPlayerPaths.end())
+			return mPlayerPaths[player];
+		else
+			return PathingArcVec();
+	}
+	mMutex.unlock();
+}
+
+PathingNode* QuakeAIManager::GetPlayerNode(ActorId player)
+{
+	mMutex.lock();
+	{
+		if (mPlayerNodes.find(player) != mPlayerNodes.end())
+			return mPlayerNodes[player];
+		else
+			return NULL;
+	}
+	mMutex.unlock();
+}
+
+void QuakeAIManager::SetPlayerTarget(ActorId player, ActorId playerTarget)
+{
+	mMutex.lock();
+	{
+		mPlayerTargets[player] = playerTarget;
+	}
+	mMutex.unlock();
+}
+
+void QuakeAIManager::SetPlayerWeapon(ActorId player, WeaponType playerWeapon)
+{
+	mMutex.lock();
+	{
+		mPlayerWeapons[player] = playerWeapon;
+	}
+	mMutex.unlock();
+}
+
+void QuakeAIManager::SetPlayerPath(ActorId player, PathingArcVec& playerPath)
+{
+	mMutex.lock();
+	{
+		for (PathingArc* path : playerPath)
+			mPlayerPaths[player].push_back(path);
+	}
+	mMutex.unlock();
+}
+
+void QuakeAIManager::SetPlayerNode(ActorId player, PathingNode* playerNode)
+{
+	mMutex.lock();
+	{
+		mPlayerNodes[player] = playerNode;
+	}
+	mMutex.unlock();
+}
+
 //map generation via physics simulation
 void QuakeAIManager::CreateMap(ActorId playerId)
 {
@@ -377,11 +462,9 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	Level* level = game->GetLevelManager()->GetLevel(
 		ToWideString(gameApp->mOption.mLevel.c_str()));
 
-	mPlayerActor = 
-		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+	mPlayerActor = eastl::dynamic_shared_pointer_cast<PlayerActor>(
 		GameLogic::Get()->GetActor(playerId).lock());
 
-	game->GetGamePhysics()->SetTriggerCollision(true);
 	game->RemoveAllDelegates();
 	RegisterAllDelegates();
 
@@ -432,7 +515,6 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	*/
 	mActorNodes.clear();
 
-	game->GetGamePhysics()->SetTriggerCollision(false);
 	game->RegisterAllDelegates();
 
 	RemoveAllDelegates();

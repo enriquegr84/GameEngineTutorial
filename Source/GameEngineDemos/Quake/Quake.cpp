@@ -11,6 +11,7 @@
 #include "Quake.h"
 #include "QuakeApp.h"
 #include "QuakeView.h"
+#include "QuakeAIProcess.h"
 #include "QuakeAIView.h"
 #include "QuakeNetwork.h"
 #include "QuakeEvents.h"
@@ -234,7 +235,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
 							new EventDataNewActor(pPlayerActor->GetId(), pNetworkGameView->GetId()));
-						BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
 					}
 				}
 				else if (pView->GetType() == GV_AI)
@@ -250,7 +251,7 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
 							new EventDataNewActor(pPlayerActor->GetId(), pAiView->GetId()));
-						BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
 					}
 				}
 			}
@@ -897,6 +898,12 @@ eastl::shared_ptr<PlayerActor> QuakeLogic::CreatePlayerActor(const eastl::string
 
 bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 {
+	eastl::string levelPath = 
+		"ai/quake/" + eastl::string(pLevelData->Attribute("name")) + ".bin";
+	GetAIManager()->LoadPathingGraph(
+		ToWideString(FileSystem::Get()->GetPath(levelPath.c_str()).c_str()));
+	AttachProcess(eastl::shared_ptr<Process>(new QuakeAIProcess()));
+
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;

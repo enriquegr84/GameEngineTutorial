@@ -1466,80 +1466,54 @@ void QuakeAIProcess::ThreadProc( )
 {
 	while (true)
 	{
-		eastl::map<GameViewType, eastl::vector<eastl::shared_ptr<PlayerActor>>> players;
-
-		GameApplication* gameApp = (GameApplication*)Application::App;
-		const GameViewList& gameViews = gameApp->GetGameViews();
-		for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
+		if (GameLogic::Get()->GetState() == BGS_RUNNING)
 		{
-			eastl::shared_ptr<BaseGameView> pView = *it;
-			if (pView->GetActorId() != INVALID_ACTOR_ID)
+			eastl::map<GameViewType, eastl::vector<eastl::shared_ptr<PlayerActor>>> players;
+
+			GameApplication* gameApp = (GameApplication*)Application::App;
+			const GameViewList& gameViews = gameApp->GetGameViews();
+			for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
 			{
-				players[pView->GetType()].push_back(
-					eastl::dynamic_shared_pointer_cast<PlayerActor>(
-					GameLogic::Get()->GetActor(pView->GetActorId()).lock()));
+				eastl::shared_ptr<BaseGameView> pView = *it;
+				if (pView->GetActorId() != INVALID_ACTOR_ID)
+				{
+					players[pView->GetType()].push_back(
+						eastl::dynamic_shared_pointer_cast<PlayerActor>(
+							GameLogic::Get()->GetActor(pView->GetActorId()).lock()));
+				}
+			}
+
+			if (players.find(GV_HUMAN) != players.end() && players.find(GV_AI) != players.end())
+			{
+				QuakeAIManager* aiManager = dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+
+				eastl::map<eastl::shared_ptr<PlayerActor>, PathingNode*> playerNodes, aiNodes;
+				for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_HUMAN])
+					playerNodes[pPlayerActor] = aiManager->GetPlayerNode(pPlayerActor->GetId());
+				for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_AI])
+					aiNodes[pPlayerActor] = aiManager->GetPlayerNode(pPlayerActor->GetId());
+
+				for (auto playerNode : playerNodes)
+				{
+					NodeState playerState(playerNode.first);
+					playerState.node = playerNode.second;
+					for (auto aiNode : aiNodes)
+					{
+						NodeState aiPlayerState(aiNode.first);
+						aiPlayerState.node = aiNode.second;
+						EvaluateCluster(playerState, aiPlayerState);
+					}
+				}
+			
+				aiManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
+				aiManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
+				aiManager->SetPlayerPath(mPlayerState.player, mPlayerState.path);
+
+				aiManager->SetPlayerTarget(mOtherPlayerState.player, mOtherPlayerState.target);
+				aiManager->SetPlayerWeapon(mOtherPlayerState.player, mOtherPlayerState.weapon);
+				aiManager->SetPlayerPath(mOtherPlayerState.player, mOtherPlayerState.path);
 			}
 		}
-
-		if (players.find(GV_HUMAN) != players.end() && players.find(GV_AI) != players.end())
-		{
-			eastl::shared_ptr<PathingGraph> pathingGraph =
-				GameLogic::Get()->GetAIManager()->GetPathingGraph();
-
-			eastl::map<eastl::shared_ptr<PlayerActor>, PathingNode*> playerNodes, aiNodes;
-			for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_HUMAN])
-			{
-				eastl::shared_ptr<TransformComponent> pTransformComponent(
-					pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-				if (pTransformComponent)
-				{
-					playerNodes[pPlayerActor] = 
-						pathingGraph->FindClosestNode(pTransformComponent->GetPosition());
-				}
-			}
-
-			for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_AI])
-			{
-				eastl::shared_ptr<TransformComponent> pTransformComponent(
-					pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-				if (pTransformComponent)
-				{
-					aiNodes[pPlayerActor] =
-						pathingGraph->FindClosestNode(pTransformComponent->GetPosition());
-				}
-			}
-
-			for (auto playerNode : playerNodes)
-			{
-				NodeState playerState(playerNode.first);
-				playerState.node = playerNode.second;
-				for (auto aiNode : aiNodes)
-				{
-					NodeState aiPlayerState(aiNode.first);
-					aiPlayerState.node = aiNode.second;
-					EvaluateCluster(playerState, aiPlayerState);
-				}
-			}
-		}
-		/*
-		eastl::vector<ActorId> playerIds;
-		eastl::map<ActorId, ActorId> playerTargets;
-		eastl::map<ActorId, WeaponType> playerWeapons;
-		eastl::map<ActorId, PathingArcVec> playerPaths;
-
-		playerIds.push_back(mPlayerState.player);
-		playerTargets[mPlayerState.player] = mPlayerState.target;
-		playerWeapons[mPlayerState.player] = mPlayerState.weapon;
-		playerPaths[mPlayerState.player] = mPlayerState.path;
-
-		playerIds.push_back(mOtherPlayerState.player);
-		playerTargets[mOtherPlayerState.player] = mOtherPlayerState.target;
-		playerWeapons[mOtherPlayerState.player] = mOtherPlayerState.weapon;
-		playerPaths[mOtherPlayerState.player] = mOtherPlayerState.path;
-
-		EventManager::Get()->QueueEvent(eastl::shared_ptr<QuakeEventDataAIDecisionMaking>(
-			new QuakeEventDataAIDecisionMaking(playerIds, playerTargets, playerWeapons, playerPaths)));
-		*/
 	}
 
 	Succeed();

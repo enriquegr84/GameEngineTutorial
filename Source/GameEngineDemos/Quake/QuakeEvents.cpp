@@ -55,6 +55,5 @@ const BaseEventType QuakeEventDataEndThrust::skEventType(0xe60f88a4);
 const BaseEventType QuakeEventDataStartSteer::skEventType(0xf0b5b4fd);
 const BaseEventType QuakeEventDataEndSteer::skEventType(0x176645ef);
 
-const BaseEventType QuakeEventDataAIDecisionMaking::skEventType(0xd0f0507e);
 const BaseEventType QuakeEventDataGameplayUIUpdate::skEventType(0x1002ded2);
 const BaseEventType QuakeEventDataSetControlledActor::skEventType(0xbe5e3388);

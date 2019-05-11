@@ -114,8 +114,8 @@ public:
 		eastl::vector<Vector3<float>>& collisionPoints,
 		eastl::vector<Vector3<float>>& collisionNormals) = 0;
 
-	virtual void SetTriggerCollision(bool active) = 0;
-	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision) = 0;
+	virtual void SetIgnoreCollision(
+		ActorId actorId, ActorId ignoreActorId, bool ignoreCollision) = 0;
 	virtual void StopActor(ActorId actorId) = 0;
 	virtual Vector3<float> GetCenter(ActorId actorId) = 0;
 	virtual Vector3<float> GetScale(ActorId actorId) = 0;

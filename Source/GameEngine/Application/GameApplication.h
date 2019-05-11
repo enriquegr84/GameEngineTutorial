@@ -136,7 +136,6 @@ protected:
 	application.
 	*/
 	unsigned int UpdateTime();
-	float GetLimitedDt();
 
 	// Event callbacks.
 	virtual bool OnEvent(const Event& ev);

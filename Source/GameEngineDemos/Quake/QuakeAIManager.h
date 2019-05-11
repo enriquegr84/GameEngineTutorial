@@ -47,6 +47,16 @@ public:
 	virtual void SavePathingGraph(const eastl::string& path);
 	virtual void LoadPathingGraph(const eastl::wstring& path);
 
+	ActorId GetPlayerTarget(ActorId player);
+	WeaponType GetPlayerWeapon(ActorId player);
+	PathingArcVec GetPlayerPath(ActorId player);
+	PathingNode* GetPlayerNode(ActorId player);
+
+	void SetPlayerTarget(ActorId player, ActorId playerTarget);
+	void SetPlayerWeapon(ActorId player, WeaponType playerWeapon);
+	void SetPlayerPath(ActorId player, PathingArcVec& playerPath);
+	void SetPlayerNode(ActorId player, PathingNode* playerNode);
+
 protected:
 
 	void SimulateJump(PathingNode* pNode);
@@ -98,6 +108,8 @@ protected:
 
 private:
 
+	mutable std::mutex mMutex;
+
 	unsigned int mLastArcId;
 	unsigned int mLastNodeId;
 
@@ -106,6 +118,13 @@ private:
 
 	//pathing nodes which contains actors from game
 	eastl::map<PathingNode*, ActorId> mActorNodes;
+
+	//player goals
+	eastl::vector<ActorId> mPlayerIds;
+	eastl::map<ActorId, ActorId> mPlayerTargets;
+	eastl::map<ActorId, WeaponType> mPlayerWeapons;
+	eastl::map<ActorId, PathingArcVec> mPlayerPaths;
+	eastl::map<ActorId, PathingNode*> mPlayerNodes;
 
 	void RegisterAllDelegates(void);
 	void RemoveAllDelegates(void);

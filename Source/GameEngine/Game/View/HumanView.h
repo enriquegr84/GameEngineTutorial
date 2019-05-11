@@ -72,7 +72,7 @@ public:
 
 	virtual ~HumanView();
 
-	// Implement the BaseGameView interface, except for the VOnRender() method, which is renderer specific
+	// Implement the BaseGameView interface, except for the OnRender() method, which is renderer specific
 	virtual bool OnRestore();
 	virtual bool OnLostDevice();
 

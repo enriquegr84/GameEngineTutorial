@@ -148,7 +148,6 @@ public:
 		eastl::vector<Vector3<float>>& collisionPoints,
 		eastl::vector<Vector3<float>>& collisionNormals) { }
 
-	virtual void SetTriggerCollision(bool active) { }
 	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision) { }
 	virtual void StopActor(ActorId actorId) { }
 	virtual Vector3<float> GetCenter(ActorId actorId) { return Vector3<float>(); }
@@ -290,9 +289,6 @@ class BulletPhysics : public BaseGamePhysic
 	btDefaultCollisionConfiguration*	mCollisionConfiguration;
 	BulletDebugDrawer*					mDebugDrawer;
 
-	// bullet can report events right away
-	bool								mTriggerCollision;
-
     // tables read from the XML
     typedef eastl::map<eastl::string, float> DensityTable;
     typedef eastl::map<eastl::string, MaterialData> MaterialTable;
@@ -396,7 +392,6 @@ public:
 		eastl::vector<Vector3<float>>& collisionPoints,
 		eastl::vector<Vector3<float>>& collisionNormals);
 
-	virtual void SetTriggerCollision(bool active);
 	virtual void SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision);
 	virtual void StopActor(ActorId actorId);
 	virtual Vector3<float> GetCenter(ActorId actorId);
@@ -606,9 +601,6 @@ void BulletPhysics::LoadXml()
 bool BulletPhysics::Initialize()
 {
 	LoadXml();
-
-	// let bullet queue collision events
-	mTriggerCollision = false;
 
 	// this controls how Bullet does internal memory management during the collision pass
 	mCollisionConfiguration = new btDefaultCollisionConfiguration();
@@ -1189,14 +1181,6 @@ void BulletPhysics::StopActor(ActorId actorId)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// BulletPhysics::SetTriggerCollision
-//
-void BulletPhysics::SetTriggerCollision(bool active)
-{
-	mTriggerCollision = active;
-}
-
-/////////////////////////////////////////////////////////////////////////////
 // BulletPhysics::SetIgnoreCollision
 //
 void BulletPhysics::SetIgnoreCollision(ActorId actorId, ActorId ignoreActorId, bool ignoreCollision) 
@@ -1742,10 +1726,7 @@ void BulletPhysics::SendCollisionPairAddEvent( btPersistentManifold const * mani
 		int const triggerId = *static_cast<int*>(triggerBody->getUserPointer());
         eastl::shared_ptr<EventDataPhysTriggerEnter> pEvent(
 			new EventDataPhysTriggerEnter(triggerId, FindActorID(otherBody)));
-		if (mTriggerCollision)
-			BaseEventManager::Get()->TriggerEvent(pEvent);
-		else
-			BaseEventManager::Get()->QueueEvent(pEvent);
+		BaseEventManager::Get()->TriggerEvent(pEvent);
 	}
 	else
 	{
@@ -1777,10 +1758,7 @@ void BulletPhysics::SendCollisionPairAddEvent( btPersistentManifold const * mani
 		// send the event for the game
         eastl::shared_ptr<EventDataPhysCollision> pEvent(
 			new EventDataPhysCollision(id0, id1, sumNormalForce, sumFrictionForce, collisionPoints));
-		if (mTriggerCollision)
-			BaseEventManager::Get()->TriggerEvent(pEvent);
-		else
-			BaseEventManager::Get()->QueueEvent(pEvent);
+		BaseEventManager::Get()->TriggerEvent(pEvent);
 	}
 }
 
@@ -1808,10 +1786,7 @@ void BulletPhysics::SendCollisionPairRemoveEvent(
 		int const triggerId = *static_cast<int*>(triggerBody->getUserPointer());
         eastl::shared_ptr<EventDataPhysTriggerLeave> pEvent(
 			new EventDataPhysTriggerLeave(triggerId, FindActorID( otherBody)));
-		if (mTriggerCollision)
-			BaseEventManager::Get()->TriggerEvent(pEvent);
-		else
-			BaseEventManager::Get()->QueueEvent(pEvent);
+		BaseEventManager::Get()->TriggerEvent(pEvent);
 	}
 	else
 	{
@@ -1826,10 +1801,7 @@ void BulletPhysics::SendCollisionPairRemoveEvent(
 		}
 
         eastl::shared_ptr<EventDataPhysSeparation> pEvent(new EventDataPhysSeparation(id0, id1));
-		if (mTriggerCollision)
-			BaseEventManager::Get()->TriggerEvent(pEvent);
-		else
-			BaseEventManager::Get()->QueueEvent(pEvent);
+		BaseEventManager::Get()->TriggerEvent(pEvent);
 	}
 }
 

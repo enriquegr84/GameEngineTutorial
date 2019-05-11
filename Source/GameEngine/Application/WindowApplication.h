@@ -47,7 +47,6 @@ protected:
 	//Time
 	void InitTime();
 	unsigned int UpdateTime();
-	float GetLimitedDt();
 
 	double mLastTime, mAccumulatedTime, mFrameRate;
 	int mFramesPerSecond, mTimer, mMaxTimer;
