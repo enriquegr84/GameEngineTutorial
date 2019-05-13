@@ -108,8 +108,6 @@ protected:
 
 private:
 
-	mutable std::mutex mMutex;
-
 	unsigned int mLastArcId;
 	unsigned int mLastNodeId;
 
@@ -119,7 +117,7 @@ private:
 	//pathing nodes which contains actors from game
 	eastl::map<PathingNode*, ActorId> mActorNodes;
 
-	//player goals
+	//player ai states
 	eastl::vector<ActorId> mPlayerIds;
 	eastl::map<ActorId, ActorId> mPlayerTargets;
 	eastl::map<ActorId, WeaponType> mPlayerWeapons;

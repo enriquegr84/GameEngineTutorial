@@ -371,87 +371,55 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 
 ActorId QuakeAIManager::GetPlayerTarget(ActorId player)
 {
-	mMutex.lock();
-	{
-		if (mPlayerTargets.find(player) != mPlayerTargets.end())
-			return mPlayerTargets[player];
-		else
-			return INVALID_ACTOR_ID;
-	}
-	mMutex.unlock();
+	if (mPlayerTargets.find(player) != mPlayerTargets.end())
+		return mPlayerTargets[player];
+	else
+		return INVALID_ACTOR_ID;
 }
 
 WeaponType QuakeAIManager::GetPlayerWeapon(ActorId player)
 {
-	mMutex.lock();
-	{
-		if (mPlayerWeapons.find(player) != mPlayerWeapons.end())
-			return mPlayerWeapons[player];
-		else
-			return WP_NONE;
-	}
-	mMutex.unlock();
+	if (mPlayerWeapons.find(player) != mPlayerWeapons.end())
+		return mPlayerWeapons[player];
+	else
+		return WP_NONE;
 }
 
 PathingArcVec QuakeAIManager::GetPlayerPath(ActorId player)
 {
-	mMutex.lock();
-	{
-		if (mPlayerPaths.find(player) != mPlayerPaths.end())
-			return mPlayerPaths[player];
-		else
-			return PathingArcVec();
-	}
-	mMutex.unlock();
+	if (mPlayerPaths.find(player) != mPlayerPaths.end())
+		return mPlayerPaths[player];
+	else
+		return PathingArcVec();
 }
 
 PathingNode* QuakeAIManager::GetPlayerNode(ActorId player)
 {
-	mMutex.lock();
-	{
-		if (mPlayerNodes.find(player) != mPlayerNodes.end())
-			return mPlayerNodes[player];
-		else
-			return NULL;
-	}
-	mMutex.unlock();
+	if (mPlayerNodes.find(player) != mPlayerNodes.end())
+		return mPlayerNodes[player];
+	else
+		return NULL;
 }
 
 void QuakeAIManager::SetPlayerTarget(ActorId player, ActorId playerTarget)
 {
-	mMutex.lock();
-	{
-		mPlayerTargets[player] = playerTarget;
-	}
-	mMutex.unlock();
+	mPlayerTargets[player] = playerTarget;
 }
 
 void QuakeAIManager::SetPlayerWeapon(ActorId player, WeaponType playerWeapon)
 {
-	mMutex.lock();
-	{
-		mPlayerWeapons[player] = playerWeapon;
-	}
-	mMutex.unlock();
+	mPlayerWeapons[player] = playerWeapon;
 }
 
 void QuakeAIManager::SetPlayerPath(ActorId player, PathingArcVec& playerPath)
 {
-	mMutex.lock();
-	{
-		for (PathingArc* path : playerPath)
-			mPlayerPaths[player].push_back(path);
-	}
-	mMutex.unlock();
+	for (PathingArc* path : playerPath)
+		mPlayerPaths[player].push_back(path);
 }
 
 void QuakeAIManager::SetPlayerNode(ActorId player, PathingNode* playerNode)
 {
-	mMutex.lock();
-	{
-		mPlayerNodes[player] = playerNode;
-	}
-	mMutex.unlock();
+	mPlayerNodes[player] = playerNode;
 }
 
 //map generation via physics simulation
@@ -464,7 +432,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	mPlayerActor = eastl::dynamic_shared_pointer_cast<PlayerActor>(
 		GameLogic::Get()->GetActor(playerId).lock());
-
+	/*
 	game->RemoveAllDelegates();
 	RegisterAllDelegates();
 
@@ -491,7 +459,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	// we obtain visibility information from pathing graph 
 	SimulateVisibility();
-
+	*/
 	// we group the graph nodes in clusters
 	CreateClusters();
 
@@ -787,10 +755,11 @@ void QuakeAIManager::CreateClusters()
 			if (pathArcs.size())
 			{
 				PathingNode* pathTarget = pathArcs.back()->GetNode();
+
 				if (pathTarget != pathNode)
 				{
 					PathingNode* currentNode = pathNode;
-					for (PathingArc* pArc : clusterPlan.second->GetArcs())
+					for (PathingArc* pArc : pathArcs)
 					{
 						bool addCluster = true;
 						PathingClusterVec clusters;
@@ -833,7 +802,7 @@ void QuakeAIManager::CreateClusters()
 				if (pathTarget != pathNode)
 				{
 					PathingNode* currentNode = pathNode;
-					for (PathingArc* pArc : clusterPlan.second->GetArcs())
+					for (PathingArc* pArc : pathArcs)
 					{
 						bool addCluster = true;
 						PathingClusterVec clusters;
@@ -890,7 +859,7 @@ void QuakeAIManager::CreateClusters()
 				if (pathTarget != pathNode)
 				{
 					PathingNode* currentNode = pathNode;
-					for (PathingArc* pArc : actorPlan.second->GetArcs())
+					for (PathingArc* pArc : pathArcs)
 					{
 						bool addCluster = true;
 						PathingClusterVec clusters;
@@ -935,7 +904,7 @@ void QuakeAIManager::CreateClusters()
 				if (pathTarget != pathNode)
 				{
 					PathingNode* currentNode = pathNode;
-					for (PathingArc* pArc : actorPlan.second->GetArcs())
+					for (PathingArc* pArc : pathArcs)
 					{
 						bool addCluster = true;
 						PathingClusterVec clusters;

@@ -713,7 +713,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										PathingClusterVec clusterNodes;
 										currentNode->GetClusters(GAT_JUMP, clusterNodes);
 
-										//printf("\n cluster size %u \n", clusterNodes.size());
+										printf("\n cluster size %u \n", clusterNodes.size());
 										if (!clusterNodes.empty())
 										{
 											unsigned int cluster = Randomizer::Rand() % clusterNodes.size();

@@ -382,9 +382,11 @@ PathPlanNode::PathPlanNode(PathingNode* pNode, PathPlanNode* pPrevNode, PathingN
 	UpdatePathCost();
 }
 
-void PathPlanNode::UpdatePrevNode(PathPlanNode* pPrev)
+void PathPlanNode::UpdateNode(PathingArc* pArc, PathPlanNode* pPrev)
 {
 	LogAssert(pPrev, "Invalid node");
+	mPathingArc = pArc;
+	mPathingNode = pArc->GetNode();
 	mPrevNode = pPrev;
 	UpdatePathCost();
 }
@@ -509,7 +511,7 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 			// reinsert the node into the open list priority queue.
 			if (isPathBetter)
 			{
-				pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
+				pPathPlanNodeToEvaluate->UpdateNode((*it), planNode);
 				ReinsertNode(pPathPlanNodeToEvaluate);
 			}
 		}
@@ -608,7 +610,7 @@ PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& sea
 			// reinsert the node into the open list priority queue.
 			if (isPathBetter)
 			{
-				pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
+				pPathPlanNodeToEvaluate->UpdateNode((*it), planNode);
 				ReinsertNode(pPathPlanNodeToEvaluate);
 			}
 		}
@@ -714,7 +716,7 @@ void PathFinder::operator()(PathingNode* pStartNode,
 			// reinsert the node into the open list priority queue.
 			if (isPathBetter)
 			{
-				pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
+				pPathPlanNodeToEvaluate->UpdateNode((*it), planNode);
 				ReinsertNode(pPathPlanNodeToEvaluate);
 			}
 		}
@@ -821,7 +823,7 @@ void PathFinder::operator()(PathingNode* pStartNode,
 			// reinsert the node into the open list priority queue.
 			if (isPathBetter)
 			{
-				pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
+				pPathPlanNodeToEvaluate->UpdateNode((*it), planNode);
 				ReinsertNode(pPathPlanNodeToEvaluate);
 			}
 		}
@@ -925,7 +927,7 @@ void PathFinder::operator()(PathingNode* pStartNode,
 			// reinsert the node into the open list priority queue.
 			if (isPathBetter)
 			{
-				pPathPlanNodeToEvaluate->UpdatePrevNode(planNode);
+				pPathPlanNodeToEvaluate->UpdateNode((*it), planNode);
 				ReinsertNode(pPathPlanNodeToEvaluate);
 			}
 		}

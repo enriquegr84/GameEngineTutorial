@@ -281,7 +281,7 @@ public:
 	bool IsClosed(void) const { return mClosed; }
 	float GetGoal(void) const { return mGoal; }
 	
-	void UpdatePrevNode(PathPlanNode* pPrev);
+	void UpdateNode(PathingArc* pArc, PathPlanNode* pPrev);
 	void SetClosed(bool toClose = true) { mClosed = toClose; }
 	bool IsBetterChoiceThan(PathPlanNode* pRight) { return (mGoal < pRight->GetGoal()); }
 	
