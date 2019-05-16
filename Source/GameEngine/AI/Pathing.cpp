@@ -486,12 +486,6 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 			float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
 			bool isPathBetter = false;
 
-			/*
-			fprintf(pFile, "arc node %f %f %f to node %f %f %f type %u cost %f\n",
-				(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
-				(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2], 
-				(*it)->GetType(), costForThisPath);
-			*/
 			// Grab the PathPlanNode if there is one.
 			PathPlanNode* pPathPlanNodeToEvaluate = NULL;
 			if (findIt != mNodes.end())
@@ -585,12 +579,6 @@ PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& sea
 				continue;
 
 			bool isPathBetter = false;
-			/*
-			printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
-			(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
-			(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
-			(*it)->GetType(), costForThisPath);
-			*/
 			// Grab the PathPlanNode if there is one.
 			PathPlanNode* pPathPlanNodeToEvaluate = NULL;
 			if (findIt != mNodes.end())
@@ -691,12 +679,6 @@ void PathFinder::operator()(PathingNode* pStartNode,
 				continue;
 
 			bool isPathBetter = false;
-			/*
-			printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
-			(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
-			(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
-			(*it)->GetType(), costForThisPath);
-			*/
 			// Grab the PathPlanNode if there is one.
 			PathPlanNode* pPathPlanNodeToEvaluate = NULL;
 			if (findIt != mNodes.end())
@@ -798,12 +780,6 @@ void PathFinder::operator()(PathingNode* pStartNode,
 				continue;
 
 			bool isPathBetter = false;
-			/*
-			printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
-			(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
-			(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
-			(*it)->GetType(), costForThisPath);
-			*/
 			// Grab the PathPlanNode if there is one.
 			PathPlanNode* pPathPlanNodeToEvaluate = NULL;
 			if (findIt != mNodes.end())
@@ -902,12 +878,6 @@ void PathFinder::operator()(PathingNode* pStartNode,
 				continue;
 
 			bool isPathBetter = false;
-			/*
-			printf("arc node %f %f %f to node %f %f %f type %u cost %f\n",
-			(*it)->GetOrigin()->GetPos()[0], (*it)->GetOrigin()->GetPos()[1], (*it)->GetOrigin()->GetPos()[2],
-			(*it)->GetNeighbor()->GetPos()[0], (*it)->GetNeighbor()->GetPos()[1], (*it)->GetNeighbor()->GetPos()[2],
-			(*it)->GetType(), costForThisPath);
-			*/
 			// Grab the PathPlanNode if there is one.
 			PathPlanNode* pPathPlanNodeToEvaluate = NULL;
 			if (findIt != mNodes.end())

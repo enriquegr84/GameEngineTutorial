@@ -208,6 +208,9 @@ protected:
 		NodeState& playerState, NodeState& otherPlayerState);
 
 private:
+
+	FILE * mFile;
+
 	NodeState mPlayerState, mOtherPlayerState;
 
 };
