@@ -85,18 +85,19 @@
 #define CID_HOST_LISTEN_PORT			(5)
 #define CID_CLIENT_ATTACH_PORT			(6)
 #define CID_START_BUTTON				(7)
-#define CID_HOST_NAME					(8)
+#define CID_AI_COMBAT_MOD				(8)
 #define CID_NUM_AI_LABEL				(9)
 #define CID_NUM_PLAYER_LABEL			(10)
 #define CID_HOST_LISTEN_PORT_LABEL		(11)
 #define CID_CLIENT_ATTACH_PORT_LABEL	(12)
-#define CID_HOST_NAME_LABEL				(13)
+#define CID_AI_COMBAT_LABEL				(13)
 #define CID_LEVEL_LABEL					(14)
 #define CID_LEVEL_LISTBOX				(15)
 #define CID_STATUS_LABEL				(16)
 #define CID_DRIVER_LABEL				(17)
 #define CID_FULLSCREEN_MODE				(18)
 #define CID_SET_GAME_RADIO				(19)
+
 
 QuakeMainMenuUI::QuakeMainMenuUI()
 {
@@ -202,15 +203,16 @@ bool QuakeMainMenuUI::OnInit()
 	playerOptionsRectangle.mCenter[1] = 122;
 	playerOptionsRectangle.mExtent[1] = 16;
 	playerOptionsLine = AddStaticText(
-		L"Game Host:", playerOptionsRectangle, false, false, window, CID_HOST_NAME_LABEL, false);
+		L"AI Combat Mod:", playerOptionsRectangle, false, false, window, CID_AI_COMBAT_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
-	playerOptionsRectangle.mCenter[0] = 220;
-	playerOptionsRectangle.mExtent[0] = 190;
-	playerOptionsRectangle.mCenter[1] = 120;
-	playerOptionsRectangle.mExtent[1] = 20;
-	eastl::shared_ptr<BaseUIEditBox> gameHost = AddEditBox(
-		ToWideString(gameApp->mOption.mGameHost.c_str()).c_str(), playerOptionsRectangle, true, window, CID_HOST_NAME);
+	screenRectangle.mCenter[0] = 180;
+	screenRectangle.mExtent[0] = 100;
+	screenRectangle.mCenter[1] = 120;
+	screenRectangle.mExtent[1] = 20;
+	eastl::shared_ptr<BaseUICheckBox> combatMod = AddCheckBox(
+		gameApp->mOption.mLevelMod, screenRectangle, window, CID_AI_COMBAT_MOD, L"Set");
+	combatMod->SetToolTipText(L"Set AI Combat Mod");
 
 	playerOptionsRectangle.mCenter[0] = 350;
 	playerOptionsRectangle.mExtent[0] = 50;
@@ -383,6 +385,8 @@ void QuakeMainMenuUI::Set()
 		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_CREATE_GAME_RADIO, true));
 	const eastl::shared_ptr<BaseUIButton>& setGame =
 		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_SET_GAME_RADIO, true));
+	const eastl::shared_ptr<BaseUICheckBox>& setGameMod =
+		eastl::static_pointer_cast<BaseUICheckBox>(root->GetElementFromId(CID_AI_COMBAT_MOD, true));
 	const eastl::shared_ptr<BaseUIScrollBar>& numAI = 
 		eastl::static_pointer_cast<BaseUIScrollBar>(root->GetElementFromId(CID_NUM_AI_SLIDER, true));
 	const eastl::shared_ptr<BaseUIScrollBar>& numPlayer = 
@@ -393,16 +397,13 @@ void QuakeMainMenuUI::Set()
 		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_CLIENT_ATTACH_PORT, true));
 	const eastl::shared_ptr<BaseUIButton>& startGame = 
 		eastl::static_pointer_cast<BaseUIButton>(root->GetElementFromId(CID_START_BUTTON, true));
-	const eastl::shared_ptr<BaseUIEditBox>& hostName = 
-		eastl::static_pointer_cast<BaseUIEditBox>(root->GetElementFromId(CID_HOST_NAME, true));
 	const eastl::shared_ptr<BaseUIListBox>& level = 
 		eastl::static_pointer_cast<BaseUIListBox>(root->GetElementFromId(CID_LEVEL_LISTBOX, true));
 
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	gameApp->mOption.mNumAIs = numAI->GetPos();
 	gameApp->mOption.mExpectedPlayers = numPlayer->GetPos();
-	gameApp->mOption.mGameHost = ToString(hostName->GetText());
-
+	gameApp->mOption.mLevelMod = setGameMod->IsChecked();
 
 	if (level->GetSelected() >= 0)
 	{
@@ -502,7 +503,7 @@ bool QuakeMainMenuUI::OnEvent(const Event& evt)
 			case CID_NUM_PLAYER_SLIDER:
 			case CID_HOST_LISTEN_PORT:
 			case CID_CLIENT_ATTACH_PORT:
-			case CID_HOST_NAME:
+			case CID_AI_COMBAT_MOD:
 			{
 				break;
 			}
@@ -511,7 +512,7 @@ bool QuakeMainMenuUI::OnEvent(const Event& evt)
 			case CID_NUM_PLAYER_LABEL:
 			case CID_HOST_LISTEN_PORT_LABEL:
 			case CID_CLIENT_ATTACH_PORT_LABEL:
-			case CID_HOST_NAME_LABEL:
+			case CID_AI_COMBAT_LABEL:
 			case CID_LEVEL_LABEL:
 			case CID_STATUS_LABEL:
 			{
@@ -1062,14 +1063,32 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 										eastl::static_pointer_cast<QuakeHumanView, BaseGameView>(pView);
 									if (pHumanView->GetActorId() != mPlayer->GetId())
 									{
-										mPlayer = mScene->GetSceneNode(pHumanView->GetActorId());
+										if (gameApp->mOption.mLevelMod)
+										{
+											mPlayer = mScene->GetSceneNode(pHumanView->GetActorId());
 
-										mGamePlayerController->SetEnabled(true);
-										mGameCameraController->SetEnabled(false);
+											if (mGamePlayerController)
+												mGamePlayerController->SetEnabled(false);
+											if (mGameCameraController)
+												mGameCameraController->SetEnabled(false);
 
-										mKeyboardHandler = mGamePlayerController;
-										mMouseHandler = mGamePlayerController;
-										mCamera->SetTarget(mPlayer);
+											mKeyboardHandler = NULL;
+											mMouseHandler = NULL;
+											mCamera->SetTarget(mPlayer);
+										}
+										else
+										{
+											mPlayer = mScene->GetSceneNode(pHumanView->GetActorId());
+
+											if (mGamePlayerController)
+												mGamePlayerController->SetEnabled(true);
+											if (mGameCameraController)
+												mGameCameraController->SetEnabled(false);
+
+											mKeyboardHandler = mGamePlayerController;
+											mMouseHandler = mGamePlayerController;
+											mCamera->SetTarget(mPlayer);
+										}
 										break;
 									}
 								}
@@ -1080,9 +1099,11 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 									if (pNetworkGameView->GetActorId() != mPlayer->GetId())
 									{
 										mPlayer = mScene->GetSceneNode(pNetworkGameView->GetActorId());
-
-										mGamePlayerController->SetEnabled(false);
-										mGameCameraController->SetEnabled(false);
+										
+										if (mGamePlayerController)
+											mGamePlayerController->SetEnabled(false);
+										if (mGameCameraController)
+											mGameCameraController->SetEnabled(false);
 
 										mKeyboardHandler = NULL;
 										mMouseHandler = NULL;
@@ -1098,8 +1119,10 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 									{
 										mPlayer = mScene->GetSceneNode(pAiView->GetActorId());
 
-										mGamePlayerController->SetEnabled(false);
-										mGameCameraController->SetEnabled(false);
+										if (mGamePlayerController)
+											mGamePlayerController->SetEnabled(false);
+										if (mGameCameraController)
+											mGameCameraController->SetEnabled(false);
 
 										mKeyboardHandler = NULL;
 										mMouseHandler = NULL;
@@ -1111,22 +1134,43 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 						}
 						else
 						{
-							SetControlledActor(mActorId);
+							GameApplication* gameApp = (GameApplication*)Application::App;
+							if (gameApp->mOption.mLevelMod)
+							{
+								mPlayer = mScene->GetSceneNode(mActorId);
 
-							mGamePlayerController->SetEnabled(true);
-							mGameCameraController->SetEnabled(false);
+								if (mGamePlayerController)
+									mGamePlayerController->SetEnabled(false);
+								if (mGameCameraController)
+									mGameCameraController->SetEnabled(false);
 
-							mKeyboardHandler = mGamePlayerController;
-							mMouseHandler = mGamePlayerController;
-							mCamera->SetTarget(mPlayer);
+								mKeyboardHandler = NULL;
+								mMouseHandler = NULL;
+								mCamera->SetTarget(mPlayer);
+							}
+							else
+							{
+								SetControlledActor(mActorId);
+
+								if (mGamePlayerController)
+									mGamePlayerController->SetEnabled(true);
+								if (mGameCameraController)
+									mGameCameraController->SetEnabled(false);
+
+								mKeyboardHandler = mGamePlayerController;
+								mMouseHandler = mGamePlayerController;
+								mCamera->SetTarget(mPlayer);
+							}
 						}
 						return true;
 					}
 
 					case KEY_KEY_9:
 					{
-						mGameCameraController->SetEnabled(true);
-						mGamePlayerController->SetEnabled(false);
+						if (mGamePlayerController)
+							mGamePlayerController->SetEnabled(false);
+						if (mGameCameraController)
+							mGameCameraController->SetEnabled(true);
 
 						mKeyboardHandler = mGameCameraController;
 						mMouseHandler = mGameCameraController;

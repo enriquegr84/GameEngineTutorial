@@ -385,12 +385,11 @@ WeaponType QuakeAIManager::GetPlayerWeapon(ActorId player)
 		return WP_NONE;
 }
 
-PathingArcVec QuakeAIManager::GetPlayerPath(ActorId player)
+void QuakeAIManager::GetPlayerPath(ActorId player, PathingArcVec& playerPath)
 {
 	if (mPlayerPaths.find(player) != mPlayerPaths.end())
-		return mPlayerPaths[player];
-	else
-		return PathingArcVec();
+		for (PathingArc* path : mPlayerPaths[player])
+			playerPath.push_back(path);
 }
 
 PathingNode* QuakeAIManager::GetPlayerNode(ActorId player)
@@ -413,6 +412,7 @@ void QuakeAIManager::SetPlayerWeapon(ActorId player, WeaponType playerWeapon)
 
 void QuakeAIManager::SetPlayerPath(ActorId player, PathingArcVec& playerPath)
 {
+	mPlayerPaths[player].clear();
 	for (PathingArc* path : playerPath)
 		mPlayerPaths[player].push_back(path);
 }

@@ -307,7 +307,7 @@ public:
 	void Destroy(void);
 	
 	PathPlan* operator()(PathingNode* pStartNode, PathingNode* pGoalNode);
-	PathingNode* operator()(
+	PathPlan* operator()(
 		PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold = FLT_MAX);
 	void operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes, 
 		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
@@ -347,14 +347,14 @@ public:
 	PathingNode* FindNode(unsigned int nodeId);
 	PathingNode* FindRandomNode(void);
 
-	PathingNode* FindNodes(
-		PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold = FLT_MAX);
 	void FindPlans(PathingNode* pStartNode, PathingNodeVec& searchNodes, 
 		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	void FindPlans(PathingNode* pStartNode, eastl::vector<eastl::shared_ptr<Actor>>& searchActors,
 		ActorPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	void FindPlans(PathingNode* pStartNode, eastl::vector<unsigned int>& searchClusters,
 		ClusterPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
+	PathPlan* FindPath(
+		PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold = FLT_MAX);
 	PathPlan* FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint);
 	PathPlan* FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode);
 	PathPlan* FindPath(PathingNode* pStartNode, const Vector3<float>& endPoint);

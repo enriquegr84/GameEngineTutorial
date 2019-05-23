@@ -49,6 +49,8 @@ struct GameOption
 	// Level option
 	eastl::string mLevel;
 
+	bool mLevelMod;
+
 	// Rendering options
 
 	//! Size of the window or the video mode in fullscreen mode. Default: 800x600

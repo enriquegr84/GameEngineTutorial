@@ -245,19 +245,7 @@ void PlayerActor::PlayerSpawn()
 	mState.takeDamage = true;
 	mState.viewHeight = DEFAULT_VIEWHEIGHT;
 	mState.stats[STAT_WEAPONS] |= (1 << WP_MACHINEGUN);
-	mState.ammo[WP_MACHINEGUN] = 1000;
-	mState.stats[STAT_WEAPONS] |= (1 << WP_SHOTGUN);
-	mState.ammo[WP_SHOTGUN] = 1000;
-	mState.stats[STAT_WEAPONS] |= (1 << WP_ROCKET_LAUNCHER);
-	mState.ammo[WP_ROCKET_LAUNCHER] = 1000;
-	mState.stats[STAT_WEAPONS] |= (1 << WP_RAILGUN);
-	mState.ammo[WP_RAILGUN] = 1000;
-	mState.stats[STAT_WEAPONS] |= (1 << WP_PLASMAGUN);
-	mState.ammo[WP_PLASMAGUN] = 1000;
-	mState.stats[STAT_WEAPONS] |= (1 << WP_LIGHTNING);
-	mState.ammo[WP_LIGHTNING] = 1000;
-	mState.stats[STAT_WEAPONS] |= (1 << WP_GRENADE_LAUNCHER);
-	mState.ammo[WP_GRENADE_LAUNCHER] = 1000;
+	mState.ammo[WP_MACHINEGUN] = 100;
 	mState.stats[STAT_WEAPONS] |= (1 << WP_GAUNTLET);
 
 	// health will count down towards max_health

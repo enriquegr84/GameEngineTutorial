@@ -57,7 +57,7 @@ QuakeAIProcess::~QuakeAIProcess(void)
 
 void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerState)
 {
-	//lets give priority to health(0.4), armor(0.2), weapon/ammo(0.4)
+	//lets give priority to health(0.2), armor(0.2), weapon/ammo(0.6)
 	float heuristic = 0.f;
 
 	int maxHealth = 200;
@@ -70,63 +70,63 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 		{
 			case WP_LIGHTNING:
 				maxAmmo = 200;
-				if (playerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (playerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (playerState.ammo[weapon] < maxAmmo) ? playerState.ammo[weapon] : maxAmmo;
-					heuristic += (ammo / (float)maxAmmo) * 0.15f * 0.4f;
+					heuristic += (ammo / (float)maxAmmo) * 0.1f * 0.6f;
 				}
 				break;
 			case WP_SHOTGUN:
 				maxAmmo = 20;
-				if (playerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (playerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (playerState.ammo[weapon] < maxAmmo) ? playerState.ammo[weapon] : maxAmmo;
-					heuristic += (ammo / (float)maxAmmo) * 0.15f * 0.4f;
+					heuristic += (ammo / (float)maxAmmo) * 0.1f * 0.6f;
 				}
 				break;
 			case WP_MACHINEGUN:
 				maxAmmo = 200;
-				if (playerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (playerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (playerState.ammo[weapon] < maxAmmo) ? playerState.ammo[weapon] : maxAmmo;
-					heuristic += (ammo / (float)maxAmmo) * 0.1f * 0.4f;
+					heuristic += (ammo / (float)maxAmmo) * 0.05f * 0.6f;
 				}
 				break;
 			case WP_PLASMAGUN:
 				maxAmmo = 200;
-				if (playerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (playerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (playerState.ammo[weapon] < maxAmmo) ? playerState.ammo[weapon] : maxAmmo;
-					heuristic += (ammo / (float)maxAmmo) * 0.1f * 0.4f;
+					heuristic += (ammo / (float)maxAmmo) * 0.05f * 0.6f;
 				}
 				break;
 			case WP_GRENADE_LAUNCHER:
 				maxAmmo = 20;
-				if (playerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (playerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (playerState.ammo[weapon] < maxAmmo) ? playerState.ammo[weapon] : maxAmmo;
-					heuristic += (ammo / (float)maxAmmo) * 0.f * 0.4f;
+					heuristic += (ammo / (float)maxAmmo) * 0.f * 0.6f;
 				}
 				break;
 			case WP_ROCKET_LAUNCHER:
 				maxAmmo = 20;
-				if (playerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (playerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (playerState.ammo[weapon] < maxAmmo) ? playerState.ammo[weapon] : maxAmmo;
-					heuristic += (ammo / (float)maxAmmo) * 0.2f * 0.4f;
+					heuristic += (ammo / (float)maxAmmo) * 0.3f * 0.6f;
 				}
 				break;
 			case WP_RAILGUN:
 				maxAmmo = 20;
-				if (playerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (playerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (playerState.ammo[weapon] < maxAmmo) ? playerState.ammo[weapon] : maxAmmo;
-					heuristic += (ammo / (float)maxAmmo) * 0.3f * 0.4f;
+					heuristic += (ammo / (float)maxAmmo) * 0.4f * 0.6f;
 				}
 				break;
 		}
 	}
-	heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.4f;
+	heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.2f;
 	heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.2f;
 
 	//the other part of the heuristic is the damage dealer
@@ -142,9 +142,10 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 	}
 
 	//damage threshold to the max hp/armor
+	/*
 	if (maxDamage > 400) maxDamage = 400;
 	heuristic += (maxDamage / 400.f);
-
+	*/
 	//calculate the other player heuristic the same way but reversing the sign
 	for (int weapon = 1; weapon < MAX_WEAPONS; weapon++)
 	{
@@ -152,63 +153,63 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 		{
 			case WP_LIGHTNING:
 				maxAmmo = 200;
-				if (otherPlayerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (otherPlayerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (otherPlayerState.ammo[weapon] < maxAmmo) ? otherPlayerState.ammo[weapon] : maxAmmo;
-					heuristic -= (ammo / (float)maxAmmo) * 0.15f * 0.4f;
+					heuristic -= (ammo / (float)maxAmmo) * 0.1f * 0.6f;
 				}
 				break;
 			case WP_SHOTGUN:
 				maxAmmo = 20;
-				if (otherPlayerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (otherPlayerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (otherPlayerState.ammo[weapon] < maxAmmo) ? otherPlayerState.ammo[weapon] : maxAmmo;
-					heuristic -= (ammo / (float)maxAmmo) * 0.15f * 0.4f;
+					heuristic -= (ammo / (float)maxAmmo) * 0.1f * 0.6f;
 				}
 				break;
 			case WP_MACHINEGUN:
 				maxAmmo = 200;
-				if (otherPlayerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (otherPlayerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (otherPlayerState.ammo[weapon] < maxAmmo) ? otherPlayerState.ammo[weapon] : maxAmmo;
-					heuristic -= (ammo / (float)maxAmmo) * 0.1f * 0.4f;
+					heuristic -= (ammo / (float)maxAmmo) * 0.05f * 0.6f;
 				}
 				break;
 			case WP_PLASMAGUN:
 				maxAmmo = 200;
-				if (otherPlayerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (otherPlayerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (otherPlayerState.ammo[weapon] < maxAmmo) ? otherPlayerState.ammo[weapon] : maxAmmo;
-					heuristic -= (ammo / (float)maxAmmo) * 0.1f * 0.4f;
+					heuristic -= (ammo / (float)maxAmmo) * 0.05f * 0.6f;
 				}
 				break;
 			case WP_GRENADE_LAUNCHER:
 				maxAmmo = 20;
-				if (otherPlayerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (otherPlayerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (otherPlayerState.ammo[weapon] < maxAmmo) ? otherPlayerState.ammo[weapon] : maxAmmo;
-					heuristic -= (ammo / (float)maxAmmo) * 0.f * 0.4f;
+					heuristic -= (ammo / (float)maxAmmo) * 0.f * 0.6f;
 				}
 				break;
 			case WP_ROCKET_LAUNCHER:
 				maxAmmo = 20;
-				if (otherPlayerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (otherPlayerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (otherPlayerState.ammo[weapon] < maxAmmo) ? otherPlayerState.ammo[weapon] : maxAmmo;
-					heuristic -= (ammo / (float)maxAmmo) * 0.2f * 0.4f;
+					heuristic -= (ammo / (float)maxAmmo) * 0.3f * 0.6f;
 				}
 				break;
 			case WP_RAILGUN:
 				maxAmmo = 20;
-				if (otherPlayerState.stats[STAT_WEAPONS] && (1 << weapon))
+				if (otherPlayerState.stats[STAT_WEAPONS] & (1 << weapon))
 				{
 					ammo = (otherPlayerState.ammo[weapon] < maxAmmo) ? otherPlayerState.ammo[weapon] : maxAmmo;
-					heuristic -= (ammo / (float)maxAmmo) * 0.3f * 0.4f;
+					heuristic -= (ammo / (float)maxAmmo) * 0.4f * 0.6f;
 				}
 				break;
-		}
+			}
 	}
-	heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.4f;
+	heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.2f;
 	heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.2f;
 
 	//the other part of the heuristic is the damage dealer
@@ -224,8 +225,10 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 	}
 
 	//damage threshold to the max hp/armor
+	/*
 	if (maxDamage > 400) maxDamage = 400;
 	heuristic -= (maxDamage / 400.f);
+	*/
 	playerState.heuristic = heuristic;
 	otherPlayerState.heuristic = heuristic;
 }
@@ -402,9 +405,9 @@ void QuakeAIProcess::PickupItem(NodeState& playerState, eastl::map<ActorId, floa
 			playerState.stats[STAT_WEAPONS] |= (1 << pWeaponPickup->GetType());
 
 			// add ammo
-			playerState.ammo[pWeaponPickup->GetType()] += pWeaponPickup->GetAmmo();
-			if (playerState.ammo[pWeaponPickup->GetType()] > 200)
-				playerState.ammo[pWeaponPickup->GetType()] = 200;
+			playerState.ammo[pWeaponPickup->GetCode()] += pWeaponPickup->GetAmmo();
+			if (playerState.ammo[pWeaponPickup->GetCode()] > 200)
+				playerState.ammo[pWeaponPickup->GetCode()] = 200;
 		}
 		else if (pItemActor->GetType() == "Ammo")
 		{
@@ -413,9 +416,9 @@ void QuakeAIProcess::PickupItem(NodeState& playerState, eastl::map<ActorId, floa
 			if (pAmmoPickup->mRespawnTime - actor.second > 0)
 				continue;
 
-			playerState.ammo[pAmmoPickup->GetType()] += pAmmoPickup->GetAmount();
-			if (playerState.ammo[pAmmoPickup->GetType()] > 200)
-				playerState.ammo[pAmmoPickup->GetType()] = 200;
+			playerState.ammo[pAmmoPickup->GetCode()] += pAmmoPickup->GetAmount();
+			if (playerState.ammo[pAmmoPickup->GetCode()] > 200)
+				playerState.ammo[pAmmoPickup->GetCode()] = 200;
 		}
 		else if (pItemActor->GetType() == "Armor")
 		{
@@ -1653,14 +1656,120 @@ void QuakeAIProcess::ThreadProc( )
 						EvaluateCluster(playerState, aiPlayerState);
 					}
 				}
-			
-				aiManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
-				aiManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
-				aiManager->SetPlayerPath(mPlayerState.player, mPlayerState.path);
 
-				aiManager->SetPlayerTarget(mOtherPlayerState.player, mOtherPlayerState.target);
-				aiManager->SetPlayerWeapon(mOtherPlayerState.player, mOtherPlayerState.weapon);
-				aiManager->SetPlayerPath(mOtherPlayerState.player, mOtherPlayerState.path);
+				for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_HUMAN])
+				{
+					eastl::shared_ptr<TransformComponent> pTransformComponent(
+						pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+					if (pTransformComponent)
+					{
+						PathingNode* pathNode = 
+							aiManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition());
+						if (mPlayerState.path.size())
+						{
+							PathingNodeVec searchNodes;
+							for (PathingArc* pathArc : mPlayerState.path)
+								searchNodes.push_back(pathArc->GetNode());
+							PathPlan* plan = aiManager->GetPathingGraph()->FindPath(pathNode, searchNodes, 1.0f);
+							
+							if (plan)
+							{
+								//printf("\n player path %u plan %u \n", mPlayerState.path.size(), plan->GetArcs().size());
+
+								plan->ResetPath();
+
+								PathingArcVec path;
+								PathingArcVec::iterator itArc = mPlayerState.path.begin();
+								if (!plan->CheckForEnd())
+								{
+									PathingNode* node = plan->GetArcs().back()->GetNode();
+									for (PathingArc* planArc : plan->GetArcs())
+										path.push_back(planArc);
+
+									for (; itArc != mPlayerState.path.end(); itArc++)
+										if ((*itArc)->GetNode() == node)
+											break;
+								}
+
+								for (itArc++; itArc != mPlayerState.path.end(); itArc++)
+									path.push_back((*itArc));
+								mPlayerState.path = path;
+								/*
+								printf("\n player pos %f %f %f, id %u, heuristic %f, target %u, weapon %u, damage %u, paths %u \n",
+									mPlayerState.node->GetPos()[0], mPlayerState.node->GetPos()[1], mPlayerState.node->GetPos()[2],
+									mPlayerState.node->GetId(), mPlayerState.heuristic, mPlayerState.target, mPlayerState.weapon,
+									mPlayerState.weapon > 0 ? mPlayerState.damage[mPlayerState.weapon - 1] : 0, mPlayerState.path.size());
+
+								itArc = mPlayerState.path.begin();
+								for (; itArc != mPlayerState.path.end(); itArc++)
+									printf("%u ", (*itArc)->GetNode()->GetId());
+								*/
+								aiManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
+								aiManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
+								aiManager->SetPlayerPath(mPlayerState.player, mPlayerState.path);
+
+								delete plan;
+							}
+						}
+					}
+				}
+
+				for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_AI])
+				{
+					eastl::shared_ptr<TransformComponent> pTransformComponent(
+						pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+					if (pTransformComponent)
+					{
+						PathingNode* pathNode =
+							aiManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition());
+						if (mOtherPlayerState.path.size())
+						{
+							PathingNodeVec searchNodes;
+							for (PathingArc* pathArc : mOtherPlayerState.path)
+								searchNodes.push_back(pathArc->GetNode());
+							PathPlan* plan = aiManager->GetPathingGraph()->FindPath(pathNode, searchNodes, 1.0f);
+
+							if (plan)
+							{
+								printf("\n other player path %u plan %u \n", mOtherPlayerState.path.size(), plan->GetArcs().size());
+
+								plan->ResetPath();
+
+								PathingArcVec path;
+								PathingArcVec::iterator itArc = mOtherPlayerState.path.begin();
+								if (!plan->CheckForEnd())
+								{
+									PathingNode* node = plan->GetArcs().back()->GetNode();
+									for (PathingArc* planArc : plan->GetArcs())
+										path.push_back(planArc);
+
+									for (; itArc != mOtherPlayerState.path.end(); itArc++)
+										if ((*itArc)->GetNode() == node)
+											break;
+								}
+
+								for (itArc++; itArc != mOtherPlayerState.path.end(); itArc++)
+									path.push_back((*itArc));
+								mOtherPlayerState.path = path;
+
+								printf("\n other player pos %f %f %f, id %u, heuristic %f, target %u, weapon %u, damage %u, paths %u \n",
+									mOtherPlayerState.node->GetPos()[0], mOtherPlayerState.node->GetPos()[1], mOtherPlayerState.node->GetPos()[2],
+									mOtherPlayerState.node->GetId(), mOtherPlayerState.heuristic, mOtherPlayerState.target, mOtherPlayerState.weapon,
+									mOtherPlayerState.weapon > 0 ? mOtherPlayerState.damage[mOtherPlayerState.weapon - 1] : 0, mOtherPlayerState.path.size());
+								
+								itArc = mOtherPlayerState.path.begin();
+								for (; itArc != mOtherPlayerState.path.end(); itArc++)
+									printf("%u ", (*itArc)->GetNode()->GetId());
+
+								aiManager->SetPlayerTarget(mOtherPlayerState.player, mOtherPlayerState.target);
+								aiManager->SetPlayerWeapon(mOtherPlayerState.player, mOtherPlayerState.weapon);
+								aiManager->SetPlayerPath(mOtherPlayerState.player, mOtherPlayerState.path);
+
+								delete plan;
+							}
+						}
+					}
+				}
 			}
 		}
 	}

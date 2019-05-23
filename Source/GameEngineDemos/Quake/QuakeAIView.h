@@ -101,6 +101,10 @@ private:
 
 	float mCurrentDirectionTime;
 	unsigned int mCurrentAction;
+	ActorId mCurrentActor;
+
+	float mCurrentPlanTime;
+	PathingArcVec mCurrentPlan;
 
 	PathingNode* mGoalNode;
 	PathingArc* mCurrentArc;

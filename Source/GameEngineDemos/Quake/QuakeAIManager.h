@@ -47,15 +47,15 @@ public:
 	virtual void SavePathingGraph(const eastl::string& path);
 	virtual void LoadPathingGraph(const eastl::wstring& path);
 
+	PathingNode* GetPlayerNode(ActorId player);
 	ActorId GetPlayerTarget(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
-	PathingArcVec GetPlayerPath(ActorId player);
-	PathingNode* GetPlayerNode(ActorId player);
+	void GetPlayerPath(ActorId player, PathingArcVec& playerPath);
 
+	void SetPlayerNode(ActorId player, PathingNode* playerNode);
 	void SetPlayerTarget(ActorId player, ActorId playerTarget);
 	void SetPlayerWeapon(ActorId player, WeaponType playerWeapon);
 	void SetPlayerPath(ActorId player, PathingArcVec& playerPath);
-	void SetPlayerNode(ActorId player, PathingNode* playerNode);
 
 protected:
 

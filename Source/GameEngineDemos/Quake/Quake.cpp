@@ -43,7 +43,7 @@ void QuakeLogic::UpdateViewType(const eastl::shared_ptr<BaseGameView>& pView, bo
 {
 	GameLogic::UpdateViewType(pView, add);
 
-	//  This is commented out because while the view is created and waiting, the player has NOT attached yet. 
+	//  This is commented out because while the view is created and waiting, the player is NOT attached yet. 
 	/*
 	if (pView->GetType() == GV_REMOTE)
 	{
@@ -217,9 +217,12 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 						pPlayerActor->PlayerSpawn();
 						pView->OnAttach(pView->GetId(), pPlayerActor->GetId());
 
-						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
-							new EventDataNewActor(pPlayerActor->GetId(), pView->GetId()));
-						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
+						if (!gameApp->mOption.mLevelMod)
+						{
+							eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+								new EventDataNewActor(pPlayerActor->GetId(), pView->GetId()));
+							BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
+						}
 					}
 				}
 				else if (pView->GetType() == GV_REMOTE)
@@ -252,6 +255,27 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
 							new EventDataNewActor(pPlayerActor->GetId(), pAiView->GetId()));
 						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
+					}
+				}
+			}
+
+			if (gameApp->mOption.mLevelMod)
+			{
+				for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
+				{
+					eastl::shared_ptr<BaseGameView> pView = *it;
+					if (pView->GetType() == GV_HUMAN)
+					{
+						eastl::shared_ptr<BaseGameView> pAiView(new QuakeAIView());
+						gameApp->AddView(pAiView);
+
+						pAiView->OnAttach(pAiView->GetId(), pView->GetActorId());
+
+						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+							new EventDataNewActor(pView->GetActorId(), pAiView->GetId()));
+						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
+
+						break;
 					}
 				}
 			}
@@ -2668,9 +2692,9 @@ void QuakeLogic::SelectInitialSpawnPoint(Transform& transform)
 
 int PickupAmmo(const eastl::shared_ptr<PlayerActor>& player, const eastl::shared_ptr<AmmoPickup>& ammo)
 {
-	player->GetState().ammo[ammo->GetType()] += ammo->GetAmount();
-	if (player->GetState().ammo[ammo->GetType()] > 200)
-		player->GetState().ammo[ammo->GetType()] = 200;
+	player->GetState().ammo[ammo->GetCode()] += ammo->GetAmount();
+	if (player->GetState().ammo[ammo->GetCode()] > 200)
+		player->GetState().ammo[ammo->GetCode()] = 200;
 
 	EventManager::Get()->TriggerEvent(
 		eastl::make_shared<EventDataPlaySound>("audio/quake/sound/misc/am_pkup.wav"));
@@ -2684,9 +2708,9 @@ int PickupWeapon(const eastl::shared_ptr<PlayerActor>& player, const eastl::shar
 	player->GetState().stats[STAT_WEAPONS] |= (1 << weapon->GetType());
 
 	// add ammo
-	player->GetState().ammo[weapon->GetType()] += weapon->GetAmmo();
-	if (player->GetState().ammo[weapon->GetType()] > 200)
-		player->GetState().ammo[weapon->GetType()] = 200;
+	player->GetState().ammo[weapon->GetCode()] += weapon->GetAmmo();
+	if (player->GetState().ammo[weapon->GetCode()] > 200)
+		player->GetState().ammo[weapon->GetCode()] = 200;
 
 	// play weapon pickup sound
 	EventManager::Get()->TriggerEvent(

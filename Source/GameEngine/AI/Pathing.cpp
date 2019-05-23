@@ -517,7 +517,7 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 //
 // PathFinder::operator()					- Chapter 18, page 638
 //
-PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold)
+PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold)
 {
 	LogAssert(pStartNode, "Invalid node");
 
@@ -531,7 +531,7 @@ PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& sea
 	AddToOpenSet(mStartNode, NULL);
 
 	float minCostGoal = FLT_MAX;
-	PathingNode* goalNode = NULL;
+	PathPlan* pathPlan = NULL;
 	while (!mOpenSet.empty())
 	{
 		// grab the most likely candidate
@@ -544,8 +544,10 @@ PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& sea
 		{
 			if (planNode->GetGoal() < minCostGoal)
 			{
+				delete pathPlan;
+
 				minCostGoal = planNode->GetGoal();
-				goalNode = (*itNode);
+				pathPlan = RebuildPath(planNode);
 			}
 		}
 
@@ -604,7 +606,7 @@ PathingNode* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& sea
 		}
 	}
 
-	return goalNode;
+	return pathPlan;
 }
 
 void PathFinder::operator()(PathingNode* pStartNode, 
@@ -1143,8 +1145,7 @@ PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3
 	return FindPath(pStart,pGoal);
 }
 
-PathingNode* PathingGraph::FindNodes(
-	PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold)
+PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold)
 {
 	// find the best path using an A* search algorithm
 	PathFinder pathFinder;
