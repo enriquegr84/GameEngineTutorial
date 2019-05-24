@@ -99,10 +99,10 @@ protected:
 
 private:
 
-	float mCurrentDirectionTime;
+	float mCurrentActionTime;
 	unsigned int mCurrentAction;
-	ActorId mCurrentActor;
 
+	ActorId mCurrentActor;
 	float mCurrentPlanTime;
 	PathingArcVec mCurrentPlan;
 

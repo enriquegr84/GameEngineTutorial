@@ -2705,7 +2705,7 @@ int PickupAmmo(const eastl::shared_ptr<PlayerActor>& player, const eastl::shared
 int PickupWeapon(const eastl::shared_ptr<PlayerActor>& player, const eastl::shared_ptr<WeaponPickup>& weapon)
 {
 	// add the weapon
-	player->GetState().stats[STAT_WEAPONS] |= (1 << weapon->GetType());
+	player->GetState().stats[STAT_WEAPONS] |= (1 << weapon->GetCode());
 
 	// add ammo
 	player->GetState().ammo[weapon->GetCode()] += weapon->GetAmmo();
