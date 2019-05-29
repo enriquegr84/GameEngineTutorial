@@ -338,6 +338,8 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			mPathingGraph->InsertCluster(pathCluster);
 
 			pathNode->AddCluster(pathCluster);
+			if (clusterActor != INVALID_ACTOR_ID)
+				pathNode->AddClusterActor(pathCluster);
 		}
 
 		for (CerealTypes::TransitionNode transition : node.transitions)
@@ -377,6 +379,14 @@ ActorId QuakeAIManager::GetPlayerTarget(ActorId player)
 		return INVALID_ACTOR_ID;
 }
 
+float QuakeAIManager::GetPlayerHeuristic(ActorId player)
+{
+	if (mPlayerHeuristics.find(player) != mPlayerHeuristics.end())
+		return mPlayerHeuristics[player];
+	else
+		return FLT_MIN;
+}
+
 WeaponType QuakeAIManager::GetPlayerWeapon(ActorId player)
 {
 	if (mPlayerWeapons.find(player) != mPlayerWeapons.end())
@@ -403,6 +413,11 @@ PathingNode* QuakeAIManager::GetPlayerNode(ActorId player)
 void QuakeAIManager::SetPlayerTarget(ActorId player, ActorId playerTarget)
 {
 	mPlayerTargets[player] = playerTarget;
+}
+
+void QuakeAIManager::SetPlayerHeuristic(ActorId player, float playerHeuristic)
+{
+	mPlayerHeuristics[player] = playerHeuristic;
 }
 
 void QuakeAIManager::SetPlayerWeapon(ActorId player, WeaponType playerWeapon)
@@ -432,7 +447,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	mPlayerActor = eastl::dynamic_shared_pointer_cast<PlayerActor>(
 		GameLogic::Get()->GetActor(playerId).lock());
-	/*
+
 	game->RemoveAllDelegates();
 	RegisterAllDelegates();
 
@@ -459,7 +474,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	// we obtain visibility information from pathing graph 
 	SimulateVisibility();
-	*/
+
 	// we group the graph nodes in clusters
 	CreateClusters();
 
@@ -775,11 +790,12 @@ void QuakeAIManager::CreateClusters()
 
 						if (addCluster)
 						{
-							PathingCluster* pathCluster =
-								new PathingCluster(GAT_JUMP, pathTarget->GetActorId());
+							PathingCluster* pathCluster = 
+								new PathingCluster(GAT_JUMP, INVALID_ACTOR_ID);
 							pathCluster->LinkClusters(pArc->GetNode(), pathTarget);
-							currentNode->AddCluster(pathCluster);
 							mPathingGraph->InsertCluster(pathCluster);
+
+							currentNode->AddCluster(pathCluster);
 						}
 						else break;
 
@@ -819,10 +835,11 @@ void QuakeAIManager::CreateClusters()
 						if (addCluster)
 						{
 							PathingCluster* pathCluster =
-								new PathingCluster(GAT_MOVE, pathTarget->GetActorId());
+								new PathingCluster(GAT_MOVE, INVALID_ACTOR_ID);
 							pathCluster->LinkClusters(pArc->GetNode(), pathTarget);
-							currentNode->AddCluster(pathCluster);
 							mPathingGraph->InsertCluster(pathCluster);
+
+							currentNode->AddCluster(pathCluster);
 						}
 						else break;
 
@@ -878,8 +895,10 @@ void QuakeAIManager::CreateClusters()
 							PathingCluster* pathCluster =
 								new PathingCluster(GAT_JUMP, pathTarget->GetActorId());
 							pathCluster->LinkClusters(pArc->GetNode(), pathTarget);
-							currentNode->AddCluster(pathCluster);
 							mPathingGraph->InsertCluster(pathCluster);
+
+							currentNode->AddCluster(pathCluster);
+							currentNode->AddClusterActor(pathCluster);
 						}
 						else break;
 
@@ -923,8 +942,10 @@ void QuakeAIManager::CreateClusters()
 							PathingCluster* pathCluster =
 								new PathingCluster(GAT_MOVE, pathTarget->GetActorId());
 							pathCluster->LinkClusters(pArc->GetNode(), pathTarget);
-							currentNode->AddCluster(pathCluster);
 							mPathingGraph->InsertCluster(pathCluster);
+
+							currentNode->AddCluster(pathCluster);
+							currentNode->AddClusterActor(pathCluster);
 						}
 						else break;
 

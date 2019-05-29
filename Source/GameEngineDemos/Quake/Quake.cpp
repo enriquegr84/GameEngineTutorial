@@ -1254,30 +1254,6 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 	return true;
 }
 
-/*
-Spawns an item and tosses it forward
-*/
-eastl::shared_ptr<Actor> DropItem(
-	const Transform& transform, const eastl::shared_ptr<Actor>& item)
-{
-	AxisAngle<4, float> angles = Rotation<4, float>(transform.GetRotation());
-
-	Vector3<float> direction = HProject(angles.mAxis);
-	direction[YAW] = -1.0f;
-	Normalize(direction);
-
-	direction[PITCH] *= 2.0f;
-	direction[ROLL] *= 2.0f;
-	direction[YAW] *= 6.0f;
-
-	// fire the targets of the spawn point
-	EventManager::Get()->TriggerEvent(
-		eastl::make_shared<QuakeEventDataPushActor>(item->GetId(), direction));
-
-	// auto-remove after 30 seconds
-	return item;
-}
-
 eastl::shared_ptr<Actor> CreateItemWeapon(WeaponType weapon, const Transform& initTransform)
 {
 	eastl::shared_ptr<Actor> pActor;
@@ -1313,48 +1289,6 @@ eastl::shared_ptr<Actor> CreateItemWeapon(WeaponType weapon, const Transform& in
 
 	LogError("Couldn't find item for weapon " + eastl::to_string(weapon));
 	return pActor;
-}
-
-/*
-Toss the weapon and powerups for the killed player
-*/
-void TossClientItems(const eastl::shared_ptr<PlayerActor>& player)
-{
-	// drop the weapon if not a gauntlet or machinegun
-	WeaponType weapon = (WeaponType)player->GetState().weapon;
-
-	// make a special check to see if they are changing to a new
-	// weapon that isn't the mg or gauntlet.  Without this, a client
-	// can pick up a weapon, be killed, and not drop the weapon because
-	// their weapon change hasn't completed yet and they are still holding the MG.
-	if (weapon == WP_MACHINEGUN)
-	{
-		if (player->GetState().weaponState == WEAPON_DROPPING)
-		{
-			weapon = WP_NONE;
-		}
-		if (!(player->GetState().stats[STAT_WEAPONS] & (1 << weapon)))
-		{
-			weapon = WP_NONE;
-		}
-	}
-
-	if (weapon > WP_MACHINEGUN &&
-		player->GetState().ammo[weapon])
-	{
-		// find the item type for this weapon
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			player->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-		{
-			// spawn the item
-			Transform itemTransform;
-			itemTransform.SetTranslation(pTransformComponent->GetTransform().GetTranslationW1());
-			eastl::shared_ptr<Actor> item = CreateItemWeapon(weapon, itemTransform);
-
-			DropItem(pTransformComponent->GetTransform(), item);
-		}
-	}
 }
 
 void LookAtKiller(
@@ -1469,9 +1403,6 @@ void Die(int damage, MeansOfDeath meansOfDeath,
 	{
 		player->GetState().persistant[PERS_SCORE] -= 1;
 	}
-
-	// if client is in a nodrop area, don't drop anything (but return CTF flags!)
-	TossClientItems(player);
 
 	// send updated scores to any clients that are following this one,
 	// or they would get stale scoreboards
@@ -2418,7 +2349,7 @@ void QuakeLogic::LightningFire(const eastl::shared_ptr<PlayerActor>& player,
 			initTransform.SetTranslation(closestCollision);
 			CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
 
-			int damage = 8;
+			int damage = 4;
 			Damage(damage, 0, MOD_LIGHTNING, forward, closestCollision, target, player, player);
 		}
 	}
@@ -2900,18 +2831,6 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 				return;
 
 			pHealthPickup->mRespawnTime = (float)PickupHealth(pPlayerActor, pHealthPickup);
-		}
-
-		if (pItemActor->GetType() == "Weapon")
-		{
-			eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-				pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-			if (pWeaponPickup->mRespawnTime)
-				return;
-
-			pPlayerActor->GetState().stats[STAT_WEAPONS] |= 1 << pWeaponPickup->GetCode();
-			if (!pPlayerActor->GetState().ammo[pWeaponPickup->GetCode()])
-				pPlayerActor->GetState().ammo[pWeaponPickup->GetCode()] = 1;
 		}
 	}
 }

@@ -85,6 +85,7 @@ class PathingNode
 
 	unsigned int mClusterId;
 	PathingClusterVec mClusters;
+	PathingClusterVec mClusterActors;
 	PathingTransitionVec mTransitions;
 
 	eastl::map<PathingNode*, float> mVisibleNodes;
@@ -118,11 +119,14 @@ public:
 	void RemoveArcs();
 
 	void AddCluster(PathingCluster* pCluster);
+	void AddClusterActor(PathingCluster* pCluster);
 	PathingCluster* FindCluster(PathingNode* pTargetNode);
 	PathingCluster* FindCluster(unsigned int clusterType, PathingNode* pTargetNode);
 
 	unsigned int GetCluster() { return mClusterId; }
 	void SetCluster(unsigned int clusterId) { mClusterId = clusterId; }
+	void GetClusterActors(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters);
+	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters);
 	void GetClusters(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters);
 	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters);
 	const PathingClusterVec& GetClusters() { return mClusters; }

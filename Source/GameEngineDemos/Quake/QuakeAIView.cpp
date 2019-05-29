@@ -77,9 +77,10 @@ QuakeAIView::QuakeAIView()
 	mRotateSpeed = 0.0f;
 
 	mCurrentAction = 0;
-	mCurrentPlanTime = 0.f;
 	mCurrentActionTime = 0.f;
 	mCurrentActor = INVALID_ACTOR_ID;
+	mCurrentTarget = INVALID_ACTOR_ID;
+	mCurrentHeuristic = FLT_MAX;
 
 	mCurrentNode = NULL;
 	mCurrentArc = NULL;
@@ -495,7 +496,6 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 //  class QuakeAIView::OnUpdate			- Chapter 10, page 283
 void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
-	mCurrentPlanTime -= deltaMs / 1000.f;
 	mCurrentActionTime -= deltaMs / 1000.f;
 
 	//Handling rotation as a result of mouse position
@@ -510,7 +510,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 	if (pTransformComponent)
 	{
-		if (mPathingGraph)
+		if (mPathingGraph && mCurrentArc != NULL)
 		{
 			if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID ||
 				pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
@@ -523,18 +523,13 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					QuakeAIManager* aiManager =
 						dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
 
-					PathingArcVec pathPlan;
-					aiManager->GetPlayerPath(mPlayerId, pathPlan);
-
-					eastl::vector<ActorId> actors;
-					for (PathingArcVec::iterator itArc = pathPlan.begin(); itArc != pathPlan.end(); itArc++)
-						if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-							actors.push_back((*itArc)->GetNode()->GetActorId());
-
-					if (actors.size() || !mCurrentPlan.size() || mCurrentPlanTime <= 0.f)
+					if (!mCurrentPlan.size() ||
+						aiManager->GetPlayerHeuristic(mPlayerId) < mCurrentHeuristic)
 					{
+						PathingArcVec pathPlan;
+						aiManager->GetPlayerPath(mPlayerId, pathPlan);
+
 						mCurrentPlan = pathPlan;
-						mCurrentPlanTime = 6.0f;
 					}
 
 					if (mCurrentPlan.size())
@@ -559,11 +554,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									mCurrentArc = (*itArc);
 									mCurrentAction = mCurrentArc->GetType();
 									mCurrentNode = mCurrentArc->GetNode();
-									/*
+
 									Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 									Normalize(direction);
 									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-									*/
 								}
 								break;
 							}
@@ -574,10 +568,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						eastl::map<float, PathingNode*> weightNodes;
 						weightNodes[weight] = mCurrentNode;
 
-						printf("\n decision making trigger nodes : ");
+						//printf("\n decision making trigger nodes %u : ", mPlayerId);
 						for (; itArc != mCurrentPlan.end(); itArc++)
 						{
-							printf("%u ", (*itArc)->GetNode()->GetId());
+							//printf("%u ", (*itArc)->GetNode()->GetId());
 
 							weight += (*itArc)->GetWeight();
 							weightNodes[weight] = (*itArc)->GetNode();
@@ -592,6 +586,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						}
 						aiManager->SetPlayerNode(mPlayerId, weightNodes[weight]);
 
+						mCurrentHeuristic = aiManager->GetPlayerHeuristic(mPlayerId);
+						mCurrentTarget = aiManager->GetPlayerTarget(mPlayerId);
 						mCurrentPlan.erase(mCurrentPlan.begin(), itArc);
 						aiManager->SetPlayerPath(mPlayerId, mCurrentPlan);
 					}
@@ -624,11 +620,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									mCurrentArc = mCurrentNode->FindArc(currentCluster->GetNode());
 									mCurrentAction = mCurrentArc->GetType();
 									mCurrentNode = mCurrentArc->GetNode();
-									/*
+
 									Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 									Normalize(direction);
 									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-									*/
 								}
 								break;
 							}
@@ -641,14 +636,14 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							eastl::map<float, PathingNode*> weightNodes;
 							weightNodes[weight] = mCurrentNode;
 
-							printf("\n random trigger nodes : ");
+							//printf("\n random trigger nodes %u : ", mPlayerId);
 							weight = 0.f;
 							do
 							{
 								PathingCluster* currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
 								PathingArc* clusterArc = currentNode->FindArc(currentCluster->GetNode());
 								currentNode = clusterArc->GetNode();
-								printf("%u ", currentNode->GetId());
+								//printf("%u ", currentNode->GetId());
 
 								weight += clusterArc->GetWeight();
 								weightNodes[weight] = currentNode;
@@ -702,10 +697,13 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock());
 			if (pPhysicComponent)
 			{
-				int prevActionType = pPlayerActor->GetAction().actionType;
-
 				pPlayerActor->GetAction().actionType = 0;
 				pPlayerActor->GetAction().actionType |= ACTION_MOVEFORWARD;
+
+				QuakeAIManager* aiManager =
+					dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+				if (aiManager->GetPlayerWeapon(mPlayerId) != WP_NONE)
+					pPlayerActor->ChangeWeapon(aiManager->GetPlayerWeapon(mPlayerId));
 
 				Vector4<float> velocity = Vector4<float>::Zero();
 				if (pPhysicComponent->OnGround())
@@ -737,6 +735,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					}
 					else
 					{
+						mPitchTarget = 0.f;
 						mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
 						mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
 
@@ -746,9 +745,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							if (mCurrentNode == NULL)
 							{
 								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
-
-								QuakeAIManager* aiManager =
-									dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
 								aiManager->SetPlayerNode(mPlayerId, mCurrentNode);
 							}
 
@@ -770,7 +766,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 									Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
 									//printf("\n diff %f ", Length(diff));
-									if (Length(diff) <= PATHING_DEFAULT_NODE_TOLERANCE)
+									if (Length(diff) <= 5.0f)
 									{
 										//current node 
 										//printf("\n current node %u ", mCurrentNode->GetId());
@@ -818,15 +814,18 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 							if (mCurrentActionTime <= 0.f)
 							{
-								printf("\n node not reached");
+								//printf("\n node not reached");
 
 								mCurrentPlan.clear();
 								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
+								mCurrentHeuristic = FLT_MAX;
+								mCurrentTarget = INVALID_ACTOR_ID;
 								mCurrentActor = INVALID_ACTOR_ID;
 								mCurrentActionTime = 0;
 								mCurrentAction = 0;
 								mCurrentArc = 0;
 
+								aiManager->SetPlayerPath(mPlayerId, mCurrentPlan);
 								mGoalNode = NULL;
 								searchNode = true;
 							}
@@ -835,25 +834,13 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							{
 								PathingNode* currentNode = mCurrentNode;
 
-								if (mCurrentActionTime > 0.f)
+								if (!mCurrentPlan.size() || 
+									aiManager->GetPlayerHeuristic(mPlayerId) < mCurrentHeuristic)
 								{
-									QuakeAIManager* aiManager =
-										dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-
 									PathingArcVec pathPlan;
 									aiManager->GetPlayerPath(mPlayerId, pathPlan);
 
-									eastl::vector<ActorId> actors;
-									for (PathingArcVec::iterator itArc = pathPlan.begin(); itArc != pathPlan.end(); itArc++)
-										if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-											actors.push_back((*itArc)->GetNode()->GetActorId());
-
-									if (actors.size() || !mCurrentPlan.size() ||
-										mCurrentActionTime <= 0.f || mCurrentPlanTime <= 0.f)
-									{
-										mCurrentPlan = pathPlan;
-										mCurrentPlanTime = 6.0f;
-									}
+									mCurrentPlan = pathPlan;
 								}
 
 								//printf("\n decision making nodes %u ", mCurrentPlan.size());
@@ -873,19 +860,17 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									eastl::map<float, PathingNode*> weightNodes;
 									weightNodes[weight] = mCurrentNode;
 
-									printf("\n decision making nodes : ");
+									//printf("\n decision making nodes %u : ", mPlayerId);
 									weight = 0.f;
 									for (; itArc != mCurrentPlan.end(); itArc++)
 									{
-										printf("%u ", (*itArc)->GetNode()->GetId());
+										//printf("%u ", (*itArc)->GetNode()->GetId());
 
 										weight += (*itArc)->GetWeight();
 										weightNodes[weight] = (*itArc)->GetNode();
 									}
 
 									//player node prediction for ai decision making
-									QuakeAIManager* aiManager =
-										dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
 									weight = 0.f;
 									for (auto weightNode : weightNodes)
 									{
@@ -895,6 +880,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									}
 									aiManager->SetPlayerNode(mPlayerId, weightNodes[weight]);
 
+									mCurrentHeuristic = aiManager->GetPlayerHeuristic(mPlayerId);
+									mCurrentTarget = aiManager->GetPlayerTarget(mPlayerId);
 									mCurrentPlan.erase(mCurrentPlan.begin());
 									aiManager->SetPlayerPath(mPlayerId, mCurrentPlan);
 									searchNode = false;
@@ -904,24 +891,53 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								{
 									if (mGoalNode == NULL || currentNode == mGoalNode)
 									{
-										do
+										mCurrentTarget = aiManager->GetPlayerTarget(mPlayerId);
+										if (mCurrentTarget != INVALID_ACTOR_ID)
 										{
-											// choose a random cluster
 											PathingClusterVec clusterNodes;
 											currentNode->GetClusters(GAT_JUMP, clusterNodes);
 
-											//printf("\n cluster size %u \n", clusterNodes.size());
-											if (!clusterNodes.empty())
+											eastl::shared_ptr<PlayerActor> pPlayerTarget(
+												eastl::dynamic_shared_pointer_cast<PlayerActor>(
+												GameLogic::Get()->GetActor(mCurrentTarget).lock()));
+
+											eastl::shared_ptr<TransformComponent> pTargetTransform(
+												pPlayerTarget->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+
+											PathingNode* pTargetNode =
+												mPathingGraph->FindClosestNode(pTargetTransform->GetTransform().GetTranslation());
+											for (PathingCluster* clusterNode : clusterNodes)
 											{
-												unsigned int cluster = Randomizer::Rand() % clusterNodes.size();
-												mGoalNode = clusterNodes[cluster]->GetTarget();
+												if (clusterNode->GetTarget()->GetCluster() == pTargetNode->GetCluster())
+												{
+													mGoalNode = clusterNode->GetTarget();
+													searchNode = false;
+												}
 											}
-											else
+										}
+
+										if (searchNode)
+										{
+											//printf("\n search random node %u ", mPlayerId);
+
+											// choose a random cluster
+											do
 											{
-												mGoalNode = NULL;
-												break;
-											}
-										} while (currentNode == mGoalNode || mGoalNode->GetArcs().empty());
+												PathingClusterVec clusterNodes;
+												currentNode->GetClusters(GAT_JUMP, clusterNodes);
+
+												if (!clusterNodes.empty())
+												{
+													unsigned int cluster = Randomizer::Rand() % clusterNodes.size();
+													mGoalNode = clusterNodes[cluster]->GetTarget();
+												}
+												else
+												{
+													mGoalNode = NULL;
+													break;
+												}
+											} while (currentNode == mGoalNode || mGoalNode->GetArcs().empty());
+										}
 									}
 
 									if (mGoalNode != NULL)
@@ -946,22 +962,20 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											eastl::map<float, PathingNode*> weightNodes;
 											weightNodes[weight] = mCurrentNode;
 
-											printf("\n random nodes : ");
+											//printf("\n random nodes %u : ", mPlayerId);
 											weight = 0.f;
 											do
 											{
 												currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
 												clusterArc = currentNode->FindArc(currentCluster->GetNode());
 												currentNode = clusterArc->GetNode();
-												printf("%u ", currentNode->GetId());
+												//printf("%u ", currentNode->GetId());
 
 												weight += clusterArc->GetWeight();
 												weightNodes[weight] = currentNode;
 											} while (currentNode != mGoalNode);
 
 											//player node prediction for ai decision making
-											QuakeAIManager* aiManager =
-												dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
 											for (auto weightNode : weightNodes)
 											{
 												weight = weightNode.first;
@@ -975,11 +989,15 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											//printf("arc not found \n");
 											mGoalNode = NULL;
 											mCurrentNode = NULL;
+											mCurrentHeuristic = FLT_MAX;
+											mCurrentTarget = INVALID_ACTOR_ID;
 											mCurrentActor = INVALID_ACTOR_ID;
 											mCurrentActionTime = 0;
 											mCurrentAction = 0;
 											mCurrentArc = 0;
 											mCurrentPlan.clear();
+
+											aiManager->SetPlayerPath(mPlayerId, mCurrentPlan);
 										}
 									}
 									else
@@ -1128,6 +1146,74 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							velocity = atWorld;
 						}
 
+						if (mCurrentTarget != INVALID_ACTOR_ID)
+						{
+							eastl::shared_ptr<PlayerActor> pPlayerTarget(
+								eastl::dynamic_shared_pointer_cast<PlayerActor>(
+								GameLogic::Get()->GetActor(mCurrentTarget).lock()));
+
+							if (pPlayerTarget->GetState().stats[STAT_HEALTH] > 0)
+							{
+								//set muzzle location relative to pivoting eye
+								Vector3<float> playerPos = pTransformComponent->GetTransform().GetTranslation();
+								playerPos += Vector3<float>::Unit(YAW) * (float)pPlayerActor->GetState().viewHeight;
+
+								eastl::shared_ptr<TransformComponent> pTargetTransform(
+									pPlayerTarget->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+
+								Vector3<float> targetPos = pTargetTransform->GetTransform().GetTranslation();
+								//targetPos += Vector3<float>::Unit(YAW) * (float)pPlayerTarget->GetState().viewHeight;
+
+								eastl::vector<ActorId> collisionActors;
+								eastl::vector<Vector3<float>> collisions, collisionNormals;
+								GameLogic::Get()->GetGamePhysics()->CastRay(
+									playerPos, targetPos, collisionActors, collisions, collisionNormals);
+
+								ActorId closestCollisionId = INVALID_ACTOR_ID;
+								Vector3<float> closestCollision = targetPos;
+								for (unsigned int i = 0; i < collisionActors.size(); i++)
+								{
+									if (collisionActors[i] != pPlayerActor->GetId())
+									{
+										if (closestCollision != NULL)
+										{
+											if (Length(closestCollision - playerPos) > Length(collisions[i] - playerPos))
+											{
+												closestCollisionId = collisionActors[i];
+												closestCollision = collisions[i];
+											}
+										}
+										else
+										{
+											closestCollisionId = collisionActors[i];
+											closestCollision = collisions[i];
+										}
+									}
+								}
+
+								if (closestCollisionId == pPlayerTarget->GetId())
+								{
+									Vector3<float> direction = closestCollision - playerPos;
+									float scale = Length(direction);
+									Normalize(direction);
+
+									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+									mPitchTarget = -asin(direction[2]) * (float)GE_C_RAD_TO_DEG;
+
+									mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
+									mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
+
+									yawRotation = Rotation<4, float>(
+										AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
+									pitchRotation = Rotation<4, float>(
+										AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
+									mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
+
+									pPlayerActor->GetAction().actionType |= ACTION_ATTACK;
+								}
+							}
+						}
+
 						// update node rotation matrix
 						pitchRotation = Rotation<4, float>(
 							AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
@@ -1177,13 +1263,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					pPlayerActor->UpdateWeapon(deltaMs);
 					pPlayerActor->UpdateMovement(HProject(velocity));
 				}
-				else if (!(prevActionType & ACTION_ATTACK))
+				else
 				{
-					if (pPlayerActor->GetAction().actionType & ACTION_ATTACK)
-					{
-						pPlayerActor->PlayerSpawn();
-						pPlayerActor->GetAction().actionType = 0;
-					}
+					pPlayerActor->PlayerSpawn();
+					pPlayerActor->GetAction().actionType = 0;
 				}
 			}
 		}

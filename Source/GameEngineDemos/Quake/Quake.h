@@ -139,7 +139,7 @@ class NetworkEventForwarder;
 #define	LIGHTNING_RANGE		768
 
 #define MACHINEGUN_SPREAD	200
-#define	MACHINEGUN_DAMAGE	7
+#define	MACHINEGUN_DAMAGE	4
 #define	MACHINEGUN_TEAM_DAMAGE	5		// wimpier MG in teamplay
 
 #define DEFAULT_SHOTGUN_SPREAD	700

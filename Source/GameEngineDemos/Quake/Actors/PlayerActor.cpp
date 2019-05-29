@@ -152,7 +152,6 @@ bool PlayerActor::WeaponSelectable(int i)
 
 void PlayerActor::NextWeapon()
 {
-	//mAction.weaponSelectTime = cg.time;
 	int i;
 	int original = mAction.weaponSelect;
 	for (i=1; i <= MAX_WEAPONS; i++)
@@ -173,7 +172,6 @@ void PlayerActor::NextWeapon()
 
 void PlayerActor::PreviousWeapon()
 {
-	//mAction.weaponSelectTime = cg.time;
 	int i;
 	int original = mAction.weaponSelect;
 	for (i=1; i <= MAX_WEAPONS; i++)
@@ -192,13 +190,17 @@ void PlayerActor::PreviousWeapon()
 		mAction.weaponSelect = original;
 }
 
+void PlayerActor::ChangeWeapon(WeaponType weapon)
+{
+	if (WeaponSelectable(weapon))
+		mAction.weaponSelect = weapon;
+}
+
 void PlayerActor::Weapon()
 {
 	int num = 0;// = atoi(Argv(1));
 	if (num < 1 || num > MAX_WEAPONS)
 		return;
-
-	//mAction.weaponSelectTime = cg.time;
 
 	if (!(mState.stats[STAT_WEAPONS] & (1 << num)))
 		return;		// don't have the weapon
@@ -208,7 +210,6 @@ void PlayerActor::Weapon()
 
 void PlayerActor::OutOfAmmoChange()
 {
-	//mAction.weaponSelectTime = cg.time;
 	for (int i = MAX_WEAPONS; i > 0; i--)
 	{
 		if (WeaponSelectable(i))

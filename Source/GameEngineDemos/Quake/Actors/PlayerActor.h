@@ -324,6 +324,7 @@ public:
 
 	void NextWeapon();
 	void PreviousWeapon();
+	void ChangeWeapon(WeaponType weapon);
 
 	void UpdateTimers(unsigned long deltaMs);
 	void UpdateWeapon(unsigned long deltaMs);

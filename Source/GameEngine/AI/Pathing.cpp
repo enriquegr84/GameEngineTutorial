@@ -166,6 +166,12 @@ void PathingNode::AddCluster(PathingCluster* pCluster)
 	mClusters.push_back(pCluster);
 }
 
+void PathingNode::AddClusterActor(PathingCluster* pCluster)
+{
+	LogAssert(pCluster, "Invalid cluster actor");
+	mClusterActors.push_back(pCluster);
+}
+
 void PathingNode::GetClusters(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters)
 {
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
@@ -183,6 +189,30 @@ void PathingNode::GetClusters(unsigned int clusterType, unsigned int limit, Path
 void PathingNode::GetClusters(unsigned int clusterType, PathingClusterVec& outClusters)
 {
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetType() == clusterType)
+			outClusters.push_back(pCluster);
+	}
+}
+
+void PathingNode::GetClusterActors(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters)
+{
+	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
+	{
+		if (outClusters.size() < limit)
+		{
+			PathingCluster* pCluster = *it;
+			if (pCluster->GetType() == clusterType)
+				outClusters.push_back(pCluster);
+		}
+		else break;
+	}
+}
+
+void PathingNode::GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters)
+{
+	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
 		if (pCluster->GetType() == clusterType)
@@ -263,10 +293,15 @@ void PathingNode::OrderClusters(bool ascending)
 	}
 
 	mClusters.clear();
+	mClusterActors.clear();
 	for (auto clusterType : clusterTypes)
 	{
 		for (auto cluster : clusterType.second)
+		{
 			mClusters.push_back(cluster);
+			if (cluster->GetActor() != INVALID_ACTOR_ID)
+				mClusterActors.push_back(cluster);
+		}
 	}
 }
 
@@ -1149,7 +1184,7 @@ PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, PathingNodeVec& search
 {
 	// find the best path using an A* search algorithm
 	PathFinder pathFinder;
-	return pathFinder(pStartNode, searchNodes);
+	return pathFinder(pStartNode, searchNodes, threshold);
 }
 
 void PathingGraph::FindPlans(PathingNode* pStartNode, 

@@ -49,11 +49,13 @@ public:
 
 	PathingNode* GetPlayerNode(ActorId player);
 	ActorId GetPlayerTarget(ActorId player);
+	float GetPlayerHeuristic(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
 	void GetPlayerPath(ActorId player, PathingArcVec& playerPath);
 
 	void SetPlayerNode(ActorId player, PathingNode* playerNode);
 	void SetPlayerTarget(ActorId player, ActorId playerTarget);
+	void SetPlayerHeuristic(ActorId player, float playerHeuristic);
 	void SetPlayerWeapon(ActorId player, WeaponType playerWeapon);
 	void SetPlayerPath(ActorId player, PathingArcVec& playerPath);
 
@@ -120,6 +122,7 @@ private:
 	//player ai states
 	eastl::vector<ActorId> mPlayerIds;
 	eastl::map<ActorId, ActorId> mPlayerTargets;
+	eastl::map<ActorId, float> mPlayerHeuristics;
 	eastl::map<ActorId, WeaponType> mPlayerWeapons;
 	eastl::map<ActorId, PathingArcVec> mPlayerPaths;
 	eastl::map<ActorId, PathingNode*> mPlayerNodes;
