@@ -522,9 +522,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 					QuakeAIManager* aiManager =
 						dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-
+					/*
 					if (!mCurrentPlan.size() ||
 						aiManager->GetPlayerHeuristic(mPlayerId) < mCurrentHeuristic)
+					*/
 					{
 						PathingArcVec pathPlan;
 						aiManager->GetPlayerPath(mPlayerId, pathPlan);
@@ -833,9 +834,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							if (searchNode)
 							{
 								PathingNode* currentNode = mCurrentNode;
-
+								/*
 								if (!mCurrentPlan.size() || 
 									aiManager->GetPlayerHeuristic(mPlayerId) < mCurrentHeuristic)
+								*/
 								{
 									PathingArcVec pathPlan;
 									aiManager->GetPlayerPath(mPlayerId, pathPlan);

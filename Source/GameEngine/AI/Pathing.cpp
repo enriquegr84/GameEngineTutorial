@@ -172,14 +172,14 @@ void PathingNode::AddClusterActor(PathingCluster* pCluster)
 	mClusterActors.push_back(pCluster);
 }
 
-void PathingNode::GetClusters(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters)
+void PathingNode::GetClusters(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit)
 {
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
 	{
 		if (outClusters.size() < limit)
 		{
 			PathingCluster* pCluster = *it;
-			if (pCluster->GetType() == clusterType)
+			if (pCluster->GetType() == clusterType && pCluster->GetActor() == INVALID_ACTOR_ID)
 				outClusters.push_back(pCluster);
 		}
 		else break;
@@ -191,12 +191,26 @@ void PathingNode::GetClusters(unsigned int clusterType, PathingClusterVec& outCl
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
-		if (pCluster->GetType() == clusterType)
+		if (pCluster->GetType() == clusterType && pCluster->GetActor() == INVALID_ACTOR_ID)
 			outClusters.push_back(pCluster);
 	}
 }
 
-void PathingNode::GetClusterActors(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters)
+void PathingNode::GetClusters(PathingClusterVec& outClusters, unsigned int limit)
+{
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		if (outClusters.size() < limit)
+		{
+			PathingCluster* pCluster = *it;
+			if (pCluster->GetActor() == INVALID_ACTOR_ID)
+				outClusters.push_back(pCluster);
+		}
+		else break;
+	}
+}
+
+void PathingNode::GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit)
 {
 	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
 	{
@@ -217,6 +231,19 @@ void PathingNode::GetClusterActors(unsigned int clusterType, PathingClusterVec& 
 		PathingCluster* pCluster = *it;
 		if (pCluster->GetType() == clusterType)
 			outClusters.push_back(pCluster);
+	}
+}
+
+void PathingNode::GetClusterActors(PathingClusterVec& outClusters, unsigned int limit)
+{
+	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
+	{
+		if (outClusters.size() < limit)
+		{
+			PathingCluster* pCluster = *it;
+			outClusters.push_back(pCluster);
+		}
+		else break;
 	}
 }
 

@@ -125,10 +125,12 @@ public:
 
 	unsigned int GetCluster() { return mClusterId; }
 	void SetCluster(unsigned int clusterId) { mClusterId = clusterId; }
-	void GetClusterActors(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters);
+	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit);
 	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters);
-	void GetClusters(unsigned int clusterType, unsigned int limit, PathingClusterVec& outClusters);
+	void GetClusterActors(PathingClusterVec& outClusters, unsigned int limit);
+	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit);
 	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters);
+	void GetClusters(PathingClusterVec& outClusters, unsigned int limit);
 	const PathingClusterVec& GetClusters() { return mClusters; }
 
 	void OrderClusters(bool ascending = true);

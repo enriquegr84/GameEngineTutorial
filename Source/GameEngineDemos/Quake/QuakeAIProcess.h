@@ -99,7 +99,8 @@ struct NodeState
 		valid(state.valid),
 		node(state.node), path(state.path),
 		player(state.player), target(state.target), 
-		weapon(state.weapon), heuristic(state.heuristic)
+		weapon(state.weapon), heuristic(state.heuristic),
+		items(state.items), itemAmount(state.itemAmount), itemDistance(state.itemDistance)
 	{
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
@@ -126,6 +127,10 @@ struct NodeState
 
 		node = state.node;
 		path = state.path;
+
+		items = state.items;
+		itemAmount = state.itemAmount;
+		itemDistance = state.itemDistance;
 
 		weapon = state.weapon;
 		heuristic = state.heuristic;
@@ -154,6 +159,10 @@ struct NodeState
 	int stats[MAX_STATS];
 	int ammo[MAX_WEAPONS];
 	int damage[MAX_WEAPONS];
+
+	eastl::vector<eastl::shared_ptr<Actor>> items;
+	eastl::map<eastl::shared_ptr<Actor>, int> itemAmount;
+	eastl::map<eastl::shared_ptr<Actor>, float> itemDistance;
 };
 
 //
@@ -184,7 +193,8 @@ protected:
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
 		PathingNode* otherPlayerNode, 
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
-	void ConstructPath(PathingNode* playerNode, PathingClusterVec& playerClusters,
+	void ConstructPath(
+		PathingNode* playerNode, eastl::map<unsigned int, PathingCluster*>& playerClusters,
 		eastl::map<PathingCluster*, eastl::map<PathingNode*, float>>& playerVisibleNodes,
 		eastl::map<PathingCluster*, eastl::map<ActorId, float>>& playerActorNodes,
 		eastl::vector<PathingArcVec>& playerPathPlan);
@@ -198,10 +208,11 @@ protected:
 
 	void EvaluateNode(
 		NodeState& playerState, NodeState& otherPlayerState,
-		PathingClusterVec& playerClusters, PathingClusterVec& otherPlayerClusters);
+		eastl::map<unsigned int, PathingCluster*>& playerClusters, 
+		eastl::map<unsigned int, PathingCluster*>& otherPlayerClusters);
 	void EvaluateNode(
 		NodeState& playerState, NodeState& otherPlayerState, 
-		PathingClusterVec& otherPlayerClusters);
+		eastl::map<unsigned int, PathingCluster*>& otherPlayerClusters);
 	void EvaluateNode(
 		NodeState& playerState, NodeState& otherPlayerState);
 	void EvaluateCluster(
