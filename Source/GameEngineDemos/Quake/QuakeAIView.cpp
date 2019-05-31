@@ -524,7 +524,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
 					/*
 					if (!mCurrentPlan.size() ||
-						aiManager->GetPlayerHeuristic(mPlayerId) < mCurrentHeuristic)
+					aiManager->GetPlayerHeuristic(mPlayerId) < mCurrentHeuristic)
 					*/
 					{
 						PathingArcVec pathPlan;
@@ -582,7 +582,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						for (auto weightNode : weightNodes)
 						{
 							weight = weightNode.first;
-							if (weightNode.first >= 1.0f)
+							//if (weightNode.first >= 0.2f)
 								break;
 						}
 						aiManager->SetPlayerNode(mPlayerId, weightNodes[weight]);
@@ -654,7 +654,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							for (auto weightNode : weightNodes)
 							{
 								weight = weightNode.first;
-								if (weightNode.first >= 1.0f)
+								//if (weightNode.first >= 0.2f)
 									break;
 							}
 							
@@ -877,7 +877,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									for (auto weightNode : weightNodes)
 									{
 										weight = weightNode.first;
-										if (weightNode.first >= 1.0f)
+										//if (weightNode.first >= 0.2f)
 											break;
 									}
 									aiManager->SetPlayerNode(mPlayerId, weightNodes[weight]);
@@ -981,7 +981,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											for (auto weightNode : weightNodes)
 											{
 												weight = weightNode.first;
-												if (weightNode.first >= 1.0f)
+												//if (weightNode.first >= 0.2f)
 													break;
 											}
 											aiManager->SetPlayerNode(mPlayerId, weightNodes[weight]);

@@ -193,10 +193,8 @@ protected:
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
 		PathingNode* otherPlayerNode, 
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
-	void ConstructPath(
-		PathingNode* playerNode, eastl::map<unsigned int, PathingCluster*>& playerClusters,
-		eastl::map<PathingCluster*, eastl::map<PathingNode*, float>>& playerVisibleNodes,
-		eastl::map<PathingCluster*, eastl::map<ActorId, float>>& playerActorNodes,
+	void ConstructPath(PathingNode* playerNode, 
+		eastl::map<unsigned int, PathingCluster*>& playerClusters, 
 		eastl::vector<PathingArcVec>& playerPathPlan);
 	void Simulation(
 		NodeState& playerState, eastl::vector<PathingArcVec>& playerPathPlans,

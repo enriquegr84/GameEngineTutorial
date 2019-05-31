@@ -1257,11 +1257,16 @@ void QuakeAIProcess::Simulation(
 		eastl::map<ActorId, float> actors;
 		if (playerNode->GetActorId() != INVALID_ACTOR_ID)
 			actors[playerNode->GetActorId()] = pathPlanWeight;
+
+		PathingNode* currentNode = playerNode;
 		for (PathingArc* playerArc : playerPathPlan)
 		{
 			pathPlanWeight += playerArc->GetWeight();
 			if (playerArc->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-				actors[playerArc->GetNode()->GetActorId()] = pathPlanWeight;
+				if (actors.find(playerArc->GetNode()->GetActorId()) == actors.end())
+					actors[playerArc->GetNode()->GetActorId()] = pathPlanWeight;
+
+			currentNode = playerArc->GetNode();
 		}
 
 		for (PathingArcVec otherPlayerPathPlan : otherPlayerPathPlans)
@@ -1270,11 +1275,16 @@ void QuakeAIProcess::Simulation(
 			eastl::map<ActorId, float> otherActors;
 			if (otherPlayerNode->GetActorId() != INVALID_ACTOR_ID)
 				otherActors[otherPlayerNode->GetActorId()] = otherPathPlanWeight;
+
+			currentNode = otherPlayerNode;
 			for (PathingArc* otherPlayerArc : otherPlayerPathPlan)
 			{
 				otherPathPlanWeight += otherPlayerArc->GetWeight();
 				if (otherPlayerArc->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-					otherActors[otherPlayerArc->GetNode()->GetActorId()] = otherPathPlanWeight;
+					if (otherActors.find(otherPlayerArc->GetNode()->GetActorId()) == otherActors.end())
+						otherActors[otherPlayerArc->GetNode()->GetActorId()] = otherPathPlanWeight;
+
+				currentNode = otherPlayerArc->GetNode();
 			}
 
 			float visibleTime = 0, visibleDistance = 0, visibleHeight = 0;
@@ -1399,11 +1409,16 @@ void QuakeAIProcess::Simulation(NodeState& playerState,
 		eastl::map<ActorId, float> otherActors;
 		if (otherPlayerNode->GetActorId() != INVALID_ACTOR_ID)
 			otherActors[otherPlayerNode->GetActorId()] = otherPathPlanWeight;
+
+		PathingNode* currentNode = otherPlayerNode;
 		for (PathingArc* otherPlayerArc : otherPlayerPathPlan)
 		{
 			otherPathPlanWeight += otherPlayerArc->GetWeight();
 			if (otherPlayerArc->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-				otherActors[otherPlayerArc->GetNode()->GetActorId()] = otherPathPlanWeight;
+				if (otherActors.find(otherPlayerArc->GetNode()->GetActorId()) == otherActors.end())
+					otherActors[otherPlayerArc->GetNode()->GetActorId()] = otherPathPlanWeight;
+
+			currentNode = otherPlayerArc->GetNode();
 		}
 
 		float visibleTime = 0, visibleDistance = 0, visibleHeight = 0;
@@ -1527,137 +1542,99 @@ void QuakeAIProcess::Simulation(NodeState& playerState, NodeState& otherPlayerSt
 	Heuristic(playerState, otherPlayerState);
 }
 
-void QuakeAIProcess::ConstructPath(
-	PathingNode* playerNode, eastl::map<unsigned int, PathingCluster*>& playerClusters,
-	eastl::map<PathingCluster*, eastl::map<PathingNode*, float>>& playerVisibleNodes, 
-	eastl::map<PathingCluster*, eastl::map<ActorId, float>>& playerActorNodes,
+void QuakeAIProcess::ConstructPath(PathingNode* playerNode, 
+	eastl::map<unsigned int, PathingCluster*>& playerClusters,
 	eastl::vector<PathingArcVec>& playerPathPlan)
 {
 	for (auto playerCluster : playerClusters)
 	{
-		PathingArcVec pathPlan;
-
+		eastl::vector<ActorId> actors;
+		PathingArcVec clusterPathPlan;
 		PathingNode* currentNode = playerNode;
-		if (playerVisibleNodes[playerCluster.second].find(currentNode) != playerVisibleNodes[playerCluster.second].end())
-			playerVisibleNodes[playerCluster.second].erase(currentNode);
 		while (currentNode != playerCluster.second->GetTarget())
 		{
+			for (PathingArc* pathArc : currentNode->GetArcs())
+			{
+				if (pathArc->GetNode()->GetActorId() != INVALID_ACTOR_ID)
+				{
+					if (eastl::find(actors.begin(), actors.end(), pathArc->GetNode()->GetActorId()) == actors.end())
+					{
+						actors.push_back(pathArc->GetNode()->GetActorId());
+
+						PathingArcVec actorPathPlan;
+						for (PathingArc* pathArc : clusterPathPlan)
+							actorPathPlan.push_back(pathArc);
+
+						actorPathPlan.push_back(pathArc);
+						playerPathPlan.push_back(actorPathPlan);
+					}
+				}
+			}
+
 			PathingCluster* currentCluster = 
 				currentNode->FindCluster(playerCluster.first, playerCluster.second->GetTarget());
 			PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
 			PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
 			for (PathingNode* nodeTransition : currentTransition->GetNodes())
 			{
-				if (playerActorNodes[playerCluster.second].find(nodeTransition->GetActorId()) != playerActorNodes[playerCluster.second].end())
-					playerActorNodes[playerCluster.second].erase(nodeTransition->GetActorId());
-				if (playerVisibleNodes[playerCluster.second].find(nodeTransition) != playerVisibleNodes[playerCluster.second].end())
-					playerVisibleNodes[playerCluster.second].erase(nodeTransition);
+				if (nodeTransition->GetActorId() != INVALID_ACTOR_ID)
+					if (eastl::find(actors.begin(), actors.end(), nodeTransition->GetActorId()) == actors.end())
+						actors.push_back(nodeTransition->GetActorId());
 			}
+			clusterPathPlan.push_back(currentArc);
 
-			pathPlan.push_back(currentArc);
 			currentNode = currentArc->GetNode();
-			if (playerActorNodes[playerCluster.second].find(currentNode->GetActorId()) != playerActorNodes[playerCluster.second].end())
-				playerActorNodes[playerCluster.second].erase(currentNode->GetActorId());
-			if (playerVisibleNodes[playerCluster.second].find(currentNode) != playerVisibleNodes[playerCluster.second].end())
-				playerVisibleNodes[playerCluster.second].erase(currentNode);
+			if (currentNode->GetActorId() != INVALID_ACTOR_ID)
+				if (eastl::find(actors.begin(), actors.end(), currentNode->GetActorId()) == actors.end())
+					actors.push_back(currentNode->GetActorId());
 		}
-		playerPathPlan.push_back(pathPlan);
+		playerPathPlan.push_back(clusterPathPlan);
 
-		PathingClusterVec actorClusters;
-		currentNode->GetClusterActors(playerCluster.first, actorClusters);
-		for (PathingCluster* actorCluster : actorClusters)
+		currentNode = playerNode;
+		clusterPathPlan = PathingArcVec();
+		while (currentNode != playerCluster.second->GetTarget())
 		{
-			if (playerActorNodes[playerCluster.second].find(actorCluster->GetActor()) != playerActorNodes[playerCluster.second].end())
+			PathingClusterVec actorClusters;
+			currentNode->GetClusterActors(playerCluster.first, actorClusters);
+			for (PathingCluster* actorCluster : actorClusters)
 			{
-				PathingArcVec actorPathPlan;
-				for (PathingArc* pathArc : pathPlan)
-					actorPathPlan.push_back(pathArc);
-
-				currentNode = playerCluster.second->GetTarget();
-				if (playerVisibleNodes[playerCluster.second].find(currentNode) != playerVisibleNodes[playerCluster.second].end())
-					playerVisibleNodes[playerCluster.second].erase(currentNode);
-				while (currentNode != actorCluster->GetTarget())
+				if (eastl::find(actors.begin(), actors.end(), actorCluster->GetActor()) == actors.end())
 				{
-					PathingCluster* currentCluster =
-						currentNode->FindCluster(actorCluster->GetType(), actorCluster->GetTarget());
-					PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
-					PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-					for (PathingNode* nodeTransition : currentTransition->GetNodes())
+					PathingArcVec actorPathPlan;
+					for (PathingArc* pathArc : clusterPathPlan)
+						actorPathPlan.push_back(pathArc);
+
+					PathingNode* actorNode = currentNode;
+					while (actorNode != actorCluster->GetTarget())
 					{
-						if (playerActorNodes[playerCluster.second].find(nodeTransition->GetActorId()) != playerActorNodes[playerCluster.second].end())
-							playerActorNodes[playerCluster.second].erase(nodeTransition->GetActorId());
-						if (playerVisibleNodes[playerCluster.second].find(nodeTransition) != playerVisibleNodes[playerCluster.second].end())
-							playerVisibleNodes[playerCluster.second].erase(nodeTransition);
-					}
-
-					actorPathPlan.push_back(currentArc);
-					currentNode = currentArc->GetNode();
-					if (playerActorNodes[playerCluster.second].find(currentNode->GetActorId()) != playerActorNodes[playerCluster.second].end())
-						playerActorNodes[playerCluster.second].erase(currentNode->GetActorId());
-					if (playerVisibleNodes[playerCluster.second].find(currentNode) != playerVisibleNodes[playerCluster.second].end())
-						playerVisibleNodes[playerCluster.second].erase(currentNode);
-				}
-
-				playerPathPlan.push_back(actorPathPlan);
-			}
-		}
-	}
-
-	//if there are missing visible nodes we search deeper
-	for (auto playerCluster : playerClusters)
-	{
-		if (!playerVisibleNodes[playerCluster.second].empty())
-		{
-			PathingArcVec pathPlan;
-			eastl::map<PathingNode*, PathingArcVec> pathNodePlan;
-
-			PathingNode* currentNode = playerNode;
-			while (currentNode != playerCluster.second->GetTarget())
-			{
-				for (PathingArc* currentArc : currentNode->GetArcs())
-				{
-					bool addPath = false;
-					if (pathNodePlan.find(currentArc->GetNode()) == pathNodePlan.end())
-					{
-						PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
+						PathingCluster* currentCluster =
+							actorNode->FindCluster(actorCluster->GetType(), actorCluster->GetTarget());
+						PathingArc* currentArc = actorNode->FindArc(currentCluster->GetNode());
+						PathingTransition* currentTransition = actorNode->FindTransition(currentArc->GetId());
 						for (PathingNode* nodeTransition : currentTransition->GetNodes())
 						{
-							if (playerVisibleNodes[playerCluster.second].find(nodeTransition) !=
-								playerVisibleNodes[playerCluster.second].end())
-								addPath = true;
+							if (nodeTransition->GetActorId() != INVALID_ACTOR_ID)
+								if (eastl::find(actors.begin(), actors.end(), nodeTransition->GetActorId()) == actors.end())
+									actors.push_back(nodeTransition->GetActorId());
 						}
+						actorPathPlan.push_back(currentArc);
 
-						if (playerVisibleNodes[playerCluster.second].find(currentArc->GetNode()) !=
-							playerVisibleNodes[playerCluster.second].end())
-							addPath = true;
-
-						if (addPath)
-						{
-							for (PathingArcVec::iterator itPath = pathPlan.begin(); itPath != pathPlan.end(); itPath++)
-								pathNodePlan[currentArc->GetNode()].push_back(*itPath);
-
-							pathNodePlan[currentArc->GetNode()].push_back(currentArc);
-						}
+						actorNode = currentArc->GetNode();
+						if (actorNode->GetActorId() != INVALID_ACTOR_ID)
+							if (eastl::find(actors.begin(), actors.end(), actorNode->GetActorId()) == actors.end())
+								actors.push_back(actorNode->GetActorId());
 					}
+
+					playerPathPlan.push_back(actorPathPlan);
 				}
-				PathingCluster* currentCluster = 
-					currentNode->FindCluster(playerCluster.first, playerCluster.second->GetTarget());
-				PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
-
-				pathPlan.push_back(currentArc);
-				currentNode = currentArc->GetNode();
 			}
 
-			//select a minimum of missing visible nodes
-			unsigned int minimumPathNodes = 5;
-			unsigned int pathInc = 
-				pathNodePlan.size() / minimumPathNodes > 0 ? pathNodePlan.size() / minimumPathNodes : 1;
-			eastl::map<PathingNode*, PathingArcVec>::iterator itPathPlan = pathNodePlan.begin();
-			for (unsigned int pathPlanIdx = 0; pathPlanIdx < pathNodePlan.size(); pathPlanIdx += pathInc)
-			{
-				playerPathPlan.push_back((*itPathPlan).second);
-				eastl::advance(itPathPlan, pathInc);
-			}
+			PathingCluster* currentCluster =
+				currentNode->FindCluster(playerCluster.first, playerCluster.second->GetTarget());
+			PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
+			clusterPathPlan.push_back(currentArc);
+
+			currentNode = currentArc->GetNode();
 		}
 	}
 }
@@ -1671,85 +1648,9 @@ void QuakeAIProcess::EvaluateNode(
 	NodeState& playerState, NodeState& otherPlayerState, 
 	eastl::map<unsigned int, PathingCluster*>& otherPlayerClusters)
 {
-	//first we find those nodes which contains actor or/and were visible
-	eastl::map<PathingCluster*, eastl::map<PathingNode*, float>> otherVisibleNodes;
-	eastl::map<PathingCluster*, eastl::map<ActorId, float>> otherActorNodes;
-	for (auto otherPlayerCluster : otherPlayerClusters)
-	{
-		PathingNode* currentNode = otherPlayerState.node;
-		while (currentNode != otherPlayerCluster.second->GetTarget())
-		{
-			for (PathingArc* currentArc : currentNode->GetArcs())
-			{
-				PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-				for (PathingNode* nodeTransition : currentTransition->GetNodes())
-				{
-					if (nodeTransition->IsVisibleNode(playerState.node))
-						otherVisibleNodes[otherPlayerCluster.second][nodeTransition] = currentArc->GetWeight();
-				}
-
-				if (currentArc->GetNode()->IsVisibleNode(playerState.node))
-					otherVisibleNodes[otherPlayerCluster.second][currentArc->GetNode()] = currentArc->GetWeight();
-			}
-
-			PathingCluster* currentCluster =
-				currentNode->FindCluster(otherPlayerCluster.first, otherPlayerCluster.second->GetTarget());
-			PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
-
-			PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-			for (PathingNode* nodeTransition : currentTransition->GetNodes())
-			{
-				if (nodeTransition->GetActorId() != INVALID_ACTOR_ID)
-					otherActorNodes[otherPlayerCluster.second][nodeTransition->GetActorId()] = currentArc->GetWeight();
-				if (nodeTransition->IsVisibleNode(playerState.node))
-					otherVisibleNodes[otherPlayerCluster.second][nodeTransition] = currentArc->GetWeight();
-			}
-
-			if (currentArc->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-				otherActorNodes[otherPlayerCluster.second][currentArc->GetNode()->GetActorId()] = currentArc->GetWeight();
-			if (currentArc->GetNode()->IsVisibleNode(playerState.node))
-				otherVisibleNodes[otherPlayerCluster.second][currentArc->GetNode()] = currentArc->GetWeight();
-
-			currentNode = currentArc->GetNode();
-		}
-
-		PathingClusterVec actorClusters;
-		currentNode->GetClusterActors(otherPlayerCluster.first, actorClusters);
-		for (PathingCluster* actorCluster : actorClusters)
-		{
-			if (otherActorNodes[otherPlayerCluster.second].find(actorCluster->GetActor()) ==
-				otherActorNodes[otherPlayerCluster.second].end())
-			{
-				currentNode = otherPlayerCluster.second->GetTarget();
-				while (currentNode != actorCluster->GetTarget())
-				{
-					PathingCluster* currentCluster =
-						currentNode->FindCluster(actorCluster->GetType(), actorCluster->GetTarget());
-					PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
-					PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-					for (PathingNode* nodeTransition : currentTransition->GetNodes())
-					{
-						if (nodeTransition->GetActorId() != INVALID_ACTOR_ID)
-							otherActorNodes[otherPlayerCluster.second][nodeTransition->GetActorId()] = currentArc->GetWeight();
-						if (nodeTransition->IsVisibleNode(playerState.node))
-							otherVisibleNodes[otherPlayerCluster.second][nodeTransition] = currentArc->GetWeight();
-					}
-
-					if (currentArc->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-						otherActorNodes[otherPlayerCluster.second][currentArc->GetNode()->GetActorId()] = currentArc->GetWeight();
-					if (currentArc->GetNode()->IsVisibleNode(playerState.node))
-						otherVisibleNodes[otherPlayerCluster.second][currentArc->GetNode()] = currentArc->GetWeight();
-
-					currentNode = currentArc->GetNode();
-				}
-			}
-		}
-	}
-
-	// next we construct path
+	//construct path
 	eastl::vector<PathingArcVec> otherNodePathPlans;
-	ConstructPath(otherPlayerState.node, 
-		otherPlayerClusters, otherVisibleNodes, otherActorNodes, otherNodePathPlans);
+	ConstructPath(otherPlayerState.node, otherPlayerClusters, otherNodePathPlans);
 
 	Simulation(playerState, otherPlayerState, otherNodePathPlans);
 }
@@ -1759,177 +1660,10 @@ void QuakeAIProcess::EvaluateNode(
 	eastl::map<unsigned int, PathingCluster*>& playerClusters, 
 	eastl::map<unsigned int, PathingCluster*>& otherPlayerClusters)
 {
-	//first we find those nodes which contains actor or/and were visible
-	eastl::map<unsigned int, eastl::map<PathingNode*, PathingCluster*>> playerClusterNodes;
-	eastl::map<PathingCluster*, eastl::map<PathingNode*, float>> visibleNodes, otherVisibleNodes;
-	eastl::map<PathingCluster*, eastl::map<ActorId, float>> actorNodes, otherActorNodes;
-
-	for (auto playerCluster : playerClusters)
-	{
-		playerClusterNodes[playerCluster.first][playerState.node] = playerCluster.second;
-
-		PathingNode* currentNode = playerState.node;
-		while (currentNode != playerCluster.second->GetTarget())
-		{
-			for (PathingArc* currentArc : currentNode->GetArcs())
-			{
-				PathingTransition* currentTransition =
-					currentNode->FindTransition(currentArc->GetId());
-				for (PathingNode* nodeTransition : currentTransition->GetNodes())
-					playerClusterNodes[playerCluster.first][nodeTransition] = playerCluster.second;
-
-				playerClusterNodes[playerCluster.first][currentArc->GetNode()] = playerCluster.second;
-			}
-
-			PathingCluster* currentCluster =
-				currentNode->FindCluster(playerCluster.first, playerCluster.second->GetTarget());
-			PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
-			PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-			for (PathingNode* nodeTransition : currentTransition->GetNodes())
-			{
-				if (nodeTransition->GetActorId() != INVALID_ACTOR_ID)
-					actorNodes[playerCluster.second][nodeTransition->GetActorId()] = currentArc->GetWeight();
-				playerClusterNodes[playerCluster.first][nodeTransition] = playerCluster.second;
-			}
-			if (currentArc->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-				actorNodes[playerCluster.second][currentArc->GetNode()->GetActorId()] = currentArc->GetWeight();
-			playerClusterNodes[playerCluster.first][currentArc->GetNode()] = playerCluster.second;
-
-			currentNode = currentArc->GetNode();
-		}
-	}
-
-	for (auto otherPlayerCluster : otherPlayerClusters)
-	{
-		PathingNode* currentNode = otherPlayerState.node;
-		while (currentNode != otherPlayerCluster.second->GetTarget())
-		{
-			/*
-			for (PathingArc* currentArc : currentNode->GetArcs())
-			{
-				PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-				eastl::map<unsigned int, eastl::map<PathingNode*, PathingCluster*>>::iterator itClusterNode;
-				for (itClusterNode = playerClusterNodes.begin(); itClusterNode != playerClusterNodes.end(); itClusterNode++)
-				{
-					for (auto playerNode : (*itClusterNode).second)
-					{
-						for (PathingNode* nodeTransition : currentTransition->GetNodes())
-						{
-							if (nodeTransition->IsVisibleNode(playerNode.first))
-							{
-								visibleNodes[playerNode.second][playerNode.first] = currentArc->GetWeight();
-								otherVisibleNodes[otherPlayerCluster.second][nodeTransition] = currentArc->GetWeight();
-							}
-						}
-
-						if (currentArc->GetNode()->IsVisibleNode(playerNode.first))
-						{
-							visibleNodes[playerNode.second][playerNode.first] = currentArc->GetWeight();
-							otherVisibleNodes[otherPlayerCluster.second][currentArc->GetNode()] = currentArc->GetWeight();
-						}
-					}
-				}
-			}
-			*/
-			PathingCluster* currentCluster =
-				currentNode->FindCluster(otherPlayerCluster.first, otherPlayerCluster.second->GetTarget());
-			PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
-
-			PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-			eastl::map<unsigned int, eastl::map<PathingNode*, PathingCluster*>>::iterator itClusterNode;
-			for (itClusterNode = playerClusterNodes.begin(); itClusterNode != playerClusterNodes.end(); itClusterNode++)
-			{
-				for (auto playerNode : (*itClusterNode).second)
-				{
-					for (PathingNode* nodeTransition : currentTransition->GetNodes())
-					{
-						if (nodeTransition->GetActorId() != INVALID_ACTOR_ID)
-						{
-							actorNodes[playerNode.second][nodeTransition->GetActorId()] = currentArc->GetWeight();
-							otherActorNodes[otherPlayerCluster.second][nodeTransition->GetActorId()] = currentArc->GetWeight();
-						}
-						if (nodeTransition->IsVisibleNode(playerNode.first))
-						{
-							visibleNodes[playerNode.second][playerNode.first] = currentArc->GetWeight();
-							otherVisibleNodes[otherPlayerCluster.second][nodeTransition] = currentArc->GetWeight();
-						}
-					}
-
-					if (currentArc->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-					{
-						actorNodes[playerNode.second][currentArc->GetNode()->GetActorId()] = currentArc->GetWeight();
-						otherActorNodes[otherPlayerCluster.second][currentArc->GetNode()->GetActorId()] = currentArc->GetWeight();
-					}
-					if (currentArc->GetNode()->IsVisibleNode(playerNode.first))
-					{
-						visibleNodes[playerNode.second][playerNode.first] = currentArc->GetWeight();
-						otherVisibleNodes[otherPlayerCluster.second][currentArc->GetNode()] = currentArc->GetWeight();
-					}
-				}
-			}
-
-			currentNode = currentArc->GetNode();
-		}
-
-		PathingClusterVec actorClusters;
-		currentNode->GetClusterActors(otherPlayerCluster.first, actorClusters);
-		for (PathingCluster* actorCluster : actorClusters)
-		{
-			if (otherActorNodes[otherPlayerCluster.second].find(actorCluster->GetActor()) ==
-				otherActorNodes[otherPlayerCluster.second].end())
-			{
-				currentNode = otherPlayerCluster.second->GetTarget();
-				while (currentNode != actorCluster->GetTarget())
-				{
-					PathingCluster* currentCluster =
-						currentNode->FindCluster(otherPlayerCluster.first, actorCluster->GetTarget());
-					PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
-
-					PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
-					eastl::map<unsigned int, eastl::map<PathingNode*, PathingCluster*>>::iterator itClusterNode;
-					for (itClusterNode = playerClusterNodes.begin(); itClusterNode != playerClusterNodes.end(); itClusterNode++)
-					{
-						for (auto playerNode : (*itClusterNode).second)
-						{
-							for (PathingNode* nodeTransition : currentTransition->GetNodes())
-							{
-								if (nodeTransition->GetActorId() != INVALID_ACTOR_ID)
-								{
-									actorNodes[playerNode.second][nodeTransition->GetActorId()] = currentArc->GetWeight();
-									otherActorNodes[otherPlayerCluster.second][nodeTransition->GetActorId()] = currentArc->GetWeight();
-								}
-								if (nodeTransition->IsVisibleNode(playerNode.first))
-								{
-									visibleNodes[playerNode.second][playerNode.first] = currentArc->GetWeight();
-									otherVisibleNodes[otherPlayerCluster.second][nodeTransition] = currentArc->GetWeight();
-								}
-							}
-
-							if (currentArc->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-							{
-								actorNodes[playerNode.second][currentArc->GetNode()->GetActorId()] = currentArc->GetWeight();
-								otherActorNodes[otherPlayerCluster.second][currentArc->GetNode()->GetActorId()] = currentArc->GetWeight();
-							}
-							if (currentArc->GetNode()->IsVisibleNode(playerNode.first))
-							{
-								visibleNodes[playerNode.second][playerNode.first] = currentArc->GetWeight();
-								otherVisibleNodes[otherPlayerCluster.second][currentArc->GetNode()] = currentArc->GetWeight();
-							}
-						}
-					}
-
-					currentNode = currentArc->GetNode();
-				}
-			}
-		}
-	}
-
-	// next we construct path
+	//construct path
 	eastl::vector<PathingArcVec> nodePathPlans, otherNodePathPlans;
-	ConstructPath(playerState.node,
-		playerClusters, visibleNodes, actorNodes, nodePathPlans);
-	ConstructPath(otherPlayerState.node,
-		otherPlayerClusters, otherVisibleNodes, otherActorNodes, otherNodePathPlans);
+	ConstructPath(playerState.node, playerClusters, nodePathPlans);
+	ConstructPath(otherPlayerState.node, otherPlayerClusters, otherNodePathPlans);
 
 	Simulation(playerState, nodePathPlans, otherPlayerState, otherNodePathPlans);
 }
@@ -1949,7 +1683,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 
 	//fprintf(mFile, "\n playerCluster - otherPlayerNode \n");
 	eastl::map<PathingCluster*, NodeState> playerClusterNodeStates, otherPlayerNodeClusterStates;
-	for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx+=3)
+	for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
 	//parallel_for(size_t(0), clusterSize, [&](size_t playerClusterIdx)
 	{
 		PathingCluster* playerCluster = playerClusters[playerClusterIdx];
@@ -2001,7 +1735,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 
 	//fprintf(mFile, "\n playerNode - otherPlayerCluster \n");
 	eastl::map<PathingCluster*, NodeState> playerNodeClusterStates, otherPlayerClusterNodeStates;
-	for (unsigned int otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx+=3)
+	for (unsigned int otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
 	//parallel_for(size_t(0), otherClusterSize, [&](size_t otherPlayerClusterIdx)
 	{
 		PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];
@@ -2047,7 +1781,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 
 	//fprintf(mFile, "\n playerCluster - otherPlayerCluster \n");
 	eastl::map<PathingCluster*, eastl::map<PathingCluster*, NodeState>> playerClustersStates, otherPlayerClustersStates;
-	for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx+=3)
+	for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
 	//parallel_for(size_t(0), clusterSize, [&](size_t playerClusterIdx)
 	{
 		PathingCluster* playerCluster = playerClusters[playerClusterIdx];
@@ -2069,7 +1803,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 						clusters[cluster->GetType()] = cluster;
 		}
 
-		for (unsigned int otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx+=3)
+		for (unsigned int otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
 		//parallel_for(size_t(0), otherClusterSize, [&](size_t otherPlayerClusterIdx)
 		{
 			PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];
@@ -2083,6 +1817,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 			*/
 			eastl::map<unsigned int, PathingCluster*> otherClusters;
 			otherClusters[otherPlayerCluster->GetType()] = otherPlayerCluster;
+			/*
 			for (PathingCluster* otherCluster : otherPlayerState.node->GetClusters())
 			{
 				if (otherCluster->GetActor() == INVALID_ACTOR_ID)
@@ -2090,6 +1825,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 						if (otherPlayerCluster->GetTarget()->GetCluster() == otherCluster->GetTarget()->GetCluster())
 							otherClusters[otherCluster->GetType()] = otherCluster;
 			}
+			*/
 
 			NodeState state(playerState);
 			NodeState otherState(otherPlayerState);
@@ -2801,8 +2537,8 @@ void QuakeAIProcess::ThreadProc( )
 									actors.push_back((*itArc)->GetNode()->GetActorId());
 							}
 
-							fprintf(mFile, "\n player actors  %u : ", mPlayerState.player);
-							printf("\n player actors  %u : ", mPlayerState.player);
+							fprintf(mFile, "\n player actors  %f : ", mPlayerState.heuristic);
+							//printf("\n player actors  %u : ", mPlayerState.player);
 							for (ActorId actor : actors)
 							{
 								eastl::shared_ptr<Actor> pItemActor(
@@ -2813,28 +2549,28 @@ void QuakeAIProcess::ThreadProc( )
 									eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 										pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
 									fprintf(mFile, "weapon %u ", pWeaponPickup->GetCode());
-									printf("weapon %u ", pWeaponPickup->GetCode());
+									//printf("weapon %u ", pWeaponPickup->GetCode());
 								}
 								else if (pItemActor->GetType() == "Ammo")
 								{
 									eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 										pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
 									fprintf(mFile, "ammo %u ", pAmmoPickup->GetCode());
-									printf("ammo %u ", pAmmoPickup->GetCode());
+									//printf("ammo %u ", pAmmoPickup->GetCode());
 								}
 								else if (pItemActor->GetType() == "Armor")
 								{
 									eastl::shared_ptr<ArmorPickup> pArmorPickup =
 										pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
 									fprintf(mFile, "armor %u ", pArmorPickup->GetCode());
-									printf("armor %u ", pArmorPickup->GetCode());
+									//printf("armor %u ", pArmorPickup->GetCode());
 								}
 								else if (pItemActor->GetType() == "Health")
 								{
 									eastl::shared_ptr<HealthPickup> pHealthPickup =
 										pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
 									fprintf(mFile, "health %u ", pHealthPickup->GetCode());
-									printf("health %u ", pHealthPickup->GetCode());
+									//printf("health %u ", pHealthPickup->GetCode());
 								}
 							}
 
@@ -2900,8 +2636,8 @@ void QuakeAIProcess::ThreadProc( )
 									actors.push_back((*itArc)->GetNode()->GetActorId());
 							}
 
-							fprintf(mFile, "\n other player actors %u : ", mOtherPlayerState.player);
-							//printf("\n other player actors %u : ", mOtherPlayerState.player);
+							fprintf(mFile, "\n other player actors %f : ", mOtherPlayerState.heuristic);
+							printf("\n other player actors %u : ", mOtherPlayerState.player);
 							for (ActorId actor : actors)
 							{
 								eastl::shared_ptr<Actor> pItemActor(
@@ -2912,28 +2648,28 @@ void QuakeAIProcess::ThreadProc( )
 									eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 										pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
 									fprintf(mFile, "weapon %u ", pWeaponPickup->GetCode());
-									//printf("weapon %u ", pWeaponPickup->GetCode());
+									printf("weapon %u ", pWeaponPickup->GetCode());
 								}
 								else if (pItemActor->GetType() == "Ammo")
 								{
 									eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 										pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
 									fprintf(mFile, "ammo %u ", pAmmoPickup->GetCode());
-									//printf("ammo %u ", pAmmoPickup->GetCode());
+									printf("ammo %u ", pAmmoPickup->GetCode());
 								}
 								else if (pItemActor->GetType() == "Armor")
 								{
 									eastl::shared_ptr<ArmorPickup> pArmorPickup =
 										pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
 									fprintf(mFile, "armor %u ", pArmorPickup->GetCode());
-									//printf("armor %u ", pArmorPickup->GetCode());
+									printf("armor %u ", pArmorPickup->GetCode());
 								}
 								else if (pItemActor->GetType() == "Health")
 								{
 									eastl::shared_ptr<HealthPickup> pHealthPickup =
 										pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
 									fprintf(mFile, "health %u ", pHealthPickup->GetCode());
-									//printf("health %u ", pHealthPickup->GetCode());
+									printf("health %u ", pHealthPickup->GetCode());
 								}
 							}
 
