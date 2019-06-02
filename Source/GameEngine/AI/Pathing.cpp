@@ -495,7 +495,7 @@ void PathFinder::Destroy(void)
 //
 // PathFinder::operator()					- Chapter 18, page 638
 //
-PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode)
+PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode, int skipArc, float threshold)
 {
 	LogAssert(pStartNode, "Invalid node");
 	LogAssert(pGoalNode, "Invalid node");
@@ -534,6 +534,8 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 		// loop though all the neighboring nodes and evaluate each one
 		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
+			if (skipArc == (*it)->GetType()) continue;
+
 			PathingNode* pNodeToEvaluate = (*it)->GetNode();
 
 			// Try and find a PathPlanNode object for this node.
@@ -546,6 +548,9 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 
 			// figure out the cost for this route through the node
 			float costForThisPath = planNode->GetGoal() + (*it)->GetWeight();
+			if (costForThisPath >= threshold)
+				continue;
+
 			bool isPathBetter = false;
 
 			// Grab the PathPlanNode if there is one.
@@ -579,7 +584,7 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNode* pGoalNode
 //
 // PathFinder::operator()					- Chapter 18, page 638
 //
-PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold)
+PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& searchNodes, int skipArc, float threshold)
 {
 	LogAssert(pStartNode, "Invalid node");
 
@@ -620,10 +625,13 @@ PathPlan* PathFinder::operator()(PathingNode* pStartNode, PathingNodeVec& search
 		// get the neighboring nodes
 		PathingArcVec neighbors;
 		planNode->GetPathingNode()->GetArcs(AT_NORMAL, neighbors);
+		planNode->GetPathingNode()->GetArcs(AT_ACTION, neighbors);
 
 		// loop though all the neighboring nodes and evaluate each one
 		for (PathingArcVec::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
 		{
+			if (skipArc == (*it)->GetType()) continue;
+
 			PathingNode* pNodeToEvaluate = (*it)->GetNode();
 
 			// Try and find a PathPlanNode object for this node.
@@ -1200,20 +1208,6 @@ PathingNode* PathingGraph::FindRandomNode(void)
 	}
 }
 
-PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, const Vector3<float>& endPoint)
-{
-	PathingNode* pStart = FindClosestNode(startPoint);
-	PathingNode* pGoal = FindClosestNode(endPoint);
-	return FindPath(pStart,pGoal);
-}
-
-PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, PathingNodeVec& searchNodes, float threshold)
-{
-	// find the best path using an A* search algorithm
-	PathFinder pathFinder;
-	return pathFinder(pStartNode, searchNodes, threshold);
-}
-
 void PathingGraph::FindPlans(PathingNode* pStartNode, 
 	PathingNodeVec& searchNodes, PathPlanMap& plans, int skipArc, float threshold)
 {
@@ -1238,23 +1232,42 @@ void PathingGraph::FindPlans(PathingNode* pStartNode,
 	pathFinder(pStartNode, searchClusters, plans, skipArc, threshold);
 }
 
-PathPlan* PathingGraph::FindPath(const Vector3<float>& startPoint, PathingNode* pGoalNode)
+PathPlan* PathingGraph::FindPath(
+	const Vector3<float>& startPoint, const Vector3<float>& endPoint, int skipArc, float threshold)
 {
 	PathingNode* pStart = FindClosestNode(startPoint);
-	return FindPath(pStart,pGoalNode);
-}
-
-PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, const Vector3<float>& endPoint)
-{
 	PathingNode* pGoal = FindClosestNode(endPoint);
-	return FindPath(pStartNode,pGoal);
+	return FindPath(pStart, pGoal, skipArc, threshold);
 }
 
-PathPlan* PathingGraph::FindPath(PathingNode* pStartNode, PathingNode* pGoalNode)
+PathPlan* PathingGraph::FindPath(
+	PathingNode* pStartNode, PathingNodeVec& searchNodes, int skipArc, float threshold)
 {
 	// find the best path using an A* search algorithm
 	PathFinder pathFinder;
-	return pathFinder(pStartNode,pGoalNode);
+	return pathFinder(pStartNode, searchNodes, skipArc, threshold);
+}
+
+PathPlan* PathingGraph::FindPath(
+	const Vector3<float>& startPoint, PathingNode* pGoalNode, int skipArc, float threshold)
+{
+	PathingNode* pStart = FindClosestNode(startPoint);
+	return FindPath(pStart, pGoalNode, skipArc, threshold);
+}
+
+PathPlan* PathingGraph::FindPath(
+	PathingNode* pStartNode, const Vector3<float>& endPoint, int skipArc, float threshold)
+{
+	PathingNode* pGoal = FindClosestNode(endPoint);
+	return FindPath(pStartNode, pGoal, skipArc, threshold);
+}
+
+PathPlan* PathingGraph::FindPath(
+	PathingNode* pStartNode, PathingNode* pGoalNode, int skipArc, float threshold)
+{
+	// find the best path using an A* search algorithm
+	PathFinder pathFinder;
+	return pathFinder(pStartNode, pGoalNode, skipArc, threshold);
 }
 
 void PathingGraph::InsertNode(PathingNode* pNode)

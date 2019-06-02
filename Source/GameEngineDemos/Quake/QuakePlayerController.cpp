@@ -321,11 +321,6 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 				if (pTransformComponent)
 				{
-					QuakeAIManager* aiManager =
-						dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-					aiManager->SetPlayerNode(mTarget->GetId(),
-						aiManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition()));
-
 					if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID)
 					{
 						float push;

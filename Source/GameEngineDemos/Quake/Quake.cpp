@@ -2349,7 +2349,7 @@ void QuakeLogic::LightningFire(const eastl::shared_ptr<PlayerActor>& player,
 			initTransform.SetTranslation(closestCollision);
 			CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
 
-			int damage = 4;
+			int damage = 5;
 			Damage(damage, 0, MOD_LIGHTNING, forward, closestCollision, target, player, player);
 		}
 	}

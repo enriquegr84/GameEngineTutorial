@@ -77,6 +77,7 @@ protected:
 
 	// Orientation Controls
 	float mYaw;
+	float mYawSmooth;
 	float mPitch;
 	float mPitchTarget;
 	float mPitchOnDown;
@@ -102,7 +103,6 @@ private:
 	float mCurrentActionTime;
 	unsigned int mCurrentAction;
 
-	float mCurrentHeuristic;
 	ActorId mCurrentTarget;
 	ActorId mCurrentActor;
 	PathingArcVec mCurrentPlan;

@@ -165,13 +165,15 @@ QuakeAIManager::QuakeAIManager() : AIManager()
 	mJumpMoveSpeed = 7.2f;
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
+
+	mFile = fopen("ai.txt", "w");
 }   // QuakeAIManager
 
 //-----------------------------------------------------------------------------
 
 QuakeAIManager::~QuakeAIManager()
 {
-
+	fclose(mFile);
 }   // ~QuakeAIManager
 
 /////////////////////////////////////////////////////////////////////////////
@@ -379,14 +381,6 @@ ActorId QuakeAIManager::GetPlayerTarget(ActorId player)
 		return INVALID_ACTOR_ID;
 }
 
-float QuakeAIManager::GetPlayerHeuristic(ActorId player)
-{
-	if (mPlayerHeuristics.find(player) != mPlayerHeuristics.end())
-		return mPlayerHeuristics[player];
-	else
-		return FLT_MIN;
-}
-
 WeaponType QuakeAIManager::GetPlayerWeapon(ActorId player)
 {
 	if (mPlayerWeapons.find(player) != mPlayerWeapons.end())
@@ -402,22 +396,9 @@ void QuakeAIManager::GetPlayerPath(ActorId player, PathingArcVec& playerPath)
 			playerPath.push_back(path);
 }
 
-PathingNode* QuakeAIManager::GetPlayerNode(ActorId player)
-{
-	if (mPlayerNodes.find(player) != mPlayerNodes.end())
-		return mPlayerNodes[player];
-	else
-		return NULL;
-}
-
 void QuakeAIManager::SetPlayerTarget(ActorId player, ActorId playerTarget)
 {
 	mPlayerTargets[player] = playerTarget;
-}
-
-void QuakeAIManager::SetPlayerHeuristic(ActorId player, float playerHeuristic)
-{
-	mPlayerHeuristics[player] = playerHeuristic;
 }
 
 void QuakeAIManager::SetPlayerWeapon(ActorId player, WeaponType playerWeapon)
@@ -430,11 +411,6 @@ void QuakeAIManager::SetPlayerPath(ActorId player, PathingArcVec& playerPath)
 	mPlayerPaths[player].clear();
 	for (PathingArc* path : playerPath)
 		mPlayerPaths[player].push_back(path);
-}
-
-void QuakeAIManager::SetPlayerNode(ActorId player, PathingNode* playerNode)
-{
-	mPlayerNodes[player] = playerNode;
 }
 
 //map generation via physics simulation

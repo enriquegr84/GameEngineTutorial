@@ -1223,17 +1223,6 @@ void QuakeHumanView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 void QuakeHumanView::OnAttach(GameViewId vid, ActorId aid)
 {
 	HumanView::OnAttach(vid, aid);
-
-	eastl::shared_ptr<Actor> pGameActor(GameLogic::Get()->GetActor(aid).lock());
-	eastl::shared_ptr<TransformComponent> pTransformComponent(
-		pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-	if (pTransformComponent)
-	{
-		QuakeAIManager* aiManager =
-			dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-		aiManager->SetPlayerNode(aid,
-			aiManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition()));
-	}
 }
 
 bool QuakeHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
