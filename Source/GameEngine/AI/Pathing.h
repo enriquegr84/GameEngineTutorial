@@ -128,6 +128,8 @@ public:
 	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit);
 	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters);
 	void GetClusterActors(PathingClusterVec& outClusters, unsigned int limit);
+	const PathingClusterVec& GetClusterActors() { return mClusterActors; }
+
 	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit);
 	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters);
 	void GetClusters(PathingClusterVec& outClusters, unsigned int limit);

@@ -65,7 +65,7 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 	int maxAmmo = 0;
 	int ammo = 0;
 
-	//picked up items
+	//heuristic from picked up items
 	for (eastl::shared_ptr<Actor> item : playerState.items)
 	{
 		if (item->GetType() == "Weapon")
@@ -289,7 +289,6 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 		}
 	}
 
-	//calculate the other player heuristic the same way but reversing the sign
 	for (eastl::shared_ptr<Actor> item : otherPlayerState.items)
 	{
 		if (item->GetType() == "Weapon")
@@ -415,13 +414,13 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 					maxAmmo = 50;
 					if (otherPlayerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
 					{
-						distance = (otherPlayerState.itemDistance[item] < maxDistance) ?
-							otherPlayerState.itemDistance[item] : maxDistance;
-						ammo = (otherPlayerState.itemAmount[item] < maxAmmo) ?
-							otherPlayerState.itemAmount[item] : maxAmmo;
+					distance = (otherPlayerState.itemDistance[item] < maxDistance) ?
+						otherPlayerState.itemDistance[item] : maxDistance;
+					ammo = (otherPlayerState.itemAmount[item] < maxAmmo) ?
+						otherPlayerState.itemAmount[item] : maxAmmo;
 
-						//relation based on amount gained and distance travelled
-						heuristic -= (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.05f;
+					//relation based on amount gained and distance travelled
+					heuristic -= (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.05f;
 					}
 					break;
 				case WP_PLASMAGUN:
@@ -485,7 +484,6 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 
 			int armor = 0;
 			int maxArmor = 100;
-
 			distance = (otherPlayerState.itemDistance[item] < maxDistance) ?
 				otherPlayerState.itemDistance[item] : maxDistance;
 			armor = (otherPlayerState.itemAmount[item] < maxArmor) ?
@@ -502,7 +500,6 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 
 			int health = 0;
 			int maxHealth = 100;
-
 			distance = (otherPlayerState.itemDistance[item] < maxDistance) ?
 				otherPlayerState.itemDistance[item] : maxDistance;
 			health = (otherPlayerState.itemAmount[item] < maxHealth) ?
@@ -513,7 +510,15 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 		}
 	}
 
-	//the other part of the heuristic is the damage dealer
+	//the other part of the heuristic is the players status and damage dealer
+	unsigned int maxHealth = 100;
+	unsigned int maxArmor = 100;
+	heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.3f;
+	heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.3f;
+
+	heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.3f;
+	heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.3f;
+
 	int playerMaxDamage = 0, otherPlayerMaxDamage = 0;
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
 	{
@@ -532,21 +537,12 @@ void QuakeAIProcess::Heuristic(NodeState& playerState, NodeState& otherPlayerSta
 		}
 	}
 	
-	//we take into account the damage inflicted and the player state
 	int maxDamage = playerMaxDamage > otherPlayerMaxDamage ? playerMaxDamage : otherPlayerMaxDamage;
 	if (maxDamage > 0)
 	{
 		if (maxDamage < 100) maxDamage = 100;
 
-		//player status calculation health armor and damage
-		unsigned int maxHealth = 100;
-		unsigned int maxArmor = 100;
-		heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.2f;
-		heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.2f;
 		heuristic += (playerMaxDamage / maxDamage) * 0.4f;
-
-		heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.2f;
-		heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.2f;
 		heuristic -= (otherPlayerMaxDamage / maxDamage) * 0.4f;
 	}
 	
@@ -1412,15 +1408,13 @@ void QuakeAIProcess::ConstructPath(
 	clusterPathPlan = PathingArcVec();
 	while (currentNode != playerCluster->GetTarget())
 	{
-		PathingClusterVec actorClusters;
-		currentNode->GetClusterActors(playerCluster->GetType(), actorClusters);
-		for (PathingCluster* actorCluster : actorClusters)
+		for (PathingCluster* actorCluster : currentNode->GetClusterActors())
 		{
 			if (eastl::find(actors.begin(), actors.end(), actorCluster->GetActor()) == actors.end())
 			{
 				PathingArcVec actorPathPlan;
-				for (PathingArc* pathArc : clusterPathPlan)
-					actorPathPlan.push_back(pathArc);
+				for (PathingArc* clusterPathArc : clusterPathPlan)
+					actorPathPlan.push_back(clusterPathArc);
 
 				PathingNode* actorNode = currentNode;
 				while (actorNode != actorCluster->GetTarget())
@@ -1446,13 +1440,50 @@ void QuakeAIProcess::ConstructPath(
 				playerPathPlan.push_back(actorPathPlan);
 			}
 		}
-
+		
 		PathingCluster* currentCluster =
 			currentNode->FindCluster(playerCluster->GetType(), playerCluster->GetTarget());
 		PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
 		clusterPathPlan.push_back(currentArc);
 
 		currentNode = currentArc->GetNode();
+	}
+
+	for (PathingArc* currentArc : currentNode->GetArcs())
+	{
+		for (PathingCluster* actorCluster : currentArc->GetNode()->GetClusterActors())
+		{
+			if (eastl::find(actors.begin(), actors.end(), actorCluster->GetActor()) == actors.end())
+			{
+				PathingArcVec actorPathPlan;
+				for (PathingArc* clusterPathArc : clusterPathPlan)
+					actorPathPlan.push_back(clusterPathArc);
+				actorPathPlan.push_back(currentArc);
+
+				PathingNode* actorNode = currentArc->GetNode();
+				while (actorNode != actorCluster->GetTarget())
+				{
+					PathingCluster* currentCluster =
+						actorNode->FindCluster(actorCluster->GetType(), actorCluster->GetTarget());
+					PathingArc* currentArc = actorNode->FindArc(currentCluster->GetNode());
+					PathingTransition* currentTransition = actorNode->FindTransition(currentArc->GetId());
+					for (PathingNode* nodeTransition : currentTransition->GetNodes())
+					{
+						if (nodeTransition->GetActorId() != INVALID_ACTOR_ID)
+							if (eastl::find(actors.begin(), actors.end(), nodeTransition->GetActorId()) == actors.end())
+								actors.push_back(nodeTransition->GetActorId());
+					}
+					actorPathPlan.push_back(currentArc);
+
+					actorNode = currentArc->GetNode();
+					if (actorNode->GetActorId() != INVALID_ACTOR_ID)
+						if (eastl::find(actors.begin(), actors.end(), actorNode->GetActorId()) == actors.end())
+							actors.push_back(actorNode->GetActorId());
+				}
+
+				playerPathPlan.push_back(actorPathPlan);
+			}
+		}
 	}
 }
 
@@ -1493,14 +1524,27 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 	EvaluateNode(playerNodeState, otherPlayerNodeState);
 
 	PathingClusterVec pathingClusters[2];
-	playerState.node->GetClusters(GAT_MOVE, pathingClusters[0], 20);
-	playerState.node->GetClusters(GAT_JUMP, pathingClusters[1], 20);
+	playerState.node->GetClusters(GAT_MOVE, pathingClusters[0], 10);
+	playerState.node->GetClusters(GAT_JUMP, pathingClusters[1], 25);
 
 	PathingClusterVec playerClusters;
 	for (unsigned int clusterType = 0; clusterType < 2; clusterType++)
 	{
 		for (PathingCluster* pathingCluster : pathingClusters[clusterType])
-			playerClusters.push_back(pathingCluster);
+		{
+			bool addCluster = true;
+			for (PathingCluster* playerCluster : playerClusters)
+			{
+				if (playerCluster->GetTarget()->GetCluster() ==
+					pathingCluster->GetTarget()->GetCluster())
+				{
+					addCluster = false;
+					break;
+				}
+			}
+			if (addCluster)
+				playerClusters.push_back(pathingCluster);
+		}
 	}
 	unsigned int clusterSize = playerClusters.size();
 
@@ -1544,17 +1588,29 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 	}
 
 	PathingClusterVec otherPathingClusters[2];
-	otherPlayerState.node->GetClusters(GAT_MOVE, otherPathingClusters[0], 20);
-	otherPlayerState.node->GetClusters(GAT_JUMP, otherPathingClusters[1], 20);
+	otherPlayerState.node->GetClusters(GAT_MOVE, otherPathingClusters[0], 10);
+	otherPlayerState.node->GetClusters(GAT_JUMP, otherPathingClusters[1], 25);
 
 	PathingClusterVec otherPlayerClusters;
 	for (unsigned int clusterType = 0; clusterType < 2; clusterType++)
 	{
 		for (PathingCluster* otherPathingCluster : otherPathingClusters[clusterType])
-			otherPlayerClusters.push_back(otherPathingCluster);
+		{
+			bool addCluster = true;
+			for (PathingCluster* otherPlayerCluster : otherPlayerClusters)
+			{
+				if (otherPlayerCluster->GetTarget()->GetCluster() ==
+					otherPathingCluster->GetTarget()->GetCluster())
+				{
+					addCluster = false;
+					break;
+				}
+			}
+			if (addCluster)
+				otherPlayerClusters.push_back(otherPathingCluster);
+		}
 	}
 	unsigned int otherClusterSize = otherPlayerClusters.size();
-
 
 	//fprintf(mFile, "\n playerNode - otherPlayerCluster \n");
 	eastl::map<PathingCluster*, NodeState> playerNodeClusterStates, otherPlayerClusterNodeStates;
@@ -2324,12 +2380,12 @@ void QuakeAIProcess::ThreadProc( )
 				for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_HUMAN])
 				{
 					/*
-					printf("\n player pos %f %f %f, id %u, heuristic %f, target %u, weapon %u, damage %u, paths %u \n",
+					printf("\n blue player pos %f %f %f, id %u, heuristic %f, target %u, weapon %u, damage %u, paths %u \n",
 					mPlayerState.node->GetPos()[0], mPlayerState.node->GetPos()[1], mPlayerState.node->GetPos()[2],
 					mPlayerState.node->GetId(), mPlayerState.heuristic, mPlayerState.target, mPlayerState.weapon,
 					mPlayerState.weapon > 0 ? mPlayerState.damage[mPlayerState.weapon - 1] : 0, mPlayerState.path.size());
 					*/
-					//printf("\n player nodes %u : ", mPlayerState.player);
+					//printf("\n blue player nodes %u : ", mPlayerState.player);
 					eastl::vector<ActorId> actors;
 					PathingArcVec::iterator itArc = mPlayerState.path.begin();
 					for (; itArc != mPlayerState.path.end(); itArc++)
@@ -2339,8 +2395,69 @@ void QuakeAIProcess::ThreadProc( )
 							actors.push_back((*itArc)->GetNode()->GetActorId());
 					}
 
-					fprintf(mFile, "\n player actors  %f : ", mPlayerState.heuristic);
-					printf("\n player actors  %u : ", mPlayerState.player);
+					fprintf(mFile, "\n blue player actors  %f : ", mPlayerState.heuristic);
+					//printf("\n blue player actors  %u : ", mPlayerState.player);
+					for (ActorId actor : actors)
+					{
+						eastl::shared_ptr<Actor> pItemActor(
+							eastl::dynamic_shared_pointer_cast<Actor>(
+							GameLogic::Get()->GetActor(actor).lock()));
+						if (pItemActor->GetType() == "Weapon")
+						{
+							eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+								pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+							fprintf(mFile, "weapon %u ", pWeaponPickup->GetCode());
+							//printf("weapon %u ", pWeaponPickup->GetCode());
+						}
+						else if (pItemActor->GetType() == "Ammo")
+						{
+							eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+								pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+							fprintf(mFile, "ammo %u ", pAmmoPickup->GetCode());
+							//printf("ammo %u ", pAmmoPickup->GetCode());
+						}
+						else if (pItemActor->GetType() == "Armor")
+						{
+							eastl::shared_ptr<ArmorPickup> pArmorPickup =
+								pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+							fprintf(mFile, "armor %u ", pArmorPickup->GetCode());
+							//printf("armor %u ", pArmorPickup->GetCode());
+						}
+						else if (pItemActor->GetType() == "Health")
+						{
+							eastl::shared_ptr<HealthPickup> pHealthPickup =
+								pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+							fprintf(mFile, "health %u ", pHealthPickup->GetCode());
+							//printf("health %u ", pHealthPickup->GetCode());
+						}
+					}
+
+					aiManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
+					aiManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
+					aiManager->SetPlayerPath(mPlayerState.player, mPlayerState.path);
+				}
+
+				for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_AI])
+				{
+					/*
+					printf("\n red player pos %f %f %f, id %u, heuristic %f, target %u, weapon %u, damage %u, paths %u \n",
+					mOtherPlayerState.node->GetPos()[0], mOtherPlayerState.node->GetPos()[1], mOtherPlayerState.node->GetPos()[2],
+					mOtherPlayerState.node->GetId(), mOtherPlayerState.heuristic, mOtherPlayerState.target, mOtherPlayerState.weapon,
+					mOtherPlayerState.weapon > 0 ? mOtherPlayerState.damage[mOtherPlayerState.weapon - 1] : 0, mOtherPlayerState.path.size());
+					*/
+
+					//printf("\n red player nodes %u : ", mOtherPlayerState.player);
+					eastl::vector<ActorId> actors;
+					PathingArcVec::iterator itArc = mOtherPlayerState.path.begin();
+					for (; itArc != mOtherPlayerState.path.end(); itArc++)
+					{
+						//printf("%u ", (*itArc)->GetNode()->GetId());
+						if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
+							actors.push_back((*itArc)->GetNode()->GetActorId());
+					}
+
+					fprintf(mFile, "\n red player actors %f : ", mOtherPlayerState.heuristic);
+					printf("\n red player actors %u : ", mOtherPlayerState.player);
 					for (ActorId actor : actors)
 					{
 						eastl::shared_ptr<Actor> pItemActor(
@@ -2373,67 +2490,6 @@ void QuakeAIProcess::ThreadProc( )
 								pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
 							fprintf(mFile, "health %u ", pHealthPickup->GetCode());
 							printf("health %u ", pHealthPickup->GetCode());
-						}
-					}
-
-					aiManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
-					aiManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
-					aiManager->SetPlayerPath(mPlayerState.player, mPlayerState.path);
-				}
-
-				for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_AI])
-				{
-					/*
-					printf("\n other player pos %f %f %f, id %u, heuristic %f, target %u, weapon %u, damage %u, paths %u \n",
-					mOtherPlayerState.node->GetPos()[0], mOtherPlayerState.node->GetPos()[1], mOtherPlayerState.node->GetPos()[2],
-					mOtherPlayerState.node->GetId(), mOtherPlayerState.heuristic, mOtherPlayerState.target, mOtherPlayerState.weapon,
-					mOtherPlayerState.weapon > 0 ? mOtherPlayerState.damage[mOtherPlayerState.weapon - 1] : 0, mOtherPlayerState.path.size());
-					*/
-
-					//printf("\n other player nodes %u : ", mOtherPlayerState.player);
-					eastl::vector<ActorId> actors;
-					PathingArcVec::iterator itArc = mOtherPlayerState.path.begin();
-					for (; itArc != mOtherPlayerState.path.end(); itArc++)
-					{
-						//printf("%u ", (*itArc)->GetNode()->GetId());
-						if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-							actors.push_back((*itArc)->GetNode()->GetActorId());
-					}
-
-					fprintf(mFile, "\n other player actors %f : ", mOtherPlayerState.heuristic);
-					//printf("\n other player actors %u : ", mOtherPlayerState.player);
-					for (ActorId actor : actors)
-					{
-						eastl::shared_ptr<Actor> pItemActor(
-							eastl::dynamic_shared_pointer_cast<Actor>(
-								GameLogic::Get()->GetActor(actor).lock()));
-						if (pItemActor->GetType() == "Weapon")
-						{
-							eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-								pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-							fprintf(mFile, "weapon %u ", pWeaponPickup->GetCode());
-							//printf("weapon %u ", pWeaponPickup->GetCode());
-						}
-						else if (pItemActor->GetType() == "Ammo")
-						{
-							eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-								pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-							fprintf(mFile, "ammo %u ", pAmmoPickup->GetCode());
-							//printf("ammo %u ", pAmmoPickup->GetCode());
-						}
-						else if (pItemActor->GetType() == "Armor")
-						{
-							eastl::shared_ptr<ArmorPickup> pArmorPickup =
-								pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-							fprintf(mFile, "armor %u ", pArmorPickup->GetCode());
-							//printf("armor %u ", pArmorPickup->GetCode());
-						}
-						else if (pItemActor->GetType() == "Health")
-						{
-							eastl::shared_ptr<HealthPickup> pHealthPickup =
-								pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-							fprintf(mFile, "health %u ", pHealthPickup->GetCode());
-							//printf("health %u ", pHealthPickup->GetCode());
 						}
 					}
 
