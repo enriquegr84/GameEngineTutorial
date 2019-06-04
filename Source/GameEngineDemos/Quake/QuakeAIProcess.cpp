@@ -1487,41 +1487,14 @@ void QuakeAIProcess::ConstructPath(
 	}
 }
 
-void QuakeAIProcess::EvaluateNode(NodeState& playerState, NodeState& otherPlayerState)
-{
-	Simulation(playerState, otherPlayerState);
-}
-
-void QuakeAIProcess::EvaluateNode(
-	NodeState& playerState, NodeState& otherPlayerState, PathingCluster* otherPlayerCluster)
-{
-	//construct path
-	eastl::vector<PathingArcVec> otherNodePathPlans;
-	ConstructPath(otherPlayerState.node, otherPlayerCluster, otherNodePathPlans);
-
-	Simulation(playerState, otherPlayerState, otherNodePathPlans);
-}
-
-void QuakeAIProcess::EvaluateNode(
-	NodeState& playerState, NodeState& otherPlayerState,
-	PathingCluster* playerCluster, PathingCluster* otherPlayerCluster)
-{
-	//construct path
-	eastl::vector<PathingArcVec> nodePathPlans, otherNodePathPlans;
-	ConstructPath(playerState.node, playerCluster, nodePathPlans);
-	ConstructPath(otherPlayerState.node, otherPlayerCluster, otherNodePathPlans);
-
-	Simulation(playerState, nodePathPlans, otherPlayerState, otherNodePathPlans);
-}
-
-void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPlayerState)
+void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPlayerState)
 {
 	fprintf(mFile, "\n\n ITERATION \n\n");
 
 	//single case playerNode - otherPlayerNode
 	NodeState playerNodeState(playerState); 
 	NodeState otherPlayerNodeState(otherPlayerState);
-	EvaluateNode(playerNodeState, otherPlayerNodeState);
+	Simulation(playerNodeState, otherPlayerNodeState);
 
 	PathingClusterVec pathingClusters[2];
 	playerState.node->GetClusters(GAT_MOVE, pathingClusters[0], 10);
@@ -1549,6 +1522,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 	unsigned int clusterSize = playerClusters.size();
 
 	//fprintf(mFile, "\n playerCluster - otherPlayerNode \n");
+	eastl::map<PathingCluster*, eastl::vector<PathingArcVec>> playerPathPlans, otherPlayerPathPlans;
 	eastl::map<PathingCluster*, NodeState> playerClusterNodeStates, otherPlayerNodeClusterStates;
 	for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
 	//parallel_for(size_t(0), clusterSize, [&](size_t playerClusterIdx)
@@ -1565,7 +1539,12 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 
 		NodeState state(playerState);
 		NodeState otherState(otherPlayerState);
-		EvaluateNode(otherState, state, playerCluster);
+
+		//construct path
+		playerPathPlans[playerCluster] = eastl::vector<PathingArcVec>();
+		ConstructPath(state.node, playerCluster, playerPathPlans[playerCluster]);
+		Simulation(otherState, state, playerPathPlans[playerCluster]);
+
 		state.heuristic = -state.heuristic;
 		otherState.heuristic = -otherState.heuristic;
 
@@ -1629,7 +1608,11 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 
 		NodeState state(playerState);
 		NodeState otherState(otherPlayerState);
-		EvaluateNode(state, otherState, otherPlayerCluster);
+
+		//construct path
+		otherPlayerPathPlans[otherPlayerCluster] = eastl::vector<PathingArcVec>();
+		ConstructPath(otherState.node, otherPlayerCluster, otherPlayerPathPlans[otherPlayerCluster]);
+		Simulation(state, otherState, otherPlayerPathPlans[otherPlayerCluster]);
 
 		if (state.valid && otherState.valid)
 		{
@@ -1679,7 +1662,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 
 			NodeState state(playerState);
 			NodeState otherState(otherPlayerState);
-			EvaluateNode(state, otherState, playerCluster, otherPlayerCluster);
+			Simulation(state, playerPathPlans[playerCluster], otherState, otherPlayerPathPlans[otherPlayerCluster]);
 
 			if (state.valid && otherState.valid)
 			{
@@ -1748,22 +1731,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 			}
 		}
 
-		if (abs(playerNodeClusterState.second.heuristic - playerNodeState.heuristic) <= GE_ROUNDING_ERROR)
-		{
-			if (playerNodeState.weapon != WP_NONE && playerNodeClusterState.second.weapon != WP_NONE)
-			{
-				if (playerNodeClusterState.second.damage[playerNodeClusterState.second.weapon - 1] >
-					playerNodeState.damage[playerNodeState.weapon - 1])
-				{
-					playerNodeState = playerNodeClusterState.second;
-				}
-			}
-			else if (playerNodeClusterState.second.weapon != WP_NONE)
-			{
-				playerNodeState = playerNodeClusterState.second;
-			}
-		}
-		else if (playerNodeClusterState.second.heuristic < playerNodeState.heuristic)
+		if (playerNodeClusterState.second.heuristic < playerNodeState.heuristic)
 			playerNodeState = playerNodeClusterState.second;
 	}
 	if (playerNodeState.valid)
@@ -1862,22 +1830,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 				}
 			}
 
-			if (abs(playerClusterState.second.heuristic - playerNodeState.heuristic) <= GE_ROUNDING_ERROR)
-			{
-				if (playerNodeState.weapon != WP_NONE && playerClusterState.second.weapon != WP_NONE)
-				{
-					if (playerClusterState.second.damage[playerClusterState.second.weapon - 1] >
-						playerNodeState.damage[playerNodeState.weapon - 1])
-					{
-						playerNodeState = playerClusterState.second;
-					}
-				}
-				else if (playerClusterState.second.weapon != WP_NONE)
-				{
-					playerNodeState = playerClusterState.second;
-				}
-			}
-			else if (playerClusterState.second.heuristic < playerNodeState.heuristic)
+			if (playerClusterState.second.heuristic < playerNodeState.heuristic)
 			{
 				playerNodeState = playerClusterState.second;
 			}
@@ -1928,22 +1881,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 			}
 		}
 
-		if (abs(playerNodeState.heuristic - mPlayerState.heuristic) <= GE_ROUNDING_ERROR)
-		{
-			if (mPlayerState.weapon != WP_NONE && playerNodeState.weapon != WP_NONE)
-			{
-				if (playerNodeState.damage[playerNodeState.weapon - 1] >
-					mPlayerState.damage[mPlayerState.weapon - 1])
-				{
-					mPlayerState.Copy(playerNodeState);
-				}
-			}
-			else if (playerNodeState.weapon != WP_NONE)
-			{
-				mPlayerState.Copy(playerNodeState);
-			}
-		}
-		else if (playerNodeState.heuristic > mPlayerState.heuristic)
+		if (playerNodeState.heuristic > mPlayerState.heuristic)
 		{
 			mPlayerState.Copy(playerNodeState);
 		}
@@ -2042,22 +1980,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 			}
 		}
 
-		if (abs(otherPlayerNodeClusterState.second.heuristic - otherPlayerNodeState.heuristic) <= GE_ROUNDING_ERROR)
-		{
-			if (otherPlayerNodeState.weapon != WP_NONE && otherPlayerNodeClusterState.second.weapon != WP_NONE)
-			{
-				if (otherPlayerNodeClusterState.second.damage[otherPlayerNodeClusterState.second.weapon - 1] >
-					otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1])
-				{
-					otherPlayerNodeState = otherPlayerNodeClusterState.second;
-				}
-			}
-			else if (otherPlayerNodeClusterState.second.weapon != WP_NONE)
-			{
-				otherPlayerNodeState = otherPlayerNodeClusterState.second;
-			}
-		}
-		else if (otherPlayerNodeClusterState.second.heuristic > otherPlayerNodeState.heuristic)
+		if (otherPlayerNodeClusterState.second.heuristic > otherPlayerNodeState.heuristic)
 		{
 			otherPlayerNodeState = otherPlayerNodeClusterState.second;
 		}
@@ -2160,26 +2083,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 				}
 			}
 
-			if (abs(otherPlayerClusterState.second.heuristic - otherPlayerNodeState.heuristic) <= GE_ROUNDING_ERROR)
-			{
-				if (otherPlayerNodeState.weapon != WP_NONE && otherPlayerClusterState.second.weapon != WP_NONE)
-				{
-					if (otherPlayerClusterState.second.damage[otherPlayerClusterState.second.weapon - 1] >
-						otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1])
-					{
-						otherPlayerNodeState = otherPlayerClusterState.second;
-					}
-				}
-				else if (otherPlayerClusterState.second.weapon != WP_NONE)
-				{
-					otherPlayerNodeState = otherPlayerClusterState.second;
-				}
-				else if (otherPlayerClusterState.second.path.size() > otherPlayerNodeState.path.size())
-				{
-					otherPlayerNodeState = otherPlayerClusterState.second;
-				}
-			}
-			else if (otherPlayerClusterState.second.heuristic > otherPlayerNodeState.heuristic)
+			if (otherPlayerClusterState.second.heuristic > otherPlayerNodeState.heuristic)
 			{
 				otherPlayerNodeState = otherPlayerClusterState.second;
 			}
@@ -2232,26 +2136,7 @@ void QuakeAIProcess::EvaluateCluster(NodeState& playerState, NodeState& otherPla
 			}
 		}
 
-		if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) <= GE_ROUNDING_ERROR)
-		{
-			if (mOtherPlayerState.weapon != WP_NONE && otherPlayerNodeState.weapon != WP_NONE)
-			{
-				if (otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1] >
-					mOtherPlayerState.damage[mOtherPlayerState.weapon - 1])
-				{
-					mOtherPlayerState.Copy(otherPlayerNodeState);
-				}
-			}
-			else if (otherPlayerNodeState.weapon != WP_NONE)
-			{
-				mOtherPlayerState.Copy(otherPlayerNodeState);
-			}
-			else if (otherPlayerNodeState.path.size() > mOtherPlayerState.path.size())
-			{
-				mOtherPlayerState.Copy(otherPlayerNodeState);
-			}
-		}
-		else if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
+		if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
 		{
 			mOtherPlayerState.Copy(otherPlayerNodeState);
 		}
@@ -2373,7 +2258,7 @@ void QuakeAIProcess::ThreadProc( )
 					{
 						NodeState aiPlayerState(aiNode.first);
 						aiPlayerState.node = aiNode.second;
-						EvaluateCluster(playerState, aiPlayerState);
+						EvaluatePlayers(playerState, aiPlayerState);
 					}
 				}
 

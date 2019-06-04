@@ -204,15 +204,7 @@ protected:
 	void Simulation(
 		NodeState& playerState, NodeState& otherPlayerState);
 
-	void EvaluateNode(
-		NodeState& playerState, NodeState& otherPlayerState,
-		PathingCluster* playerClusters, PathingCluster* otherPlayerClusters);
-	void EvaluateNode(
-		NodeState& playerState, NodeState& otherPlayerState, 
-		PathingCluster* otherPlayerClusters);
-	void EvaluateNode(
-		NodeState& playerState, NodeState& otherPlayerState);
-	void EvaluateCluster(
+	void EvaluatePlayers(
 		NodeState& playerState, NodeState& otherPlayerState);
 
 private:

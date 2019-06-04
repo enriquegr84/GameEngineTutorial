@@ -704,7 +704,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										mCurrentAction = GAT_TELEPORT;
 
 									Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
-									if (Length(diff) > 5.0f)
+									if (Length(diff) > 6.0f)
 										searchNode = false;
 								}
 								else if (mCurrentActor != mCurrentNode->GetActorId())
@@ -715,7 +715,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									Vector3<float> diff = pTransform->GetPosition() - currentPosition;
 									diff[YAW] = 0.f;
 									
-									if (Length(diff) > 5.0f)
+									if (Length(diff) > 6.0f)
 										searchNode = false;
 									else
 										mCurrentActor = mCurrentNode->GetActorId();
@@ -723,22 +723,22 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								else
 								{
 									Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
-									if (Length(diff) > 5.0f)
+									if (Length(diff) > 6.0f)
 										searchNode = false;
 								}
 							}
 							else
 							{
 								Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
-								if (Length(diff) > 5.0f)
+								if (Length(diff) > 6.0f)
 									searchNode = false;
 							}
 
 							if (mCurrentActionTime <= 0.f)
 							{
-								fprintf(aiManager->mFile, "\n current decision making nodes %u : ", mPlayerId);
+								printf("\n current decision making nodes %u : ", mPlayerId);
 								for (PathingArc* pathArc : mCurrentPlan)
-									fprintf(aiManager->mFile, "%u ", pathArc->GetNode()->GetId());
+									printf("%u ", pathArc->GetNode()->GetId());
 
 								mCurrentPlan.clear();
 								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
@@ -770,28 +770,31 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										plan->ResetPath();
 
 										PathingArcVec path;
-										PathingArcVec::iterator itArc = pathPlan.begin();
 										if (!plan->CheckForEnd())
 										{
 											PathingNode* node = plan->GetArcs().back()->GetNode();
 											for (PathingArc* planArc : plan->GetArcs())
 												path.push_back(planArc);
 
-											for (; itArc != pathPlan.end(); itArc++)
+											PathingArcVec::iterator itArc;
+											PathingArcVec::iterator itPathArc = pathPlan.begin();
+											for (itArc = pathPlan.begin(); itArc != pathPlan.end(); itArc++)
 												if ((*itArc)->GetNode() == node)
-													break;
+													itPathArc = itArc;
 
-											for (itArc++; itArc != pathPlan.end(); itArc++)
-												path.push_back((*itArc));
+											for (itPathArc++; itPathArc != pathPlan.end(); itPathArc++)
+												path.push_back((*itPathArc));
 										}
 										else if (eastl::find(searchNodes.begin(), searchNodes.end(), mCurrentNode))
 										{
-											for (; itArc != pathPlan.end(); itArc++)
+											PathingArcVec::iterator itArc;
+											PathingArcVec::iterator itPathArc = pathPlan.begin();
+											for (itArc = pathPlan.begin(); itArc != pathPlan.end(); itArc++)
 												if ((*itArc)->GetNode() == mCurrentNode)
-													break;
+													itPathArc = itArc;
 
-											for (itArc++; itArc != pathPlan.end(); itArc++)
-												path.push_back((*itArc));
+											for (itPathArc++; itPathArc != pathPlan.end(); itPathArc++)
+												path.push_back((*itPathArc));
 										}
 
 										mCurrentPlan = path;
@@ -1027,18 +1030,12 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						if (abs(mYaw - mYawSmooth) < 90)
 						{
 							if (mYaw - mYawSmooth > 0)
-							{
 								mYawSmooth++;
-							}
 							else if (mYaw - mYawSmooth < 0)
-							{
 								mYawSmooth--;
-							}
 						}
-						else
-						{
-							mYawSmooth = mYaw;
-						}
+						else mYawSmooth = mYaw;
+
 						yawRotation = Rotation<4, float>(
 							AxisAngle<4, float>(Vector4<float>::Unit(2), mYawSmooth * (float)GE_C_DEG_TO_RAD));
 
