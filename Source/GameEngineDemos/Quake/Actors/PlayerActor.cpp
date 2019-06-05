@@ -259,10 +259,6 @@ void PlayerActor::PlayerSpawn()
 	mState.weapon = WP_MACHINEGUN;
 	mState.weaponState = WEAPON_READY;
 
-	// don't allow full run speed for a bit
-	//mState.moveFlags |= PMF_TIME_KNOCKBACK;
-	//mState.respawnTime = level.time;
-
 	// set default animations
 	mState.torsoAnim = TORSO_STAND;
 	mState.legsAnim = LEGS_IDLE;

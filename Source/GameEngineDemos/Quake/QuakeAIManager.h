@@ -55,8 +55,6 @@ public:
 	void SetPlayerWeapon(ActorId player, WeaponType playerWeapon);
 	void SetPlayerPath(ActorId player, PathingArcVec& playerPath);
 
-	FILE * mFile;
-
 protected:
 
 	void SimulateJump(PathingNode* pNode);

@@ -166,14 +166,13 @@ QuakeAIManager::QuakeAIManager() : AIManager()
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 
-	mFile = fopen("ai.txt", "w");
 }   // QuakeAIManager
 
 //-----------------------------------------------------------------------------
 
 QuakeAIManager::~QuakeAIManager()
 {
-	fclose(mFile);
+
 }   // ~QuakeAIManager
 
 /////////////////////////////////////////////////////////////////////////////
@@ -423,7 +422,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	mPlayerActor = eastl::dynamic_shared_pointer_cast<PlayerActor>(
 		GameLogic::Get()->GetActor(playerId).lock());
-
+	/*
 	game->RemoveAllDelegates();
 	RegisterAllDelegates();
 
@@ -450,7 +449,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	// we obtain visibility information from pathing graph 
 	SimulateVisibility();
-
+	*/
 	// we group the graph nodes in clusters
 	CreateClusters();
 

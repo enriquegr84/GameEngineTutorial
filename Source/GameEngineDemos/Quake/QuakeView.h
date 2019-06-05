@@ -400,7 +400,7 @@ protected:
 	eastl::vector<eastl::shared_ptr<BaseUIStaticText>> mScore;
 
 	void UpdatePickupItem();
-	void UpdateScores(const eastl::shared_ptr<PlayerActor>& player);
+	void UpdateScores();
 	void UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& player);
 };
 

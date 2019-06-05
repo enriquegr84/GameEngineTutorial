@@ -156,7 +156,6 @@ void QuakeAIView::Stationary(unsigned long deltaMs)
 	collision = end.GetTranslation();
 	ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
 		mPlayerId, start, end, collision, collisionNormal);
-	//printf("distance stationary %f \n", Length(collision - position));
 	if (Length(collision - position) < 50.f)
 	{
 		mStationaryTime += deltaMs;
@@ -203,7 +202,6 @@ void QuakeAIView::Cliff()
 		start.GetTranslation(), end.GetTranslation(), collision, collisionNormal);
 
 	//Check whether we are close to a cliff
-	//printf("distance cliff %f \n", abs(collision[2] - position[2]));
 	if (abs(collision[2] - position[2]) > 60.f)
 	{
 		//Choose randomly which way too look for getting out the cliff
@@ -309,7 +307,6 @@ void QuakeAIView::Movement(unsigned long deltaMs)
 	collision = end.GetTranslation();
 	ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
 		mPlayerId, start, end, collision, collisionNormal);
-	//printf("distance smooth %f \n", Length(collision - position));
 	if (Length(collision - position) < 50.f)
 	{
 		//Choose randomly which way too look for obstacles
@@ -409,7 +406,6 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 	collision = end.GetTranslation();
 	ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
 		mPlayerId, start, end, collision, collisionNormal);
-	//printf("distance smooth %f \n", Length(collision - position));
 	if (Length(collision - position) < 80.f)
 	{
 		//Choose randomly which way too look for obstacles
@@ -736,9 +732,24 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 							if (mCurrentActionTime <= 0.f)
 							{
-								printf("\n current decision making nodes %u : ", mPlayerId);
+								printf("\n current decision making player %u : ", mPlayerId);
 								for (PathingArc* pathArc : mCurrentPlan)
 									printf("%u ", pathArc->GetNode()->GetId());
+
+								LogInformation("current decision making player " + eastl::to_string(mPlayerId));
+								if (mCurrentArc != NULL)
+								{
+									printf("\n fail arc id %u type %u node %u \n ",
+										mCurrentArc->GetId(), mCurrentArc->GetType(), mCurrentArc->GetNode()->GetId());
+									LogInformation("fail arc id " + eastl::to_string(mCurrentArc->GetId()) + 
+										" type " + eastl::to_string(mCurrentArc->GetType()) + " node " +
+										eastl::to_string(mCurrentArc->GetNode()->GetId()));
+								}
+								else
+								{
+									printf("\n no arc \n ");
+									LogInformation("no arc");
+								}
 
 								mCurrentPlan.clear();
 								mCurrentNode = mPathingGraph->FindClosestNode(currentPosition);
@@ -899,7 +910,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										}
 										else
 										{
-											//printf("arc not found \n");
 											mGoalNode = NULL;
 											mCurrentNode = NULL;
 
@@ -1027,7 +1037,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 
 						//smoothing camera rotation
-						if (abs(mYaw - mYawSmooth) < 90)
+						if (abs(mYaw - mYawSmooth) < 60)
 						{
 							if (mYaw - mYawSmooth > 0)
 								mYawSmooth++;
@@ -1154,6 +1164,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					Matrix4x4<float> yawRotation = Rotation<4, float>(
 						AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
 					rotation = yawRotation;
+					Matrix4x4<float> pitchRotation = Rotation<4, float>(
+						AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 
 					// This will give us the "look at" vector 
 					// in world space - we'll use that to move.
@@ -1173,6 +1185,79 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					direction[ROLL] *= pPhysicComponent->GetJumpSpeed() * (mFallSpeed / 4.f);
 					direction[YAW] = -pPhysicComponent->GetJumpSpeed() * mFallSpeed;
 					velocity = direction;
+
+					if (mCurrentTarget != INVALID_ACTOR_ID)
+					{
+						eastl::shared_ptr<PlayerActor> pPlayerTarget(
+							eastl::dynamic_shared_pointer_cast<PlayerActor>(
+								GameLogic::Get()->GetActor(mCurrentTarget).lock()));
+
+						if (pPlayerTarget->GetState().stats[STAT_HEALTH] > 0)
+						{
+							//set muzzle location relative to pivoting eye
+							Vector3<float> playerPos = pTransformComponent->GetTransform().GetTranslation();
+							playerPos += Vector3<float>::Unit(YAW) * (float)pPlayerActor->GetState().viewHeight;
+
+							eastl::shared_ptr<TransformComponent> pTargetTransform(
+								pPlayerTarget->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+
+							Vector3<float> targetPos = pTargetTransform->GetTransform().GetTranslation();
+							//targetPos += Vector3<float>::Unit(YAW) * (float)pPlayerTarget->GetState().viewHeight;
+
+							eastl::vector<ActorId> collisionActors;
+							eastl::vector<Vector3<float>> collisions, collisionNormals;
+							GameLogic::Get()->GetGamePhysics()->CastRay(
+								playerPos, targetPos, collisionActors, collisions, collisionNormals);
+
+							ActorId closestCollisionId = INVALID_ACTOR_ID;
+							Vector3<float> closestCollision = targetPos;
+							for (unsigned int i = 0; i < collisionActors.size(); i++)
+							{
+								if (collisionActors[i] != pPlayerActor->GetId())
+								{
+									if (closestCollision != NULL)
+									{
+										if (Length(closestCollision - playerPos) > Length(collisions[i] - playerPos))
+										{
+											closestCollisionId = collisionActors[i];
+											closestCollision = collisions[i];
+										}
+									}
+									else
+									{
+										closestCollisionId = collisionActors[i];
+										closestCollision = collisions[i];
+									}
+								}
+							}
+
+							if (closestCollisionId == pPlayerTarget->GetId())
+							{
+								Vector3<float> direction = closestCollision - playerPos;
+								float scale = Length(direction);
+								Normalize(direction);
+
+								mYaw = mYawSmooth = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+								mPitchTarget = -asin(direction[2]) * (float)GE_C_RAD_TO_DEG;
+
+								mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
+								mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
+
+								yawRotation = Rotation<4, float>(
+									AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
+								pitchRotation = Rotation<4, float>(
+									AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
+								mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
+
+								pPlayerActor->GetAction().actionType |= ACTION_ATTACK;
+
+								// update node rotation matrix
+								pitchRotation = Rotation<4, float>(
+									AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
+								pTransformComponent->SetRotation(yawRotation * pitchRotation);
+							}
+						}
+					}
 
 					pPlayerActor->GetAction().actionType |= ACTION_FALLEN;
 				}

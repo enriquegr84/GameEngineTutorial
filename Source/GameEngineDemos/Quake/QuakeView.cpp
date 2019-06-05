@@ -874,13 +874,56 @@ UpdateScores
 Update the small two score display
 =================
 */
-void QuakeStandardHUD::UpdateScores(const eastl::shared_ptr<PlayerActor>& player)
+void QuakeStandardHUD::UpdateScores()
 {
+	int scoreBlue = 0, scoreRed = 0;
+	eastl::map<GameViewType, eastl::vector<eastl::shared_ptr<PlayerActor>>> playerViewTypes;
+
+	GameApplication* gameApp = (GameApplication*)Application::App;
+	const GameViewList& gameViews = gameApp->GetGameViews();
+	for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
+	{
+		eastl::shared_ptr<BaseGameView> pView = *it;
+		if (pView->GetActorId() != INVALID_ACTOR_ID)
+		{
+			playerViewTypes[pView->GetType()].push_back(
+				eastl::dynamic_shared_pointer_cast<PlayerActor>(
+				GameLogic::Get()->GetActor(pView->GetActorId()).lock()));
+		}
+	}
+
+	eastl::vector<eastl::shared_ptr<PlayerActor>>::iterator itAIPlayer;
+	for (itAIPlayer = playerViewTypes[GV_AI].begin(); itAIPlayer != playerViewTypes[GV_AI].end(); )
+	{
+		bool removeAIPlayer = false;
+		eastl::shared_ptr<PlayerActor> pAIPlayer = (*itAIPlayer);
+		for (eastl::shared_ptr<PlayerActor> pHumanPlayer : playerViewTypes[GV_HUMAN])
+			if (pHumanPlayer->GetId() == pAIPlayer->GetId())
+				removeAIPlayer = true;
+
+		if (removeAIPlayer)
+			itAIPlayer = playerViewTypes[GV_AI].erase(itAIPlayer);
+		else
+			itAIPlayer++;
+	}
+
+	for (auto playerViewType : playerViewTypes)
+	{
+		GameViewType viewType = playerViewType.first;
+		if (viewType == GV_AI)
+		{
+			for (auto player : playerViewType.second)
+				scoreRed += player->GetState().persistant[PERS_SCORE];
+		}
+		else
+		{
+			for (auto player : playerViewType.second)
+				scoreBlue += player->GetState().persistant[PERS_SCORE];
+		}
+	}
 	//score
-	mScore[0]->SetText(eastl::to_wstring(
-		player->GetState().persistant[PERS_SCORE]).c_str());
-	mScore[1]->SetText(eastl::to_wstring(
-		player->GetState().persistant[PERS_KILLED]).c_str());
+	mScore[0]->SetText(eastl::to_wstring(scoreBlue).c_str());
+	mScore[1]->SetText(eastl::to_wstring(scoreRed).c_str());
 }
 
 
@@ -921,19 +964,9 @@ void QuakeStandardHUD::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 			// don't draw any status if dead or the scoreboard is being explicitly shown
 			if (playerActor->GetState().stats[STAT_HEALTH] > 0)
-			{
 				UpdateStatusBar(playerActor);
 
-				//UpdateAmmoWarning();
-
-				//UpdateCrosshair();
-				//UpdateCrosshairNames();
-				//UpdateWeaponSelect();
-
-				//UpdateReward();
-			}
-
-			UpdateScores(playerActor);
+			UpdateScores();
 			UpdatePickupItem();
 		}
 		else

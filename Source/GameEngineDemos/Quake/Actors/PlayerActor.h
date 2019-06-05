@@ -122,7 +122,7 @@ enum StatType
 
 enum PersistantType
 {
-	PERS_SCORE,						// !!! MUST NOT CHANGE, SERVER AND GAME BOTH REFERENCE !!!
+	PERS_SCORE,						// current score
 	PERS_HITS,						// total points damage inflicted so damage beeps can sound on change
 	PERS_RANK,						// player rank or team rank
 	PERS_TEAM,						// player team
@@ -259,17 +259,12 @@ struct PlayerState
 	int viewHeight;
 
 	int accurateCount;		// for "impressive" reward sound
-
 	int accuracyShots;		// total number of shots
 	int accuracyHits;		// total number of hits
 
-	int rewardTime;
-	int respawnTime;		// can respawn when time > this, force after forcerespwan
-	int lastKillTime;
-
-	int lastKilled;	// last client that this client killed
-	int lastHurt;	// last client that damaged this client
-	int lastHurtMod; // type of damage the client did
+	int lastKilled;	// last player that this player killed
+	int lastHurt;	// last player that damaged this player
+	int lastHurtMod; // type of damage the player did
 
 	int	eType;			// entity type
 	int	eFlags;			// entity flags
