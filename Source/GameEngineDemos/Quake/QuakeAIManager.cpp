@@ -372,6 +372,22 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 	}
 }
 
+bool QuakeAIManager::IsPlayerUpdated(ActorId player)
+{
+	if (mPlayers.find(player) != mPlayers.end())
+		return mPlayers[player];
+	else
+		return false;
+}
+
+PathingNode* QuakeAIManager::GetPlayerNode(ActorId player)
+{
+	if (mPlayerNodes.find(player) != mPlayerNodes.end())
+		return mPlayerNodes[player];
+	else
+		return NULL;
+}
+
 ActorId QuakeAIManager::GetPlayerTarget(ActorId player)
 {
 	if (mPlayerTargets.find(player) != mPlayerTargets.end())
@@ -393,6 +409,16 @@ void QuakeAIManager::GetPlayerPath(ActorId player, PathingArcVec& playerPath)
 	if (mPlayerPaths.find(player) != mPlayerPaths.end())
 		for (PathingArc* path : mPlayerPaths[player])
 			playerPath.push_back(path);
+}
+
+void QuakeAIManager::SetPlayerUpdated(ActorId player, bool update)
+{
+	mPlayers[player] = update;
+}
+
+void QuakeAIManager::SetPlayerNode(ActorId player, PathingNode* playerNode)
+{
+	mPlayerNodes[player] = playerNode;
 }
 
 void QuakeAIManager::SetPlayerTarget(ActorId player, ActorId playerTarget)
@@ -422,7 +448,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	mPlayerActor = eastl::dynamic_shared_pointer_cast<PlayerActor>(
 		GameLogic::Get()->GetActor(playerId).lock());
-	/*
+
 	game->RemoveAllDelegates();
 	RegisterAllDelegates();
 
@@ -449,7 +475,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	// we obtain visibility information from pathing graph 
 	SimulateVisibility();
-	*/
+
 	// we group the graph nodes in clusters
 	CreateClusters();
 

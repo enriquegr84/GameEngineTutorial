@@ -530,21 +530,16 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									mCurrentArc = (*itArc);
 									mCurrentAction = mCurrentArc->GetType();
 									mCurrentNode = mCurrentArc->GetNode();
-									/*
+
 									Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 									Normalize(direction);
 									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-									*/
 								}
 								break;
 							}
 							else itArc++;
 						} while (itArc != mCurrentPlan.end());
 
-						QuakeAIManager* aiManager =
-							dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-
-						mCurrentTarget = aiManager->GetPlayerTarget(mPlayerId);
 						mCurrentPlan.erase(mCurrentPlan.begin(), itArc);
 					}
 					else if (mGoalNode != NULL)
@@ -576,11 +571,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									mCurrentArc = mCurrentNode->FindArc(currentCluster->GetNode());
 									mCurrentAction = mCurrentArc->GetType();
 									mCurrentNode = mCurrentArc->GetNode();
-									/*
+
 									Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 									Normalize(direction);
 									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-									*/
 								}
 								break;
 							}
@@ -641,6 +635,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 				QuakeAIManager* aiManager =
 					dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+				mCurrentTarget = aiManager->GetPlayerTarget(mPlayerId);
 				if (aiManager->GetPlayerWeapon(mPlayerId) != WP_NONE)
 					pPlayerActor->ChangeWeapon(aiManager->GetPlayerWeapon(mPlayerId));
 
@@ -699,7 +694,11 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									else
 										mCurrentAction = GAT_TELEPORT;
 
-									Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
+									eastl::shared_ptr<TransformComponent> pTriggerTransform =
+										pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+									Vector3<float> diff = pTriggerTransform->GetPosition() - currentPosition;
+									diff[YAW] = 0.f;
+
 									if (Length(diff) > 6.0f)
 										searchNode = false;
 								}
@@ -707,7 +706,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								{
 									eastl::shared_ptr<TransformComponent> pTransform =
 										pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-
 									Vector3<float> diff = pTransform->GetPosition() - currentPosition;
 									diff[YAW] = 0.f;
 									
@@ -766,8 +764,15 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							if (searchNode)
 							{
 								PathingArcVec pathPlan;
-								aiManager->GetPlayerPath(mPlayerId, pathPlan);
-								mCurrentTarget = aiManager->GetPlayerTarget(mPlayerId);
+								PathingNode* pathNode = NULL;
+								if (aiManager->IsPlayerUpdated(mPlayerId))
+								{
+									if (mCurrentPlan.size() == 0 || mCurrentPlan.size() > 2)
+									{
+										aiManager->GetPlayerPath(mPlayerId, pathPlan);
+										pathNode = aiManager->GetPlayerNode(mPlayerId);
+									}
+								}
 
 								if (pathPlan.size())
 								{
@@ -795,6 +800,9 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 											for (itPathArc++; itPathArc != pathPlan.end(); itPathArc++)
 												path.push_back((*itPathArc));
+
+											//printf("\n found new plan %u : ", mPlayerId);
+											aiManager->SetPlayerUpdated(mPlayerId, false);
 										}
 										else if (eastl::find(searchNodes.begin(), searchNodes.end(), mCurrentNode))
 										{
@@ -806,10 +814,32 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 											for (itPathArc++; itPathArc != pathPlan.end(); itPathArc++)
 												path.push_back((*itPathArc));
+
+											//printf("\n found new plan %u : ", mPlayerId);
+											aiManager->SetPlayerUpdated(mPlayerId, false);
 										}
 
 										mCurrentPlan = path;
-										aiManager->SetPlayerPath(mPlayerId, PathingArcVec());
+										delete plan;
+									}
+								}
+								else if (pathNode != NULL && pathNode != mCurrentNode)
+								{
+									PathPlan* plan = aiManager->GetPathingGraph()->FindPath(mCurrentNode, pathNode);
+									if (plan)
+									{
+										plan->ResetPath();
+
+										PathingArcVec path;
+										if (!plan->CheckForEnd())
+										{
+											for (PathingArc* planArc : plan->GetArcs())
+												path.push_back(planArc);
+										}
+
+										printf("\n found new plan %u : ", mPlayerId);
+										mCurrentPlan = path;
+										delete plan;
 									}
 								}
 
@@ -826,59 +856,73 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
 									mCurrentPlan.erase(mCurrentPlan.begin());
+									mGoalNode = NULL;
 									searchNode = false;
 								}
 
 								if (searchNode)
 								{
 									PathingNode* currentNode = mCurrentNode;
-									if (mGoalNode == NULL || currentNode == mGoalNode)
+									PathingClusterVec clusterNodes;
+									currentNode->GetClusters(GAT_JUMP, clusterNodes);
+
+									if (mGoalNode == NULL || mGoalNode == currentNode)
 									{
-										mCurrentTarget = aiManager->GetPlayerTarget(mPlayerId);
-										if (mCurrentTarget != INVALID_ACTOR_ID)
+										PathingArcVec pathPlan;
+										aiManager->GetPlayerPath(mPlayerId, pathPlan);
+
+										if (pathPlan.size())
 										{
-											PathingClusterVec clusterNodes;
-											currentNode->GetClusters(GAT_JUMP, clusterNodes);
-
-											eastl::shared_ptr<PlayerActor> pPlayerTarget(
-												eastl::dynamic_shared_pointer_cast<PlayerActor>(
-												GameLogic::Get()->GetActor(mCurrentTarget).lock()));
-
-											eastl::shared_ptr<TransformComponent> pTargetTransform(
-												pPlayerTarget->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-
-											PathingNode* pTargetNode =
-												mPathingGraph->FindClosestNode(pTargetTransform->GetTransform().GetTranslation());
-											for (PathingCluster* clusterNode : clusterNodes)
+											/*
+											printf("\n original plan player %u : ", mPlayerId);
+											for (PathingArc* pathArc : pathPlan)
+											printf("%u ", pathArc->GetNode()->GetId());
+											*/
+											PathingArcVec::iterator itPathPlan;
+											for (itPathPlan = pathPlan.begin(); itPathPlan != pathPlan.end(); itPathPlan++)
 											{
-												if (clusterNode->GetTarget()->GetCluster() == pTargetNode->GetCluster())
+												PathingArc* pathArc = (*itPathPlan);
+												for (PathingCluster* clusterNode : clusterNodes)
 												{
-													mGoalNode = clusterNode->GetTarget();
-													searchNode = false;
+													if (currentNode->GetCluster() != clusterNode->GetNode()->GetCluster() &&
+														pathArc->GetNode()->GetCluster() == clusterNode->GetNode()->GetCluster())
+													{
+														printf("\n plan node %u : ", mPlayerId);
+
+														mGoalNode = clusterNode->GetTarget();
+
+														PathingArcVec newPathPlan;
+														for (itPathPlan++; itPathPlan != pathPlan.end(); itPathPlan++)
+															newPathPlan.push_back((*itPathPlan));
+														aiManager->SetPlayerPath(mPlayerId, newPathPlan);
+														searchNode = false;
+														break;
+													}
 												}
+
+												if (!searchNode) break;
 											}
 										}
+									}
 
-										if (searchNode)
+									if (mGoalNode == NULL || mGoalNode == currentNode)
+									{
+										printf("\n random node %u : ", mPlayerId);
+
+										// choose a random cluster
+										do
 										{
-											// choose a random cluster
-											do
+											if (!clusterNodes.empty())
 											{
-												PathingClusterVec clusterNodes;
-												currentNode->GetClusters(GAT_JUMP, clusterNodes);
-
-												if (!clusterNodes.empty())
-												{
-													unsigned int cluster = Randomizer::Rand() % clusterNodes.size();
-													mGoalNode = clusterNodes[cluster]->GetTarget();
-												}
-												else
-												{
-													mGoalNode = NULL;
-													break;
-												}
-											} while (currentNode == mGoalNode || mGoalNode->GetArcs().empty());
-										}
+												unsigned int cluster = Randomizer::Rand() % clusterNodes.size();
+												mGoalNode = clusterNodes[cluster]->GetTarget();
+											}
+											else
+											{
+												mGoalNode = NULL;
+												break;
+											}
+										} while (currentNode == mGoalNode || mGoalNode->GetArcs().empty());
 									}
 
 									if (mGoalNode != NULL)
@@ -899,7 +943,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											Normalize(direction);
 											mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
-											//printf("\n random nodes %u : ", mPlayerId);
+											//printf("\n new plan %u : ", mPlayerId);
 											do
 											{
 												currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
@@ -947,9 +991,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 												eastl::shared_ptr<TransformComponent> pTriggerTransform =
 													pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 
-												PathingNode* pathingNode = 
-													mPathingGraph->FindClosestNode(pTriggerTransform->GetPosition());
-												Vector3<float> direction = pathingNode->GetPos() - currentPosition;
+												Vector3<float> direction = pTriggerTransform->GetPosition() - currentPosition;
 												Normalize(direction);
 												mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 											}

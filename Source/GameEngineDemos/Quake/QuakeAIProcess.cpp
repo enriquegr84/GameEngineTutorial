@@ -682,7 +682,7 @@ void QuakeAIProcess::Damage(NodeState& state, float visibleTime, float visibleDi
 					case WP_MACHINEGUN:
 						damage = 5;
 						fireTime = 0.1f;
-						rangeDistance = visibleDistance > 400 ? visibleDistance : 400;
+						rangeDistance = visibleDistance > 300 ? visibleDistance : 300;
 						shotCount = int(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
 						state.damage[weapon - 1] = (int)round(damage *
@@ -696,7 +696,7 @@ void QuakeAIProcess::Damage(NodeState& state, float visibleTime, float visibleDi
 					case WP_ROCKET_LAUNCHER:
 						damage = 100;
 						fireTime = 0.8f;
-						if (visibleHeight <= 20.f)
+						if (visibleHeight <= 30.f)
 							rangeDistance = visibleDistance > 700 ? visibleDistance : 700;
 						else 
 							rangeDistance = visibleDistance > 1000 ? visibleDistance : 1000;
@@ -708,7 +708,7 @@ void QuakeAIProcess::Damage(NodeState& state, float visibleTime, float visibleDi
 					case WP_PLASMAGUN:
 						damage = 10;
 						fireTime = 0.1f;
-						rangeDistance = visibleDistance > 150 ? visibleDistance : 150;
+						rangeDistance = visibleDistance > 300 ? visibleDistance : 300;
 						shotCount = int(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
 						state.damage[weapon - 1] = (int)round(damage *
@@ -1561,8 +1561,6 @@ void QuakeAIProcess::ConstructPath(
 
 void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPlayerState)
 {
-	fprintf(mFile, "\n\n ITERATION \n\n");
-
 	//single case playerNode - otherPlayerNode
 	NodeState playerNodeState(playerState); 
 	NodeState otherPlayerNodeState(otherPlayerState);
@@ -1760,19 +1758,18 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	fprintf(mFile, "node : ");
 	for (auto playerNodeClusterState : playerNodeClusterStates)
 	{
-		fprintf(mFile, "heuristic : %f ", playerNodeClusterState.second.heuristic);
 		if (playerNodeClusterState.second.weapon != WP_NONE)
 		{
+			fprintf(mFile, "other player cluster : %u ",
+				playerNodeClusterState.first->GetTarget()->GetCluster());
+
+			fprintf(mFile, "heuristic : %f ", 
+				playerNodeClusterState.second.heuristic);
 			fprintf(mFile, " weapon : %u ",
 				playerNodeClusterState.second.weapon);
 			fprintf(mFile, " damage : %i ",
 				playerNodeClusterState.second.damage[
 				playerNodeClusterState.second.weapon - 1]);
-		}
-		else
-		{
-			fprintf(mFile, " weapon : 0 ");
-			fprintf(mFile, " damage : 0 ");
 		}
 		/*
 		eastl::vector<ActorId> actors;
@@ -1823,7 +1820,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	{
 		mPlayerState.Copy(playerNodeState);
 
-		fprintf(mFile, " min heuristic : %f ", mPlayerState.heuristic);
+		fprintf(mFile, "\n min heuristic : %f ", mPlayerState.heuristic);
 		if (mPlayerState.weapon != WP_NONE)
 		{
 			fprintf(mFile, " weapon : %u ", mPlayerState.weapon);
@@ -1881,16 +1878,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	for (auto playerClustersState : playerClustersStates)
 	{
 		playerNodeState = playerClusterNodeStates[playerClustersState.first];
-		fprintf(mFile, "\n heuristic : %f ", playerNodeState.heuristic);
+
+		fprintf(mFile, "\n player cluster : %u ", 
+			playerClustersState.first->GetTarget()->GetCluster());
 		if (playerNodeState.weapon != WP_NONE)
 		{
+			fprintf(mFile, "heuristic : %f ", playerNodeState.heuristic);
+
 			fprintf(mFile, " weapon : %u ", playerNodeState.weapon);
 			fprintf(mFile, " damage : %i ", playerNodeState.damage[playerNodeState.weapon - 1]);
-		}
-		else
-		{
-			fprintf(mFile, " weapon : 0 ");
-			fprintf(mFile, " damage : 0 ");
 		}
 		/*
 		eastl::vector<ActorId> actors;
@@ -1936,17 +1932,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		*/
 		for (auto playerClusterState : playerClustersState.second)
 		{
-			fprintf(mFile, "heuristic : %f ", playerClusterState.second.heuristic);
 			if (playerClusterState.second.weapon != WP_NONE)
 			{
+				fprintf(mFile, "other player cluster : %u ",
+					playerClusterState.first->GetTarget()->GetCluster());
+				fprintf(mFile, "heuristic : %f ", playerClusterState.second.heuristic);
+
 				fprintf(mFile, " weapon : %u ", playerClusterState.second.weapon);
 				fprintf(mFile, " damage : %i ", 
 					playerClusterState.second.damage[playerClusterState.second.weapon - 1]);
-			}
-			else
-			{
-				fprintf(mFile, " weapon : 0 ");
-				fprintf(mFile, " damage : 0 ");
 			}
 			/*
 			eastl::vector<ActorId> actors;
@@ -1995,7 +1989,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 		if (playerNodeState.valid)
 		{
-			fprintf(mFile, " min heuristic : %f ", playerNodeState.heuristic);
+			fprintf(mFile, "\n min heuristic : %f ", playerNodeState.heuristic);
 			if (playerNodeState.weapon != WP_NONE)
 			{
 				fprintf(mFile, " weapon : %u ", playerNodeState.weapon);
@@ -2055,7 +2049,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	}
 	if (mPlayerState.valid)
 	{
-		fprintf(mFile, " max heuristic : %f ", mPlayerState.heuristic);
+		fprintf(mFile, "\n max heuristic : %f ", mPlayerState.heuristic);
 		if (mPlayerState.weapon != WP_NONE)
 		{
 			fprintf(mFile, " weapon : %u ", mPlayerState.weapon);
@@ -2114,20 +2108,19 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	fprintf(mFile, "node : ");
 	for (auto otherPlayerNodeClusterState : otherPlayerNodeClusterStates)
 	{
-		fprintf(mFile, "heuristic : %f ", otherPlayerNodeClusterState.second.heuristic);
 		if (otherPlayerNodeClusterState.second.weapon != WP_NONE)
 		{
+			fprintf(mFile, "player cluster : %u ",
+				otherPlayerNodeClusterState.first->GetTarget()->GetCluster());
+			fprintf(mFile, "heuristic : %f ", 
+				otherPlayerNodeClusterState.second.heuristic);
 			fprintf(mFile, " weapon : %u ",
 				otherPlayerNodeClusterState.second.weapon);
 			fprintf(mFile, " damage : %i ",
 				otherPlayerNodeClusterState.second.damage[
 				otherPlayerNodeClusterState.second.weapon - 1]);
 		}
-		else
-		{
-			fprintf(mFile, " weapon : 0 ");
-			fprintf(mFile, " damage : 0 ");
-		}
+
 		/*
 		//printf("nodes : ");
 		eastl::vector<ActorId> actors;
@@ -2177,7 +2170,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	}
 	if (otherPlayerNodeState.valid)
 	{
-		fprintf(mFile, " max heuristic : %f ", otherPlayerNodeState.heuristic);
+		fprintf(mFile, "\n max heuristic : %f ", otherPlayerNodeState.heuristic);
 		mOtherPlayerState.Copy(otherPlayerNodeState);
 		if (mOtherPlayerState.weapon != WP_NONE)
 		{
@@ -2238,17 +2231,16 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	for (auto otherPlayerClustersState : otherPlayerClustersStates)
 	{
 		otherPlayerNodeState = otherPlayerClusterNodeStates[otherPlayerClustersState.first];
-		fprintf(mFile, "\n heuristic : %f ", otherPlayerNodeState.heuristic);
+
+		fprintf(mFile, "\n other player cluster : %u ",
+			otherPlayerClustersState.first->GetTarget()->GetCluster());
 		if (otherPlayerNodeState.weapon != WP_NONE)
 		{
+			fprintf(mFile, " heuristic : %f ", otherPlayerNodeState.heuristic);
 			fprintf(mFile, " weapon : %u ", otherPlayerNodeState.weapon);
 			fprintf(mFile, " damage : %i ", otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1]);
 		}
-		else
-		{
-			fprintf(mFile, " weapon : 0 ");
-			fprintf(mFile, " damage : 0 ");
-		}
+
 		/*
 		eastl::vector<ActorId> actors;
 		PathingArcVec::iterator itArc = otherPlayerNodeState.path.begin();
@@ -2293,18 +2285,16 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		*/
 		for (auto otherPlayerClusterState : otherPlayerClustersState.second)
 		{
-			fprintf(mFile, "heuristic : %f ", otherPlayerClusterState.second.heuristic);
 			if (otherPlayerClusterState.second.weapon != WP_NONE)
 			{
+				fprintf(mFile, "player cluster : %u ",
+					otherPlayerClusterState.first->GetTarget()->GetCluster());
+				fprintf(mFile, "heuristic : %f ", otherPlayerClusterState.second.heuristic);
+
 				fprintf(mFile, " weapon : %u ", otherPlayerClusterState.second.weapon);
 				fprintf(mFile, " damage : %i ",
 					otherPlayerClusterState.second.damage[
 					otherPlayerClusterState.second.weapon - 1]);
-			}
-			else
-			{
-				fprintf(mFile, " weapon : 0 ");
-				fprintf(mFile, " damage : 0 ");
 			}
 			/*
 			//printf("nodes : ");
@@ -2355,7 +2345,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 		if (otherPlayerNodeState.valid)
 		{
-			fprintf(mFile, " max heuristic : %f ", otherPlayerNodeState.heuristic);
+			fprintf(mFile, "\n max heuristic : %f ", otherPlayerNodeState.heuristic);
 			if (otherPlayerNodeState.weapon != WP_NONE)
 			{
 				fprintf(mFile, " weapon : %u ", otherPlayerNodeState.weapon);
@@ -2417,7 +2407,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	}
 	if (mOtherPlayerState.valid)
 	{
-		fprintf(mFile, " min heuristic : %f ", mOtherPlayerState.heuristic);
+		fprintf(mFile, "\n min heuristic : %f ", mOtherPlayerState.heuristic);
 		if (mOtherPlayerState.weapon != WP_NONE)
 		{
 			fprintf(mFile, " weapon : %u ", mOtherPlayerState.weapon);
@@ -2477,6 +2467,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 void QuakeAIProcess::ThreadProc( )
 {
+	unsigned int iteration = 0;
+
 	while (true)
 	{
 		if (GameLogic::Get()->GetState() == BGS_RUNNING)
@@ -2536,6 +2528,9 @@ void QuakeAIProcess::ThreadProc( )
 							aiManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition());
 					}
 				}
+				iteration++;
+				//printf("\n\n ITERATION %u \n\n", iteration);
+				fprintf(mFile, "\n\n ITERATION %u \n\n", iteration);
 
 				for (auto playerNode : playerNodes)
 				{
@@ -2607,6 +2602,8 @@ void QuakeAIProcess::ThreadProc( )
 					aiManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
 					aiManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
 					aiManager->SetPlayerPath(mPlayerState.player, mPlayerState.path);
+					aiManager->SetPlayerNode(mPlayerState.player, mPlayerState.node);
+					aiManager->SetPlayerUpdated(mPlayerState.player, true);
 				}
 
 				for (eastl::shared_ptr<PlayerActor> pPlayerActor : players[GV_AI])
@@ -2668,6 +2665,8 @@ void QuakeAIProcess::ThreadProc( )
 					aiManager->SetPlayerTarget(mOtherPlayerState.player, mOtherPlayerState.target);
 					aiManager->SetPlayerWeapon(mOtherPlayerState.player, mOtherPlayerState.weapon);
 					aiManager->SetPlayerPath(mOtherPlayerState.player, mOtherPlayerState.path);
+					aiManager->SetPlayerNode(mOtherPlayerState.player, mOtherPlayerState.node);
+					aiManager->SetPlayerUpdated(mOtherPlayerState.player, true);
 				}
 			}
 		}

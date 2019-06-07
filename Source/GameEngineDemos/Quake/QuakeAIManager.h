@@ -49,11 +49,15 @@ public:
 
 	ActorId GetPlayerTarget(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
+	PathingNode* GetPlayerNode(ActorId player);
 	void GetPlayerPath(ActorId player, PathingArcVec& playerPath);
+	bool IsPlayerUpdated(ActorId player);
 
 	void SetPlayerTarget(ActorId player, ActorId playerTarget);
+	void SetPlayerNode(ActorId player, PathingNode* playerNode);
 	void SetPlayerWeapon(ActorId player, WeaponType playerWeapon);
 	void SetPlayerPath(ActorId player, PathingArcVec& playerPath);
+	void SetPlayerUpdated(ActorId player, bool update);
 
 protected:
 
@@ -116,9 +120,10 @@ private:
 	eastl::map<PathingNode*, ActorId> mActorNodes;
 
 	//player ai states
-	eastl::vector<ActorId> mPlayerIds;
+	eastl::map<ActorId, bool> mPlayers;
 	eastl::map<ActorId, ActorId> mPlayerTargets;
 	eastl::map<ActorId, WeaponType> mPlayerWeapons;
+	eastl::map<ActorId, PathingNode*> mPlayerNodes;
 	eastl::map<ActorId, PathingArcVec> mPlayerPaths;
 
 	void RegisterAllDelegates(void);

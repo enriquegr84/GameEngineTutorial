@@ -445,6 +445,15 @@ void PlayerActor::UpdateMovement(const Vector3<float>& velocity)
 	}
 	else
 	{
+		// if not trying to move
+		if (!(mAction.actionType & ACTION_MOVEFORWARD) &&
+			!(mAction.actionType & ACTION_MOVEBACK) &&
+			!(mAction.actionType & ACTION_MOVELEFT) &&
+			!(mAction.actionType & ACTION_MOVERIGHT))
+		{
+			ContinueLegsAnim(LEGS_IDLE);
+		}
+
 		EventManager::Get()->TriggerEvent(
 			eastl::make_shared<QuakeEventDataFallActor>(GetId(), velocity));
 	}
