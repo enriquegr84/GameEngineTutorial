@@ -230,11 +230,15 @@ public:
 	// Quake Actors
 	eastl::shared_ptr<Actor> GetRandomActor();
 	void GetAmmoActors(eastl::vector<eastl::shared_ptr<Actor>>& ammo);
+	void GetArmorActors(eastl::vector<eastl::shared_ptr<Actor>>& armor);
 	void GetWeaponActors(eastl::vector<eastl::shared_ptr<Actor>>& weapon);
 	void GetHealthActors(eastl::vector<eastl::shared_ptr<Actor>>& health);
-	void GetArmorActors(eastl::vector<eastl::shared_ptr<Actor>>& armor);
+	void GetPlayerActors(eastl::vector<eastl::shared_ptr<Actor>>& player);
 	void GetTriggerActors(eastl::vector<eastl::shared_ptr<Actor>>& trigger);
 	void GetTargetActors(eastl::vector<eastl::shared_ptr<Actor>>& target);
+
+	//Items
+	bool CanItemBeGrabbed(const eastl::shared_ptr<Actor>& item, const eastl::shared_ptr<PlayerActor>& player);
 
 	//Quake Spawn Points
 	const eastl::shared_ptr<Actor>& SelectRandomSpawnPoint();

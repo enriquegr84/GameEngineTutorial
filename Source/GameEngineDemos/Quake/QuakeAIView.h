@@ -64,6 +64,12 @@ public:
 	virtual bool OnMsgProc( const Event& event ) {	return false; }
 	virtual void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
 
+	// event delegates
+	void PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData);
+	void PhysicsTriggerLeaveDelegate(BaseEventDataPtr pEventData);
+	void PhysicsCollisionDelegate(BaseEventDataPtr pEventData);
+	void PhysicsSeparationDelegate(BaseEventDataPtr pEventData);
+
 protected:
 
 	void Stationary(unsigned long deltaMs);
@@ -100,12 +106,16 @@ protected:
 
 private:
 
+	void RegisterAllDelegates(void);
+	void RemoveAllDelegates(void);
+
+	float mCurrentGuessTime;
 	float mCurrentActionTime;
 	unsigned int mCurrentAction;
 
-	ActorId mCurrentTarget;
 	ActorId mCurrentActor;
 	PathingArcVec mCurrentPlan;
+	PathingArcVec mCurrentGuessPlan;
 
 	PathingNode* mGoalNode;
 	PathingArc* mCurrentArc;

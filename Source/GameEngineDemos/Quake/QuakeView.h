@@ -41,6 +41,8 @@
 
 #include "QuakeStd.h"
 
+#include "AI/Pathing.h"
+
 #include "Core/Event/EventManager.h"
 
 #include "Game/View/HumanView.h"
@@ -424,22 +426,6 @@ class QuakeHumanView : public HumanView, public eastl::enable_shared_from_this<Q
 {
 	friend class QuakeStandardHUD;
 
-protected:
-
-	bool  mShowUI;					// If true, it renders the UI control text
-	DebugMode mDebugMode;
-    eastl::string mGameplayText;
-
-	// media
-	MediaResource mMedia;
-	WeaponResource mWeaponMedia[8];
-
-	eastl::shared_ptr<QuakePlayerController> mGamePlayerController;
-	eastl::shared_ptr<QuakeCameraController> mGameCameraController;
-
-	eastl::shared_ptr<QuakeStandardHUD> mGameStandardHUD;
-	eastl::shared_ptr<Node> mPlayer;
-
 public:
 	QuakeHumanView();
 	virtual ~QuakeHumanView();
@@ -452,7 +438,12 @@ public:
 	virtual void SetControlledActor(ActorId actorId);
 	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData) override;
 
-    // event delegates
+	// event delegates
+	void PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData);
+	void PhysicsTriggerLeaveDelegate(BaseEventDataPtr pEventData);
+	void PhysicsCollisionDelegate(BaseEventDataPtr pEventData);
+	void PhysicsSeparationDelegate(BaseEventDataPtr pEventData);
+
     void GameplayUiUpdateDelegate(BaseEventDataPtr pEventData);
     void SetControlledActorDelegate(BaseEventDataPtr pEventData);
 	
@@ -464,6 +455,22 @@ public:
 	void JumpActorDelegate(BaseEventDataPtr pEventData);
 	void MoveActorDelegate(BaseEventDataPtr pEventData);
 
+protected:
+
+	bool  mShowUI;					// If true, it renders the UI control text
+	DebugMode mDebugMode;
+	eastl::string mGameplayText;
+
+	// media
+	MediaResource mMedia;
+	WeaponResource mWeaponMedia[8];
+
+	eastl::shared_ptr<QuakePlayerController> mGamePlayerController;
+	eastl::shared_ptr<QuakeCameraController> mGameCameraController;
+
+	eastl::shared_ptr<QuakeStandardHUD> mGameStandardHUD;
+	eastl::shared_ptr<Node> mPlayer;
+
 private:
 
 	void RegisterSound();
@@ -472,6 +479,11 @@ private:
 
     void RegisterAllDelegates(void);
     void RemoveAllDelegates(void);
+
+	void UpdatePlayerGuess(unsigned long deltaMs);
+
+	float mCurrentGuessTime;
+	PathingArcVec mCurrentGuessPlan;
 };
 
 #endif

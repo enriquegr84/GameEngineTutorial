@@ -77,9 +77,9 @@ bool PathingNode::IsVisibleNode(PathingNode* pNode)
 	return mVisibleNodes.find(pNode) != mVisibleNodes.end();
 }
 
-void PathingNode::GetVisibileNodes(eastl::map<PathingNode*, float>& visibilities)
+const eastl::map<PathingNode*, float>& PathingNode::GetVisibileNodes()
 {
-	visibilities = mVisibleNodes;
+	return mVisibleNodes;
 }
 
 void PathingNode::AddArc(PathingArc* pArc)
@@ -879,7 +879,7 @@ void PathFinder::operator()(PathingNode* pStartNode,
 }
 
 void PathFinder::operator()(PathingNode* pStartNode,
-	eastl::vector<unsigned int>& searchClusters, ClusterPlanMap& plans, int skipArc, float threshold)
+	eastl::vector<unsigned short>& searchClusters, ClusterPlanMap& plans, int skipArc, float threshold)
 {
 	LogAssert(pStartNode, "Invalid node");
 
@@ -892,8 +892,8 @@ void PathFinder::operator()(PathingNode* pStartNode,
 	// the open set.
 	AddToOpenSet(mStartNode, NULL);
 
-	eastl::map<unsigned int, float> minCostCluster;
-	for (unsigned int cluster : searchClusters)
+	eastl::map<unsigned short, float> minCostCluster;
+	for (unsigned short cluster : searchClusters)
 		minCostCluster[cluster] = FLT_MAX;
 
 	while (!mOpenSet.empty())
@@ -902,7 +902,7 @@ void PathFinder::operator()(PathingNode* pStartNode,
 		PathPlanNode* planNode = mOpenSet.front();
 
 		// lets find out if we successfully found a cluster.
-		eastl::vector<unsigned int>::iterator itCluster =
+		eastl::vector<unsigned short>::iterator itCluster =
 			eastl::find(searchClusters.begin(), searchClusters.end(), planNode->GetPathingNode()->GetCluster());
 		if (itCluster != searchClusters.end())
 		{
@@ -1225,7 +1225,7 @@ void PathingGraph::FindPlans(PathingNode* pStartNode,
 }
 
 void PathingGraph::FindPlans(PathingNode* pStartNode,
-	eastl::vector<unsigned int>& searchClusters, ClusterPlanMap& plans, int skipArc, float threshold)
+	eastl::vector<unsigned short>& searchClusters, ClusterPlanMap& plans, int skipArc, float threshold)
 {
 	// find the best path using an A* search algorithm
 	PathFinder pathFinder;
@@ -1289,4 +1289,19 @@ void PathingGraph::InsertArc(PathingArc* pArc)
 	LogAssert(pArc, "Invalid arc");
 
 	mArcs.push_back(pArc);
+}
+
+void PathingGraph::InsertVisibleCluster(unsigned short clusterA, unsigned short clusterB)
+{
+	mVisibleClusters[clusterA][clusterB] = true;
+}
+
+bool PathingGraph::IsVisibleCluster(unsigned short clusterA, unsigned short clusterB)
+{
+	bool isVisible = false;
+	if (mVisibleClusters.find(clusterA) != mVisibleClusters.end())
+		if (mVisibleClusters[clusterA].find(clusterB) != mVisibleClusters[clusterA].end())
+			isVisible = true;
+
+	return isVisible;
 }

@@ -61,7 +61,7 @@ typedef eastl::vector<PathingTransition*> PathingTransitionVec;
 
 typedef eastl::list<PathPlanNode*> PathPlanNodeList;
 typedef eastl::map<PathingNode*, PathPlan*> PathPlanMap;
-typedef eastl::map<unsigned int, PathPlan*> ClusterPlanMap;
+typedef eastl::map<unsigned short, PathPlan*> ClusterPlanMap;
 typedef eastl::map<eastl::shared_ptr<Actor>, PathPlan*> ActorPlanMap;
 typedef eastl::map<PathingNode*, PathingNodeVec> PathingNodeMap;
 typedef eastl::map<PathingNode*, PathingArcVec> PathingNodeArcMap;
@@ -83,7 +83,7 @@ class PathingNode
 	Vector3<float> mPos;
 	PathingArcVec mArcs;
 
-	unsigned int mClusterId;
+	unsigned short mClusterId;
 	PathingClusterVec mClusters;
 	PathingClusterVec mClusterActors;
 	PathingTransitionVec mTransitions;
@@ -106,7 +106,7 @@ public:
 	const Vector3<float>& GetPos(void) const { return mPos; }
 
 	void AddVisibleNode(PathingNode* pNode, float value);
-	void GetVisibileNodes(eastl::map<PathingNode*, float>& visibilities);
+	const eastl::map<PathingNode*, float>& GetVisibileNodes();
 	float FindVisibleNode(PathingNode* pNode);
 	bool IsVisibleNode(PathingNode* pNode);
 
@@ -123,8 +123,8 @@ public:
 	PathingCluster* FindCluster(PathingNode* pTargetNode);
 	PathingCluster* FindCluster(unsigned int clusterType, PathingNode* pTargetNode);
 
-	unsigned int GetCluster() { return mClusterId; }
-	void SetCluster(unsigned int clusterId) { mClusterId = clusterId; }
+	unsigned short GetCluster() { return mClusterId; }
+	void SetCluster(unsigned short clusterId) { mClusterId = clusterId; }
 	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit);
 	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters);
 	void GetClusterActors(PathingClusterVec& outClusters, unsigned int limit);
@@ -322,7 +322,7 @@ public:
 		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	void operator()(PathingNode* pStartNode, eastl::vector<eastl::shared_ptr<Actor>>& searchActors,
 		ActorPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
-	void operator()(PathingNode* pStartNode, eastl::vector<unsigned int>& searchClusters,
+	void operator()(PathingNode* pStartNode, eastl::vector<unsigned short>& searchClusters,
 		ClusterPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 private:
 	PathPlanNode* AddToOpenSet(PathingArc* pArc, PathPlanNode* pPrevNode);
@@ -340,11 +340,7 @@ private:
 // all the PathingNode and Pathing Arc objects.
 //--------------------------------------------------------------------------------------------------------
 class PathingGraph
-{
-	PathingClusterVec mClusters; // master list of all clusters
-	PathingNodeVec mNodes;  // master list of all nodes
-	PathingArcVec mArcs;  // master list of all arcs
-	
+{	
 public:
 	PathingGraph(void) {}
 	~PathingGraph(void) { DestroyGraph(); }
@@ -360,7 +356,7 @@ public:
 		PathPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	void FindPlans(PathingNode* pStartNode, eastl::vector<eastl::shared_ptr<Actor>>& searchActors,
 		ActorPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
-	void FindPlans(PathingNode* pStartNode, eastl::vector<unsigned int>& searchClusters,
+	void FindPlans(PathingNode* pStartNode, eastl::vector<unsigned short>& searchClusters,
 		ClusterPlanMap& plans, int skipArc = -1, float threshold = FLT_MAX);
 	PathPlan* FindPath(PathingNode* pStartNode, PathingNodeVec& searchNodes, 
 		int skipArc = -1, float threshold = FLT_MAX);
@@ -373,13 +369,22 @@ public:
 	PathPlan* FindPath(PathingNode* pStartNode, PathingNode* pGoalNode, 
 		int skipArc = -1, float threshold = FLT_MAX);
 
-	// helpers
+	void InsertVisibleCluster(unsigned short clusterA, unsigned short clusterB);
 	void InsertCluster(PathingCluster* pCluster);
 	void InsertNode(PathingNode* pNode);
 	void InsertArc(PathingArc* pArc);
+	bool IsVisibleCluster(unsigned short clusterA, unsigned short clusterB);
 	const PathingClusterVec& GetClusters() { return mClusters; }
 	const PathingNodeVec& GetNodes() { return mNodes; }
 	const PathingArcVec& GetArcs() { return mArcs; }
+
+private:
+
+	eastl::map<unsigned short, eastl::map<unsigned short, bool>> mVisibleClusters;
+
+	PathingClusterVec mClusters; // master list of all clusters
+	PathingNodeVec mNodes;  // master list of all nodes
+	PathingArcVec mArcs;  // master list of all arcs
 };
 
 

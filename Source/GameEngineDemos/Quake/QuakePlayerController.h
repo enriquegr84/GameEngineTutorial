@@ -49,11 +49,34 @@ class Node;
 
 class QuakePlayerController : public BaseMouseHandler, public BaseKeyboardHandler
 {
+
+public:
+	QuakePlayerController(
+		const eastl::shared_ptr<Node>& target, float initialYaw, float initialPitch);
+
+	//! Sets whether or not the controller is currently enabled.
+	void SetEnabled(bool enabled) { mEnabled = enabled; }
+
+	//! Gets whether or not the affector is currently enabled.
+	bool GetEnabled() const { return mEnabled; }
+
+	void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
+
+	bool OnMouseMove(const Vector2<int> &mousePos, const int radius);
+	bool OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
+	bool OnMouseButtonUp(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
+
+	bool OnKeyDown(const KeyCode c) { mKey[c] = true; return true; }
+	bool OnKeyUp(const KeyCode c) { mKey[c] = false; return true; }
+
+	bool OnWheelRollDown() { mWheelRollDown = true; return true; }
+	bool OnWheelRollUp() { mWheelRollUp = true; return true; }
+
 protected:
 	bool mEnabled;
 	BYTE mKey[256];			// Which keys are up and down
 
-	// Orientation Controls
+							// Orientation Controls
 	float mYaw;
 	float mPitch;
 	float mPitchTarget;
@@ -81,28 +104,6 @@ protected:
 
 	Transform mAbsoluteTransform;
 	Vector2<int> mLastMousePos;
-
-public:
-	QuakePlayerController(
-		const eastl::shared_ptr<Node>& target, float initialYaw, float initialPitch);
-
-	//! Sets whether or not the controller is currently enabled.
-	void SetEnabled(bool enabled) { mEnabled = enabled; }
-
-	//! Gets whether or not the affector is currently enabled.
-	bool GetEnabled() const { return mEnabled; }
-
-	void OnUpdate(unsigned int timeMs, unsigned long deltaMs);
-
-	bool OnMouseMove(const Vector2<int> &mousePos, const int radius);
-	bool OnMouseButtonDown(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
-	bool OnMouseButtonUp(const Vector2<int> &mousePos, const int radius, const eastl::string &buttonName);
-
-	bool OnKeyDown(const KeyCode c) { mKey[c] = true; return true; }
-	bool OnKeyUp(const KeyCode c) { mKey[c] = false; return true; }
-
-	bool OnWheelRollDown() { mWheelRollDown = true; return true; }
-	bool OnWheelRollUp() { mWheelRollUp = true; return true; }
 
 };
 

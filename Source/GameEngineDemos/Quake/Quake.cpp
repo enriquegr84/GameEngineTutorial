@@ -96,6 +96,16 @@ void QuakeLogic::GetAmmoActors(eastl::vector<eastl::shared_ptr<Actor>>& ammo)
 	}
 }
 
+void QuakeLogic::GetArmorActors(eastl::vector<eastl::shared_ptr<Actor>>& armor)
+{
+	for (auto actor : mActors)
+	{
+		eastl::shared_ptr<Actor> pActor = actor.second;
+		if (pActor->GetType() == "Armor")
+			armor.push_back(pActor);
+	}
+}
+
 void QuakeLogic::GetWeaponActors(eastl::vector<eastl::shared_ptr<Actor>>& weapon)
 {
 	for (auto actor : mActors)
@@ -116,13 +126,13 @@ void QuakeLogic::GetHealthActors(eastl::vector<eastl::shared_ptr<Actor>>& health
 	}
 }
 
-void QuakeLogic::GetArmorActors(eastl::vector<eastl::shared_ptr<Actor>>& armor)
+void QuakeLogic::GetPlayerActors(eastl::vector<eastl::shared_ptr<Actor>>& player)
 {
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;
-		if (pActor->GetType() == "Armor")
-			armor.push_back(pActor);
+		if (pActor->GetType() == "Player")
+			player.push_back(pActor);
 	}
 }
 
@@ -437,6 +447,12 @@ void QuakeLogic::SpawnActorDelegate(BaseEventDataPtr pEventData)
 		{
 			SelectSpawnPoint(pTransformComponent->GetTransform().GetTranslation(), spawnTransform);
 			pTransformComponent->SetTransform(spawnTransform);
+
+			QuakeAIManager* aiManager =
+				dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+			aiManager->SetPlayerGuessNode(pGameActor->GetId(), 
+				aiManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition()));
+			aiManager->SetPlayerGuessUpdated(pGameActor->GetId(), true);
 		}
 
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
@@ -2717,7 +2733,7 @@ int PickupArmor(const eastl::shared_ptr<PlayerActor>& player, const eastl::share
 CanItemBeGrabbed
 Returns false if the item should not be picked up.
 */
-bool CanItemBeGrabbed(const eastl::shared_ptr<Actor>& item, const eastl::shared_ptr<PlayerActor>& player)
+bool QuakeLogic::CanItemBeGrabbed(const eastl::shared_ptr<Actor>& item, const eastl::shared_ptr<PlayerActor>& player)
 {
 	if (item->GetType() == "Ammo")
 	{

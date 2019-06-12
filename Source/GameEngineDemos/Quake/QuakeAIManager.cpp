@@ -197,9 +197,7 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 		node.position.y = (short)round(pathNode->GetPos()[1]);
 		node.position.z = (short)round(pathNode->GetPos()[2]);
 
-		eastl::map<PathingNode*, float> visibilityNodes;
-		pathNode->GetVisibileNodes(visibilityNodes);
-		for (auto visibilityNode : visibilityNodes)
+		for (auto visibilityNode : pathNode->GetVisibileNodes())
 		{
 			CerealTypes::VisibleNode visibleNode;
 			visibleNode.id = visibilityNode.first->GetId();
@@ -311,6 +309,8 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 			PathingNode* visibilityNode = pathingNodeGraph[visibleNode.id];
 			pathNode->AddVisibleNode(
 				visibilityNode, Length(visibilityNode->GetPos() - pathNode->GetPos()));
+
+			mPathingGraph->InsertVisibleCluster(pathNode->GetCluster(), visibilityNode->GetCluster());
 		}
 
 		for (CerealTypes::ArcNode arc : node.arcs)
@@ -372,20 +372,27 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 	}
 }
 
-bool QuakeAIManager::IsPlayerUpdated(ActorId player)
+PathingNode* QuakeAIManager::GetPlayerGuessNode(ActorId player)
 {
-	if (mPlayers.find(player) != mPlayers.end())
-		return mPlayers[player];
-	else
-		return false;
-}
-
-PathingNode* QuakeAIManager::GetPlayerNode(ActorId player)
-{
-	if (mPlayerNodes.find(player) != mPlayerNodes.end())
-		return mPlayerNodes[player];
+	if (mPlayerGuessNodes.find(player) != mPlayerGuessNodes.end())
+		return mPlayerGuessNodes[player];
 	else
 		return NULL;
+}
+
+void QuakeAIManager::GetPlayerGuessPath(ActorId player, PathingArcVec& playerPath)
+{
+	if (mPlayerGuessPaths.find(player) != mPlayerGuessPaths.end())
+		for (PathingArc* path : mPlayerGuessPaths[player])
+			playerPath.push_back(path);
+}
+
+bool QuakeAIManager::IsPlayerGuessUpdated(ActorId player)
+{
+	if (mPlayerGuess.find(player) != mPlayerGuess.end())
+		return mPlayerGuess[player];
+	else
+		return false;
 }
 
 ActorId QuakeAIManager::GetPlayerTarget(ActorId player)
@@ -411,14 +418,30 @@ void QuakeAIManager::GetPlayerPath(ActorId player, PathingArcVec& playerPath)
 			playerPath.push_back(path);
 }
 
-void QuakeAIManager::SetPlayerUpdated(ActorId player, bool update)
+bool QuakeAIManager::IsPlayerUpdated(ActorId player)
 {
-	mPlayers[player] = update;
+	if (mPlayers.find(player) != mPlayers.end())
+		return mPlayers[player];
+	else
+		return false;
 }
 
-void QuakeAIManager::SetPlayerNode(ActorId player, PathingNode* playerNode)
+
+void QuakeAIManager::SetPlayerGuessNode(ActorId player, PathingNode* playerNode)
 {
-	mPlayerNodes[player] = playerNode;
+	mPlayerGuessNodes[player] = playerNode;
+}
+
+void QuakeAIManager::SetPlayerGuessPath(ActorId player, PathingArcVec& playerPath)
+{
+	mPlayerGuessPaths[player].clear();
+	for (PathingArc* path : playerPath)
+		mPlayerGuessPaths[player].push_back(path);
+}
+
+void QuakeAIManager::SetPlayerGuessUpdated(ActorId player, bool update)
+{
+	mPlayerGuess[player] = update;
 }
 
 void QuakeAIManager::SetPlayerTarget(ActorId player, ActorId playerTarget)
@@ -436,6 +459,11 @@ void QuakeAIManager::SetPlayerPath(ActorId player, PathingArcVec& playerPath)
 	mPlayerPaths[player].clear();
 	for (PathingArc* path : playerPath)
 		mPlayerPaths[player].push_back(path);
+}
+
+void QuakeAIManager::SetPlayerUpdated(ActorId player, bool update)
+{
+	mPlayers[player] = update;
 }
 
 //map generation via physics simulation
@@ -460,7 +488,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	game->GetHealthActors(actors);
 	game->GetArmorActors(actors);
 	game->GetTargetActors(actors);
-	for (auto actor : actors)
+	for (eastl::shared_ptr<Actor> actor : actors)
 	{
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
 			actor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
@@ -755,7 +783,7 @@ void QuakeAIManager::CreateClusters()
 		pathNode->SetCluster(point.GetCluster());
 	}
 
-	eastl::vector<unsigned int> searchClusters;
+	eastl::vector<unsigned short> searchClusters;
 	for (Clustering kCluster : kmeans.GetClusters())
 		searchClusters.push_back(kCluster.GetId());
 

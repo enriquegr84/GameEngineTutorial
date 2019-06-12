@@ -196,7 +196,11 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	eastl::shared_ptr<PlayerActor> pPlayerActor(
 		eastl::dynamic_shared_pointer_cast<PlayerActor>(
 		GameLogic::Get()->GetActor(actorId).lock()));
-	if (pPlayerActor)
+	if (!pPlayerActor) return;
+
+	eastl::shared_ptr<TransformComponent> pTransformComponent(
+		pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+	if (pTransformComponent)
 	{
 		mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
 		mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
@@ -211,14 +215,9 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
 
 		// update node rotation matrix
-		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-		if (pTransformComponent)
-		{
-			pitchRotation = Rotation<4, float>(
-				AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
-			pTransformComponent->SetRotation(yawRotation * pitchRotation);
-		}
+		pitchRotation = Rotation<4, float>(
+			AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
+		pTransformComponent->SetRotation(yawRotation * pitchRotation);
 	}
 
 	Vector4<float> atWorld = Vector4<float>::Zero();
@@ -317,60 +316,55 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			{
 				mFallSpeed = 0.0f;
 
-				eastl::shared_ptr<TransformComponent> pTransformComponent =
-					pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-				if (pTransformComponent)
+				if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID)
 				{
-					if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID)
+					float push;
+					Vector3<float> direction;
+
+					eastl::shared_ptr<Actor> pItemActor(
+						eastl::dynamic_shared_pointer_cast<Actor>(
+							GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
+					eastl::shared_ptr<PushTrigger> pPushTrigger =
+						pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
+
+					Vector3<float> targetPosition = pPushTrigger->GetTarget().GetTranslation();
+					Vector3<float> playerPosition = pTransformComponent->GetPosition();
+					direction = targetPosition - playerPosition;
+					push = Length(direction);
+					Normalize(direction);
+
+					direction[PITCH] *= push / 90.f;
+					direction[ROLL] *= push / 90.f;
+					direction[YAW] = push / 30.f;
+					velocity = HLift(direction, 0.f);
+
+					pPlayerActor->GetAction().actionType |= ACTION_JUMP;
+				}
+				else if (mEnabled)
+				{
+					if (mMouseRButtonDown)
 					{
-						float push;
-						Vector3<float> direction;
-
-						eastl::shared_ptr<Actor> pItemActor(
-							eastl::dynamic_shared_pointer_cast<Actor>(
-								GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
-						eastl::shared_ptr<PushTrigger> pPushTrigger =
-							pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
-
-						Vector3<float> targetPosition = pPushTrigger->GetTarget().GetTranslation();
-						Vector3<float> playerPosition = pTransformComponent->GetPosition();
-						direction = targetPosition - playerPosition;
-						push = Length(direction);
+						upWorld = Vector4<float>::Unit(YAW);
+						Vector4<float> direction = atWorld + rightWorld + upWorld;
 						Normalize(direction);
 
-						direction[PITCH] *= push / 90.f;
-						direction[ROLL] *= push / 90.f;
-						direction[YAW] = push / 30.f;
-						velocity = HLift(direction, 0.f);
+						direction[PITCH] *= mJumpMoveSpeed;
+						direction[ROLL] *= mJumpMoveSpeed;
+						direction[YAW] *= mJumpSpeed;
+						velocity = direction;
 
 						pPlayerActor->GetAction().actionType |= ACTION_JUMP;
 					}
-					else if (mEnabled)
+					else
 					{
-						if (mMouseRButtonDown)
-						{
-							upWorld = Vector4<float>::Unit(YAW);
-							Vector4<float> direction = atWorld + rightWorld + upWorld;
-							Normalize(direction);
+						Vector4<float> direction = atWorld + rightWorld + upWorld;
+						Normalize(direction);
 
-							direction[PITCH] *= mJumpMoveSpeed;
-							direction[ROLL] *= mJumpMoveSpeed;
-							direction[YAW] *= mJumpSpeed;
-							velocity = direction;
-
-							pPlayerActor->GetAction().actionType |= ACTION_JUMP;
-						}
-						else
-						{
-							Vector4<float> direction = atWorld + rightWorld + upWorld;
-							Normalize(direction);
-
-							direction *= mMoveSpeed;
-							velocity = direction;
-						}
+						direction *= mMoveSpeed;
+						velocity = direction;
 					}
-					pPlayerActor->GetAction().actionType |= ACTION_RUN;
 				}
+				pPlayerActor->GetAction().actionType |= ACTION_RUN;
 			}
 			else
 			{

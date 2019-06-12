@@ -47,14 +47,20 @@ public:
 	virtual void SavePathingGraph(const eastl::string& path);
 	virtual void LoadPathingGraph(const eastl::wstring& path);
 
+	PathingNode* GetPlayerGuessNode(ActorId player);
+	void GetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
+	bool IsPlayerGuessUpdated(ActorId player);
+
 	ActorId GetPlayerTarget(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
-	PathingNode* GetPlayerNode(ActorId player);
 	void GetPlayerPath(ActorId player, PathingArcVec& playerPath);
 	bool IsPlayerUpdated(ActorId player);
 
+	void SetPlayerGuessNode(ActorId player, PathingNode* playerNode);
+	void SetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
+	void SetPlayerGuessUpdated(ActorId player, bool update);
+
 	void SetPlayerTarget(ActorId player, ActorId playerTarget);
-	void SetPlayerNode(ActorId player, PathingNode* playerNode);
 	void SetPlayerWeapon(ActorId player, WeaponType playerWeapon);
 	void SetPlayerPath(ActorId player, PathingArcVec& playerPath);
 	void SetPlayerUpdated(ActorId player, bool update);
@@ -123,8 +129,11 @@ private:
 	eastl::map<ActorId, bool> mPlayers;
 	eastl::map<ActorId, ActorId> mPlayerTargets;
 	eastl::map<ActorId, WeaponType> mPlayerWeapons;
-	eastl::map<ActorId, PathingNode*> mPlayerNodes;
 	eastl::map<ActorId, PathingArcVec> mPlayerPaths;
+
+	eastl::map<ActorId, bool> mPlayerGuess;
+	eastl::map<ActorId, PathingNode*> mPlayerGuessNodes;
+	eastl::map<ActorId, PathingArcVec> mPlayerGuessPaths;
 
 	void RegisterAllDelegates(void);
 	void RemoveAllDelegates(void);

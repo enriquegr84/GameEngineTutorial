@@ -40,10 +40,9 @@
 #define QUAKEAIPROCESS_H
 
 #include "Core/Process/RealtimeProcess.h"
-
 #include "Core/Event/EventManager.h"
 
-#include "AI/Pathing.h"
+#include "QuakeAIManager.h"
 
 //
 // struct NodeState
@@ -179,7 +178,8 @@ public:
 
 protected:
 
-	void Heuristic(NodeState& playerState,NodeState& otherPlayerState);
+	float HeuristicPlayerItems(NodeState& playerState);
+	void Heuristic(NodeState& playerState, NodeState& otherPlayerState);
 	void Damage(NodeState& state, float visibleTime, float visibleDistance, float visibleHeight);
 	void PickupItem(NodeState& playerState, eastl::map<ActorId, float>& actors);
 
@@ -188,21 +188,12 @@ protected:
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
 		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
-	void Visibility(
-		PathingNode* playerNode, PathingArcVec& playerPathPlan,
-		float* visibleTime, float* visibleDistance, float* visibleHeight,
-		PathingNode* otherPlayerNode, 
-		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
-	void ConstructPath(
-		PathingNode* playerNode, PathingCluster* playerClusters, 
-		eastl::vector<PathingArcVec>& playerPathPlan);
+	void ConstructPath(PathingNode* playerNode, 
+		PathingCluster* playerClusters, eastl::vector<PathingArcVec>& playerPathPlan,
+		eastl::map<ActorId, eastl::map<PathingCluster*, PathingArcVec>>& actorPathPlans);
 	void Simulation(
 		NodeState& playerState, eastl::vector<PathingArcVec>& playerPathPlans,
 		NodeState& otherPlayerState, eastl::vector<PathingArcVec>& otherPlayerPathPlans);
-	void Simulation(NodeState& playerState,
-		NodeState& otherPlayerState, eastl::vector<PathingArcVec>& otherPlayerPathPlans);
-	void Simulation(
-		NodeState& playerState, NodeState& otherPlayerState);
 
 	void EvaluatePlayers(
 		NodeState& playerState, NodeState& otherPlayerState);
@@ -210,9 +201,9 @@ protected:
 private:
 
 	FILE * mFile;
-
 	NodeState mPlayerState, mOtherPlayerState;
 
+	QuakeAIManager*	mAIManager;
 };
 
 #endif
