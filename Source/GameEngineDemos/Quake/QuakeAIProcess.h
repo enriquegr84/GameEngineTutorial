@@ -44,125 +44,6 @@
 
 #include "QuakeAIManager.h"
 
-//
-// struct NodeState
-//
-struct NodeState
-{
-	NodeState()
-	{
-		valid = false;
-		player = INVALID_ACTOR_ID;
-		target = INVALID_ACTOR_ID;
-
-		node = NULL;
-
-		weapon = WP_NONE;
-		heuristic = 0.f;
-		for (unsigned int i = 0; i < MAX_STATS; i++)
-		{
-			stats[i] = 0;
-		}
-
-		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
-		{
-			ammo[i] = 0;
-			damage[i] = 0;
-		}
-	}
-
-	NodeState(eastl::shared_ptr<PlayerActor> playerActor)
-	{
-		valid = true;
-		player = playerActor->GetId();
-		target = INVALID_ACTOR_ID;
-
-		node = NULL;
-
-		weapon = WP_NONE;
-		heuristic = 0.f;
-
-		for (unsigned int i = 0; i < MAX_STATS; i++)
-		{
-			stats[i] = playerActor->GetState().stats[i];
-		}
-
-		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
-		{
-			ammo[i] = playerActor->GetState().ammo[i];
-			damage[i] = 0;
-		}
-	}
-
-	NodeState(NodeState const& state) : 
-		valid(state.valid),
-		node(state.node), path(state.path),
-		player(state.player), target(state.target), 
-		weapon(state.weapon), heuristic(state.heuristic),
-		items(state.items), itemAmount(state.itemAmount), itemDistance(state.itemDistance)
-	{
-		for (unsigned int i = 0; i < MAX_STATS; i++)
-		{
-			stats[i] = state.stats[i];
-		}
-
-		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
-		{
-			ammo[i] = state.ammo[i];
-			damage[i] = state.damage[i];
-		}
-	}
-
-	~NodeState()
-	{
-
-	}
-
-	void NodeState::Copy(NodeState const& state)
-	{
-		valid = state.valid;
-		player = state.player;
-		target = state.target;
-
-		node = state.node;
-		path = state.path;
-
-		items = state.items;
-		itemAmount = state.itemAmount;
-		itemDistance = state.itemDistance;
-
-		weapon = state.weapon;
-		heuristic = state.heuristic;
-
-		for (unsigned int i = 0; i < MAX_STATS; i++)
-		{
-			stats[i] = state.stats[i];
-		}
-
-		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
-		{
-			ammo[i] = state.ammo[i];
-			damage[i] = state.damage[i];
-		}
-	}
-
-	bool valid;
-	ActorId player;
-	ActorId target;
-
-	PathingNode* node;
-	PathingArcVec path;
-
-	float heuristic;
-	WeaponType weapon;
-	int stats[MAX_STATS];
-	int ammo[MAX_WEAPONS];
-	int damage[MAX_WEAPONS];
-
-	eastl::vector<eastl::shared_ptr<Actor>> items;
-	eastl::map<eastl::shared_ptr<Actor>, int> itemAmount;
-	eastl::map<eastl::shared_ptr<Actor>, float> itemDistance;
-};
 
 //
 // class QuakeAIProcess
@@ -194,16 +75,17 @@ protected:
 	void Simulation(
 		NodeState& playerState, eastl::vector<PathingArcVec>& playerPathPlans,
 		NodeState& otherPlayerState, eastl::vector<PathingArcVec>& otherPlayerPathPlans);
-
 	void EvaluatePlayers(
 		NodeState& playerState, NodeState& otherPlayerState);
 
 private:
 
 	FILE * mFile;
-	NodeState mPlayerState, mOtherPlayerState;
 
 	QuakeAIManager*	mAIManager;
+
+	eastl::map<ActorId, float> mExcludeActors;
+	NodeState mPlayerState, mOtherPlayerState;
 };
 
 #endif

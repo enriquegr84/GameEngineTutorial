@@ -79,7 +79,6 @@ QuakeAIView::QuakeAIView()
 
 	mCurrentAction = 0;
 	mCurrentActionTime = 0.f;
-	mCurrentGuessTime = 0.f;
 	mCurrentActor = INVALID_ACTOR_ID;
 
 	mCurrentNode = NULL;
@@ -484,13 +483,11 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 	}
 }
 
+
 //  class QuakeAIView::OnUpdate			- Chapter 10, page 283
 void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
 	mCurrentActionTime -= deltaMs / 1000.f;
-
-	//Handling rotation as a result of mouse position
-	Matrix4x4<float> rotation;
 
 	eastl::shared_ptr<PlayerActor> pPlayerActor(
 		eastl::dynamic_shared_pointer_cast<PlayerActor>(
@@ -501,71 +498,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 	if (pTransformComponent)
 	{
-		//update ai guessing system
-		QuakeAIManager* aiManager =
-			dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-		if (!aiManager->IsPlayerGuessUpdated(mPlayerId))
-		{
-			mCurrentGuessTime += deltaMs / 1000.f;
-
-			PathingArcVec playerGuessPath;
-			aiManager->GetPlayerGuessPath(mPlayerId, playerGuessPath);
-			if (playerGuessPath.size())
-			{
-				mCurrentGuessTime = 0;
-				mCurrentGuessPlan = playerGuessPath;
-				aiManager->SetPlayerGuessPath(mPlayerId, PathingArcVec());
-				/*
-				printf("\n current guess path player %u : ", mPlayerId);
-				for (PathingArc* pathArc : mCurrentGuessPlan)
-					printf("%u ", pathArc->GetNode()->GetId());
-				*/
-			}
-
-			if (mCurrentGuessPlan.size())
-			{
-				float guessTime = mCurrentGuessTime;
-				PathingNode* guessNode = mCurrentGuessPlan.back()->GetNode();
-				for (PathingArc* guessPath : mCurrentGuessPlan)
-				{
-					guessTime -= guessPath->GetWeight();
-					if (guessTime <= 0)
-					{
-						guessNode = guessPath->GetNode();
-						break;
-					}
-				}
-				aiManager->SetPlayerGuessNode(mPlayerId, guessNode);
-			}
-		}
-
-		GameApplication* gameApp = (GameApplication*)Application::App;
-		QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
-
-		Vector3<float> currentPosition = pTransformComponent->GetPosition();
-		PathingNode* currentNode = aiManager->GetPathingGraph()->FindClosestNode(currentPosition);
-		eastl::vector<eastl::shared_ptr<Actor>> actors;
-		game->GetPlayerActors(actors);
-		for (eastl::shared_ptr<Actor> actor : actors)
-		{
-			if (actor->GetId() != mPlayerId)
-			{
-				eastl::shared_ptr<TransformComponent> pPlayerTransformComponent(
-					actor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-				if (pPlayerTransformComponent)
-				{
-					PathingNode* playerNode = aiManager->GetPathingGraph()->FindClosestNode(
-						pPlayerTransformComponent->GetPosition());
-
-					if (currentNode->IsVisibleNode(playerNode))
-					{
-						aiManager->SetPlayerGuessNode(actor->GetId(), playerNode);
-						aiManager->SetPlayerGuessUpdated(actor->GetId(), true);
-					}
-				}
-			}
-		}
-
 		if (mPathingGraph && mCurrentArc != NULL)
 		{
 			if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID ||
@@ -574,6 +506,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				if (pPlayerActor->GetAction().triggerPush == mCurrentArc->GetNode()->GetActorId() ||
 					pPlayerActor->GetAction().triggerTeleporter == mCurrentArc->GetNode()->GetActorId())
 				{
+					Vector3<float> currentPosition = pTransformComponent->GetPosition();
 					if (mCurrentPlan.size())
 					{
 						PathingArcVec::iterator itArc = mCurrentPlan.begin();
@@ -699,6 +632,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				pPlayerActor->GetAction().actionType = 0;
 				pPlayerActor->GetAction().actionType |= ACTION_MOVEFORWARD;
 
+				QuakeAIManager* aiManager =
+					dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
 				if (aiManager->GetPlayerWeapon(mPlayerId) != WP_NONE)
 					pPlayerActor->ChangeWeapon(aiManager->GetPlayerWeapon(mPlayerId));
 
@@ -738,6 +673,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 						if (mPathingGraph)
 						{
+							Vector3<float> currentPosition = pTransformComponent->GetPosition();
+							PathingNode* currentNode = aiManager->GetPathingGraph()->FindClosestNode(currentPosition);
 							if (mCurrentNode == NULL)
 								mCurrentNode = currentNode;
 
@@ -1115,7 +1052,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						// yaw and pitch (zrotate and xrotate).
 						Matrix4x4<float> yawRotation = Rotation<4, float>(
 							AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
-						rotation = yawRotation;
+						Matrix4x4<float> rotation = yawRotation;
 						Matrix4x4<float> pitchRotation = Rotation<4, float>(
 							AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 
@@ -1247,7 +1184,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					// yaw and pitch (zrotate and xrotate).
 					Matrix4x4<float> yawRotation = Rotation<4, float>(
 						AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
-					rotation = yawRotation;
+					Matrix4x4<float> rotation = yawRotation;
 					Matrix4x4<float> pitchRotation = Rotation<4, float>(
 						AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 
@@ -1373,240 +1310,4 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			}
 		}
 	}
-}
-
-void QuakeAIView::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
-{
-	eastl::shared_ptr<EventDataPhysTriggerEnter> pCastEventData =
-		eastl::static_pointer_cast<EventDataPhysTriggerEnter>(pEventData);
-
-	if (pCastEventData->GetOtherActor() != mPlayerId)
-	{
-		eastl::shared_ptr<Actor> pItemActor(
-			GameLogic::Get()->GetActor(pCastEventData->GetTriggerId()).lock());
-
-		eastl::shared_ptr<PlayerActor> pOtherPlayerActor(
-			eastl::dynamic_shared_pointer_cast<PlayerActor>(
-			GameLogic::Get()->GetActor(pCastEventData->GetOtherActor()).lock()));
-
-		eastl::shared_ptr<PlayerActor> pPlayerActor(
-			eastl::dynamic_shared_pointer_cast<PlayerActor>(
-			GameLogic::Get()->GetActor(mPlayerId).lock()));
-
-		if (pPlayerActor && pOtherPlayerActor)
-		{
-			GameApplication* gameApp = (GameApplication*)Application::App;
-			QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
-
-			QuakeAIManager* aiManager =
-				dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-
-			// take into consideration within a certain radius
-			eastl::shared_ptr<TransformComponent> pPlayerTransform(
-				pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-			eastl::shared_ptr<TransformComponent> pOtherPlayerTransform(
-				pOtherPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-			if (Length(pPlayerTransform->GetPosition() - pOtherPlayerTransform->GetPosition()) > 700)
-				return;
-
-			// dead players
-			if (pOtherPlayerActor->GetState().stats[STAT_HEALTH] <= 0)
-				return;
-
-			if (!game->CanItemBeGrabbed(pItemActor, pOtherPlayerActor))
-				return; // can't hold it
-
-			if (pItemActor->GetType() == "Weapon")
-			{
-				eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-					pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-				if (pWeaponPickup->mRespawnTime)
-					return;
-
-				aiManager->SetPlayerGuessNode(pCastEventData->GetOtherActor(),
-					aiManager->GetPathingGraph()->FindClosestNode(pOtherPlayerTransform->GetPosition()));
-				aiManager->SetPlayerGuessUpdated(pCastEventData->GetOtherActor(), true);
-			}
-			else if (pItemActor->GetType() == "Ammo")
-			{
-				eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-					pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-				if (pAmmoPickup->mRespawnTime)
-					return;
-
-				aiManager->SetPlayerGuessNode(pCastEventData->GetOtherActor(),
-					aiManager->GetPathingGraph()->FindClosestNode(pOtherPlayerTransform->GetPosition()));
-				aiManager->SetPlayerGuessUpdated(pCastEventData->GetOtherActor(), true);
-			}
-			else if (pItemActor->GetType() == "Armor")
-			{
-				eastl::shared_ptr<ArmorPickup> pArmorPickup =
-					pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-				if (pArmorPickup->mRespawnTime)
-					return;
-
-				aiManager->SetPlayerGuessNode(pCastEventData->GetOtherActor(),
-					aiManager->GetPathingGraph()->FindClosestNode(pOtherPlayerTransform->GetPosition()));
-				aiManager->SetPlayerGuessUpdated(pCastEventData->GetOtherActor(), true);
-			}
-			else if (pItemActor->GetType() == "Health")
-			{
-				eastl::shared_ptr<HealthPickup> pHealthPickup =
-					pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-				if (pHealthPickup->mRespawnTime)
-					return;
-
-				aiManager->SetPlayerGuessNode(pCastEventData->GetOtherActor(),
-					aiManager->GetPathingGraph()->FindClosestNode(pOtherPlayerTransform->GetPosition()));
-				aiManager->SetPlayerGuessUpdated(pCastEventData->GetOtherActor(), true);
-			}
-		}
-	}
-}
-
-void QuakeAIView::PhysicsTriggerLeaveDelegate(BaseEventDataPtr pEventData)
-{
-	eastl::shared_ptr<EventDataPhysTriggerLeave> pCastEventData =
-		eastl::static_pointer_cast<EventDataPhysTriggerLeave>(pEventData);
-
-	eastl::shared_ptr<Actor> pTrigger(
-		GameLogic::Get()->GetActor(pCastEventData->GetTriggerId()).lock());
-	eastl::shared_ptr<PlayerActor> pPlayerActor(
-		eastl::dynamic_shared_pointer_cast<PlayerActor>(
-		GameLogic::Get()->GetActor(pCastEventData->GetOtherActor()).lock()));
-}
-
-void QuakeAIView::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
-{
-	eastl::shared_ptr<EventDataPhysCollision> pCastEventData =
-		eastl::static_pointer_cast<EventDataPhysCollision>(pEventData);
-
-	eastl::shared_ptr<Actor> pGameActorA(
-		GameLogic::Get()->GetActor(pCastEventData->GetActorA()).lock());
-	eastl::shared_ptr<Actor> pGameActorB(
-		GameLogic::Get()->GetActor(pCastEventData->GetActorB()).lock());
-	if (pGameActorA && pGameActorB)
-	{
-		eastl::shared_ptr<Actor> pItemActor;
-		eastl::shared_ptr<PlayerActor> pOtherPlayerActor;
-		if (eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorA) &&
-			!eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorB))
-		{
-			pOtherPlayerActor = eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorA);
-			pItemActor = pGameActorB;
-
-		}
-		else if (!eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorA) &&
-			eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorB))
-		{
-			pOtherPlayerActor = eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorB);
-			pItemActor = pGameActorA;
-		}
-		else return;
-
-		if (pOtherPlayerActor->GetId() != mPlayerId)
-		{
-			eastl::shared_ptr<PlayerActor> pPlayerActor(
-				eastl::dynamic_shared_pointer_cast<PlayerActor>(
-				GameLogic::Get()->GetActor(mPlayerId).lock()));
-
-			if (pPlayerActor && pOtherPlayerActor)
-			{
-				QuakeAIManager* aiManager =
-					dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-
-				// take into consideration within a certain radius
-				eastl::shared_ptr<TransformComponent> pPlayerTransform(
-					pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-				eastl::shared_ptr<TransformComponent> pOtherPlayerTransform(
-					pOtherPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-				if (Length(pPlayerTransform->GetPosition() - pOtherPlayerTransform->GetPosition()) > 700)
-					return;
-
-				// dead players
-				if (pOtherPlayerActor->GetState().stats[STAT_HEALTH] <= 0)
-					return;
-
-				if (pItemActor->GetType() == "Trigger")
-				{
-					if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
-					{
-						aiManager->SetPlayerGuessNode(pOtherPlayerActor->GetId(),
-							aiManager->GetPathingGraph()->FindClosestNode(pOtherPlayerTransform->GetPosition()));
-						aiManager->SetPlayerGuessUpdated(pOtherPlayerActor->GetId(), true);
-					}
-					else if (pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock())
-					{
-						aiManager->SetPlayerGuessNode(pOtherPlayerActor->GetId(),
-							aiManager->GetPathingGraph()->FindClosestNode(pOtherPlayerTransform->GetPosition()));
-						aiManager->SetPlayerGuessUpdated(pOtherPlayerActor->GetId(), true);
-					}
-				}
-			}
-		}
-	}
-}
-
-void QuakeAIView::PhysicsSeparationDelegate(BaseEventDataPtr pEventData)
-{
-	eastl::shared_ptr<EventDataPhysSeparation> pCastEventData =
-		eastl::static_pointer_cast<EventDataPhysSeparation>(pEventData);
-
-	eastl::shared_ptr<Actor> pGameActorA(
-		GameLogic::Get()->GetActor(pCastEventData->GetActorA()).lock());
-	eastl::shared_ptr<Actor> pGameActorB(
-		GameLogic::Get()->GetActor(pCastEventData->GetActorB()).lock());
-	if (pGameActorA && pGameActorB)
-	{
-		eastl::shared_ptr<Actor> pItemActor;
-		eastl::shared_ptr<PlayerActor> pPlayerActor;
-		if (eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorA) &&
-			!eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorB))
-		{
-			pPlayerActor = eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorA);
-			pItemActor = pGameActorB;
-
-		}
-		else if (!eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorA) &&
-			eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorB))
-		{
-			pPlayerActor = eastl::dynamic_shared_pointer_cast<PlayerActor>(pGameActorB);
-			pItemActor = pGameActorA;
-		}
-		else return;
-	}
-}
-
-void QuakeAIView::RegisterAllDelegates(void)
-{
-	BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
-	pGlobalEventManager->AddListener(
-		MakeDelegate(this, &QuakeAIView::PhysicsTriggerEnterDelegate),
-		EventDataPhysTriggerEnter::skEventType);
-	pGlobalEventManager->AddListener(
-		MakeDelegate(this, &QuakeAIView::PhysicsTriggerLeaveDelegate),
-		EventDataPhysTriggerLeave::skEventType);
-	pGlobalEventManager->AddListener(
-		MakeDelegate(this, &QuakeAIView::PhysicsCollisionDelegate),
-		EventDataPhysCollision::skEventType);
-	pGlobalEventManager->AddListener(
-		MakeDelegate(this, &QuakeAIView::PhysicsSeparationDelegate),
-		EventDataPhysSeparation::skEventType);
-}
-
-void QuakeAIView::RemoveAllDelegates(void)
-{
-	BaseEventManager* pGlobalEventManager = BaseEventManager::Get();
-	pGlobalEventManager->RemoveListener(
-		MakeDelegate(this, &QuakeAIView::PhysicsTriggerEnterDelegate),
-		EventDataPhysTriggerEnter::skEventType);
-	pGlobalEventManager->RemoveListener(
-		MakeDelegate(this, &QuakeAIView::PhysicsTriggerLeaveDelegate),
-		EventDataPhysTriggerLeave::skEventType);
-	pGlobalEventManager->RemoveListener(
-		MakeDelegate(this, &QuakeAIView::PhysicsCollisionDelegate),
-		EventDataPhysCollision::skEventType);
-	pGlobalEventManager->RemoveListener(
-		MakeDelegate(this, &QuakeAIView::PhysicsSeparationDelegate),
-		EventDataPhysSeparation::skEventType);
 }

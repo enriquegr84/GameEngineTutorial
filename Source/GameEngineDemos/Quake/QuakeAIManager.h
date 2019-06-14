@@ -35,6 +35,155 @@ enum GameActionType
 	GAT_JUMP = 0x00000E
 };
 
+//
+// struct NodeState
+//
+struct NodeState
+{
+	NodeState()
+	{
+		valid = false;
+		player = INVALID_ACTOR_ID;
+		target = INVALID_ACTOR_ID;
+
+		node = NULL;
+
+		weapon = WP_NONE;
+		heuristic = 0.f;
+		for (unsigned int i = 0; i < MAX_STATS; i++)
+		{
+			stats[i] = 0;
+		}
+
+		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
+		{
+			ammo[i] = 0;
+			damage[i] = 0;
+		}
+	}
+
+	NodeState(eastl::shared_ptr<PlayerActor> playerActor)
+	{
+		valid = true;
+		player = playerActor->GetId();
+		target = INVALID_ACTOR_ID;
+
+		node = NULL;
+
+		weapon = WP_NONE;
+		heuristic = 0.f;
+
+		for (unsigned int i = 0; i < MAX_STATS; i++)
+		{
+			stats[i] = playerActor->GetState().stats[i];
+		}
+
+		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
+		{
+			ammo[i] = playerActor->GetState().ammo[i];
+			damage[i] = 0;
+		}
+	}
+
+	NodeState(const NodeState& state) :
+		valid(state.valid),
+		node(state.node), path(state.path),
+		player(state.player), target(state.target),
+		weapon(state.weapon), heuristic(state.heuristic)
+	{
+		for (unsigned int i = 0; i < MAX_STATS; i++)
+		{
+			stats[i] = state.stats[i];
+		}
+
+		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
+		{
+			ammo[i] = state.ammo[i];
+			damage[i] = state.damage[i];
+		}
+
+		for (eastl::shared_ptr<Actor> item : state.items)
+		{
+			items.push_back(item);
+			itemAmount[item] = state.itemAmount.at(item);
+			itemDistance[item] = state.itemDistance.at(item);
+		}
+	}
+
+	~NodeState()
+	{
+
+	}
+
+	void NodeState::Copy(NodeState& state)
+	{
+		valid = state.valid;
+		player = state.player;
+		target = state.target;
+
+		node = state.node;
+		path = state.path;
+
+		weapon = state.weapon;
+		heuristic = state.heuristic;
+
+		for (unsigned int i = 0; i < MAX_STATS; i++)
+		{
+			stats[i] = state.stats[i];
+		}
+
+		for (unsigned int i = 0; i < MAX_WEAPONS; i++)
+		{
+			ammo[i] = state.ammo[i];
+			damage[i] = state.damage[i];
+		}
+
+		for (eastl::shared_ptr<Actor> item : state.items)
+		{
+			items.push_back(item);
+			itemAmount[item] = state.itemAmount[item];
+			itemDistance[item] = state.itemDistance[item];
+		}
+	}
+
+	void NodeState::CopyItems(NodeState& state)
+	{
+		items.clear();
+		itemAmount.clear();
+		itemDistance.clear();
+		for (eastl::shared_ptr<Actor> item : state.items)
+		{
+			items.push_back(item);
+			itemAmount[item] = state.itemAmount[item];
+			itemDistance[item] = state.itemDistance[item];
+		}
+	}
+
+	void NodeState::ResetItems()
+	{
+		items.clear();
+		itemAmount.clear();
+		itemDistance.clear();
+	}
+
+	bool valid;
+	ActorId player;
+	ActorId target;
+
+	PathingNode* node;
+	PathingArcVec path;
+
+	float heuristic;
+	WeaponType weapon;
+	int stats[MAX_STATS];
+	int ammo[MAX_WEAPONS];
+	int damage[MAX_WEAPONS];
+
+	eastl::vector<eastl::shared_ptr<Actor>> items;
+	eastl::map<eastl::shared_ptr<Actor>, int> itemAmount;
+	eastl::map<eastl::shared_ptr<Actor>, float> itemDistance;
+};
+
 class QuakeAIManager : public AIManager
 {
 
@@ -47,23 +196,34 @@ public:
 	virtual void SavePathingGraph(const eastl::string& path);
 	virtual void LoadPathingGraph(const eastl::wstring& path);
 
-	PathingNode* GetPlayerGuessNode(ActorId player);
-	void GetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
-	bool IsPlayerGuessUpdated(ActorId player);
+	virtual void OnUpdate(unsigned long deltaMs);
 
 	ActorId GetPlayerTarget(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
 	void GetPlayerPath(ActorId player, PathingArcVec& playerPath);
 	bool IsPlayerUpdated(ActorId player);
 
-	void SetPlayerGuessNode(ActorId player, PathingNode* playerNode);
-	void SetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
-	void SetPlayerGuessUpdated(ActorId player, bool update);
-
 	void SetPlayerTarget(ActorId player, ActorId playerTarget);
 	void SetPlayerWeapon(ActorId player, WeaponType playerWeapon);
 	void SetPlayerPath(ActorId player, PathingArcVec& playerPath);
 	void SetPlayerUpdated(ActorId player, bool update);
+
+	void RemovePlayerGuessItems(ActorId player);
+	void SetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
+	void GetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
+
+	NodeState& GetPlayerGuessState(ActorId player);
+	PathingNode* GetPlayerGuessNode(ActorId player);
+	void GetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
+	bool IsPlayerGuessUpdate(ActorId player);
+
+	void SetPlayerGuessState(ActorId player, eastl::shared_ptr<PlayerActor> playerActor);
+	void SetPlayerGuessState(ActorId player, NodeState& playerState);
+	void SetPlayerGuessNode(ActorId player, PathingNode* playerNode);
+	void SetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
+	void SetPlayerGuessUpdate(ActorId player, bool update);
+
+	void SpawnActor(ActorId playerId);
 
 protected:
 
@@ -132,8 +292,12 @@ private:
 	eastl::map<ActorId, PathingArcVec> mPlayerPaths;
 
 	eastl::map<ActorId, bool> mPlayerGuess;
+	eastl::map<ActorId, NodeState> mPlayerGuessStates;
 	eastl::map<ActorId, PathingNode*> mPlayerGuessNodes;
-	eastl::map<ActorId, PathingArcVec> mPlayerGuessPaths;
+	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessItems;
+
+	eastl::map<ActorId, float> mPlayerGuessTime;
+	eastl::map<ActorId, PathingArcVec> mPlayerGuessPlan;
 
 	void RegisterAllDelegates(void);
 	void RemoveAllDelegates(void);

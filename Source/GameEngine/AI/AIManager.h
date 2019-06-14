@@ -33,7 +33,9 @@ public:
 	virtual void SavePathingGraph(const eastl::string& path) { }
 	virtual void LoadPathingGraph(const eastl::wstring& path) { }
 
-	virtual void CreateMap(ActorId playerId) { };
+	virtual void OnUpdate(unsigned long deltaMs) { }
+
+	virtual void CreateMap(ActorId playerId) { }
 
 	const eastl::shared_ptr<PathingGraph>& GetPathingGraph() { return mPathingGraph; }
 

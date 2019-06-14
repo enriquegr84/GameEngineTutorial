@@ -386,6 +386,11 @@ void GameLogic::OnUpdate(float time, float elapsedTime)
 		case BGS_RUNNING:
 			mProcessManager->UpdateProcesses((unsigned int)elapsedTime);
 
+			if (mAIManager)
+			{
+				mAIManager->OnUpdate((unsigned int)elapsedTime);
+			}
+
             if(mPhysics && !mIsProxy)
             {
                 mPhysics->OnUpdate(elapsedTime / 1000.f);

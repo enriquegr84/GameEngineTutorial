@@ -233,7 +233,7 @@ public:
 	void GetArmorActors(eastl::vector<eastl::shared_ptr<Actor>>& armor);
 	void GetWeaponActors(eastl::vector<eastl::shared_ptr<Actor>>& weapon);
 	void GetHealthActors(eastl::vector<eastl::shared_ptr<Actor>>& health);
-	void GetPlayerActors(eastl::vector<eastl::shared_ptr<Actor>>& player);
+	void GetPlayerActors(eastl::vector<eastl::shared_ptr<PlayerActor>>& player);
 	void GetTriggerActors(eastl::vector<eastl::shared_ptr<Actor>>& trigger);
 	void GetTargetActors(eastl::vector<eastl::shared_ptr<Actor>>& target);
 

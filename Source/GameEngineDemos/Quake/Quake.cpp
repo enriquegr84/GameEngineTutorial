@@ -126,13 +126,13 @@ void QuakeLogic::GetHealthActors(eastl::vector<eastl::shared_ptr<Actor>>& health
 	}
 }
 
-void QuakeLogic::GetPlayerActors(eastl::vector<eastl::shared_ptr<Actor>>& player)
+void QuakeLogic::GetPlayerActors(eastl::vector<eastl::shared_ptr<PlayerActor>>& player)
 {
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;
 		if (pActor->GetType() == "Player")
-			player.push_back(pActor);
+			player.push_back(eastl::dynamic_shared_pointer_cast<PlayerActor>(pActor));
 	}
 }
 
@@ -435,14 +435,15 @@ void QuakeLogic::SpawnActorDelegate(BaseEventDataPtr pEventData)
 	eastl::shared_ptr<QuakeEventDataSpawnActor> pCastEventData =
 		eastl::static_pointer_cast<QuakeEventDataSpawnActor>(pEventData);
 
-	eastl::shared_ptr<Actor> pGameActor(
-		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock());
-	if (pGameActor)
+	eastl::shared_ptr<PlayerActor> pPlayerActor(
+		eastl::dynamic_shared_pointer_cast<PlayerActor>(
+		GameLogic::Get()->GetActor(pCastEventData->GetId()).lock()));
+	if (pPlayerActor)
 	{
 		// find a spawn point
 		Transform spawnTransform;
 		eastl::shared_ptr<TransformComponent> pTransformComponent(
-			pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+			pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pTransformComponent)
 		{
 			SelectSpawnPoint(pTransformComponent->GetTransform().GetTranslation(), spawnTransform);
@@ -450,13 +451,11 @@ void QuakeLogic::SpawnActorDelegate(BaseEventDataPtr pEventData)
 
 			QuakeAIManager* aiManager =
 				dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-			aiManager->SetPlayerGuessNode(pGameActor->GetId(), 
-				aiManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition()));
-			aiManager->SetPlayerGuessUpdated(pGameActor->GetId(), true);
+			aiManager->SpawnActor(pPlayerActor->GetId());
 		}
 
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
-			pGameActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
+			pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
 		if (pPhysicalComponent)
 			pPhysicalComponent->SetTransform(spawnTransform);
 

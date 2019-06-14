@@ -438,12 +438,6 @@ public:
 	virtual void SetControlledActor(ActorId actorId);
 	virtual bool LoadGameDelegate(tinyxml2::XMLElement* pLevelData) override;
 
-	// event delegates
-	void PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData);
-	void PhysicsTriggerLeaveDelegate(BaseEventDataPtr pEventData);
-	void PhysicsCollisionDelegate(BaseEventDataPtr pEventData);
-	void PhysicsSeparationDelegate(BaseEventDataPtr pEventData);
-
     void GameplayUiUpdateDelegate(BaseEventDataPtr pEventData);
     void SetControlledActorDelegate(BaseEventDataPtr pEventData);
 	
@@ -479,11 +473,6 @@ private:
 
     void RegisterAllDelegates(void);
     void RemoveAllDelegates(void);
-
-	void UpdatePlayerGuess(unsigned long deltaMs);
-
-	float mCurrentGuessTime;
-	PathingArcVec mCurrentGuessPlan;
 };
 
 #endif
