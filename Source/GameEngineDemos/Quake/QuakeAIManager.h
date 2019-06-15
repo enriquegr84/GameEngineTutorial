@@ -26,6 +26,8 @@
 #include "Physic/PhysicEventListener.h"
 #include "Mathematic/Algebra/Matrix4x4.h"
 
+#include <mutex>
+
 enum GameActionType
 {
 	GAT_MOVE = 0x0000000,
@@ -275,6 +277,8 @@ protected:
 	eastl::shared_ptr<PlayerActor> mPlayerActor;
 
 private:
+
+	std::mutex mMutex;
 
 	unsigned int mLastArcId;
 	unsigned int mLastNodeId;

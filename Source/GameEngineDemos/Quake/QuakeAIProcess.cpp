@@ -1841,8 +1841,9 @@ void QuakeAIProcess::ThreadProc( )
 					mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, PathingArcVec());
 				else
 					mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, mOtherPlayerState.path);
-				mAIManager->GetPlayerGuessState(mOtherPlayerState.player).CopyItems(mOtherPlayerState);
-				mAIManager->SetPlayerGuessItems(mOtherPlayerState.player, mOtherPlayerState.items);
+				NodeState otherPlayerGuessState = mAIManager->GetPlayerGuessState(mOtherPlayerState.player);
+				otherPlayerGuessState.CopyItems(mOtherPlayerState);
+				mAIManager->SetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
 				mAIManager->SetPlayerGuessUpdate(mOtherPlayerState.player, true);
 
 				mAIManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
@@ -1941,8 +1942,9 @@ void QuakeAIProcess::ThreadProc( )
 					mAIManager->SetPlayerGuessPath(mPlayerState.player, PathingArcVec());
 				else
 					mAIManager->SetPlayerGuessPath(mPlayerState.player, mPlayerState.path);
-				mAIManager->GetPlayerGuessState(mPlayerState.player).CopyItems(mPlayerState);
-				mAIManager->SetPlayerGuessItems(mPlayerState.player, mPlayerState.items)
+				NodeState playerGuessState = mAIManager->GetPlayerGuessState(mPlayerState.player);
+				playerGuessState.CopyItems(mPlayerState);
+				mAIManager->SetPlayerGuessState(mPlayerState.player, playerGuessState);
 				mAIManager->SetPlayerGuessUpdate(mPlayerState.player, true);
 
 				mAIManager->SetPlayerTarget(mOtherPlayerState.player, mOtherPlayerState.target);

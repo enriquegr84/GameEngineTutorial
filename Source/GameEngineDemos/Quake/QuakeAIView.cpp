@@ -87,8 +87,6 @@ QuakeAIView::QuakeAIView()
 
 	mViewId = INVALID_GAME_VIEW_ID;
 	mPlayerId = INVALID_ACTOR_ID;
-
-	RegisterAllDelegates();
 }
 
 //
@@ -97,7 +95,6 @@ QuakeAIView::QuakeAIView()
 QuakeAIView::~QuakeAIView(void)
 {
 	//LogInformation("AI Destroying QuakeAIView");
-	RemoveAllDelegates();
 }
 
 //  class QuakeAIView::OnAttach

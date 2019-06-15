@@ -100,9 +100,6 @@ protected:
 
 private:
 
-	void RegisterAllDelegates(void);
-	void RemoveAllDelegates(void);
-
 	float mCurrentActionTime;
 	unsigned int mCurrentAction;
 
