@@ -484,6 +484,10 @@ void QuakeAIView::Smooth(unsigned long deltaMs)
 //  class QuakeAIView::OnUpdate			- Chapter 10, page 283
 void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 {
+	QuakeAIManager* aiManager =
+		dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+	if (!aiManager->IsEnable()) return;
+
 	mCurrentActionTime -= deltaMs / 1000.f;
 
 	eastl::shared_ptr<PlayerActor> pPlayerActor(
@@ -629,8 +633,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				pPlayerActor->GetAction().actionType = 0;
 				pPlayerActor->GetAction().actionType |= ACTION_MOVEFORWARD;
 
-				QuakeAIManager* aiManager =
-					dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
 				if (aiManager->GetPlayerWeapon(mPlayerId) != WP_NONE)
 					pPlayerActor->ChangeWeapon(aiManager->GetPlayerWeapon(mPlayerId));
 

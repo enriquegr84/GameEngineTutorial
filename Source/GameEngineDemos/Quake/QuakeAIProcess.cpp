@@ -1268,16 +1268,18 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	//minimax
 	mPlayerState.Copy(playerState);
 	mPlayerState.heuristic = -FLT_MAX;
-	fprintf(mFile, "\n minimax player \n");
+	//fprintf(mFile, "\n minimax player \n");
 	for (auto playerClustersState : playerClustersStates)
 	{
+		/*
 		fprintf(mFile, "\n player cluster : %u ",
 			playerClustersState.first->GetTarget()->GetCluster());
-
+		*/
 		NodeState playerNodeState(playerState);
 		playerNodeState.heuristic = FLT_MAX;
 		for (auto playerClusterState : playerClustersState.second)
 		{
+			/*
 			if (playerClusterState.second.weapon != WP_NONE)
 			{
 				fprintf(mFile, "other player cluster : %u ",
@@ -1288,7 +1290,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				fprintf(mFile, " damage : %i ", 
 					playerClusterState.second.damage[playerClusterState.second.weapon - 1]);
 			}
-			/*
+
 			eastl::vector<ActorId> actors;
 			PathingArcVec::iterator itArc = playerClusterState.second.path.begin();
 			for (; itArc != playerClusterState.second.path.end(); itArc++)
@@ -1353,6 +1355,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 		if (playerNodeState.valid)
 		{
+			/*
 			fprintf(mFile, "\n min heuristic : %f ", playerNodeState.heuristic);
 			if (playerNodeState.weapon != WP_NONE)
 			{
@@ -1364,7 +1367,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				fprintf(mFile, " weapon : 0 ");
 				fprintf(mFile, " damage : 0 ");
 			}
-			/*
+
 			eastl::vector<ActorId> actors;
 			PathingArcVec::iterator itArc = playerNodeState.path.begin();
 			for (; itArc != playerNodeState.path.end(); itArc++)
@@ -1430,6 +1433,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	}
 	if (mPlayerState.valid)
 	{
+		/*
 		fprintf(mFile, "\n max heuristic : %f ", mPlayerState.heuristic);
 		if (mPlayerState.weapon != WP_NONE)
 		{
@@ -1441,7 +1445,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			fprintf(mFile, " weapon : 0 ");
 			fprintf(mFile, " damage : 0 ");
 		}
-		/*
+
 		eastl::vector<ActorId> actors;
 		PathingArcVec::iterator itArc = mPlayerState.path.begin();
 		for (; itArc != mPlayerState.path.end(); itArc++)
@@ -1487,16 +1491,18 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	mOtherPlayerState.Copy(otherPlayerState);
 	mOtherPlayerState.heuristic = FLT_MAX;
-	fprintf(mFile, "\n minimax otherPlayer \n");
+	//fprintf(mFile, "\n minimax otherPlayer \n");
 	for (auto otherPlayerClustersState : otherPlayerClustersStates)
 	{
+		/*
 		fprintf(mFile, "\n other player cluster : %u ",
 			otherPlayerClustersState.first->GetTarget()->GetCluster());
-
+		*/
 		NodeState otherPlayerNodeState(otherPlayerState);
 		otherPlayerNodeState.heuristic = -FLT_MAX;
 		for (auto otherPlayerClusterState : otherPlayerClustersState.second)
 		{
+			/*
 			if (otherPlayerClusterState.second.weapon != WP_NONE)
 			{
 				fprintf(mFile, "player cluster : %u ",
@@ -1508,7 +1514,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 					otherPlayerClusterState.second.damage[
 					otherPlayerClusterState.second.weapon - 1]);
 			}
-			/*
+
 			//printf("nodes : ");
 			eastl::vector<ActorId> actors;
 			PathingArcVec::iterator itArc = otherPlayerClusterState.second.path.begin();
@@ -1575,6 +1581,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 		if (otherPlayerNodeState.valid)
 		{
+			/*
 			fprintf(mFile, "\n max heuristic : %f ", otherPlayerNodeState.heuristic);
 			if (otherPlayerNodeState.weapon != WP_NONE)
 			{
@@ -1587,7 +1594,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				fprintf(mFile, " weapon : 0 ");
 				fprintf(mFile, " damage : 0 ");
 			}
-			/*
+
 			//printf("nodes : ");
 			eastl::vector<ActorId> actors;
 			PathingArcVec::iterator itArc = otherPlayerNodeState.path.begin();
@@ -1654,6 +1661,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	}
 	if (mOtherPlayerState.valid)
 	{
+		/*
 		fprintf(mFile, "\n min heuristic : %f ", mOtherPlayerState.heuristic);
 		if (mOtherPlayerState.weapon != WP_NONE)
 		{
@@ -1666,7 +1674,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			fprintf(mFile, " weapon : 0 ");
 			fprintf(mFile, " damage : 0 ");
 		}
-		/*
+
 		//printf("nodes : ");
 		eastl::vector<ActorId> actors;
 		PathingArcVec::iterator itArc = mOtherPlayerState.path.begin();
@@ -1749,7 +1757,7 @@ void QuakeAIProcess::ThreadProc( )
 
 				iteration++;
 				//printf("\n ITERATION %u \n", iteration);
-				fprintf(mFile, "\n\n ITERATION %u \n\n", iteration);
+				//fprintf(mFile, "\n\n ITERATION %u \n\n", iteration);
 
 				for (ActorId player : players[GV_HUMAN])
 				{
@@ -1764,7 +1772,8 @@ void QuakeAIProcess::ThreadProc( )
 						mAIManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition());
 					for (ActorId aiPlayer : players[GV_AI])
 					{
-						NodeState aiPlayerState(mAIManager->GetPlayerGuessState(aiPlayer));
+						NodeState aiPlayerState;
+						mAIManager->GetPlayerGuessState(aiPlayer, aiPlayerState);
 						aiPlayerState.node = mAIManager->GetPlayerGuessNode(aiPlayer);
 						aiPlayerState.ResetItems();
 
@@ -1779,7 +1788,7 @@ void QuakeAIProcess::ThreadProc( )
 				mPlayerState.node->GetPos()[0], mPlayerState.node->GetPos()[1], mPlayerState.node->GetPos()[2],
 				mPlayerState.node->GetId(), mPlayerState.heuristic, mPlayerState.target, mPlayerState.weapon,
 				mPlayerState.weapon > 0 ? mPlayerState.damage[mPlayerState.weapon - 1] : 0, mPlayerState.path.size());
-				*/
+
 				//printf("\n blue player nodes %u : ", mPlayerState.player);
 				eastl::vector<ActorId> actors;
 				PathingArcVec::iterator itArc = mPlayerState.path.begin();
@@ -1836,15 +1845,13 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mFile, " weapon : 0 ");
 					fprintf(mFile, " damage : 0 ");
 				}
-
-				if (!mAIManager->IsPlayerGuessUpdate(mOtherPlayerState.player))
-					mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, PathingArcVec());
-				else
-					mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, mOtherPlayerState.path);
-				NodeState otherPlayerGuessState = mAIManager->GetPlayerGuessState(mOtherPlayerState.player);
+				*/
+				mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, mOtherPlayerState.path);
+				NodeState otherPlayerGuessState; 
+				mAIManager->GetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
 				otherPlayerGuessState.CopyItems(mOtherPlayerState);
 				mAIManager->SetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
-				mAIManager->SetPlayerGuessUpdate(mOtherPlayerState.player, true);
+				mAIManager->SetPlayerGuessUpdated(mOtherPlayerState.player, true);
 
 				mAIManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
 				mAIManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
@@ -1864,7 +1871,8 @@ void QuakeAIProcess::ThreadProc( )
 						mAIManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition());
 					for (ActorId player : players[GV_HUMAN])
 					{
-						NodeState playerState(mAIManager->GetPlayerGuessState(player));
+						NodeState playerState;
+						mAIManager->GetPlayerGuessState(player, playerState);
 						playerState.node = mAIManager->GetPlayerGuessNode(player);
 						playerState.ResetItems();
 
@@ -1879,7 +1887,6 @@ void QuakeAIProcess::ThreadProc( )
 				mOtherPlayerState.node->GetPos()[0], mOtherPlayerState.node->GetPos()[1], mOtherPlayerState.node->GetPos()[2],
 				mOtherPlayerState.node->GetId(), mOtherPlayerState.heuristic, mOtherPlayerState.target, mOtherPlayerState.weapon,
 				mOtherPlayerState.weapon > 0 ? mOtherPlayerState.damage[mOtherPlayerState.weapon - 1] : 0, mOtherPlayerState.path.size());
-				*/
 
 				//printf("\n red player nodes %u : ", mOtherPlayerState.player);
 				actors.clear();
@@ -1937,21 +1944,22 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mFile, " weapon : 0 ");
 					fprintf(mFile, " damage : 0 ");
 				}
+				*/
 
-				if (!mAIManager->IsPlayerGuessUpdate(mPlayerState.player))
-					mAIManager->SetPlayerGuessPath(mPlayerState.player, PathingArcVec());
-				else
-					mAIManager->SetPlayerGuessPath(mPlayerState.player, mPlayerState.path);
-				NodeState playerGuessState = mAIManager->GetPlayerGuessState(mPlayerState.player);
+				mAIManager->SetPlayerGuessPath(mPlayerState.player, mPlayerState.path);
+				NodeState playerGuessState;
+				mAIManager->GetPlayerGuessState(mPlayerState.player, playerGuessState);
 				playerGuessState.CopyItems(mPlayerState);
 				mAIManager->SetPlayerGuessState(mPlayerState.player, playerGuessState);
-				mAIManager->SetPlayerGuessUpdate(mPlayerState.player, true);
+				mAIManager->SetPlayerGuessUpdated(mPlayerState.player, true);
 
 				mAIManager->SetPlayerTarget(mOtherPlayerState.player, mOtherPlayerState.target);
 				mAIManager->SetPlayerWeapon(mOtherPlayerState.player, mOtherPlayerState.weapon);
 				mAIManager->SetPlayerPath(mOtherPlayerState.player, mOtherPlayerState.path);
 				mAIManager->SetPlayerUpdated(mOtherPlayerState.player, true);
 			}
+
+			mAIManager->SetEnable(true);
 		}
 	}
 

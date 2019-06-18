@@ -140,6 +140,9 @@ struct NodeState
 			damage[i] = state.damage[i];
 		}
 
+		items.clear();
+		itemAmount.clear();
+		itemDistance.clear();
 		for (eastl::shared_ptr<Actor> item : state.items)
 		{
 			items.push_back(item);
@@ -200,6 +203,9 @@ public:
 
 	virtual void OnUpdate(unsigned long deltaMs);
 
+	bool IsEnable() { return mEnable; }
+	void SetEnable(bool enable) { mEnable = enable; }
+
 	ActorId GetPlayerTarget(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
 	void GetPlayerPath(ActorId player, PathingArcVec& playerPath);
@@ -214,18 +220,19 @@ public:
 	void SetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
 	void GetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
 
-	NodeState& GetPlayerGuessState(ActorId player);
 	PathingNode* GetPlayerGuessNode(ActorId player);
+	void GetPlayerGuessState(ActorId player, NodeState& state);
 	void GetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
-	bool IsPlayerGuessUpdate(ActorId player);
+	bool IsPlayerGuessUpdated(ActorId player);
 
 	void SetPlayerGuessState(ActorId player, eastl::shared_ptr<PlayerActor> playerActor);
 	void SetPlayerGuessState(ActorId player, NodeState& playerState);
 	void SetPlayerGuessNode(ActorId player, PathingNode* playerNode);
 	void SetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
-	void SetPlayerGuessUpdate(ActorId player, bool update);
+	void SetPlayerGuessUpdated(ActorId player, bool update);
 
 	void SpawnActor(ActorId playerId);
+	void DetectActor(eastl::shared_ptr<PlayerActor> playerActor, eastl::shared_ptr<Actor> item);
 
 protected:
 
@@ -278,6 +285,7 @@ protected:
 
 private:
 
+	bool mEnable;
 	std::mutex mMutex;
 
 	unsigned int mLastArcId;
@@ -301,6 +309,7 @@ private:
 	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessItems;
 
 	eastl::map<ActorId, float> mPlayerGuessTime;
+	eastl::map<ActorId, float> mPlayerGuessPlanTime;
 	eastl::map<ActorId, PathingArcVec> mPlayerGuessPlan;
 
 	void RegisterAllDelegates(void);

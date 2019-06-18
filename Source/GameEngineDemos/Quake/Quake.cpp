@@ -2847,6 +2847,10 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 
 			pHealthPickup->mRespawnTime = (float)PickupHealth(pPlayerActor, pHealthPickup);
 		}
+
+		QuakeAIManager* aiManager =
+			dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+		aiManager->DetectActor(pPlayerActor, pItemActor);
 	}
 }
 
@@ -2901,10 +2905,18 @@ void QuakeLogic::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 			if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
 			{
 				pPlayerActor->GetAction().triggerPush = pItemActor->GetId();
+
+				QuakeAIManager* aiManager =
+					dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+				aiManager->DetectActor(pPlayerActor, pItemActor);
 			}
 			else if (pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock())
 			{
 				pPlayerActor->GetAction().triggerTeleporter = pItemActor->GetId();
+
+				QuakeAIManager* aiManager =
+					dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+				aiManager->DetectActor(pPlayerActor, pItemActor);
 			}
 		}
 		else if (pItemActor->GetType() == "Fire")
