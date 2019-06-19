@@ -172,6 +172,28 @@ void PathingNode::AddClusterActor(PathingCluster* pCluster)
 	mClusterActors.push_back(pCluster);
 }
 
+PathingCluster* PathingNode::GetCluster(unsigned int clusterType, unsigned short clusterId)
+{
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetType() == clusterType && pCluster->GetTarget()->GetCluster() == clusterId)
+			return pCluster;
+	}
+
+	return NULL;
+}
+
+void PathingNode::GetClusters(unsigned short clusterId, eastl::map<unsigned int, PathingCluster*>& outClusters)
+{
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetTarget()->GetCluster() == clusterId)
+			outClusters[pCluster->GetType()] = pCluster;
+	}
+}
+
 void PathingNode::GetClusters(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit)
 {
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)

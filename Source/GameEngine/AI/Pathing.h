@@ -130,6 +130,8 @@ public:
 	void GetClusterActors(PathingClusterVec& outClusters, unsigned int limit);
 	const PathingClusterVec& GetClusterActors() { return mClusterActors; }
 
+	PathingCluster* GetCluster(unsigned int clusterType, unsigned short clusterId);
+	void GetClusters(unsigned short clusterId, eastl::map<unsigned int, PathingCluster*>& outClusters);
 	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit);
 	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters);
 	void GetClusters(PathingClusterVec& outClusters, unsigned int limit);

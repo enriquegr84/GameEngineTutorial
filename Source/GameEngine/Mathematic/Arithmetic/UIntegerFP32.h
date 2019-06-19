@@ -190,8 +190,7 @@ UIntegerFP32<N>& UIntegerFP32<N>::operator=(UIntegerFP32 const& number)
 
     mNumBits = number.mNumBits;
     mSize = number.mSize;
-    eastl::copy(number.mBits.begin(), number.mBits.begin() + mSize,
-        mBits.begin());
+    eastl::copy(number.mBits.begin(), number.mBits.begin() + mSize, mBits.begin());
     return *this;
 }
 
@@ -206,8 +205,7 @@ UIntegerFP32<N>& UIntegerFP32<N>::operator=(UIntegerFP32&& number)
 {
     mNumBits = number.mNumBits;
     mSize = number.mSize;
-    eastl::copy(number.mBits.begin(), number.mBits.begin() + mSize,
-        mBits.begin());
+    eastl::copy(number.mBits.begin(), number.mBits.begin() + mSize, mBits.begin());
     number.mNumBits = 0;
     number.mSize = 0;
     return *this;

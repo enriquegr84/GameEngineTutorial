@@ -2468,11 +2468,10 @@ bool QuakeLogic::SpotTelefrag(const eastl::shared_ptr<Actor>& spot)
 	return false;
 }
 
-const eastl::shared_ptr<Actor>& QuakeLogic::SelectNearestSpawnPoint(const Vector3<float>& from)
+void QuakeLogic::SelectNearestSpawnPoint(const Vector3<float>& from, eastl::shared_ptr<Actor>& nearestSpot)
 {
 	float nearestDist = 999999;
 	eastl::shared_ptr<Actor> spot = NULL;
-	eastl::shared_ptr<Actor> nearestSpot = NULL;
 	for (ActorMap::const_iterator it = mActors.begin(); it != mActors.end(); ++it)
 	{
 		spot = (*it).second;
@@ -2492,15 +2491,12 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectNearestSpawnPoint(const Vector
 			}
 		}
 	}
-
-	return nearestSpot;
 }
 
 #define	MAX_SPAWN_POINTS	128
-const eastl::shared_ptr<Actor>& QuakeLogic::SelectRandomSpawnPoint()
+void QuakeLogic::SelectRandomSpawnPoint(eastl::shared_ptr<Actor>& spot)
 {
 	Transform transform;
-	eastl::shared_ptr<Actor> spot = NULL;
 	eastl::shared_ptr<Actor> spots[MAX_SPAWN_POINTS];
 
 	int count = 0;
@@ -2523,7 +2519,6 @@ const eastl::shared_ptr<Actor>& QuakeLogic::SelectRandomSpawnPoint()
 		int selection = Randomizer::Rand() % count;
 		spot = spots[selection];
 	}
-	return spot;
 }
 
 void QuakeLogic::SelectRandomFurthestSpawnPoint(const Vector3<float>& avoidPoint, Transform& transform)

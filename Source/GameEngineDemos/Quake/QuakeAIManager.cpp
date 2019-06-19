@@ -563,7 +563,8 @@ void QuakeAIManager::SpawnActor(ActorId playerId)
 	if (pPlayerActor)
 	{
 		//no idea where the player is located take any random spawn position
-		eastl::shared_ptr<Actor> spawnSpot = game->SelectRandomSpawnPoint();
+		eastl::shared_ptr<Actor> spawnSpot;
+		game->SelectRandomSpawnPoint(spawnSpot);
 
 		eastl::shared_ptr<TransformComponent> pSpawnTransform(
 			spawnSpot->GetComponent<TransformComponent>(TransformComponent::Name).lock());
@@ -948,7 +949,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 	game->RemoveAllDelegates();
 
 	RegisterAllDelegates();
-
+	/*
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
 	eastl::vector<eastl::shared_ptr<Actor>> actors;
@@ -972,7 +973,7 @@ void QuakeAIManager::CreateMap(ActorId playerId)
 
 	// we obtain visibility information from pathing graph 
 	SimulateVisibility();
-
+	*/
 	// we group the graph nodes in clusters
 	CreateClusters();
 
@@ -1377,7 +1378,7 @@ void QuakeAIManager::CreateClusters()
 					{
 						bool addCluster = true;
 						PathingClusterVec clusters;
-						currentNode->GetClusters(GAT_JUMP, clusters);
+						currentNode->GetClusterActors(GAT_JUMP, clusters);
 						for (PathingCluster* cluster : clusters)
 						{
 							if (cluster->GetTarget() == pathTarget)
@@ -1424,7 +1425,7 @@ void QuakeAIManager::CreateClusters()
 					{
 						bool addCluster = true;
 						PathingClusterVec clusters;
-						currentNode->GetClusters(GAT_MOVE, clusters);
+						currentNode->GetClusterActors(GAT_MOVE, clusters);
 						for (PathingCluster* cluster : clusters)
 						{
 							if (cluster->GetTarget() == pathTarget)

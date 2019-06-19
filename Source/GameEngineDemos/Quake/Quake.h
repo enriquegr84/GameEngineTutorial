@@ -241,8 +241,8 @@ public:
 	bool CanItemBeGrabbed(const eastl::shared_ptr<Actor>& item, const eastl::shared_ptr<PlayerActor>& player);
 
 	//Quake Spawn Points
-	const eastl::shared_ptr<Actor>& SelectRandomSpawnPoint();
-	const eastl::shared_ptr<Actor>& SelectNearestSpawnPoint(const Vector3<float>& from);
+	void SelectRandomSpawnPoint(eastl::shared_ptr<Actor>& spot);
+	void SelectNearestSpawnPoint(const Vector3<float>& from, eastl::shared_ptr<Actor>& spot);
 	void SelectSpawnPoint(const Vector3<float>& avoidPoint, Transform& transform);
 	void SelectRandomFurthestSpawnPoint(const Vector3<float>& avoidPoint, Transform& transform);
 	void SelectInitialSpawnPoint(Transform& transform);

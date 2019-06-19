@@ -697,7 +697,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									Vector3<float> diff = pTriggerTransform->GetPosition() - currentPosition;
 									diff[YAW] = 0.f;
 
-									if (Length(diff) > 6.0f)
+									if (Length(diff) > 4.0f)
 										searchNode = false;
 								}
 								else if (mCurrentActor != mCurrentNode->GetActorId())
@@ -1056,6 +1056,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 
 						//smoothing camera rotation
+						/*
 						if (abs(mYaw - mYawSmooth) < 90)
 						{
 							if (mYaw - mYawSmooth > 0)
@@ -1067,7 +1068,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 						yawRotation = Rotation<4, float>(
 							AxisAngle<4, float>(Vector4<float>::Unit(2), mYawSmooth * (float)GE_C_DEG_TO_RAD));
-
+						*/
 						mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
 						mAbsoluteTransform.SetTranslation(pTransformComponent->GetPosition());
 
