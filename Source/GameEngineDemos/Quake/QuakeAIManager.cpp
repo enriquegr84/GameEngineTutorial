@@ -398,11 +398,19 @@ WeaponType QuakeAIManager::GetPlayerWeapon(ActorId player)
 	return weaponType;
 }
 
+void QuakeAIManager::GetPlayerState(ActorId player, NodeState& playerState)
+{
+	mMutex.lock();
+	if (mPlayerStates.find(player) != mPlayerStates.end())
+		playerState = NodeState(mPlayerStates[player]);
+	mMutex.unlock();
+}
+
 void QuakeAIManager::GetPlayerPath(ActorId player, PathingArcVec& playerPath)
 {
 	mMutex.lock();
-	if (mPlayerPaths.find(player) != mPlayerPaths.end())
-		for (PathingArc* path : mPlayerPaths[player])
+	if (mPlayerStates.find(player) != mPlayerStates.end())
+		for (PathingArc* path : mPlayerStates[player].path)
 			playerPath.push_back(path);
 	mMutex.unlock();
 }
@@ -433,12 +441,20 @@ void QuakeAIManager::SetPlayerWeapon(ActorId player, WeaponType playerWeapon)
 	mMutex.unlock();
 }
 
+
+void QuakeAIManager::SetPlayerState(ActorId player, NodeState& playerState)
+{
+	mMutex.lock();
+	mPlayerStates[player] = NodeState(playerState);
+	mMutex.unlock();
+}
+
 void QuakeAIManager::SetPlayerPath(ActorId player, PathingArcVec& playerPath)
 {
 	mMutex.lock();
-	mPlayerPaths[player].clear();
+	mPlayerStates[player].path.clear();
 	for (PathingArc* path : playerPath)
-		mPlayerPaths[player].push_back(path);
+		mPlayerStates[player].path.push_back(path);
 	mMutex.unlock();
 }
 

@@ -88,11 +88,13 @@ struct NodeState
 	}
 
 	NodeState(const NodeState& state) :
-		valid(state.valid),
-		node(state.node), path(state.path),
+		valid(state.valid), node(state.node),
 		player(state.player), target(state.target),
 		weapon(state.weapon), heuristic(state.heuristic)
 	{
+		for (PathingArc* pathArc : state.path)
+			path.push_back(pathArc);
+
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
 			stats[i] = state.stats[i];
@@ -124,10 +126,12 @@ struct NodeState
 		target = state.target;
 
 		node = state.node;
-		path = state.path;
-
 		weapon = state.weapon;
 		heuristic = state.heuristic;
+
+		path.clear();
+		for (PathingArc* pathArc : state.path)
+			path.push_back(pathArc);
 
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
@@ -208,12 +212,14 @@ public:
 
 	ActorId GetPlayerTarget(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
+	void GetPlayerState(ActorId player, NodeState& state);
 	void GetPlayerPath(ActorId player, PathingArcVec& playerPath);
 	bool IsPlayerUpdated(ActorId player);
 
 	void SetPlayerTarget(ActorId player, ActorId playerTarget);
 	void SetPlayerWeapon(ActorId player, WeaponType playerWeapon);
 	void SetPlayerPath(ActorId player, PathingArcVec& playerPath);
+	void SetPlayerState(ActorId player, NodeState& playerState);
 	void SetPlayerUpdated(ActorId player, bool update);
 
 	void RemovePlayerGuessItems(ActorId player);
@@ -301,7 +307,7 @@ private:
 	eastl::map<ActorId, bool> mPlayers;
 	eastl::map<ActorId, ActorId> mPlayerTargets;
 	eastl::map<ActorId, WeaponType> mPlayerWeapons;
-	eastl::map<ActorId, PathingArcVec> mPlayerPaths;
+	eastl::map<ActorId, NodeState> mPlayerStates;
 
 	eastl::map<ActorId, bool> mPlayerGuess;
 	eastl::map<ActorId, NodeState> mPlayerGuessStates;

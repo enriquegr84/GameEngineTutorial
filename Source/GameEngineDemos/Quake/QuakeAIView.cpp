@@ -114,7 +114,7 @@ void QuakeAIView::OnAttach(GameViewId vid, ActorId actorId)
 		yawPitchRoll.mAxis[2] = 2;
 		pTransformComponent->GetTransform().GetRotation(yawPitchRoll);
 
-		mYaw = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
+		mYaw = mYawSmooth = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
 		mPitchTarget = yawPitchRoll.mAngle[ROLL] * (float)GE_C_RAD_TO_DEG;
 
 		mAbsoluteTransform.SetRotation(pTransformComponent->GetRotation());
@@ -612,7 +612,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			pTeleporterTrigger->GetTarget().GetRotation(yawPitchRoll);
 			pTransformComponent->SetTransform(pTeleporterTrigger->GetTarget());
 
-			mYaw = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
+			mYaw = mYawSmooth = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
 			mPitchTarget = -yawPitchRoll.mAngle[ROLL] * (float)GE_C_RAD_TO_DEG;
 
 			eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
@@ -763,13 +763,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							{
 								PathingArcVec pathPlan;
 								if (aiManager->IsPlayerUpdated(mPlayerId))
-								{
-									if (mCurrentPlan.size() == 0 || mCurrentPlan.size() > 2)
-									{
-										aiManager->GetPlayerPath(mPlayerId, pathPlan);
-										//printf("\n path plan size %u", pathPlan.size());
-									}
-								}
+									aiManager->GetPlayerPath(mPlayerId, pathPlan);
 
 								if (pathPlan.size())
 								{
@@ -854,7 +848,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											/*
 											printf("\n original plan player %u : ", mPlayerId);
 											for (PathingArc* pathArc : pathPlan)
-											printf("%u ", pathArc->GetNode()->GetId());
+												printf("%u ", pathArc->GetNode()->GetId());
 											*/
 											PathingArcVec::iterator itPathPlan;
 											for (itPathPlan = pathPlan.begin(); itPathPlan != pathPlan.end(); itPathPlan++)
@@ -1056,19 +1050,18 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 
 						//smoothing camera rotation
-						/*
-						if (abs(mYaw - mYawSmooth) < 90)
-						{
-							if (mYaw - mYawSmooth > 0)
-								mYawSmooth++;
-							else if (mYaw - mYawSmooth < 0)
-								mYawSmooth--;
-						}
-						else mYawSmooth = mYaw;
+						if (mYaw - mYawSmooth > 180)
+							mYawSmooth--;
+						else if (mYaw - mYawSmooth < -180)
+							mYawSmooth++;
+						else if (mYaw > mYawSmooth)
+							mYawSmooth++;
+						else if (mYaw < mYawSmooth)
+							mYawSmooth--;
 
 						yawRotation = Rotation<4, float>(
 							AxisAngle<4, float>(Vector4<float>::Unit(2), mYawSmooth * (float)GE_C_DEG_TO_RAD));
-						*/
+
 						mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
 						mAbsoluteTransform.SetTranslation(pTransformComponent->GetPosition());
 

@@ -594,7 +594,7 @@ bool CanItemBeGrabbed(ActorId itemId, float itemTime, NodeState& playerState)
 	return false;
 }
 
-void QuakeAIProcess::PickupItem(NodeState& playerState, eastl::map<ActorId, float>& actors)
+void QuakeAIProcess::PickupItems(NodeState& playerState, eastl::map<ActorId, float>& actors)
 {
 	for (auto actor : actors)
 	{
@@ -987,7 +987,7 @@ void QuakeAIProcess::Simulation(
 					else pathActors[(*itActor).first] = (*itActor).second;
 				}
 			}
-			PickupItem(playerNodeState, pathActors);
+			PickupItems(playerNodeState, pathActors);
 
 			NodeState otherPlayerNodeState(otherPlayerState);
 			otherPlayerNodeState.path = otherPlayerPathPlan;
@@ -1011,7 +1011,7 @@ void QuakeAIProcess::Simulation(
 					else otherPathActors[(*itOtherActor).first] = (*itOtherActor).second;
 				}
 			}
-			PickupItem(otherPlayerNodeState, otherPathActors);
+			PickupItems(otherPlayerNodeState, otherPathActors);
 
 			//we calculate the heuristic
 			Heuristic(playerNodeState, otherPlayerNodeState);
@@ -1054,118 +1054,145 @@ void QuakeAIProcess::Simulation(
 	otherPlayerState.Copy(bestOtherPlayerState);
 }
 
-void QuakeAIProcess::ConstructActorPath(PathingCluster* playerCluster,
-	PathingNode* currentNode, float currentDistance, PathingArcVec& currentPathPlan,
-	eastl::vector<ActorId>& actors, float* actorPathDistance, PathingArcVec& actorPathPlan)
+void QuakeAIProcess::ConstructActorPath(NodeState& playerState, 
+	PathingCluster* playerCluster, PathingNode* currentNode, float maxPathDistance, 
+	eastl::vector<ActorId>& actors, float* actorHeuristic, PathingArcVec& actorPathPlan,
+	eastl::map<ActorId, float>& currentActors, float currentDistance, PathingArcVec& currentPlan)
 {
-	if (currentNode->GetCluster() != playerCluster->GetTarget()->GetCluster())
+	if (currentDistance <= maxPathDistance)
 	{
 		PathingArcVec clusterPathPlan;
 		eastl::vector<ActorId> clusterActors;
 		for (ActorId actor : actors) clusterActors.push_back(actor);
-		for (PathingArc* pathArc : currentPathPlan) clusterPathPlan.push_back(pathArc);
+		for (PathingArc* pathArc : currentPlan) clusterPathPlan.push_back(pathArc);
 
-		PathingClusterVec actorClusters;
-		currentNode->GetClusterActors(GAT_JUMP, actorClusters);
-		for (PathingCluster* actorCluster : actorClusters)
+		while (currentNode != playerCluster->GetTarget())
 		{
-			if (eastl::find(actors.begin(), actors.end(), actorCluster->GetActor()) != actors.end())
+			PathingClusterVec actorClusters;
+			currentNode->GetClusterActors(GAT_JUMP, actorClusters);
+			for (PathingCluster* actorCluster : actorClusters)
 			{
-				PathingArcVec pathPlan;
-				eastl::vector<ActorId> pathActors;
-				for (ActorId actor : actors) pathActors.push_back(actor);
-				for (PathingArc* pathArc : currentPathPlan) pathPlan.push_back(pathArc);
-
-				float distance = currentDistance;
-				PathingNode* actorNode = currentNode;
-				if (actorNode->GetActorId() != INVALID_ACTOR_ID)
+				ActorId actorId = actorCluster->GetActor();
+				if (eastl::find(clusterActors.begin(), clusterActors.end(), actorId) != clusterActors.end())
 				{
-					ActorId actorId = actorNode->GetActorId();
-					if (eastl::find(pathActors.begin(), pathActors.end(), actorId) != pathActors.end())
+					if (CanItemBeGrabbed(actorId, currentDistance, playerState))
+					{
+						PathingArcVec pathPlan;
+						for (PathingArc* pathArc : clusterPathPlan) pathPlan.push_back(pathArc);
+
+						float distance = currentDistance;
+						PathingNode* actorNode = currentNode;
+						while (actorNode != actorCluster->GetTarget())
+						{
+							PathingCluster* currentCluster =
+								actorNode->FindCluster(actorCluster->GetType(), actorCluster->GetTarget());
+							PathingArc* currentArc = actorNode->FindArc(currentCluster->GetNode());
+							distance += currentArc->GetWeight();
+							pathPlan.push_back(currentArc);
+
+							actorNode = currentArc->GetNode();
+						}
+
+						eastl::vector<ActorId> pathActors;
+						eastl::map<ActorId, float> clusterPathActors;
+						for (ActorId actor : actors) pathActors.push_back(actor);
+						for (auto actor : currentActors) clusterPathActors[actor.first] = actor.second;
+
+						clusterPathActors[actorId] = distance;
 						pathActors.erase(eastl::find(pathActors.begin(), pathActors.end(), actorId));
-					if (eastl::find(clusterActors.begin(), clusterActors.end(), actorId) != clusterActors.end())
-						clusterActors.erase(eastl::find(clusterActors.begin(), clusterActors.end(), actorId));
-				}
-				while (actorNode != actorCluster->GetTarget())
-				{
-					PathingCluster* currentCluster =
-						actorNode->FindCluster(actorCluster->GetType(), actorCluster->GetTarget());
-					PathingArc* currentArc = actorNode->FindArc(currentCluster->GetNode());
-					distance += currentArc->GetWeight();
-					pathPlan.push_back(currentArc);
 
-					actorNode = currentArc->GetNode();
-					if (actorNode->GetActorId() != INVALID_ACTOR_ID)
-					{
-						ActorId actorId = actorNode->GetActorId();
-						if (eastl::find(pathActors.begin(), pathActors.end(), actorId) != pathActors.end())
-							pathActors.erase(eastl::find(pathActors.begin(), pathActors.end(), actorId));
-						if (eastl::find(clusterActors.begin(), clusterActors.end(), actorId) != clusterActors.end())
-							clusterActors.erase(eastl::find(clusterActors.begin(), clusterActors.end(), actorId));
+						eastl::map<unsigned int, PathingCluster*> playerClusters;
+						actorNode->GetClusters(playerCluster->GetTarget()->GetCluster(), playerClusters);
+						if (playerClusters.size())
+						{
+							PathingCluster* playerActorCluster = (*playerClusters.begin()).second;
+							if (playerClusters.find(playerCluster->GetType()) != playerClusters.end())
+								playerActorCluster = playerClusters[playerCluster->GetType()];
+
+							ConstructActorPath(playerState, playerActorCluster, actorNode, maxPathDistance, 
+								pathActors, actorHeuristic, actorPathPlan, clusterPathActors, distance, pathPlan);
+						}
 					}
-				}
-				eastl::map<unsigned int, PathingCluster*> playerClusters;
-				actorNode->GetClusters(playerCluster->GetTarget()->GetCluster(), playerClusters);
-				if (playerClusters.size())
-				{
-					PathingCluster* playerActorCluster = (*playerClusters.begin()).second;
-					if (playerClusters.find(playerCluster->GetType()) != playerClusters.end())
-						playerActorCluster = playerClusters[playerCluster->GetType()];
-
-					ConstructActorPath(playerActorCluster, actorNode,
-						distance, pathPlan, pathActors, actorPathDistance, actorPathPlan);
+					clusterActors.erase(eastl::find(clusterActors.begin(), clusterActors.end(), actorId));
 				}
 			}
-		}
 
-		if (actors.size() == clusterActors.size())
-		{
-			float distance = currentDistance;
-			PathingNode* clusterNode = currentNode;
-			while (clusterNode != playerCluster->GetTarget())
-			{
-				actorClusters.clear();
-				currentNode->GetClusterActors(GAT_JUMP, actorClusters);
-				for (PathingCluster* actorCluster : actorClusters)
-				{
-					ActorId actor = actorCluster->GetActor();
-					if (eastl::find(clusterActors.begin(), clusterActors.end(), actor) != clusterActors.end())
-					{
-						ConstructActorPath(playerCluster, clusterNode,
-							distance, clusterPathPlan, clusterActors, actorPathDistance, actorPathPlan);
-						return;
-					}
-				}
+			PathingCluster* currentCluster =
+				currentNode->FindCluster(playerCluster->GetType(), playerCluster->GetTarget());
+			PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
+			currentDistance += currentArc->GetWeight();
+			clusterPathPlan.push_back(currentArc);
 
-				PathingCluster* currentCluster =
-					clusterNode->FindCluster(playerCluster->GetType(), playerCluster->GetTarget());
-				PathingArc* currentArc = clusterNode->FindArc(currentCluster->GetNode());
-				distance += currentArc->GetWeight();
-				clusterPathPlan.push_back(currentArc);
-
-				clusterNode = currentArc->GetNode();
-			}
-			ConstructActorPath(playerCluster, clusterNode,
-				distance, clusterPathPlan, clusterActors, actorPathDistance, actorPathPlan);
+			currentNode = currentArc->GetNode();
 		}
 	}
-	else
+
+	if (currentNode->GetCluster() == playerCluster->GetTarget()->GetCluster())
 	{
-		if (currentDistance < (*actorPathDistance))
+		if (currentActors.size() > 0 && currentDistance <= maxPathDistance)
 		{
-			actorPathPlan = currentPathPlan;
-			(*actorPathDistance) = currentDistance;
+			NodeState currentPlayerState(playerState);
+			PickupItems(currentPlayerState, currentActors);
+			float currentHeuristic = HeuristicPlayerItems(currentPlayerState);
+			/*
+			//printf("\n path plan size %u", pathPlan.size());
+			char status[64];
+			eastl::string playerStatus;
+
+			sprintf(status, "player   %u heuristic %f cluster %u : actors : ", 
+				currentPlayerState.player, currentHeuristic, currentNode->GetCluster());
+			playerStatus = status;
+			for (eastl::shared_ptr<Actor> pItemActor : currentPlayerState.items)
+			{
+				if (pItemActor->GetType() == "Weapon")
+				{
+					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+					sprintf(status, "weapon %u ", pWeaponPickup->GetCode());
+					playerStatus += status;
+				}
+				else if (pItemActor->GetType() == "Ammo")
+				{
+					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+					sprintf(status, "ammo %u ", pAmmoPickup->GetCode());
+					playerStatus += status;
+				}
+				else if (pItemActor->GetType() == "Armor")
+				{
+					eastl::shared_ptr<ArmorPickup> pArmorPickup =
+						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+					sprintf(status, "armor %u ", pArmorPickup->GetCode());
+					playerStatus += status;
+				}
+				else if (pItemActor->GetType() == "Health")
+				{
+					eastl::shared_ptr<HealthPickup> pHealthPickup =
+						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+					sprintf(status, "health %u ", pHealthPickup->GetCode());
+					playerStatus += status;
+				}
+			}
+			printf("\n");
+			printf(playerStatus.c_str());
+			LogInformation(playerStatus);
+			*/
+			if (currentHeuristic > (*actorHeuristic))
+			{
+				actorPathPlan = currentPlan;
+				(*actorHeuristic) = currentHeuristic;
+			}
 		}
 	}
-
 }
 
-void QuakeAIProcess::ConstructPath(PathingNode* playerNode, 
+void QuakeAIProcess::ConstructPath(NodeState& playerState,
 	PathingCluster* playerCluster, eastl::vector<PathingArcVec>& playerPathPlan)
 {
 	eastl::vector<ActorId> actors;
 	PathingArcVec clusterPathPlan;
-	PathingNode* currentNode = playerNode;
+	PathingNode* currentNode = playerState.node;
+	float maxPathDistance = 0.f;
 	for (PathingCluster* actorCluster : currentNode->GetClusterActors())
 		if (eastl::find(actors.begin(), actors.end(), actorCluster->GetActor()) == actors.end())
 			actors.push_back(actorCluster->GetActor());
@@ -1177,6 +1204,7 @@ void QuakeAIProcess::ConstructPath(PathingNode* playerNode,
 		clusterPathPlan.push_back(currentArc);
 
 		currentNode = currentArc->GetNode();
+		maxPathDistance += currentArc->GetWeight();
 		for (PathingCluster* actorCluster : currentNode->GetClusterActors())
 			if (eastl::find(actors.begin(), actors.end(), actorCluster->GetActor()) == actors.end())
 				actors.push_back(actorCluster->GetActor());
@@ -1186,9 +1214,13 @@ void QuakeAIProcess::ConstructPath(PathingNode* playerNode,
 	if (actors.size())
 	{
 		PathingArcVec currentPathPlan, actorPathPlan;
-		float currentDistance = 0.f, actorPathDistance = FLT_MAX;
-		ConstructActorPath(playerCluster, playerNode,
-			currentDistance, currentPathPlan, actors, &actorPathDistance, actorPathPlan);
+		float currentDistance = 0.f, actorHeuristic = 0.f;
+		eastl::map<ActorId, float> currentActors;
+
+		maxPathDistance += maxPathDistance * 0.5f;
+		ConstructActorPath(playerState, playerCluster, playerState.node, maxPathDistance, actors,
+			&actorHeuristic, actorPathPlan, currentActors, currentDistance, currentPathPlan);
+
 		if (actorPathPlan.size())playerPathPlan.push_back(actorPathPlan);
 	}
 }
@@ -1198,8 +1230,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	eastl::map<PathingCluster*, eastl::vector<PathingArcVec>> playerPathPlans, otherPlayerPathPlans;
 
 	PathingClusterVec pathingClusters[2];
-	playerState.node->GetClusters(GAT_MOVE, pathingClusters[0], 15);
-	playerState.node->GetClusters(GAT_JUMP, pathingClusters[1], 40);
+	playerState.node->GetClusters(GAT_MOVE, pathingClusters[0], 20);
+	playerState.node->GetClusters(GAT_JUMP, pathingClusters[1], 60);
 
 	PathingClusterVec playerClusters;
 	for (unsigned int clusterType = 0; clusterType < 2; clusterType++)
@@ -1208,6 +1240,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	//fprintf(mFile, "\n playerCluster - otherPlayerNode \n");
 	unsigned int clusterSize = playerClusters.size();
+	unsigned int count = 0;
 	for (unsigned int playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
 	//parallel_for(size_t(0), clusterSize, [&](size_t playerClusterIdx)
 	{
@@ -1215,12 +1248,13 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 		//construct path
 		playerPathPlans[playerCluster] = eastl::vector<PathingArcVec>();
-		ConstructPath(playerState.node, playerCluster, playerPathPlans[playerCluster]);
+		ConstructPath(playerState, playerCluster, playerPathPlans[playerCluster]);
+		count += playerPathPlans[playerCluster].size();
 	}
 
 	PathingClusterVec otherPathingClusters[2];
-	otherPlayerState.node->GetClusters(GAT_MOVE, otherPathingClusters[0], 15);
-	otherPlayerState.node->GetClusters(GAT_JUMP, otherPathingClusters[1], 40);
+	otherPlayerState.node->GetClusters(GAT_MOVE, otherPathingClusters[0], 20);
+	otherPlayerState.node->GetClusters(GAT_JUMP, otherPathingClusters[1], 60);
 
 	PathingClusterVec otherPlayerClusters;
 	for (unsigned int clusterType = 0; clusterType < 2; clusterType++)
@@ -1236,8 +1270,10 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 		//construct path
 		otherPlayerPathPlans[otherPlayerCluster] = eastl::vector<PathingArcVec>();
-		ConstructPath(otherPlayerState.node, otherPlayerCluster, otherPlayerPathPlans[otherPlayerCluster]);
+		ConstructPath(otherPlayerState, otherPlayerCluster, otherPlayerPathPlans[otherPlayerCluster]);
+		count += otherPlayerPathPlans[otherPlayerCluster].size();
 	}
+	printf("\n count  %u ", count);
 
 	//fprintf(mFile, "\n playerCluster - otherPlayerCluster \n");
 	eastl::map<PathingCluster*, eastl::map<PathingCluster*, NodeState>> playerClustersStates, otherPlayerClustersStates;
@@ -1269,7 +1305,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	fprintf(mFile, "\n minimax player \n");
 	for (auto playerClustersState : playerClustersStates)
 	{
-
 		fprintf(mFile, "\n player cluster : %u ",
 			playerClustersState.first->GetTarget()->GetCluster());
 
@@ -1279,30 +1314,27 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		{
 			if (playerClusterState.second.weapon != WP_NONE)
 			{
-				fprintf(mFile, "other player cluster : %u ",
-					playerClusterState.first->GetTarget()->GetCluster());
-				fprintf(mFile, "heuristic : %f ", playerClusterState.second.heuristic);
-
 				fprintf(mFile, " weapon : %u ", playerClusterState.second.weapon);
 				fprintf(mFile, " damage : %i ", 
 					playerClusterState.second.damage[playerClusterState.second.weapon - 1]);
 			}
 
-			eastl::vector<ActorId> actors;
 			PathingArcVec::iterator itArc = playerClusterState.second.path.begin();
 			for (; itArc != playerClusterState.second.path.end(); itArc++)
 			{
 				//printf("%u ", (*itArc)->GetNode()->GetId());
-				if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-					actors.push_back((*itArc)->GetNode()->GetActorId());
 			}
 
-			if (!actors.empty()) fprintf(mFile, " actors : ");
-			for (ActorId actor : actors)
+			if (!playerClusterState.second.items.empty())
 			{
-				eastl::shared_ptr<Actor> pItemActor(
-					eastl::dynamic_shared_pointer_cast<Actor>(
-						GameLogic::Get()->GetActor(actor).lock()));
+				fprintf(mFile, "other player cluster : %u ",
+					playerClusterState.first->GetTarget()->GetCluster());
+				fprintf(mFile, "heuristic : %f ", playerClusterState.second.heuristic);
+
+				fprintf(mFile, " actors : ");
+			}
+			for (eastl::shared_ptr<Actor> pItemActor : playerClusterState.second.items)
+			{
 				if (pItemActor->GetType() == "Weapon")
 				{
 					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
@@ -1351,7 +1383,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 		if (playerNodeState.valid)
 		{
-
 			fprintf(mFile, "\n min heuristic : %f ", playerNodeState.heuristic);
 			if (playerNodeState.weapon != WP_NONE)
 			{
@@ -1364,21 +1395,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				fprintf(mFile, " damage : 0 ");
 			}
 
-			eastl::vector<ActorId> actors;
 			PathingArcVec::iterator itArc = playerNodeState.path.begin();
 			for (; itArc != playerNodeState.path.end(); itArc++)
 			{
 				//printf("%u ", (*itArc)->GetNode()->GetId());
-				if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-					actors.push_back((*itArc)->GetNode()->GetActorId());
 			}
 
-			if (!actors.empty()) fprintf(mFile, " actors : ");
-			for (ActorId actor : actors)
+			if (!playerNodeState.items.empty()) fprintf(mFile, " actors : ");
+			for (eastl::shared_ptr<Actor> pItemActor : playerNodeState.items)
 			{
-				eastl::shared_ptr<Actor> pItemActor(
-					eastl::dynamic_shared_pointer_cast<Actor>(
-						GameLogic::Get()->GetActor(actor).lock()));
 				if (pItemActor->GetType() == "Weapon")
 				{
 					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
@@ -1440,21 +1465,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			fprintf(mFile, " damage : 0 ");
 		}
 
-		eastl::vector<ActorId> actors;
 		PathingArcVec::iterator itArc = mPlayerState.path.begin();
 		for (; itArc != mPlayerState.path.end(); itArc++)
 		{
 			//printf("%u ", (*itArc)->GetNode()->GetId());
-			if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-				actors.push_back((*itArc)->GetNode()->GetActorId());
 		}
 
-		if (!actors.empty()) fprintf(mFile, " actors : ");
-		for (ActorId actor : actors)
+		if (!mPlayerState.items.empty()) fprintf(mFile, " actors : ");
+		for (eastl::shared_ptr<Actor> pItemActor : mPlayerState.items)
 		{
-			eastl::shared_ptr<Actor> pItemActor(
-				eastl::dynamic_shared_pointer_cast<Actor>(
-					GameLogic::Get()->GetActor(actor).lock()));
 			if (pItemActor->GetType() == "Weapon")
 			{
 				eastl::shared_ptr<WeaponPickup> pWeaponPickup =
@@ -1496,10 +1515,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		{
 			if (otherPlayerClusterState.second.weapon != WP_NONE)
 			{
-				fprintf(mFile, "player cluster : %u ",
-					otherPlayerClusterState.first->GetTarget()->GetCluster());
-				fprintf(mFile, "heuristic : %f ", otherPlayerClusterState.second.heuristic);
-
 				fprintf(mFile, " weapon : %u ", otherPlayerClusterState.second.weapon);
 				fprintf(mFile, " damage : %i ",
 					otherPlayerClusterState.second.damage[
@@ -1507,21 +1522,23 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 
 			//printf("nodes : ");
-			eastl::vector<ActorId> actors;
 			PathingArcVec::iterator itArc = otherPlayerClusterState.second.path.begin();
 			for (; itArc != otherPlayerClusterState.second.path.end(); itArc++)
 			{
 				//printf("%u ", (*itArc)->GetNode()->GetId());
-				if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-					actors.push_back((*itArc)->GetNode()->GetActorId());
 			}
 
-			if (!actors.empty()) fprintf(mFile, " actors : ");
-			for (ActorId actor : actors)
+			if (!otherPlayerClusterState.second.items.empty())
 			{
-				eastl::shared_ptr<Actor> pItemActor(
-					eastl::dynamic_shared_pointer_cast<Actor>(
-						GameLogic::Get()->GetActor(actor).lock()));
+				fprintf(mFile, "player cluster : %u ",
+					otherPlayerClusterState.first->GetTarget()->GetCluster());
+				fprintf(mFile, "heuristic : %f ", otherPlayerClusterState.second.heuristic);
+
+
+				fprintf(mFile, " actors : ");
+			}
+			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerClusterState.second.items)
+			{
 				if (pItemActor->GetType() == "Weapon")
 				{
 					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
@@ -1585,21 +1602,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 
 			//printf("nodes : ");
-			eastl::vector<ActorId> actors;
 			PathingArcVec::iterator itArc = otherPlayerNodeState.path.begin();
 			for (; itArc != otherPlayerNodeState.path.end(); itArc++)
 			{
 				//printf("%u ", (*itArc)->GetNode()->GetId());
-				if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-					actors.push_back((*itArc)->GetNode()->GetActorId());
 			}
 
-			if (!actors.empty()) fprintf(mFile, " actors : ");
-			for (ActorId actor : actors)
+			if (!otherPlayerNodeState.items.empty()) fprintf(mFile, " actors : ");
+			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerNodeState.items)
 			{
-				eastl::shared_ptr<Actor> pItemActor(
-					eastl::dynamic_shared_pointer_cast<Actor>(
-						GameLogic::Get()->GetActor(actor).lock()));
 				if (pItemActor->GetType() == "Weapon")
 				{
 					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
@@ -1663,21 +1674,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 
 		//printf("nodes : ");
-		eastl::vector<ActorId> actors;
 		PathingArcVec::iterator itArc = mOtherPlayerState.path.begin();
 		for (; itArc != mOtherPlayerState.path.end(); itArc++)
 		{
 			//printf("%u ", (*itArc)->GetNode()->GetId());
-			if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-				actors.push_back((*itArc)->GetNode()->GetActorId());
 		}
 
-		if (!actors.empty()) fprintf(mFile, " actors : ");
-		for (ActorId actor : actors)
+		if (!mOtherPlayerState.items.empty()) fprintf(mFile, " actors : ");
+		for (eastl::shared_ptr<Actor> pItemActor : mOtherPlayerState.items)
 		{
-			eastl::shared_ptr<Actor> pItemActor(
-				eastl::dynamic_shared_pointer_cast<Actor>(
-					GameLogic::Get()->GetActor(actor).lock()));
 			if (pItemActor->GetType() == "Weapon")
 			{
 				eastl::shared_ptr<WeaponPickup> pWeaponPickup =
@@ -1776,22 +1781,17 @@ void QuakeAIProcess::ThreadProc( )
 				mPlayerState.weapon > 0 ? mPlayerState.damage[mPlayerState.weapon - 1] : 0, mPlayerState.path.size());
 				*/
 				//printf("\n blue player nodes %u : ", mPlayerState.player);
-				eastl::vector<ActorId> actors;
 				PathingArcVec::iterator itArc = mPlayerState.path.begin();
 				for (; itArc != mPlayerState.path.end(); itArc++)
 				{
 					//printf("%u ", (*itArc)->GetNode()->GetId());
-					if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-						actors.push_back((*itArc)->GetNode()->GetActorId());
 				}
 
-				fprintf(mFile, "\n blue player actors  %f : ", mPlayerState.heuristic);
+				fprintf(mFile, "\n blue player   %f", mPlayerState.heuristic);
 				//printf("\n blue player actors  %u : ", mPlayerState.player);
-				for (ActorId actor : actors)
+				if (!mPlayerState.items.empty()) fprintf(mFile, " actors : ");
+				for (eastl::shared_ptr<Actor> pItemActor : mPlayerState.items)
 				{
-					eastl::shared_ptr<Actor> pItemActor(
-						eastl::dynamic_shared_pointer_cast<Actor>(
-							GameLogic::Get()->GetActor(actor).lock()));
 					if (pItemActor->GetType() == "Weapon")
 					{
 						eastl::shared_ptr<WeaponPickup> pWeaponPickup =
@@ -1832,16 +1832,16 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mFile, " damage : 0 ");
 				}
 
-				mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, mOtherPlayerState.path);
 				NodeState otherPlayerGuessState; 
 				mAIManager->GetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
 				otherPlayerGuessState.CopyItems(mOtherPlayerState);
 				mAIManager->SetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
+				mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, mOtherPlayerState.path);
 				mAIManager->SetPlayerGuessUpdated(mOtherPlayerState.player, true);
 
 				mAIManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
 				mAIManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
-				mAIManager->SetPlayerPath(mPlayerState.player, mPlayerState.path);
+				mAIManager->SetPlayerState(mPlayerState.player, mPlayerState);
 				mAIManager->SetPlayerUpdated(mPlayerState.player, true);
 
 				for (ActorId aiPlayer : players[GV_AI])
@@ -1875,22 +1875,17 @@ void QuakeAIProcess::ThreadProc( )
 				mOtherPlayerState.weapon > 0 ? mOtherPlayerState.damage[mOtherPlayerState.weapon - 1] : 0, mOtherPlayerState.path.size());
 				*/
 				//printf("\n red player nodes %u : ", mOtherPlayerState.player);
-				actors.clear();
 				itArc = mOtherPlayerState.path.begin();
 				for (; itArc != mOtherPlayerState.path.end(); itArc++)
 				{
 					//printf("%u ", (*itArc)->GetNode()->GetId());
-					if ((*itArc)->GetNode()->GetActorId() != INVALID_ACTOR_ID)
-						actors.push_back((*itArc)->GetNode()->GetActorId());
 				}
 
-				fprintf(mFile, "\n red player actors %f : ", mOtherPlayerState.heuristic);
+				fprintf(mFile, "\n red player   %f", mOtherPlayerState.heuristic);
 				//printf("\n red player actors %u : ", mOtherPlayerState.player);
-				for (ActorId actor : actors)
+				if (!mOtherPlayerState.items.empty()) fprintf(mFile, " actors : ");
+				for (eastl::shared_ptr<Actor> pItemActor : mOtherPlayerState.items)
 				{
-					eastl::shared_ptr<Actor> pItemActor(
-						eastl::dynamic_shared_pointer_cast<Actor>(
-							GameLogic::Get()->GetActor(actor).lock()));
 					if (pItemActor->GetType() == "Weapon")
 					{
 						eastl::shared_ptr<WeaponPickup> pWeaponPickup =
@@ -1931,16 +1926,16 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mFile, " damage : 0 ");
 				}
 
-				mAIManager->SetPlayerGuessPath(mPlayerState.player, mPlayerState.path);
 				NodeState playerGuessState;
 				mAIManager->GetPlayerGuessState(mPlayerState.player, playerGuessState);
 				playerGuessState.CopyItems(mPlayerState);
 				mAIManager->SetPlayerGuessState(mPlayerState.player, playerGuessState);
+				mAIManager->SetPlayerGuessPath(mPlayerState.player, mPlayerState.path);
 				mAIManager->SetPlayerGuessUpdated(mPlayerState.player, true);
 
 				mAIManager->SetPlayerTarget(mOtherPlayerState.player, mOtherPlayerState.target);
 				mAIManager->SetPlayerWeapon(mOtherPlayerState.player, mOtherPlayerState.weapon);
-				mAIManager->SetPlayerPath(mOtherPlayerState.player, mOtherPlayerState.path);
+				mAIManager->SetPlayerState(mOtherPlayerState.player, mOtherPlayerState);
 				mAIManager->SetPlayerUpdated(mOtherPlayerState.player, true);
 			}
 

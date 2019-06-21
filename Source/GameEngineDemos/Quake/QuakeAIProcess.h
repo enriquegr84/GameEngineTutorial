@@ -62,17 +62,18 @@ protected:
 	float HeuristicPlayerItems(NodeState& playerState);
 	void Heuristic(NodeState& playerState, NodeState& otherPlayerState);
 	void Damage(NodeState& state, float visibleTime, float visibleDistance, float visibleHeight);
-	void PickupItem(NodeState& playerState, eastl::map<ActorId, float>& actors);
+	void PickupItems(NodeState& playerState, eastl::map<ActorId, float>& actors);
 
 	void Visibility(
 		PathingNode* playerNode, PathingArcVec& playerPathPlan,
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
 		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
-	void ConstructActorPath(PathingCluster* playerCluster, 
-		PathingNode* currentNode, float currentDistance, PathingArcVec& currentPathPlan,
-		eastl::vector<ActorId>& actors, float* actorPathDistance, PathingArcVec& actorPathPlan);
-	void ConstructPath(PathingNode* playerNode, 
+	void ConstructActorPath(NodeState& playerState, 
+		PathingCluster* playerCluster, PathingNode* currentNode, float maxPathDistance, 
+		eastl::vector<ActorId>& actors, float* actorHeuristic, PathingArcVec& actorPathPlan,
+		eastl::map<ActorId, float>& currentActors, float currentDistance, PathingArcVec& currentPlan);
+	void ConstructPath(NodeState& playerState,
 		PathingCluster* playerCluster, eastl::vector<PathingArcVec>& playerPathPlan);
 	void Simulation(
 		NodeState& playerState, eastl::vector<PathingArcVec>& playerPathPlans,
