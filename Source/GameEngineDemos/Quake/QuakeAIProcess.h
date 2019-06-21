@@ -84,10 +84,11 @@ protected:
 private:
 
 	FILE * mFile;
-
 	QuakeAIManager*	mAIManager;
 
 	eastl::map<ActorId, float> mExcludeActors;
+	eastl::map<eastl::vector<ActorId>, float> mHeuristicActors;
+
 	NodeState mPlayerState, mOtherPlayerState;
 };
 

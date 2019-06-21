@@ -1093,24 +1093,75 @@ void QuakeAIProcess::ConstructActorPath(NodeState& playerState,
 							actorNode = currentArc->GetNode();
 						}
 
-						eastl::vector<ActorId> pathActors;
-						eastl::map<ActorId, float> clusterPathActors;
-						for (ActorId actor : actors) pathActors.push_back(actor);
-						for (auto actor : currentActors) clusterPathActors[actor.first] = actor.second;
-
-						clusterPathActors[actorId] = distance;
-						pathActors.erase(eastl::find(pathActors.begin(), pathActors.end(), actorId));
-
-						eastl::map<unsigned int, PathingCluster*> playerClusters;
-						actorNode->GetClusters(playerCluster->GetTarget()->GetCluster(), playerClusters);
-						if (playerClusters.size())
+						if (distance <= maxPathDistance)
 						{
-							PathingCluster* playerActorCluster = (*playerClusters.begin()).second;
-							if (playerClusters.find(playerCluster->GetType()) != playerClusters.end())
-								playerActorCluster = playerClusters[playerCluster->GetType()];
+							eastl::map<ActorId, float> clusterPathActors;
+							for (auto actor : currentActors) 
+								clusterPathActors[actor.first] = actor.second;
+							clusterPathActors[actorId] = distance;
 
-							ConstructActorPath(playerState, playerActorCluster, actorNode, maxPathDistance, 
-								pathActors, actorHeuristic, actorPathPlan, clusterPathActors, distance, pathPlan);
+							NodeState currentPlayerState(playerState);
+							PickupItems(currentPlayerState, clusterPathActors);
+							float currentHeuristic = HeuristicPlayerItems(currentPlayerState);
+
+							bool actorMatch = false;
+							bool skipActorPath = true;
+							eastl::map<eastl::vector<ActorId>, float>::iterator itActor;
+							for (itActor = mHeuristicActors.begin(); itActor != mHeuristicActors.end(); itActor++)
+							{
+								eastl::vector<ActorId> heuristicActors = (*itActor).first;
+								if (heuristicActors.size() == clusterPathActors.size())
+								{
+									actorMatch = true;
+									for (ActorId heuristicActor : heuristicActors)
+									{
+										if (clusterPathActors.find(heuristicActor) == clusterPathActors.end())
+										{
+											actorMatch = false;
+											break;
+										}
+									}
+
+									if (actorMatch)
+									{
+										if (currentHeuristic > (*itActor).second)
+										{
+											skipActorPath = false;
+											mHeuristicActors[heuristicActors] = currentHeuristic;
+										}
+										break;
+									}
+								}
+							}
+
+							if (!actorMatch)
+							{
+								skipActorPath = false;
+
+								eastl::vector<ActorId> pathActors;
+								for (auto clusterPathActor : clusterPathActors) 
+									pathActors.push_back(clusterPathActor.first);
+								mHeuristicActors[pathActors] = currentHeuristic;
+							}
+
+							if (!skipActorPath)
+							{
+								eastl::vector<ActorId> pathActors;
+								for (ActorId actor : actors) pathActors.push_back(actor);
+								pathActors.erase(eastl::find(pathActors.begin(), pathActors.end(), actorId));
+
+								eastl::map<unsigned int, PathingCluster*> playerClusters;
+								actorNode->GetClusters(playerCluster->GetTarget()->GetCluster(), playerClusters);
+								if (playerClusters.size())
+								{
+									PathingCluster* playerActorCluster = (*playerClusters.begin()).second;
+									if (playerClusters.find(playerCluster->GetType()) != playerClusters.end())
+										playerActorCluster = playerClusters[playerCluster->GetType()];
+
+									ConstructActorPath(playerState, playerActorCluster, actorNode, maxPathDistance, 
+										pathActors, actorHeuristic, actorPathPlan, clusterPathActors, distance, pathPlan);
+								}
+							}
 						}
 					}
 					clusterActors.erase(eastl::find(clusterActors.begin(), clusterActors.end(), actorId));
@@ -1139,7 +1190,7 @@ void QuakeAIProcess::ConstructActorPath(NodeState& playerState,
 			char status[64];
 			eastl::string playerStatus;
 
-			sprintf(status, "player   %u heuristic %f cluster %u : actors : ", 
+			sprintf(status, "player   %u heuristic %f cluster %u : actors : ",
 				currentPlayerState.player, currentHeuristic, currentNode->GetCluster());
 			playerStatus = status;
 			for (eastl::shared_ptr<Actor> pItemActor : currentPlayerState.items)
@@ -1217,6 +1268,7 @@ void QuakeAIProcess::ConstructPath(NodeState& playerState,
 		float currentDistance = 0.f, actorHeuristic = 0.f;
 		eastl::map<ActorId, float> currentActors;
 
+		mHeuristicActors.clear();
 		maxPathDistance += maxPathDistance * 0.5f;
 		ConstructActorPath(playerState, playerCluster, playerState.node, maxPathDistance, actors,
 			&actorHeuristic, actorPathPlan, currentActors, currentDistance, currentPathPlan);
