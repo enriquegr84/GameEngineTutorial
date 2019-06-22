@@ -28,6 +28,11 @@
 
 #include <mutex>
 
+class AIPlanNode;
+
+typedef eastl::list<AIPlanNode*> AIPlanNodeList;
+typedef eastl::vector<AIPlanNode*> AIPlanNodeVector;
+
 enum GameActionType
 {
 	GAT_MOVE = 0x0000000,
@@ -193,8 +198,76 @@ struct NodeState
 	eastl::map<eastl::shared_ptr<Actor>, float> itemDistance;
 };
 
+//--------------------------------------------------------------------------------------------------------
+// class AIPlanNode
+// This class is a helper used in AIManager::FindPath().
+//--------------------------------------------------------------------------------------------------------
+class AIPlanNode
+{
+	AIPlanNode* mPrevNode;  // node we just came from
+	PathingNode* mPathingNode;  // pointer to the pathing node from the pathing graph
+	PathingCluster* mGoalCluster;  // pointer to the goal cluster
+	bool mClosed;  // the node is closed if it's already been processed
+	float mDistance;  // distance of the entire path up to this point
+	float mHeuristic;  // heuristic of the entire path up to this point
+
+public:
+	explicit AIPlanNode(PathingNode* pNode, AIPlanNode* pPrevNode, 
+		PathingCluster* pGoalCluster, float distance, float heuristic);
+	AIPlanNode* GetPrev(void) const { return mPrevNode; }
+	PathingNode* GetPathingNode(void) const { return mPathingNode; }
+	PathingCluster* GetGoalCluster(void) const { return mGoalCluster; }
+	void GetPlanActors(eastl::map<ActorId, float>& planActors);
+	bool IsClosed(void) const { return mClosed; }
+	float GetHeuristic(void) const { return mHeuristic; }
+	float GetDistance(void) const { return mDistance; }
+
+	void UpdateNode(PathingNode* pNode, AIPlanNode* pPrev,
+		PathingCluster* pGoalCluster, float distance, float heuristic);
+	void SetClosed(bool toClose = true) { mClosed = toClose; }
+	bool IsBetterChoiceThan(AIPlanNode* pRight) { return (mHeuristic > pRight->GetHeuristic()); }
+};
+
+
+//--------------------------------------------------------------------------------------------------------
+// class AIFinder
+// This class implements the AIFinder algorithm.
+//--------------------------------------------------------------------------------------------------------
+class AIFinder
+{
+
+public:
+	AIFinder(void);
+	~AIFinder(void);
+	void Destroy(void);
+
+	void operator()(NodeState& pNodeState, 
+		PathingCluster* pGoalCluster, PathingArcVec& planPath, float threshold = FLT_MAX);
+
+protected:
+
+	AIPlanNodeVector mNodes;
+	AIPlanNodeList mOpenSet;
+
+	NodeState mNodeState;
+	PathingCluster* mGoalCluster;
+
+private:
+
+	AIPlanNode * FindPlanNode(eastl::vector<ActorId>& actors);
+
+	AIPlanNode* AddToOpenSet(PathingNode* pNode, AIPlanNode* pPrevNode,
+		PathingCluster* pGoalCluster, float distance, float heuristic);
+	void AddToClosedSet(AIPlanNode* pNode);
+	void InsertNode(AIPlanNode* pNode);
+	void ReinsertNode(AIPlanNode* pNode);
+	void RebuildPath(AIPlanNode* pGoalNode, PathingArcVec& planPath);
+};
+
 class QuakeAIManager : public AIManager
 {
+	friend class AIFinder;
+	friend class QuakeAIProcess;
 
 public:
 	QuakeAIManager();
@@ -242,6 +315,19 @@ public:
 
 protected:
 
+	float CalculateHeuristicPlayerItems(NodeState& playerState);
+	void CalculateHeuristic(NodeState& playerState, NodeState& otherPlayerState);
+	void CalculateDamage(NodeState& state, float visibleTime, float visibleDistance, float visibleHeight);
+
+	bool CanItemBeGrabbed(ActorId itemId, float itemTime, NodeState& playerState);
+	void PickupItems(NodeState& playerState, eastl::map<ActorId, float>& actors);
+
+	void SetExcludeActors(ActorId playerId);
+	void FindPath(NodeState& pNodeState, 
+		PathingCluster* pGoalCluster, PathingArcVec& planPath, float threshold = FLT_MAX);
+
+private:
+
 	void SimulateJump(PathingNode* pNode);
 	void SimulateMovement(PathingNode* pNode);
 	void SimulateTriggerPush(PathingNode* pNode, const Vector3<float>& target);
@@ -270,6 +356,39 @@ protected:
 	void PhysicsCollisionDelegate(BaseEventDataPtr pEventData);
 	void PhysicsSeparationDelegate(BaseEventDataPtr pEventData);
 
+	void RegisterAllDelegates(void);
+	void RemoveAllDelegates(void);
+
+	bool mEnable;
+	std::mutex mMutex;
+
+	unsigned int mLastArcId;
+	unsigned int mLastNodeId;
+
+	//set of nodes to be analized from the ground
+	eastl::vector<PathingNode*> mOpenSet, mClosedSet;
+
+	//pathing nodes which contains actors from game
+	eastl::map<PathingNode*, ActorId> mActorNodes;
+
+	//exclude actors for ai finder
+	eastl::map<ActorId, float> mExcludeActors;
+
+	//player ai states
+	eastl::map<ActorId, bool> mPlayers;
+	eastl::map<ActorId, ActorId> mPlayerTargets;
+	eastl::map<ActorId, WeaponType> mPlayerWeapons;
+	eastl::map<ActorId, NodeState> mPlayerStates;
+
+	eastl::map<ActorId, bool> mPlayerGuess;
+	eastl::map<ActorId, NodeState> mPlayerGuessStates;
+	eastl::map<ActorId, PathingNode*> mPlayerGuessNodes;
+	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessItems;
+
+	eastl::map<ActorId, float> mPlayerGuessTime;
+	eastl::map<ActorId, float> mPlayerGuessPlanTime;
+	eastl::map<ActorId, PathingArcVec> mPlayerGuessPlan;
+
 	// Orientation Controls
 	float mYaw;
 	float mPitch;
@@ -288,38 +407,6 @@ protected:
 	float mRotateSpeed;
 
 	eastl::shared_ptr<PlayerActor> mPlayerActor;
-
-private:
-
-	bool mEnable;
-	std::mutex mMutex;
-
-	unsigned int mLastArcId;
-	unsigned int mLastNodeId;
-
-	//set of nodes to be analized from the ground
-	eastl::vector<PathingNode*> mOpenSet, mClosedSet;
-
-	//pathing nodes which contains actors from game
-	eastl::map<PathingNode*, ActorId> mActorNodes;
-
-	//player ai states
-	eastl::map<ActorId, bool> mPlayers;
-	eastl::map<ActorId, ActorId> mPlayerTargets;
-	eastl::map<ActorId, WeaponType> mPlayerWeapons;
-	eastl::map<ActorId, NodeState> mPlayerStates;
-
-	eastl::map<ActorId, bool> mPlayerGuess;
-	eastl::map<ActorId, NodeState> mPlayerGuessStates;
-	eastl::map<ActorId, PathingNode*> mPlayerGuessNodes;
-	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessItems;
-
-	eastl::map<ActorId, float> mPlayerGuessTime;
-	eastl::map<ActorId, float> mPlayerGuessPlanTime;
-	eastl::map<ActorId, PathingArcVec> mPlayerGuessPlan;
-
-	void RegisterAllDelegates(void);
-	void RemoveAllDelegates(void);
 
 };   // QuakeAIManager
 

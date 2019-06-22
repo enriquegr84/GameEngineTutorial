@@ -59,20 +59,11 @@ public:
 
 protected:
 
-	float HeuristicPlayerItems(NodeState& playerState);
-	void Heuristic(NodeState& playerState, NodeState& otherPlayerState);
-	void Damage(NodeState& state, float visibleTime, float visibleDistance, float visibleHeight);
-	void PickupItems(NodeState& playerState, eastl::map<ActorId, float>& actors);
-
 	void Visibility(
 		PathingNode* playerNode, PathingArcVec& playerPathPlan,
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
 		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
-	void ConstructActorPath(NodeState& playerState, 
-		PathingCluster* playerCluster, PathingNode* currentNode, float maxPathDistance, 
-		eastl::vector<ActorId>& actors, float* actorHeuristic, PathingArcVec& actorPathPlan,
-		eastl::map<ActorId, float>& currentActors, float currentDistance, PathingArcVec& currentPlan);
 	void ConstructPath(NodeState& playerState,
 		PathingCluster* playerCluster, eastl::vector<PathingArcVec>& playerPathPlan);
 	void Simulation(
@@ -85,9 +76,6 @@ private:
 
 	FILE * mFile;
 	QuakeAIManager*	mAIManager;
-
-	eastl::map<ActorId, float> mExcludeActors;
-	eastl::map<eastl::vector<ActorId>, float> mHeuristicActors;
 
 	NodeState mPlayerState, mOtherPlayerState;
 };
