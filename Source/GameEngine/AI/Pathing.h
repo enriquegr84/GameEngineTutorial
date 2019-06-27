@@ -102,6 +102,8 @@ public:
 	unsigned int GetId(void) const { return mId; }
 	void SetActorId(ActorId actorId) { mActorId = actorId; }
 	ActorId GetActorId(void) const { return mActorId; }
+	void SetCluster(unsigned short clusterId) { mClusterId = clusterId; }
+	unsigned short GetCluster() { return mClusterId; }
 	float GetTolerance(void) const { return mTolerance; }
 	const Vector3<float>& GetPos(void) const { return mPos; }
 
@@ -122,9 +124,11 @@ public:
 	void AddClusterActor(PathingCluster* pCluster);
 	PathingCluster* FindCluster(PathingNode* pTargetNode);
 	PathingCluster* FindCluster(unsigned int clusterType, PathingNode* pTargetNode);
+	PathingCluster* FindClusterActor(PathingNode* pTargetNode);
+	PathingCluster* FindClusterActor(unsigned int clusterType, PathingNode* pTargetNode);
 
-	unsigned short GetCluster() { return mClusterId; }
-	void SetCluster(unsigned short clusterId) { mClusterId = clusterId; }
+	PathingCluster* GetClusterActor(unsigned int clusterType, unsigned short clusterId);
+	void GetClusterActors(unsigned short clusterId, eastl::map<unsigned int, PathingCluster*>& outClusters);
 	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit);
 	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters);
 	void GetClusterActors(PathingClusterVec& outClusters, unsigned int limit);

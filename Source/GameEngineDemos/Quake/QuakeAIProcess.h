@@ -61,9 +61,9 @@ protected:
 
 	void Visibility(
 		PathingNode* playerNode, PathingArcVec& playerPathPlan,
-		float* visibleTime, float* visibleDistance, float* visibleHeight,
 		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
-		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
+		bool* isVisible, float* visibleTime, float* visibleDistance, float* visibleHeight,
+		bool* isOtherVisible, float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
 	void ConstructPath(NodeState& playerState,
 		PathingCluster* playerCluster, eastl::vector<PathingArcVec>& playerPathPlan);
 	void Simulation(
@@ -74,7 +74,6 @@ protected:
 
 private:
 
-	FILE * mFile;
 	QuakeAIManager*	mAIManager;
 
 	NodeState mPlayerState, mOtherPlayerState;

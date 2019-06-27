@@ -57,6 +57,7 @@ struct NodeState
 
 		weapon = WP_NONE;
 		heuristic = 0.f;
+		isActualDamage = true;
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
 			stats[i] = 0;
@@ -79,7 +80,7 @@ struct NodeState
 
 		weapon = WP_NONE;
 		heuristic = 0.f;
-
+		isActualDamage = true;
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
 			stats[i] = playerActor->GetState().stats[i];
@@ -94,6 +95,7 @@ struct NodeState
 
 	NodeState(const NodeState& state) :
 		valid(state.valid), node(state.node),
+		isActualDamage(state.isActualDamage),
 		player(state.player), target(state.target),
 		weapon(state.weapon), heuristic(state.heuristic)
 	{
@@ -133,6 +135,7 @@ struct NodeState
 		node = state.node;
 		weapon = state.weapon;
 		heuristic = state.heuristic;
+		isActualDamage = state.isActualDamage;
 
 		path.clear();
 		for (PathingArc* pathArc : state.path)
@@ -189,6 +192,7 @@ struct NodeState
 
 	float heuristic;
 	WeaponType weapon;
+	bool isActualDamage;
 	int stats[MAX_STATS];
 	int ammo[MAX_WEAPONS];
 	int damage[MAX_WEAPONS];
@@ -254,13 +258,10 @@ protected:
 
 private:
 
-	AIPlanNode * FindPlanNode(eastl::vector<ActorId>& actors);
-
 	AIPlanNode* AddToOpenSet(PathingNode* pNode, AIPlanNode* pPrevNode,
 		PathingCluster* pGoalCluster, float distance, float heuristic);
 	void AddToClosedSet(AIPlanNode* pNode);
 	void InsertNode(AIPlanNode* pNode);
-	void ReinsertNode(AIPlanNode* pNode);
 	void RebuildPath(AIPlanNode* pGoalNode, PathingArcVec& planPath);
 };
 
@@ -314,6 +315,8 @@ public:
 	void DetectActor(eastl::shared_ptr<PlayerActor> playerActor, eastl::shared_ptr<Actor> item);
 
 protected:
+
+	FILE * mFile;
 
 	float CalculateHeuristicPlayerItems(NodeState& playerState);
 	void CalculateHeuristic(NodeState& playerState, NodeState& otherPlayerState);

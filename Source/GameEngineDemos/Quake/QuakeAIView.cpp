@@ -1050,14 +1050,18 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 
 						//smoothing camera rotation
-						if (mYaw - mYawSmooth > 180)
-							mYawSmooth--;
-						else if (mYaw - mYawSmooth < -180)
-							mYawSmooth++;
-						else if (mYaw > mYawSmooth)
-							mYawSmooth++;
-						else if (mYaw < mYawSmooth)
-							mYawSmooth--;
+						if (abs(mYawSmooth - mYaw) < 90)
+						{
+							if (mYaw - mYawSmooth > 180)
+								mYawSmooth--;
+							else if (mYaw - mYawSmooth < -180)
+								mYawSmooth++;
+							else if (mYaw > mYawSmooth)
+								mYawSmooth++;
+							else if (mYaw < mYawSmooth)
+								mYawSmooth--;
+						}
+						else mYawSmooth = mYaw;
 
 						yawRotation = Rotation<4, float>(
 							AxisAngle<4, float>(Vector4<float>::Unit(2), mYawSmooth * (float)GE_C_DEG_TO_RAD));

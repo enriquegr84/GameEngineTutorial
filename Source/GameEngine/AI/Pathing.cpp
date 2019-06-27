@@ -177,8 +177,11 @@ PathingCluster* PathingNode::GetCluster(unsigned int clusterType, unsigned short
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
-		if (pCluster->GetType() == clusterType && pCluster->GetTarget()->GetCluster() == clusterId)
-			return pCluster;
+		if (pCluster->GetType() == clusterType)
+		{
+			if (pCluster->GetTarget()->GetCluster() == clusterId && pCluster->GetActor() == INVALID_ACTOR_ID)
+				return pCluster;
+		}
 	}
 
 	return NULL;
@@ -189,7 +192,7 @@ void PathingNode::GetClusters(unsigned short clusterId, eastl::map<unsigned int,
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
-		if (pCluster->GetTarget()->GetCluster() == clusterId)
+		if (pCluster->GetTarget()->GetCluster() == clusterId && pCluster->GetActor() == INVALID_ACTOR_ID)
 			outClusters[pCluster->GetType()] = pCluster;
 	}
 }
@@ -229,6 +232,31 @@ void PathingNode::GetClusters(PathingClusterVec& outClusters, unsigned int limit
 				outClusters.push_back(pCluster);
 		}
 		else break;
+	}
+}
+
+PathingCluster* PathingNode::GetClusterActor(unsigned int clusterType, unsigned short clusterId)
+{
+	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetType() == clusterType)
+		{
+			if (pCluster->GetTarget()->GetCluster() == clusterId)
+				return pCluster;
+		}
+	}
+
+	return NULL;
+}
+
+void PathingNode::GetClusterActors(unsigned short clusterId, eastl::map<unsigned int, PathingCluster*>& outClusters)
+{
+	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetTarget()->GetCluster() == clusterId)
+			outClusters[pCluster->GetType()] = pCluster;
 	}
 }
 
@@ -276,7 +304,7 @@ PathingCluster* PathingNode::FindCluster(PathingNode* pTargetNode)
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
-		if (pCluster->GetTarget() == pTargetNode)
+		if (pCluster->GetTarget() == pTargetNode && pCluster->GetActor() == INVALID_ACTOR_ID)
 			return pCluster;
 	}
 	return NULL;
@@ -287,6 +315,35 @@ PathingCluster* PathingNode::FindCluster(unsigned int clusterType, PathingNode* 
 	LogAssert(pTargetNode, "Invalid node");
 
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetType() == clusterType)
+		{
+			if (pCluster->GetTarget() == pTargetNode && pCluster->GetActor() == INVALID_ACTOR_ID)
+				return pCluster;
+		}
+	}
+	return NULL;
+}
+
+PathingCluster* PathingNode::FindClusterActor(PathingNode* pTargetNode)
+{
+	LogAssert(pTargetNode, "Invalid node");
+
+	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetTarget() == pTargetNode)
+			return pCluster;
+	}
+	return NULL;
+}
+
+PathingCluster* PathingNode::FindClusterActor(unsigned int clusterType, PathingNode* pTargetNode)
+{
+	LogAssert(pTargetNode, "Invalid node");
+
+	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
 		if (pCluster->GetType() == clusterType)
