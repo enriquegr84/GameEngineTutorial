@@ -62,8 +62,10 @@ protected:
 	void Visibility(
 		PathingNode* playerNode, PathingArcVec& playerPathPlan,
 		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
-		bool* isVisible, float* visibleTime, float* visibleDistance, float* visibleHeight,
-		bool* isOtherVisible, float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
+		float* visibleTime, float* visibleDistance, float* visibleHeight,
+		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight,
+		float* potentialVisibleTime, float* potentialVisibleDistance, float* potentialVisibleHeight,
+		float* otherPotentialVisibleTime, float* otherPotentialVisibleDistance, float* otherPotentialVisibleHeight);
 	void ConstructPath(NodeState& playerState,
 		PathingCluster* playerCluster, eastl::vector<PathingArcVec>& playerPathPlan);
 	void Simulation(

@@ -56,8 +56,8 @@ struct NodeState
 		node = NULL;
 
 		weapon = WP_NONE;
+		potentialWeapon = WP_NONE;
 		heuristic = 0.f;
-		isActualDamage = true;
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
 			stats[i] = 0;
@@ -67,6 +67,7 @@ struct NodeState
 		{
 			ammo[i] = 0;
 			damage[i] = 0;
+			potentialDamage[i] = 0;
 		}
 	}
 
@@ -79,8 +80,8 @@ struct NodeState
 		node = NULL;
 
 		weapon = WP_NONE;
+		potentialWeapon = WP_NONE;
 		heuristic = 0.f;
-		isActualDamage = true;
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
 			stats[i] = playerActor->GetState().stats[i];
@@ -90,14 +91,15 @@ struct NodeState
 		{
 			ammo[i] = playerActor->GetState().ammo[i];
 			damage[i] = 0;
+			potentialDamage[i] = 0;
 		}
 	}
 
 	NodeState(const NodeState& state) :
 		valid(state.valid), node(state.node),
-		isActualDamage(state.isActualDamage),
 		player(state.player), target(state.target),
-		weapon(state.weapon), heuristic(state.heuristic)
+		weapon(state.weapon), potentialWeapon(state.potentialWeapon),
+		heuristic(state.heuristic)
 	{
 		for (PathingArc* pathArc : state.path)
 			path.push_back(pathArc);
@@ -111,6 +113,7 @@ struct NodeState
 		{
 			ammo[i] = state.ammo[i];
 			damage[i] = state.damage[i];
+			potentialDamage[i] = state.potentialDamage[i];
 		}
 
 		for (eastl::shared_ptr<Actor> item : state.items)
@@ -134,8 +137,8 @@ struct NodeState
 
 		node = state.node;
 		weapon = state.weapon;
+		potentialWeapon = state.potentialWeapon;
 		heuristic = state.heuristic;
-		isActualDamage = state.isActualDamage;
 
 		path.clear();
 		for (PathingArc* pathArc : state.path)
@@ -150,6 +153,7 @@ struct NodeState
 		{
 			ammo[i] = state.ammo[i];
 			damage[i] = state.damage[i];
+			potentialDamage[i] = state.potentialDamage[i];
 		}
 
 		items.clear();
@@ -192,10 +196,11 @@ struct NodeState
 
 	float heuristic;
 	WeaponType weapon;
-	bool isActualDamage;
+	WeaponType potentialWeapon;
 	int stats[MAX_STATS];
 	int ammo[MAX_WEAPONS];
 	int damage[MAX_WEAPONS];
+	int potentialDamage[MAX_WEAPONS];
 
 	eastl::vector<eastl::shared_ptr<Actor>> items;
 	eastl::map<eastl::shared_ptr<Actor>, int> itemAmount;
@@ -318,9 +323,11 @@ protected:
 
 	FILE * mFile;
 
-	float CalculateHeuristicPlayerItems(NodeState& playerState);
+	float CalculateHeuristicItems(NodeState& playerState);
 	void CalculateHeuristic(NodeState& playerState, NodeState& otherPlayerState);
-	void CalculateDamage(NodeState& state, float visibleTime, float visibleDistance, float visibleHeight);
+	void CalculateDamage(NodeState& state, 
+		float visibleTime, float visibleDistance, float visibleHeight,
+		float potentialVisibleTime, float potentialVisibleDistance, float potentialVisibleHeight);
 
 	bool CanItemBeGrabbed(ActorId itemId, float itemTime, NodeState& playerState);
 	void PickupItems(NodeState& playerState, eastl::map<ActorId, float>& actors);

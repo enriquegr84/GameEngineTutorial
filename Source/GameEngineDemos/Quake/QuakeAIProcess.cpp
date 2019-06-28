@@ -55,8 +55,10 @@ QuakeAIProcess::~QuakeAIProcess(void)
 void QuakeAIProcess::Visibility(
 	PathingNode* playerNode, PathingArcVec& playerPathPlan, 
 	PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
-	bool* isVisible, float* visibleTime, float* visibleDistance, float* visibleHeight,
-	bool* isOtherVisible, float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight)
+	float* visibleTime, float* visibleDistance, float* visibleHeight,
+	float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight,
+	float* potentialVisibleTime, float* potentialVisibleDistance, float* potentialVisibleHeight,
+	float* otherPotentialVisibleTime, float* otherPotentialVisibleDistance, float* otherPotentialVisibleHeight)
 {
 	float visibleWeight = 0.f;
 	float totalTime = 0.f, totalArcTime = 0.f;
@@ -159,7 +161,7 @@ void QuakeAIProcess::Visibility(
 			}
 		}
 
-		//lets put a minimum of potential visibility time
+		//lets put a minimum of visibility time
 		otherIndex--;
 		if (totalTime < 3.0f)
 		{
@@ -191,12 +193,13 @@ void QuakeAIProcess::Visibility(
 			}
 		}
 
-		//if visible time is below a minimum we take it as potential visibility
-		if ((*visibleTime) <= 0.4f)
+		//we have calculated the traversed visibility for both player but we also need to
+		//know the potential visibility from the pathway, in case that we couldn't see 
+		//or barely see nodes whilst travelling but there is visibility nevertheless
 		{
-			//though it wasn't found any visible node along the path we need to take into 
-			//consideration any potential visible node. That is how we differentiate when 
-			//there is no chance to see any node and when we might be able to find some
+			//we will take into account the nodes from the cluster destiny to see if there
+			//is any visible node from the other player pathway (closest to cluster destiny too)
+			bool isVisible = false;
 			PathingArcVec::reverse_iterator itOtherPathPlan = otherPlayerPathPlan.rbegin();
 			for (; itOtherPathPlan != otherPlayerPathPlan.rend(); itOtherPathPlan++)
 			{
@@ -211,78 +214,73 @@ void QuakeAIProcess::Visibility(
 					{
 						if (currentTransition->GetNodes()[index]->IsVisibleNode(otherPathNode))
 						{
-							(*visibleDistance) =
+							(*potentialVisibleDistance) =
 								Length(otherPathNode->GetPos() - currentTransition->GetConnections()[index]);
-							(*visibleDistance) *= visibleWeight;
-							(*visibleHeight) = 
+							(*potentialVisibleDistance) *= visibleWeight;
+							(*potentialVisibleHeight) =
 								(currentTransition->GetConnections()[index][2] - otherPathNode->GetPos()[2]);
-							(*visibleHeight) *= visibleWeight;
-							(*visibleTime) = visibleWeight;
+							(*potentialVisibleHeight) *= visibleWeight;
+							(*potentialVisibleTime) = visibleWeight;
 
-							(*otherVisibleDistance) = 
+							(*otherPotentialVisibleDistance) =
 								Length(otherPathNode->GetPos() - currentTransition->GetConnections()[index]);
-							(*otherVisibleDistance) *= visibleWeight;
-							(*otherVisibleHeight) = 
+							(*otherPotentialVisibleDistance) *= visibleWeight;
+							(*otherPotentialVisibleHeight) =
 								(otherPathNode->GetPos()[2] - currentTransition->GetConnections()[index][2]);
-							(*otherVisibleHeight) *= visibleWeight;
-							(*otherVisibleTime) = visibleWeight;
-
-							(*isVisible) = false;
-							(*isOtherVisible) = false;
+							(*otherPotentialVisibleHeight) *= visibleWeight;
+							(*otherPotentialVisibleTime) = visibleWeight;
+							
+							isVisible = true;
 							break;
 						}
 					}
 				}
 
-				if (!(*isVisible)) break;
+				if (isVisible) break;
 			}
-		}
 
-		if ((*otherVisibleTime) <= 0.4f)
-		{
-			//though it wasn't found any visible node along the path we need to take into 
-			//consideration any potential visible node. That is how we differentiate when 
-			//there is no chance to see any node and when we might be able to find some
-			PathingArcVec::reverse_iterator itPathPlan = playerPathPlan.rbegin();
-			for (; itPathPlan != playerPathPlan.rend(); itPathPlan++)
+			if (!isVisible)
 			{
-				PathingArc* pathArc = (*itPathPlan);
-
-				visibleWeight = 3.0f;
-				for (otherIndex = 0; otherIndex < otherCurrentTransition->GetNodes().size(); otherIndex++)
+				PathingArcVec::reverse_iterator itPathPlan = playerPathPlan.rbegin();
+				for (; itPathPlan != playerPathPlan.rend(); itPathPlan++)
 				{
-					if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-						otherCurrentTransition->GetNodes()[otherIndex]->GetCluster(), pathArc->GetNode()->GetCluster()))
+					PathingArc* pathArc = (*itPathPlan);
+
+					visibleWeight = 3.0f;
+					for (otherIndex = 0; otherIndex < otherCurrentTransition->GetNodes().size(); otherIndex++)
 					{
-						if (pathArc->GetNode()->IsVisibleNode(otherCurrentTransition->GetNodes()[otherIndex]))
+						if (mAIManager->GetPathingGraph()->IsVisibleCluster(
+							otherCurrentTransition->GetNodes()[otherIndex]->GetCluster(), pathArc->GetNode()->GetCluster()))
 						{
-							(*visibleDistance) = 
-								Length(otherCurrentTransition->GetConnections()[otherIndex] - pathArc->GetNode()->GetPos());
-							(*visibleDistance) *= visibleWeight;
-							(*visibleHeight) = 
-								(pathArc->GetNode()->GetPos()[2] - otherCurrentTransition->GetConnections()[otherIndex][2]);
-							(*visibleHeight) *= visibleWeight;
-							(*visibleTime) = visibleWeight;
+							if (pathArc->GetNode()->IsVisibleNode(otherCurrentTransition->GetNodes()[otherIndex]))
+							{
+								(*potentialVisibleDistance) =
+									Length(otherCurrentTransition->GetConnections()[otherIndex] - pathArc->GetNode()->GetPos());
+								(*potentialVisibleDistance) *= visibleWeight;
+								(*potentialVisibleHeight) =
+									(pathArc->GetNode()->GetPos()[2] - otherCurrentTransition->GetConnections()[otherIndex][2]);
+								(*potentialVisibleHeight) *= visibleWeight;
+								(*potentialVisibleTime) = visibleWeight;
 
-							(*otherVisibleDistance) = 
-								Length(otherCurrentTransition->GetConnections()[otherIndex] - pathArc->GetNode()->GetPos());
-							(*otherVisibleDistance) *= visibleWeight;
-							(*otherVisibleHeight) = 
-								(otherCurrentTransition->GetConnections()[otherIndex][2] - pathArc->GetNode()->GetPos()[2]);
-							(*otherVisibleHeight) *= visibleWeight;
-							(*otherVisibleTime) = visibleWeight;
+								(*otherPotentialVisibleDistance) =
+									Length(otherCurrentTransition->GetConnections()[otherIndex] - pathArc->GetNode()->GetPos());
+								(*otherPotentialVisibleDistance) *= visibleWeight;
+								(*otherPotentialVisibleHeight) =
+									(otherCurrentTransition->GetConnections()[otherIndex][2] - pathArc->GetNode()->GetPos()[2]);
+								(*otherPotentialVisibleHeight) *= visibleWeight;
+								(*otherPotentialVisibleTime) = visibleWeight;
 
-							(*isVisible) = false;
-							(*isOtherVisible) = false;
-							break;
+								isVisible = true;
+								break;
+							}
 						}
 					}
-				}
 
-				if (!(*isOtherVisible)) break;
+					if (isVisible) break;
+				}
 			}
 		}
-
+		
 		//average
 		if ((*visibleTime) > 0.f)
 		{
@@ -294,6 +292,18 @@ void QuakeAIProcess::Visibility(
 		{
 			(*otherVisibleDistance) /= (*otherVisibleTime);
 			(*otherVisibleHeight) /= (*otherVisibleTime);
+		}
+
+		if ((*potentialVisibleTime) > 0.f)
+		{
+			(*potentialVisibleDistance) /= (*potentialVisibleTime);
+			(*potentialVisibleHeight) /= (*potentialVisibleTime);
+		}
+
+		if ((*otherPotentialVisibleTime) > 0.f)
+		{
+			(*otherPotentialVisibleDistance) /= (*otherPotentialVisibleTime);
+			(*otherPotentialVisibleHeight) /= (*otherPotentialVisibleTime);
 		}
 	}
 }
@@ -341,31 +351,38 @@ void QuakeAIProcess::Simulation(
 				currentNode = otherPlayerArc->GetNode();
 			}
 
-			bool isVisible = true, isOtherVisible = true;
 			float visibleTime = 0, otherVisibleTime = 0;
 			float visibleHeight = 0, otherVisibleHeight = 0;
 			float visibleDistance = 0, otherVisibleDistance = 0;
+			float potentialVisibleTime = 0, otherPotentialVisibleTime = 0;
+			float potentialVisibleHeight = 0, otherPotentialVisibleHeight = 0;
+			float potentialVisibleDistance = 0, otherPotentialVisibleDistance = 0;
 			if (pathPlanWeight > otherPathPlanWeight)
 			{
 				Visibility(
 					playerNode, playerPathPlan, otherPlayerNode, otherPlayerPathPlan,
-					&isVisible, &visibleTime, &visibleDistance, &visibleHeight, 
-					&isOtherVisible, &otherVisibleTime, &otherVisibleDistance, &otherVisibleHeight);
+					&visibleTime, &visibleDistance, &visibleHeight, 
+					&otherVisibleTime, &otherVisibleDistance, &otherVisibleHeight,
+					&potentialVisibleTime, &potentialVisibleDistance, &potentialVisibleHeight,
+					&otherPotentialVisibleTime, &otherPotentialVisibleDistance, &otherPotentialVisibleHeight);
 			}
 			else
 			{
 				Visibility(
 					otherPlayerNode, otherPlayerPathPlan, playerNode, playerPathPlan,
-					&isOtherVisible, &otherVisibleTime, &otherVisibleDistance, &otherVisibleHeight, 
-					&isVisible, &visibleTime, &visibleDistance, &visibleHeight);
+					&otherVisibleTime, &otherVisibleDistance, &otherVisibleHeight, 
+					&visibleTime, &visibleDistance, &visibleHeight,
+					&otherPotentialVisibleTime, &otherPotentialVisibleDistance, &otherPotentialVisibleHeight,
+					&potentialVisibleTime, &potentialVisibleDistance, &potentialVisibleHeight);
 			}
 
 			//calculate damage
 			NodeState playerNodeState(playerState);
-			playerNodeState.isActualDamage = isVisible;
 			playerNodeState.path = playerPathPlan;
 			playerNodeState.node = playerPathPlan.back()->GetNode();
-			mAIManager->CalculateDamage(playerNodeState, visibleTime, visibleDistance, visibleHeight);
+			mAIManager->CalculateDamage(playerNodeState, 
+				visibleTime, visibleDistance, visibleHeight,
+				potentialVisibleTime, potentialVisibleDistance, potentialVisibleHeight);
 
 			eastl::map<ActorId, float> pathActors;
 			eastl::map<ActorId, float>::iterator itActor;
@@ -387,10 +404,11 @@ void QuakeAIProcess::Simulation(
 			mAIManager->PickupItems(playerNodeState, pathActors);
 
 			NodeState otherPlayerNodeState(otherPlayerState);
-			otherPlayerNodeState.isActualDamage = isOtherVisible;
 			otherPlayerNodeState.path = otherPlayerPathPlan;
 			otherPlayerNodeState.node = otherPlayerPathPlan.back()->GetNode();
-			mAIManager->CalculateDamage(otherPlayerNodeState, otherVisibleTime, otherVisibleDistance, otherVisibleHeight);
+			mAIManager->CalculateDamage(otherPlayerNodeState, 
+				otherVisibleTime, otherVisibleDistance, otherVisibleHeight,
+				otherPotentialVisibleTime, otherPotentialVisibleDistance, otherPotentialVisibleHeight);
 			
 			eastl::map<ActorId, float> otherPathActors;
 			eastl::map<ActorId, float>::iterator itOtherActor;
@@ -567,13 +585,11 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				fprintf(mAIManager->mFile, " damage : %i ",
 					playerClusterState.second.damage[playerClusterState.second.weapon - 1]);
 			}
-
-			PathingArcVec::iterator itArc = playerClusterState.second.path.begin();
-			for (; itArc != playerClusterState.second.path.end(); itArc++)
+			if (playerClusterState.second.potentialWeapon != WP_NONE)
 			{
-				//printf("%u ", (*itArc)->GetNode()->GetId());
+				fprintf(mAIManager->mFile, " potential damage : %i ",
+					playerClusterState.second.potentialDamage[playerClusterState.second.potentialWeapon - 1]);
 			}
-
 			if (!playerClusterState.second.items.empty())
 			{
 				fprintf(mAIManager->mFile, "other player cluster : %u ",
@@ -610,22 +626,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				}
 			}
 
-			if (abs(playerClusterState.second.heuristic - playerNodeState.heuristic) <= GE_ROUNDING_ERROR)
-			{
-				if (playerNodeState.weapon != WP_NONE && playerClusterState.second.weapon != WP_NONE)
-				{
-					if (playerClusterState.second.damage[playerClusterState.second.weapon - 1] >
-						playerNodeState.damage[playerNodeState.weapon - 1])
-					{
-						playerNodeState = playerClusterState.second;
-					}
-				}
-				else if (playerClusterState.second.weapon != WP_NONE)
-				{
-					playerNodeState = playerClusterState.second;
-				}
-			}
-			else if (playerClusterState.second.heuristic < playerNodeState.heuristic)
+			if (playerClusterState.second.heuristic < playerNodeState.heuristic)
 			{
 				playerNodeState = playerClusterState.second;
 			}
@@ -636,21 +637,19 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			if (playerNodeState.weapon != WP_NONE)
 			{
 				fprintf(mAIManager->mFile, " weapon : %u ", playerNodeState.weapon);
-				fprintf(mAIManager->mFile, " damage : %i ", playerNodeState.damage[playerNodeState.weapon - 1]);
+				fprintf(mAIManager->mFile, " damage : %i ", 
+					playerNodeState.damage[playerNodeState.weapon - 1]);
 			}
-			else
+			if (playerNodeState.potentialWeapon != WP_NONE)
 			{
-				fprintf(mAIManager->mFile, " weapon : 0 ");
-				fprintf(mAIManager->mFile, " damage : 0 ");
+				fprintf(mAIManager->mFile, " potential weapon : %u ", 
+					playerNodeState.potentialWeapon);
+				fprintf(mAIManager->mFile, " potential damage : %i ",
+					playerNodeState.potentialDamage[playerNodeState.potentialWeapon - 1]);
 			}
 
-			PathingArcVec::iterator itArc = playerNodeState.path.begin();
-			for (; itArc != playerNodeState.path.end(); itArc++)
-			{
-				//printf("%u ", (*itArc)->GetNode()->GetId());
-			}
-
-			if (!playerNodeState.items.empty()) fprintf(mAIManager->mFile, " actors : ");
+			if (!playerNodeState.items.empty()) 
+				fprintf(mAIManager->mFile, " actors : ");
 			for (eastl::shared_ptr<Actor> pItemActor : playerNodeState.items)
 			{
 				if (pItemActor->GetType() == "Weapon")
@@ -680,22 +679,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 		}
 
-		if (abs(playerNodeState.heuristic - mPlayerState.heuristic) <= GE_ROUNDING_ERROR)
-		{
-			if (mPlayerState.weapon != WP_NONE && playerNodeState.weapon != WP_NONE)
-			{
-				if (playerNodeState.damage[playerNodeState.weapon - 1] >
-					mPlayerState.damage[mPlayerState.weapon - 1])
-				{
-					mPlayerState.Copy(playerNodeState);
-				}
-			}
-			else if (playerNodeState.weapon != WP_NONE)
-			{
-				mPlayerState.Copy(playerNodeState);
-			}
-		}
-		else if (playerNodeState.heuristic > mPlayerState.heuristic)
+		if (playerNodeState.heuristic > mPlayerState.heuristic)
 		{
 			mPlayerState.Copy(playerNodeState);
 		}
@@ -705,19 +689,17 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		fprintf(mAIManager->mFile, "\n max heuristic : %f ", mPlayerState.heuristic);
 		if (mPlayerState.weapon != WP_NONE)
 		{
-			fprintf(mAIManager->mFile, " weapon : %u ", mPlayerState.weapon);
-			fprintf(mAIManager->mFile, " damage : %i ", mPlayerState.damage[mPlayerState.weapon - 1]);
+			fprintf(mAIManager->mFile, " weapon : %u ",
+				mPlayerState.weapon);
+			fprintf(mAIManager->mFile, " damage : %i ", 
+				mPlayerState.damage[mPlayerState.weapon - 1]);
 		}
-		else
+		if (mPlayerState.potentialWeapon != WP_NONE)
 		{
-			fprintf(mAIManager->mFile, " weapon : 0 ");
-			fprintf(mAIManager->mFile, " damage : 0 ");
-		}
-
-		PathingArcVec::iterator itArc = mPlayerState.path.begin();
-		for (; itArc != mPlayerState.path.end(); itArc++)
-		{
-			//printf("%u ", (*itArc)->GetNode()->GetId());
+			fprintf(mAIManager->mFile, " potential weapon : %u ", 
+				mPlayerState.potentialWeapon);
+			fprintf(mAIManager->mFile, " potential damage : %i ", 
+				mPlayerState.potentialDamage[mPlayerState.potentialWeapon - 1]);
 		}
 
 		if (!mPlayerState.items.empty()) fprintf(mAIManager->mFile, " actors : ");
@@ -769,12 +751,13 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 					otherPlayerClusterState.second.damage[
 					otherPlayerClusterState.second.weapon - 1]);
 			}
-
-			//printf("nodes : ");
-			PathingArcVec::iterator itArc = otherPlayerClusterState.second.path.begin();
-			for (; itArc != otherPlayerClusterState.second.path.end(); itArc++)
+			if (otherPlayerClusterState.second.potentialWeapon != WP_NONE)
 			{
-				//printf("%u ", (*itArc)->GetNode()->GetId());
+				fprintf(mAIManager->mFile, " potential weapon : %u ", 
+					otherPlayerClusterState.second.potentialWeapon);
+				fprintf(mAIManager->mFile, " potential damage : %i ",
+					otherPlayerClusterState.second.potentialDamage[
+					otherPlayerClusterState.second.potentialWeapon - 1]);
 			}
 
 			if (!otherPlayerClusterState.second.items.empty())
@@ -814,22 +797,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				}
 			}
 
-			if (abs(otherPlayerClusterState.second.heuristic - otherPlayerNodeState.heuristic) <= GE_ROUNDING_ERROR)
-			{
-				if (otherPlayerNodeState.weapon != WP_NONE && otherPlayerClusterState.second.weapon != WP_NONE)
-				{
-					if (otherPlayerClusterState.second.damage[otherPlayerClusterState.second.weapon - 1] >
-						otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1])
-					{
-						otherPlayerNodeState = otherPlayerClusterState.second;
-					}
-				}
-				else if (otherPlayerClusterState.second.weapon != WP_NONE)
-				{
-					otherPlayerNodeState = otherPlayerClusterState.second;
-				}
-			}
-			else if (otherPlayerClusterState.second.heuristic > otherPlayerNodeState.heuristic)
+			if (otherPlayerClusterState.second.heuristic > otherPlayerNodeState.heuristic)
 			{
 				otherPlayerNodeState = otherPlayerClusterState.second;
 			}
@@ -840,24 +808,21 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			fprintf(mAIManager->mFile, "\n max heuristic : %f ", otherPlayerNodeState.heuristic);
 			if (otherPlayerNodeState.weapon != WP_NONE)
 			{
-				fprintf(mAIManager->mFile, " weapon : %u ", otherPlayerNodeState.weapon);
+				fprintf(mAIManager->mFile, " weapon : %u ", 
+					otherPlayerNodeState.weapon);
 				fprintf(mAIManager->mFile, " damage : %i ",
 					otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1]);
 			}
-			else
+			if (otherPlayerNodeState.potentialWeapon != WP_NONE)
 			{
-				fprintf(mAIManager->mFile, " weapon : 0 ");
-				fprintf(mAIManager->mFile, " damage : 0 ");
+				fprintf(mAIManager->mFile, " potential weapon : %u ", 
+					otherPlayerNodeState.potentialWeapon);
+				fprintf(mAIManager->mFile, " potential damage : %i ",
+					otherPlayerNodeState.potentialDamage[otherPlayerNodeState.potentialWeapon - 1]);
 			}
 
-			//printf("nodes : ");
-			PathingArcVec::iterator itArc = otherPlayerNodeState.path.begin();
-			for (; itArc != otherPlayerNodeState.path.end(); itArc++)
-			{
-				//printf("%u ", (*itArc)->GetNode()->GetId());
-			}
-
-			if (!otherPlayerNodeState.items.empty()) fprintf(mAIManager->mFile, " actors : ");
+			if (!otherPlayerNodeState.items.empty()) 
+				fprintf(mAIManager->mFile, " actors : ");
 			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerNodeState.items)
 			{
 				if (pItemActor->GetType() == "Weapon")
@@ -887,22 +852,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 		}
 
-		if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) <= GE_ROUNDING_ERROR)
-		{
-			if (mOtherPlayerState.weapon != WP_NONE && otherPlayerNodeState.weapon != WP_NONE)
-			{
-				if (otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1] >
-					mOtherPlayerState.damage[mOtherPlayerState.weapon - 1])
-				{
-					mOtherPlayerState.Copy(otherPlayerNodeState);
-				}
-			}
-			else if (otherPlayerNodeState.weapon != WP_NONE)
-			{
-				mOtherPlayerState.Copy(otherPlayerNodeState);
-			}
-		}
-		else if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
+		if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
 		{
 			mOtherPlayerState.Copy(otherPlayerNodeState);
 		}
@@ -916,20 +866,16 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			fprintf(mAIManager->mFile, " damage : %i ",
 				mOtherPlayerState.damage[mOtherPlayerState.weapon - 1]);
 		}
-		else
+		if (mOtherPlayerState.potentialWeapon != WP_NONE)
 		{
-			fprintf(mAIManager->mFile, " weapon : 0 ");
-			fprintf(mAIManager->mFile, " damage : 0 ");
+			fprintf(mAIManager->mFile, " potential weapon : %u ", 
+				mOtherPlayerState.potentialWeapon);
+			fprintf(mAIManager->mFile, " potential damage : %i ",
+				mOtherPlayerState.potentialDamage[mOtherPlayerState.potentialWeapon - 1]);
 		}
 
-		//printf("nodes : ");
-		PathingArcVec::iterator itArc = mOtherPlayerState.path.begin();
-		for (; itArc != mOtherPlayerState.path.end(); itArc++)
-		{
-			//printf("%u ", (*itArc)->GetNode()->GetId());
-		}
-
-		if (!mOtherPlayerState.items.empty()) fprintf(mAIManager->mFile, " actors : ");
+		if (!mOtherPlayerState.items.empty())
+			fprintf(mAIManager->mFile, " actors : ");
 		for (eastl::shared_ptr<Actor> pItemActor : mOtherPlayerState.items)
 		{
 			if (pItemActor->GetType() == "Weapon")
@@ -1029,13 +975,6 @@ void QuakeAIProcess::ThreadProc( )
 				mPlayerState.node->GetId(), mPlayerState.heuristic, mPlayerState.target, mPlayerState.weapon,
 				mPlayerState.weapon > 0 ? mPlayerState.damage[mPlayerState.weapon - 1] : 0, mPlayerState.path.size());
 				*/
-				//printf("\n blue player nodes %u : ", mPlayerState.player);
-				PathingArcVec::iterator itArc = mPlayerState.path.begin();
-				for (; itArc != mPlayerState.path.end(); itArc++)
-				{
-					//printf("%u ", (*itArc)->GetNode()->GetId());
-				}
-
 				fprintf(mAIManager->mFile, "\n\n blue player   %f", mPlayerState.heuristic);
 				//printf("\n blue player actors  %u : ", mPlayerState.player);
 				if (!mPlayerState.items.empty()) fprintf(mAIManager->mFile, " actors : ");
@@ -1123,13 +1062,6 @@ void QuakeAIProcess::ThreadProc( )
 				mOtherPlayerState.node->GetId(), mOtherPlayerState.heuristic, mOtherPlayerState.target, mOtherPlayerState.weapon,
 				mOtherPlayerState.weapon > 0 ? mOtherPlayerState.damage[mOtherPlayerState.weapon - 1] : 0, mOtherPlayerState.path.size());
 				*/
-				//printf("\n red player nodes %u : ", mOtherPlayerState.player);
-				itArc = mOtherPlayerState.path.begin();
-				for (; itArc != mOtherPlayerState.path.end(); itArc++)
-				{
-					//printf("%u ", (*itArc)->GetNode()->GetId());
-				}
-
 				fprintf(mAIManager->mFile, "\n red player   %f", mOtherPlayerState.heuristic);
 				//printf("\n red player actors %u : ", mOtherPlayerState.player);
 				if (!mOtherPlayerState.items.empty()) fprintf(mAIManager->mFile, " actors : ");
