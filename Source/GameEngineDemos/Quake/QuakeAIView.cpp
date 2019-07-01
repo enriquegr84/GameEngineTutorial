@@ -63,6 +63,7 @@ QuakeAIView::QuakeAIView()
 {
 	mYaw = 0.0f;
 	mYawSmooth = 0.0f;
+	mYawSmoothTime = 0.0f;
 	mPitchTarget = 0.0f;
 
 	mOrientation = 1;
@@ -488,6 +489,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
 	if (!aiManager->IsEnable()) return;
 
+	mYawSmoothTime += deltaMs / 1000.f;
 	mCurrentActionTime -= deltaMs / 1000.f;
 
 	eastl::shared_ptr<PlayerActor> pPlayerActor(
@@ -763,7 +765,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							{
 								PathingArcVec pathPlan;
 								if (aiManager->IsPlayerUpdated(mPlayerId))
-									aiManager->GetPlayerPath(mPlayerId, pathPlan);
+								{
+									if (mCurrentPlan.size() == 0 || mCurrentPlan.size() > 2)
+										aiManager->GetPlayerPath(mPlayerId, pathPlan);
+								}
 
 								if (pathPlan.size())
 								{
@@ -1050,18 +1055,20 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 
 						//smoothing camera rotation
-						if (abs(mYawSmooth - mYaw) < 90)
+						if (mYaw - mYawSmooth > 180)
+							mYawSmooth--;
+						else if (mYaw - mYawSmooth < -180)
+							mYawSmooth++;
+						else if (mYaw > mYawSmooth)
+							mYawSmooth++;
+						else if (mYaw < mYawSmooth)
+							mYawSmooth--;
+						
+						if (mYawSmoothTime >= 2.0f)
 						{
-							if (mYaw - mYawSmooth > 180)
-								mYawSmooth--;
-							else if (mYaw - mYawSmooth < -180)
-								mYawSmooth++;
-							else if (mYaw > mYawSmooth)
-								mYawSmooth++;
-							else if (mYaw < mYawSmooth)
-								mYawSmooth--;
+							mYawSmooth = mYaw;
+							mYawSmoothTime = 0.f;
 						}
-						else mYawSmooth = mYaw;
 
 						yawRotation = Rotation<4, float>(
 							AxisAngle<4, float>(Vector4<float>::Unit(2), mYawSmooth * (float)GE_C_DEG_TO_RAD));

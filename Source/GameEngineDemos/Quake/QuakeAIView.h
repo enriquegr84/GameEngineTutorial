@@ -78,6 +78,7 @@ protected:
 	// Orientation Controls
 	float mYaw;
 	float mYawSmooth;
+	float mYawSmoothTime;
 	float mPitch;
 	float mPitchTarget;
 	float mPitchOnDown;
