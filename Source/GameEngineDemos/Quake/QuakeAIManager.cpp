@@ -1232,23 +1232,23 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 	}
 
 	//damage heuristic
-	int maxDamage = playerMaxDamage > otherPlayerMaxDamage ? playerMaxDamage : otherPlayerMaxDamage;
-	if (maxDamage > 0)
+	if (playerMaxDamage > 0 || otherPlayerMaxDamage > 0)
 	{
-		if (maxDamage < 100) maxDamage = 100;
-
 		//health & armor status
 		unsigned int maxHealth = 200;
 		unsigned int maxArmor = 200;
-		heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
-		heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
+		heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.15f;
+		heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.15f;
 
-		heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
-		heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
+		heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.15f;
+		heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.15f;
 
 		//damage
-		heuristic += (playerMaxDamage / maxDamage) * 0.4f;
-		heuristic -= (otherPlayerMaxDamage / maxDamage) * 0.4f;
+		int maxDamage = 300;
+		if (playerMaxDamage > maxDamage) maxDamage = playerMaxDamage;
+		if (otherPlayerMaxDamage > maxDamage) maxDamage = otherPlayerMaxDamage;
+		heuristic += (playerMaxDamage / maxDamage) * 0.6f;
+		heuristic -= (otherPlayerMaxDamage / maxDamage) * 0.6f;
 	}
 
 	playerState.heuristic = heuristic;
@@ -1260,7 +1260,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 {
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
 	{
-		int shotCount = visibleTime > 0.f ? 1 : 0;
+		int shotCount = visibleTime > 0.2f ? 1 : 0;
 
 		if (weapon != WP_GAUNTLET)
 		{

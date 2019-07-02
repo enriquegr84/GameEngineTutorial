@@ -679,7 +679,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							if (mCurrentNode == NULL)
 								mCurrentNode = currentNode;
 
-							bool searchNode = true;
+							bool searchNode = false;
 							if (mCurrentNode->GetActorId() != INVALID_ACTOR_ID)
 							{
 								eastl::shared_ptr<Actor> pItemActor(
@@ -699,8 +699,12 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									Vector3<float> diff = pTriggerTransform->GetPosition() - currentPosition;
 									diff[YAW] = 0.f;
 
-									if (Length(diff) > 4.0f)
-										searchNode = false;
+									if (Length(diff) <= 4.0f)
+									{
+										searchNode = true;
+										if (!mCurrentPlan.empty())
+											mCurrentPlan.erase(mCurrentPlan.begin());
+									}
 								}
 								else if (mCurrentActor != mCurrentNode->GetActorId())
 								{
@@ -709,23 +713,35 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									Vector3<float> diff = pTransform->GetPosition() - currentPosition;
 									diff[YAW] = 0.f;
 									
-									if (Length(diff) > 6.0f)
-										searchNode = false;
-									else
+									if (Length(diff) <= 6.0f)
+									{
+										searchNode = true;
+										if (!mCurrentPlan.empty())
+											mCurrentPlan.erase(mCurrentPlan.begin());
 										mCurrentActor = mCurrentNode->GetActorId();
+									}
+
 								}
 								else
 								{
 									Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
-									if (Length(diff) > 6.0f)
-										searchNode = false;
+									if (Length(diff) <= 6.0f)
+									{
+										searchNode = true;
+										if (!mCurrentPlan.empty())
+											mCurrentPlan.erase(mCurrentPlan.begin());
+									}
 								}
 							}
 							else
 							{
 								Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
-								if (Length(diff) > 6.0f)
-									searchNode = false;
+								if (Length(diff) <= 6.0f)
+								{
+									searchNode = true;
+									if (!mCurrentPlan.empty())
+										mCurrentPlan.erase(mCurrentPlan.begin());
+								}
 							}
 
 							if (mCurrentActionTime <= 0.f)
@@ -765,10 +781,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							{
 								PathingArcVec pathPlan;
 								if (aiManager->IsPlayerUpdated(mPlayerId))
-								{
-									if (mCurrentPlan.size() == 0 || mCurrentPlan.size() > 2)
-										aiManager->GetPlayerPath(mPlayerId, pathPlan);
-								}
+									aiManager->GetPlayerPath(mPlayerId, pathPlan);
 
 								if (pathPlan.size())
 								{
@@ -820,7 +833,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									}
 								}
 
-								if (mCurrentPlan.size())
+								if (!mCurrentPlan.empty())
 								{
 									PathingArcVec::iterator itArc = mCurrentPlan.begin();
 	
@@ -832,7 +845,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									Normalize(direction);
 									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
-									mCurrentPlan.erase(mCurrentPlan.begin());
 									mGoalNode = NULL;
 									searchNode = false;
 								}
@@ -1055,16 +1067,18 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
 
 						//smoothing camera rotation
-						if (mYaw - mYawSmooth > 180)
-							mYawSmooth--;
-						else if (mYaw - mYawSmooth < -180)
-							mYawSmooth++;
-						else if (mYaw > mYawSmooth)
-							mYawSmooth++;
-						else if (mYaw < mYawSmooth)
-							mYawSmooth--;
-						
-						if (mYawSmoothTime >= 2.0f)
+						if (abs(mYawSmooth - mYaw) < 90)
+						{
+							if (mYaw - mYawSmooth > 180)
+								mYawSmooth--;
+							else if (mYaw - mYawSmooth < -180)
+								mYawSmooth++;
+							else if (mYaw > mYawSmooth)
+								mYawSmooth++;
+							else if (mYaw < mYawSmooth)
+								mYawSmooth--;
+						}
+						else if (mYawSmoothTime >= 2.0f)
 						{
 							mYawSmooth = mYaw;
 							mYawSmoothTime = 0.f;
