@@ -1212,6 +1212,15 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 	heuristic += CalculateHeuristicItems(playerState);
 	heuristic -= CalculateHeuristicItems(otherPlayerState);
 
+	//health & armor status
+	unsigned int maxHealth = 200;
+	unsigned int maxArmor = 200;
+	heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
+	heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
+
+	heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
+	heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
+
 	//heuristic from damage dealing
 	int playerMaxDamage = 0, otherPlayerMaxDamage = 0;
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
@@ -1234,21 +1243,12 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 	//damage heuristic
 	if (playerMaxDamage > 0 || otherPlayerMaxDamage > 0)
 	{
-		//health & armor status
-		unsigned int maxHealth = 200;
-		unsigned int maxArmor = 200;
-		heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.15f;
-		heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.15f;
-
-		heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.15f;
-		heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.15f;
-
 		//damage
 		int maxDamage = 300;
 		if (playerMaxDamage > maxDamage) maxDamage = playerMaxDamage;
 		if (otherPlayerMaxDamage > maxDamage) maxDamage = otherPlayerMaxDamage;
-		heuristic += (playerMaxDamage / maxDamage) * 0.6f;
-		heuristic -= (otherPlayerMaxDamage / maxDamage) * 0.6f;
+		heuristic += (playerMaxDamage / maxDamage) * 0.4f;
+		heuristic -= (otherPlayerMaxDamage / maxDamage) * 0.4f;
 	}
 
 	playerState.heuristic = heuristic;
@@ -1272,7 +1272,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 				switch (weapon)
 				{
 					case WP_LIGHTNING:
-						damage = 5;
+						damage = 6;
 						fireTime = 0.05f;
 						state.damage[weapon - 1] = 0;
 						if (visibleTime > fireTime)
@@ -1310,9 +1310,15 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 						damage = 100;
 						fireTime = 0.8f;
 						if (visibleHeight <= 30.f)
+						{
 							rangeDistance = visibleDistance > 700 ? visibleDistance : 700;
+							if (visibleDistance < 120) rangeDistance = visibleDistance * 2;
+						}
 						else
+						{
 							rangeDistance = visibleDistance > 1000 ? visibleDistance : 1000;
+							if (visibleDistance < 120) rangeDistance = visibleDistance * 3;
+						}
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
@@ -1320,7 +1326,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 							(1.f - (visibleDistance / rangeDistance)) * shotCount);
 						break;
 					case WP_PLASMAGUN:
-						damage = 10;
+						damage = 20;
 						fireTime = 0.1f;
 						rangeDistance = visibleDistance > 300 ? visibleDistance : 300;
 						if (visibleTime > fireTime)
@@ -1448,20 +1454,14 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 						continue;
 				}
 
-				// add the weapon
-				playerState.stats[STAT_WEAPONS] |= (1 << pWeaponPickup->GetCode());
-
 				// add ammo
-				playerState.ammo[pWeaponPickup->GetCode()] += pWeaponPickup->GetAmmo();
-				if (playerState.ammo[pWeaponPickup->GetCode()] > 200)
+				int ammo = playerState.ammo[pWeaponPickup->GetCode()] + pWeaponPickup->GetAmmo();
+				if (ammo > 200)
 				{
 					//add amount and distance
 					playerState.items.push_back(pItemActor);
 					playerState.itemDistance[pItemActor] = actor.second;
-					playerState.itemAmount[pItemActor] = pWeaponPickup->GetAmmo() -
-						(playerState.ammo[pWeaponPickup->GetCode()] - 200);
-
-					playerState.ammo[pWeaponPickup->GetCode()] = 200;
+					playerState.itemAmount[pItemActor] = pWeaponPickup->GetAmmo() - (ammo - 200);
 				}
 				else
 				{
@@ -1486,16 +1486,13 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 						continue;
 				}
 
-				playerState.ammo[pAmmoPickup->GetCode()] += pAmmoPickup->GetAmount();
-				if (playerState.ammo[pAmmoPickup->GetCode()] > 200)
+				int ammo = playerState.ammo[pAmmoPickup->GetCode()] + pAmmoPickup->GetAmount();
+				if (ammo > 200)
 				{
 					//add ammunt and distance
 					playerState.items.push_back(pItemActor);
 					playerState.itemDistance[pItemActor] = actor.second;
-					playerState.itemAmount[pItemActor] = pAmmoPickup->GetAmount() -
-						(playerState.ammo[pAmmoPickup->GetCode()] - 200);
-
-					playerState.ammo[pAmmoPickup->GetCode()] = 200;
+					playerState.itemAmount[pItemActor] = pAmmoPickup->GetAmount() - (ammo - 200);
 				}
 				else
 				{
@@ -1520,16 +1517,14 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 						continue;
 				}
 
-				playerState.stats[STAT_ARMOR] += pArmorPickup->GetAmount();
-				if (playerState.stats[STAT_ARMOR] > playerState.stats[STAT_MAX_HEALTH] * 2)
+				int armor = playerState.stats[STAT_ARMOR] + pArmorPickup->GetAmount();
+				if (armor > playerState.stats[STAT_MAX_HEALTH] * 2)
 				{
 					//add ammount and distance
 					playerState.items.push_back(pItemActor);
 					playerState.itemDistance[pItemActor] = actor.second;
 					playerState.itemAmount[pItemActor] = pArmorPickup->GetAmount() -
-						(playerState.stats[STAT_ARMOR] - playerState.stats[STAT_MAX_HEALTH] * 2);
-
-					playerState.stats[STAT_ARMOR] = playerState.stats[STAT_MAX_HEALTH] * 2;
+						(armor - playerState.stats[STAT_MAX_HEALTH] * 2);
 				}
 				else
 				{
@@ -1561,16 +1556,13 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 				else
 					max = playerState.stats[STAT_MAX_HEALTH] * 2;
 
-				playerState.stats[STAT_HEALTH] += pHealthPickup->GetAmount();
-				if (playerState.stats[STAT_HEALTH] > max)
+				int health = playerState.stats[STAT_HEALTH] + pHealthPickup->GetAmount();
+				if (health > max)
 				{
 					//add ammount and distance
 					playerState.items.push_back(pItemActor);
 					playerState.itemDistance[pItemActor] = actor.second;
-					playerState.itemAmount[pItemActor] = pHealthPickup->GetAmount() -
-						(playerState.stats[STAT_HEALTH] - max);
-
-					playerState.stats[STAT_HEALTH] = max;
+					playerState.itemAmount[pItemActor] = pHealthPickup->GetAmount() - (health - max);
 				}
 				else
 				{
@@ -1636,6 +1628,41 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 				printf("\n current guess path player %u : ", pPlayerActor->GetId());
 				for (PathingArc* pathArc : mPlayerGuessPlan[pPlayerActor->GetId()])
 					printf("%u ", pathArc->GetNode()->GetId());
+
+				if (pPlayerActor->GetId() == 65)
+				{
+					NodeState guessState;
+					GetPlayerGuessState(pPlayerActor->GetId(), guessState);
+					if (!guessItems.empty())
+						printf("\n current guess actors player %u : ", pPlayerActor->GetId());
+					for (eastl::shared_ptr<Actor> pItemActor : guessState.items)
+					{
+						if (pItemActor->GetType() == "Weapon")
+						{
+							eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+								pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+							printf("weapon %u ", pWeaponPickup->GetCode());
+						}
+						else if (pItemActor->GetType() == "Ammo")
+						{
+							eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+								pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+							printf("ammo %u ", pAmmoPickup->GetCode());
+						}
+						else if (pItemActor->GetType() == "Armor")
+						{
+							eastl::shared_ptr<ArmorPickup> pArmorPickup =
+								pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+							printf("armor %u ", pArmorPickup->GetCode());
+						}
+						else if (pItemActor->GetType() == "Health")
+						{
+							eastl::shared_ptr<HealthPickup> pHealthPickup =
+								pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+							printf("health %u ", pHealthPickup->GetCode());
+						}
+					}
+				}
 				*/
 			}
 
@@ -1681,6 +1708,8 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 							{
 								eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 									pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+								//printf("\n current guess item weapon %u ", pWeaponPickup->GetCode());
+
 								// add the weapon
 								guessState.stats[STAT_WEAPONS] |= (1 << pWeaponPickup->GetCode());
 
@@ -1693,6 +1722,8 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 							{
 								eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 									pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+								//printf("\n current guess item ammo %u ", pAmmoPickup->GetCode());
+
 								guessState.ammo[pAmmoPickup->GetCode()] += guessState.itemAmount[pItemActor];
 
 								guessItems[actor] = (float)pAmmoPickup->GetWait();
@@ -1701,6 +1732,8 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 							{
 								eastl::shared_ptr<ArmorPickup> pArmorPickup =
 									pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+								//printf("\n current guess item armor %u ", pArmorPickup->GetCode());
+
 								guessState.stats[STAT_ARMOR] += guessState.itemAmount[pItemActor];
 
 								guessItems[actor] = (float)pArmorPickup->GetWait();
@@ -1709,6 +1742,8 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 							{
 								eastl::shared_ptr<HealthPickup> pHealthPickup =
 									pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+								//printf("\n current guess item health %u ", pHealthPickup->GetCode());
+
 								guessState.stats[STAT_HEALTH] += guessState.itemAmount[pItemActor];
 
 								guessItems[actor] = (float)pHealthPickup->GetWait();
@@ -1856,7 +1891,8 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 						mPlayerGuessTime[pPlayerActor->GetId()] = 0.f;
 						resetGuessPlayer = true;
 					}
-					else if (otherPlayerNode->IsVisibleNode(GetPlayerGuessNode(pPlayerActor->GetId())))
+					else if (mPathingGraph->IsVisibleCluster(
+						otherPlayerNode->GetCluster(), GetPlayerGuessNode(pPlayerActor->GetId())->GetCluster()))
 					{
 						//distrust the guessing plan and reset guess player status
 						resetGuessPlayer = true;

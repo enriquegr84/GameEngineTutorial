@@ -76,9 +76,9 @@ protected:
 
 private:
 
-	QuakeAIManager*	mAIManager;
-
 	NodeState mPlayerState, mOtherPlayerState;
+
+	QuakeAIManager*	mAIManager;
 };
 
 #endif
