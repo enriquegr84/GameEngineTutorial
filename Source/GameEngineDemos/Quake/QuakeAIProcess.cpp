@@ -57,230 +57,186 @@ void QuakeAIProcess::Visibility(
 	float* visibleTime, float* visibleDistance, float* visibleHeight,
 	float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight)
 {
-	float visibleWeight = 0.f;
-	float totalTime = 0.f, totalArcTime = 0.f;
-	unsigned int index = 0, otherIndex = 0, otherPathIndex = 0;
+	eastl::map<unsigned int, PathingNode*> currentClusters, otherCurrentClusters;
 
+	//First we calculate the potential visibility from both pathways as an average estimation of visibility
 	PathingNode* currentNode = playerNode;
-	PathingTransition* currentTransition = NULL;
-	PathingNodeVec transitionNodes;
-
-	PathingNode* otherCurrentNode = otherPlayerNode;
-	PathingTransition* otherCurrentTransition =
-		otherCurrentNode->FindTransition(otherPlayerPathPlan[otherPathIndex]->GetId());
-	PathingNodeVec otherTransitionNodes = otherCurrentTransition->GetNodes();
-
+	currentClusters[currentNode->GetCluster()] = currentNode;
 	for (PathingArc* currentArc : playerPathPlan)
 	{
-		index = 0;
-		currentTransition = currentNode->FindTransition(currentArc->GetId());
-		transitionNodes = currentTransition->GetNodes();
-		for (; index < transitionNodes.size(); index++)
-		{
-			visibleWeight = currentTransition->GetWeights()[index];
-			if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-				transitionNodes[index]->GetCluster(), otherTransitionNodes[otherIndex]->GetCluster()))
-			{
-				if (transitionNodes[index]->IsVisibleNode(otherTransitionNodes[otherIndex]))
-				{
-					(*visibleDistance) += Length(
-						otherCurrentTransition->GetConnections()[otherIndex] -
-						currentTransition->GetConnections()[index]) * visibleWeight;
-					(*visibleHeight) +=
-						(currentTransition->GetConnections()[index][2] -
-						otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
-					(*visibleTime) += visibleWeight;
+		PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
+		for (PathingNode* transitionNode : currentTransition->GetNodes())
+			currentClusters[transitionNode->GetCluster()] = transitionNode;
 
-					(*otherVisibleDistance) += Length(
-						otherCurrentTransition->GetConnections()[otherIndex] -
-						currentTransition->GetConnections()[index]) * visibleWeight;
-					(*otherVisibleHeight) +=
-						(otherCurrentTransition->GetConnections()[otherIndex][2] -
-						currentTransition->GetConnections()[index][2]) * visibleWeight;
-					(*otherVisibleTime) += visibleWeight;
-				}
-			}
-			while (totalArcTime <= totalTime)
-			{
-				totalArcTime += otherCurrentTransition->GetWeights()[otherIndex];
-				if (otherIndex + 1 >= otherTransitionNodes.size())
-				{
-					if (otherPathIndex + 1 < otherPlayerPathPlan.size())
-					{
-						otherIndex = 0;
-						otherCurrentNode = otherPlayerPathPlan[otherPathIndex]->GetNode();
-
-						otherPathIndex++;
-						otherCurrentTransition = otherCurrentNode->FindTransition(
-							otherPlayerPathPlan[otherPathIndex]->GetId());
-						otherTransitionNodes = otherCurrentTransition->GetNodes();
-					}
-					else break;
-				}
-				else otherIndex++;
-			}
-			totalTime += visibleWeight;
-		}
 		currentNode = currentArc->GetNode();
+		currentClusters[currentNode->GetCluster()] = currentNode;
 	}
 
-	if (currentTransition)
+	PathingNode* otherCurrentNode = otherPlayerNode;
+	otherCurrentClusters[otherCurrentNode->GetCluster()] = otherCurrentNode;
+	for (PathingArc* otherCurrentArc : otherPlayerPathPlan)
 	{
-		index--;
-		otherCurrentTransition = otherCurrentNode->FindTransition(
-			otherPlayerPathPlan[otherPathIndex]->GetId());
-		otherTransitionNodes = otherCurrentTransition->GetNodes();
-		for (; otherIndex < otherTransitionNodes.size(); otherIndex++)
-		{
-			visibleWeight = currentTransition->GetWeights()[index];
-			if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-				transitionNodes[index]->GetCluster(), otherTransitionNodes[otherIndex]->GetCluster()))
-			{
-				if (transitionNodes[index]->IsVisibleNode(otherTransitionNodes[otherIndex]))
-				{
-					(*visibleDistance) += Length(
-						otherCurrentTransition->GetConnections()[otherIndex] -
-						currentTransition->GetConnections()[index]) * visibleWeight;
-					(*visibleHeight) +=
-						(currentTransition->GetConnections()[index][2] -
-						otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
-					(*visibleTime) += visibleWeight;
+		PathingTransition* otherCurrentTransition = otherCurrentNode->FindTransition(otherCurrentArc->GetId());
+		for (PathingNode* otherTransitionNode : otherCurrentTransition->GetNodes())
+			otherCurrentClusters[otherTransitionNode->GetCluster()] = otherTransitionNode;
 
-					(*otherVisibleDistance) += Length(
-						otherCurrentTransition->GetConnections()[otherIndex] -
-						currentTransition->GetConnections()[index]) * visibleWeight;
-					(*otherVisibleHeight) +=
-						(otherCurrentTransition->GetConnections()[otherIndex][2] -
-						currentTransition->GetConnections()[index][2]) * visibleWeight;
-					(*otherVisibleTime) += visibleWeight;
+		otherCurrentNode = otherCurrentArc->GetNode();
+		otherCurrentClusters[otherCurrentNode->GetCluster()] = otherCurrentNode;
+	}
+
+	float visibleWeight = 0.f;
+	unsigned int visibleClusterCount = 0;
+	float visibleAverageDistance = 0.f, visibleAverageHeight = 0.f;
+	float otherVisibleAverageDistance = 0.f, otherVisibleAverageHeight = 0.f;
+	unsigned int visibleClusterSize = currentClusters.size() * otherCurrentClusters.size();
+	for (auto currentCluster : currentClusters)
+	{
+		for (auto otherCurrentCluster : otherCurrentClusters)
+		{
+			if (mAIManager->GetPathingGraph()->IsVisibleCluster(currentCluster.first, otherCurrentCluster.first))
+			{
+				if (currentCluster.second->IsVisibleNode(otherCurrentCluster.second))
+				{
+					visibleClusterCount++;
+
+					visibleAverageDistance += Length(
+						otherCurrentCluster.second->GetPos() - currentCluster.second->GetPos());
+					visibleAverageHeight +=
+						(currentCluster.second->GetPos()[2] - otherCurrentCluster.second->GetPos()[2]);
+
+					otherVisibleAverageDistance += Length(
+						otherCurrentCluster.second->GetPos() - currentCluster.second->GetPos());
+					otherVisibleAverageHeight +=
+						(otherCurrentCluster.second->GetPos()[2] - currentCluster.second->GetPos()[2]);
+				}
+			}
+		}
+	}
+
+	if (visibleClusterCount > 0)
+	{
+		visibleWeight = 2.0f * (visibleClusterCount / (float)visibleClusterSize);
+		visibleAverageDistance /= (float)visibleClusterCount;
+		visibleAverageHeight /= (float)visibleClusterCount;
+
+		(*visibleDistance) += visibleAverageDistance * visibleWeight;
+		(*visibleHeight) += visibleAverageHeight * visibleWeight;
+		(*visibleTime) += visibleWeight;
+
+		(*otherVisibleDistance) += otherVisibleAverageDistance * visibleWeight;
+		(*otherVisibleHeight) += otherVisibleAverageHeight * visibleWeight;
+		(*otherVisibleTime) += visibleWeight;
+	}
+
+	//next we need to know the potential visibility from their ending positions. We will calculate
+	//the visibility from every ending node toward the others ending positions.
+	currentClusters.clear();
+	PathingCluster* targetCluster = currentNode->GetCluster(GAT_JUMP, otherCurrentNode->GetCluster());
+	if (targetCluster != NULL)
+	{
+		currentClusters[currentNode->GetCluster()] = currentNode;
+		while (currentNode != targetCluster->GetTarget())
+		{
+			PathingCluster* currentCluster =
+				currentNode->FindCluster(targetCluster->GetType(), targetCluster->GetTarget());
+			PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
+			PathingTransition* currentTransition = currentNode->FindTransition(currentArc->GetId());
+			for (PathingNode* transitionNode : currentTransition->GetNodes())
+				currentClusters[transitionNode->GetCluster()] = transitionNode;
+
+			currentNode = currentArc->GetNode();
+			currentClusters[currentNode->GetCluster()] = currentNode;
+		}
+
+		visibleWeight = 0.f;
+		visibleClusterCount = 0;
+		visibleAverageDistance = 0.f, visibleAverageHeight = 0.f;
+		visibleClusterSize = currentClusters.size();
+		for (auto currentCluster : currentClusters)
+		{
+			if (mAIManager->GetPathingGraph()->IsVisibleCluster(currentCluster.first, otherCurrentNode->GetCluster()))
+			{
+				if (currentCluster.second->IsVisibleNode(otherCurrentNode))
+				{
+					visibleClusterCount++;
+
+					visibleAverageDistance += Length(otherCurrentNode->GetPos() - currentCluster.second->GetPos());
+					visibleAverageHeight += (currentCluster.second->GetPos()[2] - otherCurrentNode->GetPos()[2]);
 				}
 			}
 		}
 
-		//at this point we have calculated accurrately the visible distance for simultaneous
-		//path travelling but we are still missing potential visibility from the ending nodes.
-		//We will calculate how long does it take to see each other nodes from their ending positions
-		//and take that distance difference as a measure of potential visibility 
-		//(the closer distance to travel the more visible)
-		otherIndex--;
-
-		bool isVisible = false;
-		currentNode = transitionNodes[index];
-		otherCurrentNode = otherTransitionNodes[otherIndex];
-		if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-			currentNode->GetCluster(), otherCurrentNode->GetCluster()))
+		if (visibleClusterCount > 0)
 		{
-			if (currentNode->IsVisibleNode(otherCurrentNode))
-			{
-				visibleWeight = 4.0f;
+			visibleWeight = 2.0f * (visibleClusterCount / (float)visibleClusterSize);
+			visibleAverageDistance /= (float)visibleClusterCount;
+			visibleAverageHeight /= (float)visibleClusterCount;
 
-				(*visibleDistance) += Length(
-					otherCurrentTransition->GetConnections()[otherIndex] -
-					currentTransition->GetConnections()[index]) * visibleWeight;
-				(*visibleHeight) +=
-					(currentTransition->GetConnections()[index][2] -
-					otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
-				(*visibleTime) += visibleWeight;
+			(*visibleDistance) += visibleAverageDistance * visibleWeight;
+			(*visibleHeight) += visibleAverageHeight * visibleWeight;
+			(*visibleTime) += visibleWeight;
+		}
+	}
 
-				(*otherVisibleDistance) += Length(
-					otherCurrentTransition->GetConnections()[otherIndex] -
-					currentTransition->GetConnections()[index]) * visibleWeight;
-				(*otherVisibleHeight) +=
-					(otherCurrentTransition->GetConnections()[otherIndex][2] -
-					currentTransition->GetConnections()[index][2]) * visibleWeight;
-				(*otherVisibleTime) += visibleWeight;
+	otherCurrentClusters.clear();
+	PathingCluster* otherTargetCluster = otherCurrentNode->GetCluster(GAT_JUMP, currentNode->GetCluster());
+	if (otherTargetCluster != NULL)
+	{
+		otherCurrentClusters[otherCurrentNode->GetCluster()] = otherCurrentNode;
+		while (otherCurrentNode != otherTargetCluster->GetTarget())
+		{
+			PathingCluster* otherCurrentCluster = otherCurrentNode->FindCluster(
+				otherTargetCluster->GetType(), otherTargetCluster->GetTarget());
+			PathingArc* otherCurrentArc = otherCurrentNode->FindArc(otherCurrentCluster->GetNode());
+			PathingTransition* otherCurrentTransition = otherCurrentNode->FindTransition(otherCurrentArc->GetId());
+			for (PathingNode* otherTransitionNode : otherCurrentTransition->GetNodes())
+				otherCurrentClusters[otherTransitionNode->GetCluster()] = otherTransitionNode;
 
-				isVisible = true;
-			}
+			otherCurrentNode = otherCurrentArc->GetNode();
+			otherCurrentClusters[otherCurrentNode->GetCluster()] = otherCurrentNode;
 		}
 
-		if (!isVisible)
+		visibleWeight = 0.f;
+		visibleClusterCount = 0;
+		otherVisibleAverageDistance = 0.f, otherVisibleAverageHeight = 0.f;
+		visibleClusterSize = otherCurrentClusters.size();
+		for (auto otherCurrentCluster : otherCurrentClusters)
 		{
-			float targetDistance = 0;
-			PathingCluster* targetCluster = 
-				currentNode->GetCluster(GAT_JUMP, otherCurrentNode->GetCluster());
-
-			float otherTargetDistance = 0;
-			PathingCluster* otherTargetCluster =
-				otherCurrentNode->GetCluster(GAT_JUMP, currentNode->GetCluster());
-
-			if (targetCluster != NULL)
+			if (mAIManager->GetPathingGraph()->IsVisibleCluster(otherCurrentCluster.first, currentNode->GetCluster()))
 			{
-				while (currentNode != targetCluster->GetTarget())
+				if (otherCurrentCluster.second->IsVisibleNode(currentNode))
 				{
-					PathingCluster* currentCluster =
-						currentNode->FindCluster(targetCluster->GetType(), targetCluster->GetTarget());
-					PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
-					targetDistance += currentArc->GetWeight();
-					if (targetDistance >= 4.0f) break;
+					visibleClusterCount++;
 
-					currentNode = currentArc->GetNode();
-					if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-						currentNode->GetCluster(), otherTransitionNodes[otherIndex]->GetCluster()))
-					{
-						if (currentNode->IsVisibleNode(otherTransitionNodes[otherIndex]))
-						{
-							visibleWeight = 4.0f - targetDistance;
-
-							(*visibleDistance) += Length(
-								otherCurrentTransition->GetConnections()[otherIndex] -
-								currentTransition->GetConnections()[index]) * visibleWeight;
-							(*visibleHeight) +=
-								(currentTransition->GetConnections()[index][2] -
-								otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
-							(*visibleTime) += visibleWeight;
-
-							break;
-						}
-					}
-				}
-			}
-
-			if (otherTargetCluster != NULL)
-			{
-				while (otherCurrentNode != otherTargetCluster->GetTarget())
-				{
-					PathingCluster* otherCurrentCluster = otherCurrentNode->FindCluster(
-						otherTargetCluster->GetType(), otherTargetCluster->GetTarget());
-					PathingArc* otherCurrentArc = otherCurrentNode->FindArc(otherCurrentCluster->GetNode());
-					otherTargetDistance += otherCurrentArc->GetWeight();
-					if (otherTargetDistance >= 4.0f) break;
-
-					otherCurrentNode = otherCurrentArc->GetNode();
-					if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-						transitionNodes[index]->GetCluster(), otherCurrentNode->GetCluster()))
-					{
-						if (otherCurrentNode->IsVisibleNode(transitionNodes[index]))
-						{
-							visibleWeight = 4.0f - otherTargetDistance;
-
-							(*otherVisibleDistance) += Length(
-								otherCurrentTransition->GetConnections()[otherIndex] -
-								currentTransition->GetConnections()[index]) * visibleWeight;
-							(*otherVisibleHeight) +=
-								(otherCurrentTransition->GetConnections()[otherIndex][2] -
-								currentTransition->GetConnections()[index][2]) * visibleWeight;
-							(*otherVisibleTime) += visibleWeight;
-
-							break;
-						}
-					}
+					otherVisibleAverageDistance += Length(currentNode->GetPos() - otherCurrentCluster.second->GetPos());
+					otherVisibleAverageHeight += (otherCurrentCluster.second->GetPos()[2] - currentNode->GetPos()[2]);
 				}
 			}
 		}
 
-		//average
-		if ((*visibleTime) > 0.f)
+		if (visibleClusterCount > 0)
 		{
-			(*visibleDistance) /= (*visibleTime);
-			(*visibleHeight) /= (*visibleTime);
-		}
+			visibleWeight = 2.0f * (visibleClusterCount / (float)visibleClusterSize);
+			otherVisibleAverageDistance /= (float)visibleClusterCount;
+			otherVisibleAverageHeight /= (float)visibleClusterCount;
 
-		if ((*otherVisibleTime) > 0.f)
-		{
-			(*otherVisibleDistance) /= (*otherVisibleTime);
-			(*otherVisibleHeight) /= (*otherVisibleTime);
+			(*otherVisibleDistance) += otherVisibleAverageDistance * visibleWeight;
+			(*otherVisibleHeight) += otherVisibleAverageHeight * visibleWeight;
+			(*otherVisibleTime) += visibleWeight;
 		}
+	}
+
+	//average
+	if ((*visibleTime) > 0.f)
+	{
+		(*visibleDistance) /= (*visibleTime);
+		(*visibleHeight) /= (*visibleTime);
+	}
+
+	if ((*otherVisibleTime) > 0.f)
+	{
+		(*otherVisibleDistance) /= (*otherVisibleTime);
+		(*otherVisibleHeight) /= (*otherVisibleTime);
 	}
 }
 

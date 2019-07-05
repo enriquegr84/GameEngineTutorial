@@ -1212,15 +1212,6 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 	heuristic += CalculateHeuristicItems(playerState);
 	heuristic -= CalculateHeuristicItems(otherPlayerState);
 
-	//health & armor status
-	unsigned int maxHealth = 200;
-	unsigned int maxArmor = 200;
-	heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
-	heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
-
-	heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
-	heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
-
 	//heuristic from damage dealing
 	int playerMaxDamage = 0, otherPlayerMaxDamage = 0;
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
@@ -1243,6 +1234,15 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 	//damage heuristic
 	if (playerMaxDamage > 0 || otherPlayerMaxDamage > 0)
 	{
+		//health & armor status
+		unsigned int maxHealth = 200;
+		unsigned int maxArmor = 200;
+		heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
+		heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
+
+		heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
+		heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
+
 		//damage
 		int maxDamage = 300;
 		if (playerMaxDamage > maxDamage) maxDamage = playerMaxDamage;
@@ -1294,7 +1294,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 					case WP_MACHINEGUN:
 						damage = 5;
 						fireTime = 0.1f;
-						rangeDistance = visibleDistance > 300 ? visibleDistance : 300;
+						rangeDistance = visibleDistance > 400 ? visibleDistance : 400;
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
