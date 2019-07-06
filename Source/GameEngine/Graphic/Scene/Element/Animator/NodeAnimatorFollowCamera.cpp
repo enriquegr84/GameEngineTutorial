@@ -74,8 +74,8 @@ void NodeAnimatorFollowCamera::AnimateNode(Scene* pScene, Node* node, unsigned i
 		direction = direction * camera->GetAbsoluteTransform();
 #endif
 
-		float scale = 80;
-		Vector4<float> offset{ 0, 0, 60, 0 };
+		float scale = 40;
+		Vector4<float> offset{ 0, 0, 40, 0 };
 		camera->GetAbsoluteTransform().SetTranslation(translation - direction * scale + offset);
 	}
 }

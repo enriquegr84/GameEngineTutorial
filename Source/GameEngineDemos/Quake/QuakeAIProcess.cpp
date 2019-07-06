@@ -72,7 +72,6 @@ void QuakeAIProcess::Visibility(
 	PathingNodeVec otherTransitionNodes = otherCurrentTransition->GetNodes();
 
 	//lets calculate the visibility for simultaneous path travelling.
-	eastl::map<unsigned int, eastl::map<unsigned int, bool>> visibleClusters;
 	eastl::map<unsigned int, eastl::vector<PathingNode*>> currentClusters, otherCurrentClusters;
 	for (PathingArc* currentArc : playerPathPlan)
 	{
@@ -83,7 +82,7 @@ void QuakeAIProcess::Visibility(
 			currentClusters[transitionNodes[index]->GetCluster()].push_back(transitionNodes[index]);
 
 		currentNode = currentArc->GetNode();
-		currentClusters[transitionNodes[index]->GetCluster()].push_back(currentNode);
+		currentClusters[currentNode->GetCluster()].push_back(currentNode);
 	}
 
 	for (PathingArc* otherCurrentArc : otherPlayerPathPlan)
@@ -98,7 +97,7 @@ void QuakeAIProcess::Visibility(
 		}
 
 		otherCurrentNode = otherCurrentArc->GetNode();
-		otherCurrentClusters[otherTransitionNodes[otherIndex]->GetCluster()].push_back(otherCurrentNode);
+		otherCurrentClusters[otherCurrentNode->GetCluster()].push_back(otherCurrentNode);
 	}
 
 	index = 0;
@@ -113,35 +112,9 @@ void QuakeAIProcess::Visibility(
 		for (; index < transitionNodes.size(); index++)
 		{
 			float visibleWeight = currentTransition->GetWeights()[index];
-			if (visibleClusters.find(transitionNodes[index]->GetCluster()) != visibleClusters.end() &&
-				visibleClusters[transitionNodes[index]->GetCluster()].find(
-				otherTransitionNodes[otherIndex]->GetCluster()) !=
-				visibleClusters[transitionNodes[index]->GetCluster()].end())
-			{
-				if (visibleClusters[transitionNodes[index]->GetCluster()]
-					[otherTransitionNodes[otherIndex]->GetCluster()])
-				{
-					visibleAverageDistance += Length(
-						otherCurrentTransition->GetConnections()[otherIndex] -
-						currentTransition->GetConnections()[index]) * visibleWeight;
-					visibleAverageHeight +=
-						(currentTransition->GetConnections()[index][2] -
-						otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
-					visibleTotalTime += visibleWeight;
-
-					otherVisibleAverageDistance += Length(
-						otherCurrentTransition->GetConnections()[otherIndex] -
-						currentTransition->GetConnections()[index]) * visibleWeight;
-					otherVisibleAverageHeight +=
-						(otherCurrentTransition->GetConnections()[otherIndex][2] -
-						currentTransition->GetConnections()[index][2]) * visibleWeight;
-					otherVisibleTotalTime += visibleWeight;
-				}
-			}
-			else if (mAIManager->GetPathingGraph()->IsVisibleCluster(
+			if (mAIManager->GetPathingGraph()->IsVisibleCluster(
 				transitionNodes[index]->GetCluster(), otherTransitionNodes[otherIndex]->GetCluster()))
 			{
-				bool isVisible = false;
 				for (PathingNode* otherNode : otherCurrentClusters[otherTransitionNodes[otherIndex]->GetCluster()])
 				{
 					if (transitionNodes[index]->IsVisibleNode(otherNode))
@@ -162,19 +135,11 @@ void QuakeAIProcess::Visibility(
 							currentTransition->GetConnections()[index][2]) * visibleWeight;
 						otherVisibleTotalTime += visibleWeight;
 
-						isVisible = true;
 						break;
 					}
 				}
-				
-				visibleClusters[transitionNodes[index]->GetCluster()]
-					[otherTransitionNodes[otherIndex]->GetCluster()] = isVisible;
 			}
-			else
-			{
-				visibleClusters[transitionNodes[index]->GetCluster()]
-					[otherTransitionNodes[otherIndex]->GetCluster()] = false;
-			}
+
 			while (totalArcTime <= totalTime)
 			{
 				totalArcTime += otherCurrentTransition->GetWeights()[otherIndex];
@@ -209,38 +174,12 @@ void QuakeAIProcess::Visibility(
 		{
 			float visibleWeight = currentTransition->GetWeights()[index];
 
-			if (visibleClusters.find(transitionNodes[index]->GetCluster()) != visibleClusters.end() &&
-				visibleClusters[transitionNodes[index]->GetCluster()].find(
-					otherTransitionNodes[otherIndex]->GetCluster()) !=
-				visibleClusters[transitionNodes[index]->GetCluster()].end())
-			{
-				if (visibleClusters[transitionNodes[index]->GetCluster()]
-					[otherTransitionNodes[otherIndex]->GetCluster()])
-				{
-					visibleAverageDistance += Length(
-						otherCurrentTransition->GetConnections()[otherIndex] -
-						currentTransition->GetConnections()[index]) * visibleWeight;
-					visibleAverageHeight +=
-						(currentTransition->GetConnections()[index][2] -
-						otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
-					visibleTotalTime += visibleWeight;
-
-					otherVisibleAverageDistance += Length(
-						otherCurrentTransition->GetConnections()[otherIndex] -
-						currentTransition->GetConnections()[index]) * visibleWeight;
-					otherVisibleAverageHeight +=
-						(otherCurrentTransition->GetConnections()[otherIndex][2] -
-						currentTransition->GetConnections()[index][2]) * visibleWeight;
-					otherVisibleTotalTime += visibleWeight;
-				}
-			}
-			else if (mAIManager->GetPathingGraph()->IsVisibleCluster(
+			if (mAIManager->GetPathingGraph()->IsVisibleCluster(
 				transitionNodes[index]->GetCluster(), otherTransitionNodes[otherIndex]->GetCluster()))
 			{
-				bool isVisible = false;
 				for (PathingNode* node : currentClusters[transitionNodes[index]->GetCluster()])
 				{
-					if (node->IsVisibleNode(otherTransitionNodes[otherIndex]))
+					if (otherTransitionNodes[otherIndex]->IsVisibleNode(node))
 					{
 						visibleAverageDistance += Length(
 							otherCurrentTransition->GetConnections()[otherIndex] -
@@ -258,18 +197,9 @@ void QuakeAIProcess::Visibility(
 							currentTransition->GetConnections()[index][2]) * visibleWeight;
 						otherVisibleTotalTime += visibleWeight;
 
-						isVisible = true;
 						break;
 					}
 				}
-
-				visibleClusters[transitionNodes[index]->GetCluster()]
-					[otherTransitionNodes[otherIndex]->GetCluster()] = isVisible;
-			}
-			else
-			{
-				visibleClusters[transitionNodes[index]->GetCluster()]
-					[otherTransitionNodes[otherIndex]->GetCluster()] = false;
 			}
 		}
 	}
@@ -821,7 +751,7 @@ void QuakeAIProcess::ThreadProc( )
 				}
 
 				iteration++;
-				printf("\n ITERATION %u \n", iteration);
+				//printf("\n ITERATION %u \n", iteration);
 				fprintf(mAIManager->mFile, "\n\n ITERATION %u \n\n", iteration);
 
 				fprintf(mAIManager->mFile, "\n blue player ai guessing (red)");
@@ -858,6 +788,7 @@ void QuakeAIProcess::ThreadProc( )
 				fprintf(mAIManager->mFile, "\n blue player path : ");
 				for (PathingArc* pathArc : mPlayerState.path)
 					fprintf(mAIManager->mFile, "%u ", pathArc->GetNode()->GetId());
+				//printf(" blue player visible %f", visibleTime);
 				fprintf(mAIManager->mFile, "\n blue player heuristic %f visible %f", mPlayerState.heuristic, visibleTime);
 				//printf("\n blue player actors  %u : ", mPlayerState.player);
 				if (!mPlayerState.items.empty()) 
@@ -953,6 +884,7 @@ void QuakeAIProcess::ThreadProc( )
 				fprintf(mAIManager->mFile, "\n red player path : ");
 				for (PathingArc* pathArc : mOtherPlayerState.path) 
 					fprintf(mAIManager->mFile, "%u ", pathArc->GetNode()->GetId());
+				//printf(" red player visible %f", visibleTime);
 				fprintf(mAIManager->mFile, "\n red player heuristic %f visible %f", mOtherPlayerState.heuristic, visibleTime);
 				//printf("\n red player actors %u : ", mOtherPlayerState.player);
 				if (!mOtherPlayerState.items.empty()) 

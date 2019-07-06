@@ -373,8 +373,9 @@ void PathingNode::OrderClusters(bool ascending)
 			PathingNode* currentNode = this;
 			while (currentNode != cluster->GetTarget())
 			{
-				PathingCluster* currentCluster = 
-					currentNode->FindCluster(clusterType.first, cluster->GetTarget());
+				PathingCluster* currentCluster = cluster->GetActor() == INVALID_ACTOR_ID ?
+					currentNode->FindCluster(clusterType.first, cluster->GetTarget()) :
+					currentNode->FindClusterActor(clusterType.first, cluster->GetTarget());
 				PathingArc* currentArc = currentNode->FindArc(currentCluster->GetNode());
 				clusterWeight += currentArc->GetWeight();
 				currentNode = currentArc->GetNode();

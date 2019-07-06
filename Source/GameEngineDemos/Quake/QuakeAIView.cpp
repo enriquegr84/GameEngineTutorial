@@ -781,10 +781,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							{
 								PathingArcVec pathPlan;
 								if (aiManager->IsPlayerUpdated(mPlayerId))
-								{
-									if (mCurrentPlan.empty() || mCurrentPlan.size() > 2)
-										aiManager->GetPlayerPath(mPlayerId, pathPlan);
-								}
+									aiManager->GetPlayerPath(mPlayerId, pathPlan);
 
 								if (pathPlan.size())
 								{
@@ -1081,7 +1078,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							else if (mYaw < mYawSmooth)
 								mYawSmooth--;
 						}
-						else if (mYawSmoothTime >= 2.0f)
+						else if (mYawSmoothTime >= 0.5f)
 						{
 							mYawSmooth = mYaw;
 							mYawSmoothTime = 0.f;
