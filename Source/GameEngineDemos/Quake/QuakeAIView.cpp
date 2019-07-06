@@ -781,7 +781,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							{
 								PathingArcVec pathPlan;
 								if (aiManager->IsPlayerUpdated(mPlayerId))
-									aiManager->GetPlayerPath(mPlayerId, pathPlan);
+								{
+									if (mCurrentPlan.empty() || mCurrentPlan.size() > 2)
+										aiManager->GetPlayerPath(mPlayerId, pathPlan);
+								}
 
 								if (pathPlan.size())
 								{

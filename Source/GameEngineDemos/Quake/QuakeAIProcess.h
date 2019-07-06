@@ -76,6 +76,8 @@ protected:
 
 private:
 
+	float mPathingVisibleTime, mPathingTime;
+
 	NodeState mPlayerState, mOtherPlayerState;
 
 	QuakeAIManager*	mAIManager;
