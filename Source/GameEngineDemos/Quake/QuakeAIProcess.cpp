@@ -388,6 +388,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	unsigned int playerClusterIdx = 0;
 	unsigned int clusterSize = playerClusters.size();
+	//fprintf(mAIManager->mFile, "\n blue player actors ");
 	//construct path based on closest actors to each cluster pathway
 	for (; playerClusterIdx < clusterSize; playerClusterIdx++)
 	{
@@ -423,6 +424,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	unsigned int otherPlayerClusterIdx = 0;
 	unsigned int otherClusterSize = otherPlayerClusters.size();
+	//fprintf(mAIManager->mFile, "\n red player actors ");
 	for (; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
 	{
 		PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];

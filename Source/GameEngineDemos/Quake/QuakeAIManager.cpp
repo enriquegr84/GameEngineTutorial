@@ -698,6 +698,38 @@ void AIFinder::RebuildPath(AIPlanNode* pGoalNode, PathingArcVec& planPath)
 
 		eastl::map<ActorId, float> planActors;
 		pGoalNode->GetPlanActors(planActors);
+		/*
+		fprintf(aiManager->mFile, "\n actor cluster %u : ", pTargetCluster->GetTarget()->GetCluster());
+		for (auto planActor : planActors)
+		{
+			eastl::shared_ptr<Actor> pItemActor(
+				GameLogic::Get()->GetActor(planActor.first).lock());
+			if (pItemActor->GetType() == "Weapon")
+			{
+				eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+					pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+				fprintf(aiManager->mFile, "weapon %u ", pWeaponPickup->GetCode());
+			}
+			else if (pItemActor->GetType() == "Ammo")
+			{
+				eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+					pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+				fprintf(aiManager->mFile, "ammo %u ", pAmmoPickup->GetCode());
+			}
+			else if (pItemActor->GetType() == "Armor")
+			{
+				eastl::shared_ptr<ArmorPickup> pArmorPickup =
+					pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+				fprintf(aiManager->mFile, "armor %u ", pArmorPickup->GetCode());
+			}
+			else if (pItemActor->GetType() == "Health")
+			{
+				eastl::shared_ptr<HealthPickup> pHealthPickup =
+					pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+				fprintf(aiManager->mFile, "health %u ", pHealthPickup->GetCode());
+			}
+		}
+		*/
 	}
 }
 
@@ -1247,8 +1279,8 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 		int maxDamage = 300;
 		if (playerMaxDamage > maxDamage) maxDamage = playerMaxDamage;
 		if (otherPlayerMaxDamage > maxDamage) maxDamage = otherPlayerMaxDamage;
-		heuristic += (playerMaxDamage / maxDamage) * 0.4f;
-		heuristic -= (otherPlayerMaxDamage / maxDamage) * 0.4f;
+		heuristic += (playerMaxDamage / (float)maxDamage) * 0.4f;
+		heuristic -= (otherPlayerMaxDamage / (float)maxDamage) * 0.4f;
 	}
 
 	playerState.heuristic = heuristic;
