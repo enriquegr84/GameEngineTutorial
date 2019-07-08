@@ -1279,8 +1279,8 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 		int maxDamage = 300;
 		if (playerMaxDamage > maxDamage) maxDamage = playerMaxDamage;
 		if (otherPlayerMaxDamage > maxDamage) maxDamage = otherPlayerMaxDamage;
-		heuristic += (playerMaxDamage / (float)maxDamage) * 0.4f;
-		heuristic -= (otherPlayerMaxDamage / (float)maxDamage) * 0.4f;
+		heuristic += (playerMaxDamage / (float)maxDamage) * 0.5f;
+		heuristic -= (otherPlayerMaxDamage / (float)maxDamage) * 0.5f;
 	}
 
 	playerState.heuristic = heuristic;

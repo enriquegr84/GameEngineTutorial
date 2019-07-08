@@ -687,23 +687,29 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									GameLogic::Get()->GetActor(mCurrentNode->GetActorId()).lock()));
 								if (pItemActor->GetType() == "Trigger")
 								{
-									eastl::shared_ptr<PushTrigger> pPushTrigger =
-										pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
-									if (pPushTrigger)
-										mCurrentAction = GAT_PUSH;
-									else
-										mCurrentAction = GAT_TELEPORT;
-
-									eastl::shared_ptr<TransformComponent> pTriggerTransform =
-										pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-									Vector3<float> diff = pTriggerTransform->GetPosition() - currentPosition;
-									diff[YAW] = 0.f;
-
-									if (Length(diff) <= 4.0f)
+									if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
 									{
-										searchNode = true;
-										if (!mCurrentPlan.empty())
-											mCurrentPlan.erase(mCurrentPlan.begin());
+										eastl::shared_ptr<TransformComponent> pTriggerTransform =
+											pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+										Vector3<float> diff = pTriggerTransform->GetPosition() - currentPosition;
+										diff[YAW] = 0.f;
+
+										if (Length(diff) == 0.f)
+										{
+											searchNode = true;
+											if (!mCurrentPlan.empty())
+												mCurrentPlan.erase(mCurrentPlan.begin());
+										}
+									}
+									else
+									{
+										Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
+										if (Length(diff) <= 6.0f)
+										{
+											searchNode = true;
+											if (!mCurrentPlan.empty())
+												mCurrentPlan.erase(mCurrentPlan.begin());
+										}
 									}
 								}
 								else if (mCurrentActor != mCurrentNode->GetActorId())
@@ -967,36 +973,33 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									mCurrentAction == GAT_PUSH ||
 									mCurrentAction == GAT_TELEPORT)
 								{
-									if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
+									eastl::shared_ptr<Actor> pItemActor(
+										eastl::dynamic_shared_pointer_cast<Actor>(
+										GameLogic::Get()->GetActor(mCurrentNode->GetActorId()).lock()));
+									if (pItemActor && pItemActor->GetType() == "Trigger")
 									{
-										if (mCurrentNode->GetActorId() != INVALID_ACTOR_ID)
-										{
-											eastl::shared_ptr<Actor> pItemActor(
-												eastl::dynamic_shared_pointer_cast<Actor>(
-												GameLogic::Get()->GetActor(mCurrentNode->GetActorId()).lock()));
-											if (pItemActor->GetType() == "Trigger")
-											{
-												eastl::shared_ptr<TransformComponent> pTriggerTransform =
-													pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
+										eastl::shared_ptr<TransformComponent> pTriggerTransform =
+											pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 
-												Vector3<float> direction = pTriggerTransform->GetPosition() - currentPosition;
-												Normalize(direction);
-												mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-											}
-										}
+										Vector3<float> direction = pTriggerTransform->GetPosition() - currentPosition;
+										Normalize(direction);
+										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
 										Stationary(deltaMs);
 										Movement(deltaMs);
 									}
 									else
 									{
-										pPlayerActor->GetAction().actionType |= ACTION_JUMP;
+										if (mCurrentAction == GAT_JUMP)
+										{
+											pPlayerActor->GetAction().actionType |= ACTION_JUMP;
+											mCurrentAction = 0;
+										}
 
 										Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 										Normalize(direction);
 										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 									}
-									mCurrentAction = 0;
 								}
 								else
 								{
@@ -1006,8 +1009,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											eastl::dynamic_shared_pointer_cast<Actor>(
 											GameLogic::Get()->GetActor(mCurrentNode->GetActorId()).lock()));
 
-										if (pItemActor->GetType() != "Trigger" &&
-											mCurrentActor != mCurrentNode->GetActorId())
+										if (mCurrentActor != mCurrentNode->GetActorId())
 										{
 											eastl::shared_ptr<TransformComponent> pTransform =
 												pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();

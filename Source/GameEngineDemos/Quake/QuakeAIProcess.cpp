@@ -477,6 +477,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	//minimax
 	mPlayerState.Copy(playerState);
 	mPlayerState.heuristic = -FLT_MAX;
+	mPlayerState.valid = false;
 
 	PathingCluster* playerCluster = NULL;
 	for (auto playerClustersState : playerClustersStates)
@@ -597,6 +598,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	mOtherPlayerState.Copy(otherPlayerState);
 	mOtherPlayerState.heuristic = FLT_MAX;
+	mOtherPlayerState.valid = false;
 
 	PathingCluster* otherPlayerCluster = NULL;
 	for (auto otherPlayerClustersState : otherPlayerClustersStates)
@@ -780,12 +782,6 @@ void QuakeAIProcess::ThreadProc( )
 					}
 				}
 
-				/*
-				printf("\n blue player pos %f %f %f, id %u, heuristic %f, target %u, weapon %u, damage %u, paths %u \n",
-				mPlayerState.node->GetPos()[0], mPlayerState.node->GetPos()[1], mPlayerState.node->GetPos()[2],
-				mPlayerState.node->GetId(), mPlayerState.heuristic, mPlayerState.target, mPlayerState.weapon,
-				mPlayerState.weapon > 0 ? mPlayerState.damage[mPlayerState.weapon - 1] : 0, mPlayerState.path.size());
-				*/
 				float visibleTime = mPathingTime > 0.f ? mPathingVisibleTime / mPathingTime : 0.f;
 				fprintf(mAIManager->mFile, "\n blue player path : ");
 				for (PathingArc* pathArc : mPlayerState.path)
@@ -837,12 +833,15 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mAIManager->mFile, " damage : 0 ");
 				}
 
-				NodeState otherPlayerGuessState; 
-				mAIManager->GetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
-				otherPlayerGuessState.CopyItems(mOtherPlayerState);
-				mAIManager->SetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
-				mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, mOtherPlayerState.path);
-				mAIManager->SetPlayerGuessUpdated(mOtherPlayerState.player, true);
+				if (visibleTime >= 0.1f || !mOtherPlayerState.items.empty())
+				{
+					NodeState otherPlayerGuessState;
+					mAIManager->GetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
+					otherPlayerGuessState.CopyItems(mOtherPlayerState);
+					mAIManager->SetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
+					mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, mOtherPlayerState.path);
+					mAIManager->SetPlayerGuessUpdated(mOtherPlayerState.player, true);
+				}
 
 				if (visibleTime >= 0.1f || !mPlayerState.items.empty())
 				{
@@ -876,12 +875,6 @@ void QuakeAIProcess::ThreadProc( )
 					}
 				}
 
-				/*
-				printf("\n red player pos %f %f %f, id %u, heuristic %f, target %u, weapon %u, damage %u, paths %u \n",
-				mOtherPlayerState.node->GetPos()[0], mOtherPlayerState.node->GetPos()[1], mOtherPlayerState.node->GetPos()[2],
-				mOtherPlayerState.node->GetId(), mOtherPlayerState.heuristic, mOtherPlayerState.target, mOtherPlayerState.weapon,
-				mOtherPlayerState.weapon > 0 ? mOtherPlayerState.damage[mOtherPlayerState.weapon - 1] : 0, mOtherPlayerState.path.size());
-				*/
 				visibleTime = mPathingTime > 0.f ? mPathingVisibleTime / mPathingTime : 0.f;
 				fprintf(mAIManager->mFile, "\n red player path : ");
 				for (PathingArc* pathArc : mOtherPlayerState.path) 
@@ -933,12 +926,15 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mAIManager->mFile, " damage : 0 ");
 				}
 
-				NodeState playerGuessState;
-				mAIManager->GetPlayerGuessState(mPlayerState.player, playerGuessState);
-				playerGuessState.CopyItems(mPlayerState);
-				mAIManager->SetPlayerGuessState(mPlayerState.player, playerGuessState);
-				mAIManager->SetPlayerGuessPath(mPlayerState.player, mPlayerState.path);
-				mAIManager->SetPlayerGuessUpdated(mPlayerState.player, true);
+				if (visibleTime >= 0.1f || !mPlayerState.items.empty())
+				{
+					NodeState playerGuessState;
+					mAIManager->GetPlayerGuessState(mPlayerState.player, playerGuessState);
+					playerGuessState.CopyItems(mPlayerState);
+					mAIManager->SetPlayerGuessState(mPlayerState.player, playerGuessState);
+					mAIManager->SetPlayerGuessPath(mPlayerState.player, mPlayerState.path);
+					mAIManager->SetPlayerGuessUpdated(mPlayerState.player, true);
+				}
 
 				if (visibleTime >= 0.1f || !mOtherPlayerState.items.empty())
 				{
