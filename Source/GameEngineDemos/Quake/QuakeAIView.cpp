@@ -845,7 +845,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	
 									mCurrentArc = (*itArc);
 									mCurrentAction = mCurrentArc->GetType();
-									mCurrentNode = mCurrentArc->GetNode();
+									if (mCurrentAction != GAT_PUSH && mCurrentAction != GAT_TELEPORT)
+										mCurrentNode = mCurrentArc->GetNode();
 									mCurrentActionTime = mCurrentArc->GetWeight() + 1.0f;
 									Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 									Normalize(direction);
@@ -932,7 +933,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 											mCurrentArc = clusterArc;
 											mCurrentAction = clusterArcType;
-											mCurrentNode = clusterArc->GetNode();
+											if (mCurrentAction != GAT_PUSH && mCurrentAction != GAT_TELEPORT)
+												mCurrentNode = clusterArc->GetNode();
 											mCurrentActionTime = clusterArc->GetWeight() + 1.0f;
 											Vector3<float> direction = clusterNode->GetPos() - currentPosition;
 											Normalize(direction);
