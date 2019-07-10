@@ -388,7 +388,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	unsigned int playerClusterIdx = 0;
 	unsigned int clusterSize = playerClusters.size();
-	//fprintf(mAIManager->mFile, "\n blue player actors ");
+	//fprintf(mAIManager->mLogInformation, "\n blue player actors ");
 	//construct path based on closest actors to each cluster pathway
 	for (; playerClusterIdx < clusterSize; playerClusterIdx++)
 	{
@@ -424,7 +424,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	unsigned int otherPlayerClusterIdx = 0;
 	unsigned int otherClusterSize = otherPlayerClusters.size();
-	//fprintf(mAIManager->mFile, "\n red player actors ");
+	//fprintf(mAIManager->mLogInformation, "\n red player actors ");
 	for (; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
 	{
 		PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];
@@ -504,93 +504,93 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	if (playerClustersStates.find(playerCluster) != playerClustersStates.end())
 	{
-		fprintf(mAIManager->mFile, "\n player cluster : %u ", playerCluster->GetTarget()->GetCluster());
+		fprintf(mAIManager->mLogInformation, "\n player cluster : %u ", playerCluster->GetTarget()->GetCluster());
 
 		for (auto playerClusterState : playerClustersStates[playerCluster])
 		{
-			fprintf(mAIManager->mFile, "other player cluster : %u ",
+			fprintf(mAIManager->mLogInformation, "other player cluster : %u ",
 				playerClusterState.first->GetTarget()->GetCluster());
-			fprintf(mAIManager->mFile, "heuristic : %f ", playerClusterState.second.heuristic);
+			fprintf(mAIManager->mLogInformation, "heuristic : %f ", playerClusterState.second.heuristic);
 
 			if (playerClusterState.second.weapon != WP_NONE)
 			{
-				fprintf(mAIManager->mFile, " weapon : %u ", playerClusterState.second.weapon);
-				fprintf(mAIManager->mFile, " damage : %i ",
+				fprintf(mAIManager->mLogInformation, " weapon : %u ", playerClusterState.second.weapon);
+				fprintf(mAIManager->mLogInformation, " damage : %i ",
 					playerClusterState.second.damage[playerClusterState.second.weapon - 1]);
 			}
 
 			if (!playerClusterState.second.items.empty())
-				fprintf(mAIManager->mFile, " actors : ");
+				fprintf(mAIManager->mLogInformation, " actors : ");
 			for (eastl::shared_ptr<Actor> pItemActor : playerClusterState.second.items)
 			{
 				if (pItemActor->GetType() == "Weapon")
 				{
 					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mFile, "weapon %u ", pWeaponPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Ammo")
 				{
 					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mFile, "ammo %u ", pAmmoPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Armor")
 				{
 					eastl::shared_ptr<ArmorPickup> pArmorPickup =
 						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mFile, "armor %u ", pArmorPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Health")
 				{
 					eastl::shared_ptr<HealthPickup> pHealthPickup =
 						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mFile, "health %u ", pHealthPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 				}
 			}
 		}
 
 		if (mPlayerState.valid)
 		{
-			fprintf(mAIManager->mFile, "\n player path : ");
+			fprintf(mAIManager->mLogInformation, "\n player path : ");
 			for (PathingArc* pathArc : mPlayerState.path)
-				fprintf(mAIManager->mFile, "%u ", pathArc->GetNode()->GetId());
-			fprintf(mAIManager->mFile, "\n player heuristic : %f ", mPlayerState.heuristic);
+				fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
+			fprintf(mAIManager->mLogInformation, "\n player heuristic : %f ", mPlayerState.heuristic);
 
 			if (mPlayerState.weapon != WP_NONE)
 			{
-				fprintf(mAIManager->mFile, " weapon : %u ", mPlayerState.weapon);
-				fprintf(mAIManager->mFile, " damage : %i ",
+				fprintf(mAIManager->mLogInformation, " weapon : %u ", mPlayerState.weapon);
+				fprintf(mAIManager->mLogInformation, " damage : %i ",
 					mPlayerState.damage[mPlayerState.weapon - 1]);
 			}
 
 			if (!mPlayerState.items.empty())
-				fprintf(mAIManager->mFile, " actors : ");
+				fprintf(mAIManager->mLogInformation, " actors : ");
 			for (eastl::shared_ptr<Actor> pItemActor : mPlayerState.items)
 			{
 				if (pItemActor->GetType() == "Weapon")
 				{
 					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mFile, "weapon %u ", pWeaponPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Ammo")
 				{
 					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mFile, "ammo %u ", pAmmoPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Armor")
 				{
 					eastl::shared_ptr<ArmorPickup> pArmorPickup =
 						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mFile, "armor %u ", pArmorPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Health")
 				{
 					eastl::shared_ptr<HealthPickup> pHealthPickup =
 						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mFile, "health %u ", pHealthPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 				}
 			}
 		}
@@ -625,94 +625,94 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	if (otherPlayerClustersStates.find(otherPlayerCluster) != otherPlayerClustersStates.end())
 	{
-		fprintf(mAIManager->mFile, "\n other player cluster : %u ",
+		fprintf(mAIManager->mLogInformation, "\n other player cluster : %u ",
 			otherPlayerCluster->GetTarget()->GetCluster());
 
 		for (auto otherPlayerClusterState : otherPlayerClustersStates[otherPlayerCluster])
 		{
-			fprintf(mAIManager->mFile, "player cluster : %u ",
+			fprintf(mAIManager->mLogInformation, "player cluster : %u ",
 				otherPlayerClusterState.first->GetTarget()->GetCluster());
-			fprintf(mAIManager->mFile, "heuristic : %f ", otherPlayerClusterState.second.heuristic);
+			fprintf(mAIManager->mLogInformation, "heuristic : %f ", otherPlayerClusterState.second.heuristic);
 
 			if (otherPlayerClusterState.second.weapon != WP_NONE)
 			{
-				fprintf(mAIManager->mFile, " weapon : %u ", otherPlayerClusterState.second.weapon);
-				fprintf(mAIManager->mFile, " damage : %i ",
+				fprintf(mAIManager->mLogInformation, " weapon : %u ", otherPlayerClusterState.second.weapon);
+				fprintf(mAIManager->mLogInformation, " damage : %i ",
 					otherPlayerClusterState.second.damage[otherPlayerClusterState.second.weapon - 1]);
 			}
 
 			if (!otherPlayerClusterState.second.items.empty())
-				fprintf(mAIManager->mFile, " actors : ");
+				fprintf(mAIManager->mLogInformation, " actors : ");
 			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerClusterState.second.items)
 			{
 				if (pItemActor->GetType() == "Weapon")
 				{
 					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mFile, "weapon %u ", pWeaponPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Ammo")
 				{
 					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mFile, "ammo %u ", pAmmoPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Armor")
 				{
 					eastl::shared_ptr<ArmorPickup> pArmorPickup =
 						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mFile, "armor %u ", pArmorPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Health")
 				{
 					eastl::shared_ptr<HealthPickup> pHealthPickup =
 						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mFile, "health %u ", pHealthPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 				}
 			}
 		}
 
 		if (mOtherPlayerState.valid)
 		{
-			fprintf(mAIManager->mFile, "\n other player path : ");
+			fprintf(mAIManager->mLogInformation, "\n other player path : ");
 			for (PathingArc* pathArc : mOtherPlayerState.path)
-				fprintf(mAIManager->mFile, "%u ", pathArc->GetNode()->GetId());
-			fprintf(mAIManager->mFile, "\n other player heuristic : %f ", mOtherPlayerState.heuristic);
+				fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
+			fprintf(mAIManager->mLogInformation, "\n other player heuristic : %f ", mOtherPlayerState.heuristic);
 
 			if (mOtherPlayerState.weapon != WP_NONE)
 			{
-				fprintf(mAIManager->mFile, " weapon : %u ", mOtherPlayerState.weapon);
-				fprintf(mAIManager->mFile, " damage : %i ",
+				fprintf(mAIManager->mLogInformation, " weapon : %u ", mOtherPlayerState.weapon);
+				fprintf(mAIManager->mLogInformation, " damage : %i ",
 					mOtherPlayerState.damage[mOtherPlayerState.weapon - 1]);
 			}
 
 			if (!mOtherPlayerState.items.empty())
-				fprintf(mAIManager->mFile, " actors : ");
+				fprintf(mAIManager->mLogInformation, " actors : ");
 			for (eastl::shared_ptr<Actor> pItemActor : mOtherPlayerState.items)
 			{
 				if (pItemActor->GetType() == "Weapon")
 				{
 					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mFile, "weapon %u ", pWeaponPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Ammo")
 				{
 					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mFile, "ammo %u ", pAmmoPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Armor")
 				{
 					eastl::shared_ptr<ArmorPickup> pArmorPickup =
 						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mFile, "armor %u ", pArmorPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
 				}
 				else if (pItemActor->GetType() == "Health")
 				{
 					eastl::shared_ptr<HealthPickup> pHealthPickup =
 						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mFile, "health %u ", pHealthPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 				}
 			}
 		}
@@ -756,9 +756,9 @@ void QuakeAIProcess::ThreadProc( )
 
 				iteration++;
 				//printf("\n ITERATION %u \n", iteration);
-				fprintf(mAIManager->mFile, "\n\n ITERATION %u \n\n", iteration);
+				fprintf(mAIManager->mLogInformation, "\n\n ITERATION %u \n\n", iteration);
 
-				fprintf(mAIManager->mFile, "\n blue player ai guessing (red)");
+				fprintf(mAIManager->mLogInformation, "\n blue player ai guessing (red)");
 				for (ActorId player : players[GV_HUMAN])
 				{
 					eastl::shared_ptr<PlayerActor> pHumanPlayer =
@@ -783,54 +783,56 @@ void QuakeAIProcess::ThreadProc( )
 				}
 
 				float visibleTime = mPathingTime > 0.f ? mPathingVisibleTime / mPathingTime : 0.f;
-				fprintf(mAIManager->mFile, "\n blue player path : ");
+				fprintf(mAIManager->mLogInformation, "\n blue player path : ");
 				for (PathingArc* pathArc : mPlayerState.path)
-					fprintf(mAIManager->mFile, "%u ", pathArc->GetNode()->GetId());
+					fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
 				//printf(" blue player visible %f", visibleTime);
-				fprintf(mAIManager->mFile, "\n blue player heuristic %f visible %f", mPlayerState.heuristic, visibleTime);
+				fprintf(mAIManager->mLogInformation, "\n blue player heuristic %f visible %f", 
+					mPlayerState.heuristic, visibleTime);
 				//printf("\n blue player actors  %u : ", mPlayerState.player);
 				if (!mPlayerState.items.empty()) 
-					fprintf(mAIManager->mFile, " actors : ");
+					fprintf(mAIManager->mLogInformation, " actors : ");
 				for (eastl::shared_ptr<Actor> pItemActor : mPlayerState.items)
 				{
 					if (pItemActor->GetType() == "Weapon")
 					{
 						eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 							pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-						fprintf(mAIManager->mFile, "weapon %u ", pWeaponPickup->GetCode());
+						fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
 						//printf("weapon %u ", pWeaponPickup->GetCode());
 					}
 					else if (pItemActor->GetType() == "Ammo")
 					{
 						eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 							pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-						fprintf(mAIManager->mFile, "ammo %u ", pAmmoPickup->GetCode());
+						fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
 						//printf("ammo %u ", pAmmoPickup->GetCode());
 					}
 					else if (pItemActor->GetType() == "Armor")
 					{
 						eastl::shared_ptr<ArmorPickup> pArmorPickup =
 							pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-						fprintf(mAIManager->mFile, "armor %u ", pArmorPickup->GetCode());
+						fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
 						//printf("armor %u ", pArmorPickup->GetCode());
 					}
 					else if (pItemActor->GetType() == "Health")
 					{
 						eastl::shared_ptr<HealthPickup> pHealthPickup =
 							pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-						fprintf(mAIManager->mFile, "health %u ", pHealthPickup->GetCode());
+						fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 						//printf("health %u ", pHealthPickup->GetCode());
 					}
 				}
 				if (mPlayerState.weapon != WP_NONE)
 				{
-					fprintf(mAIManager->mFile, " weapon : %u ", mPlayerState.weapon);
-					fprintf(mAIManager->mFile, " damage : %i ", mPlayerState.damage[mPlayerState.weapon - 1]);
+					fprintf(mAIManager->mLogInformation, " weapon : %u ", mPlayerState.weapon);
+					fprintf(mAIManager->mLogInformation, " damage : %i ", 
+						mPlayerState.damage[mPlayerState.weapon - 1]);
 				}
 				else
 				{
-					fprintf(mAIManager->mFile, " weapon : 0 ");
-					fprintf(mAIManager->mFile, " damage : 0 ");
+					fprintf(mAIManager->mLogInformation, " weapon : 0 ");
+					fprintf(mAIManager->mLogInformation, " damage : 0 ");
 				}
 
 				if (visibleTime >= 0.1f || !mOtherPlayerState.items.empty())
@@ -851,7 +853,7 @@ void QuakeAIProcess::ThreadProc( )
 					mAIManager->SetPlayerUpdated(mPlayerState.player, true);
 				}
 
-				fprintf(mAIManager->mFile, "\n\n red player ai guessing (blue)");
+				fprintf(mAIManager->mLogInformation, "\n\n red player ai guessing (blue)");
 				for (ActorId aiPlayer : players[GV_AI])
 				{
 					eastl::shared_ptr<PlayerActor> pAIPlayer =
@@ -876,54 +878,56 @@ void QuakeAIProcess::ThreadProc( )
 				}
 
 				visibleTime = mPathingTime > 0.f ? mPathingVisibleTime / mPathingTime : 0.f;
-				fprintf(mAIManager->mFile, "\n red player path : ");
+				fprintf(mAIManager->mLogInformation, "\n red player path : ");
 				for (PathingArc* pathArc : mOtherPlayerState.path) 
-					fprintf(mAIManager->mFile, "%u ", pathArc->GetNode()->GetId());
+					fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
 				//printf(" red player visible %f", visibleTime);
-				fprintf(mAIManager->mFile, "\n red player heuristic %f visible %f", mOtherPlayerState.heuristic, visibleTime);
+				fprintf(mAIManager->mLogInformation, 
+					"\n red player heuristic %f visible %f", mOtherPlayerState.heuristic, visibleTime);
 				//printf("\n red player actors %u : ", mOtherPlayerState.player);
 				if (!mOtherPlayerState.items.empty()) 
-					fprintf(mAIManager->mFile, " actors : ");
+					fprintf(mAIManager->mLogInformation, " actors : ");
 				for (eastl::shared_ptr<Actor> pItemActor : mOtherPlayerState.items)
 				{
 					if (pItemActor->GetType() == "Weapon")
 					{
 						eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 							pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-						fprintf(mAIManager->mFile, "weapon %u ", pWeaponPickup->GetCode());
+						fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
 						//printf("weapon %u ", pWeaponPickup->GetCode());
 					}
 					else if (pItemActor->GetType() == "Ammo")
 					{
 						eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 							pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-						fprintf(mAIManager->mFile, "ammo %u ", pAmmoPickup->GetCode());
+						fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
 						//printf("ammo %u ", pAmmoPickup->GetCode());
 					}
 					else if (pItemActor->GetType() == "Armor")
 					{
 						eastl::shared_ptr<ArmorPickup> pArmorPickup =
 							pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-						fprintf(mAIManager->mFile, "armor %u ", pArmorPickup->GetCode());
+						fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
 						//printf("armor %u ", pArmorPickup->GetCode());
 					}
 					else if (pItemActor->GetType() == "Health")
 					{
 						eastl::shared_ptr<HealthPickup> pHealthPickup =
 							pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-						fprintf(mAIManager->mFile, "health %u ", pHealthPickup->GetCode());
+						fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 						//printf("health %u ", pHealthPickup->GetCode());
 					}
 				}
 				if (mOtherPlayerState.weapon != WP_NONE)
 				{
-					fprintf(mAIManager->mFile, " weapon : %u ", mOtherPlayerState.weapon);
-					fprintf(mAIManager->mFile, " damage : %i ", mOtherPlayerState.damage[mOtherPlayerState.weapon - 1]);
+					fprintf(mAIManager->mLogInformation, " weapon : %u ", mOtherPlayerState.weapon);
+					fprintf(mAIManager->mLogInformation, 
+						" damage : %i ", mOtherPlayerState.damage[mOtherPlayerState.weapon - 1]);
 				}
 				else
 				{
-					fprintf(mAIManager->mFile, " weapon : 0 ");
-					fprintf(mAIManager->mFile, " damage : 0 ");
+					fprintf(mAIManager->mLogInformation, " weapon : 0 ");
+					fprintf(mAIManager->mLogInformation, " damage : 0 ");
 				}
 
 				if (visibleTime >= 0.1f || !mPlayerState.items.empty())

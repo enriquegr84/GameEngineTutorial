@@ -263,6 +263,7 @@ private:
 class QuakeAIManager : public AIManager
 {
 	friend class AIFinder;
+	friend class QuakeAIView;
 	friend class QuakeAIProcess;
 
 public:
@@ -311,7 +312,8 @@ public:
 
 protected:
 
-	FILE * mFile;
+	std::ofstream mLogError;
+	FILE* mLogInformation;
 
 	float CalculateHeuristicItems(NodeState& playerState);
 	void CalculateHeuristic(NodeState& playerState, NodeState& otherPlayerState);

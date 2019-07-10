@@ -168,14 +168,16 @@ QuakeAIManager::QuakeAIManager() : AIManager()
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 
-	mFile = fopen("test.txt", "w");
+	mLogInformation = fopen("aiprocess.txt", "w");
+	mLogError = std::ofstream("failarc.txt", std::ios::out);
 }   // QuakeAIManager
 
 //-----------------------------------------------------------------------------
 
 QuakeAIManager::~QuakeAIManager()
 {
-	fclose(mFile);
+	fclose(mLogInformation);
+	mLogError.close();
 }   // ~QuakeAIManager
 
 /////////////////////////////////////////////////////////////////////////////
@@ -247,7 +249,9 @@ void QuakeAIManager::SavePathingGraph(const eastl::string& path)
 			for (Vector3<float> connection : pathTransition->GetConnections())
 			{
 				transitionNode.connections.push_back(CerealTypes::Vec3{
-					(short)round(connection[0]), (short)round(connection[1]), (short)round(connection[2]) });
+						(short)round(connection[0]), 
+						(short)round(connection[1]), 
+						(short)round(connection[2]) });
 			}
 
 			node.transitions.push_back(transitionNode);
@@ -699,7 +703,7 @@ void AIFinder::RebuildPath(AIPlanNode* pGoalNode, PathingArcVec& planPath)
 		eastl::map<ActorId, float> planActors;
 		pGoalNode->GetPlanActors(planActors);
 		/*
-		fprintf(aiManager->mFile, "\n actor cluster %u : ", pTargetCluster->GetTarget()->GetCluster());
+		fprintf(aiManager->mLogInformation, "\n actor cluster %u : ", pTargetCluster->GetTarget()->GetCluster());
 		for (auto planActor : planActors)
 		{
 			eastl::shared_ptr<Actor> pItemActor(
@@ -708,25 +712,25 @@ void AIFinder::RebuildPath(AIPlanNode* pGoalNode, PathingArcVec& planPath)
 			{
 				eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 					pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-				fprintf(aiManager->mFile, "weapon %u ", pWeaponPickup->GetCode());
+				fprintf(aiManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
 			}
 			else if (pItemActor->GetType() == "Ammo")
 			{
 				eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 					pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-				fprintf(aiManager->mFile, "ammo %u ", pAmmoPickup->GetCode());
+				fprintf(aiManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
 			}
 			else if (pItemActor->GetType() == "Armor")
 			{
 				eastl::shared_ptr<ArmorPickup> pArmorPickup =
 					pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-				fprintf(aiManager->mFile, "armor %u ", pArmorPickup->GetCode());
+				fprintf(aiManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
 			}
 			else if (pItemActor->GetType() == "Health")
 			{
 				eastl::shared_ptr<HealthPickup> pHealthPickup =
 					pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-				fprintf(aiManager->mFile, "health %u ", pHealthPickup->GetCode());
+				fprintf(aiManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 			}
 		}
 		*/

@@ -519,7 +519,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							mCurrentArc = (*itArc);
 							mCurrentAction = mCurrentArc->GetType();
 							mCurrentNode = mCurrentArc->GetNode();
-							mCurrentActionTime = mCurrentArc->GetWeight() + 1.0f;
+							mCurrentActionTime = mCurrentArc->GetWeight() + 2.0f;
 							Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 							Normalize(direction);
 							mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
@@ -756,19 +756,24 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								for (PathingArc* pathArc : mCurrentPlan)
 									printf("%u ", pathArc->GetNode()->GetId());
 
-								LogInformation("current decision making player " + eastl::to_string(mPlayerId));
+								aiManager->mLogError << std::endl << 
+									("current decision making player " + eastl::to_string(mPlayerId)).c_str() << std::endl;
+								for (PathingArc* pathArc : mCurrentPlan)
+									aiManager->mLogError << (eastl::to_string(pathArc->GetNode()->GetId()) + " ").c_str();
+
 								if (mCurrentArc != NULL)
 								{
 									printf("\n fail arc id %u type %u node %u \n ",
 										mCurrentArc->GetId(), mCurrentArc->GetType(), mCurrentArc->GetNode()->GetId());
-									LogInformation("fail arc id " + eastl::to_string(mCurrentArc->GetId()) + 
-										" type " + eastl::to_string(mCurrentArc->GetType()) + " node " +
-										eastl::to_string(mCurrentArc->GetNode()->GetId()));
+									aiManager->mLogError << std::endl << ("fail arc id " + 
+										eastl::to_string(mCurrentArc->GetId()) + " type " + 
+										eastl::to_string(mCurrentArc->GetType()) + " node " +
+										eastl::to_string(mCurrentArc->GetNode()->GetId())).c_str() << std::endl;
 								}
 								else
 								{
 									printf("\n no arc \n ");
-									LogInformation("no arc");
+									aiManager->mLogError << std::endl << "no arc" << std::endl;
 								}
 
 								mCurrentPlan.clear();
@@ -971,9 +976,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							}
 							else
 							{
-								if (mCurrentAction == GAT_JUMP ||
-									mCurrentAction == GAT_PUSH ||
-									mCurrentAction == GAT_TELEPORT)
+								if (mCurrentAction == GAT_JUMP || mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
 								{
 									eastl::shared_ptr<Actor> pItemActor(
 										eastl::dynamic_shared_pointer_cast<Actor>(
