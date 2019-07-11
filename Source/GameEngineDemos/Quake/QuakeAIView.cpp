@@ -756,24 +756,22 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								for (PathingArc* pathArc : mCurrentPlan)
 									printf("%u ", pathArc->GetNode()->GetId());
 
-								aiManager->mLogError << std::endl << 
-									("current decision making player " + eastl::to_string(mPlayerId)).c_str() << std::endl;
-								for (PathingArc* pathArc : mCurrentPlan)
-									aiManager->mLogError << (eastl::to_string(pathArc->GetNode()->GetId()) + " ").c_str();
-
 								if (mCurrentArc != NULL)
 								{
 									printf("\n fail arc id %u type %u node %u \n ",
 										mCurrentArc->GetId(), mCurrentArc->GetType(), mCurrentArc->GetNode()->GetId());
-									aiManager->mLogError << std::endl << ("fail arc id " + 
-										eastl::to_string(mCurrentArc->GetId()) + " type " + 
+									LogInformation("fail arc id " + eastl::to_string(mCurrentArc->GetId()) +
+										" type " + eastl::to_string(mCurrentArc->GetType()) + " node " +
+										eastl::to_string(mCurrentArc->GetNode()->GetId()));
+									aiManager->mLogError << ("fail arc id " +
+										eastl::to_string(mCurrentArc->GetId()) + " type " +
 										eastl::to_string(mCurrentArc->GetType()) + " node " +
 										eastl::to_string(mCurrentArc->GetNode()->GetId())).c_str() << std::endl;
 								}
 								else
 								{
 									printf("\n no arc \n ");
-									aiManager->mLogError << std::endl << "no arc" << std::endl;
+									LogInformation("no arc");
 								}
 
 								mCurrentPlan.clear();

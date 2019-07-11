@@ -1273,14 +1273,14 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 		//health & armor status
 		unsigned int maxHealth = 200;
 		unsigned int maxArmor = 200;
-		heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
-		heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
+		heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.15f;
+		heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.15f;
 
-		heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
-		heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
+		heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.15f;
+		heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.15f;
 
 		//damage
-		int maxDamage = 300;
+		int maxDamage = 400;
 		if (playerMaxDamage > maxDamage) maxDamage = playerMaxDamage;
 		if (otherPlayerMaxDamage > maxDamage) maxDamage = otherPlayerMaxDamage;
 		heuristic += (playerMaxDamage / (float)maxDamage) * 0.5f;
