@@ -512,8 +512,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					Vector3<float> currentPosition = pTransformComponent->GetPosition();
 					if (mCurrentPlan.size())
 					{
+						bool isValid = false;
 						PathingArcVec::iterator itArc = mCurrentPlan.begin();
-
 						do
 						{
 							mCurrentArc = (*itArc);
@@ -526,23 +526,42 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 							if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
 							{
-								itArc++;
-								if (itArc != mCurrentPlan.end())
-								{
-									mCurrentArc = (*itArc);
-									mCurrentAction = mCurrentArc->GetType();
-									mCurrentNode = mCurrentArc->GetNode();
-
-									Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
-									Normalize(direction);
-									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-								}
+								isValid = true;
 								break;
 							}
-							else itArc++;
+							
+							itArc++;
 						} while (itArc != mCurrentPlan.end());
 
-						mCurrentPlan.erase(mCurrentPlan.begin(), itArc);
+						if (isValid)
+						{
+							if (!mCurrentPlan.empty())
+								mCurrentPlan.erase(mCurrentPlan.begin());
+
+							itArc++;
+							if (itArc != mCurrentPlan.end())
+							{
+								mCurrentArc = (*itArc);
+								mCurrentAction = mCurrentArc->GetType();
+								mCurrentNode = mCurrentArc->GetNode();
+
+								Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
+								Normalize(direction);
+								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+							}
+						}
+						else
+						{
+							mCurrentPlan.clear();
+							mCurrentNode = NULL;
+
+							mCurrentActor = INVALID_ACTOR_ID;
+							mCurrentActionTime = 0.f;
+							mCurrentAction = 0;
+							mCurrentArc = 0;
+
+							mGoalNode = NULL;
+						}
 					}
 					else if (mGoalNode != NULL)
 					{
@@ -836,6 +855,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											//printf("\n found new plan %u : ", mPlayerId);
 											aiManager->SetPlayerUpdated(mPlayerId, false);
 										}
+										else if (!mCurrentPlan.empty())
+										{
+											path = mCurrentPlan;
+										}
 
 										mCurrentPlan = path;
 										delete plan;
@@ -862,51 +885,11 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								if (searchNode)
 								{
 									PathingNode* currentNode = mCurrentNode;
-									PathingClusterVec clusterNodes;
-									currentNode->GetClusters(GAT_JUMP, clusterNodes);
-
-									if (mGoalNode == NULL || mGoalNode == currentNode)
-									{
-										PathingArcVec pathPlan;
-										aiManager->GetPlayerPath(mPlayerId, pathPlan);
-
-										if (pathPlan.size())
-										{
-											/*
-											printf("\n original plan player %u : ", mPlayerId);
-											for (PathingArc* pathArc : pathPlan)
-												printf("%u ", pathArc->GetNode()->GetId());
-											*/
-											PathingArcVec::iterator itPathPlan;
-											for (itPathPlan = pathPlan.begin(); itPathPlan != pathPlan.end(); itPathPlan++)
-											{
-												PathingArc* pathArc = (*itPathPlan);
-												for (PathingCluster* clusterNode : clusterNodes)
-												{
-													if (currentNode->GetCluster() != clusterNode->GetNode()->GetCluster() &&
-														pathArc->GetNode()->GetCluster() == clusterNode->GetNode()->GetCluster())
-													{
-														//printf("\n plan node %u : ", mPlayerId);
-
-														mGoalNode = clusterNode->GetTarget();
-
-														PathingArcVec newPathPlan;
-														for (itPathPlan++; itPathPlan != pathPlan.end(); itPathPlan++)
-															newPathPlan.push_back((*itPathPlan));
-														aiManager->SetPlayerPath(mPlayerId, newPathPlan);
-														searchNode = false;
-														break;
-													}
-												}
-
-												if (!searchNode) break;
-											}
-										}
-									}
-
 									if (mGoalNode == NULL || mGoalNode == currentNode)
 									{
 										//printf("\n random node %u : ", mPlayerId);
+										PathingClusterVec clusterNodes;
+										currentNode->GetClusters(GAT_JUMP, clusterNodes);
 
 										// choose a random cluster
 										do

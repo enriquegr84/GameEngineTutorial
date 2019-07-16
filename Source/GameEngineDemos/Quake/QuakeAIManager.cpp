@@ -1007,8 +1007,9 @@ void QuakeAIManager::DetectActor(eastl::shared_ptr<PlayerActor> pPlayerActor, ea
 
 float QuakeAIManager::CalculateHeuristicItems(NodeState& playerState)
 {
+	float weight = 0.f;
 	float heuristic = 0.f;
-	float maxDistance = 4.0f;
+	float maxDistance = 6.0f;
 	float distance = 0.f;
 	int maxAmmo = 0;
 	int ammo = 0;
@@ -1023,83 +1024,139 @@ float QuakeAIManager::CalculateHeuristicItems(NodeState& playerState)
 
 			switch (pWeaponPickup->GetCode())
 			{
-			case WP_LIGHTNING:
-				maxAmmo = 60;
+				case WP_LIGHTNING:
+					maxAmmo = 60;
 
-				distance = (playerState.itemDistance[item] < maxDistance) ?
-					playerState.itemDistance[item] : maxDistance;
-				ammo = (playerState.itemAmount[item] < maxAmmo) ?
-					playerState.itemAmount[item] : maxAmmo;
+					//lets calculate the item weight based on the player status
+					if (playerState.stats[STAT_WEAPONS] & (1 << pWeaponPickup->GetCode()))
+					{
+						weight = 0.1f;
+						if (playerState.ammo[pWeaponPickup->GetCode()] > 80)
+							weight *= 0.5f;
+					}
+					else weight = 0.2f;
 
-				//relation based on amount gained and distance travelled
-				heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.2f;
-				break;
-			case WP_SHOTGUN:
-				maxAmmo = 10;
+					distance = (playerState.itemDistance[item] < maxDistance) ?
+						playerState.itemDistance[item] : maxDistance;
+					ammo = (playerState.itemAmount[item] < maxAmmo) ?
+						playerState.itemAmount[item] : maxAmmo;
 
-				distance = (playerState.itemDistance[item] < maxDistance) ?
-					playerState.itemDistance[item] : maxDistance;
-				ammo = (playerState.itemAmount[item] < maxAmmo) ?
-					playerState.itemAmount[item] : maxAmmo;
+					//relation based on amount gained and distance travelled
+					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					break;
+				case WP_SHOTGUN:
+					maxAmmo = 10;
 
-				//relation based on amount gained and distance travelled
-				heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.2f;
-				break;
-			case WP_MACHINEGUN:
-				maxAmmo = 50;
+					//lets calculate the item weight based on the player status
+					if (playerState.stats[STAT_WEAPONS] & (1 << pWeaponPickup->GetCode()))
+					{
+						weight = 0.1f;
+						if (playerState.ammo[pWeaponPickup->GetCode()] > 10)
+							weight *= 0.5f;
+					}
+					else weight = 0.2f;
 
-				distance = (playerState.itemDistance[item] < maxDistance) ?
-					playerState.itemDistance[item] : maxDistance;
-				ammo = (playerState.itemAmount[item] < maxAmmo) ?
-					playerState.itemAmount[item] : maxAmmo;
+					distance = (playerState.itemDistance[item] < maxDistance) ?
+						playerState.itemDistance[item] : maxDistance;
+					ammo = (playerState.itemAmount[item] < maxAmmo) ?
+						playerState.itemAmount[item] : maxAmmo;
 
-				//relation based on amount gained and distance travelled
-				heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.1f;
-				break;
-			case WP_PLASMAGUN:
-				maxAmmo = 30;
+					//relation based on amount gained and distance travelled
+					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					break;
+				case WP_MACHINEGUN:
+					maxAmmo = 50;
 
-				distance = (playerState.itemDistance[item] < maxDistance) ?
-					playerState.itemDistance[item] : maxDistance;
-				ammo = (playerState.itemAmount[item] < maxAmmo) ?
-					playerState.itemAmount[item] : maxAmmo;
+					//lets calculate the item weight based on the player status
+					if (playerState.stats[STAT_WEAPONS] & (1 << pWeaponPickup->GetCode()))
+					{
+						weight = 0.05f;
+						if (playerState.ammo[pWeaponPickup->GetCode()] > 80)
+							weight *= 0.5f;
+					}
+					else weight = 0.1f;
 
-				//relation based on amount gained and distance travelled
-				heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.1f;
-				break;
-			case WP_GRENADE_LAUNCHER:
-				maxAmmo = 5;
+					distance = (playerState.itemDistance[item] < maxDistance) ?
+						playerState.itemDistance[item] : maxDistance;
+					ammo = (playerState.itemAmount[item] < maxAmmo) ?
+						playerState.itemAmount[item] : maxAmmo;
 
-				distance = (playerState.itemDistance[item] < maxDistance) ?
-					playerState.itemDistance[item] : maxDistance;
-				ammo = (playerState.itemAmount[item] < maxAmmo) ?
-					playerState.itemAmount[item] : maxAmmo;
+					//relation based on amount gained and distance travelled
+					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					break;
+				case WP_PLASMAGUN:
+					maxAmmo = 30;
 
-				//relation based on amount gained and distance travelled
-				heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.f;
-				break;
-			case WP_ROCKET_LAUNCHER:
-				maxAmmo = 5;
+					//lets calculate the item weight based on the player status
+					if (playerState.stats[STAT_WEAPONS] & (1 << pWeaponPickup->GetCode()))
+					{
+						weight = 0.05f;
+						if (playerState.ammo[pWeaponPickup->GetCode()] > 60)
+							weight *= 0.5f;
+					}
+					else weight = 0.1f;
 
-				distance = (playerState.itemDistance[item] < maxDistance) ?
-					playerState.itemDistance[item] : maxDistance;
-				ammo = (playerState.itemAmount[item] < maxAmmo) ?
-					playerState.itemAmount[item] : maxAmmo;
+					distance = (playerState.itemDistance[item] < maxDistance) ?
+						playerState.itemDistance[item] : maxDistance;
+					ammo = (playerState.itemAmount[item] < maxAmmo) ?
+						playerState.itemAmount[item] : maxAmmo;
 
-				//relation based on amount gained and distance travelled
-				heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.2f;
-				break;
-			case WP_RAILGUN:
-				maxAmmo = 10;
+					//relation based on amount gained and distance travelled
+					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					break;
+				case WP_GRENADE_LAUNCHER:
+					maxAmmo = 5;
+					
+					weight = 0.f;
 
-				distance = (playerState.itemDistance[item] < maxDistance) ?
-					playerState.itemDistance[item] : maxDistance;
-				ammo = (playerState.itemAmount[item] < maxAmmo) ?
-					playerState.itemAmount[item] : maxAmmo;
+					distance = (playerState.itemDistance[item] < maxDistance) ?
+						playerState.itemDistance[item] : maxDistance;
+					ammo = (playerState.itemAmount[item] < maxAmmo) ?
+						playerState.itemAmount[item] : maxAmmo;
 
-				//relation based on amount gained and distance travelled
-				heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.2f;
-				break;
+					//relation based on amount gained and distance travelled
+					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					break;
+				case WP_ROCKET_LAUNCHER:
+					maxAmmo = 5;
+
+					//lets calculate the item weight based on the player status
+					if (playerState.stats[STAT_WEAPONS] & (1 << pWeaponPickup->GetCode()))
+					{
+						weight = 0.1f;
+						if (playerState.ammo[pWeaponPickup->GetCode()] > 10)
+							weight *= 0.5f;
+					}
+					else weight = 0.2f;
+
+					distance = (playerState.itemDistance[item] < maxDistance) ?
+						playerState.itemDistance[item] : maxDistance;
+					ammo = (playerState.itemAmount[item] < maxAmmo) ?
+						playerState.itemAmount[item] : maxAmmo;
+
+					//relation based on amount gained and distance travelled
+					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					break;
+				case WP_RAILGUN:
+					maxAmmo = 10;
+
+					//lets calculate the item weight based on the player status
+					if (playerState.stats[STAT_WEAPONS] & (1 << pWeaponPickup->GetCode()))
+					{
+						weight = 0.1f;
+						if (playerState.ammo[pWeaponPickup->GetCode()] > 10)
+							weight *= 0.5f;
+					}
+					else weight = 0.2f;
+
+					distance = (playerState.itemDistance[item] < maxDistance) ?
+						playerState.itemDistance[item] : maxDistance;
+					ammo = (playerState.itemAmount[item] < maxAmmo) ?
+						playerState.itemAmount[item] : maxAmmo;
+
+					//relation based on amount gained and distance travelled
+					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					break;
 			}
 		}
 		else if (item->GetType() == "Ammo")
@@ -1109,97 +1166,129 @@ float QuakeAIManager::CalculateHeuristicItems(NodeState& playerState)
 
 			switch (pAmmoPickup->GetCode())
 			{
-			case WP_LIGHTNING:
-				maxAmmo = 60;
-				if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
-				{
-					distance = (playerState.itemDistance[item] < maxDistance) ?
-						playerState.itemDistance[item] : maxDistance;
-					ammo = (playerState.itemAmount[item] < maxAmmo) ?
-						playerState.itemAmount[item] : maxAmmo;
+				case WP_LIGHTNING:
+					maxAmmo = 60;
+					if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
+					{
+						//lets calculate the item weight based on the player status
+						weight = 0.1f;
+						if (playerState.ammo[pAmmoPickup->GetCode()] > 80)
+							weight *= 0.5f;
 
-					//relation based on amount gained and distance travelled
-					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.1f;
-				}
-				break;
-			case WP_SHOTGUN:
-				maxAmmo = 10;
-				if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
-				{
-					distance = (playerState.itemDistance[item] < maxDistance) ?
-						playerState.itemDistance[item] : maxDistance;
-					ammo = (playerState.itemAmount[item] < maxAmmo) ?
-						playerState.itemAmount[item] : maxAmmo;
+						distance = (playerState.itemDistance[item] < maxDistance) ?
+							playerState.itemDistance[item] : maxDistance;
+						ammo = (playerState.itemAmount[item] < maxAmmo) ?
+							playerState.itemAmount[item] : maxAmmo;
 
-					//relation based on amount gained and distance travelled
-					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.1f;
-				}
-				break;
-			case WP_MACHINEGUN:
-				maxAmmo = 50;
-				if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
-				{
-					distance = (playerState.itemDistance[item] < maxDistance) ?
-						playerState.itemDistance[item] : maxDistance;
-					ammo = (playerState.itemAmount[item] < maxAmmo) ?
-						playerState.itemAmount[item] : maxAmmo;
+						//relation based on amount gained and distance travelled
+						heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					}
+					break;
+				case WP_SHOTGUN:
+					maxAmmo = 10;
+					if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
+					{
+						//lets calculate the item weight based on the player status
+						weight = 0.1f;
+						if (playerState.ammo[pAmmoPickup->GetCode()] > 10)
+							weight *= 0.5f;
 
-					//relation based on amount gained and distance travelled
-					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.05f;
-				}
-				break;
-			case WP_PLASMAGUN:
-				maxAmmo = 30;
-				if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
-				{
-					distance = (playerState.itemDistance[item] < maxDistance) ?
-						playerState.itemDistance[item] : maxDistance;
-					ammo = (playerState.itemAmount[item] < maxAmmo) ?
-						playerState.itemAmount[item] : maxAmmo;
+						distance = (playerState.itemDistance[item] < maxDistance) ?
+							playerState.itemDistance[item] : maxDistance;
+						ammo = (playerState.itemAmount[item] < maxAmmo) ?
+							playerState.itemAmount[item] : maxAmmo;
 
-					//relation based on amount gained and distance travelled
-					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.05f;
-				}
-				break;
-			case WP_GRENADE_LAUNCHER:
-				maxAmmo = 5;
-				if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
-				{
-					distance = (playerState.itemDistance[item] < maxDistance) ?
-						playerState.itemDistance[item] : maxDistance;
-					ammo = (playerState.itemAmount[item] < maxAmmo) ?
-						playerState.itemAmount[item] : maxAmmo;
+						//relation based on amount gained and distance travelled
+						heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					}
+					break;
+				case WP_MACHINEGUN:
+					maxAmmo = 50;
+					if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
+					{
+						//lets calculate the item weight based on the player status
+						weight = 0.05f;
+						if (playerState.ammo[pAmmoPickup->GetCode()] > 80)
+							weight *= 0.5f;
 
-					//relation based on amount gained and distance travelled
-					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.f;
-				}
-				break;
-			case WP_ROCKET_LAUNCHER:
-				maxAmmo = 5;
-				if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
-				{
-					distance = (playerState.itemDistance[item] < maxDistance) ?
-						playerState.itemDistance[item] : maxDistance;
-					ammo = (playerState.itemAmount[item] < maxAmmo) ?
-						playerState.itemAmount[item] : maxAmmo;
+						distance = (playerState.itemDistance[item] < maxDistance) ?
+							playerState.itemDistance[item] : maxDistance;
+						ammo = (playerState.itemAmount[item] < maxAmmo) ?
+							playerState.itemAmount[item] : maxAmmo;
 
-					//relation based on amount gained and distance travelled
-					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.1f;
-				}
-				break;
-			case WP_RAILGUN:
-				maxAmmo = 10;
-				if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
-				{
-					distance = (playerState.itemDistance[item] < maxDistance) ?
-						playerState.itemDistance[item] : maxDistance;
-					ammo = (playerState.itemAmount[item] < maxAmmo) ?
-						playerState.itemAmount[item] : maxAmmo;
+						//relation based on amount gained and distance travelled
+						heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					}
+					break;
+				case WP_PLASMAGUN:
+					maxAmmo = 30;
+					if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
+					{
+						//lets calculate the item weight based on the player status
+						weight = 0.05f;
+						if (playerState.ammo[pAmmoPickup->GetCode()] > 60)
+							weight *= 0.5f;
 
-					//relation based on amount gained and distance travelled
-					heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * 0.1f;
-				}
-				break;
+						distance = (playerState.itemDistance[item] < maxDistance) ?
+							playerState.itemDistance[item] : maxDistance;
+						ammo = (playerState.itemAmount[item] < maxAmmo) ?
+							playerState.itemAmount[item] : maxAmmo;
+
+						//relation based on amount gained and distance travelled
+						heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					}
+					break;
+				case WP_GRENADE_LAUNCHER:
+					maxAmmo = 5;
+					if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
+					{
+						weight = 0.f;
+
+						distance = (playerState.itemDistance[item] < maxDistance) ?
+							playerState.itemDistance[item] : maxDistance;
+						ammo = (playerState.itemAmount[item] < maxAmmo) ?
+							playerState.itemAmount[item] : maxAmmo;
+
+						//relation based on amount gained and distance travelled
+						heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					}
+					break;
+				case WP_ROCKET_LAUNCHER:
+					maxAmmo = 5;
+					if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
+					{
+						//lets calculate the item weight based on the player status
+						weight = 0.1f;
+						if (playerState.ammo[pAmmoPickup->GetCode()] > 10)
+							weight *= 0.5f;
+
+						distance = (playerState.itemDistance[item] < maxDistance) ?
+							playerState.itemDistance[item] : maxDistance;
+						ammo = (playerState.itemAmount[item] < maxAmmo) ?
+							playerState.itemAmount[item] : maxAmmo;
+
+						//relation based on amount gained and distance travelled
+						heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					}
+					break;
+				case WP_RAILGUN:
+					maxAmmo = 10;
+					if (playerState.stats[STAT_WEAPONS] & (1 << pAmmoPickup->GetCode()))
+					{
+						//lets calculate the item weight based on the player status
+						weight = 0.1f;
+						if (playerState.ammo[pAmmoPickup->GetCode()] > 10)
+							weight *= 0.5f;
+
+						distance = (playerState.itemDistance[item] < maxDistance) ?
+							playerState.itemDistance[item] : maxDistance;
+						ammo = (playerState.itemAmount[item] < maxAmmo) ?
+							playerState.itemAmount[item] : maxAmmo;
+
+						//relation based on amount gained and distance travelled
+						heuristic += (ammo / (float)maxAmmo) * (1.0f - (distance / (float)maxDistance)) * weight;
+					}
+					break;
 			}
 		}
 		else if (item->GetType() == "Armor")
@@ -1210,13 +1299,18 @@ float QuakeAIManager::CalculateHeuristicItems(NodeState& playerState)
 			int armor = 0;
 			int maxArmor = 100;
 
+			//lets calculate the item weight based on the player status
+			weight = 0.3f;
+			if (playerState.stats[STAT_ARMOR] > 50)
+				weight *= 0.5f;
+
 			distance = (playerState.itemDistance[item] < maxDistance) ?
 				playerState.itemDistance[item] : maxDistance;
 			armor = (playerState.itemAmount[item] < maxArmor) ?
 				playerState.itemAmount[item] : maxArmor;
 
 			//relation based on amount gained and distance travelled
-			heuristic += (armor / (float)maxArmor) * (1.0f - (distance / (float)maxDistance)) * 0.3f;
+			heuristic += (armor / (float)maxArmor) * (1.0f - (distance / (float)maxDistance)) * weight;
 
 		}
 		else if (item->GetType() == "Health")
@@ -1227,13 +1321,18 @@ float QuakeAIManager::CalculateHeuristicItems(NodeState& playerState)
 			int health = 0;
 			int maxHealth = 100;
 
+			//lets calculate the item weight based on the player status
+			weight = 0.3f;
+			if (playerState.stats[STAT_HEALTH] > 50)
+				weight *= 0.5f;
+
 			distance = (playerState.itemDistance[item] < maxDistance) ?
 				playerState.itemDistance[item] : maxDistance;
 			health = (playerState.itemAmount[item] < maxHealth) ?
 				playerState.itemAmount[item] : maxHealth;
 
 			//relation based on amount gained and distance travelled
-			heuristic += (health / (float)maxHealth) * (1.0f - (distance / (float)maxDistance)) * 0.3f;
+			heuristic += (health / (float)maxHealth) * (1.0f - (distance / (float)maxDistance)) * weight;
 		}
 	}
 
@@ -1273,18 +1372,16 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 		//health & armor status
 		unsigned int maxHealth = 200;
 		unsigned int maxArmor = 200;
-		heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.15f;
-		heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.15f;
+		heuristic += (playerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
+		heuristic += (playerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
 
-		heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.15f;
-		heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.15f;
+		heuristic -= (otherPlayerState.stats[STAT_HEALTH] / (float)maxHealth) * 0.1f;
+		heuristic -= (otherPlayerState.stats[STAT_ARMOR] / (float)maxArmor) * 0.1f;
 
 		//damage
-		int maxDamage = 400;
-		if (playerMaxDamage > maxDamage) maxDamage = playerMaxDamage;
-		if (otherPlayerMaxDamage > maxDamage) maxDamage = otherPlayerMaxDamage;
-		heuristic += (playerMaxDamage / (float)maxDamage) * 0.5f;
-		heuristic -= (otherPlayerMaxDamage / (float)maxDamage) * 0.5f;
+		int maxDamage = 300;
+		heuristic += (playerMaxDamage / (float)maxDamage) * 0.4f;
+		heuristic -= (otherPlayerMaxDamage / (float)maxDamage) * 0.4f;
 	}
 
 	playerState.heuristic = heuristic;
@@ -1296,7 +1393,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 {
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
 	{
-		int shotCount = visibleTime > 0.2f ? 1 : 0;
+		int shotCount = visibleTime >= 0.6f ? 1 : 0;
 
 		if (weapon != WP_GAUNTLET)
 		{
@@ -1314,13 +1411,13 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
-						if (visibleDistance <= 600)
+						if (visibleDistance <= 900)
 							state.damage[weapon - 1] = damage * shotCount;
 						break;
 					case WP_SHOTGUN:
 						damage = 120;
 						fireTime = 1.0f;
-						rangeDistance = visibleDistance > 600 ? visibleDistance : 600;
+						rangeDistance = visibleDistance > 500 ? visibleDistance : 500;
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
@@ -1330,7 +1427,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 					case WP_MACHINEGUN:
 						damage = 5;
 						fireTime = 0.1f;
-						rangeDistance = visibleDistance > 400 ? visibleDistance : 400;
+						rangeDistance = visibleDistance > 500 ? visibleDistance : 500;
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
@@ -1345,14 +1442,10 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 					case WP_ROCKET_LAUNCHER:
 						damage = 100;
 						fireTime = 0.8f;
-						if (visibleDistance > 120)
-						{
-							if (visibleHeight <= 30.f)
-								rangeDistance = visibleDistance > 600 ? visibleDistance : 600;
-							else
-								rangeDistance = visibleDistance > 500 ? visibleDistance : 500;
-						}
-						else rangeDistance = 300;
+						if (visibleHeight <= 30.f)
+							rangeDistance = visibleDistance > 600 ? visibleDistance : 600;
+						else
+							rangeDistance = visibleDistance > 400 ? visibleDistance : 400;
 
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
@@ -1363,7 +1456,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 					case WP_PLASMAGUN:
 						damage = 10;
 						fireTime = 0.1f;
-						rangeDistance = visibleDistance > 400 ? visibleDistance : 400;
+						rangeDistance = visibleDistance > 600 ? visibleDistance : 600;
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
@@ -2826,7 +2919,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 			groundMovements[position] = true;
 			movements.push_back(position);
 
-			PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position);
+			PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position, false);
 			if (pCurrentNode != pClosestNode)
 			{
 				Vector3<float> diff = pClosestNode->GetPos() - position;
@@ -2875,7 +2968,7 @@ void QuakeAIManager::SimulateMovement(PathingNode* pNode)
 
 				if (groundMovements[(*itMove)])
 				{
-					PathingNode* pClosestNode = mPathingGraph->FindClosestNode((*itMove));
+					PathingNode* pClosestNode = mPathingGraph->FindClosestNode((*itMove), false);
 					Vector3<float> diff = pClosestNode->GetPos() - (*itMove);
 					if (Length(diff) >= 16.f)
 					{
@@ -3119,7 +3212,7 @@ void QuakeAIManager::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 				pItemActor->GetType() == "Health")
 			{
 				Vector3<float> position = pPhysicComponent->GetTransform().GetTranslation();
-				PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position);
+				PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position, false);
 				if (pClosestNode != NULL)
 				{
 					Vector3<float> diff = pClosestNode->GetPos() - position;
@@ -3179,7 +3272,7 @@ void QuakeAIManager::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 				if (pItemActor->GetType() == "Trigger")
 				{
 					Vector3<float> position = pPhysicComponent->GetTransform().GetTranslation();
-					PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position);
+					PathingNode* pClosestNode = mPathingGraph->FindClosestNode(position, false);
 					if (pClosestNode != NULL)
 					{
 						Vector3<float> diff = pClosestNode->GetPos() - position;

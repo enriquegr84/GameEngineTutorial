@@ -352,9 +352,9 @@ public:
 	~PathingGraph(void) { DestroyGraph(); }
 	void DestroyGraph(void);
 
-	void FindNodes(PathingNodeVec&, const Vector3<float>& pos, float radius);
-	PathingNode* FindClosestNode(const Vector3<float>& pos);
-	PathingNode* FindFurthestNode(const Vector3<float>& pos);
+	void FindNodes(PathingNodeVec&, const Vector3<float>& pos, float radius, bool skipIsolated = true);
+	PathingNode* FindClosestNode(const Vector3<float>& pos, bool skipIsolated = true);
+	PathingNode* FindFurthestNode(const Vector3<float>& pos, bool skipIsolated = true);
 	PathingNode* FindNode(unsigned int nodeId);
 	PathingNode* FindRandomNode(void);
 

@@ -1196,7 +1196,7 @@ void PathingGraph::DestroyGraph(void)
 	mArcs.clear();
 }
 
-PathingNode* PathingGraph::FindClosestNode(const Vector3<float>& pos)
+PathingNode* PathingGraph::FindClosestNode(const Vector3<float>& pos, bool skipIsolated)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
 	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
@@ -1205,6 +1205,13 @@ PathingNode* PathingGraph::FindClosestNode(const Vector3<float>& pos)
 	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 	{
 		PathingNode* pNode = *it;
+		if (skipIsolated)
+		{
+			//lets skip isolated nodes
+			if (pNode->GetArcs().empty())
+				continue;
+		}
+
 		Vector3<float> diff = pos - pNode->GetPos();
 		if (Length(diff) < length)
 		{
@@ -1216,7 +1223,7 @@ PathingNode* PathingGraph::FindClosestNode(const Vector3<float>& pos)
 	return pClosestNode;
 }
 
-PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos)
+PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos, bool skipIsolated)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
 	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
@@ -1225,6 +1232,13 @@ PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos)
 	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 	{
 		PathingNode* pNode = *it;
+		if (skipIsolated)
+		{
+			//lets skip isolated nodes
+			if (pNode->GetArcs().empty())
+				continue;
+		}
+
 		Vector3<float> diff = pos - pNode->GetPos();
 		if (Length(diff) > length)
 		{
@@ -1236,13 +1250,20 @@ PathingNode* PathingGraph::FindFurthestNode(const Vector3<float>& pos)
 	return pFurthestNode;
 }
 
-void PathingGraph::FindNodes(PathingNodeVec& nodes, const Vector3<float>& pos, float radius)
+void PathingGraph::FindNodes(PathingNodeVec& nodes, const Vector3<float>& pos, float radius, bool skipIsolated)
 {
 	// This is a simple brute-force O(n) algorithm that could be made a LOT faster by utilizing
 	// spatial partitioning, like an octree (or quadtree for flat worlds) or something similar.
 	for (PathingNodeVec::iterator it = mNodes.begin(); it != mNodes.end(); ++it)
 	{
 		PathingNode* pNode = *it;
+		if (skipIsolated)
+		{
+			//lets skip isolated nodes
+			if (pNode->GetArcs().empty())
+				continue;
+		}
+
 		Vector3<float> diff = pos - pNode->GetPos();
 		if (Length(diff) <= radius)
 			nodes.push_back(pNode);

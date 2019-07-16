@@ -58,10 +58,7 @@ void QuakeAIProcess::Visibility(
 	float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight)
 {
 	float totalTime = 0.f, totalArcTime = 0.f;
-	float visibleTotalTime = 0.f, otherVisibleTotalTime = 0.f;
 	unsigned int index = 0, otherIndex = 0, otherPathIndex = 0;
-	eastl::vector<float> visibleAverageTime, visibleAverageDistance, visibleAverageHeight;
-	eastl::vector<float> otherVisibleAverageTime, otherVisibleAverageDistance, otherVisibleAverageHeight;
 
 	PathingNode* currentNode = playerNode;
 	PathingTransition* currentTransition = NULL;
@@ -73,38 +70,6 @@ void QuakeAIProcess::Visibility(
 	PathingNodeVec otherTransitionNodes = otherCurrentTransition->GetNodes();
 
 	//lets calculate the visibility for simultaneous path travelling.
-	eastl::map<unsigned int, eastl::vector<PathingNode*>> currentClusters, otherCurrentClusters;
-	for (PathingArc* currentArc : playerPathPlan)
-	{
-		index = 0;
-		currentTransition = currentNode->FindTransition(currentArc->GetId());
-		transitionNodes = currentTransition->GetNodes();
-		for (; index < transitionNodes.size(); index++)
-			currentClusters[transitionNodes[index]->GetCluster()].push_back(transitionNodes[index]);
-
-		currentNode = currentArc->GetNode();
-		currentClusters[currentNode->GetCluster()].push_back(currentNode);
-	}
-
-	for (PathingArc* otherCurrentArc : otherPlayerPathPlan)
-	{
-		otherIndex = 0;
-		otherCurrentTransition = otherCurrentNode->FindTransition(otherCurrentArc->GetId());
-		otherTransitionNodes = otherCurrentTransition->GetNodes();
-		for (; otherIndex < otherTransitionNodes.size(); otherIndex++)
-		{
-			otherCurrentClusters[otherTransitionNodes[otherIndex]->GetCluster()].
-				push_back(otherTransitionNodes[otherIndex]);
-		}
-
-		otherCurrentNode = otherCurrentArc->GetNode();
-		otherCurrentClusters[otherCurrentNode->GetCluster()].push_back(otherCurrentNode);
-	}
-
-	index = 0;
-	otherIndex = 0;
-	currentNode = playerNode;
-	otherCurrentNode = otherPlayerNode;
 	for (PathingArc* currentArc : playerPathPlan)
 	{
 		index = 0;
@@ -116,30 +81,23 @@ void QuakeAIProcess::Visibility(
 			if (mAIManager->GetPathingGraph()->IsVisibleCluster(
 				transitionNodes[index]->GetCluster(), otherTransitionNodes[otherIndex]->GetCluster()))
 			{
-				for (PathingNode* otherNode : otherCurrentClusters[otherTransitionNodes[otherIndex]->GetCluster()])
+				if (transitionNodes[index]->IsVisibleNode(otherTransitionNodes[otherIndex]))
 				{
-					if (transitionNodes[index]->IsVisibleNode(otherNode))
-					{
-						visibleAverageTime.push_back(visibleWeight);
-						visibleAverageDistance.push_back(Length(
-							otherCurrentTransition->GetConnections()[otherIndex] -
-							currentTransition->GetConnections()[index]));
-						visibleAverageHeight.push_back(
-							(currentTransition->GetConnections()[index][2] -
-							otherCurrentTransition->GetConnections()[otherIndex][2]));
-						visibleTotalTime += visibleWeight;
+					(*visibleDistance) += Length(
+						otherCurrentTransition->GetConnections()[otherIndex] -
+						currentTransition->GetConnections()[index]) * visibleWeight;
+					(*visibleHeight) +=
+						(currentTransition->GetConnections()[index][2] -
+						otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight;
+					(*visibleTime) += visibleWeight;
 
-						otherVisibleAverageTime.push_back(visibleWeight);
-						otherVisibleAverageDistance.push_back(Length(
-							otherCurrentTransition->GetConnections()[otherIndex] -
-							currentTransition->GetConnections()[index]));
-						otherVisibleAverageHeight.push_back(
-							(otherCurrentTransition->GetConnections()[otherIndex][2] -
-							currentTransition->GetConnections()[index][2]));
-						otherVisibleTotalTime += visibleWeight;
-
-						break;
-					}
+					(*otherVisibleDistance) += Length(
+						otherCurrentTransition->GetConnections()[otherIndex] -
+						currentTransition->GetConnections()[index]) * visibleWeight;
+					(*otherVisibleHeight) +=
+						(otherCurrentTransition->GetConnections()[otherIndex][2] -
+						currentTransition->GetConnections()[index][2]) * visibleWeight;
+					(*otherVisibleTime) += visibleWeight;
 				}
 			}
 
@@ -167,147 +125,81 @@ void QuakeAIProcess::Visibility(
 		currentNode = currentArc->GetNode();
 	}
 
-	if (currentTransition)
+	//lets put a minimum of total time
+	if (totalTime < 3.0f)
 	{
-		index--;
+		float visibleWeight = 3.0f - totalTime;
+		totalTime = 3.0f;
 
-		while (otherPathIndex < otherPlayerPathPlan.size())
-		{
-			for (; otherIndex < otherTransitionNodes.size(); otherIndex++)
-			{
-				float visibleWeight = currentTransition->GetWeights()[index];
-
-				if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-					transitionNodes[index]->GetCluster(), otherTransitionNodes[otherIndex]->GetCluster()))
-				{
-					for (PathingNode* node : currentClusters[transitionNodes[index]->GetCluster()])
-					{
-						if (otherTransitionNodes[otherIndex]->IsVisibleNode(node))
-						{
-							visibleAverageTime.push_back(visibleWeight);
-							visibleAverageDistance.push_back(Length(
-								otherCurrentTransition->GetConnections()[otherIndex] -
-								currentTransition->GetConnections()[index]));
-							visibleAverageHeight.push_back(
-								(currentTransition->GetConnections()[index][2] -
-									otherCurrentTransition->GetConnections()[otherIndex][2]));
-							visibleTotalTime += visibleWeight;
-
-							otherVisibleAverageTime.push_back(visibleWeight);
-							otherVisibleAverageDistance.push_back(Length(
-								otherCurrentTransition->GetConnections()[otherIndex] -
-								currentTransition->GetConnections()[index]));
-							otherVisibleAverageHeight.push_back(
-								(otherCurrentTransition->GetConnections()[otherIndex][2] -
-									currentTransition->GetConnections()[index][2]));
-							otherVisibleTotalTime += visibleWeight;
-
-							break;
-						}
-					}
-				}
-			}
-
-			if (otherPathIndex + 1 < otherPlayerPathPlan.size())
-			{
-				otherIndex = 0;
-				otherCurrentNode = otherPlayerPathPlan[otherPathIndex]->GetNode();
-
-				otherPathIndex++;
-				otherCurrentTransition = otherCurrentNode->FindTransition(
-					otherPlayerPathPlan[otherPathIndex]->GetId());
-				otherTransitionNodes = otherCurrentTransition->GetNodes();
-			}
-			else
-			{
-				otherIndex--;
-				otherPathIndex++;
-			}
-		}
-
-		//lets put a minimum of pathway travelling time
-		if (totalTime < 2.0f)
-		{
-			visibleTotalTime = 0.f;
-			unsigned int visibleIndex = 0;
-			for (; visibleIndex < visibleAverageTime.size(); visibleIndex++)
-			{
-				visibleAverageTime[visibleIndex] = 
-					2.0f * (visibleAverageTime[visibleIndex] / totalTime);
-				visibleTotalTime += visibleAverageTime[visibleIndex];
-			}
-
-			otherVisibleTotalTime = 0.f;
-			unsigned int otherVisibleIndex = 0;
-			for (; otherVisibleIndex < otherVisibleAverageTime.size(); otherVisibleIndex++)
-			{
-				otherVisibleAverageTime[otherVisibleIndex] =
-					2.0f * (otherVisibleAverageTime[otherVisibleIndex] / totalTime);
-				otherVisibleTotalTime += otherVisibleAverageTime[otherVisibleIndex];
-			}
-
-			totalTime = 2.0f;
-		}
-
-		//lets calculate the average
-		if (visibleTotalTime > 0)
-		{
-			unsigned int visibleIndex = 0;
-			for (; visibleIndex < visibleAverageTime.size(); visibleIndex++)
-			{
-				(*visibleDistance) += visibleAverageDistance[visibleIndex] * visibleAverageTime[visibleIndex];
-				(*visibleHeight) += visibleAverageHeight[visibleIndex] * visibleAverageTime[visibleIndex];
-			}
-			(*visibleDistance) /= visibleTotalTime;
-			(*visibleHeight) /= visibleTotalTime;
-			(*visibleTime) = visibleTotalTime;
-		}
-
-		if (otherVisibleTotalTime > 0)
-		{
-			unsigned int otherVisibleIndex = 0;
-			for (; otherVisibleIndex < otherVisibleAverageTime.size(); otherVisibleIndex++)
-			{
-				(*otherVisibleDistance) += 
-					otherVisibleAverageDistance[otherVisibleIndex] * otherVisibleAverageTime[otherVisibleIndex];
-				(*otherVisibleHeight) += 
-					otherVisibleAverageHeight[otherVisibleIndex] * otherVisibleAverageTime[otherVisibleIndex];
-			}
-			(*otherVisibleDistance) /= otherVisibleTotalTime;
-			(*otherVisibleHeight) /= otherVisibleTotalTime;
-			(*otherVisibleTime) = otherVisibleTotalTime;
-		}
-
-		// we don't know what is ahead, lets give extra time if the ending clusters 
-		// from both pathway are visible
 		if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-			transitionNodes[index]->GetCluster(), otherTransitionNodes[otherIndex]->GetCluster()))
+			playerPathPlan.back()->GetNode()->GetCluster(),
+			otherPlayerPathPlan.back()->GetNode()->GetCluster()))
 		{
-			float visibleWeight = 2.0f;
-			totalTime += visibleWeight;
-			visibleTotalTime += visibleWeight;
-			otherVisibleTotalTime += visibleWeight;
+			if (playerPathPlan.back()->GetNode()->IsVisibleNode(
+				otherPlayerPathPlan.back()->GetNode()))
+			{
+				(*visibleDistance) += Length(
+					otherPlayerPathPlan.back()->GetNode()->GetPos() -
+					playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
+				(*visibleHeight) +=
+					(playerPathPlan.back()->GetNode()->GetPos()[2] -
+					otherPlayerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
+				(*visibleTime) += visibleWeight;
 
-			(*visibleDistance) += (Length(
-				otherCurrentTransition->GetConnections()[otherIndex] -
-				currentTransition->GetConnections()[index]) * visibleWeight) / visibleTotalTime;
-			(*visibleHeight) +=
-				((currentTransition->GetConnections()[index][2] -
-				otherCurrentTransition->GetConnections()[otherIndex][2]) * visibleWeight) / visibleTotalTime;
-			(*visibleTime) += visibleWeight;
-
-			(*otherVisibleDistance) += (Length(
-				otherCurrentTransition->GetConnections()[otherIndex] -
-				currentTransition->GetConnections()[index]) * visibleWeight) / otherVisibleTotalTime;
-			(*otherVisibleHeight) +=
-				((otherCurrentTransition->GetConnections()[otherIndex][2] -
-				currentTransition->GetConnections()[index][2]) * visibleWeight) /otherVisibleTotalTime;
-			(*otherVisibleTime) += visibleWeight;
+				(*otherVisibleDistance) += Length(
+					otherPlayerPathPlan.back()->GetNode()->GetPos() -
+					playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
+				(*otherVisibleHeight) +=
+					(otherPlayerPathPlan.back()->GetNode()->GetPos()[2] -
+					playerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
+				(*otherVisibleTime) += visibleWeight;
+			}
 		}
 	}
 
-	mPathingVisibleTime += visibleTotalTime;
-	mPathingTime += totalTime;
+	//we add extra time for potential visibility if the ending clusters are visible
+	if (mAIManager->GetPathingGraph()->IsVisibleCluster(
+		playerPathPlan.back()->GetNode()->GetCluster(),
+		otherPlayerPathPlan.back()->GetNode()->GetCluster()))
+	{
+		float visibleWeight = 1.0f;
+		totalTime += visibleWeight;
+
+		(*visibleDistance) += Length(
+			otherPlayerPathPlan.back()->GetNode()->GetPos() -
+			playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
+		(*visibleHeight) +=
+			(playerPathPlan.back()->GetNode()->GetPos()[2] -
+			otherPlayerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
+		(*visibleTime) += visibleWeight;
+
+		(*otherVisibleDistance) += Length(
+			otherPlayerPathPlan.back()->GetNode()->GetPos() -
+			playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
+		(*otherVisibleHeight) +=
+			(otherPlayerPathPlan.back()->GetNode()->GetPos()[2] -
+			playerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
+		(*otherVisibleTime) += visibleWeight;
+	}
+	
+	//average
+	if ((*visibleTime) > 0.f)
+	{
+		(*visibleDistance) /= (*visibleTime);
+		(*visibleHeight) /= (*visibleTime);
+	}
+
+	if ((*otherVisibleTime) > 0.f)
+	{
+		(*otherVisibleDistance) /= (*otherVisibleTime);
+		(*otherVisibleHeight) /= (*otherVisibleTime);
+	}
+
+	mPlayerVisibleTime += (*visibleTime);
+	mPlayerPathingTime += totalTime;
+
+	mOtherPlayerVisibleTime += (*otherVisibleTime);
+	mOtherPlayerPathingTime += totalTime;
 }
 
 void QuakeAIProcess::Simulation(
@@ -459,8 +351,10 @@ void QuakeAIProcess::ConstructActorPath(NodeState& playerState,
 
 void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPlayerState)
 {
-	mPathingTime = 0.f;
-	mPathingVisibleTime = 0.f;
+	mPlayerVisibleTime = 0.f;
+	mPlayerPathingTime = 0.f;
+	mOtherPlayerVisibleTime = 0.f;
+	mOtherPlayerPathingTime = 0.f;
 	eastl::map<PathingCluster*, PathingArcVec> playerPathPlans, otherPlayerPathPlans;
 
 	PathingClusterVec playerClusters;
@@ -562,57 +456,11 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	PathingCluster* playerCluster = NULL;
 	for (auto playerClustersState : playerClustersStates)
 	{
-		/*
-		fprintf(mAIManager->mLogInformation, "\n player cluster : %u ",
-			playerClustersState.first->GetTarget()->GetCluster());
-		*/
 		NodeState playerNodeState(playerState);
 		playerNodeState.heuristic = FLT_MAX;
 		playerNodeState.valid = false;
 		for (auto playerClusterState : playerClustersState.second)
 		{
-			/*
-			fprintf(mAIManager->mLogInformation, "other player cluster : %u ",
-				playerClusterState.first->GetTarget()->GetCluster());
-			fprintf(mAIManager->mLogInformation, "heuristic : %f ", playerClusterState.second.heuristic);
-
-			if (playerClusterState.second.weapon != WP_NONE)
-			{
-				fprintf(mAIManager->mLogInformation, " weapon : %u ", playerClusterState.second.weapon);
-				fprintf(mAIManager->mLogInformation, " damage : %i ",
-					playerClusterState.second.damage[playerClusterState.second.weapon - 1]);
-			}
-
-			if (!playerClusterState.second.items.empty())
-				fprintf(mAIManager->mLogInformation, " actors : ");
-			for (eastl::shared_ptr<Actor> pItemActor : playerClusterState.second.items)
-			{
-				if (pItemActor->GetType() == "Weapon")
-				{
-					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Ammo")
-				{
-					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Armor")
-				{
-					eastl::shared_ptr<ArmorPickup> pArmorPickup =
-						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Health")
-				{
-					eastl::shared_ptr<HealthPickup> pHealthPickup =
-						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
-				}
-			}
-			*/
 			if (playerClusterState.second.heuristic < playerNodeState.heuristic)
 			{
 				playerNodeState = playerClusterState.second;
@@ -621,46 +469,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		
 		if (playerNodeState.valid)
 		{
-			/*
-			fprintf(mAIManager->mLogInformation, "\n min player heuristic : %f ", playerNodeState.heuristic);
-
-			if (playerNodeState.weapon != WP_NONE)
-			{
-				fprintf(mAIManager->mLogInformation, " weapon : %u ", playerNodeState.weapon);
-				fprintf(mAIManager->mLogInformation, " damage : %i ",
-					playerNodeState.damage[playerNodeState.weapon - 1]);
-			}
-
-			if (!playerNodeState.items.empty())
-				fprintf(mAIManager->mLogInformation, " actors : ");
-			for (eastl::shared_ptr<Actor> pItemActor : playerNodeState.items)
-			{
-				if (pItemActor->GetType() == "Weapon")
-				{
-					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Ammo")
-				{
-					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Armor")
-				{
-					eastl::shared_ptr<ArmorPickup> pArmorPickup =
-						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Health")
-				{
-					eastl::shared_ptr<HealthPickup> pHealthPickup =
-						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
-				}
-			}
-			*/
 			if (playerNodeState.heuristic > mPlayerState.heuristic)
 			{
 				mPlayerState.Copy(playerNodeState);
@@ -671,7 +479,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	if (mPlayerState.valid)
 	{
-		fprintf(mAIManager->mLogInformation, "\n player cluster : %u ", playerCluster->GetTarget()->GetCluster());
+		fprintf(mAIManager->mLogInformation, "\n player current cluster : %u ", playerState.node->GetCluster());
+		fprintf(mAIManager->mLogInformation, "\n player target cluster : %u ", playerCluster->GetTarget()->GetCluster());
 
 		for (auto playerClusterState : playerClustersStates[playerCluster])
 		{
@@ -767,57 +576,11 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	PathingCluster* otherPlayerCluster = NULL;
 	for (auto otherPlayerClustersState : otherPlayerClustersStates)
 	{
-		/*
-		fprintf(mAIManager->mLogInformation, "\n other player cluster : %u ",
-			otherPlayerClustersState.first->GetTarget()->GetCluster());
-		*/
 		NodeState otherPlayerNodeState(otherPlayerState);
 		otherPlayerNodeState.heuristic = -FLT_MAX;
 		otherPlayerNodeState.valid = false;
 		for (auto otherPlayerClusterState : otherPlayerClustersState.second)
 		{
-			/*
-			fprintf(mAIManager->mLogInformation, "player cluster : %u ",
-				otherPlayerClusterState.first->GetTarget()->GetCluster());
-			fprintf(mAIManager->mLogInformation, "heuristic : %f ", otherPlayerClusterState.second.heuristic);
-
-			if (otherPlayerClusterState.second.weapon != WP_NONE)
-			{
-				fprintf(mAIManager->mLogInformation, " weapon : %u ", otherPlayerClusterState.second.weapon);
-				fprintf(mAIManager->mLogInformation, " damage : %i ",
-					otherPlayerClusterState.second.damage[otherPlayerClusterState.second.weapon - 1]);
-			}
-
-			if (!otherPlayerClusterState.second.items.empty())
-				fprintf(mAIManager->mLogInformation, " actors : ");
-			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerClusterState.second.items)
-			{
-				if (pItemActor->GetType() == "Weapon")
-				{
-					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Ammo")
-				{
-					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Armor")
-				{
-					eastl::shared_ptr<ArmorPickup> pArmorPickup =
-						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Health")
-				{
-					eastl::shared_ptr<HealthPickup> pHealthPickup =
-						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
-				}
-			}
-			*/
 			if (otherPlayerClusterState.second.heuristic > otherPlayerNodeState.heuristic)
 			{
 				otherPlayerNodeState = otherPlayerClusterState.second;
@@ -826,46 +589,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 		if (otherPlayerNodeState.valid)
 		{
-			/*
-			fprintf(mAIManager->mLogInformation, "\n max other player heuristic : %f ", otherPlayerNodeState.heuristic);
-
-			if (otherPlayerNodeState.weapon != WP_NONE)
-			{
-				fprintf(mAIManager->mLogInformation, " weapon : %u ", otherPlayerNodeState.weapon);
-				fprintf(mAIManager->mLogInformation, " damage : %i ",
-					otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1]);
-			}
-
-			if (!otherPlayerNodeState.items.empty())
-				fprintf(mAIManager->mLogInformation, " actors : ");
-			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerNodeState.items)
-			{
-				if (pItemActor->GetType() == "Weapon")
-				{
-					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Ammo")
-				{
-					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Armor")
-				{
-					eastl::shared_ptr<ArmorPickup> pArmorPickup =
-						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Health")
-				{
-					eastl::shared_ptr<HealthPickup> pHealthPickup =
-						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
-				}
-			}
-			*/
 			if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
 			{
 				mOtherPlayerState.Copy(otherPlayerNodeState);
@@ -876,7 +599,9 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	if (mOtherPlayerState.valid)
 	{
-		fprintf(mAIManager->mLogInformation, "\n other player cluster : %u ",
+		fprintf(mAIManager->mLogInformation, "\n other player current cluster : %u ",
+			otherPlayerState.node->GetCluster());
+		fprintf(mAIManager->mLogInformation, "\n other player target cluster : %u ",
 			otherPlayerCluster->GetTarget()->GetCluster());
 
 		for (auto otherPlayerClusterState : otherPlayerClustersStates[otherPlayerCluster])
@@ -1030,7 +755,10 @@ void QuakeAIProcess::ThreadProc( )
 					}
 				}
 
-				float visibleTime = mPathingTime > 0.f ? mPathingVisibleTime / mPathingTime : 0.f;
+				float visibleTime = mPlayerPathingTime > 0.f ? 
+					mPlayerVisibleTime / mPlayerPathingTime : 0.f;
+				float otherVisibleTime = mOtherPlayerPathingTime > 0.f ? 
+					mOtherPlayerVisibleTime / mOtherPlayerPathingTime : 0.f;
 				fprintf(mAIManager->mLogInformation, "\n blue player path : ");
 				for (PathingArc* pathArc : mPlayerState.path)
 					fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
@@ -1083,7 +811,7 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mAIManager->mLogInformation, " damage : 0 ");
 				}
 
-				if (visibleTime >= 0.2f || !mOtherPlayerState.items.empty())
+				if (otherVisibleTime >= 0.1f || !mOtherPlayerState.items.empty())
 				{
 					NodeState otherPlayerGuessState;
 					mAIManager->GetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
@@ -1093,7 +821,7 @@ void QuakeAIProcess::ThreadProc( )
 					mAIManager->SetPlayerGuessUpdated(mOtherPlayerState.player, true);
 				}
 
-				if (visibleTime >= 0.2f || !mPlayerState.items.empty())
+				if (visibleTime >= 0.1f || !mPlayerState.items.empty())
 				{
 					mAIManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
 					mAIManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
@@ -1125,13 +853,16 @@ void QuakeAIProcess::ThreadProc( )
 					}
 				}
 
-				visibleTime = mPathingTime > 0.f ? mPathingVisibleTime / mPathingTime : 0.f;
+				visibleTime = mPlayerPathingTime > 0.f ?
+					mPlayerVisibleTime / mPlayerPathingTime : 0.f;
+				otherVisibleTime = mOtherPlayerPathingTime > 0.f ?
+					mOtherPlayerVisibleTime / mOtherPlayerPathingTime : 0.f;
 				fprintf(mAIManager->mLogInformation, "\n red player path : ");
 				for (PathingArc* pathArc : mOtherPlayerState.path) 
 					fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
 				//printf(" red player visible %f", visibleTime);
 				fprintf(mAIManager->mLogInformation, 
-					"\n red player heuristic %f visible %f", mOtherPlayerState.heuristic, visibleTime);
+					"\n red player heuristic %f visible %f", mOtherPlayerState.heuristic, otherVisibleTime);
 				//printf("\n red player actors %u : ", mOtherPlayerState.player);
 				if (!mOtherPlayerState.items.empty()) 
 					fprintf(mAIManager->mLogInformation, " actors : ");
@@ -1178,7 +909,7 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mAIManager->mLogInformation, " damage : 0 ");
 				}
 
-				if (visibleTime >= 0.2f || !mPlayerState.items.empty())
+				if (visibleTime >= 0.1f || !mPlayerState.items.empty())
 				{
 					NodeState playerGuessState;
 					mAIManager->GetPlayerGuessState(mPlayerState.player, playerGuessState);
@@ -1188,7 +919,7 @@ void QuakeAIProcess::ThreadProc( )
 					mAIManager->SetPlayerGuessUpdated(mPlayerState.player, true);
 				}
 
-				if (visibleTime >= 0.2f || !mOtherPlayerState.items.empty())
+				if (otherVisibleTime >= 0.1f || !mOtherPlayerState.items.empty())
 				{
 					mAIManager->SetPlayerTarget(mOtherPlayerState.player, mOtherPlayerState.target);
 					mAIManager->SetPlayerWeapon(mOtherPlayerState.player, mOtherPlayerState.weapon);
