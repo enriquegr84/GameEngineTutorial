@@ -775,6 +775,7 @@ void QuakeAIManager::GetPlayerPlan(ActorId player, PathingNode*& playerNode, Pat
 	if (mPlayerNodes.find(player) != mPlayerNodes.end())
 		playerNode = mPlayerNodes[player];
 
+	playerPath.clear();
 	if (mPlayerPlans.find(player) != mPlayerPlans.end())
 		for (PathingArc* path : mPlayerPlans[player])
 			playerPath.push_back(path);
@@ -874,6 +875,7 @@ void QuakeAIManager::GetPlayerGuessPlan(ActorId player, PathingNode*& playerNode
 	if (mPlayerGuessNodes.find(player) != mPlayerGuessNodes.end())
 		playerNode = mPlayerGuessNodes[player];
 
+	playerPath.clear();
 	if (mPlayerGuessPlans.find(player) != mPlayerGuessPlans.end())
 		for (PathingArc* path : mPlayerGuessPlans[player])
 			playerPath.push_back(path);
@@ -1812,9 +1814,9 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 				if (playerGuessNode->GetActorId() != INVALID_ACTOR_ID)
 					actors.push_back(playerGuessNode->GetActorId());
 
+				playerGuessNode = guessPath->GetNode();
 				mPlayerGuessPlanTime[pPlayerActor->GetId()] -= guessPath->GetWeight();
 				playerGuessPath.erase(playerGuessPath.begin());
-				playerGuessNode = guessPath->GetNode();
 
 				for (ActorId actor : actors)
 				{

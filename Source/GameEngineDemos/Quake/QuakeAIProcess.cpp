@@ -437,8 +437,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 	}
 
-	eastl::map<PathingCluster*, NodeState> currentClusterStates, otherCurrentPlanStates;
-	if (otherPlayerState.valid && !otherPlayerState.path.empty())
+	eastl::map<PathingCluster*, NodeState> currentClusterStates, otherCurrentClusterPlanStates;
+	if (otherPlayerState.valid && otherPlayerState.path.size())
 	{
 		for (playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
 		{
@@ -450,14 +450,14 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 			if (state.valid && otherState.valid)
 			{
-				currentClusterStates[playerCluster] = otherState;
-				otherCurrentPlanStates[playerCluster] = state;
+				currentClusterStates[playerCluster] = state;
+				otherCurrentClusterPlanStates[playerCluster] = otherState;
 			}
 		}
 	}
 
-	eastl::map<PathingCluster*, NodeState> otherCurrentClusterStates, currentPlanStates;
-	if (playerState.valid && !playerState.path.empty())
+	eastl::map<PathingCluster*, NodeState> otherCurrentClusterStates, currentClusterPlanStates;
+	if (playerState.valid && playerState.path.size())
 	{
 		for (otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
 		{
@@ -470,8 +470,23 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			if (state.valid && otherState.valid)
 			{
 				otherCurrentClusterStates[otherPlayerCluster] = otherState;
-				currentPlanStates[otherPlayerCluster] = state;
+				currentClusterPlanStates[otherPlayerCluster] = state;
 			}
+		}
+	}
+
+	NodeState currentPlanState, otherCurrentPlanState;
+	if (playerState.valid && otherPlayerState.valid &&
+		playerState.path.size() && otherPlayerState.path.size())
+	{
+		NodeState state(playerState);
+		NodeState otherState(otherPlayerState);
+		Simulation(state, playerState.path, otherState, otherPlayerState.path);
+
+		if (state.valid && otherState.valid)
+		{
+			otherCurrentPlanState = otherState;
+			currentPlanState = state;
 		}
 	}
 
@@ -518,11 +533,19 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		NodeState playerNodeState(playerState);
 		playerNodeState.heuristic = FLT_MAX;
 		playerNodeState.valid = false;
-		for (auto currentPlanState : currentPlanStates)
+		for (auto currentClusterPlanState : currentClusterPlanStates)
 		{
-			if (currentPlanState.second.heuristic < playerNodeState.heuristic)
+			if (currentClusterPlanState.second.heuristic < playerNodeState.heuristic)
 			{
-				playerNodeState = currentPlanState.second;
+				playerNodeState = currentClusterPlanState.second;
+			}
+		}
+
+		if (currentPlanState.valid)
+		{
+			if (currentPlanState.heuristic < playerNodeState.heuristic)
+			{
+				playerNodeState = currentPlanState;
 			}
 		}
 		
@@ -534,7 +557,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				mPlayerState.Copy(playerNodeState);
 				playerCluster = NULL;
 			}
-			else if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < 0.05f)
+			else if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < 0.02f)
 			{
 				mPlayerState.Copy(playerNodeState);
 				playerCluster = NULL;
@@ -596,23 +619,24 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		else
 		{
 			fprintf(mAIManager->mLogInformation, "\n player same plan cluster : %u ", playerState.node->GetCluster());
+			fprintf(mAIManager->mLogInformation, "\n player target cluster : ");
 
-			for (auto currentPlanState : currentPlanStates)
+			for (auto currentClusterPlanState : currentClusterPlanStates)
 			{
 				fprintf(mAIManager->mLogInformation, "other player cluster : %u ",
-					currentPlanState.first->GetTarget()->GetCluster());
-				fprintf(mAIManager->mLogInformation, "heuristic : %f ", currentPlanState.second.heuristic);
+					currentClusterPlanState.first->GetTarget()->GetCluster());
+				fprintf(mAIManager->mLogInformation, "heuristic : %f ", currentClusterPlanState.second.heuristic);
 
-				if (currentPlanState.second.weapon != WP_NONE)
+				if (currentClusterPlanState.second.weapon != WP_NONE)
 				{
-					fprintf(mAIManager->mLogInformation, " weapon : %u ", currentPlanState.second.weapon);
+					fprintf(mAIManager->mLogInformation, " weapon : %u ", currentClusterPlanState.second.weapon);
 					fprintf(mAIManager->mLogInformation, " damage : %i ",
-						currentPlanState.second.damage[currentPlanState.second.weapon - 1]);
+						currentClusterPlanState.second.damage[currentClusterPlanState.second.weapon - 1]);
 				}
 
-				if (!currentPlanState.second.items.empty())
+				if (!currentClusterPlanState.second.items.empty())
 					fprintf(mAIManager->mLogInformation, " actors : ");
-				for (eastl::shared_ptr<Actor> pItemActor : currentPlanState.second.items)
+				for (eastl::shared_ptr<Actor> pItemActor : currentClusterPlanState.second.items)
 				{
 					if (pItemActor->GetType() == "Weapon")
 					{
@@ -706,7 +730,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 		if (otherCurrentClusterStates.find(otherPlayerClustersState.first) != otherCurrentClusterStates.end())
 		{
-			if (otherCurrentClusterStates[otherPlayerClustersState.first].heuristic < otherPlayerNodeState.heuristic)
+			if (otherCurrentClusterStates[otherPlayerClustersState.first].heuristic > otherPlayerNodeState.heuristic)
 			{
 				otherPlayerNodeState = otherCurrentClusterStates[otherPlayerClustersState.first];
 			}
@@ -727,11 +751,19 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		NodeState otherPlayerNodeState(otherPlayerState);
 		otherPlayerNodeState.heuristic = -FLT_MAX;
 		otherPlayerNodeState.valid = false;
-		for (auto otherCurrentPlanState : otherCurrentPlanStates)
+		for (auto otherCurrentClusterPlanState : otherCurrentClusterPlanStates)
 		{
-			if (otherCurrentPlanState.second.heuristic > otherPlayerNodeState.heuristic)
+			if (otherCurrentClusterPlanState.second.heuristic > otherPlayerNodeState.heuristic)
 			{
-				otherPlayerNodeState = otherCurrentPlanState.second;
+				otherPlayerNodeState = otherCurrentClusterPlanState.second;
+			}
+		}
+
+		if (otherCurrentPlanState.valid)
+		{
+			if (otherCurrentPlanState.heuristic > otherPlayerNodeState.heuristic)
+			{
+				otherPlayerNodeState = otherCurrentPlanState;
 			}
 		}
 
@@ -743,7 +775,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				mOtherPlayerState.Copy(otherPlayerNodeState);
 				otherPlayerCluster = NULL;
 			}
-			else if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < 0.05f)
+			else if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < 0.02f)
 			{
 				mOtherPlayerState.Copy(otherPlayerNodeState);
 				otherPlayerCluster = NULL;
@@ -808,23 +840,24 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		{
 			fprintf(mAIManager->mLogInformation, "\n other player same plan cluster : %u ",
 				otherPlayerState.node->GetCluster());
+			fprintf(mAIManager->mLogInformation, "\n other player target cluster :  ");
 
-			for (auto otherCurrentPlanState : otherCurrentPlanStates)
+			for (auto otherCurrentClusterPlanState : otherCurrentClusterPlanStates)
 			{
 				fprintf(mAIManager->mLogInformation, "player cluster : %u ",
-					otherCurrentPlanState.first->GetTarget()->GetCluster());
-				fprintf(mAIManager->mLogInformation, "heuristic : %f ", otherCurrentPlanState.second.heuristic);
+					otherCurrentClusterPlanState.first->GetTarget()->GetCluster());
+				fprintf(mAIManager->mLogInformation, "heuristic : %f ", otherCurrentClusterPlanState.second.heuristic);
 
-				if (otherCurrentPlanState.second.weapon != WP_NONE)
+				if (otherCurrentClusterPlanState.second.weapon != WP_NONE)
 				{
-					fprintf(mAIManager->mLogInformation, " weapon : %u ", otherCurrentPlanState.second.weapon);
+					fprintf(mAIManager->mLogInformation, " weapon : %u ", otherCurrentClusterPlanState.second.weapon);
 					fprintf(mAIManager->mLogInformation, " damage : %i ",
-						otherCurrentPlanState.second.damage[otherCurrentPlanState.second.weapon - 1]);
+						otherCurrentClusterPlanState.second.damage[otherCurrentClusterPlanState.second.weapon - 1]);
 				}
 
-				if (!otherCurrentPlanState.second.items.empty())
+				if (!otherCurrentClusterPlanState.second.items.empty())
 					fprintf(mAIManager->mLogInformation, " actors : ");
-				for (eastl::shared_ptr<Actor> pItemActor : otherCurrentPlanState.second.items)
+				for (eastl::shared_ptr<Actor> pItemActor : otherCurrentClusterPlanState.second.items)
 				{
 					if (pItemActor->GetType() == "Weapon")
 					{
@@ -1087,7 +1120,7 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mAIManager->mLogInformation, " damage : 0 ");
 				}
 
-				mAIManager->GetPlayerGuessState(mPlayerState.player, mPlayerState);
+				mAIManager->SetPlayerGuessState(mPlayerState.player, mPlayerState);
 				mAIManager->SetPlayerGuessUpdated(mPlayerState.player, true);
 
 				mAIManager->SetPlayerState(mOtherPlayerState.player, mOtherPlayerState);

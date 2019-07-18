@@ -535,10 +535,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 						if (isValid)
 						{
-							if (!mCurrentPlan.empty())
-								mCurrentPlan.erase(mCurrentPlan.begin());
-							aiManager->SetPlayerPlan(mPlayerId, mCurrentNode, mCurrentPlan);
-
 							itArc++;
 							if (itArc != mCurrentPlan.end())
 							{
