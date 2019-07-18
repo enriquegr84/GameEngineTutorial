@@ -218,6 +218,16 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		pitchRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
 		pTransformComponent->SetRotation(yawRotation * pitchRotation);
+
+		if (mEnabled)
+		{
+			QuakeAIManager* aiManager =
+				dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
+				
+			Vector3<float> currentPosition = pTransformComponent->GetPosition();
+			PathingNode* currentNode = aiManager->GetPathingGraph()->FindClosestNode(currentPosition);
+			aiManager->SetPlayerPlan(mTarget->GetId(), currentNode, PathingArcVec());
+		}
 	}
 
 	Vector4<float> atWorld = Vector4<float>::Zero();
@@ -323,7 +333,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 					eastl::shared_ptr<Actor> pItemActor(
 						eastl::dynamic_shared_pointer_cast<Actor>(
-							GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
+						GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerPush).lock()));
 					eastl::shared_ptr<PushTrigger> pPushTrigger =
 						pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock();
 

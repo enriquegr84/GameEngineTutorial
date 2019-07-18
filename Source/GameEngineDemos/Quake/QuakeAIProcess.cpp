@@ -194,12 +194,6 @@ void QuakeAIProcess::Visibility(
 		(*otherVisibleDistance) /= (*otherVisibleTime);
 		(*otherVisibleHeight) /= (*otherVisibleTime);
 	}
-
-	mPlayerVisibleTime += (*visibleTime);
-	mPlayerPathingTime += totalTime;
-
-	mOtherPlayerVisibleTime += (*otherVisibleTime);
-	mOtherPlayerPathingTime += totalTime;
 }
 
 void QuakeAIProcess::Simulation(
@@ -209,6 +203,7 @@ void QuakeAIProcess::Simulation(
 	PathingNode* playerNode = playerState.node;
 	PathingNode* otherPlayerNode = otherPlayerState.node;
 	eastl::map<PathingArcVec, eastl::map<PathingArcVec, NodeState>> playerStates, otherPlayerStates;
+
 	float pathPlanWeight = 0.f;
 	eastl::map<ActorId, float> actors;
 	if (playerNode->GetActorId() != INVALID_ACTOR_ID)
@@ -262,7 +257,6 @@ void QuakeAIProcess::Simulation(
 	//calculate damage
 	NodeState playerNodeState(playerState);
 	playerNodeState.path = playerPathPlan;
-	playerNodeState.node = playerPathPlan.back()->GetNode();
 	mAIManager->CalculateDamage(playerNodeState, visibleTime, visibleDistance, visibleHeight);
 
 	eastl::map<ActorId, float> pathActors;
@@ -286,7 +280,6 @@ void QuakeAIProcess::Simulation(
 
 	NodeState otherPlayerNodeState(otherPlayerState);
 	otherPlayerNodeState.path = otherPlayerPathPlan;
-	otherPlayerNodeState.node = otherPlayerPathPlan.back()->GetNode();
 	mAIManager->CalculateDamage(otherPlayerNodeState, otherVisibleTime, otherVisibleDistance, otherVisibleHeight);
 			
 	eastl::map<ActorId, float> otherPathActors;
@@ -351,10 +344,6 @@ void QuakeAIProcess::ConstructActorPath(NodeState& playerState,
 
 void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPlayerState)
 {
-	mPlayerVisibleTime = 0.f;
-	mPlayerPathingTime = 0.f;
-	mOtherPlayerVisibleTime = 0.f;
-	mOtherPlayerPathingTime = 0.f;
 	eastl::map<PathingCluster*, PathingArcVec> playerPathPlans, otherPlayerPathPlans;
 
 	PathingClusterVec playerClusters;
@@ -448,6 +437,45 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 	}
 
+	eastl::map<PathingCluster*, NodeState> currentClusterStates, otherCurrentPlanStates;
+	if (otherPlayerState.valid && !otherPlayerState.path.empty())
+	{
+		for (playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
+		{
+			PathingCluster* playerCluster = playerClusters[playerClusterIdx];
+
+			NodeState state(playerState);
+			NodeState otherState(otherPlayerState);
+			Simulation(state, playerPathPlans[playerCluster], otherState, otherPlayerState.path);
+
+			if (state.valid && otherState.valid)
+			{
+				currentClusterStates[playerCluster] = otherState;
+				otherCurrentPlanStates[playerCluster] = state;
+			}
+		}
+	}
+
+	eastl::map<PathingCluster*, NodeState> otherCurrentClusterStates, currentPlanStates;
+	if (playerState.valid && !playerState.path.empty())
+	{
+		for (otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
+		{
+			PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];
+
+			NodeState state(playerState);
+			NodeState otherState(otherPlayerState);
+			Simulation(state, playerState.path, otherState, otherPlayerPathPlans[otherPlayerCluster]);
+
+			if (state.valid && otherState.valid)
+			{
+				otherCurrentClusterStates[otherPlayerCluster] = otherState;
+				currentPlanStates[otherPlayerCluster] = state;
+			}
+		}
+	}
+
+
 	//minimax
 	mPlayerState.Copy(playerState);
 	mPlayerState.heuristic = -FLT_MAX;
@@ -466,6 +494,14 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				playerNodeState = playerClusterState.second;
 			}
 		}
+
+		if (currentClusterStates.find(playerClustersState.first) != currentClusterStates.end())
+		{
+			if (currentClusterStates[playerClustersState.first].heuristic < playerNodeState.heuristic)
+			{
+				playerNodeState = currentClusterStates[playerClustersState.first];
+			}
+		}
 		
 		if (playerNodeState.valid)
 		{
@@ -477,54 +513,135 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 	}
 
+	if (playerState.valid)
+	{
+		NodeState playerNodeState(playerState);
+		playerNodeState.heuristic = FLT_MAX;
+		playerNodeState.valid = false;
+		for (auto currentPlanState : currentPlanStates)
+		{
+			if (currentPlanState.second.heuristic < playerNodeState.heuristic)
+			{
+				playerNodeState = currentPlanState.second;
+			}
+		}
+		
+		//we keep the current plan if the heuristic is greater or close to the best heuristic
+		if (playerNodeState.valid)
+		{
+			if (playerNodeState.heuristic > mPlayerState.heuristic)
+			{
+				mPlayerState.Copy(playerNodeState);
+				playerCluster = NULL;
+			}
+			else if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < 0.05f)
+			{
+				mPlayerState.Copy(playerNodeState);
+				playerCluster = NULL;
+			}
+		}
+	}
+
 	if (mPlayerState.valid)
 	{
-		fprintf(mAIManager->mLogInformation, "\n player current cluster : %u ", playerState.node->GetCluster());
-		fprintf(mAIManager->mLogInformation, "\n player target cluster : %u ", playerCluster->GetTarget()->GetCluster());
-
-		for (auto playerClusterState : playerClustersStates[playerCluster])
+		if (playerCluster != NULL)
 		{
-			fprintf(mAIManager->mLogInformation, "other player cluster : %u ",
-				playerClusterState.first->GetTarget()->GetCluster());
-			fprintf(mAIManager->mLogInformation, "heuristic : %f ", playerClusterState.second.heuristic);
+			fprintf(mAIManager->mLogInformation, "\n player current cluster : %u ", playerState.node->GetCluster());
+			fprintf(mAIManager->mLogInformation, "\n player target cluster : %u ", playerCluster->GetTarget()->GetCluster());
 
-			if (playerClusterState.second.weapon != WP_NONE)
+			for (auto playerClusterState : playerClustersStates[playerCluster])
 			{
-				fprintf(mAIManager->mLogInformation, " weapon : %u ", playerClusterState.second.weapon);
-				fprintf(mAIManager->mLogInformation, " damage : %i ",
-					playerClusterState.second.damage[playerClusterState.second.weapon - 1]);
-			}
+				fprintf(mAIManager->mLogInformation, "other player cluster : %u ",
+					playerClusterState.first->GetTarget()->GetCluster());
+				fprintf(mAIManager->mLogInformation, "heuristic : %f ", playerClusterState.second.heuristic);
 
-			if (!playerClusterState.second.items.empty())
-				fprintf(mAIManager->mLogInformation, " actors : ");
-			for (eastl::shared_ptr<Actor> pItemActor : playerClusterState.second.items)
-			{
-				if (pItemActor->GetType() == "Weapon")
+				if (playerClusterState.second.weapon != WP_NONE)
 				{
-					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, " weapon : %u ", playerClusterState.second.weapon);
+					fprintf(mAIManager->mLogInformation, " damage : %i ",
+						playerClusterState.second.damage[playerClusterState.second.weapon - 1]);
 				}
-				else if (pItemActor->GetType() == "Ammo")
+
+				if (!playerClusterState.second.items.empty())
+					fprintf(mAIManager->mLogInformation, " actors : ");
+				for (eastl::shared_ptr<Actor> pItemActor : playerClusterState.second.items)
 				{
-					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Armor")
-				{
-					eastl::shared_ptr<ArmorPickup> pArmorPickup =
-						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Health")
-				{
-					eastl::shared_ptr<HealthPickup> pHealthPickup =
-						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
+					if (pItemActor->GetType() == "Weapon")
+					{
+						eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+							pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Ammo")
+					{
+						eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+							pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Armor")
+					{
+						eastl::shared_ptr<ArmorPickup> pArmorPickup =
+							pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Health")
+					{
+						eastl::shared_ptr<HealthPickup> pHealthPickup =
+							pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
+					}
 				}
 			}
 		}
+		else
+		{
+			fprintf(mAIManager->mLogInformation, "\n player same plan cluster : %u ", playerState.node->GetCluster());
+
+			for (auto currentPlanState : currentPlanStates)
+			{
+				fprintf(mAIManager->mLogInformation, "other player cluster : %u ",
+					currentPlanState.first->GetTarget()->GetCluster());
+				fprintf(mAIManager->mLogInformation, "heuristic : %f ", currentPlanState.second.heuristic);
+
+				if (currentPlanState.second.weapon != WP_NONE)
+				{
+					fprintf(mAIManager->mLogInformation, " weapon : %u ", currentPlanState.second.weapon);
+					fprintf(mAIManager->mLogInformation, " damage : %i ",
+						currentPlanState.second.damage[currentPlanState.second.weapon - 1]);
+				}
+
+				if (!currentPlanState.second.items.empty())
+					fprintf(mAIManager->mLogInformation, " actors : ");
+				for (eastl::shared_ptr<Actor> pItemActor : currentPlanState.second.items)
+				{
+					if (pItemActor->GetType() == "Weapon")
+					{
+						eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+							pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Ammo")
+					{
+						eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+							pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Armor")
+					{
+						eastl::shared_ptr<ArmorPickup> pArmorPickup =
+							pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Health")
+					{
+						eastl::shared_ptr<HealthPickup> pHealthPickup =
+							pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
+					}
+				}
+			}
+		}
+
 
 		fprintf(mAIManager->mLogInformation, "\n player path : ");
 		for (PathingArc* pathArc : mPlayerState.path)
@@ -587,6 +704,14 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 		}
 
+		if (otherCurrentClusterStates.find(otherPlayerClustersState.first) != otherCurrentClusterStates.end())
+		{
+			if (otherCurrentClusterStates[otherPlayerClustersState.first].heuristic < otherPlayerNodeState.heuristic)
+			{
+				otherPlayerNodeState = otherCurrentClusterStates[otherPlayerClustersState.first];
+			}
+		}
+
 		if (otherPlayerNodeState.valid)
 		{
 			if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
@@ -597,53 +722,134 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 	}
 
+	if (otherPlayerState.valid)
+	{
+		NodeState otherPlayerNodeState(otherPlayerState);
+		otherPlayerNodeState.heuristic = -FLT_MAX;
+		otherPlayerNodeState.valid = false;
+		for (auto otherCurrentPlanState : otherCurrentPlanStates)
+		{
+			if (otherCurrentPlanState.second.heuristic > otherPlayerNodeState.heuristic)
+			{
+				otherPlayerNodeState = otherCurrentPlanState.second;
+			}
+		}
+
+		//we keep the current plan if the heuristic is less or close to the best player heuristic
+		if (otherPlayerNodeState.valid)
+		{
+			if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
+			{
+				mOtherPlayerState.Copy(otherPlayerNodeState);
+				otherPlayerCluster = NULL;
+			}
+			else if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < 0.05f)
+			{
+				mOtherPlayerState.Copy(otherPlayerNodeState);
+				otherPlayerCluster = NULL;
+			}
+		}
+	}
+
 	if (mOtherPlayerState.valid)
 	{
-		fprintf(mAIManager->mLogInformation, "\n other player current cluster : %u ",
-			otherPlayerState.node->GetCluster());
-		fprintf(mAIManager->mLogInformation, "\n other player target cluster : %u ",
-			otherPlayerCluster->GetTarget()->GetCluster());
-
-		for (auto otherPlayerClusterState : otherPlayerClustersStates[otherPlayerCluster])
+		if (otherPlayerCluster != NULL)
 		{
-			fprintf(mAIManager->mLogInformation, "player cluster : %u ",
-				otherPlayerClusterState.first->GetTarget()->GetCluster());
-			fprintf(mAIManager->mLogInformation, "heuristic : %f ", otherPlayerClusterState.second.heuristic);
+			fprintf(mAIManager->mLogInformation, "\n other player current cluster : %u ",
+				otherPlayerState.node->GetCluster());
+			fprintf(mAIManager->mLogInformation, "\n other player target cluster : %u ",
+				otherPlayerCluster->GetTarget()->GetCluster());
 
-			if (otherPlayerClusterState.second.weapon != WP_NONE)
+			for (auto otherPlayerClusterState : otherPlayerClustersStates[otherPlayerCluster])
 			{
-				fprintf(mAIManager->mLogInformation, " weapon : %u ", otherPlayerClusterState.second.weapon);
-				fprintf(mAIManager->mLogInformation, " damage : %i ",
-					otherPlayerClusterState.second.damage[otherPlayerClusterState.second.weapon - 1]);
+				fprintf(mAIManager->mLogInformation, "player cluster : %u ",
+					otherPlayerClusterState.first->GetTarget()->GetCluster());
+				fprintf(mAIManager->mLogInformation, "heuristic : %f ", otherPlayerClusterState.second.heuristic);
+
+				if (otherPlayerClusterState.second.weapon != WP_NONE)
+				{
+					fprintf(mAIManager->mLogInformation, " weapon : %u ", otherPlayerClusterState.second.weapon);
+					fprintf(mAIManager->mLogInformation, " damage : %i ",
+						otherPlayerClusterState.second.damage[otherPlayerClusterState.second.weapon - 1]);
+				}
+
+				if (!otherPlayerClusterState.second.items.empty())
+					fprintf(mAIManager->mLogInformation, " actors : ");
+				for (eastl::shared_ptr<Actor> pItemActor : otherPlayerClusterState.second.items)
+				{
+					if (pItemActor->GetType() == "Weapon")
+					{
+						eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+							pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Ammo")
+					{
+						eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+							pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Armor")
+					{
+						eastl::shared_ptr<ArmorPickup> pArmorPickup =
+							pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Health")
+					{
+						eastl::shared_ptr<HealthPickup> pHealthPickup =
+							pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
+					}
+				}
 			}
+		}
+		else
+		{
+			fprintf(mAIManager->mLogInformation, "\n other player same plan cluster : %u ",
+				otherPlayerState.node->GetCluster());
 
-			if (!otherPlayerClusterState.second.items.empty())
-				fprintf(mAIManager->mLogInformation, " actors : ");
-			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerClusterState.second.items)
+			for (auto otherCurrentPlanState : otherCurrentPlanStates)
 			{
-				if (pItemActor->GetType() == "Weapon")
+				fprintf(mAIManager->mLogInformation, "player cluster : %u ",
+					otherCurrentPlanState.first->GetTarget()->GetCluster());
+				fprintf(mAIManager->mLogInformation, "heuristic : %f ", otherCurrentPlanState.second.heuristic);
+
+				if (otherCurrentPlanState.second.weapon != WP_NONE)
 				{
-					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
+					fprintf(mAIManager->mLogInformation, " weapon : %u ", otherCurrentPlanState.second.weapon);
+					fprintf(mAIManager->mLogInformation, " damage : %i ",
+						otherCurrentPlanState.second.damage[otherCurrentPlanState.second.weapon - 1]);
 				}
-				else if (pItemActor->GetType() == "Ammo")
+
+				if (!otherCurrentPlanState.second.items.empty())
+					fprintf(mAIManager->mLogInformation, " actors : ");
+				for (eastl::shared_ptr<Actor> pItemActor : otherCurrentPlanState.second.items)
 				{
-					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Armor")
-				{
-					eastl::shared_ptr<ArmorPickup> pArmorPickup =
-						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
-				}
-				else if (pItemActor->GetType() == "Health")
-				{
-					eastl::shared_ptr<HealthPickup> pHealthPickup =
-						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
+					if (pItemActor->GetType() == "Weapon")
+					{
+						eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+							pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Ammo")
+					{
+						eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+							pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Armor")
+					{
+						eastl::shared_ptr<ArmorPickup> pArmorPickup =
+							pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
+					}
+					else if (pItemActor->GetType() == "Health")
+					{
+						eastl::shared_ptr<HealthPickup> pHealthPickup =
+							pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+						fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
+					}
 				}
 			}
 		}
@@ -737,17 +943,14 @@ void QuakeAIProcess::ThreadProc( )
 					eastl::shared_ptr<PlayerActor> pHumanPlayer =
 						eastl::dynamic_shared_pointer_cast<PlayerActor>(
 						GameLogic::Get()->GetActor(player).lock());
-					eastl::shared_ptr<TransformComponent> pTransformComponent(
-						pHumanPlayer->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 
 					NodeState playerState(pHumanPlayer);
-					playerState.node =
-						mAIManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition());
+					mAIManager->GetPlayerPlan(player, playerState.node, playerState.path);
 					for (ActorId aiPlayer : players[GV_AI])
 					{
 						NodeState aiPlayerState;
 						mAIManager->GetPlayerGuessState(aiPlayer, aiPlayerState);
-						aiPlayerState.node = mAIManager->GetPlayerGuessNode(aiPlayer);
+						mAIManager->GetPlayerGuessPlan(aiPlayer, aiPlayerState.node, aiPlayerState.path);
 						aiPlayerState.ResetItems();
 
 						mAIManager->SetExcludeActors(aiPlayerState.player);
@@ -755,16 +958,11 @@ void QuakeAIProcess::ThreadProc( )
 					}
 				}
 
-				float visibleTime = mPlayerPathingTime > 0.f ? 
-					mPlayerVisibleTime / mPlayerPathingTime : 0.f;
-				float otherVisibleTime = mOtherPlayerPathingTime > 0.f ? 
-					mOtherPlayerVisibleTime / mOtherPlayerPathingTime : 0.f;
 				fprintf(mAIManager->mLogInformation, "\n blue player path : ");
 				for (PathingArc* pathArc : mPlayerState.path)
 					fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
 				//printf(" blue player visible %f", visibleTime);
-				fprintf(mAIManager->mLogInformation, "\n blue player heuristic %f visible %f", 
-					mPlayerState.heuristic, visibleTime);
+				fprintf(mAIManager->mLogInformation, "\n blue player heuristic %f", mPlayerState.heuristic);
 				//printf("\n blue player actors  %u : ", mPlayerState.player);
 				if (!mPlayerState.items.empty()) 
 					fprintf(mAIManager->mLogInformation, " actors : ");
@@ -811,23 +1009,11 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mAIManager->mLogInformation, " damage : 0 ");
 				}
 
-				if (otherVisibleTime >= 0.1f || !mOtherPlayerState.items.empty())
-				{
-					NodeState otherPlayerGuessState;
-					mAIManager->GetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
-					otherPlayerGuessState.CopyItems(mOtherPlayerState);
-					mAIManager->SetPlayerGuessState(mOtherPlayerState.player, otherPlayerGuessState);
-					mAIManager->SetPlayerGuessPath(mOtherPlayerState.player, mOtherPlayerState.path);
-					mAIManager->SetPlayerGuessUpdated(mOtherPlayerState.player, true);
-				}
+				mAIManager->SetPlayerGuessState(mOtherPlayerState.player, mOtherPlayerState);
+				mAIManager->SetPlayerGuessUpdated(mOtherPlayerState.player, true);
 
-				if (visibleTime >= 0.1f || !mPlayerState.items.empty())
-				{
-					mAIManager->SetPlayerTarget(mPlayerState.player, mPlayerState.target);
-					mAIManager->SetPlayerWeapon(mPlayerState.player, mPlayerState.weapon);
-					mAIManager->SetPlayerState(mPlayerState.player, mPlayerState);
-					mAIManager->SetPlayerUpdated(mPlayerState.player, true);
-				}
+				mAIManager->SetPlayerState(mPlayerState.player, mPlayerState);
+				mAIManager->SetPlayerUpdated(mPlayerState.player, true);
 
 				fprintf(mAIManager->mLogInformation, "\n\n red player ai guessing (blue)");
 				for (ActorId aiPlayer : players[GV_AI])
@@ -835,17 +1021,14 @@ void QuakeAIProcess::ThreadProc( )
 					eastl::shared_ptr<PlayerActor> pAIPlayer =
 						eastl::dynamic_shared_pointer_cast<PlayerActor>(
 						GameLogic::Get()->GetActor(aiPlayer).lock());
-					eastl::shared_ptr<TransformComponent> pTransformComponent(
-						pAIPlayer->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 
 					NodeState aiPlayerState(pAIPlayer);
-					aiPlayerState.node =
-						mAIManager->GetPathingGraph()->FindClosestNode(pTransformComponent->GetPosition());
+					mAIManager->GetPlayerPlan(aiPlayer, aiPlayerState.node, aiPlayerState.path);
 					for (ActorId player : players[GV_HUMAN])
 					{
 						NodeState playerState;
 						mAIManager->GetPlayerGuessState(player, playerState);
-						playerState.node = mAIManager->GetPlayerGuessNode(player);
+						mAIManager->GetPlayerGuessPlan(player, playerState.node, playerState.path);
 						playerState.ResetItems();
 
 						mAIManager->SetExcludeActors(playerState.player);
@@ -853,16 +1036,11 @@ void QuakeAIProcess::ThreadProc( )
 					}
 				}
 
-				visibleTime = mPlayerPathingTime > 0.f ?
-					mPlayerVisibleTime / mPlayerPathingTime : 0.f;
-				otherVisibleTime = mOtherPlayerPathingTime > 0.f ?
-					mOtherPlayerVisibleTime / mOtherPlayerPathingTime : 0.f;
 				fprintf(mAIManager->mLogInformation, "\n red player path : ");
 				for (PathingArc* pathArc : mOtherPlayerState.path) 
 					fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
 				//printf(" red player visible %f", visibleTime);
-				fprintf(mAIManager->mLogInformation, 
-					"\n red player heuristic %f visible %f", mOtherPlayerState.heuristic, otherVisibleTime);
+				fprintf(mAIManager->mLogInformation, "\n red player heuristic %f", mOtherPlayerState.heuristic);
 				//printf("\n red player actors %u : ", mOtherPlayerState.player);
 				if (!mOtherPlayerState.items.empty()) 
 					fprintf(mAIManager->mLogInformation, " actors : ");
@@ -909,23 +1087,11 @@ void QuakeAIProcess::ThreadProc( )
 					fprintf(mAIManager->mLogInformation, " damage : 0 ");
 				}
 
-				if (visibleTime >= 0.1f || !mPlayerState.items.empty())
-				{
-					NodeState playerGuessState;
-					mAIManager->GetPlayerGuessState(mPlayerState.player, playerGuessState);
-					playerGuessState.CopyItems(mPlayerState);
-					mAIManager->SetPlayerGuessState(mPlayerState.player, playerGuessState);
-					mAIManager->SetPlayerGuessPath(mPlayerState.player, mPlayerState.path);
-					mAIManager->SetPlayerGuessUpdated(mPlayerState.player, true);
-				}
+				mAIManager->GetPlayerGuessState(mPlayerState.player, mPlayerState);
+				mAIManager->SetPlayerGuessUpdated(mPlayerState.player, true);
 
-				if (otherVisibleTime >= 0.1f || !mOtherPlayerState.items.empty())
-				{
-					mAIManager->SetPlayerTarget(mOtherPlayerState.player, mOtherPlayerState.target);
-					mAIManager->SetPlayerWeapon(mOtherPlayerState.player, mOtherPlayerState.weapon);
-					mAIManager->SetPlayerState(mOtherPlayerState.player, mOtherPlayerState);
-					mAIManager->SetPlayerUpdated(mOtherPlayerState.player, true);
-				}
+				mAIManager->SetPlayerState(mOtherPlayerState.player, mOtherPlayerState);
+				mAIManager->SetPlayerUpdated(mOtherPlayerState.player, true);
 			}
 
 			mAIManager->SetEnable(true);

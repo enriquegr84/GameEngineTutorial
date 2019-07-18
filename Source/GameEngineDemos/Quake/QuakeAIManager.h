@@ -283,28 +283,25 @@ public:
 	ActorId GetPlayerTarget(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
 	void GetPlayerState(ActorId player, NodeState& state);
-	void GetPlayerPath(ActorId player, PathingArcVec& playerPath);
+	void GetPlayerPlan(ActorId player, PathingNode*& playerNode, PathingArcVec& playerPath);
 	bool IsPlayerUpdated(ActorId player);
 
-	void SetPlayerTarget(ActorId player, ActorId playerTarget);
-	void SetPlayerWeapon(ActorId player, WeaponType playerWeapon);
-	void SetPlayerPath(ActorId player, PathingArcVec& playerPath);
 	void SetPlayerState(ActorId player, NodeState& playerState);
+	void SetPlayerState(ActorId player, eastl::shared_ptr<PlayerActor> playerActor);
+	void SetPlayerPlan(ActorId player, PathingNode* playerNode, PathingArcVec& playerPath);
 	void SetPlayerUpdated(ActorId player, bool update);
 
 	void RemovePlayerGuessItems(ActorId player);
 	void SetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
 	void GetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
 
-	PathingNode* GetPlayerGuessNode(ActorId player);
 	void GetPlayerGuessState(ActorId player, NodeState& state);
-	void GetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
+	void GetPlayerGuessPlan(ActorId player, PathingNode*& playerNode, PathingArcVec& playerPath);
 	bool IsPlayerGuessUpdated(ActorId player);
 
-	void SetPlayerGuessState(ActorId player, eastl::shared_ptr<PlayerActor> playerActor);
 	void SetPlayerGuessState(ActorId player, NodeState& playerState);
-	void SetPlayerGuessNode(ActorId player, PathingNode* playerNode);
-	void SetPlayerGuessPath(ActorId player, PathingArcVec& playerPath);
+	void SetPlayerGuessState(ActorId player, eastl::shared_ptr<PlayerActor> playerActor);
+	void SetPlayerGuessPlan(ActorId player, PathingNode* playerNode, PathingArcVec& playerPath);
 	void SetPlayerGuessUpdated(ActorId player, bool update);
 
 	void SpawnActor(ActorId playerId);
@@ -377,18 +374,18 @@ private:
 
 	//player ai states
 	eastl::map<ActorId, bool> mPlayers;
-	eastl::map<ActorId, ActorId> mPlayerTargets;
-	eastl::map<ActorId, WeaponType> mPlayerWeapons;
 	eastl::map<ActorId, NodeState> mPlayerStates;
+	eastl::map<ActorId, PathingNode*> mPlayerNodes;
+	eastl::map<ActorId, PathingArcVec> mPlayerPlans;
 
 	eastl::map<ActorId, bool> mPlayerGuess;
 	eastl::map<ActorId, NodeState> mPlayerGuessStates;
 	eastl::map<ActorId, PathingNode*> mPlayerGuessNodes;
+	eastl::map<ActorId, PathingArcVec> mPlayerGuessPlans;
 	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessItems;
 
 	eastl::map<ActorId, float> mPlayerGuessTime;
 	eastl::map<ActorId, float> mPlayerGuessPlanTime;
-	eastl::map<ActorId, PathingArcVec> mPlayerGuessPlan;
 
 	// Orientation Controls
 	float mYaw;

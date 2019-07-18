@@ -537,6 +537,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						{
 							if (!mCurrentPlan.empty())
 								mCurrentPlan.erase(mCurrentPlan.begin());
+							aiManager->SetPlayerPlan(mPlayerId, mCurrentNode, mCurrentPlan);
 
 							itArc++;
 							if (itArc != mCurrentPlan.end())
@@ -809,7 +810,11 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							{
 								PathingArcVec pathPlan;
 								if (aiManager->IsPlayerUpdated(mPlayerId))
-									aiManager->GetPlayerPath(mPlayerId, pathPlan);
+								{
+									NodeState playerState;
+									aiManager->GetPlayerState(mPlayerId, playerState);
+									pathPlan = playerState.path;
+								}
 
 								if (pathPlan.size())
 								{
@@ -867,6 +872,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 								if (!mCurrentPlan.empty())
 								{
+									aiManager->SetPlayerPlan(mPlayerId, mCurrentNode, mCurrentPlan);
 									PathingArcVec::iterator itArc = mCurrentPlan.begin();
 	
 									mCurrentArc = (*itArc);
@@ -913,6 +919,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										PathingCluster* currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
 										if (currentCluster != NULL)
 										{
+											aiManager->SetPlayerPlan(mPlayerId, currentNode, mCurrentPlan);
 											PathingArc* clusterArc = currentNode->FindArc(currentCluster->GetNode());
 											PathingNode* clusterNode = clusterArc->GetNode();
 											unsigned int clusterArcType = clusterArc->GetType();
