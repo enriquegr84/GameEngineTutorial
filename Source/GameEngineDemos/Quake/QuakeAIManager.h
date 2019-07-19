@@ -43,6 +43,53 @@ enum GameActionType
 };
 
 //
+// struct NodePlan
+//
+struct NodePlan
+{
+	NodePlan()
+	{
+		id = -1;
+		node = NULL;
+	}
+
+	NodePlan(PathingNode* playerNode, PathingArcVec& path)
+	{
+		id = -1;
+		node = playerNode;
+
+		for (PathingArc* pathArc : path)
+			path.push_back(pathArc);
+	}
+
+	NodePlan(const NodePlan& plan) :
+		id(plan.id), node(plan.node)
+	{
+		for (PathingArc* pathArc : plan.path)
+			path.push_back(pathArc);
+	}
+
+	~NodePlan()
+	{
+
+	}
+
+	void NodePlan::Copy(NodePlan& plan)
+	{
+		id = plan.id;
+		node = plan.node;
+
+		path.clear();
+		for (PathingArc* pathArc : plan.path)
+			path.push_back(pathArc);
+	}
+
+	int id;
+	PathingNode* node;
+	PathingArcVec path;
+};
+
+//
 // struct NodeState
 //
 struct NodeState
@@ -52,8 +99,6 @@ struct NodeState
 		valid = false;
 		player = INVALID_ACTOR_ID;
 		target = INVALID_ACTOR_ID;
-
-		node = NULL;
 
 		weapon = WP_NONE;
 		heuristic = 0.f;
@@ -75,8 +120,6 @@ struct NodeState
 		player = playerActor->GetId();
 		target = INVALID_ACTOR_ID;
 
-		node = NULL;
-
 		weapon = WP_NONE;
 		heuristic = 0.f;
 		for (unsigned int i = 0; i < MAX_STATS; i++)
@@ -91,13 +134,16 @@ struct NodeState
 		}
 	}
 
-	NodeState(const NodeState& state) :
-		valid(state.valid), node(state.node),
+	NodeState(const NodeState& state) : 
+		valid(state.valid),
 		player(state.player), target(state.target),
 		weapon(state.weapon), heuristic(state.heuristic)
 	{
-		for (PathingArc* pathArc : state.path)
-			path.push_back(pathArc);
+		plan.id = state.plan.id;
+		plan.node = state.plan.node;
+		plan.path.clear();
+		for (PathingArc* pathArc : state.plan.path)
+			plan.path.push_back(pathArc);
 
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
@@ -128,14 +174,14 @@ struct NodeState
 		valid = state.valid;
 		player = state.player;
 		target = state.target;
-
-		node = state.node;
 		weapon = state.weapon;
 		heuristic = state.heuristic;
 
-		path.clear();
-		for (PathingArc* pathArc : state.path)
-			path.push_back(pathArc);
+		plan.id = state.plan.id;
+		plan.node = state.plan.node;
+		plan.path.clear();
+		for (PathingArc* pathArc : state.plan.path)
+			plan.path.push_back(pathArc);
 
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
@@ -183,8 +229,7 @@ struct NodeState
 	ActorId player;
 	ActorId target;
 
-	PathingNode* node;
-	PathingArcVec path;
+	NodePlan plan;
 
 	float heuristic;
 	WeaponType weapon;
@@ -282,26 +327,26 @@ public:
 
 	ActorId GetPlayerTarget(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
-	void GetPlayerState(ActorId player, NodeState& state);
-	void GetPlayerPlan(ActorId player, PathingNode*& playerNode, PathingArcVec& playerPath);
+	void GetPlayerState(ActorId player, NodeState& playerState);
+	void GetPlayerPlan(ActorId player, NodePlan& playerPlan);
 	bool IsPlayerUpdated(ActorId player);
 
 	void SetPlayerState(ActorId player, NodeState& playerState);
 	void SetPlayerState(ActorId player, eastl::shared_ptr<PlayerActor> playerActor);
-	void SetPlayerPlan(ActorId player, PathingNode* playerNode, PathingArcVec& playerPath);
+	void SetPlayerPlan(ActorId player, NodePlan& playerPlan);
 	void SetPlayerUpdated(ActorId player, bool update);
 
 	void RemovePlayerGuessItems(ActorId player);
 	void SetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
 	void GetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
 
-	void GetPlayerGuessState(ActorId player, NodeState& state);
-	void GetPlayerGuessPlan(ActorId player, PathingNode*& playerNode, PathingArcVec& playerPath);
+	void GetPlayerGuessState(ActorId player, NodeState& playerState);
+	void GetPlayerGuessPlan(ActorId player, NodePlan& playerPlan);
 	bool IsPlayerGuessUpdated(ActorId player);
 
 	void SetPlayerGuessState(ActorId player, NodeState& playerState);
 	void SetPlayerGuessState(ActorId player, eastl::shared_ptr<PlayerActor> playerActor);
-	void SetPlayerGuessPlan(ActorId player, PathingNode* playerNode, PathingArcVec& playerPath);
+	void SetPlayerGuessPlan(ActorId player, NodePlan& playerPlan);
 	void SetPlayerGuessUpdated(ActorId player, bool update);
 
 	void SpawnActor(ActorId playerId);
@@ -311,6 +356,11 @@ protected:
 
 	std::ofstream mLogError;
 	FILE* mLogInformation;
+
+	int GetNewPlanID(void)
+	{
+		return ++mLastPlanId;
+	}
 
 	float CalculateHeuristicItems(NodeState& playerState);
 	void CalculateHeuristic(NodeState& playerState, NodeState& otherPlayerState);
@@ -362,6 +412,7 @@ private:
 
 	unsigned int mLastArcId;
 	unsigned int mLastNodeId;
+	int mLastPlanId;
 
 	//set of nodes to be analized from the ground
 	eastl::vector<PathingNode*> mOpenSet, mClosedSet;
@@ -374,14 +425,14 @@ private:
 
 	//player ai states
 	eastl::map<ActorId, bool> mPlayers;
+	eastl::map<ActorId, NodePlan> mPlayerPlans;
 	eastl::map<ActorId, NodeState> mPlayerStates;
 	eastl::map<ActorId, PathingNode*> mPlayerNodes;
-	eastl::map<ActorId, PathingArcVec> mPlayerPlans;
 
 	eastl::map<ActorId, bool> mPlayerGuess;
+	eastl::map<ActorId, NodePlan> mPlayerGuessPlans;
 	eastl::map<ActorId, NodeState> mPlayerGuessStates;
 	eastl::map<ActorId, PathingNode*> mPlayerGuessNodes;
-	eastl::map<ActorId, PathingArcVec> mPlayerGuessPlans;
 	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessItems;
 
 	eastl::map<ActorId, float> mPlayerGuessTime;

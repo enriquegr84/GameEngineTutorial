@@ -200,8 +200,8 @@ void QuakeAIProcess::Simulation(
 	NodeState& playerState, PathingArcVec& playerPathPlan,
 	NodeState& otherPlayerState, PathingArcVec& otherPlayerPathPlan)
 {
-	PathingNode* playerNode = playerState.node;
-	PathingNode* otherPlayerNode = otherPlayerState.node;
+	PathingNode* playerNode = playerState.plan.node;
+	PathingNode* otherPlayerNode = otherPlayerState.plan.node;
 	eastl::map<PathingArcVec, eastl::map<PathingArcVec, NodeState>> playerStates, otherPlayerStates;
 
 	float pathPlanWeight = 0.f;
@@ -256,7 +256,7 @@ void QuakeAIProcess::Simulation(
 
 	//calculate damage
 	NodeState playerNodeState(playerState);
-	playerNodeState.path = playerPathPlan;
+	playerNodeState.plan.path = playerPathPlan;
 	mAIManager->CalculateDamage(playerNodeState, visibleTime, visibleDistance, visibleHeight);
 
 	eastl::map<ActorId, float> pathActors;
@@ -279,7 +279,7 @@ void QuakeAIProcess::Simulation(
 	mAIManager->PickupItems(playerNodeState, pathActors);
 
 	NodeState otherPlayerNodeState(otherPlayerState);
-	otherPlayerNodeState.path = otherPlayerPathPlan;
+	otherPlayerNodeState.plan.path = otherPlayerPathPlan;
 	mAIManager->CalculateDamage(otherPlayerNodeState, otherVisibleTime, otherVisibleDistance, otherVisibleHeight);
 			
 	eastl::map<ActorId, float> otherPathActors;
@@ -310,7 +310,7 @@ void QuakeAIProcess::Simulation(
 void QuakeAIProcess::ConstructPath(NodeState& playerState,
 	PathingCluster* playerCluster, PathingArcVec& playerPathPlan)
 {
-	PathingNode* currentNode = playerState.node;
+	PathingNode* currentNode = playerState.plan.node;
 	while (currentNode != playerCluster->GetTarget())
 	{
 		PathingCluster* currentCluster = currentNode->FindCluster(
@@ -325,8 +325,8 @@ void QuakeAIProcess::ConstructPath(NodeState& playerState,
 void QuakeAIProcess::ConstructActorPath(NodeState& playerState,
 	PathingCluster* playerCluster, PathingArcVec& playerPathPlan)
 {
-	PathingNode* currentNode = playerState.node;
 	float maxPathDistance = 0.f;
+	PathingNode* currentNode = playerState.plan.node;
 	while (currentNode != playerCluster->GetTarget())
 	{
 		PathingCluster* currentCluster = currentNode->FindCluster(
@@ -347,7 +347,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	eastl::map<PathingCluster*, PathingArcVec> playerPathPlans, otherPlayerPathPlans;
 
 	PathingClusterVec playerClusters;
-	playerState.node->GetClusters(GAT_JUMP, playerClusters, 60);
+	playerState.plan.node->GetClusters(GAT_JUMP, playerClusters, 60);
 
 	unsigned int playerClusterIdx = 0;
 	unsigned int clusterSize = playerClusters.size();
@@ -383,7 +383,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	}
 
 	PathingClusterVec otherPlayerClusters;
-	otherPlayerState.node->GetClusters(GAT_JUMP, otherPlayerClusters, 60);
+	otherPlayerState.plan.node->GetClusters(GAT_JUMP, otherPlayerClusters, 60);
 
 	unsigned int otherPlayerClusterIdx = 0;
 	unsigned int otherClusterSize = otherPlayerClusters.size();
@@ -438,7 +438,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	}
 
 	eastl::map<PathingCluster*, NodeState> currentClusterStates, otherCurrentClusterPlanStates;
-	if (otherPlayerState.valid && otherPlayerState.path.size())
+	if (otherPlayerState.valid && otherPlayerState.plan.path.size())
 	{
 		for (playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
 		{
@@ -446,7 +446,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 			NodeState state(playerState);
 			NodeState otherState(otherPlayerState);
-			Simulation(state, playerPathPlans[playerCluster], otherState, otherPlayerState.path);
+			Simulation(state, playerPathPlans[playerCluster], otherState, otherPlayerState.plan.path);
 
 			if (state.valid && otherState.valid)
 			{
@@ -457,7 +457,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	}
 
 	eastl::map<PathingCluster*, NodeState> otherCurrentClusterStates, currentClusterPlanStates;
-	if (playerState.valid && playerState.path.size())
+	if (playerState.valid && playerState.plan.path.size())
 	{
 		for (otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
 		{
@@ -465,7 +465,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 			NodeState state(playerState);
 			NodeState otherState(otherPlayerState);
-			Simulation(state, playerState.path, otherState, otherPlayerPathPlans[otherPlayerCluster]);
+			Simulation(state, playerState.plan.path, otherState, otherPlayerPathPlans[otherPlayerCluster]);
 
 			if (state.valid && otherState.valid)
 			{
@@ -477,11 +477,11 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 	NodeState currentPlanState, otherCurrentPlanState;
 	if (playerState.valid && otherPlayerState.valid &&
-		playerState.path.size() && otherPlayerState.path.size())
+		playerState.plan.path.size() && otherPlayerState.plan.path.size())
 	{
 		NodeState state(playerState);
 		NodeState otherState(otherPlayerState);
-		Simulation(state, playerState.path, otherState, otherPlayerState.path);
+		Simulation(state, playerState.plan.path, otherState, otherPlayerState.plan.path);
 
 		if (state.valid && otherState.valid)
 		{
@@ -524,6 +524,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			{
 				mPlayerState.Copy(playerNodeState);
 				playerCluster = playerClustersState.first;
+			}
+			else if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < GE_ROUNDING_ERROR)
+			{
+				//lets take the longest path for idle situations
+				if (playerNodeState.plan.path.size() > mPlayerState.plan.path.size())
+				{
+					mPlayerState.Copy(playerNodeState);
+					playerCluster = playerClustersState.first;
+				}
 			}
 		}
 	}
@@ -569,7 +578,9 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	{
 		if (playerCluster != NULL)
 		{
-			fprintf(mAIManager->mLogInformation, "\n player current cluster : %u ", playerState.node->GetCluster());
+			mPlayerState.plan.id = mAIManager->GetNewPlanID();
+
+			fprintf(mAIManager->mLogInformation, "\n player current cluster : %u ", playerState.plan.node->GetCluster());
 			fprintf(mAIManager->mLogInformation, "\n player target cluster : %u ", playerCluster->GetTarget()->GetCluster());
 
 			for (auto playerClusterState : playerClustersStates[playerCluster])
@@ -618,7 +629,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 		else
 		{
-			fprintf(mAIManager->mLogInformation, "\n player same plan cluster : %u ", playerState.node->GetCluster());
+			fprintf(mAIManager->mLogInformation, "\n player same plan cluster : %u ", playerState.plan.node->GetCluster());
 			fprintf(mAIManager->mLogInformation, "\n player target cluster : ");
 
 			for (auto currentClusterPlanState : currentClusterPlanStates)
@@ -667,8 +678,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 
 
-		fprintf(mAIManager->mLogInformation, "\n player path : ");
-		for (PathingArc* pathArc : mPlayerState.path)
+		fprintf(mAIManager->mLogInformation, "\n player path id %i : ", mPlayerState.plan.id);
+		for (PathingArc* pathArc : mPlayerState.plan.path)
 			fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
 		fprintf(mAIManager->mLogInformation, "\n player heuristic : %f ", mPlayerState.heuristic);
 
@@ -708,12 +719,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 			}
 		}
-
-		if (playerCluster == NULL)
-		{
-			//clear the path so the players don't take the same again
-			mPlayerState.path.clear();
-		}
 	}
 
 	mOtherPlayerState.Copy(otherPlayerState);
@@ -748,6 +753,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			{
 				mOtherPlayerState.Copy(otherPlayerNodeState);
 				otherPlayerCluster = otherPlayerClustersState.first;
+			}
+			else if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < GE_ROUNDING_ERROR)
+			{
+				//lets take the longest path for idle situations
+				if (otherPlayerNodeState.plan.path.size() > mOtherPlayerState.plan.path.size())
+				{
+					mOtherPlayerState.Copy(otherPlayerNodeState);
+					otherPlayerCluster = otherPlayerClustersState.first;
+				}
 			}
 		}
 	}
@@ -793,8 +807,10 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	{
 		if (otherPlayerCluster != NULL)
 		{
+			mOtherPlayerState.plan.id = mAIManager->GetNewPlanID();
+
 			fprintf(mAIManager->mLogInformation, "\n other player current cluster : %u ",
-				otherPlayerState.node->GetCluster());
+				otherPlayerState.plan.node->GetCluster());
 			fprintf(mAIManager->mLogInformation, "\n other player target cluster : %u ",
 				otherPlayerCluster->GetTarget()->GetCluster());
 
@@ -845,7 +861,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		else
 		{
 			fprintf(mAIManager->mLogInformation, "\n other player same plan cluster : %u ",
-				otherPlayerState.node->GetCluster());
+				otherPlayerState.plan.node->GetCluster());
 			fprintf(mAIManager->mLogInformation, "\n other player target cluster :  ");
 
 			for (auto otherCurrentClusterPlanState : otherCurrentClusterPlanStates)
@@ -893,8 +909,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 		}
 
-		fprintf(mAIManager->mLogInformation, "\n other player path : ");
-		for (PathingArc* pathArc : mOtherPlayerState.path)
+		fprintf(mAIManager->mLogInformation, "\n other player path %i : ", mOtherPlayerState.plan.id);
+		for (PathingArc* pathArc : mOtherPlayerState.plan.path)
 			fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
 		fprintf(mAIManager->mLogInformation, "\n other player heuristic : %f ", mOtherPlayerState.heuristic);
 
@@ -933,12 +949,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 					pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
 				fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 			}
-		}
-
-		if (otherPlayerCluster == NULL)
-		{
-			//clear the path so the players don't take the same again
-			mOtherPlayerState.path.clear();
 		}
 	}
 }
@@ -990,12 +1000,12 @@ void QuakeAIProcess::ThreadProc( )
 						GameLogic::Get()->GetActor(player).lock());
 
 					NodeState playerState(pHumanPlayer);
-					mAIManager->GetPlayerPlan(player, playerState.node, playerState.path);
+					mAIManager->GetPlayerPlan(player, playerState.plan);
 					for (ActorId aiPlayer : players[GV_AI])
 					{
 						NodeState aiPlayerState;
 						mAIManager->GetPlayerGuessState(aiPlayer, aiPlayerState);
-						mAIManager->GetPlayerGuessPlan(aiPlayer, aiPlayerState.node, aiPlayerState.path);
+						mAIManager->GetPlayerGuessPlan(aiPlayer, aiPlayerState.plan);
 						aiPlayerState.ResetItems();
 
 						mAIManager->SetExcludeActors(aiPlayerState.player);
@@ -1064,12 +1074,12 @@ void QuakeAIProcess::ThreadProc( )
 						GameLogic::Get()->GetActor(aiPlayer).lock());
 
 					NodeState aiPlayerState(pAIPlayer);
-					mAIManager->GetPlayerPlan(aiPlayer, aiPlayerState.node, aiPlayerState.path);
+					mAIManager->GetPlayerPlan(aiPlayer, aiPlayerState.plan);
 					for (ActorId player : players[GV_HUMAN])
 					{
 						NodeState playerState;
 						mAIManager->GetPlayerGuessState(player, playerState);
-						mAIManager->GetPlayerGuessPlan(player, playerState.node, playerState.path);
+						mAIManager->GetPlayerGuessPlan(player, playerState.plan);
 						playerState.ResetItems();
 
 						mAIManager->SetExcludeActors(playerState.player);

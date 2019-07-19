@@ -106,6 +106,7 @@ private:
 
 	ActorId mCurrentActor;
 	PathingArcVec mCurrentPlan;
+	int mCurrentPlanId;
 
 	PathingNode* mGoalNode;
 	PathingArc* mCurrentArc;

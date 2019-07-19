@@ -226,7 +226,9 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				
 			Vector3<float> currentPosition = pTransformComponent->GetPosition();
 			PathingNode* currentNode = aiManager->GetPathingGraph()->FindClosestNode(currentPosition);
-			aiManager->SetPlayerPlan(mTarget->GetId(), currentNode, PathingArcVec());
+
+			NodePlan playerPlan(currentNode, PathingArcVec());
+			aiManager->SetPlayerPlan(mTarget->GetId(), playerPlan);
 		}
 	}
 

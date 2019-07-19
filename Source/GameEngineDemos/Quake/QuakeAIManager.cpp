@@ -155,6 +155,7 @@ QuakeAIManager::QuakeAIManager() : AIManager()
 
 	mLastArcId = 0;
 	mLastNodeId = 0;
+	mLastPlanId = 0;
 
 	mYaw = 0.0f;
 	mPitchTarget = 0.0f;
@@ -286,6 +287,7 @@ void QuakeAIManager::LoadPathingGraph(const eastl::wstring& path)
 
 	mLastArcId = 0;
 	mLastNodeId = 0;
+
 	mPathingGraph = eastl::make_shared<PathingGraph>();
 
 	eastl::map<unsigned int, PathingNode*> pathingNodeGraph;
@@ -464,7 +466,7 @@ void AIFinder::operator()(NodeState& pNodeState,
 	LogAssert(aiManager, "Invalid ai manager");
 
 	// if the start and end nodes are the same, we're close enough to b-line to the goal
-	if (pNodeState.node == pGoalCluster->GetTarget())
+	if (pNodeState.plan.node == pGoalCluster->GetTarget())
 		return;
 
 	// set our members
@@ -473,7 +475,7 @@ void AIFinder::operator()(NodeState& pNodeState,
 
 	// The open set is a priority queue of the nodes to be evaluated.  If it's ever empty, it means 
 	// we couldn't find a path to the goal. The start node is the only node that is initially in the open set.
-	AddToOpenSet(mNodeState.node, NULL, NULL, 0.f, 0.f);
+	AddToOpenSet(mNodeState.plan.node, NULL, NULL, 0.f, 0.f);
 
 	AIPlanNode* bestPlanNode = NULL;
 	while (!mOpenSet.empty())
@@ -769,16 +771,11 @@ void QuakeAIManager::GetPlayerState(ActorId player, NodeState& playerState)
 	mMutex.unlock();
 }
 
-void QuakeAIManager::GetPlayerPlan(ActorId player, PathingNode*& playerNode, PathingArcVec& playerPath)
+void QuakeAIManager::GetPlayerPlan(ActorId player, NodePlan& playerPlan)
 {
 	mMutex.lock();
-	if (mPlayerNodes.find(player) != mPlayerNodes.end())
-		playerNode = mPlayerNodes[player];
-
-	playerPath.clear();
 	if (mPlayerPlans.find(player) != mPlayerPlans.end())
-		for (PathingArc* path : mPlayerPlans[player])
-			playerPath.push_back(path);
+		playerPlan = mPlayerPlans[player];
 	mMutex.unlock();
 }
 
@@ -808,14 +805,10 @@ void QuakeAIManager::SetPlayerState(ActorId player, NodeState& playerState)
 	mMutex.unlock();
 }
 
-void QuakeAIManager::SetPlayerPlan(ActorId player, PathingNode* playerNode, PathingArcVec& playerPath)
+void QuakeAIManager::SetPlayerPlan(ActorId player, NodePlan& playerPlan)
 {
 	mMutex.lock();
-	mPlayerNodes[player] = playerNode;
-
-	mPlayerPlans[player].clear();
-	for (PathingArc* path : playerPath)
-		mPlayerPlans[player].push_back(path);
+	mPlayerPlans[player] = NodePlan(playerPlan);
 	mMutex.unlock();
 }
 
@@ -869,16 +862,11 @@ void QuakeAIManager::GetPlayerGuessState(ActorId player, NodeState& state)
 	mMutex.unlock();
 }
 
-void QuakeAIManager::GetPlayerGuessPlan(ActorId player, PathingNode*& playerNode, PathingArcVec& playerPath)
+void QuakeAIManager::GetPlayerGuessPlan(ActorId player, NodePlan& playerPlan)
 {
 	mMutex.lock();
-	if (mPlayerGuessNodes.find(player) != mPlayerGuessNodes.end())
-		playerNode = mPlayerGuessNodes[player];
-
-	playerPath.clear();
 	if (mPlayerGuessPlans.find(player) != mPlayerGuessPlans.end())
-		for (PathingArc* path : mPlayerGuessPlans[player])
-			playerPath.push_back(path);
+		playerPlan = mPlayerGuessPlans[player];
 	mMutex.unlock();
 }
 
@@ -908,14 +896,10 @@ void QuakeAIManager::SetPlayerGuessState(ActorId player, NodeState& playerState)
 	mMutex.unlock();
 }
 
-void QuakeAIManager::SetPlayerGuessPlan(ActorId player, PathingNode* playerNode, PathingArcVec& playerPath)
+void QuakeAIManager::SetPlayerGuessPlan(ActorId player, NodePlan& playerPlan)
 {
 	mMutex.lock();
-	mPlayerGuessNodes[player] = playerNode;
-
-	mPlayerGuessPlans[player].clear();
-	for (PathingArc* path : playerPath)
-		mPlayerGuessPlans[player].push_back(path);
+	mPlayerGuessPlans[player] = NodePlan(playerPlan);
 	mMutex.unlock();
 }
 
@@ -940,10 +924,11 @@ void QuakeAIManager::SpawnActor(ActorId playerId)
 			pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pPlayerTransform)
 		{
-			PathingNode* spawnNode = mPathingGraph->FindClosestNode(pPlayerTransform->GetPosition());
-
 			SetPlayerState(pPlayerActor->GetId(), pPlayerActor);
-			SetPlayerPlan(pPlayerActor->GetId(), spawnNode, PathingArcVec());
+
+			PathingNode* spawnNode = mPathingGraph->FindClosestNode(pPlayerTransform->GetPosition());
+			NodePlan playerPlan(spawnNode, PathingArcVec());
+			SetPlayerPlan(pPlayerActor->GetId(), playerPlan);
 		}
 
 		//no idea where the player is located take any random spawn position
@@ -954,14 +939,15 @@ void QuakeAIManager::SpawnActor(ActorId playerId)
 			spawnSpot->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 		if (pSpawnTransform)
 		{
-			PathingNode* spawnNode = mPathingGraph->FindClosestNode(pSpawnTransform->GetPosition());
-
 			mPlayerGuessTime[pPlayerActor->GetId()] = 4.0f;
 			mPlayerGuessPlanTime[pPlayerActor->GetId()] = 0.f;
 
 			SetPlayerGuessItems(pPlayerActor->GetId(), eastl::map<ActorId, float>());
 			SetPlayerGuessState(pPlayerActor->GetId(), pPlayerActor);
-			SetPlayerGuessPlan(pPlayerActor->GetId(), spawnNode, PathingArcVec());
+
+			PathingNode* spawnNode = mPathingGraph->FindClosestNode(pSpawnTransform->GetPosition());
+			NodePlan playerGuessPlan(spawnNode, PathingArcVec());
+			SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessPlan);
 			SetPlayerGuessUpdated(pPlayerActor->GetId(), false);
 		}
 	}
@@ -991,8 +977,11 @@ void QuakeAIManager::DetectActor(eastl::shared_ptr<PlayerActor> pPlayerActor, ea
 
 			RemovePlayerGuessItems(pPlayerActor->GetId());
 			SetPlayerGuessState(pPlayerActor->GetId(), pPlayerActor);
-			SetPlayerGuessPlan(pPlayerActor->GetId(), 
-				mPathingGraph->FindClosestNode(pPlayerTransform->GetTransform().GetTranslation()), PathingArcVec());
+
+			PathingNode* spawnNode = mPathingGraph->FindClosestNode(
+				pPlayerTransform->GetTransform().GetTranslation());
+			NodePlan playerGuessPlan(spawnNode, PathingArcVec());
+			SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessPlan);
 			SetPlayerGuessUpdated(pPlayerActor->GetId(), false);
 		}
 	}
@@ -1404,7 +1393,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
-						if (visibleDistance <= 900)
+						if (visibleDistance <= 800)
 							state.damage[weapon - 1] = damage * shotCount;
 						break;
 					case WP_SHOTGUN:
@@ -1418,7 +1407,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 							(1.f - (visibleDistance / rangeDistance)) * shotCount);
 						break;
 					case WP_MACHINEGUN:
-						damage = 5;
+						damage = 3;
 						fireTime = 0.1f;
 						rangeDistance = visibleDistance > 500 ? visibleDistance : 500;
 						if (visibleTime > fireTime)
@@ -1447,7 +1436,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 							(1.f - (visibleDistance / rangeDistance)) * shotCount);
 						break;
 					case WP_PLASMAGUN:
-						damage = 10;
+						damage = 6;
 						fireTime = 0.1f;
 						rangeDistance = visibleDistance > 600 ? visibleDistance : 600;
 						if (visibleTime > fireTime)
@@ -1721,26 +1710,26 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 		NodeState playerGuessState;
 		GetPlayerGuessState(pPlayerActor->GetId(), playerGuessState);
 
-		PathingNode* playerGuessNode;
-		PathingArcVec playerGuessPath;
-		GetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessNode, playerGuessPath);
+		NodePlan playerGuessPlan;
+		GetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessPlan);
 
 		eastl::map<ActorId, float> guessItems;
 		GetPlayerGuessItems(pPlayerActor->GetId(), guessItems);
 		if (IsPlayerGuessUpdated(pPlayerActor->GetId()))
 		{
-			if (!playerGuessState.path.empty())
+			if (!playerGuessState.plan.path.empty() &&
+				playerGuessPlan.id != playerGuessState.plan.id)
 			{
-				PathingNode* guessNode = playerGuessState.node;
-				playerGuessPath = playerGuessState.path;
+				PathingNode* guessNode = playerGuessState.plan.node;
+				playerGuessPlan = playerGuessState.plan;
 
 				PathingArcVec::iterator itArc;
-				PathingArcVec::iterator itPathArc = playerGuessPath.begin();
-				for (itArc = playerGuessPath.begin(); itArc != playerGuessPath.end(); itArc++)
+				PathingArcVec::iterator itPathArc = playerGuessPlan.path.begin();
+				for (itArc = playerGuessPlan.path.begin(); itArc != playerGuessPlan.path.end(); itArc++)
 				{
-					if ((*itArc)->GetNode() == playerGuessNode)
+					if ((*itArc)->GetNode() == playerGuessPlan.node)
 					{
-						guessNode = playerGuessNode;
+						guessNode = playerGuessPlan.node;
 						itPathArc = itArc;
 						itPathArc++;
 						break;
@@ -1748,34 +1737,35 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 				}
 
 				PathingArcVec guessPath;
-				for (; itPathArc != playerGuessPath.end(); itPathArc++)
+				for (; itPathArc != playerGuessPlan.path.end(); itPathArc++)
 					guessPath.push_back((*itPathArc));
 
-				playerGuessPath = guessPath;
-				playerGuessNode = guessNode;
+				playerGuessPlan.id = playerGuessState.plan.id;
+				playerGuessPlan.path = guessPath;
+				playerGuessPlan.node = guessNode;
 
 				mPlayerGuessPlanTime[pPlayerActor->GetId()] = 0;
-				SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessNode, playerGuessPath);
+				SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessPlan);
 				SetPlayerGuessUpdated(pPlayerActor->GetId(), false);
 			}
 		}
 
-		if (playerGuessPath.size())
+		if (playerGuessPlan.path.size())
 		{
-			PathingArc* guessPath = (*playerGuessPath.begin());
+			PathingArc* guessPath = (*playerGuessPlan.path.begin());
 			if (mPlayerGuessPlanTime[pPlayerActor->GetId()] >= guessPath->GetWeight())
 			{
 				eastl::vector<ActorId> actors;
-				PathingTransition* guessTransition = playerGuessNode->FindTransition(guessPath->GetId());
+				PathingTransition* guessTransition = playerGuessPlan.node->FindTransition(guessPath->GetId());
 				for (PathingNode* nodeTransition : guessTransition->GetNodes())
 					if (nodeTransition->GetActorId() != INVALID_ACTOR_ID)
 						actors.push_back(nodeTransition->GetActorId());
-				if (playerGuessNode->GetActorId() != INVALID_ACTOR_ID)
-					actors.push_back(playerGuessNode->GetActorId());
+				if (playerGuessPlan.node->GetActorId() != INVALID_ACTOR_ID)
+					actors.push_back(playerGuessPlan.node->GetActorId());
 
-				playerGuessNode = guessPath->GetNode();
+				playerGuessPlan.node = guessPath->GetNode();
 				mPlayerGuessPlanTime[pPlayerActor->GetId()] -= guessPath->GetWeight();
-				playerGuessPath.erase(playerGuessPath.begin());
+				playerGuessPlan.path.erase(playerGuessPlan.path.begin());
 
 				for (ActorId actor : actors)
 				{
@@ -1840,7 +1830,7 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 
 				//printf("\n current guess node %u ", guessNode->GetId());
 				SetPlayerGuessState(pPlayerActor->GetId(), playerGuessState);
-				SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessNode, playerGuessPath);
+				SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessPlan);
 				SetPlayerGuessItems(pPlayerActor->GetId(), guessItems);
 			}
 		}
@@ -1973,7 +1963,7 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 						resetGuessPlayer = true;
 					}
 					else if (mPathingGraph->IsVisibleCluster(
-						otherPlayerNode->GetCluster(), playerGuessNode->GetCluster()))
+						otherPlayerNode->GetCluster(), playerGuessPlan.node->GetCluster()))
 					{
 						//distrust the guessing plan and reset guess player status
 						resetGuessPlayer = true;
@@ -1996,8 +1986,9 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 					game->SelectSpawnPoint(pOtherPlayerTransform->GetPosition(), spawnTransform);
 					PathingNode* playerNode = mPathingGraph->FindClosestNode(spawnTransform.GetTranslation());
 
+					playerGuessPlan = NodePlan(playerNode, PathingArcVec());
+					SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessPlan);
 					SetPlayerGuessState(pPlayerActor->GetId(), pPlayerActor);
-					SetPlayerGuessPlan(pPlayerActor->GetId(), playerNode, PathingArcVec());
 					SetPlayerGuessUpdated(pPlayerActor->GetId(), false);
 
 					mPlayerGuessPlanTime[pPlayerActor->GetId()] = 0.f;
@@ -2009,8 +2000,9 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 						pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
 					PathingNode* playerNode = mPathingGraph->FindClosestNode(pPlayerTransform->GetPosition());
 
+					playerGuessPlan = NodePlan(playerNode, PathingArcVec());
+					SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessPlan);
 					SetPlayerGuessState(pPlayerActor->GetId(), pPlayerActor);
-					SetPlayerGuessPlan(pPlayerActor->GetId(), playerNode, PathingArcVec());
 					SetPlayerGuessUpdated(pPlayerActor->GetId(), false);
 
 					mPlayerGuessPlanTime[pPlayerActor->GetId()] = 0.f;

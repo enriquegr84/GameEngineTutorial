@@ -81,6 +81,7 @@ QuakeAIView::QuakeAIView()
 	mCurrentAction = 0;
 	mCurrentActionTime = 0.f;
 	mCurrentActor = INVALID_ACTOR_ID;
+	mCurrentPlanId = -1;
 
 	mCurrentNode = NULL;
 	mCurrentArc = NULL;
@@ -524,13 +525,12 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							Normalize(direction);
 							mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
+							itArc = mCurrentPlan.erase(itArc);
 							if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
 							{
 								isValid = true;
 								break;
 							}
-							
-							itArc++;
 						} while (itArc != mCurrentPlan.end());
 
 						if (isValid)
@@ -551,6 +551,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						{
 							mCurrentPlan.clear();
 							mCurrentNode = NULL;
+							mCurrentPlanId = -1;
 
 							mCurrentActor = INVALID_ACTOR_ID;
 							mCurrentActionTime = 0.f;
@@ -790,6 +791,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									LogInformation("no arc");
 								}
 
+								mCurrentPlanId = -1;
 								mCurrentPlan.clear();
 								mCurrentNode = currentNode;
 
@@ -804,18 +806,18 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 							if (searchNode)
 							{
-								PathingArcVec pathPlan;
+								NodeState playerState;
+								PathingArcVec playerPathPlan;
 								if (aiManager->IsPlayerUpdated(mPlayerId))
 								{
-									NodeState playerState;
 									aiManager->GetPlayerState(mPlayerId, playerState);
-									pathPlan = playerState.path;
+									playerPathPlan = playerState.plan.path;
 								}
 
-								if (pathPlan.size())
+								if (playerPathPlan.size() && playerState.plan.id != mCurrentPlanId)
 								{
 									PathingNodeVec searchNodes;
-									for (PathingArc* pathArc : pathPlan)
+									for (PathingArc* pathArc : playerPathPlan)
 										searchNodes.push_back(pathArc->GetNode());
 
 									PathPlan* plan = aiManager->GetPathingGraph()->FindPath(mCurrentNode, searchNodes);
@@ -831,29 +833,31 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 												path.push_back(planArc);
 
 											PathingArcVec::iterator itArc;
-											PathingArcVec::iterator itPathArc = pathPlan.begin();
-											for (itArc = pathPlan.begin(); itArc != pathPlan.end(); itArc++)
+											PathingArcVec::iterator itPathArc = playerPathPlan.begin();
+											for (itArc = playerPathPlan.begin(); itArc != playerPathPlan.end(); itArc++)
 												if ((*itArc)->GetNode() == node)
 													itPathArc = itArc;
 
-											for (itPathArc++; itPathArc != pathPlan.end(); itPathArc++)
+											for (itPathArc++; itPathArc != playerPathPlan.end(); itPathArc++)
 												path.push_back((*itPathArc));
 
 											//printf("\n found new plan %u : ", mPlayerId);
+											mCurrentPlanId = playerState.plan.id;
 											aiManager->SetPlayerUpdated(mPlayerId, false);
 										}
 										else if (eastl::find(searchNodes.begin(), searchNodes.end(), mCurrentNode))
 										{
 											PathingArcVec::iterator itArc;
-											PathingArcVec::iterator itPathArc = pathPlan.begin();
-											for (itArc = pathPlan.begin(); itArc != pathPlan.end(); itArc++)
+											PathingArcVec::iterator itPathArc = playerPathPlan.begin();
+											for (itArc = playerPathPlan.begin(); itArc != playerPathPlan.end(); itArc++)
 												if ((*itArc)->GetNode() == mCurrentNode)
 													itPathArc = itArc;
 
-											for (itPathArc++; itPathArc != pathPlan.end(); itPathArc++)
+											for (itPathArc++; itPathArc != playerPathPlan.end(); itPathArc++)
 												path.push_back((*itPathArc));
 
 											//printf("\n found new plan %u : ", mPlayerId);
+											mCurrentPlanId = playerState.plan.id;
 											aiManager->SetPlayerUpdated(mPlayerId, false);
 										}
 										else if (!mCurrentPlan.empty())
@@ -873,9 +877,12 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 									mCurrentArc = (*itArc);
 									if (mCurrentNode->FindArc(mCurrentArc->GetId()) != NULL)
 									{
-										aiManager->SetPlayerPlan(mPlayerId, mCurrentNode, mCurrentPlan);
+										NodePlan playerPlan;
+										playerPlan.id = mCurrentPlanId;
+										playerPlan.node = mCurrentNode;
+										playerPlan.path = mCurrentPlan;
+										aiManager->SetPlayerPlan(mPlayerId, playerPlan);
 									}
-									else printf("\n plan arc not found %u", mPlayerId);
 
 									mCurrentAction = mCurrentArc->GetType();
 									if (mCurrentAction != GAT_PUSH && mCurrentAction != GAT_TELEPORT)
@@ -920,7 +927,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										PathingCluster* currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
 										if (currentCluster != NULL)
 										{
-											aiManager->SetPlayerPlan(mPlayerId, currentNode, mCurrentPlan);
+											NodePlan playerPlan(currentNode, mCurrentPlan);
+											aiManager->SetPlayerPlan(mPlayerId, playerPlan);
 											PathingArc* clusterArc = currentNode->FindArc(currentCluster->GetNode());
 											PathingNode* clusterNode = clusterArc->GetNode();
 											unsigned int clusterArcType = clusterArc->GetType();
@@ -947,6 +955,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										{
 											mGoalNode = NULL;
 											mCurrentNode = NULL;
+											mCurrentPlanId = -1;
 
 											mCurrentActor = INVALID_ACTOR_ID;
 											mCurrentActionTime = 0.f;
@@ -1302,6 +1311,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				{
 					mGoalNode = NULL;
 					mCurrentNode = NULL;
+					mCurrentPlanId = -1;
 
 					mCurrentActor = INVALID_ACTOR_ID;
 					mCurrentActionTime = 0.f;
