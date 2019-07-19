@@ -708,6 +708,12 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 			}
 		}
+
+		if (playerCluster == NULL)
+		{
+			//clear the path so the players don't take the same again
+			mPlayerState.path.clear();
+		}
 	}
 
 	mOtherPlayerState.Copy(otherPlayerState);
@@ -928,6 +934,12 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				fprintf(mAIManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
 			}
 		}
+
+		if (otherPlayerCluster == NULL)
+		{
+			//clear the path so the players don't take the same again
+			mOtherPlayerState.path.clear();
+		}
 	}
 }
 
@@ -991,10 +1003,6 @@ void QuakeAIProcess::ThreadProc( )
 					}
 				}
 
-				fprintf(mAIManager->mLogInformation, "\n blue player path : ");
-				for (PathingArc* pathArc : mPlayerState.path)
-					fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
-				//printf(" blue player visible %f", visibleTime);
 				fprintf(mAIManager->mLogInformation, "\n blue player heuristic %f", mPlayerState.heuristic);
 				//printf("\n blue player actors  %u : ", mPlayerState.player);
 				if (!mPlayerState.items.empty()) 
@@ -1069,10 +1077,6 @@ void QuakeAIProcess::ThreadProc( )
 					}
 				}
 
-				fprintf(mAIManager->mLogInformation, "\n red player path : ");
-				for (PathingArc* pathArc : mOtherPlayerState.path) 
-					fprintf(mAIManager->mLogInformation, "%u ", pathArc->GetNode()->GetId());
-				//printf(" red player visible %f", visibleTime);
 				fprintf(mAIManager->mLogInformation, "\n red player heuristic %f", mOtherPlayerState.heuristic);
 				//printf("\n red player actors %u : ", mOtherPlayerState.player);
 				if (!mOtherPlayerState.items.empty()) 

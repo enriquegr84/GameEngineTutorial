@@ -868,10 +868,15 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 								if (!mCurrentPlan.empty())
 								{
-									aiManager->SetPlayerPlan(mPlayerId, mCurrentNode, mCurrentPlan);
 									PathingArcVec::iterator itArc = mCurrentPlan.begin();
-	
+
 									mCurrentArc = (*itArc);
+									if (mCurrentNode->FindArc(mCurrentArc->GetId()) != NULL)
+									{
+										aiManager->SetPlayerPlan(mPlayerId, mCurrentNode, mCurrentPlan);
+									}
+									else printf("\n plan arc not found %u", mPlayerId);
+
 									mCurrentAction = mCurrentArc->GetType();
 									if (mCurrentAction != GAT_PUSH && mCurrentAction != GAT_TELEPORT)
 										mCurrentNode = mCurrentArc->GetNode();

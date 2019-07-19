@@ -1729,10 +1729,10 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 		GetPlayerGuessItems(pPlayerActor->GetId(), guessItems);
 		if (IsPlayerGuessUpdated(pPlayerActor->GetId()))
 		{
-			playerGuessPath = playerGuessState.path;
-			if (!playerGuessPath.empty())
+			if (!playerGuessState.path.empty())
 			{
 				PathingNode* guessNode = playerGuessState.node;
+				playerGuessPath = playerGuessState.path;
 
 				PathingArcVec::iterator itArc;
 				PathingArcVec::iterator itPathArc = playerGuessPath.begin();
@@ -1753,52 +1753,11 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 
 				playerGuessPath = guessPath;
 				playerGuessNode = guessNode;
+
+				mPlayerGuessPlanTime[pPlayerActor->GetId()] = 0;
+				SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessNode, playerGuessPath);
+				SetPlayerGuessUpdated(pPlayerActor->GetId(), false);
 			}
-
-			mPlayerGuessPlanTime[pPlayerActor->GetId()] = 0;
-			SetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessNode, playerGuessPath);
-			SetPlayerGuessUpdated(pPlayerActor->GetId(), false);
-
-			/*
-			printf("\n current guess path player %u : ", pPlayerActor->GetId());
-			for (PathingArc* pathArc : mPlayerGuessPlan[pPlayerActor->GetId()])
-				printf("%u ", pathArc->GetNode()->GetId());
-
-			if (pPlayerActor->GetId() == 65)
-			{
-				NodeState guessState;
-				GetPlayerGuessState(pPlayerActor->GetId(), guessState);
-				if (!guessItems.empty())
-					printf("\n current guess actors player %u : ", pPlayerActor->GetId());
-				for (eastl::shared_ptr<Actor> pItemActor : guessState.items)
-				{
-					if (pItemActor->GetType() == "Weapon")
-					{
-						eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-							pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-						printf("weapon %u ", pWeaponPickup->GetCode());
-					}
-					else if (pItemActor->GetType() == "Ammo")
-					{
-						eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-							pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-						printf("ammo %u ", pAmmoPickup->GetCode());
-					}
-					else if (pItemActor->GetType() == "Armor")
-					{
-						eastl::shared_ptr<ArmorPickup> pArmorPickup =
-							pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-						printf("armor %u ", pArmorPickup->GetCode());
-					}
-					else if (pItemActor->GetType() == "Health")
-					{
-						eastl::shared_ptr<HealthPickup> pHealthPickup =
-							pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-						printf("health %u ", pHealthPickup->GetCode());
-					}
-				}
-			}
-			*/
 		}
 
 		if (playerGuessPath.size())

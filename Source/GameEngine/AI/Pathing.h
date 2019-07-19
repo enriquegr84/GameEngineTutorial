@@ -113,6 +113,7 @@ public:
 	bool IsVisibleNode(PathingNode* pNode);
 
 	void AddArc(PathingArc* pArc);
+	PathingArc* FindArc(unsigned int id);
 	PathingArc* FindArc(PathingNode* pLinkedNode);
 	PathingArc* FindArc(unsigned int arcType, PathingNode* pLinkedNode);
 	const PathingArcVec& GetArcs() { return mArcs; }

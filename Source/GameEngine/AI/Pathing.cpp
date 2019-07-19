@@ -106,6 +106,18 @@ void PathingNode::GetArcs(unsigned int arcType, PathingArcVec& outArcs)
 	}
 }
 
+PathingArc* PathingNode::FindArc(unsigned int id)
+{
+	for (PathingArcVec::iterator it = mArcs.begin(); it != mArcs.end(); ++it)
+	{
+		PathingArc* pArc = *it;
+		if (pArc->GetId() == id)
+			return pArc;
+	}
+
+	return NULL;
+}
+
 PathingArc* PathingNode::FindArc(PathingNode* pLinkedNode)
 {
 	LogAssert(pLinkedNode, "Invalid node");
