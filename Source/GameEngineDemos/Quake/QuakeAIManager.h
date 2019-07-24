@@ -337,20 +337,6 @@ public:
 	void SetPlayerPlan(ActorId player, NodePlan& playerPlan);
 	void SetPlayerUpdated(ActorId player, bool update);
 
-	void GetPlayerActors(ActorId player,
-		eastl::vector<ActorId>& playerActors,
-		eastl::map<ActorId, unsigned short>& playerActorClusters);
-	void SetPlayerActors(
-		eastl::map<ActorId, eastl::map<ActorId, unsigned short>>& playerTargets,
-		eastl::map<ActorId, eastl::map<ActorId, float>>& playerHeuristics);
-
-	void GetPlayerGuessActors(ActorId player,
-		eastl::vector<ActorId>& playerGuessActors,
-		eastl::map<ActorId, unsigned short>& playerGuessActorClusters);
-	void SetPlayerGuessActors(
-		eastl::map<ActorId, eastl::map<ActorId, unsigned short>>& playerGuessTargets,
-		eastl::map<ActorId, eastl::map<ActorId, float>>& playerGuessHeuristics);
-
 	void RemovePlayerGuessItems(ActorId player);
 	void SetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
 	void GetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
@@ -436,9 +422,6 @@ private:
 
 	//pathing nodes which contains actors from game
 	eastl::map<PathingNode*, ActorId> mActorNodes;
-
-	//exclude actors for ai finder
-	eastl::map<ActorId, float> mExcludeActors;
 
 	//player ai states
 	eastl::map<ActorId, bool> mPlayers;
