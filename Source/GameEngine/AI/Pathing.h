@@ -129,6 +129,10 @@ public:
 	PathingCluster* FindClusterActor(unsigned int clusterType, PathingNode* pTargetNode);
 
 	PathingCluster* GetClusterActor(unsigned int clusterType, unsigned short clusterId);
+	void GetClusterActors(unsigned int clusterType,
+		eastl::vector<unsigned short> clusters, eastl::map<PathingCluster*, unsigned short>& outClusters);
+	void GetClusterActors(unsigned int clusterType, eastl::vector<unsigned short> clusters, 
+		eastl::map<PathingCluster*, unsigned short>& outClusters, unsigned int limit);
 	void GetClusterActors(unsigned short clusterId, eastl::map<unsigned int, PathingCluster*>& outClusters);
 	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit);
 	void GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters);
@@ -136,6 +140,10 @@ public:
 	const PathingClusterVec& GetClusterActors() { return mClusterActors; }
 
 	PathingCluster* GetCluster(unsigned int clusterType, unsigned short clusterId);
+	void GetClusters(unsigned int clusterType,
+		eastl::vector<unsigned short> clusters, eastl::map<PathingCluster*, unsigned short>& outClusters);
+	void GetClusters(unsigned int clusterType, eastl::vector<unsigned short> clusters, 
+		eastl::map<PathingCluster*, unsigned short>& outClusters, unsigned int limit);
 	void GetClusters(unsigned short clusterId, eastl::map<unsigned int, PathingCluster*>& outClusters);
 	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters, unsigned int limit);
 	void GetClusters(unsigned int clusterType, PathingClusterVec& outClusters);

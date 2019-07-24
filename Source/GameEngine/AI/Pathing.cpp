@@ -199,6 +199,42 @@ PathingCluster* PathingNode::GetCluster(unsigned int clusterType, unsigned short
 	return NULL;
 }
 
+void PathingNode::GetClusters(unsigned int clusterType, 
+	eastl::vector<unsigned short> clusters, eastl::map<PathingCluster*, unsigned short>& outClusters)
+{
+	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetType() == clusterType && pCluster->GetActor() == INVALID_ACTOR_ID)
+		{
+			if (eastl::find(clusters.begin(), clusters.end(), pCluster->GetTarget()->GetCluster()) != clusters.end())
+				outClusters[pCluster] = pCluster->GetTarget()->GetCluster();
+		}
+	}
+}
+
+void PathingNode::GetClusters(
+	unsigned int clusterType, eastl::vector<unsigned short> clusters, 
+	eastl::map<PathingCluster*, unsigned short>& outClusters, unsigned int limit)
+{
+	for (unsigned short cluster : clusters)
+	{
+		if (outClusters.size() < limit)
+		{
+			for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
+			{
+				PathingCluster* pCluster = *it;
+				if (pCluster->GetType() == clusterType && pCluster->GetActor() == INVALID_ACTOR_ID)
+				{
+					if (cluster == pCluster->GetTarget()->GetCluster())
+						outClusters[pCluster] = pCluster->GetTarget()->GetCluster();
+				}
+			}
+		}
+		else break;
+	}
+}
+
 void PathingNode::GetClusters(unsigned short clusterId, eastl::map<unsigned int, PathingCluster*>& outClusters)
 {
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
@@ -260,6 +296,43 @@ PathingCluster* PathingNode::GetClusterActor(unsigned int clusterType, unsigned 
 	}
 
 	return NULL;
+}
+
+void PathingNode::GetClusterActors(unsigned int clusterType, 
+	eastl::vector<unsigned short> clusters, eastl::map<PathingCluster*, unsigned short>& outClusters)
+{
+	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
+	{
+		PathingCluster* pCluster = *it;
+		if (pCluster->GetType() == clusterType)
+		{
+			if (eastl::find(clusters.begin(), clusters.end(), pCluster->GetTarget()->GetCluster()) != clusters.end())
+				outClusters[pCluster] = pCluster->GetTarget()->GetCluster();
+		}
+	}
+}
+
+
+void PathingNode::GetClusterActors(
+	unsigned int clusterType, eastl::vector<unsigned short> clusters,
+	eastl::map<PathingCluster*, unsigned short>& outClusters, unsigned int limit)
+{
+	for (unsigned short cluster : clusters)
+	{
+		if (outClusters.size() < limit)
+		{
+			for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
+			{
+				PathingCluster* pCluster = *it;
+				if (pCluster->GetType() == clusterType)
+				{
+					if (cluster == pCluster->GetTarget()->GetCluster())
+						outClusters[pCluster] = pCluster->GetTarget()->GetCluster();
+				}
+			}
+		}
+		else break;
+	}
 }
 
 void PathingNode::GetClusterActors(unsigned short clusterId, eastl::map<unsigned int, PathingCluster*>& outClusters)

@@ -457,7 +457,8 @@ void AIFinder::Destroy(void)
 // AIFinder::operator()
 //
 void AIFinder::operator()(NodeState& pNodeState, 
-	PathingCluster* pGoalCluster, PathingArcVec& planPath, float threshold)
+	PathingCluster* pGoalCluster, PathingArcVec& planPath, 
+	eastl::map<ActorId, float>& excludeActors, float threshold)
 {
 	LogAssert(pNodeState.valid, "Invalid node");
 	LogAssert(pGoalCluster, "Invalid cluster");
@@ -565,7 +566,7 @@ void AIFinder::operator()(NodeState& pNodeState,
 				planActors[pNeighborNode->GetActorId()] = distance;
 
 				NodeState nodeState(mNodeState);
-				aiManager->PickupItems(nodeState, planClusterActors);
+				aiManager->PickupItems(nodeState, planClusterActors, excludeActors);
 				float nodeHeuristic = aiManager->CalculateHeuristicItems(nodeState);
 				AddToOpenSet(pathingNode, planNode, pClusterToEvaluate, distance, nodeHeuristic);
 			}
@@ -819,6 +820,104 @@ void QuakeAIManager::SetPlayerUpdated(ActorId player, bool update)
 	mMutex.unlock();
 }
 
+void QuakeAIManager::SetPlayerActors(
+	eastl::map<ActorId, eastl::map<ActorId, unsigned short>>& playerTargets,
+	eastl::map<ActorId, eastl::map<ActorId, float>>& playerHeuristics)
+{
+	mMutex.lock();
+
+	mPlayerTargets.clear();
+	mPlayerHeuristics.clear();
+
+	eastl::map<ActorId, eastl::map<ActorId, unsigned short>>::iterator itPlayerTarget = playerTargets.begin();
+	for (; itPlayerTarget != playerTargets.end(); itPlayerTarget++)
+	{
+		ActorId player = (*itPlayerTarget).first;
+		for (auto playerTarget : (*itPlayerTarget).second)
+			mPlayerTargets[player][playerTarget.first] = playerTarget.second;
+	}
+
+	eastl::map<ActorId, eastl::map<ActorId, float>>::iterator itPlayerHeuristic = playerHeuristics.begin();
+	for (; itPlayerHeuristic != playerHeuristics.end(); itPlayerHeuristic++)
+	{
+		ActorId player = (*itPlayerHeuristic).first;
+		for (auto playerHeuristic : (*itPlayerHeuristic).second)
+			mPlayerHeuristics[player][playerHeuristic.first] = playerHeuristic.second;
+	}
+
+	mMutex.unlock();
+}
+
+void QuakeAIManager::GetPlayerActors(ActorId player,
+	eastl::vector<ActorId>& playerActors, eastl::map<ActorId, unsigned short>& playerActorClusters)
+{
+	mMutex.lock();
+
+	eastl::map<float, eastl::vector<ActorId>> playerActorHeuristics;
+	for (auto playerHeuristic : mPlayerHeuristics[player])
+		playerActorHeuristics[playerHeuristic.second].push_back(playerHeuristic.first);
+
+	for (auto playerActorHeuristic : playerActorHeuristics)
+	{
+		for (ActorId playerActor : playerActorHeuristic.second)
+		{
+			playerActors.insert(playerActors.begin(), playerActor);
+			playerActorClusters[playerActor] = mPlayerTargets[player][playerActor];
+		}
+	}
+
+	mMutex.unlock();
+}
+
+void QuakeAIManager::SetPlayerGuessActors(
+	eastl::map<ActorId, eastl::map<ActorId, unsigned short>>& playerGuessTargets,
+	eastl::map<ActorId, eastl::map<ActorId, float>>& playerGuessHeuristics)
+{
+	mMutex.lock();
+
+	mPlayerGuessTargets.clear();
+	mPlayerGuessHeuristics.clear();
+
+	eastl::map<ActorId, eastl::map<ActorId, unsigned short>>::iterator itPlayerGuessTarget = playerGuessTargets.begin();
+	for (; itPlayerGuessTarget != playerGuessTargets.end(); itPlayerGuessTarget++)
+	{
+		ActorId player = (*itPlayerGuessTarget).first;
+		for (auto playerGuessTarget : (*itPlayerGuessTarget).second)
+			mPlayerGuessTargets[player][playerGuessTarget.first] = playerGuessTarget.second;
+	}
+
+	eastl::map<ActorId, eastl::map<ActorId, float>>::iterator itPlayerGuessHeuristic = playerGuessHeuristics.begin();
+	for (; itPlayerGuessHeuristic != playerGuessHeuristics.end(); itPlayerGuessHeuristic++)
+	{
+		ActorId player = (*itPlayerGuessHeuristic).first;
+		for (auto playerGuessHeuristic : (*itPlayerGuessHeuristic).second)
+			mPlayerGuessHeuristics[player][playerGuessHeuristic.first] = playerGuessHeuristic.second;
+	}
+
+	mMutex.unlock();
+}
+
+void QuakeAIManager::GetPlayerGuessActors(ActorId player,
+	eastl::vector<ActorId>& playerGuessActors, eastl::map<ActorId, unsigned short>& playerGuessActorClusters)
+{
+	mMutex.lock();
+
+	eastl::map<float, eastl::vector<ActorId>> playerGuessActorHeuristics;
+	for (auto playerGuessHeuristic : mPlayerGuessHeuristics[player])
+		playerGuessActorHeuristics[playerGuessHeuristic.second].push_back(playerGuessHeuristic.first);
+
+	for (auto playerGuessActorHeuristic : playerGuessActorHeuristics)
+	{
+		for (ActorId playerGuessActor : playerGuessActorHeuristic.second)
+		{
+			playerGuessActors.insert(playerGuessActors.begin(), playerGuessActor);
+			playerGuessActorClusters[playerGuessActor] = mPlayerGuessTargets[player][playerGuessActor];
+		}
+	}
+
+	mMutex.unlock();
+}
+
 void QuakeAIManager::RemovePlayerGuessItems(ActorId player)
 {
 	mMutex.lock();
@@ -832,16 +931,6 @@ void QuakeAIManager::SetPlayerGuessItems(ActorId player, eastl::map<ActorId, flo
 	mPlayerGuessItems[player].clear();
 	for (auto guessItem : guessItems)
 		mPlayerGuessItems[player][guessItem.first] = guessItem.second;
-	mMutex.unlock();
-}
-
-void QuakeAIManager::SetExcludeActors(ActorId playerId)
-{
-	mMutex.lock();
-	mExcludeActors.clear();
-	eastl::map<ActorId, float> playerGuessItems = mPlayerGuessItems[playerId];
-	for (auto guessItem : playerGuessItems)
-		mExcludeActors[guessItem.first] = guessItem.second;
 	mMutex.unlock();
 }
 
@@ -991,7 +1080,7 @@ float QuakeAIManager::CalculateHeuristicItems(NodeState& playerState)
 {
 	float weight = 0.f;
 	float heuristic = 0.f;
-	float maxDistance = 6.0f;
+	float maxDistance = 8.0f;
 	float distance = 0.f;
 	int maxAmmo = 0;
 	int ammo = 0;
@@ -1541,7 +1630,8 @@ bool QuakeAIManager::CanItemBeGrabbed(ActorId itemId, float itemTime, NodeState&
 	return false;
 }
 
-void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, float>& actors)
+void QuakeAIManager::PickupItems(NodeState& playerState, 
+	eastl::map<ActorId, float>& actors, eastl::map<ActorId, float>& excludeActors)
 {
 	for (auto actor : actors)
 	{
@@ -1553,9 +1643,9 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 			{
 				eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 					pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-				if (mExcludeActors.find(actor.first) != mExcludeActors.end())
+				if (excludeActors.find(actor.first) != excludeActors.end())
 				{
-					if (mExcludeActors[actor.first] - actor.second > 0)
+					if (excludeActors[actor.first] - actor.second > 0)
 						continue;
 				}
 				else
@@ -1585,9 +1675,9 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 			{
 				eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 					pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-				if (mExcludeActors.find(actor.first) != mExcludeActors.end())
+				if (excludeActors.find(actor.first) != excludeActors.end())
 				{
-					if (mExcludeActors[actor.first] - actor.second > 0)
+					if (excludeActors[actor.first] - actor.second > 0)
 						continue;
 				}
 				else
@@ -1616,9 +1706,9 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 			{
 				eastl::shared_ptr<ArmorPickup> pArmorPickup =
 					pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-				if (mExcludeActors.find(actor.first) != mExcludeActors.end())
+				if (excludeActors.find(actor.first) != excludeActors.end())
 				{
-					if (mExcludeActors[actor.first] - actor.second > 0)
+					if (excludeActors[actor.first] - actor.second > 0)
 						continue;
 				}
 				else
@@ -1635,6 +1725,8 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 					playerState.itemDistance[pItemActor] = actor.second;
 					playerState.itemAmount[pItemActor] = pArmorPickup->GetAmount() -
 						(armor - playerState.stats[STAT_MAX_HEALTH] * 2);
+					if (playerState.itemAmount[pItemActor] < 0)
+						playerState.itemAmount[pItemActor] = 0;
 				}
 				else
 				{
@@ -1649,9 +1741,9 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 			{
 				eastl::shared_ptr<HealthPickup> pHealthPickup =
 					pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-				if (mExcludeActors.find(actor.first) != mExcludeActors.end())
+				if (excludeActors.find(actor.first) != excludeActors.end())
 				{
-					if (mExcludeActors[actor.first] - actor.second > 0)
+					if (excludeActors[actor.first] - actor.second > 0)
 						continue;
 				}
 				else
@@ -1673,6 +1765,8 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 					playerState.items.push_back(pItemActor);
 					playerState.itemDistance[pItemActor] = actor.second;
 					playerState.itemAmount[pItemActor] = pHealthPickup->GetAmount() - (health - max);
+					if (playerState.itemAmount[pItemActor] < 0)
+						playerState.itemAmount[pItemActor] = 0;
 				}
 				else
 				{
@@ -1687,11 +1781,12 @@ void QuakeAIManager::PickupItems(NodeState& playerState, eastl::map<ActorId, flo
 }
 
 void QuakeAIManager::FindPath(NodeState& pNodeState, 
-	PathingCluster* pGoalCluster, PathingArcVec& planPath, float threshold)
+	PathingCluster* pGoalCluster, PathingArcVec& planPath, 
+	eastl::map<ActorId, float>& excludeActors, float threshold)
 {
 	// find the best path using an A* search algorithm
 	AIFinder aiFinder;
-	aiFinder(pNodeState, pGoalCluster, planPath, threshold);
+	aiFinder(pNodeState, pGoalCluster, planPath, excludeActors, threshold);
 }
 
 void QuakeAIManager::OnUpdate(unsigned long deltaMs)
@@ -2016,6 +2111,131 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 			}
 		}
 	}
+
+	//lets find out the most important goal (items or enemies) for every player
+	eastl::map<ActorId, eastl::map<ActorId, unsigned short>> playerTargets, playerGuessTargets;
+	eastl::map<ActorId, eastl::map<ActorId, float>> playerHeuristics, playerGuessHeuristics;
+
+	eastl::vector<eastl::shared_ptr<Actor>> gameActors;
+	game->GetAmmoActors(gameActors);
+	game->GetWeaponActors(gameActors);
+	game->GetHealthActors(gameActors);
+	game->GetArmorActors(gameActors);
+	for (eastl::shared_ptr<PlayerActor> pPlayerActor : playerActors)
+	{
+		NodePlan playerPlan;
+		NodeState playerState;
+		GetPlayerPlan(pPlayerActor->GetId(), playerPlan);
+		GetPlayerState(pPlayerActor->GetId(), playerState);
+		if (playerPlan.node != NULL)
+		{
+			PathingNode* goalNode = playerPlan.path.empty() == false ?
+				playerPlan.path.back()->GetNode() : playerPlan.node;
+
+			playerHeuristics[pPlayerActor->GetId()][pPlayerActor->GetId()] = FLT_MAX;
+			playerTargets[pPlayerActor->GetId()][pPlayerActor->GetId()] = goalNode->GetCluster();
+
+			eastl::map<ActorId, float> excludeActors;
+			for (eastl::shared_ptr<PlayerActor> pOtherPlayerActor : playerActors)
+			{
+				if (pPlayerActor->GetId() == pOtherPlayerActor->GetId())
+					continue;
+
+				GetPlayerGuessItems(playerState.player, excludeActors);
+			}
+
+			for (eastl::shared_ptr<Actor> pGameActor : gameActors)
+			{
+				playerState.ResetItems();
+
+				eastl::shared_ptr<TransformComponent> pActorTransform(
+					pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+				goalNode = mPathingGraph->FindClosestNode(pActorTransform->GetPosition());
+
+				eastl::map<unsigned int, PathingCluster*> targetClusters;
+				playerPlan.node->GetClusters(goalNode->GetCluster(), targetClusters);
+				if (!targetClusters.size())
+					continue;
+
+				PathingCluster* targetCluster = (*targetClusters.begin()).second;
+				if (targetClusters.find(GAT_JUMP) != targetClusters.end())
+					targetCluster = targetClusters[GAT_JUMP];
+
+				PathingNode* pNode = playerPlan.node;
+				float targetDistance = 0.f;
+				while (pNode != targetCluster->GetTarget())
+				{
+					PathingCluster* pCluster = pNode->FindCluster(
+						targetCluster->GetType(), targetCluster->GetTarget());
+					PathingArc* pArc = pNode->FindArc(pCluster->GetNode());
+					targetDistance += pArc->GetWeight();
+
+					pNode = pArc->GetNode();
+				}
+				eastl::map<ActorId, float> actor;
+				actor[pGameActor->GetId()] = targetDistance;
+				PickupItems(playerState, actor, excludeActors);
+				playerState.heuristic = CalculateHeuristicItems(playerState);
+
+				playerHeuristics[pPlayerActor->GetId()][pGameActor->GetId()] = playerState.heuristic;
+				playerTargets[pPlayerActor->GetId()][pGameActor->GetId()] = goalNode->GetCluster();
+			}
+		}
+
+		NodePlan playerGuessPlan;
+		NodeState playerGuessState;
+		GetPlayerGuessPlan(pPlayerActor->GetId(), playerGuessPlan);
+		GetPlayerGuessState(pPlayerActor->GetId(), playerGuessState);
+		if (playerGuessPlan.node != NULL)
+		{
+			PathingNode* goalNode = playerGuessPlan.path.empty() == false ?
+				playerGuessPlan.path.back()->GetNode() : playerGuessPlan.node;
+
+			playerGuessHeuristics[pPlayerActor->GetId()][pPlayerActor->GetId()] = FLT_MAX;
+			playerGuessTargets[pPlayerActor->GetId()][pPlayerActor->GetId()] = goalNode->GetCluster();
+
+			eastl::map<ActorId, float> excludeActors;
+			for (eastl::shared_ptr<Actor> pGameActor : gameActors)
+			{
+				playerGuessState.ResetItems();
+
+				eastl::shared_ptr<TransformComponent> pActorTransform(
+					pGameActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+				goalNode = mPathingGraph->FindClosestNode(pActorTransform->GetPosition());
+
+				eastl::map<unsigned int, PathingCluster*> targetClusters;
+				goalNode->GetClusters(goalNode->GetCluster(), targetClusters);
+				if (!targetClusters.size())
+					continue;
+
+				PathingCluster* targetCluster = (*targetClusters.begin()).second;
+				if (targetClusters.find(GAT_JUMP) != targetClusters.end())
+					targetCluster = targetClusters[GAT_JUMP];
+
+				PathingNode* pNode = playerGuessPlan.node;
+				float targetDistance = 0.f;
+				while (pNode != targetCluster->GetTarget())
+				{
+					PathingCluster* pCluster = pNode->FindCluster(
+						targetCluster->GetType(), targetCluster->GetTarget());
+					PathingArc* pArc = pNode->FindArc(pCluster->GetNode());
+					targetDistance += pArc->GetWeight();
+
+					pNode = pArc->GetNode();
+				}
+				eastl::map<ActorId, float> actor;
+				actor[pGameActor->GetId()] = targetDistance;
+				PickupItems(playerGuessState, actor, excludeActors);
+				CalculateHeuristicItems(playerGuessState);
+
+				playerGuessHeuristics[pPlayerActor->GetId()][pGameActor->GetId()] = playerGuessState.heuristic;
+				playerGuessTargets[pPlayerActor->GetId()][pGameActor->GetId()] = goalNode->GetCluster();
+			}
+		}
+	}
+
+	SetPlayerActors(playerTargets, playerHeuristics);
+	SetPlayerGuessActors(playerGuessTargets, playerGuessHeuristics);
 }
 
 //map generation via physics simulation

@@ -77,6 +77,10 @@ protected:
 private:
 
 	NodeState mPlayerState, mOtherPlayerState;
+	eastl::vector<ActorId> mPlayerActors, mOtherPlayerActors;
+	eastl::map<ActorId, unsigned short> mPlayerActorClusters, mOtherPlayerActorClusters;
+
+	eastl::map<ActorId, float> mExcludeActors;
 
 	QuakeAIManager*	mAIManager;
 };

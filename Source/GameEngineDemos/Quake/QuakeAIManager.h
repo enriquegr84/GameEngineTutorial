@@ -286,7 +286,8 @@ public:
 	void Destroy(void);
 
 	void operator()(NodeState& pNodeState, 
-		PathingCluster* pGoalCluster, PathingArcVec& planPath, float threshold = FLT_MAX);
+		PathingCluster* pGoalCluster, PathingArcVec& planPath, 
+		eastl::map<ActorId, float>& excludeActors, float threshold = FLT_MAX);
 
 protected:
 
@@ -336,6 +337,20 @@ public:
 	void SetPlayerPlan(ActorId player, NodePlan& playerPlan);
 	void SetPlayerUpdated(ActorId player, bool update);
 
+	void GetPlayerActors(ActorId player,
+		eastl::vector<ActorId>& playerActors,
+		eastl::map<ActorId, unsigned short>& playerActorClusters);
+	void SetPlayerActors(
+		eastl::map<ActorId, eastl::map<ActorId, unsigned short>>& playerTargets,
+		eastl::map<ActorId, eastl::map<ActorId, float>>& playerHeuristics);
+
+	void GetPlayerGuessActors(ActorId player,
+		eastl::vector<ActorId>& playerGuessActors,
+		eastl::map<ActorId, unsigned short>& playerGuessActorClusters);
+	void SetPlayerGuessActors(
+		eastl::map<ActorId, eastl::map<ActorId, unsigned short>>& playerGuessTargets,
+		eastl::map<ActorId, eastl::map<ActorId, float>>& playerGuessHeuristics);
+
 	void RemovePlayerGuessItems(ActorId player);
 	void SetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
 	void GetPlayerGuessItems(ActorId player, eastl::map<ActorId, float>& guessItems);
@@ -368,11 +383,13 @@ protected:
 		float visibleTime, float visibleDistance, float visibleHeight);
 
 	bool CanItemBeGrabbed(ActorId itemId, float itemTime, NodeState& playerState);
-	void PickupItems(NodeState& playerState, eastl::map<ActorId, float>& actors);
+	void PickupItems(NodeState& playerState, 
+		eastl::map<ActorId, float>& actors, eastl::map<ActorId, float>& excludeActors);
 
-	void SetExcludeActors(ActorId playerId);
+
 	void FindPath(NodeState& pNodeState, 
-		PathingCluster* pGoalCluster, PathingArcVec& planPath, float threshold = FLT_MAX);
+		PathingCluster* pGoalCluster, PathingArcVec& planPath, 
+		eastl::map<ActorId, float>& excludeActors, float threshold = FLT_MAX);
 
 private:
 
@@ -429,10 +446,17 @@ private:
 	eastl::map<ActorId, NodeState> mPlayerStates;
 	eastl::map<ActorId, PathingNode*> mPlayerNodes;
 
+	eastl::map<ActorId, eastl::map<ActorId, unsigned short>> mPlayerTargets;
+	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerHeuristics;
+
 	eastl::map<ActorId, bool> mPlayerGuess;
 	eastl::map<ActorId, NodePlan> mPlayerGuessPlans;
 	eastl::map<ActorId, NodeState> mPlayerGuessStates;
 	eastl::map<ActorId, PathingNode*> mPlayerGuessNodes;
+
+	eastl::map<ActorId, eastl::map<ActorId, unsigned short>> mPlayerGuessTargets;
+	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessHeuristics;
+
 	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessItems;
 
 	eastl::map<ActorId, float> mPlayerGuessTime;
