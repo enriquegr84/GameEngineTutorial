@@ -456,7 +456,7 @@ void AIFinder::Destroy(void)
 //
 // AIFinder::operator()
 //
-void AIFinder::operator()(NodeState& pNodeState, 
+float AIFinder::operator()(NodeState& pNodeState, 
 	PathingCluster* pGoalCluster, PathingArcVec& planPath, 
 	eastl::map<ActorId, float>& excludeActors, float threshold)
 {
@@ -468,7 +468,7 @@ void AIFinder::operator()(NodeState& pNodeState,
 
 	// if the start and end nodes are the same, we're close enough to b-line to the goal
 	if (pNodeState.plan.node == pGoalCluster->GetTarget())
-		return;
+		return 0.f;
 
 	// set our members
 	mNodeState = pNodeState;
@@ -579,7 +579,13 @@ void AIFinder::operator()(NodeState& pNodeState,
 			pathingNode = pathingArc->GetNode();
 		}
 	}
-	RebuildPath(bestPlanNode, planPath);
+
+	if (bestPlanNode != NULL)
+	{
+		RebuildPath(bestPlanNode, planPath);
+		return bestPlanNode->GetHeuristic();
+	}
+	else return 0.f;
 }
 
 AIPlanNode* AIFinder::AddToOpenSet(PathingNode* pNode, AIPlanNode* pPrevNode,
@@ -1682,13 +1688,13 @@ void QuakeAIManager::PickupItems(NodeState& playerState,
 	}
 }
 
-void QuakeAIManager::FindPath(NodeState& pNodeState, 
+float QuakeAIManager::FindPath(NodeState& pNodeState, 
 	PathingCluster* pGoalCluster, PathingArcVec& planPath, 
 	eastl::map<ActorId, float>& excludeActors, float threshold)
 {
 	// find the best path using an A* search algorithm
 	AIFinder aiFinder;
-	aiFinder(pNodeState, pGoalCluster, planPath, excludeActors, threshold);
+	return aiFinder(pNodeState, pGoalCluster, planPath, excludeActors, threshold);
 }
 
 void QuakeAIManager::OnUpdate(unsigned long deltaMs)

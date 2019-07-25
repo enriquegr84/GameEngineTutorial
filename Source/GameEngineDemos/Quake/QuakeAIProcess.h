@@ -59,17 +59,20 @@ public:
 
 protected:
 
-	float CalculateActorWeight(float playerWeight, float otherPlayerWeight);
-	float CalculatePathWeight(NodeState& playerState, NodeState& otherPlayerState);
 	void Visibility(
 		PathingNode* playerNode, PathingArcVec& playerPathPlan,
 		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
+	void SelectActorPaths(int limit,
+		eastl::vector<float>& playerActorHeuristics,
+		eastl::vector<PathingCluster*>& playerActorClusters,
+		eastl::map<PathingCluster*, PathingArcVec>& playerActorPlans,
+		eastl::map<PathingCluster*, PathingArcVec>& playerPathPlans);
 	void ConstructPath(NodeState& playerState,
 		PathingCluster* playerCluster, PathingArcVec& playerPathPlan);
-	void ConstructActorPath(NodeState& playerState,
-		PathingCluster* playerCluster, PathingArcVec& playerActorPlan, float actorWeight);
+	float ConstructActorPath(NodeState& playerState,
+		PathingCluster* playerCluster, PathingArcVec& playerActorPlan);
 	void Simulation(
 		NodeState& playerState, PathingArcVec& playerPathPlan,
 		NodeState& otherPlayerState, PathingArcVec& otherPlayerPathPlan);

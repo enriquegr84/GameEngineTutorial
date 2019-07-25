@@ -285,7 +285,7 @@ public:
 	~AIFinder(void);
 	void Destroy(void);
 
-	void operator()(NodeState& pNodeState, 
+	float operator()(NodeState& pNodeState, 
 		PathingCluster* pGoalCluster, PathingArcVec& planPath, 
 		eastl::map<ActorId, float>& excludeActors, float threshold = FLT_MAX);
 
@@ -373,7 +373,7 @@ protected:
 		eastl::map<ActorId, float>& actors, eastl::map<ActorId, float>& excludeActors);
 
 
-	void FindPath(NodeState& pNodeState, 
+	float FindPath(NodeState& pNodeState, 
 		PathingCluster* pGoalCluster, PathingArcVec& planPath, 
 		eastl::map<ActorId, float>& excludeActors, float threshold = FLT_MAX);
 
