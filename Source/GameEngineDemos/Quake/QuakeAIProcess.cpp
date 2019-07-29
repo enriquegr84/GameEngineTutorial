@@ -162,24 +162,28 @@ void QuakeAIProcess::Visibility(
 		playerPathPlan.back()->GetNode()->GetCluster(),
 		otherPlayerPathPlan.back()->GetNode()->GetCluster()))
 	{
-		float visibleWeight = 1.0f;
-		totalTime += visibleWeight;
+		if (playerPathPlan.back()->GetNode()->IsVisibleNode(
+			otherPlayerPathPlan.back()->GetNode()))
+		{
+			float visibleWeight = 1.0f;
+			totalTime += visibleWeight;
 
-		(*visibleDistance) += Length(
-			otherPlayerPathPlan.back()->GetNode()->GetPos() -
-			playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
-		(*visibleHeight) +=
-			(playerPathPlan.back()->GetNode()->GetPos()[2] -
-			otherPlayerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
-		(*visibleTime) += visibleWeight;
+			(*visibleDistance) += Length(
+				otherPlayerPathPlan.back()->GetNode()->GetPos() -
+				playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
+			(*visibleHeight) +=
+				(playerPathPlan.back()->GetNode()->GetPos()[2] -
+				otherPlayerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
+			(*visibleTime) += visibleWeight;
 
-		(*otherVisibleDistance) += Length(
-			otherPlayerPathPlan.back()->GetNode()->GetPos() -
-			playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
-		(*otherVisibleHeight) +=
-			(otherPlayerPathPlan.back()->GetNode()->GetPos()[2] -
-			playerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
-		(*otherVisibleTime) += visibleWeight;
+			(*otherVisibleDistance) += Length(
+				otherPlayerPathPlan.back()->GetNode()->GetPos() -
+				playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
+			(*otherVisibleHeight) +=
+				(otherPlayerPathPlan.back()->GetNode()->GetPos()[2] -
+				playerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
+			(*otherVisibleTime) += visibleWeight;
+		}
 	}
 	
 	//average
@@ -307,38 +311,6 @@ void QuakeAIProcess::Simulation(
 	otherPlayerState.Copy(otherPlayerNodeState);
 }
 
-void QuakeAIProcess::SelectActorPaths(int limit,
-	eastl::vector<float>& playerActorHeuristics,
-	eastl::vector<PathingCluster*>& playerActorClusters,
-	eastl::map<PathingCluster*, PathingArcVec>& playerActorPlans, 
-	eastl::map<PathingCluster*, PathingArcVec>& playerPathPlans)
-{
-	unsigned int playerActorIdx = 0;
-	float playerActorInc = playerActorPlans.size() / (float)limit;
-	float playerActorSize = playerActorInc;
-	do
-	{
-		float playerActorHeuristic = 0.f;
-		PathingCluster* playerCluster = NULL;
-		for (; playerActorIdx < playerActorPlans.size(); playerActorIdx++)
-		{
-			if (playerActorIdx < playerActorSize)
-			{
-				if (playerActorHeuristics[playerActorIdx] > playerActorHeuristic)
-				{
-					playerActorHeuristic = playerActorHeuristics[playerActorIdx];
-					playerCluster = playerActorClusters[playerActorIdx];
-				}
-			}
-			else break;
-		}
-
-		playerActorSize += playerActorInc;
-		if (playerCluster != NULL) playerPathPlans[playerCluster] = playerActorPlans[playerCluster];
-
-	} while (playerActorIdx < playerPathPlans.size());
-}
-
 void QuakeAIProcess::ConstructPath(NodeState& playerState,
 	PathingCluster* playerCluster, PathingArcVec& playerPathPlan)
 {
@@ -354,7 +326,7 @@ void QuakeAIProcess::ConstructPath(NodeState& playerState,
 	}
 }
 
-float QuakeAIProcess::ConstructActorPath(NodeState& playerState,
+void QuakeAIProcess::ConstructActorPath(NodeState& playerState,
 	PathingCluster* playerCluster, PathingArcVec& playerActorPlan)
 {
 	float maxPathWeight = 0.f;
@@ -370,7 +342,7 @@ float QuakeAIProcess::ConstructActorPath(NodeState& playerState,
 	}
 	//add extra time
 	maxPathWeight += maxPathWeight * 0.3f;
-	return mAIManager->FindPath(playerState, playerCluster, playerActorPlan, mExcludeActors, maxPathWeight);
+	mAIManager->FindPath(playerState, playerCluster, playerActorPlan, mExcludeActors, maxPathWeight);
 }
 
 void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPlayerState)
@@ -390,26 +362,18 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	unsigned int clusterSize = playerClusters.size();
 	//fprintf(mAIManager->mLogInformation, "\n blue player actors ");
 	//construct path based on closest actors to each cluster pathway
-	eastl::vector<float> playerActorHeuristics;
-	eastl::vector<PathingCluster*> playerActorClusters;
-	eastl::map<PathingCluster*, PathingArcVec> playerActorPlans;
 	for (; playerClusterIdx < clusterSize; playerClusterIdx++)
 	{
 		PathingCluster* playerCluster = playerClusters[playerClusterIdx];
 
 		PathingArcVec playerActorPlan;
-		float playerActorHeuristic = ConstructActorPath(playerState, playerCluster, playerActorPlan);
+		ConstructActorPath(playerState, playerCluster, playerActorPlan);
 		if (!playerActorPlan.empty())
 		{
 			//construct path
-			playerActorClusters.push_back(playerCluster);
-			playerActorPlans[playerCluster] = playerActorPlan;
-			playerActorHeuristics.push_back(playerActorHeuristic);
+			playerPathPlans[playerCluster] = playerActorPlan;
 		}
 	}
-
-	//lets take a maximum of the best actor paths uniformly
-	SelectActorPaths(20, playerActorHeuristics, playerActorClusters, playerActorPlans, playerPathPlans);
 
 	//construct path based on cluster pathway
 	for (playerClusterIdx = 0; playerClusterIdx < clusterSize; playerClusterIdx++)
@@ -435,28 +399,18 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	unsigned int otherPlayerClusterIdx = 0;
 	unsigned int otherClusterSize = otherPlayerClusters.size();
 	//fprintf(mAIManager->mLogInformation, "\n red player actors ");
-	eastl::vector<float> otherPlayerActorHeuristics;
-	eastl::vector<PathingCluster*> otherPlayerActorClusters;
-	eastl::map<PathingCluster*, PathingArcVec> otherPlayerActorPlans;
 	for (; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
 	{
 		PathingCluster* otherPlayerCluster = otherPlayerClusters[otherPlayerClusterIdx];
 
 		PathingArcVec otherPlayerActorPlan;
-		float otherPlayerActorHeuristic = 
-			ConstructActorPath(otherPlayerState, otherPlayerCluster, otherPlayerActorPlan);
+		ConstructActorPath(otherPlayerState, otherPlayerCluster, otherPlayerActorPlan);
 		if (!otherPlayerActorPlan.empty())
 		{
 			//construct path
-			otherPlayerActorClusters.push_back(otherPlayerCluster);
-			otherPlayerActorPlans[otherPlayerCluster] = otherPlayerActorPlan;
-			otherPlayerActorHeuristics.push_back(otherPlayerActorHeuristic);
+			otherPlayerPathPlans[otherPlayerCluster] = otherPlayerActorPlan;
 		}
 	}
-
-	//lets take a maximum of the best other actor paths uniformly
-	SelectActorPaths(20, 
-		otherPlayerActorHeuristics, otherPlayerActorClusters, otherPlayerActorPlans, otherPlayerPathPlans);
 
 	for (otherPlayerClusterIdx = 0; otherPlayerClusterIdx < otherClusterSize; otherPlayerClusterIdx++)
 	{
@@ -546,7 +500,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			currentPlanState = state;
 		}
 	}
-
 
 	//minimax
 	mPlayerState.Copy(playerState);
@@ -1046,7 +999,7 @@ void QuakeAIProcess::ThreadProc( )
 				}
 
 				iteration++;
-				printf("\n ITERATION %u", iteration);
+				//printf("\n ITERATION %u", iteration);
 				fprintf(mAIManager->mLogInformation, "\n\n ITERATION %u \n\n", iteration);
 
 				fprintf(mAIManager->mLogInformation, "\n blue player ai guessing (red)");

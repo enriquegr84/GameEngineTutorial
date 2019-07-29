@@ -507,110 +507,110 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID ||
 				pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID)
 			{
-				if (pPlayerActor->GetAction().triggerPush == mCurrentArc->GetNode()->GetActorId() ||
-					pPlayerActor->GetAction().triggerTeleporter == mCurrentArc->GetNode()->GetActorId())
+				Vector3<float> currentPosition = pTransformComponent->GetPosition();
+				if (mCurrentPlan.size())
 				{
-					Vector3<float> currentPosition = pTransformComponent->GetPosition();
-					if (mCurrentPlan.size())
+					bool isValid = false;
+					PathingArcVec::iterator itArc = mCurrentPlan.begin();
+					do
 					{
-						bool isValid = false;
-						PathingArcVec::iterator itArc = mCurrentPlan.begin();
-						do
+						mCurrentArc = (*itArc);
+						mCurrentAction = mCurrentArc->GetType();
+						mCurrentNode = mCurrentArc->GetNode();
+						mCurrentActionTime = mCurrentArc->GetWeight() + 2.0f;
+						Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
+						Normalize(direction);
+						mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+
+						if (pPlayerActor->GetAction().triggerPush != INVALID_ACTOR_ID &&
+							pPlayerActor->GetAction().triggerPush == mCurrentArc->GetNode()->GetActorId())
+						{
+							isValid = true;
+							break;
+						}
+						else if (pPlayerActor->GetAction().triggerTeleporter != INVALID_ACTOR_ID &&
+							pPlayerActor->GetAction().triggerTeleporter == mCurrentArc->GetNode()->GetActorId())
+						{
+							isValid = true;
+							break;
+						}
+						if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
+						{
+							isValid = true;
+							break;
+						}
+						itArc++;
+					} while (itArc != mCurrentPlan.end());
+
+					if (isValid)
+					{
+						itArc = mCurrentPlan.begin();
+						while (!mCurrentPlan.empty())
+						{
+							if ((*itArc)->GetType() == GAT_PUSH || (*itArc)->GetType() == GAT_TELEPORT)
+								break;
+							
+							itArc = mCurrentPlan.erase(mCurrentPlan.begin());
+						}
+						if (itArc != mCurrentPlan.end())
 						{
 							mCurrentArc = (*itArc);
 							mCurrentAction = mCurrentArc->GetType();
 							mCurrentNode = mCurrentArc->GetNode();
-							mCurrentActionTime = mCurrentArc->GetWeight() + 2.0f;
+
 							Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 							Normalize(direction);
 							mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-
-							itArc = mCurrentPlan.erase(itArc);
-							if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
-							{
-								isValid = true;
-								break;
-							}
-						} while (itArc != mCurrentPlan.end());
-
-						if (isValid)
-						{
-							itArc++;
-							if (itArc != mCurrentPlan.end())
-							{
-								mCurrentArc = (*itArc);
-								mCurrentAction = mCurrentArc->GetType();
-								mCurrentNode = mCurrentArc->GetNode();
-
-								Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
-								Normalize(direction);
-								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-							}
-						}
-						else
-						{
-							mCurrentPlan.clear();
-							mCurrentNode = NULL;
-							mCurrentPlanId = -1;
-
-							mCurrentActor = INVALID_ACTOR_ID;
-							mCurrentActionTime = 0.f;
-							mCurrentAction = 0;
-							mCurrentArc = 0;
-
-							mGoalNode = NULL;
 						}
 					}
-					else if (mGoalNode != NULL)
+					else
 					{
+						mCurrentNode = NULL;
+						mCurrentPlanId = -1;
+
+						mCurrentActor = INVALID_ACTOR_ID;
+						mCurrentActionTime = 0.f;
+						mCurrentAction = 0;
+
+						mGoalNode = NULL;
+					}
+				}
+				else if (mGoalNode != NULL)
+				{
+					do
+					{
+						PathingCluster* currentCluster = mCurrentNode->FindCluster(GAT_JUMP, mGoalNode);
+						if (currentCluster != NULL)
+						{
+							PathingArc* clusterArc = mCurrentNode->FindArc(currentCluster->GetNode());
+							PathingNode* clusterNode = clusterArc->GetNode();
+							unsigned int clusterArcType = clusterArc->GetType();
+
+							mCurrentArc = clusterArc;
+							mCurrentAction = clusterArcType;
+							mCurrentNode = clusterArc->GetNode();
+							mCurrentActionTime = clusterArc->GetWeight() + 2.0f;
+							Vector3<float> direction = clusterNode->GetPos() - currentPosition;
+							Normalize(direction);
+							mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+						}
+						else mCurrentNode = mGoalNode;
+
+						if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
+							break;
+					} while (mCurrentNode != mGoalNode);
+
+					PathingNode* currentNode = mCurrentNode;
+					if (currentNode != mGoalNode)
+					{
+						//printf("\n random trigger nodes %u : ", mPlayerId);
 						do
 						{
-							PathingCluster* currentCluster = mCurrentNode->FindCluster(GAT_JUMP, mGoalNode);
-							if (currentCluster != NULL)
-							{
-								PathingArc* clusterArc = mCurrentNode->FindArc(currentCluster->GetNode());
-								PathingNode* clusterNode = clusterArc->GetNode();
-								unsigned int clusterArcType = clusterArc->GetType();
-
-								mCurrentArc = clusterArc;
-								mCurrentAction = clusterArcType;
-								mCurrentNode = clusterArc->GetNode();
-								mCurrentActionTime = clusterArc->GetWeight() + 2.0f;
-								Vector3<float> direction = clusterNode->GetPos() - currentPosition;
-								Normalize(direction);
-								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-							}
-							else mCurrentNode = mGoalNode;
-
-							if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
-							{
-								if (mCurrentNode != mGoalNode)
-								{
-									currentCluster = mCurrentNode->FindCluster(GAT_JUMP, mGoalNode);
-									mCurrentArc = mCurrentNode->FindArc(currentCluster->GetNode());
-									mCurrentAction = mCurrentArc->GetType();
-									mCurrentNode = mCurrentArc->GetNode();
-
-									Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
-									Normalize(direction);
-									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-								}
-								break;
-							}
-						} while (mCurrentNode != mGoalNode);
-
-						PathingNode* currentNode = mCurrentNode;
-						if (currentNode != mGoalNode)
-						{
-							//printf("\n random trigger nodes %u : ", mPlayerId);
-							do
-							{
-								PathingCluster* currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
-								PathingArc* clusterArc = currentNode->FindArc(currentCluster->GetNode());
-								currentNode = clusterArc->GetNode();
-								//printf("%u ", currentNode->GetId());
-							} while (currentNode != mGoalNode);
-						}
+							PathingCluster* currentCluster = currentNode->FindCluster(GAT_JUMP, mGoalNode);
+							PathingArc* clusterArc = currentNode->FindArc(currentCluster->GetNode());
+							currentNode = clusterArc->GetNode();
+							//printf("%u ", currentNode->GetId());
+						} while (currentNode != mGoalNode);
 					}
 				}
 			}
@@ -702,20 +702,21 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								eastl::shared_ptr<Actor> pItemActor(
 									eastl::dynamic_shared_pointer_cast<Actor>(
 									GameLogic::Get()->GetActor(mCurrentNode->GetActorId()).lock()));
-								if (pItemActor->GetType() == "Trigger")
+								if (pItemActor->GetType() != "Trigger")
 								{
-									if (mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
+									if (mCurrentActor != mCurrentNode->GetActorId())
 									{
-										eastl::shared_ptr<TransformComponent> pTriggerTransform =
+										eastl::shared_ptr<TransformComponent> pTransform =
 											pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-										Vector3<float> diff = pTriggerTransform->GetPosition() - currentPosition;
+										Vector3<float> diff = pTransform->GetPosition() - currentPosition;
 										diff[YAW] = 0.f;
 
-										if (Length(diff) == 0.f)
+										if (Length(diff) <= 6.0f)
 										{
 											searchNode = true;
 											if (!mCurrentPlan.empty())
 												mCurrentPlan.erase(mCurrentPlan.begin());
+											mCurrentActor = mCurrentNode->GetActorId();
 										}
 									}
 									else
@@ -727,32 +728,6 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											if (!mCurrentPlan.empty())
 												mCurrentPlan.erase(mCurrentPlan.begin());
 										}
-									}
-								}
-								else if (mCurrentActor != mCurrentNode->GetActorId())
-								{
-									eastl::shared_ptr<TransformComponent> pTransform =
-										pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
-									Vector3<float> diff = pTransform->GetPosition() - currentPosition;
-									diff[YAW] = 0.f;
-									
-									if (Length(diff) <= 6.0f)
-									{
-										searchNode = true;
-										if (!mCurrentPlan.empty())
-											mCurrentPlan.erase(mCurrentPlan.begin());
-										mCurrentActor = mCurrentNode->GetActorId();
-									}
-
-								}
-								else
-								{
-									Vector3<float> diff = mCurrentNode->GetPos() - currentPosition;
-									if (Length(diff) <= 6.0f)
-									{
-										searchNode = true;
-										if (!mCurrentPlan.empty())
-											mCurrentPlan.erase(mCurrentPlan.begin());
 									}
 								}
 							}
@@ -798,8 +773,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								mCurrentActor = INVALID_ACTOR_ID;
 								mCurrentActionTime = 0.f;
 								mCurrentAction = 0;
-								mCurrentArc = 0;
 
+								mCurrentArc = NULL;
 								mGoalNode = NULL;
 								searchNode = true;
 							}
@@ -856,7 +831,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											for (itPathArc++; itPathArc != playerPathPlan.end(); itPathArc++)
 												path.push_back((*itPathArc));
 
-											//printf("\n found new plan %u : ", mPlayerId);
+											//printf("\n new plan %u : ", mPlayerId);
 											mCurrentPlanId = playerState.plan.id;
 											aiManager->SetPlayerUpdated(mPlayerId, false);
 										}
@@ -873,8 +848,8 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								if (!mCurrentPlan.empty())
 								{
 									PathingArcVec::iterator itArc = mCurrentPlan.begin();
-
 									mCurrentArc = (*itArc);
+
 									if (mCurrentNode->FindArc(mCurrentArc->GetId()) != NULL)
 									{
 										NodePlan playerPlan;
@@ -954,13 +929,13 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										else
 										{
 											mGoalNode = NULL;
+											mCurrentArc = NULL;
 											mCurrentNode = NULL;
 											mCurrentPlanId = -1;
 
 											mCurrentActor = INVALID_ACTOR_ID;
 											mCurrentActionTime = 0.f;
 											mCurrentAction = 0;
-											mCurrentArc = 0;
 											mCurrentPlan.clear();
 										}
 									}
@@ -1310,13 +1285,13 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				if (pPlayerActor->GetState().moveType == PM_DEAD)
 				{
 					mGoalNode = NULL;
+					mCurrentArc = NULL;
 					mCurrentNode = NULL;
 					mCurrentPlanId = -1;
 
 					mCurrentActor = INVALID_ACTOR_ID;
 					mCurrentActionTime = 0.f;
 					mCurrentAction = 0;
-					mCurrentArc = 0;
 					mCurrentPlan.clear();
 
 					pPlayerActor->PlayerSpawn();

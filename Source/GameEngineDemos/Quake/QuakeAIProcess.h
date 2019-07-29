@@ -64,14 +64,9 @@ protected:
 		PathingNode* otherPlayerNode, PathingArcVec& otherPlayerPathPlan,
 		float* visibleTime, float* visibleDistance, float* visibleHeight,
 		float* otherVisibleTime, float* otherVisibleDistance, float* otherVisibleHeight);
-	void SelectActorPaths(int limit,
-		eastl::vector<float>& playerActorHeuristics,
-		eastl::vector<PathingCluster*>& playerActorClusters,
-		eastl::map<PathingCluster*, PathingArcVec>& playerActorPlans,
-		eastl::map<PathingCluster*, PathingArcVec>& playerPathPlans);
 	void ConstructPath(NodeState& playerState,
 		PathingCluster* playerCluster, PathingArcVec& playerPathPlan);
-	float ConstructActorPath(NodeState& playerState,
+	void ConstructActorPath(NodeState& playerState,
 		PathingCluster* playerCluster, PathingArcVec& playerActorPlan);
 	void Simulation(
 		NodeState& playerState, PathingArcVec& playerPathPlan,

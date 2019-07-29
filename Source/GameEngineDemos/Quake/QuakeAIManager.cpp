@@ -456,7 +456,7 @@ void AIFinder::Destroy(void)
 //
 // AIFinder::operator()
 //
-float AIFinder::operator()(NodeState& pNodeState, 
+void AIFinder::operator()(NodeState& pNodeState, 
 	PathingCluster* pGoalCluster, PathingArcVec& planPath, 
 	eastl::map<ActorId, float>& excludeActors, float threshold)
 {
@@ -468,7 +468,7 @@ float AIFinder::operator()(NodeState& pNodeState,
 
 	// if the start and end nodes are the same, we're close enough to b-line to the goal
 	if (pNodeState.plan.node == pGoalCluster->GetTarget())
-		return 0.f;
+		return;
 
 	// set our members
 	mNodeState = pNodeState;
@@ -579,13 +579,8 @@ float AIFinder::operator()(NodeState& pNodeState,
 			pathingNode = pathingArc->GetNode();
 		}
 	}
-
-	if (bestPlanNode != NULL)
-	{
-		RebuildPath(bestPlanNode, planPath);
-		return bestPlanNode->GetHeuristic();
-	}
-	else return 0.f;
+	RebuildPath(bestPlanNode, planPath);
+	bestPlanNode->GetHeuristic();
 }
 
 AIPlanNode* AIFinder::AddToOpenSet(PathingNode* pNode, AIPlanNode* pPrevNode,
@@ -1372,7 +1367,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 {
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
 	{
-		int shotCount = visibleTime >= 0.6f ? 1 : 0;
+		int shotCount = visibleTime >= 0.4f ? 1 : 0;
 
 		if (weapon != WP_GAUNTLET)
 		{
@@ -1688,13 +1683,13 @@ void QuakeAIManager::PickupItems(NodeState& playerState,
 	}
 }
 
-float QuakeAIManager::FindPath(NodeState& pNodeState, 
+void QuakeAIManager::FindPath(NodeState& pNodeState, 
 	PathingCluster* pGoalCluster, PathingArcVec& planPath, 
 	eastl::map<ActorId, float>& excludeActors, float threshold)
 {
 	// find the best path using an A* search algorithm
 	AIFinder aiFinder;
-	return aiFinder(pNodeState, pGoalCluster, planPath, excludeActors, threshold);
+	aiFinder(pNodeState, pGoalCluster, planPath, excludeActors, threshold);
 }
 
 void QuakeAIManager::OnUpdate(unsigned long deltaMs)
