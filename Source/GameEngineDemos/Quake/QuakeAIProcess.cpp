@@ -590,6 +590,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		{
 			mPlayerState.plan.id = mAIManager->GetNewPlanID();
 
+			fprintf(mAIManager->mLogInformation, "\n player current position : %f %f %f ", 
+				playerState.plan.node->GetPos()[0], playerState.plan.node->GetPos()[1], playerState.plan.node->GetPos()[2]);
 			fprintf(mAIManager->mLogInformation, "\n player current cluster : %u ", playerState.plan.node->GetCluster());
 			fprintf(mAIManager->mLogInformation, "\n player target cluster : %u ", playerCluster->GetTarget()->GetCluster());
 
@@ -639,6 +641,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 		else
 		{
+			fprintf(mAIManager->mLogInformation, "\n player same position : %f %f %f ",
+				playerState.plan.node->GetPos()[0], playerState.plan.node->GetPos()[1], playerState.plan.node->GetPos()[2]);
 			fprintf(mAIManager->mLogInformation, "\n player same plan cluster : %u ", playerState.plan.node->GetCluster());
 			fprintf(mAIManager->mLogInformation, "\n player target cluster : ");
 
@@ -819,6 +823,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		{
 			mOtherPlayerState.plan.id = mAIManager->GetNewPlanID();
 
+			fprintf(mAIManager->mLogInformation, "\n other player current position : %f %f %f ",
+				otherPlayerState.plan.node->GetPos()[0], otherPlayerState.plan.node->GetPos()[1], otherPlayerState.plan.node->GetPos()[2]);
 			fprintf(mAIManager->mLogInformation, "\n other player current cluster : %u ",
 				otherPlayerState.plan.node->GetCluster());
 			fprintf(mAIManager->mLogInformation, "\n other player target cluster : %u ",
@@ -870,6 +876,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 		else
 		{
+			fprintf(mAIManager->mLogInformation, "\n other player same position : %f %f %f ",
+				otherPlayerState.plan.node->GetPos()[0], otherPlayerState.plan.node->GetPos()[1], otherPlayerState.plan.node->GetPos()[2]);
 			fprintf(mAIManager->mLogInformation, "\n other player same plan cluster : %u ",
 				otherPlayerState.plan.node->GetCluster());
 			fprintf(mAIManager->mLogInformation, "\n other player target cluster :  ");

@@ -424,6 +424,9 @@ private:
 	eastl::map<PathingNode*, ActorId> mActorNodes;
 
 	//player ai states
+	eastl::map<ActorId, float> mPlayerTime;
+	eastl::map<ActorId, float> mPlayerPlanTime;
+
 	eastl::map<ActorId, bool> mPlayers;
 	eastl::map<ActorId, NodePlan> mPlayerPlans;
 	eastl::map<ActorId, NodeState> mPlayerStates;
@@ -441,9 +444,6 @@ private:
 	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessHeuristics;
 
 	eastl::map<ActorId, eastl::map<ActorId, float>> mPlayerGuessItems;
-
-	eastl::map<ActorId, float> mPlayerGuessTime;
-	eastl::map<ActorId, float> mPlayerGuessPlanTime;
 
 	// Orientation Controls
 	float mYaw;

@@ -548,7 +548,10 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 						while (!mCurrentPlan.empty())
 						{
 							if ((*itArc)->GetType() == GAT_PUSH || (*itArc)->GetType() == GAT_TELEPORT)
+							{
+								itArc++;
 								break;
+							}
 							
 							itArc = mCurrentPlan.erase(mCurrentPlan.begin());
 						}
@@ -561,6 +564,18 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
 							Normalize(direction);
 							mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+						}
+						else
+						{
+							mGoalNode = NULL;
+							mCurrentArc = NULL;
+							mCurrentNode = NULL;
+							mCurrentPlanId = -1;
+
+							mCurrentActor = INVALID_ACTOR_ID;
+							mCurrentActionTime = 0.f;
+							mCurrentAction = 0;
+							mCurrentPlan.clear();
 						}
 					}
 					else
