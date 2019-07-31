@@ -107,7 +107,6 @@ public:
 class PathingGraph;
 class BaseEventManager;
 class SoundProcess;
-class GameDemoPlayerController;
 class GameDemoCameraController;
 class Node;
 
@@ -132,7 +131,6 @@ protected:
 	DebugMode mDebugMode;
     eastl::string mGameplayText;
 
-	eastl::shared_ptr<GameDemoPlayerController> mGamePlayerController;
 	eastl::shared_ptr<GameDemoCameraController> mGameCameraController;
 	eastl::shared_ptr<Node> mPlayer;
 	eastl::shared_ptr<StandardHUD> mStandardHUD;

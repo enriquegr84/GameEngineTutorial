@@ -29,9 +29,6 @@
     <ClInclude Include="..\GameDemo\GameDemoCameraController.h">
       <Filter>Demo</Filter>
     </ClInclude>
-    <ClInclude Include="..\GameDemo\GameDemoPlayerController.h">
-      <Filter>Demo</Filter>
-    </ClInclude>
     <ClInclude Include="..\Quake\Quake.h">
       <Filter>Quake</Filter>
     </ClInclude>
@@ -153,9 +150,6 @@
       <Filter>Demo</Filter>
     </ClCompile>
     <ClCompile Include="..\GameDemo\GameDemoCameraController.cpp">
-      <Filter>Demo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\GameDemo\GameDemoPlayerController.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
     <ClCompile Include="..\Quake\Quake.cpp">

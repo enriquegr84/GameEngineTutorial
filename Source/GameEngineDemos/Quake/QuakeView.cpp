@@ -360,16 +360,21 @@ bool QuakeMainMenuUI::OnInit()
 	screenRectangle.mCenter[1] = screenSize[1] - 210;
 	screenRectangle.mExtent[1] = 340;
 	eastl::shared_ptr<BaseUIListBox> settings = AddListBox(screenRectangle, window, -1, true);
-	settings->SetToolTipText(L"Show the current key settings");
+	settings->SetToolTipText(L"Show the current settings");
+	settings->AddItem(L"Mouse Right Button - Jump");
+	settings->AddItem(L"Mouse Left Button - Attack");
+	settings->AddItem(L"Mouse Wheel up - Change Weapon");
+	settings->AddItem(L"Mouse Wheel down - Change Weapon");
 	settings->AddItem(L"Key W - Move forward");
 	settings->AddItem(L"Key S - Move backward");
 	settings->AddItem(L"Key A - Move left");
 	settings->AddItem(L"Key D - Move right");
 	settings->AddItem(L"Key C - Move down");
 	settings->AddItem(L"Key Space - Move up");
-	settings->AddItem(L"Key 6 - Show wireframe");
-	settings->AddItem(L"Key 7 - Show physics box");
-	settings->AddItem(L"Key 8 - Control player");
+	settings->AddItem(L"Key 5 - Create map");
+	settings->AddItem(L"Key 6 - Graphics wireframe");
+	settings->AddItem(L"Key 7 - Physics wireframe");
+	settings->AddItem(L"Key 8 - Control/Follow player");
 	settings->AddItem(L"Key 9 - Control camera");
 
 	SetUIActive(1);
@@ -1033,20 +1038,6 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 			{
 				switch (evt.mKeyInput.mKey)
 				{
-					case KEY_KEY_4:
-					{
-						/*
-						GameApplication* gameApp = (GameApplication*)Application::App;
-						QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
-						Level* level = game->GetLevelManager()->GetLevel(
-							ToWideString(gameApp->mOption.mLevel.c_str()));
-
-						eastl::wstring levelPath = L"ai/quake/" + level->GetName() + L".bin";
-						GameLogic::Get()->GetAIManager()->SavePathingGraph(
-							FileSystem::Get()->GetPath(ToString(levelPath.c_str())));
-						*/
-						return true;
-					}
 					case KEY_KEY_5:
 					{
 						GameApplication* gameApp = (GameApplication*)Application::App;

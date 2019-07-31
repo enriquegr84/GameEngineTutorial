@@ -66,7 +66,6 @@
 #include "GameDemoEvents.h"
 #include "GameDemoManager.h"
 #include "GameDemoNetwork.h"
-#include "GameDemoPlayerController.h"
 #include "GameDemoCameraController.h"
 
 //========================================================================
@@ -103,14 +102,7 @@ MainMenuUI::MainMenuUI()
 
 MainMenuUI::~MainMenuUI()
 { 
-	//GUIEngine::DialogQueue::deallocate();
 
-	//D3DRenderer::DialogResourceManager.UnregisterDialog(&mSampleUI);
-	//if(demos_manager)
-	//	SAFE_DELETE ( demos_manager );
-
-	//ScreenStateManager::Deallocate();
-	//GUIEventHandler::Deallocate();
 }
 
 bool MainMenuUI::OnInit()
@@ -179,7 +171,7 @@ bool MainMenuUI::OnInit()
 	playerOptionsRectangle.mCenter[1] = 82;
 	playerOptionsRectangle.mExtent[1] = 16;
 	playerOptionsLine =
-		AddStaticText(L"Human Player:", playerOptionsRectangle, false, false, window, CID_NUM_PLAYER_LABEL, false);
+		AddStaticText(L"Demo Player:", playerOptionsRectangle, false, false, window, CID_NUM_PLAYER_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.mCenter[0] = 250;
@@ -193,14 +185,14 @@ bool MainMenuUI::OnInit()
 	gamePlayer->SetSmallStep(1);
 	gamePlayer->SetLargeStep(1);
 	gamePlayer->SetPos(gameApp->mOption.mExpectedPlayers);
-	gamePlayer->SetToolTipText(L"Set the Human players");
+	gamePlayer->SetToolTipText(L"Set the Demo players");
 
 	playerOptionsRectangle.mCenter[0] = 50;
 	playerOptionsRectangle.mExtent[0] = 90;
 	playerOptionsRectangle.mCenter[1] = 122;
 	playerOptionsRectangle.mExtent[1] = 16;
 	playerOptionsLine =
-		AddStaticText(L"Game Host:", playerOptionsRectangle, false, false, window, CID_HOST_NAME_LABEL, false);
+		AddStaticText(L"Demo Host:", playerOptionsRectangle, false, false, window, CID_HOST_NAME_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.mCenter[0] = 220;
@@ -216,7 +208,7 @@ bool MainMenuUI::OnInit()
 	playerOptionsRectangle.mExtent[1] = 20;
 	eastl::shared_ptr<BaseUIButton> gameStart = 
 		AddButton(playerOptionsRectangle, window, CID_START_BUTTON, L"Start");
-	gameStart->SetToolTipText(L"Start Game");
+	gameStart->SetToolTipText(L"Start Demo");
 
 	// add a status line help text
 	RectangleShape<2, int> statusRectangle;
@@ -364,32 +356,6 @@ bool MainMenuUI::OnInit()
 	settings->AddItem(L"Key Space - Move up");
 	settings->AddItem(L"Key 6 - Show wireframe");
 	settings->AddItem(L"Key 7 - Show physics box");
-	settings->AddItem(L"Key 8 - Control player");
-	settings->AddItem(L"Key 9 - Control camera");
-
-	/*
-
-	eastl::shared_ptr<BaseUIEditBox> mGameHostPort;
-
-	eastl::shared_ptr<BaseUIScrollBar> mTesselation;
-
-	eastl::shared_ptr<BaseUIImage> mLogo;
-
-	// load the engine logo
-	BaseResource resource(L"Art/irrlichtlogo3.png");
-	const eastl::shared_ptr<ResHandle>& resHandle = gameApp->mResCache->GetHandle(&resource);
-	if (resHandle)
-	{
-		const eastl::shared_ptr<ImageResourceExtraData>& extra =
-		eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-		extra->GetImage()->AutogenerateMipmaps();
-
-		mLogo = AddImage(extra->GetImage(), Vector2<int>{5, 16}, true);
-		mLogo->SetToolTipText(L"The great Irrlicht Engine");
-	}
-	*/
-
-	//Set();
 
 	SetUIActive(1);
 	return true;
@@ -443,31 +409,14 @@ void MainMenuUI::SetUIActive(int command)
 		case 0: guiActive = 0; inputState = !guiActive; break;
 		case 1: guiActive = 1; inputState = !guiActive; break;
 		case 2: guiActive ^= 1; inputState = !guiActive; break;
-		case 3:
-			//	if ( camera )
-			//		inputState = !camera->isInputReceiverEnabled();
-		break;
+		case 3: break;
 	}
-	/*
-	if ( camera )
-	{
-	camera->setInputReceiverEnabled ( inputState );
-	game->Device->getCursorControl()->setVisible( !inputState );
-	}
-	*/
+
 	const eastl::shared_ptr<BaseUIElement>& root = GetRootUIElement();
 	const eastl::shared_ptr<BaseUIElement>& window = root->GetElementFromId(CID_DEMO_WINDOW);
 	if (window)
 		window->SetVisible(guiActive != 0);
-	/*
-	IGUITreeView* sceneTree = (IGUITreeView*)root->GetElementFromId(CID_SCENETREE_VIEW).get();
-	if (guiActive && sceneTree && GetFocus().get() != sceneTree)
-	{
-		sceneTree->GetRoot()->ClearChildren();
-		AddSceneTreeItem(
-			DemosApp.GetHumanView()->mScene->GetRootNode().get(), sceneTree->GetRoot().get());
-	}
-	*/
+
 	SetFocus(guiActive ? window : 0);
 }
 
@@ -492,7 +441,6 @@ bool MainMenuUI::OnRender(double time, float elapsedTime)
 bool MainMenuUI::OnMsgProc( const Event& evt )
 {
 	return BaseUI::OnMsgProc(evt);
-	//return mSampleUI.MsgProc( msg.m_hWnd, msg.m_uMsg, msg.m_wParam, msg.m_lParam );
 }
 
 
@@ -719,13 +667,6 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 			{
 				switch (evt.mKeyInput.mKey)
 				{
-					case KEY_KEY_5:
-					{
-						mShowUI = !mShowUI;
-						//mStandardHUD->SetVisible(mShowUI);
-						return true;
-					}
-
 					case KEY_KEY_6:
 					{
 						mDebugMode = mDebugMode ? DM_OFF : DM_WIREFRAME;
@@ -738,37 +679,8 @@ bool GameDemoHumanView::OnMsgProc( const Event& evt )
 					{
 						GameDemoLogic* twg = static_cast<GameDemoLogic *>(GameLogic::Get());
 						twg->ToggleRenderDiagnostics();
-						/*
-						for (auto child : mScene->GetRootNode()->GetChildren())
-							child->SetVisible(!child->IsVisible());
-						*/
 						return true;
 					}	
-
-					case KEY_KEY_8:
-					{
-						if (!mPlayer)
-							SetControlledActor(mActorId);
-
-						mGamePlayerController->SetEnabled(true);
-						mGameCameraController->SetEnabled(false);
-
-						mKeyboardHandler = mGamePlayerController;
-						mMouseHandler = mGamePlayerController;
-						mCamera->SetTarget(mPlayer);
-						return true;
-					}
-
-					case KEY_KEY_9:
-					{
-						mGameCameraController->SetEnabled(true);
-						mGamePlayerController->SetEnabled(false);
-
-						mKeyboardHandler = mGameCameraController;
-						mMouseHandler = mGameCameraController;
-						mCamera->ClearTarget();
-						return true;
-					}
 
 					case KEY_ESCAPE:
 						GameApplication* gameApp = (GameApplication*)Application::App;
@@ -801,11 +713,6 @@ void GameDemoHumanView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	if (mGameCameraController)
 	{
 		mGameCameraController->OnUpdate(timeMs, deltaMs);
-	}
-
-	if (mGamePlayerController)
-	{
-		mGamePlayerController->OnUpdate(timeMs, deltaMs);
 	}
 }
 
@@ -848,10 +755,6 @@ void GameDemoHumanView::SetControlledActor(ActorId actorId)
     }
 
 	HumanView::SetControlledActor(actorId);
-
-    mGamePlayerController.reset(new GameDemoPlayerController(mPlayer, 0, 0));
-    mKeyboardHandler = mGamePlayerController;
-    mMouseHandler = mGamePlayerController;
 }
 
 void GameDemoHumanView::GameplayUiUpdateDelegate(BaseEventDataPtr pEventData)
