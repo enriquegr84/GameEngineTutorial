@@ -39,13 +39,13 @@ void ParticleSystemNode::SetEffect(int size)
 	struct Vertex
 	{
 		Vector3<float> position;
-		Vector4<float> color;
 		Vector2<float> tcoord;
+		Vector4<float> color;
 	};
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 	vformat.Bind(VA_TEXCOORD, DF_R32G32_FLOAT, 0);
+	vformat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
 
 	MeshBuffer* meshBuffer = new MeshBuffer(
 		vformat, size * 4, size, sizeof(unsigned int));

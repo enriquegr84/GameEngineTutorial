@@ -580,7 +580,6 @@ void AIFinder::operator()(NodeState& pNodeState,
 		}
 	}
 	RebuildPath(bestPlanNode, planPath);
-	bestPlanNode->GetHeuristic();
 }
 
 AIPlanNode* AIFinder::AddToOpenSet(PathingNode* pNode, AIPlanNode* pPrevNode,

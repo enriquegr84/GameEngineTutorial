@@ -90,9 +90,12 @@ eastl::shared_ptr<VisualProgram> GLSLProgramFactory::CreateFromNamedFiles(
 		}
 	}
 
-	resHandle = ResCache::Get()->GetHandle(&BaseResource(ToWideString(gsFile.c_str())));
-	const eastl::shared_ptr<GLSLShaderResourceExtraData>& gsHandle =
-		eastl::static_pointer_cast<GLSLShaderResourceExtraData>(resHandle->GetExtra());
+	resHandle = nullptr;
+	if (!gsFile.empty())
+		resHandle = ResCache::Get()->GetHandle(&BaseResource(ToWideString(gsFile.c_str())));
+	const eastl::shared_ptr<GLSLShaderResourceExtraData>& gsHandle = resHandle ? 
+		eastl::static_pointer_cast<GLSLShaderResourceExtraData>(resHandle->GetExtra()) : 
+		eastl::make_shared<GLSLShaderResourceExtraData>();
 	if (!gsHandle->GetShader())
 	{
 		BaseReadFile* geometryFile = FileSystem::Get()->CreateReadFile(
@@ -120,7 +123,7 @@ eastl::shared_ptr<VisualProgram> GLSLProgramFactory::CreateFromNamedFiles(
 
 	glAttachShader(programHandle, vsHandle->GetShader());
 	glAttachShader(programHandle, psHandle->GetShader());
-	if (gsHandle > 0)
+	if (gsHandle->GetShader() > 0)
 	{
 		glAttachShader(programHandle, gsHandle->GetShader());
 	}
@@ -140,13 +143,13 @@ eastl::shared_ptr<VisualProgram> GLSLProgramFactory::CreateFromNamedFiles(
 		return nullptr;
 	}
 
-	eastl::shared_ptr<GLSLVisualProgram> program =
-		eastl::make_shared<GLSLVisualProgram>(programHandle, vsHandle, psHandle, gsHandle);
+	eastl::shared_ptr<GLSLVisualProgram> program = eastl::make_shared<GLSLVisualProgram>(
+		programHandle, vsHandle->GetShader(), psHandle->GetShader(), gsHandle->GetShader());
 
 	GLSLReflection const& reflector = program->GetReflector();
 	program->SetVShader(eastl::make_shared<VertexShader>(reflector));
 	program->SetPShader(eastl::make_shared<PixelShader>(reflector));
-	if (gsHandle > 0)
+	if (gsHandle->GetShader() > 0)
 	{
 		program->SetGShader(eastl::make_shared<GeometryShader>(reflector));
 	}

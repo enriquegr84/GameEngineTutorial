@@ -5,7 +5,7 @@
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // File Version: 3.0.0 (2016/06/19)
 
-uniform sampler2D baseSampler;
+uniform sampler2DArray baseSampler;
 
 layout(location = 0) in vec4 vertexColor;
 layout(location = 1) in vec3 vertexTCoord;

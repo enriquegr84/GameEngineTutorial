@@ -10,28 +10,6 @@
 
 GLSLVisualProgram::~GLSLVisualProgram()
 {
-    if (glIsProgram(mProgramHandle))
-    {
-        if (glIsShader(mVShaderHandle))
-        {
-            glDetachShader(mProgramHandle, mVShaderHandle);
-            glDeleteShader(mVShaderHandle);
-        }
-
-        if (glIsShader(mPShaderHandle))
-        {
-            glDetachShader(mProgramHandle, mPShaderHandle);
-            glDeleteShader(mPShaderHandle);
-        }
-
-        if (glIsShader(mGShaderHandle))
-        {
-            glDetachShader(mProgramHandle, mGShaderHandle);
-            glDeleteShader(mGShaderHandle);
-        }
-
-        glDeleteProgram(mProgramHandle);
-    }
 }
 
 GLSLVisualProgram::GLSLVisualProgram(GLuint programHandle,

@@ -117,7 +117,7 @@ bool GL4Renderer::Initialize(int requiredMajor, int requiredMinor)
     {
         eastl::string message = "OpenGL " + eastl::to_string(requiredMajor) + "."
             + eastl::to_string(requiredMinor) + " is required.";
-        LogWarning(message9;
+        LogWarning(message);
     }
 #endif
     return mMeetsRequirements;
@@ -1079,7 +1079,7 @@ uint64_t GL4Renderer::DrawPrimitive(eastl::shared_ptr<VertexBuffer> const& vbuff
     GLSLVisualProgram* gl4program = dynamic_cast<GLSLVisualProgram*>(effect->GetProgram().get());
     if (!gl4program)
     {
-        LogError("HLSL effect passed to GLSL engine.");
+        LogError("GLSL program effect doesn't exist.");
         return 0;
     }
 

@@ -169,7 +169,7 @@ typedef struct {
 	float		st[2];
 	float		lightmap[2];
 	BSPVector3	normal;
-	byte		color[4];
+	unsigned char color[4];
 } BSPVertice;
 
 typedef struct BSPPair {
