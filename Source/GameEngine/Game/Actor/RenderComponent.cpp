@@ -1850,6 +1850,7 @@ eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 	{
 		const eastl::shared_ptr<ImageResourceExtraData>& extra =
 			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
 		skyDome = extra->GetImage();
 	}
 

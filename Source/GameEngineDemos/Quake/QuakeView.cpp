@@ -678,6 +678,14 @@ QuakeStandardHUD::QuakeStandardHUD(const eastl::shared_ptr<QuakeHumanView>& view
 	score->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 	mScore.push_back(score);
 
+	rectangle.mCenter[0] = 720;
+	rectangle.mCenter[1] = (ICON_SIZE / 2);
+	rectangle.mExtent[0] = CHAR_WIDTH;
+	rectangle.mExtent[1] = CHAR_WIDTH;
+	mRealTime = AddStaticText(L"0", rectangle, false, false, 0, -1, false);
+	mRealTime->SetOverrideColor(eastl::array<float, 4U>{1.f, 1.f, 1.f, 1.f});
+	mRealTime->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
+
 	Renderer* renderer = Renderer::Get();
 	Vector2<unsigned int> screenSize = renderer->GetScreenSize();
 
@@ -685,6 +693,7 @@ QuakeStandardHUD::QuakeStandardHUD(const eastl::shared_ptr<QuakeHumanView>& view
 		ResCache::Get()->GetHandle(&BaseResource(mGameView->mMedia.crosshairShader[1]));
 	eastl::shared_ptr<ImageResourceExtraData> resData =
 		eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+	resData->GetImage()->AutogenerateMipmaps();
 	mCrosshair = AddImage(
 		resData->GetImage(), Vector2<int>{ (int)screenSize[0] / 2, (int)screenSize[1] / 2});
 }
@@ -755,6 +764,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 				&BaseResource(mGameView->mWeaponMedia[weapon].ammoIcon));
 			eastl::shared_ptr<ImageResourceExtraData> resData =
 				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mAmmoIcon->SetImage(resData->GetImage());
 
 			char num[16];
@@ -767,7 +777,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 						&BaseResource(mGameView->mMedia.numberShaders[STAT_MINUS]));
 					eastl::shared_ptr<ImageResourceExtraData> resData =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
+					resData->GetImage()->AutogenerateMipmaps();
 					mAmmo[n]->SetImage(resData->GetImage());
 					mAmmo[n]->SetVisible(true);
 				}
@@ -777,7 +787,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 						&BaseResource(mGameView->mMedia.numberShaders[num[n] - '0']));
 					eastl::shared_ptr<ImageResourceExtraData> resData =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
+					resData->GetImage()->AutogenerateMipmaps();
 					mAmmo[n]->SetImage(resData->GetImage());
 					mAmmo[n]->SetVisible(true);
 				}
@@ -789,6 +799,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 				ResCache::Get()->GetHandle(&BaseResource(mGameView->mMedia.deferShader));
 			eastl::shared_ptr<ImageResourceExtraData> resData =
 				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+			resData->GetImage()->AutogenerateMipmaps();
 			mAmmoIcon->SetImage(resData->GetImage());
 		}
 	}
@@ -801,7 +812,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 			ResCache::Get()->GetHandle(&BaseResource(mGameView->mMedia.healthIcon));
 		eastl::shared_ptr<ImageResourceExtraData> resData =
 			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
+		resData->GetImage()->AutogenerateMipmaps();
 		mHealthIcon->SetImage(resData->GetImage());
 
 		char num[16];
@@ -814,7 +825,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 					&BaseResource(mGameView->mMedia.numberShaders[STAT_MINUS]));
 				eastl::shared_ptr<ImageResourceExtraData> resData =
 					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
+				resData->GetImage()->AutogenerateMipmaps();
 				mHealth[n]->SetImage(resData->GetImage());
 				mHealth[n]->SetVisible(true);
 			}
@@ -824,7 +835,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 					&BaseResource(mGameView->mMedia.numberShaders[num[n] - '0']));
 				eastl::shared_ptr<ImageResourceExtraData> resData =
 					eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
+				resData->GetImage()->AutogenerateMipmaps();
 				mHealth[n]->SetImage(resData->GetImage());
 				mHealth[n]->SetVisible(true);
 			}
@@ -837,7 +848,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 			ResCache::Get()->GetHandle(&BaseResource(mGameView->mMedia.armorIcon));
 		eastl::shared_ptr<ImageResourceExtraData> resData =
 			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
+		resData->GetImage()->AutogenerateMipmaps();
 		mArmorIcon->SetImage(resData->GetImage());
 
 		if (player->GetState().stats[STAT_ARMOR])
@@ -852,7 +863,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 						&BaseResource(mGameView->mMedia.numberShaders[STAT_MINUS]));
 					eastl::shared_ptr<ImageResourceExtraData> resData =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
+					resData->GetImage()->AutogenerateMipmaps();
 					mArmor[n]->SetImage(resData->GetImage());
 					mArmor[n]->SetVisible(true);
 				}
@@ -862,7 +873,7 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 						&BaseResource(mGameView->mMedia.numberShaders[num[n] - '0']));
 					eastl::shared_ptr<ImageResourceExtraData> resData =
 						eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
-
+					resData->GetImage()->AutogenerateMipmaps();
 					mArmor[n]->SetImage(resData->GetImage());
 					mArmor[n]->SetVisible(true);
 				}
@@ -871,6 +882,22 @@ void QuakeStandardHUD::UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& pla
 	}
 }
 
+/*
+=================
+UpdateTime
+=================
+*/
+void QuakeStandardHUD::UpdateTime()
+{
+	Timer::RealTimeDate realTime = Timer::GetRealTimeAndDate();
+
+	eastl::wstring updateTime = 
+		eastl::to_wstring(realTime.Hour) + L":" +
+		eastl::to_wstring(realTime.Minute) + L":" + 
+		eastl::to_wstring(realTime.Second);
+	//time
+	mRealTime->SetText(updateTime.c_str());
+}
 
 /*
 =================
@@ -950,6 +977,7 @@ void QuakeStandardHUD::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		eastl::shared_ptr<Node> target = mGameView->mPlayer;
 		if (target)
 		{
+			mRealTime->SetVisible(true);
 			mCrosshair->SetVisible(true);
 			mAmmoIcon->SetVisible(true);
 			mArmorIcon->SetVisible(true);
@@ -976,6 +1004,7 @@ void QuakeStandardHUD::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		}
 		else
 		{
+			mRealTime->SetVisible(true);
 			mCrosshair->SetVisible(false);
 			mAmmoIcon->SetVisible(false); 
 			mArmorIcon->SetVisible(false);
@@ -989,6 +1018,8 @@ void QuakeStandardHUD::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 			for (eastl::shared_ptr<BaseUIStaticText> score : mScore)
 				score->SetVisible(false);
 		}
+
+		UpdateTime();
 	}
 }
 

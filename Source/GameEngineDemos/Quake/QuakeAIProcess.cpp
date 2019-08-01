@@ -1008,7 +1008,9 @@ void QuakeAIProcess::ThreadProc( )
 
 				iteration++;
 				//printf("\n ITERATION %u", iteration);
-				fprintf(mAIManager->mLogInformation, "\n\n ITERATION %u \n\n", iteration);
+				Timer::RealTimeDate realTime = Timer::GetRealTimeAndDate();
+				fprintf(mAIManager->mLogInformation, "\n\n ITERATION %u time %u:%u:%u \n", 
+					iteration, realTime.Hour, realTime.Minute, realTime.Second);
 
 				fprintf(mAIManager->mLogInformation, "\n blue player ai guessing (red)");
 				for (ActorId player : players[GV_HUMAN])

@@ -400,9 +400,11 @@ protected:
 	eastl::shared_ptr<BaseUIImage> mAmmoIcon, mArmorIcon, mHealthIcon;
 	eastl::vector<eastl::shared_ptr<BaseUIImage>> mAmmo, mArmor, mHealth;
 	eastl::vector<eastl::shared_ptr<BaseUIStaticText>> mScore;
+	eastl::shared_ptr<BaseUIStaticText> mRealTime;
 
 	void UpdatePickupItem();
 	void UpdateScores();
+	void UpdateTime();
 	void UpdateStatusBar(const eastl::shared_ptr<PlayerActor>& player);
 };
 
