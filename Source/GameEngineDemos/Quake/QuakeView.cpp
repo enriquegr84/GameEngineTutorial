@@ -345,6 +345,7 @@ bool QuakeMainMenuUI::OnInit()
 	eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
 	for (eastl::vector<Level*>::iterator it = levels.begin(); it != levels.end(); ++it)
 		level->AddItem((*it)->GetName().c_str());
+	level->SetSelected(0);
 
 	// create a setting panel
 	screenRectangle.mCenter[0] = screenSize[0] - 350;

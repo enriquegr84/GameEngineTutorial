@@ -150,7 +150,7 @@ bool MainMenuUI::OnInit()
 	playerOptionsRectangle.mCenter[1] = 42;
 	playerOptionsRectangle.mExtent[1] = 16;
 	eastl::shared_ptr<BaseUIStaticText> playerOptionsLine =
-		AddStaticText(L"AI Player:", playerOptionsRectangle, false, false, window, CID_NUM_AI_LABEL, true);
+		AddStaticText(L"AI NPC:", playerOptionsRectangle, false, false, window, CID_NUM_AI_LABEL, true);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.mCenter[0] = 250;
@@ -164,14 +164,14 @@ bool MainMenuUI::OnInit()
 	gameAI->SetSmallStep(1);
 	gameAI->SetLargeStep(1);
 	gameAI->SetPos(gameApp->mOption.mNumAIs);
-	gameAI->SetToolTipText(L"Set the AI players");
+	gameAI->SetToolTipText(L"Set the AI NPC");
 
 	playerOptionsRectangle.mCenter[0] = 50;
 	playerOptionsRectangle.mExtent[0] = 90;
 	playerOptionsRectangle.mCenter[1] = 82;
 	playerOptionsRectangle.mExtent[1] = 16;
 	playerOptionsLine =
-		AddStaticText(L"Demo Player:", playerOptionsRectangle, false, false, window, CID_NUM_PLAYER_LABEL, false);
+		AddStaticText(L"Demo NPC:", playerOptionsRectangle, false, false, window, CID_NUM_PLAYER_LABEL, false);
 	playerOptionsLine->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 
 	playerOptionsRectangle.mCenter[0] = 250;
@@ -185,7 +185,7 @@ bool MainMenuUI::OnInit()
 	gamePlayer->SetSmallStep(1);
 	gamePlayer->SetLargeStep(1);
 	gamePlayer->SetPos(gameApp->mOption.mExpectedPlayers);
-	gamePlayer->SetToolTipText(L"Set the Demo players");
+	gamePlayer->SetToolTipText(L"Set the Demo NPC");
 
 	playerOptionsRectangle.mCenter[0] = 50;
 	playerOptionsRectangle.mExtent[0] = 90;
@@ -332,6 +332,7 @@ bool MainMenuUI::OnInit()
 	eastl::vector<Level*> levels = GameLogic::Get()->GetLevelManager()->GetLevels();
 	for (eastl::vector<Level*>::iterator it = levels.begin(); it != levels.end(); ++it)
 		level->AddItem((*it)->GetName().c_str());
+	level->SetSelected(0);
 
 	// create a setting panel
 	screenRectangle.mCenter[0] = screenSize[0] - 350;

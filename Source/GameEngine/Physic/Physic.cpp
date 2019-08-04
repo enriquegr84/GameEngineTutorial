@@ -1359,7 +1359,7 @@ Vector3<float> BulletPhysics::GetCenter(ActorId actorId)
 
 				btVector3 aabbMin, aabbMax;
 				collisionShape->getAabb(controller->getGhostObject()->getWorldTransform(), aabbMin, aabbMax);
-				btVector3 const aabbCenter = aabbMin + (aabbMax - aabbMin);
+				btVector3 const aabbCenter = aabbMin + (aabbMax - aabbMin) / 2.f;
 				return btVector3ToVector3(aabbCenter);
 			}
 		}
@@ -1369,7 +1369,7 @@ Vector3<float> BulletPhysics::GetCenter(ActorId actorId)
 
 			btVector3 aabbMin, aabbMax;
 			rigidBody->getAabb(aabbMin, aabbMax);
-			btVector3 const aabbCenter = aabbMin + (aabbMax - aabbMin);
+			btVector3 const aabbCenter = aabbMin + (aabbMax - aabbMin) / 2.f;
 			return btVector3ToVector3(aabbCenter);
 		}
 	}
