@@ -1379,7 +1379,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 {
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
 	{
-		int shotCount = visibleTime >= 0.4f ? 1 : 0;
+		int shotCount = visibleTime >= 0.3f ? 1 : 0;
 
 		if (weapon != WP_GAUNTLET)
 		{
@@ -1411,9 +1411,9 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 							(1.f - (visibleDistance / rangeDistance)) * shotCount);
 						break;
 					case WP_MACHINEGUN:
-						damage = 3;
+						damage = 4;
 						fireTime = 0.1f;
-						rangeDistance = visibleDistance > 500 ? visibleDistance : 500;
+						rangeDistance = visibleDistance > 300 ? visibleDistance : 300;
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
@@ -1429,9 +1429,9 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 						damage = 100;
 						fireTime = 0.8f;
 						if (visibleHeight <= 30.f)
-							rangeDistance = visibleDistance > 600 ? visibleDistance : 600;
+							rangeDistance = visibleDistance > 500 ? visibleDistance : 500;
 						else
-							rangeDistance = visibleDistance > 400 ? visibleDistance : 400;
+							rangeDistance = visibleDistance > 700 ? visibleDistance : 700;
 
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
@@ -1440,9 +1440,9 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 							(1.f - (visibleDistance / rangeDistance)) * shotCount);
 						break;
 					case WP_PLASMAGUN:
-						damage = 6;
+						damage = 8;
 						fireTime = 0.1f;
-						rangeDistance = visibleDistance > 600 ? visibleDistance : 600;
+						rangeDistance = visibleDistance > 300 ? visibleDistance : 300;
 						if (visibleTime > fireTime)
 							shotCount = (int)round(visibleTime / fireTime);
 						shotCount = shotCount > state.ammo[weapon] ? state.ammo[weapon] : shotCount;
