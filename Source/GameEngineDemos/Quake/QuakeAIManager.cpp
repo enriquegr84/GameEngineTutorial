@@ -741,16 +741,16 @@ void AIFinder::RebuildPath(AIPlanNode* pGoalNode, PathingArcVec& planPath)
 	}
 }
 
-ActorId QuakeAIManager::GetPlayerTarget(ActorId player)
+ActorId QuakeAIManager::GetPlayerWeaponTarget(ActorId player)
 {
-	ActorId playerTarget = INVALID_ACTOR_ID;
+	ActorId playerWeaponTarget = INVALID_ACTOR_ID;
 
 	mMutex.lock();
 	if (mPlayerStates.find(player) != mPlayerStates.end())
-		playerTarget = mPlayerStates[player].target;
+		playerWeaponTarget = mPlayerStates[player].weaponTarget;
 	mMutex.unlock();
 
-	return playerTarget;
+	return playerWeaponTarget;
 }
 
 WeaponType QuakeAIManager::GetPlayerWeapon(ActorId player)
@@ -925,7 +925,7 @@ void QuakeAIManager::SpawnActor(ActorId playerId)
 
 		if (mPlayerTime.find(pPlayerActor->GetId()) == mPlayerTime.end())
 		{
-			mPlayerTime[pPlayerActor->GetId()] = 2.0f;
+			mPlayerTime[pPlayerActor->GetId()] = 1.0f;
 			mPlayerPlanTime[pPlayerActor->GetId()] = 0.f;
 		}
 
@@ -953,7 +953,7 @@ void QuakeAIManager::SpawnActor(ActorId playerId)
 			if (pPlayerActor->GetId() == pOtherPlayerActor->GetId())
 				continue;
 
-			mPlayerTime[pOtherPlayerActor->GetId()] = 2.0f;
+			mPlayerTime[pOtherPlayerActor->GetId()] = 1.0f;
 			mPlayerPlanTime[pOtherPlayerActor->GetId()] = 0.f;
 		}
 	}
@@ -1339,14 +1339,14 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 	{
 		if (playerState.damage[weapon - 1] > playerMaxDamage)
 		{
-			playerState.target = otherPlayerState.player;
+			playerState.weaponTarget = otherPlayerState.player;
 			playerState.weapon = (WeaponType)weapon;
 			playerMaxDamage = playerState.damage[weapon - 1];
 		}
 
 		if (otherPlayerState.damage[weapon - 1] > otherPlayerMaxDamage)
 		{
-			otherPlayerState.target = playerState.player;
+			otherPlayerState.weaponTarget = playerState.player;
 			otherPlayerState.weapon = (WeaponType)weapon;
 			otherPlayerMaxDamage = otherPlayerState.damage[weapon - 1];
 		}
@@ -1401,7 +1401,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 							state.damage[weapon - 1] = damage * shotCount;
 						break;
 					case WP_SHOTGUN:
-						damage = 120;
+						damage = 100;
 						fireTime = 1.0f;
 						rangeDistance = visibleDistance > 500 ? visibleDistance : 500;
 						if (visibleTime > fireTime)
@@ -1421,12 +1421,12 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 							(1.f - (visibleDistance / rangeDistance)) * shotCount);
 						break;
 					case WP_GRENADE_LAUNCHER:
-						damage = 100;
+						damage = 80;
 						fireTime = 0.8f;
 						state.damage[weapon - 1] = 0;
 						break;
 					case WP_ROCKET_LAUNCHER:
-						damage = 100;
+						damage = 80;
 						fireTime = 0.8f;
 						if (visibleHeight <= 30.f)
 							rangeDistance = visibleDistance > 500 ? visibleDistance : 500;
@@ -1440,7 +1440,7 @@ void QuakeAIManager::CalculateDamage(NodeState& state,
 							(1.f - (visibleDistance / rangeDistance)) * shotCount);
 						break;
 					case WP_PLASMAGUN:
-						damage = 8;
+						damage = 6;
 						fireTime = 0.1f;
 						rangeDistance = visibleDistance > 300 ? visibleDistance : 300;
 						if (visibleTime > fireTime)
@@ -1717,7 +1717,7 @@ void QuakeAIManager::OnUpdate(unsigned long deltaMs)
 		mPlayerTime[pPlayerActor->GetId()] += deltaMs / 1000.f;
 		mPlayerPlanTime[pPlayerActor->GetId()] += deltaMs / 1000.f;
 
-		if (mPlayerTime[pPlayerActor->GetId()] >= 2.0f)
+		if (mPlayerTime[pPlayerActor->GetId()] >= 1.0f)
 		{
 			for (eastl::shared_ptr<PlayerActor> pOtherPlayerActor : playerActors)
 			{

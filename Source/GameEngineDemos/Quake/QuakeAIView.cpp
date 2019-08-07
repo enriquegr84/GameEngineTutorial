@@ -1110,7 +1110,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							velocity = atWorld;
 						}
 
-						ActorId playerTarget = aiManager->GetPlayerTarget(mPlayerId);
+						ActorId playerTarget = aiManager->GetPlayerWeaponTarget(mPlayerId);
 						if (playerTarget != INVALID_ACTOR_ID)
 						{
 							eastl::shared_ptr<PlayerActor> pPlayerTarget(
@@ -1218,7 +1218,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 					direction[YAW] = -pPhysicComponent->GetJumpSpeed() * mFallSpeed;
 					velocity = direction;
 
-					ActorId playerTarget = aiManager->GetPlayerTarget(mPlayerId);
+					ActorId playerTarget = aiManager->GetPlayerWeaponTarget(mPlayerId);
 					if (playerTarget != INVALID_ACTOR_ID)
 					{
 						eastl::shared_ptr<PlayerActor> pPlayerTarget(

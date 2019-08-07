@@ -124,79 +124,36 @@ void QuakeAIProcess::Visibility(
 		}
 		currentNode = currentArc->GetNode();
 	}
-
-	//lets put a minimum of total time
-	if (totalTime < 3.0f)
-	{
-		float visibleWeight = 3.0f - totalTime;
-		totalTime = 3.0f;
-
-		if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-			playerPathPlan.back()->GetNode()->GetCluster(),
-			otherPlayerPathPlan.back()->GetNode()->GetCluster()))
-		{
-			if (playerPathPlan.back()->GetNode()->IsVisibleNode(
-				otherPlayerPathPlan.back()->GetNode()))
-			{
-				(*visibleDistance) += Length(
-					otherPlayerPathPlan.back()->GetNode()->GetPos() -
-					playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
-				(*visibleHeight) +=
-					(playerPathPlan.back()->GetNode()->GetPos()[2] -
-					otherPlayerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
-				(*visibleTime) += visibleWeight;
-
-				(*otherVisibleDistance) += Length(
-					otherPlayerPathPlan.back()->GetNode()->GetPos() -
-					playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
-				(*otherVisibleHeight) +=
-					(otherPlayerPathPlan.back()->GetNode()->GetPos()[2] -
-					playerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
-				(*otherVisibleTime) += visibleWeight;
-			}
-		}
-	}
-
-	//we add extra time for potential visibility if the ending clusters are visible
-	if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-		playerPathPlan.back()->GetNode()->GetCluster(),
-		otherPlayerPathPlan.back()->GetNode()->GetCluster()))
-	{
-		if (playerPathPlan.back()->GetNode()->IsVisibleNode(
-			otherPlayerPathPlan.back()->GetNode()))
-		{
-			float visibleWeight = 1.0f;
-			totalTime += visibleWeight;
-
-			(*visibleDistance) += Length(
-				otherPlayerPathPlan.back()->GetNode()->GetPos() -
-				playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
-			(*visibleHeight) +=
-				(playerPathPlan.back()->GetNode()->GetPos()[2] -
-				otherPlayerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
-			(*visibleTime) += visibleWeight;
-
-			(*otherVisibleDistance) += Length(
-				otherPlayerPathPlan.back()->GetNode()->GetPos() -
-				playerPathPlan.back()->GetNode()->GetPos()) * visibleWeight;
-			(*otherVisibleHeight) +=
-				(otherPlayerPathPlan.back()->GetNode()->GetPos()[2] -
-				playerPathPlan.back()->GetNode()->GetPos()[2]) * visibleWeight;
-			(*otherVisibleTime) += visibleWeight;
-		}
-	}
 	
 	//average
 	if ((*visibleTime) > 0.f)
 	{
 		(*visibleDistance) /= (*visibleTime);
 		(*visibleHeight) /= (*visibleTime);
+
+		//lets put a minimum of visible time
+		if (totalTime < 4.0f)
+		{
+			float visibleWeight = 4.0f - totalTime;
+			visibleWeight *= (*visibleTime) / totalTime;
+
+			(*visibleTime) += visibleWeight;
+		}
 	}
 
 	if ((*otherVisibleTime) > 0.f)
 	{
 		(*otherVisibleDistance) /= (*otherVisibleTime);
 		(*otherVisibleHeight) /= (*otherVisibleTime);
+
+		//lets put a minimum of visible time
+		if (totalTime < 4.0f)
+		{
+			float otherVisibleWeight = 4.0f - totalTime;
+			otherVisibleWeight *= (*otherVisibleTime) / totalTime;
+
+			(*otherVisibleTime) += otherVisibleWeight;
+		}
 	}
 }
 
@@ -307,6 +264,18 @@ void QuakeAIProcess::Simulation(
 
 	//we calculate the heuristic
 	mAIManager->CalculateHeuristic(playerNodeState, otherPlayerNodeState);
+
+	//add distance between players
+	float targetDistance = Length(
+		playerNodeState.plan.path.back()->GetNode()->GetPos() -
+		otherPlayerNodeState.plan.path.back()->GetNode()->GetPos());
+
+	playerNodeState.playerTargets.push_back(otherPlayerNodeState.player);
+	playerNodeState.playerTargetDistance[otherPlayerNodeState.player] = targetDistance;
+
+	otherPlayerNodeState.playerTargets.push_back(playerNodeState.player);
+	otherPlayerNodeState.playerTargetDistance[playerNodeState.player] = targetDistance;
+
 	playerState.Copy(playerNodeState);
 	otherPlayerState.Copy(otherPlayerNodeState);
 }
@@ -537,11 +506,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 			else if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < GE_ROUNDING_ERROR)
 			{
-				//lets take the longest path for idle situations
-				if (playerNodeState.plan.path.size() > mPlayerState.plan.path.size())
+				//lets take the closest target distance for forcing combats
+				for (ActorId playerTarget : playerNodeState.playerTargets)
 				{
-					mPlayerState.Copy(playerNodeState);
-					playerCluster = playerClustersState.first;
+					if (playerNodeState.playerTargetDistance[playerTarget] <
+						mPlayerState.playerTargetDistance[playerTarget])
+					{
+						mPlayerState.Copy(playerNodeState);
+						playerCluster = playerClustersState.first;
+					}
 				}
 			}
 		}
@@ -770,11 +743,15 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 			else if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < GE_ROUNDING_ERROR)
 			{
-				//lets take the longest path for idle situations
-				if (otherPlayerNodeState.plan.path.size() > mOtherPlayerState.plan.path.size())
+				//lets take the closest target distance for forcing combats
+				for (ActorId playerTarget : otherPlayerNodeState.playerTargets)
 				{
-					mOtherPlayerState.Copy(otherPlayerNodeState);
-					otherPlayerCluster = otherPlayerClustersState.first;
+					if (otherPlayerNodeState.playerTargetDistance[playerTarget] <
+						mOtherPlayerState.playerTargetDistance[playerTarget])
+					{
+						mOtherPlayerState.Copy(otherPlayerNodeState);
+						otherPlayerCluster = otherPlayerClustersState.first;
+					}
 				}
 			}
 		}

@@ -98,9 +98,9 @@ struct NodeState
 	{
 		valid = false;
 		player = INVALID_ACTOR_ID;
-		target = INVALID_ACTOR_ID;
 
 		weapon = WP_NONE;
+		weaponTarget = INVALID_ACTOR_ID;
 		heuristic = 0.f;
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
@@ -118,9 +118,9 @@ struct NodeState
 	{
 		valid = true;
 		player = playerActor->GetId();
-		target = INVALID_ACTOR_ID;
 
 		weapon = WP_NONE;
+		weaponTarget = INVALID_ACTOR_ID;
 		heuristic = 0.f;
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
@@ -134,9 +134,8 @@ struct NodeState
 		}
 	}
 
-	NodeState(const NodeState& state) : 
-		valid(state.valid),
-		player(state.player), target(state.target),
+	NodeState(const NodeState& state) : valid(state.valid),
+		player(state.player), weaponTarget(state.weaponTarget),
 		weapon(state.weapon), heuristic(state.heuristic)
 	{
 		plan.id = state.plan.id;
@@ -162,6 +161,12 @@ struct NodeState
 			itemAmount[item] = state.itemAmount.at(item);
 			itemDistance[item] = state.itemDistance.at(item);
 		}
+
+		for (ActorId playerTarget : state.playerTargets)
+		{
+			playerTargets.push_back(playerTarget);
+			playerTargetDistance[playerTarget] = state.playerTargetDistance.at(playerTarget);
+		}
 	}
 
 	~NodeState()
@@ -173,8 +178,9 @@ struct NodeState
 	{
 		valid = state.valid;
 		player = state.player;
-		target = state.target;
+
 		weapon = state.weapon;
+		weaponTarget = state.weaponTarget;
 		heuristic = state.heuristic;
 
 		plan.id = state.plan.id;
@@ -203,6 +209,14 @@ struct NodeState
 			itemAmount[item] = state.itemAmount[item];
 			itemDistance[item] = state.itemDistance[item];
 		}
+
+		playerTargets.clear();
+		playerTargetDistance.clear();
+		for (ActorId playerTarget : state.playerTargets)
+		{
+			playerTargets.push_back(playerTarget);
+			playerTargetDistance[playerTarget] = state.playerTargetDistance[playerTarget];
+		}
 	}
 
 	void NodeState::CopyItems(NodeState& state)
@@ -227,12 +241,13 @@ struct NodeState
 
 	bool valid;
 	ActorId player;
-	ActorId target;
 
 	NodePlan plan;
 
 	float heuristic;
 	WeaponType weapon;
+	ActorId weaponTarget;
+
 	int stats[MAX_STATS];
 	int ammo[MAX_WEAPONS];
 	int damage[MAX_WEAPONS];
@@ -240,6 +255,9 @@ struct NodeState
 	eastl::vector<eastl::shared_ptr<Actor>> items;
 	eastl::map<eastl::shared_ptr<Actor>, int> itemAmount;
 	eastl::map<eastl::shared_ptr<Actor>, float> itemDistance;
+
+	eastl::vector<ActorId> playerTargets;
+	eastl::map<ActorId, float> playerTargetDistance;
 };
 
 //--------------------------------------------------------------------------------------------------------
@@ -326,7 +344,7 @@ public:
 	bool IsEnable() { return mEnable; }
 	void SetEnable(bool enable) { mEnable = enable; }
 
-	ActorId GetPlayerTarget(ActorId player);
+	ActorId GetPlayerWeaponTarget(ActorId player);
 	WeaponType GetPlayerWeapon(ActorId player);
 	void GetPlayerState(ActorId player, NodeState& playerState);
 	void GetPlayerPlan(ActorId player, NodePlan& playerPlan);
