@@ -217,7 +217,7 @@ void QuakeAIProcess::Simulation(
 
 	//calculate damage
 	NodeState playerNodeState(playerState);
-	playerNodeState.plan.path = playerPathPlan;
+	playerNodeState.plan.AddPath(playerPathPlan);
 	mAIManager->CalculateDamage(playerNodeState, visibleTime, visibleDistance, visibleHeight);
 
 	eastl::map<ActorId, float> pathActors;
@@ -264,17 +264,6 @@ void QuakeAIProcess::Simulation(
 
 	//we calculate the heuristic
 	mAIManager->CalculateHeuristic(playerNodeState, otherPlayerNodeState);
-
-	//add distance between players
-	float targetDistance = Length(
-		playerNodeState.plan.path.back()->GetNode()->GetPos() -
-		otherPlayerNodeState.plan.path.back()->GetNode()->GetPos());
-
-	playerNodeState.playerTargets.push_back(otherPlayerNodeState.player);
-	playerNodeState.playerTargetDistance[otherPlayerNodeState.player] = targetDistance;
-
-	otherPlayerNodeState.playerTargets.push_back(playerNodeState.player);
-	otherPlayerNodeState.playerTargetDistance[playerNodeState.player] = targetDistance;
 
 	playerState.Copy(playerNodeState);
 	otherPlayerState.Copy(otherPlayerNodeState);
@@ -506,15 +495,11 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 			else if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < GE_ROUNDING_ERROR)
 			{
-				//lets take the closest target distance for forcing combats
-				for (ActorId playerTarget : playerNodeState.playerTargets)
+				//lets take the longest path distance for avoiding wandering situations
+				if (playerNodeState.plan.distance > mPlayerState.plan.distance)
 				{
-					if (playerNodeState.playerTargetDistance[playerTarget] <
-						mPlayerState.playerTargetDistance[playerTarget])
-					{
-						mPlayerState.Copy(playerNodeState);
-						playerCluster = playerClustersState.first;
-					}
+					mPlayerState.Copy(playerNodeState);
+					playerCluster = playerClustersState.first;
 				}
 			}
 		}
@@ -743,15 +728,11 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 			else if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < GE_ROUNDING_ERROR)
 			{
-				//lets take the closest target distance for forcing combats
-				for (ActorId playerTarget : otherPlayerNodeState.playerTargets)
+				//lets take the longest path distance for avoiding wandering situations
+				if (otherPlayerNodeState.plan.distance > mOtherPlayerState.plan.distance)
 				{
-					if (otherPlayerNodeState.playerTargetDistance[playerTarget] <
-						mOtherPlayerState.playerTargetDistance[playerTarget])
-					{
-						mOtherPlayerState.Copy(otherPlayerNodeState);
-						otherPlayerCluster = otherPlayerClustersState.first;
-					}
+					mOtherPlayerState.Copy(otherPlayerNodeState);
+					otherPlayerCluster = otherPlayerClustersState.first;
 				}
 			}
 		}

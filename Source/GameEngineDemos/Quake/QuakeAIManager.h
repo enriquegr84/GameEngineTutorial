@@ -51,6 +51,8 @@ struct NodePlan
 	{
 		id = -1;
 		node = NULL;
+
+		distance = 0.f;
 	}
 
 	NodePlan(PathingNode* playerNode, PathingArcVec& path)
@@ -58,12 +60,16 @@ struct NodePlan
 		id = -1;
 		node = playerNode;
 
+		distance = 0.f;
 		for (PathingArc* pathArc : path)
+		{
+			distance += pathArc->GetWeight();
 			path.push_back(pathArc);
+		}
 	}
 
 	NodePlan(const NodePlan& plan) :
-		id(plan.id), node(plan.node)
+		id(plan.id), node(plan.node), distance(plan.distance)
 	{
 		for (PathingArc* pathArc : plan.path)
 			path.push_back(pathArc);
@@ -74,17 +80,19 @@ struct NodePlan
 
 	}
 
-	void NodePlan::Copy(NodePlan& plan)
+	void NodePlan::AddPath(PathingArcVec& pathPlan)
 	{
-		id = plan.id;
-		node = plan.node;
-
 		path.clear();
-		for (PathingArc* pathArc : plan.path)
+		distance = 0.f;
+		for (PathingArc* pathArc : pathPlan)
+		{
+			distance += pathArc->GetWeight();
 			path.push_back(pathArc);
+		}
 	}
 
 	int id;
+	float distance;
 	PathingNode* node;
 	PathingArcVec path;
 };
@@ -161,12 +169,6 @@ struct NodeState
 			itemAmount[item] = state.itemAmount.at(item);
 			itemDistance[item] = state.itemDistance.at(item);
 		}
-
-		for (ActorId playerTarget : state.playerTargets)
-		{
-			playerTargets.push_back(playerTarget);
-			playerTargetDistance[playerTarget] = state.playerTargetDistance.at(playerTarget);
-		}
 	}
 
 	~NodeState()
@@ -209,14 +211,6 @@ struct NodeState
 			itemAmount[item] = state.itemAmount[item];
 			itemDistance[item] = state.itemDistance[item];
 		}
-
-		playerTargets.clear();
-		playerTargetDistance.clear();
-		for (ActorId playerTarget : state.playerTargets)
-		{
-			playerTargets.push_back(playerTarget);
-			playerTargetDistance[playerTarget] = state.playerTargetDistance[playerTarget];
-		}
 	}
 
 	void NodeState::CopyItems(NodeState& state)
@@ -255,9 +249,6 @@ struct NodeState
 	eastl::vector<eastl::shared_ptr<Actor>> items;
 	eastl::map<eastl::shared_ptr<Actor>, int> itemAmount;
 	eastl::map<eastl::shared_ptr<Actor>, float> itemDistance;
-
-	eastl::vector<ActorId> playerTargets;
-	eastl::map<ActorId, float> playerTargetDistance;
 };
 
 //--------------------------------------------------------------------------------------------------------
