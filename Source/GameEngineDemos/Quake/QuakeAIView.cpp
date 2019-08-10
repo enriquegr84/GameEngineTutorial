@@ -765,13 +765,13 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 								{
 									printf("\n fail arc id %u type %u node %u \n ",
 										mCurrentArc->GetId(), mCurrentArc->GetType(), mCurrentArc->GetNode()->GetId());
-									LogInformation("fail arc id " + eastl::to_string(mCurrentArc->GetId()) +
-										" type " + eastl::to_string(mCurrentArc->GetType()) + " node " +
-										eastl::to_string(mCurrentArc->GetNode()->GetId()));
-									aiManager->mLogError << ("fail arc id " +
+
+									eastl::string error("fail arc id " +
 										eastl::to_string(mCurrentArc->GetId()) + " type " +
 										eastl::to_string(mCurrentArc->GetType()) + " node " +
-										eastl::to_string(mCurrentArc->GetNode()->GetId())).c_str() << std::endl;
+										eastl::to_string(mCurrentArc->GetNode()->GetId()));
+									aiManager->PrintLogError(error);
+									LogInformation(error);
 								}
 								else
 								{

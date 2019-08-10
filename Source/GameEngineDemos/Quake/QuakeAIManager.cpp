@@ -169,16 +169,18 @@ QuakeAIManager::QuakeAIManager() : AIManager()
 	mFallSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 
-	mLogInformation = fopen("aiprocess.txt", "w");
-	mLogError = std::ofstream("failarc.txt", std::ios::out);
+	mLogError = std::ofstream("error.txt", std::ios::out);
+	mLogInformation = std::ofstream("info.txt", std::ios::out);
+	mLogInformationDetails = std::ofstream("infodetails.txt", std::ios::out);
 }   // QuakeAIManager
 
 //-----------------------------------------------------------------------------
 
 QuakeAIManager::~QuakeAIManager()
 {
-	fclose(mLogInformation);
 	mLogError.close();
+	mLogInformation.close();
+	mLogInformationDetails.close();
 }   // ~QuakeAIManager
 
 /////////////////////////////////////////////////////////////////////////////
@@ -700,14 +702,15 @@ void AIFinder::RebuildPath(AIPlanNode* pGoalNode, PathingArcVec& planPath)
 
 			pPathingNode = pPathingArc->GetNode();
 		}
-		/*
+
 		QuakeAIManager* aiManager = dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
 
 		eastl::map<ActorId, float> planActors;
 		pGoalNode->GetPlanActors(planActors);
 
-		fprintf(aiManager->mLogInformation, "\n actor heuristic %f cluster %u : ", 
-			pGoalNode->GetHeuristic(), pTargetCluster->GetTarget()->GetCluster());
+		aiManager->PrintLogInformationDetails("\n actor heuristic " +
+			eastl::to_string(pGoalNode->GetHeuristic()) +  " cluster " +
+			eastl::to_string(pTargetCluster->GetTarget()->GetCluster()) + " : ");
 		for (auto planActor : planActors)
 		{
 			eastl::shared_ptr<Actor> pItemActor(
@@ -716,28 +719,31 @@ void AIFinder::RebuildPath(AIPlanNode* pGoalNode, PathingArcVec& planPath)
 			{
 				eastl::shared_ptr<WeaponPickup> pWeaponPickup =
 					pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-				fprintf(aiManager->mLogInformation, "weapon %u ", pWeaponPickup->GetCode());
+				aiManager->PrintLogInformationDetails(
+					"weapon " + eastl::to_string(pWeaponPickup->GetCode()) + " ");
 			}
 			else if (pItemActor->GetType() == "Ammo")
 			{
 				eastl::shared_ptr<AmmoPickup> pAmmoPickup =
 					pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-				fprintf(aiManager->mLogInformation, "ammo %u ", pAmmoPickup->GetCode());
+				aiManager->PrintLogInformationDetails(
+					"ammo " + eastl::to_string(pAmmoPickup->GetCode()) + " ");
 			}
 			else if (pItemActor->GetType() == "Armor")
 			{
 				eastl::shared_ptr<ArmorPickup> pArmorPickup =
 					pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-				fprintf(aiManager->mLogInformation, "armor %u ", pArmorPickup->GetCode());
+				aiManager->PrintLogInformationDetails(
+					"armor " + eastl::to_string(pArmorPickup->GetCode()) + " ");
 			}
 			else if (pItemActor->GetType() == "Health")
 			{
 				eastl::shared_ptr<HealthPickup> pHealthPickup =
 					pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-				fprintf(aiManager->mLogInformation, "health %u ", pHealthPickup->GetCode());
+				aiManager->PrintLogInformationDetails(
+					"health " + eastl::to_string(pHealthPickup->GetCode()) + " ");
 			}
 		}
-		*/
 	}
 }
 
@@ -990,6 +996,21 @@ void QuakeAIManager::DetectActor(eastl::shared_ptr<PlayerActor> pPlayerActor, ea
 			SetPlayerGuessUpdated(pPlayerActor->GetId(), false);
 		}
 	}
+}
+
+void QuakeAIManager::PrintLogError(eastl::string error)
+{
+	mLogError << error.c_str() << std::endl;
+}
+
+void QuakeAIManager::PrintLogInformation(eastl::string info)
+{
+	mLogInformation << info.c_str();
+}
+
+void QuakeAIManager::PrintLogInformationDetails(eastl::string info)
+{
+	//mLogInformationDetails << info.c_str();
 }
 
 float QuakeAIManager::CalculateHeuristicItems(NodeState& playerState)

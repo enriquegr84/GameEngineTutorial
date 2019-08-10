@@ -51,7 +51,6 @@ struct NodePlan
 	{
 		id = -1;
 		node = NULL;
-
 		distance = 0.f;
 	}
 
@@ -69,10 +68,14 @@ struct NodePlan
 	}
 
 	NodePlan(const NodePlan& plan) :
-		id(plan.id), node(plan.node), distance(plan.distance)
+		id(plan.id), node(plan.node)
 	{
+		distance = 0.f;
 		for (PathingArc* pathArc : plan.path)
+		{
+			distance += pathArc->GetWeight();
 			path.push_back(pathArc);
+		}
 	}
 
 	~NodePlan()
@@ -80,11 +83,11 @@ struct NodePlan
 
 	}
 
-	void NodePlan::AddPath(PathingArcVec& pathPlan)
+	void AddPlanPath(const PathingArcVec& planPath)
 	{
 		path.clear();
 		distance = 0.f;
-		for (PathingArc* pathArc : pathPlan)
+		for (PathingArc* pathArc : planPath)
 		{
 			distance += pathArc->GetWeight();
 			path.push_back(pathArc);
@@ -148,9 +151,7 @@ struct NodeState
 	{
 		plan.id = state.plan.id;
 		plan.node = state.plan.node;
-		plan.path.clear();
-		for (PathingArc* pathArc : state.plan.path)
-			plan.path.push_back(pathArc);
+		plan.AddPlanPath(state.plan.path);
 
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
@@ -187,9 +188,7 @@ struct NodeState
 
 		plan.id = state.plan.id;
 		plan.node = state.plan.node;
-		plan.path.clear();
-		for (PathingArc* pathArc : state.plan.path)
-			plan.path.push_back(pathArc);
+		plan.AddPlanPath(state.plan.path);
 
 		for (unsigned int i = 0; i < MAX_STATS; i++)
 		{
@@ -364,13 +363,14 @@ public:
 
 protected:
 
-	std::ofstream mLogError;
-	FILE* mLogInformation;
-
 	int GetNewPlanID(void)
 	{
 		return ++mLastPlanId;
 	}
+
+	void PrintLogError(eastl::string log);
+	void PrintLogInformation(eastl::string log);
+	void PrintLogInformationDetails(eastl::string log);
 
 	float CalculateHeuristicItems(NodeState& playerState);
 	void CalculateHeuristic(NodeState& playerState, NodeState& otherPlayerState);
@@ -381,12 +381,15 @@ protected:
 	void PickupItems(NodeState& playerState, 
 		eastl::map<ActorId, float>& actors, eastl::map<ActorId, float>& excludeActors);
 
-
 	void FindPath(NodeState& pNodeState, 
 		PathingCluster* pGoalCluster, PathingArcVec& planPath, 
 		eastl::map<ActorId, float>& excludeActors, float threshold = FLT_MAX);
 
 private:
+
+	std::ofstream mLogError;
+	std::ofstream mLogInformation;
+	std::ofstream mLogInformationDetails;
 
 	void SimulateJump(PathingNode* pNode);
 	void SimulateMovement(PathingNode* pNode);
