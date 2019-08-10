@@ -135,18 +135,8 @@ void QuakeAIProcess::Visibility(
 		if (totalTime < 4.0f)
 		{
 			float visibleWeight = (*visibleTime) / totalTime;
-			if (visibleWeight > 0.3f)
-			{
-				visibleWeight = (4.0f - totalTime) * visibleWeight;
-				(*visibleTime) += visibleWeight;
-			}
-			else if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-				playerPathPlan.back()->GetNode()->GetCluster(),
-				otherPlayerPathPlan.back()->GetNode()->GetCluster()))
-			{
-				visibleWeight = (4.0f - totalTime) * visibleWeight;
-				(*visibleTime) += visibleWeight;
-			}
+			visibleWeight = (4.0f - totalTime) * visibleWeight;
+			(*visibleTime) += visibleWeight;
 		}
 	}
 
@@ -156,16 +146,9 @@ void QuakeAIProcess::Visibility(
 		(*otherVisibleHeight) /= (*otherVisibleTime);
 
 		//lets put a minimum of visible time if we have seen the player along the path
-		float otherVisibleWeight = (*otherVisibleTime) / totalTime;
-		if (otherVisibleWeight > 0.3f)
+		if (totalTime < 4.0f)
 		{
-			otherVisibleWeight = (4.0f - totalTime) * otherVisibleWeight;
-			(*otherVisibleTime) += otherVisibleWeight;
-		}
-		else if (mAIManager->GetPathingGraph()->IsVisibleCluster(
-			playerPathPlan.back()->GetNode()->GetCluster(),
-			otherPlayerPathPlan.back()->GetNode()->GetCluster()))
-		{
+			float otherVisibleWeight = (*otherVisibleTime) / totalTime;
 			otherVisibleWeight = (4.0f - totalTime) * otherVisibleWeight;
 			(*otherVisibleTime) += otherVisibleWeight;
 		}
@@ -640,15 +623,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				mPlayerState.Copy(playerNodeState);
 				playerCluster = playerClustersState.first;
 			}
-			else if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < GE_ROUNDING_ERROR)
-			{
-				//lets take the longest path for trying to avoid wandering situations
-				if (playerNodeState.plan.weight > mPlayerState.plan.weight)
-				{
-					mPlayerState.Copy(playerNodeState);
-					playerCluster = playerClustersState.first;
-				}
-			}
 		}
 	}
 
@@ -676,12 +650,12 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		//we keep the current plan if the heuristic is greater or close to the best heuristic
 		if (playerNodeState.valid)
 		{
-			if (playerNodeState.heuristic > mPlayerState.heuristic)
+			if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < 0.02f)
 			{
 				mPlayerState.Copy(playerNodeState);
 				playerCluster = NULL;
 			}
-			else if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < 0.02f)
+			else if (playerNodeState.heuristic > mPlayerState.heuristic)
 			{
 				mPlayerState.Copy(playerNodeState);
 				playerCluster = NULL;
@@ -689,31 +663,401 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 		}
 	}
 
+	mOtherPlayerState.Copy(otherPlayerState);
+	mOtherPlayerState.heuristic = FLT_MAX;
+	mOtherPlayerState.valid = false;
+	mAIManager->PrintLogInformationDetails("\n\n minimax other player \n");
+
+	PathingCluster* otherPlayerCluster = NULL;
+	for (auto otherPlayerClustersState : otherPlayerClustersStates)
+	{
+		mAIManager->PrintLogInformationDetails("\n other player cluster : " +
+			eastl::to_string(otherPlayerClustersState.first->GetTarget()->GetCluster()) + " ");
+
+		NodeState otherPlayerNodeState(otherPlayerState);
+		otherPlayerNodeState.heuristic = -FLT_MAX;
+		otherPlayerNodeState.valid = false;
+		for (auto otherPlayerClusterState : otherPlayerClustersState.second)
+		{
+			if (otherPlayerClusterState.second.heuristic > otherPlayerNodeState.heuristic)
+			{
+				otherPlayerNodeState = otherPlayerClusterState.second;
+			}
+
+			mAIManager->PrintLogInformationDetails("player cluster : " +
+				eastl::to_string(otherPlayerClusterState.first->GetTarget()->GetCluster()) + " ");
+			mAIManager->PrintLogInformationDetails("heuristic : " +
+				eastl::to_string(otherPlayerClusterState.second.heuristic) + " ");
+
+			if (otherPlayerClusterState.second.weapon != WP_NONE)
+			{
+				mAIManager->PrintLogInformationDetails("weapon : " +
+					eastl::to_string(otherPlayerClusterState.second.weapon) + " ");
+				mAIManager->PrintLogInformationDetails("damage : " +
+					eastl::to_string(otherPlayerClusterState.second.damage[otherPlayerClusterState.second.weapon - 1]) + " ");
+			}
+
+			if (!otherPlayerClusterState.second.items.empty())
+				mAIManager->PrintLogInformationDetails("actors : ");
+			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerClusterState.second.items)
+			{
+				if (pItemActor->GetType() == "Weapon")
+				{
+					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("weapon " + eastl::to_string(pWeaponPickup->GetCode()) + " ");
+				}
+				else if (pItemActor->GetType() == "Ammo")
+				{
+					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("ammo " + eastl::to_string(pAmmoPickup->GetCode()) + " ");
+				}
+				else if (pItemActor->GetType() == "Armor")
+				{
+					eastl::shared_ptr<ArmorPickup> pArmorPickup =
+						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("armor " + eastl::to_string(pArmorPickup->GetCode()) + " ");
+				}
+				else if (pItemActor->GetType() == "Health")
+				{
+					eastl::shared_ptr<HealthPickup> pHealthPickup =
+						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("health " + eastl::to_string(pHealthPickup->GetCode()) + " ");
+				}
+			}
+		}
+
+		if (otherCurrentClusterStates.find(otherPlayerClustersState.first) != otherCurrentClusterStates.end())
+		{
+			if (otherCurrentClusterStates[otherPlayerClustersState.first].heuristic > otherPlayerNodeState.heuristic)
+			{
+				otherPlayerNodeState = otherCurrentClusterStates[otherPlayerClustersState.first];
+			}
+
+			mAIManager->PrintLogInformationDetails("player cluster : " +
+				eastl::to_string(otherPlayerClustersState.first->GetTarget()->GetCluster()) + " ");
+			mAIManager->PrintLogInformationDetails("heuristic : " +
+				eastl::to_string(otherCurrentClusterStates[otherPlayerClustersState.first].heuristic) + " ");
+
+			if (otherCurrentClusterStates[otherPlayerClustersState.first].weapon != WP_NONE)
+			{
+				mAIManager->PrintLogInformationDetails("weapon : " +
+					eastl::to_string(otherCurrentClusterStates[otherPlayerClustersState.first].weapon) + " ");
+				mAIManager->PrintLogInformationDetails("damage : " + eastl::to_string(
+					otherCurrentClusterStates[otherPlayerClustersState.first].damage[
+					otherCurrentClusterStates[otherPlayerClustersState.first].weapon - 1]) + " ");
+			}
+
+			if (!otherCurrentClusterStates[otherPlayerClustersState.first].items.empty())
+				mAIManager->PrintLogInformationDetails("actors : ");
+			for (eastl::shared_ptr<Actor> pItemActor : otherCurrentClusterStates[otherPlayerClustersState.first].items)
+			{
+				if (pItemActor->GetType() == "Weapon")
+				{
+					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("weapon " + eastl::to_string(pWeaponPickup->GetCode()) + " ");
+				}
+				else if (pItemActor->GetType() == "Ammo")
+				{
+					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("ammo " + eastl::to_string(pAmmoPickup->GetCode()) + " ");
+				}
+				else if (pItemActor->GetType() == "Armor")
+				{
+					eastl::shared_ptr<ArmorPickup> pArmorPickup =
+						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("armor " + eastl::to_string(pArmorPickup->GetCode()) + " ");
+				}
+				else if (pItemActor->GetType() == "Health")
+				{
+					eastl::shared_ptr<HealthPickup> pHealthPickup =
+						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("health " + eastl::to_string(pHealthPickup->GetCode()) + " ");
+				}
+			}
+		}
+
+		if (otherPlayerNodeState.valid)
+		{
+			mAIManager->PrintLogInformationDetails("\n other player heuristic : " +
+				eastl::to_string(otherPlayerNodeState.heuristic) + " ");
+
+			if (otherPlayerNodeState.weapon != WP_NONE)
+			{
+				mAIManager->PrintLogInformationDetails("weapon : " +
+					eastl::to_string(otherPlayerNodeState.weapon) + " ");
+				mAIManager->PrintLogInformationDetails("damage : " +
+					eastl::to_string(otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1]) + " ");
+			}
+
+			if (!otherPlayerNodeState.items.empty())
+				mAIManager->PrintLogInformationDetails("actors : ");
+			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerNodeState.items)
+			{
+				if (pItemActor->GetType() == "Weapon")
+				{
+					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
+						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("weapon " + eastl::to_string(pWeaponPickup->GetCode()) + " ");
+				}
+				else if (pItemActor->GetType() == "Ammo")
+				{
+					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
+						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("ammo " + eastl::to_string(pAmmoPickup->GetCode()) + " ");
+				}
+				else if (pItemActor->GetType() == "Armor")
+				{
+					eastl::shared_ptr<ArmorPickup> pArmorPickup =
+						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("armor " + eastl::to_string(pArmorPickup->GetCode()) + " ");
+				}
+				else if (pItemActor->GetType() == "Health")
+				{
+					eastl::shared_ptr<HealthPickup> pHealthPickup =
+						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
+					mAIManager->PrintLogInformationDetails("health " + eastl::to_string(pHealthPickup->GetCode()) + " ");
+				}
+			}
+
+			if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
+			{
+				mOtherPlayerState.Copy(otherPlayerNodeState);
+				otherPlayerCluster = otherPlayerClustersState.first;
+			}
+		}
+	}
+
+	if (otherPlayerState.valid)
+	{
+		NodeState otherPlayerNodeState(otherPlayerState);
+		otherPlayerNodeState.heuristic = -FLT_MAX;
+		otherPlayerNodeState.valid = false;
+		for (auto otherCurrentClusterPlanState : otherCurrentClusterPlanStates)
+		{
+			if (otherCurrentClusterPlanState.second.heuristic > otherPlayerNodeState.heuristic)
+			{
+				otherPlayerNodeState = otherCurrentClusterPlanState.second;
+			}
+		}
+
+		if (otherCurrentPlanState.valid)
+		{
+			if (otherCurrentPlanState.heuristic > otherPlayerNodeState.heuristic)
+			{
+				otherPlayerNodeState = otherCurrentPlanState;
+			}
+		}
+
+		//we keep the current plan if the heuristic is less or close to the best player heuristic
+		if (otherPlayerNodeState.valid)
+		{
+			if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < 0.02f)
+			{
+				mOtherPlayerState.Copy(otherPlayerNodeState);
+				otherPlayerCluster = NULL;
+			}
+			else if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
+			{
+				mOtherPlayerState.Copy(otherPlayerNodeState);
+				otherPlayerCluster = NULL;
+			}
+		}
+	}
+
+	//In game theory, Nash equilibrium is used for simultaneous decision making and it says that it is needed to
+	//take into account the decision-making of the others in order to make the best decision possible. That being said, 
+	//we will take the results from both players minimax and decide what is the best solution. 
+	if (mPlayerState.valid && mOtherPlayerState.valid)
+	{
+		PathingCluster* otherPlayerClusterState = NULL;
+		if (playerCluster != NULL)
+		{
+			mOtherPlayerState.Copy(otherPlayerState);
+			mOtherPlayerState.heuristic = FLT_MAX;
+			mOtherPlayerState.valid = false;
+			for (auto otherPlayerClustersState : otherPlayerClustersStates)
+			{
+				if (otherPlayerClustersState.second[playerCluster].heuristic < mOtherPlayerState.heuristic)
+				{
+					mOtherPlayerState.Copy(otherPlayerClustersState.second[playerCluster]);
+					otherPlayerClusterState = otherPlayerClustersState.first;
+				}
+				else if (abs(otherPlayerClustersState.second[playerCluster].heuristic - mOtherPlayerState.heuristic) < GE_ROUNDING_ERROR)
+				{
+					//lets take the longest path for trying to avoid wandering situations
+					if (otherPlayerClustersState.second[playerCluster].plan.weight > mOtherPlayerState.plan.weight)
+					{
+						mOtherPlayerState.Copy(otherPlayerClustersState.second[playerCluster]);
+						otherPlayerClusterState = otherPlayerClustersState.first;
+					}
+				}
+			}
+
+			if (otherCurrentClusterPlanStates.find(playerCluster) != otherCurrentClusterPlanStates.end())
+			{
+				//we keep the current plan if the heuristic is less or close to the best player heuristic
+				if (abs(otherCurrentClusterPlanStates[playerCluster].heuristic - mOtherPlayerState.heuristic) < 0.02f)
+				{
+					mOtherPlayerState.Copy(otherCurrentClusterPlanStates[playerCluster]);
+					otherPlayerClusterState = NULL;
+				}
+				else if (otherCurrentClusterPlanStates[playerCluster].heuristic < mOtherPlayerState.heuristic)
+				{
+					mOtherPlayerState.Copy(otherCurrentClusterPlanStates[playerCluster]);
+					otherPlayerClusterState = NULL;
+				}
+			}
+		}
+		else
+		{
+			mOtherPlayerState.Copy(otherPlayerState);
+			mOtherPlayerState.heuristic = FLT_MAX;
+			mOtherPlayerState.valid = false;
+			for (auto otherCurrentClusterState : otherCurrentClusterStates)
+			{
+				if (otherCurrentClusterState.second.heuristic < mOtherPlayerState.heuristic)
+				{
+					mOtherPlayerState.Copy(otherCurrentClusterState.second);
+					otherPlayerClusterState = otherCurrentClusterState.first;
+				}
+				else if (abs(otherCurrentClusterState.second.heuristic - mOtherPlayerState.heuristic) < GE_ROUNDING_ERROR)
+				{
+					//lets take the longest path for trying to avoid wandering situations
+					if (otherCurrentClusterState.second.plan.weight > mOtherPlayerState.plan.weight)
+					{
+						mOtherPlayerState.Copy(otherCurrentClusterState.second);
+						otherPlayerClusterState = otherCurrentClusterState.first;
+					}
+				}
+			}
+
+			if (otherCurrentPlanState.valid)
+			{
+				//we keep the current plan if the heuristic is less or close to the best player heuristic
+				if (abs(otherCurrentPlanState.heuristic - mOtherPlayerState.heuristic) < 0.02f)
+				{
+					mOtherPlayerState.Copy(otherCurrentPlanState);
+					otherPlayerClusterState = NULL;
+				}
+				else if (otherCurrentPlanState.heuristic < mOtherPlayerState.heuristic)
+				{
+					mOtherPlayerState.Copy(otherCurrentPlanState);
+					otherPlayerClusterState = NULL;
+				}
+			}
+		}
+
+		PathingCluster* playerClusterState = NULL;
+		if (otherPlayerCluster != NULL)
+		{
+			mPlayerState.Copy(playerState);
+			mPlayerState.heuristic = -FLT_MAX;
+			mPlayerState.valid = false;
+			for (auto playerClustersState : playerClustersStates)
+			{
+				if (playerClustersState.second[otherPlayerCluster].heuristic > mPlayerState.heuristic)
+				{
+					mPlayerState.Copy(playerClustersState.second[otherPlayerCluster]);
+					playerClusterState = playerClustersState.first;
+				}
+				else if (abs(playerClustersState.second[otherPlayerCluster].heuristic - mPlayerState.heuristic) < GE_ROUNDING_ERROR)
+				{
+					//lets take the longest path for trying to avoid wandering situations
+					if (playerClustersState.second[otherPlayerCluster].plan.weight > mPlayerState.plan.weight)
+					{
+						mPlayerState.Copy(playerClustersState.second[otherPlayerCluster]);
+						playerClusterState = playerClustersState.first;
+					}
+				}
+			}
+
+			if (currentClusterPlanStates.find(otherPlayerCluster) != currentClusterPlanStates.end())
+			{
+				//we keep the current plan if the heuristic is less or close to the best player heuristic
+				if (abs(currentClusterPlanStates[otherPlayerCluster].heuristic - mPlayerState.heuristic) < 0.02f)
+				{
+					mPlayerState.Copy(currentClusterPlanStates[otherPlayerCluster]);
+					playerClusterState = NULL;
+				}
+				else if (currentClusterPlanStates[otherPlayerCluster].heuristic > mPlayerState.heuristic)
+				{
+					mPlayerState.Copy(currentClusterPlanStates[otherPlayerCluster]);
+					playerClusterState = NULL;
+				}
+			}
+		}
+		else
+		{
+			mPlayerState.Copy(playerState);
+			mPlayerState.heuristic = -FLT_MAX;
+			mPlayerState.valid = false;
+			for (auto currentClusterState : currentClusterStates)
+			{
+				if (currentClusterState.second.heuristic > mPlayerState.heuristic)
+				{
+					mPlayerState.Copy(currentClusterState.second);
+					playerClusterState = currentClusterState.first;
+				}
+				else if (abs(currentClusterState.second.heuristic - mPlayerState.heuristic) < GE_ROUNDING_ERROR)
+				{
+					//lets take the longest path for trying to avoid wandering situations
+					if (currentClusterState.second.plan.weight > mPlayerState.plan.weight)
+					{
+						mPlayerState.Copy(currentClusterState.second);
+						playerClusterState = currentClusterState.first;
+					}
+				}
+			}
+
+			if (currentPlanState.valid)
+			{
+				//we keep the current plan if the heuristic is less or close to the best player heuristic
+				if (abs(currentPlanState.heuristic - mPlayerState.heuristic) < 0.02f)
+				{
+					mPlayerState.Copy(currentPlanState);
+					playerClusterState = NULL;
+				}
+				else if (currentPlanState.heuristic > mPlayerState.heuristic)
+				{
+					mPlayerState.Copy(currentPlanState);
+					playerClusterState = NULL;
+				}
+			}
+		}
+
+		playerCluster = playerClusterState;
+		otherPlayerCluster = otherPlayerClusterState;
+	}
+
 	if (mPlayerState.valid)
 	{
 		if (playerCluster != NULL)
 		{
 			mPlayerState.plan.id = mAIManager->GetNewPlanID();
-			
-			mAIManager->PrintLogInformation("\n player current position : " + 
+
+			mAIManager->PrintLogInformation("\n player current position : " +
 				eastl::to_string(playerState.plan.node->GetPos()[0]) + " " +
 				eastl::to_string(playerState.plan.node->GetPos()[1]) + " " +
 				eastl::to_string(playerState.plan.node->GetPos()[2]) + " ");
-			mAIManager->PrintLogInformation("\n player current cluster : " + 
+			mAIManager->PrintLogInformation("\n player current cluster : " +
 				eastl::to_string(playerState.plan.node->GetCluster()) + " ");
-			mAIManager->PrintLogInformation("\n player target cluster : " + 
+			mAIManager->PrintLogInformation("\n player target cluster : " +
 				eastl::to_string(playerCluster->GetTarget()->GetCluster()) + " ");
 
 			for (auto playerClusterState : playerClustersStates[playerCluster])
 			{
 				mAIManager->PrintLogInformation("other player cluster : " +
 					eastl::to_string(playerClusterState.first->GetTarget()->GetCluster()) + " ");
-				mAIManager->PrintLogInformation("heuristic : " + 
+				mAIManager->PrintLogInformation("heuristic : " +
 					eastl::to_string(playerClusterState.second.heuristic) + " ");
 
 				if (playerClusterState.second.weapon != WP_NONE)
 				{
-					mAIManager->PrintLogInformation("weapon : " + 
+					mAIManager->PrintLogInformation("weapon : " +
 						eastl::to_string(playerClusterState.second.weapon) + " ");
 					mAIManager->PrintLogInformation("damage : " +
 						eastl::to_string(playerClusterState.second.damage[playerClusterState.second.weapon - 1]) + " ");
@@ -813,9 +1157,9 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 		if (mPlayerState.weapon != WP_NONE)
 		{
-			mAIManager->PrintLogInformation("weapon : " + 
+			mAIManager->PrintLogInformation("weapon : " +
 				eastl::to_string(mPlayerState.weapon) + " ");
-			mAIManager->PrintLogInformation("damage : " + 
+			mAIManager->PrintLogInformation("damage : " +
 				eastl::to_string(mPlayerState.damage[mPlayerState.weapon - 1]) + " ");
 		}
 
@@ -846,221 +1190,6 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 				eastl::shared_ptr<HealthPickup> pHealthPickup =
 					pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
 				mAIManager->PrintLogInformation("health " + eastl::to_string(pHealthPickup->GetCode()) + " ");
-			}
-		}
-	}
-
-	mOtherPlayerState.Copy(otherPlayerState);
-	mOtherPlayerState.heuristic = FLT_MAX;
-	mOtherPlayerState.valid = false;
-	mAIManager->PrintLogInformationDetails("\n\n minimax other player \n");
-
-	PathingCluster* otherPlayerCluster = NULL;
-	for (auto otherPlayerClustersState : otherPlayerClustersStates)
-	{
-		mAIManager->PrintLogInformationDetails("\n other player cluster : " +
-			eastl::to_string(otherPlayerClustersState.first->GetTarget()->GetCluster()) + " ");
-
-		NodeState otherPlayerNodeState(otherPlayerState);
-		otherPlayerNodeState.heuristic = -FLT_MAX;
-		otherPlayerNodeState.valid = false;
-		for (auto otherPlayerClusterState : otherPlayerClustersState.second)
-		{
-			if (otherPlayerClusterState.second.heuristic > otherPlayerNodeState.heuristic)
-			{
-				otherPlayerNodeState = otherPlayerClusterState.second;
-			}
-
-			mAIManager->PrintLogInformationDetails("player cluster : " +
-				eastl::to_string(otherPlayerClusterState.first->GetTarget()->GetCluster()) + " ");
-			mAIManager->PrintLogInformationDetails("heuristic : " +
-				eastl::to_string(otherPlayerClusterState.second.heuristic) + " ");
-
-			if (otherPlayerClusterState.second.weapon != WP_NONE)
-			{
-				mAIManager->PrintLogInformationDetails("weapon : " +
-					eastl::to_string(otherPlayerClusterState.second.weapon) + " ");
-				mAIManager->PrintLogInformationDetails("damage : " +
-					eastl::to_string(otherPlayerClusterState.second.damage[otherPlayerClusterState.second.weapon - 1]) + " ");
-			}
-
-			if (!otherPlayerClusterState.second.items.empty())
-				mAIManager->PrintLogInformationDetails("actors : ");
-			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerClusterState.second.items)
-			{
-				if (pItemActor->GetType() == "Weapon")
-				{
-					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("weapon " + eastl::to_string(pWeaponPickup->GetCode()) + " ");
-				}
-				else if (pItemActor->GetType() == "Ammo")
-				{
-					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("ammo " + eastl::to_string(pAmmoPickup->GetCode()) + " ");
-				}
-				else if (pItemActor->GetType() == "Armor")
-				{
-					eastl::shared_ptr<ArmorPickup> pArmorPickup =
-						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("armor " + eastl::to_string(pArmorPickup->GetCode()) + " ");
-				}
-				else if (pItemActor->GetType() == "Health")
-				{
-					eastl::shared_ptr<HealthPickup> pHealthPickup =
-						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("health " + eastl::to_string(pHealthPickup->GetCode()) + " ");
-				}
-			}
-		}
-
-		if (otherCurrentClusterStates.find(otherPlayerClustersState.first) != otherCurrentClusterStates.end())
-		{
-			if (otherCurrentClusterStates[otherPlayerClustersState.first].heuristic > otherPlayerNodeState.heuristic)
-			{
-				otherPlayerNodeState = otherCurrentClusterStates[otherPlayerClustersState.first];
-			}
-
-
-			mAIManager->PrintLogInformationDetails("player cluster : " +
-				eastl::to_string(otherPlayerClustersState.first->GetTarget()->GetCluster()) + " ");
-			mAIManager->PrintLogInformationDetails("heuristic : " +
-				eastl::to_string(otherCurrentClusterStates[otherPlayerClustersState.first].heuristic) + " ");
-
-			if (otherCurrentClusterStates[otherPlayerClustersState.first].weapon != WP_NONE)
-			{
-				mAIManager->PrintLogInformationDetails("weapon : " +
-					eastl::to_string(otherCurrentClusterStates[otherPlayerClustersState.first].weapon) + " ");
-				mAIManager->PrintLogInformationDetails("damage : " + eastl::to_string(
-					otherCurrentClusterStates[otherPlayerClustersState.first].damage[
-					otherCurrentClusterStates[otherPlayerClustersState.first].weapon - 1]) + " ");
-			}
-
-			if (!otherCurrentClusterStates[otherPlayerClustersState.first].items.empty())
-				mAIManager->PrintLogInformationDetails("actors : ");
-			for (eastl::shared_ptr<Actor> pItemActor : otherCurrentClusterStates[otherPlayerClustersState.first].items)
-			{
-				if (pItemActor->GetType() == "Weapon")
-				{
-					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("weapon " + eastl::to_string(pWeaponPickup->GetCode()) + " ");
-				}
-				else if (pItemActor->GetType() == "Ammo")
-				{
-					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("ammo " + eastl::to_string(pAmmoPickup->GetCode()) + " ");
-				}
-				else if (pItemActor->GetType() == "Armor")
-				{
-					eastl::shared_ptr<ArmorPickup> pArmorPickup =
-						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("armor " + eastl::to_string(pArmorPickup->GetCode()) + " ");
-				}
-				else if (pItemActor->GetType() == "Health")
-				{
-					eastl::shared_ptr<HealthPickup> pHealthPickup =
-						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("health " + eastl::to_string(pHealthPickup->GetCode()) + " ");
-				}
-			}
-		}
-
-		if (otherPlayerNodeState.valid)
-		{
-			mAIManager->PrintLogInformationDetails("\n other player heuristic : " +
-				eastl::to_string(otherPlayerNodeState.heuristic) + " ");
-
-			if (otherPlayerNodeState.weapon != WP_NONE)
-			{
-				mAIManager->PrintLogInformationDetails("weapon : " +
-					eastl::to_string(otherPlayerNodeState.weapon) + " ");
-				mAIManager->PrintLogInformationDetails("damage : " +
-					eastl::to_string(otherPlayerNodeState.damage[otherPlayerNodeState.weapon - 1]) + " ");
-			}
-
-			if (!otherPlayerNodeState.items.empty())
-				mAIManager->PrintLogInformationDetails("actors : ");
-			for (eastl::shared_ptr<Actor> pItemActor : otherPlayerNodeState.items)
-			{
-				if (pItemActor->GetType() == "Weapon")
-				{
-					eastl::shared_ptr<WeaponPickup> pWeaponPickup =
-						pItemActor->GetComponent<WeaponPickup>(WeaponPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("weapon " + eastl::to_string(pWeaponPickup->GetCode()) + " ");
-				}
-				else if (pItemActor->GetType() == "Ammo")
-				{
-					eastl::shared_ptr<AmmoPickup> pAmmoPickup =
-						pItemActor->GetComponent<AmmoPickup>(AmmoPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("ammo " + eastl::to_string(pAmmoPickup->GetCode()) + " ");
-				}
-				else if (pItemActor->GetType() == "Armor")
-				{
-					eastl::shared_ptr<ArmorPickup> pArmorPickup =
-						pItemActor->GetComponent<ArmorPickup>(ArmorPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("armor " + eastl::to_string(pArmorPickup->GetCode()) + " ");
-				}
-				else if (pItemActor->GetType() == "Health")
-				{
-					eastl::shared_ptr<HealthPickup> pHealthPickup =
-						pItemActor->GetComponent<HealthPickup>(HealthPickup::Name).lock();
-					mAIManager->PrintLogInformationDetails("health " + eastl::to_string(pHealthPickup->GetCode()) + " ");
-				}
-			}
-
-			if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
-			{
-				mOtherPlayerState.Copy(otherPlayerNodeState);
-				otherPlayerCluster = otherPlayerClustersState.first;
-			}
-			else if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < GE_ROUNDING_ERROR)
-			{
-				//lets take the longest path for trying to avoid wandering situations
-				if (otherPlayerNodeState.plan.weight > mOtherPlayerState.plan.weight)
-				{
-					mOtherPlayerState.Copy(otherPlayerNodeState);
-					otherPlayerCluster = otherPlayerClustersState.first;
-				}
-			}
-		}
-	}
-
-	if (otherPlayerState.valid)
-	{
-		NodeState otherPlayerNodeState(otherPlayerState);
-		otherPlayerNodeState.heuristic = -FLT_MAX;
-		otherPlayerNodeState.valid = false;
-		for (auto otherCurrentClusterPlanState : otherCurrentClusterPlanStates)
-		{
-			if (otherCurrentClusterPlanState.second.heuristic > otherPlayerNodeState.heuristic)
-			{
-				otherPlayerNodeState = otherCurrentClusterPlanState.second;
-			}
-		}
-
-		if (otherCurrentPlanState.valid)
-		{
-			if (otherCurrentPlanState.heuristic > otherPlayerNodeState.heuristic)
-			{
-				otherPlayerNodeState = otherCurrentPlanState;
-			}
-		}
-
-		//we keep the current plan if the heuristic is less or close to the best player heuristic
-		if (otherPlayerNodeState.valid)
-		{
-			if (otherPlayerNodeState.heuristic < mOtherPlayerState.heuristic)
-			{
-				mOtherPlayerState.Copy(otherPlayerNodeState);
-				otherPlayerCluster = NULL;
-			}
-			else if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < 0.02f)
-			{
-				mOtherPlayerState.Copy(otherPlayerNodeState);
-				otherPlayerCluster = NULL;
 			}
 		}
 	}
@@ -1182,11 +1311,11 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			}
 		}
 
-		mAIManager->PrintLogInformation("\n other player path id " + 
+		mAIManager->PrintLogInformation("\n other player path id " +
 			eastl::to_string(mOtherPlayerState.plan.id) + " : ");
 		for (PathingArc* pathArc : mOtherPlayerState.plan.path)
 			mAIManager->PrintLogInformation(eastl::to_string(pathArc->GetNode()->GetId()) + " ");
-		mAIManager->PrintLogInformation("\n other player heuristic : " + 
+		mAIManager->PrintLogInformation("\n other player heuristic : " +
 			eastl::to_string(mOtherPlayerState.heuristic) + " ");
 
 		if (mOtherPlayerState.weapon != WP_NONE)
