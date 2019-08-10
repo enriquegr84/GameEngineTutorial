@@ -1010,7 +1010,7 @@ void QuakeAIManager::PrintLogInformation(eastl::string info)
 
 void QuakeAIManager::PrintLogInformationDetails(eastl::string info)
 {
-	//mLogInformationDetails << info.c_str();
+	mLogInformationDetails << info.c_str();
 }
 
 float QuakeAIManager::CalculateHeuristicItems(NodeState& playerState)

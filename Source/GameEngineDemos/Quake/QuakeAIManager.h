@@ -51,7 +51,7 @@ struct NodePlan
 	{
 		id = -1;
 		node = NULL;
-		distance = 0.f;
+		weight = 0.f;
 	}
 
 	NodePlan(PathingNode* playerNode, PathingArcVec& path)
@@ -59,10 +59,10 @@ struct NodePlan
 		id = -1;
 		node = playerNode;
 
-		distance = 0.f;
+		weight = 0.f;
 		for (PathingArc* pathArc : path)
 		{
-			distance += pathArc->GetWeight();
+			weight += pathArc->GetWeight();
 			path.push_back(pathArc);
 		}
 	}
@@ -70,10 +70,10 @@ struct NodePlan
 	NodePlan(const NodePlan& plan) :
 		id(plan.id), node(plan.node)
 	{
-		distance = 0.f;
+		weight = 0.f;
 		for (PathingArc* pathArc : plan.path)
 		{
-			distance += pathArc->GetWeight();
+			weight += pathArc->GetWeight();
 			path.push_back(pathArc);
 		}
 	}
@@ -85,17 +85,17 @@ struct NodePlan
 
 	void AddPlanPath(const PathingArcVec& planPath)
 	{
+		weight = 0.f;
 		path.clear();
-		distance = 0.f;
 		for (PathingArc* pathArc : planPath)
 		{
-			distance += pathArc->GetWeight();
+			weight += pathArc->GetWeight();
 			path.push_back(pathArc);
 		}
 	}
 
 	int id;
-	float distance;
+	float weight;
 	PathingNode* node;
 	PathingArcVec path;
 };

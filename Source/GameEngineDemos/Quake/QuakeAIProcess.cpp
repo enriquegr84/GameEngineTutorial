@@ -643,7 +643,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			else if (abs(playerNodeState.heuristic - mPlayerState.heuristic) < GE_ROUNDING_ERROR)
 			{
 				//lets take the longest path for trying to avoid wandering situations
-				if (playerNodeState.plan.distance > mPlayerState.plan.distance)
+				if (playerNodeState.plan.weight > mPlayerState.plan.weight)
 				{
 					mPlayerState.Copy(playerNodeState);
 					playerCluster = playerClustersState.first;
@@ -1019,7 +1019,7 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 			else if (abs(otherPlayerNodeState.heuristic - mOtherPlayerState.heuristic) < GE_ROUNDING_ERROR)
 			{
 				//lets take the longest path for trying to avoid wandering situations
-				if (otherPlayerNodeState.plan.distance > mOtherPlayerState.plan.distance)
+				if (otherPlayerNodeState.plan.weight > mOtherPlayerState.plan.weight)
 				{
 					mOtherPlayerState.Copy(otherPlayerNodeState);
 					otherPlayerCluster = otherPlayerClustersState.first;
