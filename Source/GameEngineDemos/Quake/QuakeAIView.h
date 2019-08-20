@@ -67,7 +67,7 @@ public:
 protected:
 
 	void Stationary(unsigned long deltaMs);
-	void Movement(unsigned long deltaMs);
+	void Avoidance(unsigned long deltaMs);
 	void Smooth(unsigned long deltaMs);
 	void Cliff();
 

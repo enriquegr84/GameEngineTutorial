@@ -275,8 +275,8 @@ void QuakeAIView::Cliff()
 	}
 }
 
-//Movement
-void QuakeAIView::Movement(unsigned long deltaMs)
+//Avoidance
+void QuakeAIView::Avoidance(unsigned long deltaMs)
 {
 	Vector3<float> position = mAbsoluteTransform.GetTranslation();
 	Matrix4x4<float> rotation = Rotation<4, float>(
@@ -296,8 +296,8 @@ void QuakeAIView::Movement(unsigned long deltaMs)
 
 	Transform start;
 	start.SetRotation(rotation);
-	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() 
-		+ scale[YAW] * Vector4<float>::Unit(YAW));
+	start.SetTranslation(mAbsoluteTransform.GetTranslationW1() + 
+		scale[YAW] * Vector4<float>::Unit(YAW));
 
 	Transform end;
 	end.SetRotation(rotation);
@@ -962,6 +962,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 							}
 							else
 							{
+								Vector3<float> direction;
 								if (mCurrentAction == GAT_JUMP || mCurrentAction == GAT_PUSH || mCurrentAction == GAT_TELEPORT)
 								{
 									eastl::shared_ptr<Actor> pItemActor(
@@ -972,12 +973,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										eastl::shared_ptr<TransformComponent> pTriggerTransform =
 											pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 
-										Vector3<float> direction = pTriggerTransform->GetPosition() - currentPosition;
-										Normalize(direction);
-										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-
-										Stationary(deltaMs);
-										Movement(deltaMs);
+										direction = pTriggerTransform->GetPosition() - currentPosition;
 									}
 									else
 									{
@@ -987,9 +983,7 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											mCurrentAction = 0;
 										}
 
-										Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
-										Normalize(direction);
-										mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+										direction = mCurrentNode->GetPos() - currentPosition;
 									}
 								}
 								else
@@ -1005,43 +999,39 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 											eastl::shared_ptr<TransformComponent> pTransform =
 												pItemActor->GetComponent<TransformComponent>(TransformComponent::Name).lock();
 
-											Vector3<float> direction = pTransform->GetPosition() - currentPosition;
-											Normalize(direction);
-											mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+											direction = pTransform->GetPosition() - currentPosition;
 										}
-										else
-										{
-											Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
-											Normalize(direction);
-											mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-										}
+										else direction = mCurrentNode->GetPos() - currentPosition;
 									}
-									else
+									else direction = mCurrentNode->GetPos() - currentPosition;
+								}
+								Normalize(direction);
+								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
+
+								Vector3<float> scale =
+									GameLogic::Get()->GetGamePhysics()->GetScale(mPlayerId) / 2.f;
+
+								Transform start;
+								start.SetTranslation(currentPosition + scale[YAW] * Vector3<float>::Unit(YAW));
+								Transform end;
+								end.SetTranslation(currentPosition + direction * 40.f + scale[YAW] * Vector3<float>::Unit(YAW));
+
+								Vector3<float> collision, collisionNormal;
+								ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+									mPlayerId, start, end, collision, collisionNormal);
+								if (actorId != INVALID_ACTOR_ID)
+								{
+									eastl::shared_ptr<Actor> pActor(
+										eastl::dynamic_shared_pointer_cast<Actor>(
+										GameLogic::Get()->GetActor(actorId).lock()));
+									if (pActor && pActor->GetType() == "Player")
 									{
-										Vector3<float> scale =
-											GameLogic::Get()->GetGamePhysics()->GetScale(mPlayerId) / 2.f;
-
-										Transform start;
-										start.SetTranslation(currentPosition + scale[YAW] * Vector3<float>::Unit(YAW));
-										Transform end;
-										end.SetTranslation(mCurrentNode->GetPos() + scale[YAW] * Vector3<float>::Unit(YAW));
-
-										Vector3<float> collision, collisionNormal;
-										ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
-											mPlayerId, start, end, collision, collisionNormal);
-										if (collision == NULL || actorId != INVALID_ACTOR_ID)
-										{
-											Vector3<float> direction = mCurrentNode->GetPos() - currentPosition;
-											Normalize(direction);
-											mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
-										}
-										else
-										{
-											Stationary(deltaMs);
-											Movement(deltaMs);
-										}
+										//dynamic avoidance
+										Stationary(deltaMs);
+										Avoidance(deltaMs);
 									}
 								}
+
 							}
 						}
 						else
