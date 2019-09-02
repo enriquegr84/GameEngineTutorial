@@ -985,6 +985,9 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 
 										direction = mCurrentNode->GetPos() - currentPosition;
 									}
+
+									Normalize(direction);
+									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 								}
 								else
 								{
@@ -1004,34 +1007,34 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 										else direction = mCurrentNode->GetPos() - currentPosition;
 									}
 									else direction = mCurrentNode->GetPos() - currentPosition;
-								}
-								Normalize(direction);
-								mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
-								Vector3<float> scale =
-									GameLogic::Get()->GetGamePhysics()->GetScale(mPlayerId) / 2.f;
+									Normalize(direction);
+									mYaw = atan2(direction[1], direction[0]) * (float)GE_C_RAD_TO_DEG;
 
-								Transform start;
-								start.SetTranslation(currentPosition + scale[YAW] * Vector3<float>::Unit(YAW));
-								Transform end;
-								end.SetTranslation(currentPosition + direction * 40.f + scale[YAW] * Vector3<float>::Unit(YAW));
+									Vector3<float> scale =
+										GameLogic::Get()->GetGamePhysics()->GetScale(mPlayerId) / 2.f;
 
-								Vector3<float> collision, collisionNormal;
-								ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
-									mPlayerId, start, end, collision, collisionNormal);
-								if (actorId != INVALID_ACTOR_ID)
-								{
-									eastl::shared_ptr<Actor> pActor(
-										eastl::dynamic_shared_pointer_cast<Actor>(
-										GameLogic::Get()->GetActor(actorId).lock()));
-									if (pActor && pActor->GetType() == "Player")
+									Transform start;
+									start.SetTranslation(currentPosition + scale[YAW] * Vector3<float>::Unit(YAW));
+									Transform end;
+									end.SetTranslation(currentPosition + direction * 40.f + scale[YAW] * Vector3<float>::Unit(YAW));
+
+									Vector3<float> collision, collisionNormal;
+									ActorId actorId = GameLogic::Get()->GetGamePhysics()->ConvexSweep(
+										mPlayerId, start, end, collision, collisionNormal);
+									if (actorId != INVALID_ACTOR_ID)
 									{
-										//dynamic avoidance
-										Stationary(deltaMs);
-										Avoidance(deltaMs);
+										eastl::shared_ptr<Actor> pActor(
+											eastl::dynamic_shared_pointer_cast<Actor>(
+												GameLogic::Get()->GetActor(actorId).lock()));
+										if (pActor && pActor->GetType() == "Player")
+										{
+											//dynamic avoidance
+											Stationary(deltaMs);
+											Avoidance(deltaMs);
+										}
 									}
 								}
-
 							}
 						}
 						else
