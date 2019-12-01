@@ -423,7 +423,9 @@ bool MeshNode::Render(Scene *pScene)
 			Renderer::Get()->SetDepthStencilState(mDepthStencilStates[i]);
 			Renderer::Get()->SetRasterizerState(mRasterizerState);
 
-			Renderer::Get()->Draw(mVisuals[i]);
+			Renderer* renderer = Renderer::Get();
+			renderer->Update(mVisuals[i]->GetVertexBuffer());
+			renderer->Draw(mVisuals[i]);
 
 			Renderer::Get()->SetDefaultBlendState();
 			Renderer::Get()->SetDefaultDepthStencilState();

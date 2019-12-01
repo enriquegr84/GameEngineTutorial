@@ -56,12 +56,6 @@ class Renderer;
 class System;
 
 
-/*
-	Class  HumanView. It is a view onto the game, which includes anything visual or audible.
-	It is a platform-independent class which gets message of the game state or inputs
-	and translate it into changes on the graphics system, which will draw the game
-	world and the audio system
-*/
 class HumanView : public BaseGameView
 {
 	friend class GameApplication;
@@ -104,8 +98,8 @@ public:
 	*/
 	eastl::list<eastl::shared_ptr<BaseScreenElement>> mScreenElements; // a game screen entity
 																		
-	// Interface sensitive objects
 	/*
+		Interface sensitive objects
 		mouse and keyboard handler interpret device messages into game commands
 	*/
 	eastl::shared_ptr<BaseMouseHandler> mMouseHandler;

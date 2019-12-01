@@ -130,7 +130,7 @@ typedef eastl::list<eastl::shared_ptr<BaseResourceLoader>> ResourceLoaders;
 
 /*
 	Resource Cache manage memory and the process of loading resources, even predict resource requirements
-	befor it is required. Resource caches work on similar principles as any other memory cache. Most of
+	before it is required. Resource caches work on similar principles as any other memory cache. Most of
 	the bits are needed to display the next frame are probably ones used recently. As the game progresses
 	from one state to the next, new resources are cached in and old ones are cached out to free space.
 	When a cache miss occurs, the game has to wait while the hard drive reads the required data. Cache

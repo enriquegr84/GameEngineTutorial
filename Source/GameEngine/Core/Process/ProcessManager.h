@@ -53,7 +53,6 @@ public:
 	// construction
 	~ProcessManager(void);
 
-	// interface
 	// updates all attached processes
 	unsigned int UpdateProcesses(unsigned long deltaMs);
 	// attaches a process to the process mgr

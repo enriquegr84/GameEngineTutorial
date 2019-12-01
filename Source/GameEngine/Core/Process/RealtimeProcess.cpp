@@ -60,22 +60,6 @@ DWORD WINAPI ThreadProc( LPVOID lpParam )
 	return TRUE;
 }
 
-void CreateThreads()
-{
-	InitializeCriticalSection(&CriticalSection); 
-
-	for (int i=0; i<20; i++)
-	{
-		HANDLE m_hThread = CreateThread( 
-					 NULL,       // default security attributes
-					 0,          // default stack size
-					 (LPTHREAD_START_ROUTINE) ThreadProc, 
-					 &MaxLoops,  // thread parameter is how many loops
-					 0, // default creation flags
-					 NULL);      // receive thread identifier
-	}
-}
-
 RealtimeProcess::RealtimeProcess( int priority )
 {
 	mThreadID = 0;

@@ -183,16 +183,6 @@ bool GameLogic::LoadGame(const char* levelResource)
         postLoadScript = pScriptElement->Attribute("postLoad");
     }
 
-    // load the pre-load script if there is one
-	/*
-    if (preLoadScript)
-    {
-        BaseResource resource(preLoadScript);
-		// this actually loads the XML file from the zip file
-        eastl::shared_ptr<ResHandle> pResourceHandle = ResCache::Get()->GetHandle(&resource);
-    }
-	*/
-
     // load all initial actors
 	tinyxml2::XMLElement* pActorsNode = pRoot->FirstChildElement("StaticActors");
     if (pActorsNode)
@@ -225,16 +215,6 @@ bool GameLogic::LoadGame(const char* levelResource)
     // call the delegate load function
     if (!LoadGameDelegate(pRoot))
         return false;  // no error message, it's assumed LoadGameDelegate() kicked out the error
-
-    // load the post-load script if there is one
-	/*
-    if (postLoadScript)
-    {
-        BaseResource resource(postLoadScript);
-		// this actually loads the XML file from the zip file
-        const eastl::shared_ptr<ResHandle>& pResourceHandle = ResCache::Get()->GetHandle(&resource);
-    }
-	*/
 
 	//	trigger the Environment Loaded Game event - 
 	//	only then can player actors and AI be spawned!
@@ -298,7 +278,7 @@ eastl::shared_ptr<Actor> GameLogic::CreateActor(const eastl::string &actorResour
 void GameLogic::DestroyActor(const ActorId actorId)
 {
     //	We need to trigger a synchronous event to ensure that any systems responding to this 
-	//	event can still access a valid actor if need be. The actor will be destroyed after this.
+	//	event can still access a valid actor if need to be. The actor will be destroyed after this.
     eastl::shared_ptr<EventDataDestroyActor> pEvent(new EventDataDestroyActor(actorId));
     BaseEventManager::Get()->TriggerEvent(pEvent);
 

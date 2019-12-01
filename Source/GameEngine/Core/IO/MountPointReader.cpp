@@ -86,14 +86,6 @@ bool ResourceMountPointFile::Open()
 	}
 
 	return false;
-/*
-	mMountPointFile = new PakFile();
-    if (mMountPointFile)
-    {
-		return mMountPointFile->Init(mResFileName.c_str());
-	}
-	return false;	
-*/
 }
 
 int ResourceMountPointFile::GetRawResource(const BaseResource &r, void** buffer)
@@ -107,16 +99,6 @@ int ResourceMountPointFile::GetRawResource(const BaseResource &r, void** buffer)
 	}
 
 	return size;
-
-/*
-	optional<int> resourceNum = mMountPointFile->Find(r.mName.c_str());
-	if (resourceNum.valid())
-	{
-		size = mMountPointFile->GetFileLen(*resourceNum);
-		mMountPointFile->ReadFile(*resourceNum, buffer);
-	}
-	return size;	
-*/
 }
 
 

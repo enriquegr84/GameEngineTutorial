@@ -47,10 +47,8 @@
 // Process class
 // 
 // Processes are ended by one of three methods: Success, Failure, or Aborted.
-//	- Success means the process completed successfully. If the process has a child, it will be attached to 
-//	the process mgr.
-//	- Failure means the process started but failed in some way. If the process has a child, it will be 
-//	aborted.
+//	- Success means the process completed successfully. If the process has a child, it will be attached to the process mgr.
+//	- Failure means the process started but failed in some way. If the process has a child, it will be aborted.
 //	- Aborted processes are processes that are canceled while not submitted to the process mgr. Depending 
 //	on the circumstances, they may or may not have gotten an OnInit() call. For example, a process can 
 //	spawn another process and call AttachToParent() on itself. If the new process fails, the child will

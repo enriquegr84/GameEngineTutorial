@@ -72,7 +72,7 @@ public:
 	virtual void ConvertMeshToTangents() = 0;
 
 	//! Allows to enable hardware skinning.
-	/* This feature is not implementated in Irrlicht yet */
+	/* This feature is not implementated yet */
 	virtual bool SetHardwareSkinning(bool on) = 0;
 
 	//! A vertex weight
@@ -288,7 +288,7 @@ public:
 	//! Does the mesh have no animation
 	virtual bool IsStatic();
 
-	//! (This feature is not implemented in irrlicht yet)
+	//! (This feature is not implemented yet)
 	virtual bool SetHardwareSkinning(bool on);
 
 	//Interface for the mesh loaders (finalize should lock these functions, and they should have some prefix like loader_

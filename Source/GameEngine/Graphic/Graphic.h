@@ -92,7 +92,6 @@
 #include "Scene/Element/Mesh/MeshMD3.h"
 #include "Scene/Element/Mesh/SkinnedMesh.h"
 #include "Scene/Element/Mesh/StandardMesh.h"
-#include "Scene/Element/Mesh/MeshCache.h"
 #include "Scene/Element/Mesh/MeshLoader.h"
 #include "Scene/Element/Mesh/MeshFileLoader.h"
 

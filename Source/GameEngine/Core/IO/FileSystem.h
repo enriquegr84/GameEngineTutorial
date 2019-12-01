@@ -77,10 +77,10 @@ public:
 	 *  \param result A reference to a std::vector<std::string> which will
 	 *         hold all files in a directory. The vector will be cleared.
 	 *  \param dir The director for which to get the directory listing.
-	 *  \param make_full_path If set to true, all listed files will be full paths.
+	 *  \param makeFullPath If set to true, all listed files will be full paths.
 	 */
     virtual void GetFileList(
-		eastl::set<eastl::wstring>& result, const eastl::wstring& dir, bool make_full_path=false);
+		eastl::set<eastl::wstring>& result, const eastl::wstring& dir, bool makeFullPath=false);
 
 	//! Determines if a directory exists and could be opened.
 	/** \param dirname is the string identifying the directory which should be tested for existence.

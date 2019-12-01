@@ -145,18 +145,10 @@ void LightManager::OnNodePreRender(Node* node)
 	if (RP_SOLID != mCurrentRenderPass)
 		return;
 
-	// And in fact for this example, I only want to consider lighting for cube scene
-	// nodes. You will probably want to deal with lighting for (at least) mesh /
-	// animated mesh scene nodes as well.
-	if (node->GetType() != NT_CUBE)
-		return;
-
 	if (LIGHTS_NEAREST_NODE == mMode)
 	{
 		// This is a naive implementation that prioritises every light in the scene
-		// by its proximity to the node being rendered.  This produces some flickering
-		// when lights orbit closer to a cube than its 'zone' lights.
-
+		// by its proximity to the node being rendered.
 		const Vector3<float> nodePosition = node->GetAbsoluteTransform().GetTranslation();
 
 		// Sort the light list by prioritising them based on their distance from the node

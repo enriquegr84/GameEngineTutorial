@@ -53,9 +53,9 @@
 	application layer and translate them into game messages.
 
 	The BaseScreenElement interface shows that a screen knows how to restore itself when it 
-	needs to be rebuilt, render itself when it's time to draw, how it should be ordered in the
-	master draw list, and whether it is visible. The OnMsgProce method accepts messages from
-	the application layer, but translates them into a structure to simplify the call signature
+	needs to be rebuilt, how to render itself when it's time to draw, how it should be ordered 
+	in the master draw list, and whether it is visible. The OnMsgProc() method accepts messages 
+	from the application layer, but translates them into a structure to simplify the call signature
 	of anything that will accept these messages.
 */
 class BaseScreenElement

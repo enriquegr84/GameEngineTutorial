@@ -16,11 +16,9 @@
 
 // Support for determining the potentially visible set of spatial objects in
 // a scene.  The class is designed to support derived classes that provide
-// specialized culling and sorting.  One example is a culler that stores
-// opaque objects in one set, sorted from front to back, and semitransparent
-// objects in another set, sorted from back to front.  Another example is a
-// portal system (room-graph visibility) that must maintain a set of unique
-// visible objects (one object viewed through two portals should not be
+// specialized culling and sorting.  One example is a portal system 
+// (room-graph visibility) that must maintain a set of unique visible 
+// objects (one object viewed through two portals should not be
 // inserted into the set twice).
 
 class Spatial;

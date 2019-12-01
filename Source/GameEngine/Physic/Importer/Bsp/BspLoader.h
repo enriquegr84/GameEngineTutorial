@@ -298,8 +298,8 @@ struct vec3f
 //! struct representing a 32 bit ARGB color.
 /** The color values for alpha, red, green, and blue are
 stored in a single u32. So all four values may be between 0 and 255.
-Alpha in Irrlicht is opacity, so 0 is fully transparent, 255 is fully opaque (solid).
-This class is used by most parts of the Irrlicht Engine
+Alpha is opacity, so 0 is fully transparent, 255 is fully opaque (solid).
+This class is used by most parts of the Engine
 to specify a color. Another way is using the class SColorf, which
 stores the color values in 4 floats.
 This class must consist of only one u32 and must not use virtual functions.

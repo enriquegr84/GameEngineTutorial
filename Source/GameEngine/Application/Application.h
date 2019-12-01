@@ -5,15 +5,6 @@
 
 #include "EASTL/string.h"
 
-/*
-	Application layer concerns itself with the machine the game runs on.
-	Its contents are divided further into different areas that deal with 
-	devices, operating system and game running. It handles user input devices:
-	such as keyboard, mouse, gamepad, joystick, etc... 
-	The application layer is initiated as global singleton object and is referred
-	to throughout the code through a pointer.
-*/
-
 class Application
 {
 protected:

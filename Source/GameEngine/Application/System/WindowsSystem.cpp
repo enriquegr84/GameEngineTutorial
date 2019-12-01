@@ -337,9 +337,7 @@ LRESULT CALLBACK WindowsSystem::WndProc (HWND hWnd, UINT iMsg, WPARAM wParam, LP
 	}
 
 	//	This checks what the message is. Below is some of the message that windows 
-	//	might return. There of course is HUNDREDS. The only message that you NEED 
-	//	to deal with, is the WM_DESTROY. The rest you don't have to check for. 
-	//	It is shown some examples on how to check for a message.	
+	//	might return.	
     switch (iMsg)											
 	{
 		// This message is sent when the window is created.
@@ -1527,9 +1525,12 @@ void WindowsSystem::CursorControl::Update()
 {
 	if (!mCursors[mActiveIcon].mFrames.empty() && mCursors[mActiveIcon].mFrameTime)
 	{
-		// update animated cursors. This could also be done by X11 in case someone wants to figure that out (this way was just easier to implement)
+		// update animated cursors. This could also be done by X11 in case someone 
+		// wants to figure that out (this way was just easier to implement)
 		unsigned int now = Timer::GetRealTime();
-		unsigned int frame = ((now - mActiveIconStartTime) / mCursors[mActiveIcon].mFrameTime) % mCursors[mActiveIcon].mFrames.size();
+		unsigned int frame = 
+			((now - mActiveIconStartTime) / mCursors[mActiveIcon].mFrameTime) % 
+			mCursors[mActiveIcon].mFrames.size();
 		SetCursor(mCursors[mActiveIcon].mFrames[frame].mIconHW);
 	}
 }
@@ -1555,56 +1556,12 @@ CursorIcon WindowsSystem::CursorControl::GetActiveIcon() const
 //! Add a custom sprite as cursor icon.
 CursorIcon WindowsSystem::CursorControl::AddIcon(const CursorSprite& icon)
 {
-	/*
-	if (icon.mSpriteId >= 0)
-	{
-		Cursor cursor;
-		cursor.mFrameTime = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrameTime;
-
-		for (unsigned int i = 0; i < (unsigned int)icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames.size(); ++i)
-		{
-			unsigned int texId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mTextureNumber;
-			unsigned int rectId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mRectNumber;
-			RectangleShape<2, int> rectIcon = icon.mSpriteBank->GetPositions()[rectId];
-
-			HCURSOR hc = TextureToCursor(mHWnd, icon.mSpriteBank->GetTexture(texId), rectIcon, icon.mHotSpot);
-			cursor.mFrames.push_back(CursorFrame(hc));
-		}
-
-		mCursors.push_back(cursor);
-		return (CursorIcon)(mCursors.size() - 1);
-	}
-	*/
 	return CI_NORMAL;
 }
 
 //! replace the given cursor icon.
 void WindowsSystem::CursorControl::ChangeIcon(CursorIcon iconId, const CursorSprite& icon)
 {
-	/*
-	if (iconId >= (int)mCursors.size())
-		return;
-
-	for (unsigned int i = 0; i < mCursors[iconId].mFrames.size(); ++i)
-		DestroyCursor(mCursors[iconId].mFrames[i].mIconHW);
-
-	if (icon.mSpriteId >= 0)
-	{
-		Cursor cursor;
-		cursor.mFrameTime = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrameTime;
-		for (unsigned int i = 0; i < icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames.size(); ++i)
-		{
-			unsigned int texId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mTextureNumber;
-			unsigned int rectId = icon.mSpriteBank->GetSprites()[icon.mSpriteId].mFrames[i].mRectNumber;
-			RectangleShape<2, int> rectIcon = icon.mSpriteBank->GetPositions()[rectId];
-
-			HCURSOR hc = TextureToCursor(mHWnd, icon.mSpriteBank->GetTexture(texId), rectIcon, icon.mHotSpot);
-			cursor.mFrames.push_back(CursorFrame(hc));
-		}
-
-		mCursors[iconId] = cursor;
-	}
-	*/
 }
 
 //! Return a system-specific size which is supported for cursors. Larger icons will fail, smaller icons might work.

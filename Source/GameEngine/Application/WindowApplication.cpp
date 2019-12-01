@@ -33,8 +33,7 @@ WindowApplication::WindowApplication(const char* windowTitle, int xPosition,
     int yPosition, int width, int height, const eastl::array<float, 4>& clearColor)
 :	mTitle(windowTitle), mXOrigin(xPosition), mYOrigin(yPosition), mWidth(width), 
 	mHeight(height), mClearColor(clearColor), mAllowResize(true), mWindowID(0), 
-	mLastTime(-1000.0), mAccumulatedTime(0.0), mFrameRate(0.0), mFramesPerSecond(0), 
-	mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
+	mFramesPerSecond(0), mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
 {
 	mQuitRequested = false;
 	mQuitting = false;
@@ -79,12 +78,6 @@ unsigned int WindowApplication::UpdateTime()
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-/*
-This is the base class which provides general purpose initialization for platform-dependent
-specifications. It creates a window for the application to draw to, set up graphics drivers,
-and perform generic component initialization. It is intended to be inherited so this method
-can be customized by derived class.
-*/
 bool WindowApplication::OnInitialize()
 {
 
@@ -155,7 +148,6 @@ bool WindowApplication::OnEvent(const Event& event)
 	The game loop is the system that makes calls to update the objects in the scene
 	and draw them to the screen. It is initialized and executed right after program
 	startup and runs continuously until the program is terminated.
-	Game loop illustration page 195
 */
 //----------------------------------------------------------------------------
 void WindowApplication::OnRun()

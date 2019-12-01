@@ -55,7 +55,6 @@
 #include "Core/Event/EventManager.h"
 #include "Core/Process/Process.h"
 
-const unsigned int SCREEN_REFRESH_RATE(1000/60);
 const GameViewId INVALID_GAME_VIEW_ID = 0xffffffff;
 
 template<class T>
@@ -86,8 +85,7 @@ HumanView::HumanView()
 	Renderer* renderer = Renderer::Get();
 	if (renderer)
 	{
-		// Create the scene and camera rig.
-		// Moved to the HumanView class post press
+		// Create the scene and camera.
 		mScene.reset(new ScreenElementScene());
 
 		mCamera.reset(new CameraNode(GameLogic::Get()->GetNewActorID()));
@@ -130,39 +128,26 @@ bool HumanView::LoadGame(tinyxml2::XMLElement* pLevelData)
 }
 
 /*
-	OnRender method is responsible for rendering the view at either a clamped maximum refresh rate 
-	or at full speed, depending on the value of the local variables. If the view is ready to draw,
-	it calls the application renderer's PreRender() method. 
+	OnRender method is responsible for rendering the view.
 	The loop iterates through the screen layers and if it is visible, it calls its own render method.
-	This implies that the only thing the view really draws for itself is the following RenderText().
-	Everything else should be drawn because it belongs to the list of screens.
-	Next it is rendered any text applied directly to the screen.
-	PostRender() method finalizes the render process and presents the screen to the viewer
 */
 void HumanView::OnRender(double time, float elapsedTime )
 {
-	int deltaTime = int(elapsedTime * 1000.0f);
+	mScreenElements.sort(SortBySharedPtrContent<BaseScreenElement>());
 
-	// It is time to draw ?
-	Renderer* renderer = Renderer::Get();
-	if( deltaTime > SCREEN_REFRESH_RATE)
+	for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator it =
+		mScreenElements.begin(); it!=mScreenElements.end(); ++it)
 	{
-		mScreenElements.sort(SortBySharedPtrContent<BaseScreenElement>());
-
-		for(eastl::list<eastl::shared_ptr<BaseScreenElement>>::iterator it =
-			mScreenElements.begin(); it!=mScreenElements.end(); ++it)
+		if ((*it)->IsVisible())
 		{
-			if ((*it)->IsVisible())
-			{
-				(*it)->OnRender(time, elapsedTime);
-			}
+			(*it)->OnRender(time, elapsedTime);
 		}
-
-        RenderText();
-
-		// Let the console render.
-		mConsole.OnRender(time, elapsedTime);
 	}
+
+    RenderText();
+
+	// Let the console render.
+	mConsole.OnRender(time, elapsedTime);
 }
 
 /*
@@ -371,9 +356,9 @@ bool HumanView::OnMsgProc( const Event& evt )
 	affected by game rules, like physics, belongs to the game logic. Whenever the game object moves
 	or change state, events are generated that eventually make their way to the game views, where
 	they update their internal representations of these objects. There is a different set of objects
-	that only exist visually and have no real effect on the world themselves, such as particle
-	effects, which is updated in this function. Since the game logic knows nothing about them, they
-	are completely contained in the human view and need some way to be updated if they are animating.
+	that only exist visually and have no real effect on the world themselves which is updated in 
+	this function. Since the game logic knows nothing about them, they are completely contained in the 
+	human view and need some way to be updated if they are animating.
 	The audio system is another example of what human perceives but the game logic does not.
 	Background music and ambient sound effects have no effect on the game logic per se and therefore
 	can safely belong to the human view. The audio system is actually managed as a Process object that

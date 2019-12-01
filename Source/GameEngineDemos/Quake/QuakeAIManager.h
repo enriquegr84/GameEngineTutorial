@@ -108,6 +108,7 @@ struct NodeState
 	NodeState()
 	{
 		valid = false;
+		current = false;
 		player = INVALID_ACTOR_ID;
 
 		weapon = WP_NONE;
@@ -128,6 +129,7 @@ struct NodeState
 	NodeState(eastl::shared_ptr<PlayerActor> playerActor)
 	{
 		valid = true;
+		current = false;
 		player = playerActor->GetId();
 
 		weapon = WP_NONE;
@@ -149,6 +151,8 @@ struct NodeState
 		player(state.player), weaponTarget(state.weaponTarget),
 		weapon(state.weapon), heuristic(state.heuristic)
 	{
+		current = false;
+
 		plan.id = state.plan.id;
 		plan.node = state.plan.node;
 		plan.AddPlanPath(state.plan.path);
@@ -179,6 +183,8 @@ struct NodeState
 
 	void NodeState::Copy(NodeState& state)
 	{
+		current = false;
+
 		valid = state.valid;
 		player = state.player;
 
@@ -233,6 +239,7 @@ struct NodeState
 	}
 
 	bool valid;
+	bool current;
 	ActorId player;
 
 	NodePlan plan;

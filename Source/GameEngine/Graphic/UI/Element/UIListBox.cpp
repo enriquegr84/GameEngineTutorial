@@ -275,11 +275,9 @@ bool UIListBox::OnEvent(const Event& event)
 					if (mSelected >= (int)mItems.size())
 						mSelected = mItems.size() - 1;	// will set Selected to -1 for empty listboxes which is correct
 				
-
 					RecalculateScrollPos();
 
 					// post the news
-
 					if (oldSelected != mSelected && mParent && !mSelecting && !mMoveOverSelect)
 					{
 						Event e;
@@ -408,38 +406,38 @@ bool UIListBox::OnEvent(const Event& event)
 
 					switch(event.mMouseInput.mEvent)
 					{
-					case MIE_MOUSE_WHEEL:
-						mScrollBar->SetPos(
-							mScrollBar->GetPos() + (event.mMouseInput.mWheel < 0 ? -1 : 1)* - mItemHeight/2);
-						return true;
+						case MIE_MOUSE_WHEEL:
+							mScrollBar->SetPos(
+								mScrollBar->GetPos() + (event.mMouseInput.mWheel < 0 ? -1 : 1)* - mItemHeight/2);
+							return true;
 
-					case MIE_LMOUSE_PRESSED_DOWN:
-					{
-						mSelecting = true;
-						return true;
-					}
-
-					case MIE_LMOUSE_LEFT_UP:
-					{
-						mSelecting = false;
-
-						if (IsPointInside(p))
-							SelectNew(event.mMouseInput.Y);
-
-						return true;
-					}
-
-					case MIE_MOUSE_MOVED:
-						if (mSelecting || mMoveOverSelect)
+						case MIE_LMOUSE_PRESSED_DOWN:
 						{
-							if (IsPointInside(p))
-							{
-								SelectNew(event.mMouseInput.Y, true);
-								return true;
-							}
+							mSelecting = true;
+							return true;
 						}
-					default:
-						break;
+
+						case MIE_LMOUSE_LEFT_UP:
+						{
+							mSelecting = false;
+
+							if (IsPointInside(p))
+								SelectNew(event.mMouseInput.Y);
+
+							return true;
+						}
+
+						case MIE_MOUSE_MOVED:
+							if (mSelecting || mMoveOverSelect)
+							{
+								if (IsPointInside(p))
+								{
+									SelectNew(event.mMouseInput.Y, true);
+									return true;
+								}
+							}
+						default:
+							break;
 					}
 				}
 				break;
@@ -506,16 +504,7 @@ void UIListBox::Draw()
 	RectangleShape<2, int>* clipRect = 0;
 	RectangleShape<2, int> frameRect(mAbsoluteRect);
 	RectangleShape<2, int> clientClip(mAbsoluteClippingRect);
-	/*
-	clientClip.mExtent[0] -= 1;
-	clientClip.mExtent[1] -= 1;
 
-	if (mScrollBar->IsVisible())
-		clientClip.mExtent[0] = mAbsoluteRect.mExtent[0] - skin->GetSize(DS_SCROLLBAR_SIZE);
-	clientClip.mExtent[1] -= 1;
-
-	//clientClip.clipAgainst(mAbsoluteClippingRect);
-	*/
 	skin->Draw2DRectangle(
 		shared_from_this(), skin->GetColor(DC_3D_HIGH_LIGHT), mVisual, frameRect, &mAbsoluteClippingRect);
 

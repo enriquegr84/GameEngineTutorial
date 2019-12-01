@@ -145,7 +145,7 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 							new EventDataNewActor(pActor->GetId(), pView->GetId()));
 
 						// [rez] This needs to happen asap because the constructor function for Lua 
-						// (which is called in through VCreateActor()) queues an event that expects 
+						// (which is called in through CreateActor()) queues an event that expects 
 						// this event to have been handled
 						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
 					}

@@ -45,8 +45,7 @@ typedef eastl::string ActorType;
 
 /*
 	Actor class. A game actor is an object that represents a single entity in your game world.
-	Its entiry purpose is to manage and mantain components to make them as flexible and reusable 
-	as possible.
+	Its entiry purpose is to manage and mantain components.
 */
 class Actor
 {

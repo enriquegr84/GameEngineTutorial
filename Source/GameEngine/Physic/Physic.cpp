@@ -466,19 +466,12 @@ public:
 		}
 	}
 
-	virtual void AddTriangleMeshCollider(
-		btAlignedObjectArray<btScalar>& vertices,
-		btAlignedObjectArray<int>& indices)
+	virtual void AddTriangleMeshCollider(btTriangleMesh* triangleMesh)
 	{
 		///perhaps we can do something special with entities (isEntity)
 		///like adding a collision Triggering (as example)
-		if (vertices.size() > 0 && indices.size() > 0)
+		if (triangleMesh->getNumTriangles() > 0)
 		{
-			// Create triangles
-			btTriangleIndexVertexArray * triangleMesh = new btTriangleIndexVertexArray(
-				indices.size()/3, &indices[0], 3*sizeof(int),
-				vertices.size()/3, &vertices[0], 3*sizeof(btScalar));
-
 			// Create the shape
 			btCollisionShape *shape = new btBvhTriangleMeshShape(triangleMesh, true);
 
@@ -609,8 +602,8 @@ bool BulletPhysics::Initialize()
 	mDispatcher = new btCollisionDispatcher( mCollisionConfiguration);
 
 	// Bullet uses this to quickly (imprecisely) detect collisions between objects.
-	//   Once a possible collision passes the broad phase, it will be passed to the
-	//   slower but more precise narrow-phase collision detection (btCollisionDispatcher).
+	// Once a possible collision passes the broad phase, it will be passed to the
+	// slower but more precise narrow-phase collision detection (btCollisionDispatcher).
 	mBroadphase = new btDbvtBroadphase();
 
 	// Manages constraints which apply forces to the physics simulation.  Used
@@ -648,9 +641,8 @@ bool BulletPhysics::Initialize()
 void BulletPhysics::OnUpdate( float const deltaSeconds )
 {
 	// Bullet uses an internal fixed timestep (default 1/60th of a second)
-	//   We pass in 4 as a max number of sub steps.  Bullet will run the simulation
-	//   in increments of the fixed timestep until "deltaSeconds" amount of time has
-	//   passed, but will only run a maximum of 10 steps this way.
+	// Bullet will run the simulation in increments of the fixed timestep 
+	// until "deltaSeconds" amount of time has passed (maximum of 10 steps).
 	mDynamicsWorld->stepSimulation(deltaSeconds, 10 );
 }
 
@@ -846,7 +838,7 @@ void BulletPhysics::AddTrigger(const Vector3<float> &dimension,
 	if (!pStrongActor)
 		return;  // FUTURE WORK: Add a call to the error log here
 
-				 // create the collision body, which specifies the shape of the object
+	// create the collision body, which specifies the shape of the object
 	btBoxShape * const boxShape = new btBoxShape(Vector3TobtVector3(dimension));
 
 	// triggers are immoveable.  0 mass signals this to Bullet.

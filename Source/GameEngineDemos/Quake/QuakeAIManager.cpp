@@ -1005,12 +1005,12 @@ void QuakeAIManager::PrintLogError(eastl::string error)
 
 void QuakeAIManager::PrintLogInformation(eastl::string info)
 {
-	mLogInformation << info.c_str();
+	//mLogInformation << info.c_str();
 }
 
 void QuakeAIManager::PrintLogInformationDetails(eastl::string info)
 {
-	mLogInformationDetails << info.c_str();
+	//mLogInformationDetails << info.c_str();
 }
 
 float QuakeAIManager::CalculateHeuristicItems(NodeState& playerState)
@@ -1355,21 +1355,51 @@ void QuakeAIManager::CalculateHeuristic(NodeState& playerState, NodeState& other
 	heuristic -= CalculateHeuristicItems(otherPlayerState);
 
 	//heuristic from damage dealing
+	playerState.weaponTarget = INVALID_ACTOR_ID;
+	otherPlayerState.weaponTarget = INVALID_ACTOR_ID;
 	int playerMaxDamage = 0, otherPlayerMaxDamage = 0;
 	for (int weapon = 1; weapon <= MAX_WEAPONS; weapon++)
 	{
-		if (playerState.damage[weapon - 1] > playerMaxDamage)
+		if (playerState.current)
 		{
-			playerState.weaponTarget = otherPlayerState.player;
-			playerState.weapon = (WeaponType)weapon;
-			playerMaxDamage = playerState.damage[weapon - 1];
+			if (playerState.weapon == (WeaponType)weapon)
+			{
+				if (playerState.damage[weapon - 1] > playerMaxDamage)
+				{
+					playerState.weaponTarget = otherPlayerState.player;
+					playerMaxDamage = playerState.damage[weapon - 1];
+				}
+			}
+		}
+		else
+		{
+			if (playerState.damage[weapon - 1] > playerMaxDamage)
+			{
+				playerState.weaponTarget = otherPlayerState.player;
+				playerState.weapon = (WeaponType)weapon;
+				playerMaxDamage = playerState.damage[weapon - 1];
+			}
 		}
 
-		if (otherPlayerState.damage[weapon - 1] > otherPlayerMaxDamage)
+		if (otherPlayerState.current)
 		{
-			otherPlayerState.weaponTarget = playerState.player;
-			otherPlayerState.weapon = (WeaponType)weapon;
-			otherPlayerMaxDamage = otherPlayerState.damage[weapon - 1];
+			if (otherPlayerState.weapon == (WeaponType)weapon)
+			{
+				if (otherPlayerState.damage[weapon - 1] > otherPlayerMaxDamage)
+				{
+					otherPlayerState.weaponTarget = playerState.player;
+					otherPlayerMaxDamage = otherPlayerState.damage[weapon - 1];
+				}
+			}
+		}
+		else
+		{
+			if (otherPlayerState.damage[weapon - 1] > otherPlayerMaxDamage)
+			{
+				otherPlayerState.weaponTarget = playerState.player;
+				otherPlayerState.weapon = (WeaponType)weapon;
+				otherPlayerMaxDamage = otherPlayerState.damage[weapon - 1];
+			}
 		}
 	}
 

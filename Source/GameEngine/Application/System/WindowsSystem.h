@@ -129,7 +129,7 @@ protected:
 
 	private:
 
-		// convert an Irrlicht texture to a windows cursor
+		// convert an texture to a windows cursor
 		HCURSOR TextureToCursor(HWND hwnd, Texture2 * tex, const RectangleShape<2, int>& sourceRect, const Vector2<unsigned int> &hotspot);
 
 		//! Updates the internal cursor position

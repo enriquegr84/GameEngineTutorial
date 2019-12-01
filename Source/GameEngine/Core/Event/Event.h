@@ -652,7 +652,8 @@ public:
 // class EventDataRequestNewActor				
 // This event is sent by a server asking Client proxy logics to create new actors from their local resources.
 // It can be sent from script or via code.
-// This event is also sent from the server game logic to client logics AFTER it has created a new actor. The logics will allow follow suit to stay in sync.
+// This event is also sent from the server game logic to client logics AFTER it has created a new actor. 
+// The logics will allow follow suit to stay in sync.
 //---------------------------------------------------------------------------------------------------------------------
 class EventDataRequestNewActor : public EventData
 {

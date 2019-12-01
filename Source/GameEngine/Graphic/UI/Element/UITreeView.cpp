@@ -799,10 +799,10 @@ void UITreeView::Draw()
 	BaseUIElement::Draw();
 }
 
-//! Sets the font which should be used as icon font. This font is set to the Irrlicht engine
+//! Sets the font which should be used as icon font. This font is set to the engine
 //! built-in-font by default. Icons can be displayed in front of every list item.
 //! An icon is a string, displayed with the icon font. When using the build-in-font of the
-//! Irrlicht engine as icon font, the icon strings defined in GUIIcons.h can be used.
+//! engine as icon font, the icon strings defined in GUIIcons.h can be used.
 void UITreeView::SetIconFont(eastl::shared_ptr<BaseUIFont> font)
 {
 	mIconFont = font;

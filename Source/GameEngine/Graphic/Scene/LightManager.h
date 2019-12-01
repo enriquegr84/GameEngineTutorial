@@ -21,18 +21,9 @@ class CameraNode;
 typedef eastl::list<eastl::shared_ptr<Light> > Lights;
 
 /*
-	Normally, you are limited to 8 dynamic lights per scene: this is a hardware limit.  If you
-	want to use more dynamic lights in your scene, then you can register an optional light
-	manager that allows you to to turn lights on and off at specific point during rendering.
-	You are still limited to 8 lights, but the limit is per scene node.
-
 	This is completely optional: if you do not register a light manager, then a default
 	distance-based scheme will be used to prioritise hardware lights based on their distance
 	from the active camera.
-
-	NO_MANAGEMENT disables the light manager and shows Irrlicht's default light behaviour.
-	The 8 lights nearest to the camera will be turned on, and other lights will be turned off.
-	In this example, this produces a funky looking but incoherent light display.
 
 	LIGHTS_NEAREST_NODE shows an implementation that turns on a limited number of lights
 	per mesh scene node. If finds the nearest light to the node being rendered,
@@ -47,9 +38,6 @@ typedef eastl::list<eastl::shared_ptr<Light> > Lights;
 	are  descendents of it in the scene graph.  This produces true 'local' lighting for each cube
 	in this example.  You could use a similar technique to locally light all meshes in (e.g.)
 	a room, without the lights spilling out to other rooms.
-
-	This light manager is also an event receiver; this is purely for simplicity in this example,
-	it's neither necessary nor recommended for a real application.
 */
 class LightManager
 {

@@ -46,7 +46,7 @@ void MD3Mesh::AddMeshBuffer(BaseMeshBuffer* meshBuffer)
 	mBufferInterpol.push_back(buffer);
 }
 
-//! create a Irrlicht MeshBuffer for a MD3 MeshBuffer
+//! create a MeshBuffer for a MD3 MeshBuffer
 eastl::shared_ptr<MeshBuffer> MD3Mesh::CreateMeshBuffer(const eastl::shared_ptr<MD3MeshBuffer>& source)
 {
 	VertexFormat vformat;

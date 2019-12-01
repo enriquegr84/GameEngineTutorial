@@ -21,7 +21,7 @@ enum GRAPHIC_ITEM RendererType
 	render and display any graphics. */
 	RT_NULL,
 
-	//! The Irrlicht Engine Software renderer.
+	//! The Engine Software renderer.
 	/** Runs on all platforms, with every hardware. It should only
 	be used for 2d graphics, but it can also perform some primitive
 	3d functions. These 3d drawing functions are quite fast, but

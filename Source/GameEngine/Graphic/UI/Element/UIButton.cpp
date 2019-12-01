@@ -125,115 +125,115 @@ bool UIButton::OnEvent(const Event& ev)
 
 	switch(ev.mEventType)
 	{
-	case ET_KEY_INPUT_EVENT:
-		if (ev.mKeyInput.mPressedDown &&
-			(ev.mKeyInput.mKey == KEY_RETURN || 
-			ev.mKeyInput.mKey == KEY_SPACE))
-		{
-			if (!mPushButton)
-				SetPressed(true);
-			else
-				SetPressed(!mPressed);
-
-			return true;
-		}
-		if (mPressed && !mPushButton && 
-			ev.mKeyInput.mPressedDown && 
-			ev.mKeyInput.mKey == KEY_ESCAPE)
-		{
-			SetPressed(false);
-			return true;
-		}
-		else
-		if (!ev.mKeyInput.mPressedDown && mPressed &&
-			(ev.mKeyInput.mKey == KEY_RETURN || 
-			ev.mKeyInput.mKey == KEY_SPACE))
-		{
-
-			if (!mPushButton)
-				SetPressed(false);
-
-			if (mParent)
-			{
-				Event newEvent;
-				newEvent.mEventType = ET_UI_EVENT;
-				newEvent.mUIEvent.mCaller = this;
-				newEvent.mUIEvent.mElement = 0;
-				newEvent.mUIEvent.mEventType = UIEVT_BUTTON_CLICKED;
-				mParent->OnEvent(newEvent);
-			}
-			return true;
-		}
-		break;
-	case ET_UI_EVENT:
-		if (ev.mUIEvent.mCaller == this)
-		{
-			if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUS_LOST)
+		case ET_KEY_INPUT_EVENT:
+			if (ev.mKeyInput.mPressedDown &&
+				(ev.mKeyInput.mKey == KEY_RETURN || 
+				ev.mKeyInput.mKey == KEY_SPACE))
 			{
 				if (!mPushButton)
-					SetPressed(false);
-				mFocusTime = Timer::GetTime();
-			}
-			else if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUSED)
-			{
-				mFocusTime = Timer::GetTime();
-			}
-			else if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_HOVERED || 
-					ev.mUIEvent.mEventType == UIEVT_ELEMENT_LEFT)
-			{
-				mHoverTime = Timer::GetTime();
-			}
-		}
-		break;
-	case ET_MOUSE_INPUT_EVENT:
-		if (ev.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
-		{
-			if (mUI->HasFocus(shared_from_this()) &&
-				!mAbsoluteRect.IsPointInside(Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y}))
-			{
-				mUI->RemoveFocus(shared_from_this());
-				return false;
-			}
+					SetPressed(true);
+				else
+					SetPressed(!mPressed);
 
-			if (!mPushButton)
-				SetPressed(true);
-
-			mUI->SetFocus(shared_from_this());
-			return true;
-		}
-		else
-		if (ev.mMouseInput.mEvent == MIE_LMOUSE_LEFT_UP)
-		{
-			bool wasPressed = mPressed;
-
-			if (!mAbsoluteRect.IsPointInside(Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y }))
-			{
-				if (!mPushButton)
-					SetPressed(false);
 				return true;
 			}
-
-			if (!mPushButton)
-				SetPressed(false);
-			else
-				SetPressed(!mPressed);
-
-			if ((!mPushButton && wasPressed && mParent) ||
-				(mPushButton && wasPressed != mPressed))
+			if (mPressed && !mPushButton && 
+				ev.mKeyInput.mPressedDown && 
+				ev.mKeyInput.mKey == KEY_ESCAPE)
 			{
-				Event newEvent;
-				newEvent.mEventType = ET_UI_EVENT;
-				newEvent.mUIEvent.mCaller = this;
-				newEvent.mUIEvent.mElement = 0;
-				newEvent.mUIEvent.mEventType = UIEVT_BUTTON_CLICKED;
-				mParent->OnEvent(newEvent);
+				SetPressed(false);
+				return true;
 			}
+			else
+			if (!ev.mKeyInput.mPressedDown && mPressed &&
+				(ev.mKeyInput.mKey == KEY_RETURN || 
+				ev.mKeyInput.mKey == KEY_SPACE))
+			{
 
-			return true;
-		}
-		break;
-	default:
-		break;
+				if (!mPushButton)
+					SetPressed(false);
+
+				if (mParent)
+				{
+					Event newEvent;
+					newEvent.mEventType = ET_UI_EVENT;
+					newEvent.mUIEvent.mCaller = this;
+					newEvent.mUIEvent.mElement = 0;
+					newEvent.mUIEvent.mEventType = UIEVT_BUTTON_CLICKED;
+					mParent->OnEvent(newEvent);
+				}
+				return true;
+			}
+			break;
+		case ET_UI_EVENT:
+			if (ev.mUIEvent.mCaller == this)
+			{
+				if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUS_LOST)
+				{
+					if (!mPushButton)
+						SetPressed(false);
+					mFocusTime = Timer::GetTime();
+				}
+				else if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUSED)
+				{
+					mFocusTime = Timer::GetTime();
+				}
+				else if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_HOVERED || 
+						ev.mUIEvent.mEventType == UIEVT_ELEMENT_LEFT)
+				{
+					mHoverTime = Timer::GetTime();
+				}
+			}
+			break;
+		case ET_MOUSE_INPUT_EVENT:
+			if (ev.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
+			{
+				if (mUI->HasFocus(shared_from_this()) &&
+					!mAbsoluteRect.IsPointInside(Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y}))
+				{
+					mUI->RemoveFocus(shared_from_this());
+					return false;
+				}
+
+				if (!mPushButton)
+					SetPressed(true);
+
+				mUI->SetFocus(shared_from_this());
+				return true;
+			}
+			else
+			if (ev.mMouseInput.mEvent == MIE_LMOUSE_LEFT_UP)
+			{
+				bool wasPressed = mPressed;
+
+				if (!mAbsoluteRect.IsPointInside(Vector2<int>{ev.mMouseInput.X, ev.mMouseInput.Y }))
+				{
+					if (!mPushButton)
+						SetPressed(false);
+					return true;
+				}
+
+				if (!mPushButton)
+					SetPressed(false);
+				else
+					SetPressed(!mPressed);
+
+				if ((!mPushButton && wasPressed && mParent) ||
+					(mPushButton && wasPressed != mPressed))
+				{
+					Event newEvent;
+					newEvent.mEventType = ET_UI_EVENT;
+					newEvent.mUIEvent.mCaller = this;
+					newEvent.mUIEvent.mElement = 0;
+					newEvent.mUIEvent.mEventType = UIEVT_BUTTON_CLICKED;
+					mParent->OnEvent(newEvent);
+				}
+
+				return true;
+			}
+			break;
+		default:
+			break;
 	}
 
 	return mParent ? mParent->OnEvent(ev) : false;
@@ -307,7 +307,7 @@ void UIButton::Draw( )
 
 		// Focused / unFocused animation
 		state = mUI->HasFocus(shared_from_this()) ? 
-			(unsigned int)BS_BUTTON_Focused : (unsigned int)BS_BUTTON_NOT_Focused;
+			(unsigned int)BS_BUTTON_FOCUSED : (unsigned int)BS_BUTTON_NOT_FOCUSED;
 		if (mButtonSprites[state].Index != -1)
 		{
 			mSpriteBank->Draw2DSprite(mButtonSprites[state].Index, mVisual, spritePos,

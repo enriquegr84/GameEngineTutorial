@@ -61,23 +61,6 @@
 
 #include "Graphic/ScreenElement.h"
 
-const unsigned long QuitNoPrompt = MAKELPARAM(-1,-1);
-const UINT MsgEndModal = (WM_USER+100);
-
-enum
-{
-	// Lower numbers get drawn first
-	ZORDER_BACKGROUND, 
-	ZORDER_LAYER1, 
-	ZORDER_LAYER2, 
-	ZORDER_LAYER3, 
-	ZORDER_TOOLTIP
-};
-
-// This class is a group of user interface controls.
-// It can be modal or modeless.
-
-
 //
 // class BaseUI									- Chapter 10, page 286  
 //

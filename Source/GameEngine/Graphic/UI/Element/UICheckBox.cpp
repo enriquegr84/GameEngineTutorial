@@ -65,81 +65,81 @@ bool UICheckBox::OnEvent(const Event& event)
 	{
 		switch(event.mEventType)
 		{
-		case ET_KEY_INPUT_EVENT:
-			if (event.mKeyInput.mPressedDown &&
-				(event.mKeyInput.mKey == KEY_RETURN || event.mKeyInput.mKey == KEY_SPACE))
-			{
-				mPressed = true;
-				return true;
-			}
-			else
-			if (mPressed && event.mKeyInput.mPressedDown && event.mKeyInput.mKey == KEY_ESCAPE)
-			{
-				mPressed = false;
-				return true;
-			}
-			else
-			if (!event.mKeyInput.mPressedDown && mPressed &&
-				(event.mKeyInput.mKey == KEY_RETURN || event.mKeyInput.mKey == KEY_SPACE))
-			{
-				mPressed = false;
-				if (mParent)
+			case ET_KEY_INPUT_EVENT:
+				if (event.mKeyInput.mPressedDown &&
+					(event.mKeyInput.mKey == KEY_RETURN || event.mKeyInput.mKey == KEY_SPACE))
 				{
-					Event newEvent;
-					newEvent.mEventType = ET_UI_EVENT;
-					newEvent.mUIEvent.mCaller = this;
-					newEvent.mUIEvent.mElement = 0;
-					mChecked = !mChecked;
-					newEvent.mUIEvent.mEventType = UIEVT_CHECKBOX_CHANGED;
-					mParent->OnEvent(newEvent);
+					mPressed = true;
+					return true;
 				}
-				return true;
-			}
-			break;
-		case ET_UI_EVENT:
-			if (event.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUS_LOST)
-			{
-				if (event.mUIEvent.mCaller == this)
-					mPressed = false;
-			}
-			break;
-		case ET_MOUSE_INPUT_EVENT:
-			if (event.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
-			{
-				mPressed = true;
-				mCheckTime = Timer::GetTime();
-				mUI->SetFocus(shared_from_this());
-				return true;
-			}
-			else
-			if (event.mMouseInput.mEvent == MIE_LMOUSE_LEFT_UP)
-			{
-				bool wasPressed = mPressed;
-				mUI->RemoveFocus(shared_from_this());
-				mPressed = false;
-
-				if (wasPressed && mParent)
+				else
+				if (mPressed && event.mKeyInput.mPressedDown && event.mKeyInput.mKey == KEY_ESCAPE)
 				{
-					if (!mAbsoluteRect.IsPointInside(Vector2<int>{event.mMouseInput.X, event.mMouseInput.Y}))
+					mPressed = false;
+					return true;
+				}
+				else
+				if (!event.mKeyInput.mPressedDown && mPressed &&
+					(event.mKeyInput.mKey == KEY_RETURN || event.mKeyInput.mKey == KEY_SPACE))
+				{
+					mPressed = false;
+					if (mParent)
 					{
+						Event newEvent;
+						newEvent.mEventType = ET_UI_EVENT;
+						newEvent.mUIEvent.mCaller = this;
+						newEvent.mUIEvent.mElement = 0;
+						mChecked = !mChecked;
+						newEvent.mUIEvent.mEventType = UIEVT_CHECKBOX_CHANGED;
+						mParent->OnEvent(newEvent);
+					}
+					return true;
+				}
+				break;
+			case ET_UI_EVENT:
+				if (event.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUS_LOST)
+				{
+					if (event.mUIEvent.mCaller == this)
 						mPressed = false;
-						return true;
+				}
+				break;
+			case ET_MOUSE_INPUT_EVENT:
+				if (event.mMouseInput.mEvent == MIE_LMOUSE_PRESSED_DOWN)
+				{
+					mPressed = true;
+					mCheckTime = Timer::GetTime();
+					mUI->SetFocus(shared_from_this());
+					return true;
+				}
+				else
+				if (event.mMouseInput.mEvent == MIE_LMOUSE_LEFT_UP)
+				{
+					bool wasPressed = mPressed;
+					mUI->RemoveFocus(shared_from_this());
+					mPressed = false;
+
+					if (wasPressed && mParent)
+					{
+						if (!mAbsoluteRect.IsPointInside(Vector2<int>{event.mMouseInput.X, event.mMouseInput.Y}))
+						{
+							mPressed = false;
+							return true;
+						}
+
+						Event newEvent;
+						newEvent.mEventType = ET_UI_EVENT;
+						newEvent.mUIEvent.mCaller = this;
+						newEvent.mUIEvent.mElement = 0;
+						mChecked = !mChecked;
+						newEvent.mUIEvent.mEventType = UIEVT_CHECKBOX_CHANGED;
+						mParent->OnEvent(newEvent);
 					}
 
-					Event newEvent;
-					newEvent.mEventType = ET_UI_EVENT;
-					newEvent.mUIEvent.mCaller = this;
-					newEvent.mUIEvent.mElement = 0;
-					mChecked = !mChecked;
-					newEvent.mUIEvent.mEventType = UIEVT_CHECKBOX_CHANGED;
-					mParent->OnEvent(newEvent);
+					return true;
 				}
-
-				return true;
-			}
-			break;
-		default:
-			break;
+				break;
+			default:
+				break;
 		}
 	}
 

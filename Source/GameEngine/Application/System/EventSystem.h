@@ -535,7 +535,6 @@ enum CORE_ITEM UIEventType
 	UIEVT_TREEVIEW_NODE_COLLAPSE,
 
 	//! deprecated - use EGET_TREEVIEW_NODE_COLLAPSE instead. This
-	//! may be removed by Irrlicht 1.9
 	UIEVT_TREEVIEW_NODE_COLLAPS = UIEVT_TREEVIEW_NODE_COLLAPSE,
 
 	//! No real event. Just for convenience to get number of events
@@ -691,10 +690,9 @@ class BaseGamepadHandler
 /*
 Supporting system for interactive application posses the capability to accept events. They can be
 from different kind, such device input (mouse and keyboard) graphic user interface (gui) or user
-events. The GameEngine is a event-driven system in which any subsystem can listen to declared
-events and process them on their convenience. Events usually start at a PostEvent function and are
-passed down through a chain of event receivers until OnEvent returns true. See EEVENT_TYPE for a
-description of where each type of event starts, and the path it takes through the system.
+events. Events usually start at a PostEvent function and are passed down through a chain of event 
+receivers until OnEvent returns true. See EEVENT_TYPE for a description of where each type of event 
+starts, and the path it takes through the system.
 */
 //! Interface of an object which can listen events.
 class EventListener

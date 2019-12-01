@@ -20,6 +20,7 @@ subject to the following restrictions:
 
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btAlignedObjectArray.h"
+#include "BulletCollision/CollisionShapes/btTriangleMesh.h"
 
 ///BspConverter turns a loaded bsp level into convex parts (vertices)
 class BspConverter
@@ -34,9 +35,7 @@ class BspConverter
 
 		///this callback is called for each brush that succesfully converted into vertices
 		virtual void AddConvexVerticesCollider(btAlignedObjectArray<btVector3>& vertices) = 0;
-		virtual void AddTriangleMeshCollider(
-			btAlignedObjectArray<btScalar>& vertices,
-			btAlignedObjectArray<int>& indices) = 0;
+		virtual void AddTriangleMeshCollider(btTriangleMesh* triangleMesh) = 0;
 
 };
 

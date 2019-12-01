@@ -145,9 +145,9 @@ GameDemoApp::~GameDemoApp()
 }
 
 //
-// GameDemoApp::CreateGameAndView
+// GameDemoApp::CreateGame
 //
-void GameDemoApp::CreateGameAndView()
+void GameDemoApp::CreateGame()
 {
 	GameDemoLogic* game = new GameDemoLogic();
 	game->Init();

@@ -709,7 +709,6 @@
     <ClCompile Include="..\Graphic\Scene\Element\LightNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\MeshNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshCache.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshMD3.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\SkinnedMesh.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.cpp" />
@@ -1671,7 +1670,6 @@
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\SkinnedMesh.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshLoader.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshCache.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\StandardMesh.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ParticleSystemNode.h" />

@@ -169,7 +169,7 @@ int Node::AttachAnimator(eastl::shared_ptr<NodeAnimator> const& animator)
 		return -1;
 	}
 
-	// Insert the child in the first available slot (if any).
+	// Insert the animator in the first available slot (if any).
 	int i = 0;
 	for (auto& current : mAnimators)
 	{
@@ -181,7 +181,7 @@ int Node::AttachAnimator(eastl::shared_ptr<NodeAnimator> const& animator)
 		++i;
 	}
 
-	// All slots are used, so append the child to the array.
+	// All slots are used, so append the animator to the array.
 	int const numAnimators = static_cast<int>(mAnimators.size());
 	mAnimators.push_back(animator);
 	return numAnimators;

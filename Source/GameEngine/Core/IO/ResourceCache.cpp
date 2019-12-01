@@ -416,29 +416,10 @@ eastl::vector<eastl::wstring> ResCache::Match(const eastl::wstring pattern)
 	if (mFile==NULL)
 		return matchingNames;
 
-	/*
-	FileSystem* fileSystem = FileSystem::Get();
-
-	bool searchDirectory = false;
-	eastl::string directory = FileSystem->GetFileDir(pattern);
-	eastl::string filePattern = Utils::GetFileBasename(pattern);
-	eastl::string currentDirectory = ".";
-	if ( directory != ".")
-		searchDirectory = true;
-	*/
-
 	int numFiles = mFile->GetNumResources();
 	for (int i=0; i<numFiles; ++i)
 	{
 		eastl::wstring name(mFile->GetResourceName(i).c_str());
-		/*
-		if (searchDirectory)
-			if (name.findLast ( '.' ) < 0)
-				currentDirectory = name;
-
-		if (!WildcardMatch(directory.c_str(), currentDirectory.c_str()))
-			continue;
-		*/
 		if (WildcardMatch(pattern.c_str(), name.c_str()))
 			matchingNames.push_back(name);
 	}

@@ -71,30 +71,20 @@ void BspConverter::CreateCurvedSurfaceBezier(BspLoader& bspLoader, BSPSurface* s
 		}
 	}
 
-	btAlignedObjectArray<btVector3>	vertices;
-	for (size_t i = 0; i < bezier.vertices.size(); i++)
+	btTriangleMesh* triangleMesh = new btTriangleMesh();
+	for (size_t i = 0; i < bezier.indices.size(); i+=3)
 	{
-		S3DVertex2TCoords pVertex = bezier.vertices[i];
-		vertices.push_back(btVector3(
-			pVertex.vPosition.x, pVertex.vPosition.y, pVertex.vPosition.z));
+		S3DVertex2TCoords pVertex1 = bezier.vertices[bezier.indices[i]];
+		S3DVertex2TCoords pVertex2 = bezier.vertices[bezier.indices[i+1]];
+		S3DVertex2TCoords pVertex3 = bezier.vertices[bezier.indices[i+2]];
+		triangleMesh->addTriangle(
+			btVector3(pVertex1.vPosition.x, pVertex1.vPosition.y, pVertex1.vPosition.z),
+			btVector3(pVertex2.vPosition.x, pVertex2.vPosition.y, pVertex2.vPosition.z),
+			btVector3(pVertex3.vPosition.x, pVertex3.vPosition.y, pVertex3.vPosition.z)
+		);
 	}
-	AddConvexVerticesCollider(vertices);
 
-	/*
-	btAlignedObjectArray<btScalar> vertices;
-	for (size_t i = 0; i < bezier.vertices.size(); i++)
-	{
-		S3DVertex2TCoords pVertex = bezier.vertices[i];
-		vertices.push_back(pVertex.vPosition.x);
-		vertices.push_back(pVertex.vPosition.y);
-		vertices.push_back(pVertex.vPosition.z);
-	}
-	btAlignedObjectArray<int> indices;
-	for (size_t i = 0; i < bezier.indices.size(); i++)
-		indices.push_back(bezier.indices[i]);
-
-	AddTriangleMeshCollider(vertices, indices);
-	*/
+	AddTriangleMeshCollider(triangleMesh);
 }
 
 void BspConverter::ConvertBsp(BspLoader& bspLoader, float scaling)
@@ -113,15 +103,11 @@ void BspConverter::ConvertBsp(BspLoader& bspLoader, float scaling)
 		BSPSurface& surface = bspLoader.mDrawSurfaces[i];
 		if (surface.surfaceType == MST_PATCH)
 		{
-			eastl::string shader = bspLoader.mDShaders[surface.shaderNum].shader;
-
-			if (shader.find("base_floor") == eastl::string::npos &&
-				shader.find("gothic_floor") == eastl::string::npos &&
-				shader.find("gothic_block") == eastl::string::npos)
-				continue;
-
-			int tesselation = 8;
-			CreateCurvedSurfaceBezier(bspLoader, &surface);
+			if (bspLoader.mDShaders[surface.shaderNum].contentFlags & BSPCONTENTS_SOLID)
+			{
+				int tesselation = 8;
+				CreateCurvedSurfaceBezier(bspLoader, &surface);
+			}
 		}
 	}
 

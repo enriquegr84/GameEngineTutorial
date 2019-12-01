@@ -30,7 +30,7 @@
 *  pipelines of these applications. Assimp loads all texture references from
 *  the model file and tries to determine which of the predefined texture
 *  types below is the best choice to match the original use of the texture
-*  as closely as possible.<br>
+*  as closely as possible.
 *
 *  In content pipelines you'll usually define how textures have to be handled,
 *  and the artists working on models have to conform to this specification,
@@ -129,14 +129,6 @@ enum GRAPHIC_ITEM MaterialType
 	MT_SOLID = 0,
 
 	//! A transparent material.
-	/** Only the first texture is used. The new color is calculated
-	by simply adding the source color and the dest color. This
-	means if for example a billboard using a texture with black
-	background and a red circle on it is drawn with this material,
-	the result is that only the red circle will be drawn a little
-	bit transparent, and everything which was black is 100%
-	transparent and not visible. This material type is useful for
-	particle effects. */
 	MT_TRANSPARENT
 };
 

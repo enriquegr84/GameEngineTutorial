@@ -15,7 +15,6 @@
 #include "Core/IO/FileSystem.h"
 #include "Graphic/Renderer/Renderer.h"
 
-//	Window abstracts the platform-dependent implementations
 class WindowApplication : public Application, public EventListener
 {
 protected:
@@ -48,7 +47,6 @@ protected:
 	void InitTime();
 	unsigned int UpdateTime();
 
-	double mLastTime, mAccumulatedTime, mFrameRate;
 	int mFramesPerSecond, mTimer, mMaxTimer;
 
     // Window parameters (from the constructor).

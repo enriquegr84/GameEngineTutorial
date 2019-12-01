@@ -722,7 +722,7 @@ const eastl::vector<SkinnedMesh::Joint*> &SkinnedMesh::GetAllJoints() const
 }
 
 
-//! (This feature is not implementated in irrlicht yet)
+//! (This feature is not implementated yet)
 bool SkinnedMesh::SetHardwareSkinning(bool on)
 {
 	if (mHardwareSkinning!=on)

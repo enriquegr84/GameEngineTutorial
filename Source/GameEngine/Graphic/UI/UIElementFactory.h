@@ -10,7 +10,7 @@
 #include "Element/UIElement.h"
 
 //! Interface making it possible to dynamically create UI elements
-/** To be able to add custom elements to Irrlicht and to make it possible for the
+/** To be able to add custom elements to the engine and to make it possible for the
 scene manager to save and load them, simply implement this interface and register it
 in your gui environment via UIEnvironment::RegisterUIElementFactory.
 Note: When implementing your own element factory, don't call UIEnvironment::grab() to

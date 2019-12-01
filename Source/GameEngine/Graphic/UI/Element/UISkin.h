@@ -111,9 +111,9 @@ enum UIDefaultSize
 	DS_WINDOW_BUTTON_WIDTH,
 	//! width of a checkbox check
 	DS_CHECK_BOX_WIDTH,
-	//! \deprecated This may be removed by Irrlicht 1.9
+	//! \deprecated
 	DS_MESSAGE_BOX_WIDTH,
-	//! \deprecated This may be removed by Irrlicht 1.9
+	//! \deprecated
 	DS_MESSAGE_BOX_HEIGHT,
 	//! width of a default button
 	DS_BUTTON_WIDTH,

@@ -145,9 +145,9 @@ QuakeApp::~QuakeApp()
 }
 
 //
-// QuakeApp::CreateGameAndView
+// QuakeApp::CreateGame
 //
-void QuakeApp::CreateGameAndView()
+void QuakeApp::CreateGame()
 {
 	QuakeLogic* game = new QuakeLogic();
 	game->Init();

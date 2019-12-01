@@ -72,11 +72,6 @@ void CameraNode::UpdateMatrices()
 #else
 	up = rotation.GetRow(2);
 #endif
-	/*
-	float dp = Dot(direction, Vector4<float>::Unit(2)); // up vector
-	if (Function<float>::Equals(fabs(dp), 1.f))
-		up[0] += 0.5f;
-	*/
 	Vector4<float> right = Cross(direction, up);
 
 #if defined(GE_USE_MAT_VEC)

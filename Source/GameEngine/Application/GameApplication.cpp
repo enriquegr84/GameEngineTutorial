@@ -47,8 +47,7 @@ GameApplication::GameApplication(const char* windowTitle, int xPosition,
     int yPosition, int width, int height, const eastl::array<float, 4>& clearColor)
 :	mTitle(windowTitle), mXOrigin(xPosition), mYOrigin(yPosition), mWidth(width), 
 	mHeight(height), mClearColor(clearColor), mAllowResize(true), mWindowID(0), 
-	mLastTime(-1000.0), mAccumulatedTime(0.0), mFrameRate(0.0), mFramesPerSecond(0), 
-	mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
+	mFramesPerSecond(0), mTimer(0), mSystem(0), mRenderer(0)
 {
 	mIsRunning = false;
 	mIsEditorRunning = false;
@@ -103,7 +102,7 @@ unsigned int GameApplication::UpdateTime()
 
 //----------------------------------------------------------------------------
 /*
-	This is the base class which provides general purpose initialization for platform-dependent
+	This is the base class which provides general purpose initialization for platform-independent
 	specifications. It creates a window for the application to draw to, set up graphics drivers,
 	and perform generic component initialization. It is intended to be inherited so this method
 	can be customized by derived class.
@@ -160,14 +159,9 @@ bool GameApplication::OnInitialize()
 	// get windows version and create OS operator
 	eastl::string winversion;
 	mSystem->GetSystemVersion(winversion);
-	//mSystem->SetWindowCaption(mTitle.c_str());
-	//mOperatingSystem = new OperatingSystem(winversion);
 
 #endif
 
-	// The device is created in the platform-dependent code in the
-	// GameApplication::Main function before OnInitialize is called.  Thus,
-	// at this point the device state may be modified.
 	mRenderer->SetClearColor(mClearColor);
 
 	eastl::wstring gametitle(GetGameTitle());
@@ -234,20 +228,6 @@ bool GameApplication::OnInitialize()
 
 	mOption.Init(L"Config/PlayerOptions.xml");
 
-	// Init the minimum managers so that user config exists, then
-	// handle all command line options that do not need (or must
-	// not have) other managers initialised:
-	//InitUserConfig();
-
-	//	Load the preinit file. This is within braces to create a scope and destroy 
-	//	the resource once it's loaded.  We don't need to do anything with it, 
-	//	we just need to load it.
-	{
-		//BaseResource resource(SCRIPT_PREINIT_FILE);
-		// this actually loads the XML file from the zip file
-		//eastl::shared_ptr<ResHandle> pResourceHandle = mResCache->GetHandle(&resource);
-	}
-
 	// The event manager should be created next so that subsystems can hook in as desired.
 	// Discussed in Chapter 5, page 144
 	mEventManager = eastl::shared_ptr<EventManager>(
@@ -258,19 +238,11 @@ bool GameApplication::OnInitialize()
 		return false;
 	}
 
-	// Create the game logic and all the views that attach to the game logic
-	CreateGameAndView();
+	// Create the game logic
+	CreateGame();
 
 	if (!GameLogic::mGame)
 		return false;
-
-	/*
-		Preload most commonly used files. The resource cache provides the methods to
-		preload those resources, based on file type.
-	*/
-	//mResCache->Preload(L"*.ogg", NULL);
-	//mResCache->Preload(L"*.dds", NULL);
-	//mResCache->Preload(L"*.jpg", NULL);
 
 	InitTime();
 
@@ -294,17 +266,7 @@ void GameApplication::OnTerminate()
 
 	GameLogic::mGame = nullptr;
 
-	//delete user_config;
-	//delete unlock_manager;
-	//delete level_manager;
-
-	//DestroyWindow((HWND)mSystem->GetID());
-
 	DestroyNetworkEventForwarder();
-
-	//delete mBaseSocketManager;
-
-	//delete mEventManager;
 }
 
 //----------------------------------------------------------------------------
@@ -331,7 +293,7 @@ bool GameApplication::OnEvent(const Event& event)
 	and draw them to the screen. It is initialized and executed right after program
 	startup and runs continuously until the program is terminated.
 
-	Our main loop is hard-coded update in which every system updates onceper frame,
+	Our main loop is hard-coded update in which every system updates once per frame,
 	but it is inflexible since doesn't allow to update in different frequency. 
 	Multithreaded architecture is the alternative to separate system in their own 
 	thread, and resolve communications issues between them.
@@ -345,21 +307,18 @@ void GameApplication::OnRun()
 {
 	if (OnInitialize())
 	{
-		// The default OnPreidle() clears the buffers. Allow the application
-		// to fill them before the window is shown and before the event loop
-		// starts.
 		OnPreidle();
 
 		// performs the main loop
 		while (IsRunning())
 		{
-			/*
-			Handles the low level operations of the platform, process system events
-			such as keyboard and mouse input
-			*/
 			if (mQuitting)
 				mSystem->OnClose();
 
+			/*
+				Handles the low level operations of the platform, process system events
+				such as keyboard and mouse input
+			*/
 			mSystem->OnRun();
 
 			const unsigned int elapsedTime = UpdateTime();
@@ -399,7 +358,7 @@ void GameApplication::OnUpdateView(unsigned int timeMs, unsigned int elapsedTime
 */
 void GameApplication::OnRender(unsigned int elapsedTime)
 {
-	// lear the buffers before rendering
+	// clear the buffers before rendering
 	mRenderer->ClearBuffers();
 
 	eastl::list<eastl::shared_ptr<BaseGameView>>::iterator it = mGameViews.begin();
@@ -436,53 +395,11 @@ void GameApplication::OnUpdateGame(unsigned int elapsedTime)
 }
 
 //----------------------------------------------------------
-// WndProc - the main message handler for the window class
-//
-// OnNcCreate - this is where you can set window data before it is created
-// OnMove - called whenever the window moves; used to update members of App
-// OnDeviceChange - called whenever you eject the CD-ROM.
-// OnDisplayChange - called whenever the user changes the desktop settings
-// OnPowerBroadcast - called whenever a power message forces a shutdown
-// OnActivate - called whenever windows on the desktop change focus.
-//
-// Note: pUserContext added to comply with DirectX 9c - June 2005 Update
-//
 void GameApplication::ProcessMessage(int* hWndPtrAddress, int msg, int wParam, int lParam)
 {
 	mSystem->ProcessMessage(hWndPtrAddress, msg, wParam, lParam);
 }
 
-//=============================================================================
-//	Initialises the minimum number of managers to get access to user_config.
-//=============================================================================
-/*
-void GameApplication::InitUserConfig()
-{
-	UserConfig* userConfig = new UserConfig();     // needs file_manager
-	const bool configOk = userConfig->LoadConfig();
-	if (UserConfigParams::mLanguage.ToString() != L"system")
-	{
-#ifdef WIN32
-		eastl::string s = eastl::string("LANGUAGE=") + UserConfigParams::mLanguage.c_str();
-		_putenv(s.c_str());
-#else
-		setenv("LANGUAGE", UserConfigParams::mLanguage.c_str(), 1);
-#endif
-	}
-
-	if (!LoadStrings("English"))
-		GE_ERROR("Failed to load strings");
-
-	// command line parameters
-	user_config->PostLoadInit();
-	if (!configOk || UserConfigParams::mAllPlayers.size() == 0)
-	{
-		userConfig->AddDefaultPlayer();
-		userConfig->SaveConfig();
-	}
-
-}   // InitUserConfig
-*/
 //----------------------------------------------------------------------------
 void GameApplication::OnPreidle()
 {

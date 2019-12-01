@@ -52,7 +52,7 @@ public:
 	QuakeApp();
 	virtual ~QuakeApp();
 
-	virtual void CreateGameAndView();
+	virtual void CreateGame();
 
 	virtual void AddView(const eastl::shared_ptr<BaseGameView>& pView);
 	virtual void RemoveView(const eastl::shared_ptr<BaseGameView>& pView);

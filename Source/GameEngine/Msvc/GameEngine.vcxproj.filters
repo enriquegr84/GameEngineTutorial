@@ -829,9 +829,6 @@
     <ClCompile Include="..\Graphic\Scene\Element\VolumeLightNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshCache.cpp">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Element\Particle\ParticleAttractionAffector.cpp">
       <Filter>Graphic\Scene\Element\Particle</Filter>
     </ClCompile>
@@ -1860,9 +1857,6 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\Effect\Particle.h">
       <Filter>Graphic\Effect</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshCache.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleAttractionAffector.h">
       <Filter>Graphic\Scene\Element\Particle</Filter>

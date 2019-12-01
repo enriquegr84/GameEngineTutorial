@@ -21,9 +21,9 @@ enum UIButtonState
 	//! The mouse cursor is not over the button
 	BS_BUTTON_MOUSE_OFF,
 	//! The button has the focus
-	BS_BUTTON_Focused,
+	BS_BUTTON_FOCUSED,
 	//! The button doesn't have the focus
-	BS_BUTTON_NOT_Focused,
+	BS_BUTTON_NOT_FOCUSED,
 	//! not used, counts the number of enumerated items
 	BS_COUNT
 };

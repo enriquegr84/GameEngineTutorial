@@ -69,16 +69,10 @@ enum GRAPHIC_ITEM NodeAnimatorType
 };
 
 //! An enumeration for all types of built-in scene nodes
-/** A scene node type is represented by a four character code
-such as 'cube' or 'mesh' instead of simple numbers, to avoid
-name clashes with external scene nodes.*/
 enum GRAPHIC_ITEM NodeType
 {
 	//! Root scene Node
 	NT_ROOT,
-
-	//! simple object scene node
-	NT_SHAPE,
 
 	//! simple cube scene node
 	NT_CUBE,
@@ -86,23 +80,11 @@ enum GRAPHIC_ITEM NodeType
 	//! Sphere scene node
 	NT_SPHERE,
 
-	//! Text Scene Node
-	NT_TEXT,
-
-	//! Water Surface Scene Node
-	NT_WATER_SURFACE,
-
-	//! Terrain Scene Node
-	NT_TERRAIN,
-
 	//! Sky Scene Node
 	NT_SKY,
 
 	//! Shadow Volume Scene Node
 	NT_SHADOW_VOLUME,
-
-	//! Octree Scene Node
-	NT_OCTREE,
 
 	//! Mesh Scene Node
 	NT_MESH,
@@ -112,9 +94,6 @@ enum GRAPHIC_ITEM NodeType
 
 	//! Empty Scene Node
 	NT_EMPTY,
-
-	//! Dummy Transformation Scene Node
-	NT_DUMMY_TRANSFORMATION,
 
 	//! Camera Scene Node
 	NT_CAMERA,
@@ -128,18 +107,8 @@ enum GRAPHIC_ITEM NodeType
 	//! Particle System Scene Node
 	NT_PARTICLE_SYSTEM,
 
-	//! Quake3 Shader Scene Node
-	NT_Q3SHADER,
-
-	//! Quake3 Model Scene Node ( has tag to link to )
-	NT_MD3,
-
 	//! Volume Light Scene Node
 	NT_VOLUME_LIGHT,
-
-	//! First Person Shooter Camera
-	/** Legacy, for loading version <= 1.4.x .irr files */
-	NT_CAMERA_FPS,
 
 	//! Unknown scene node
 	NT_UNKNOWN,
@@ -148,16 +117,6 @@ enum GRAPHIC_ITEM NodeType
 	NT_ANY
 };
 
-
-////////////////////////////////////////////////////
-//
-// AlphaType					- Chapter X, page Y
-//
-//   This enum defines the different types of alpha blending
-//   types that can be set on a scene node.
-//
-//	
-////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
 // enum RenderPass							- Chapter 16, page 529

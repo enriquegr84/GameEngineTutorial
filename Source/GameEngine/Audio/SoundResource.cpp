@@ -42,7 +42,7 @@
 #include <sys/types.h>
 
 #include <vorbis/codec.h>            // from the vorbis sdk
-#include <vorbis/vorbisfile.h>       // also :)
+#include <vorbis/vorbisfile.h>       
 
 #include "GameEngineStd.h"
 

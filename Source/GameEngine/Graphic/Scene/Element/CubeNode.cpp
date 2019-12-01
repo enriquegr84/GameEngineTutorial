@@ -141,7 +141,9 @@ bool CubeNode::Render(Scene *pScene)
 	Renderer::Get()->SetDepthStencilState(mDepthStencilState);
 	Renderer::Get()->SetRasterizerState(mRasterizerState);
 
-	Renderer::Get()->Draw(mVisual);
+	Renderer* renderer = Renderer::Get();
+	renderer->Update(mVisual->GetVertexBuffer());
+	renderer->Draw(mVisual);
 
 	Renderer::Get()->SetDefaultBlendState();
 	Renderer::Get()->SetDefaultDepthStencilState();

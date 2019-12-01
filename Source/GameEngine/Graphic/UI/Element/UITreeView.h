@@ -221,10 +221,10 @@ public:
 	virtual void SetLinesVisible(bool visible) = 0;
 
 	//! Sets the font which should be used as icon font.
-	/** This font is set to the Irrlicht engine built-in-font by
+	/** This font is set to the engine built-in-font by
 	default. Icons can be displayed in front of every list item.
 	An icon is a string, displayed with the icon font. When using
-	the build-in-font of the Irrlicht engine as icon font, the icon
+	the build-in-font of the engine as icon font, the icon
 	strings defined in GUIIcons.h can be used.
 	*/
 	virtual void SetIconFont(eastl::shared_ptr<BaseUIFont> font) = 0;
@@ -455,10 +455,10 @@ public:
 	//! draws the element and its children
 	virtual void Draw();
 
-	//! Sets the font which should be used as icon font. This font is set to the Irrlicht engine
+	//! Sets the font which should be used as icon font. This font is set to the engine
 	//! built-in-font by default. Icons can be displayed in front of every list item.
 	//! An icon is a string, displayed with the icon font. When using the build-in-font of the
-	//! Irrlicht engine as icon font, the icon strings defined in GUIIcons.h can be used.
+	//! engine as icon font, the icon strings defined in GUIIcons.h can be used.
 	virtual void SetIconFont(eastl::shared_ptr<BaseUIFont> font);
 
 	//! Sets if the image is left of the icon. Default is true.

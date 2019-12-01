@@ -178,7 +178,7 @@ bool EventManager::TriggerEvent(const BaseEventDataPtr& pEvent) const
 
 /*
 	EventManager QueueEvent finds the associated event listener list. If it finds this list, it adds the event to the
-	currently active queue. This keeps the EventManager from processing events for which there are no listeners.
+	currently active queue. This prevents the EventManager from processing events for which there are no listeners.
 */
 bool EventManager::QueueEvent(const BaseEventDataPtr& pEvent)
 {

@@ -111,66 +111,6 @@ void Culler::Insert(Spatial* spatial)
 
 void Culler::PushViewFrustumPlanes(eastl::shared_ptr<Camera> const& camera)
 {
-/*
-    // Get the frustum values.
-    float dMax = camera->GetDMax();
-    float dMin = camera->GetDMin(), dMin2 = dMin * dMin;
-    float rMax = camera->GetRMax(), rMax2 = rMax * rMax;
-    float rMin = camera->GetRMin(), rMin2 = rMin * rMin;
-    float uMax = camera->GetUMax(), uMax2 = uMax * uMax;
-    float uMin = camera->GetUMin(), uMin2 = uMin * uMin;
-
-    // Get the camera coordinate frame.
-    Vector4<float> P = camera->GetPosition();
-    Vector4<float> D = camera->GetDVector();
-    Vector4<float> U = camera->GetUVector();
-    Vector4<float> R = camera->GetRVector();
-    float dirDotEye = Dot(D, P);
-
-    // Compute the frustum planes in world coordinates.
-    Vector4<float> N;
-    float invLength, a0, a1, c;
-
-    // Compute the near plane, N = D.
-    c = -(dirDotEye + dMin);
-    mPlane[Camera::VF_DMIN].Set(D, c);
-
-    // Compute the far plane, N = -D.
-    c = dirDotEye + dMax;
-    mPlane[Camera::VF_DMAX].Set(-D, c);
-
-    // Compute the bottom plane
-    invLength = 1.0f / sqrt(dMin2 + uMin2);
-    a0 = -uMin*invLength;  // D component
-    a1 = +dMin*invLength;  // U component
-    N = a0*D + a1*U;
-    c = -Dot(N, P);
-    mPlane[Camera::VF_UMIN].Set(N, c);
-
-    // Compute the top plane.
-    invLength = 1.0f / sqrt(dMin2 + uMax2);
-    a0 = +uMax*invLength;  // D component
-    a1 = -dMin*invLength;  // U component
-    N = a0*D + a1*U;
-    c = -Dot(N, P);
-    mPlane[Camera::VF_UMAX].Set(N, c);
-
-    // Compute the left plane.
-    invLength = 1.0f / sqrt(dMin2 + rMin2);
-    a0 = -rMin*invLength;  // D component
-    a1 = +dMin*invLength;  // R component
-    N = a0*D + a1*R;
-    c = -Dot(N, P);
-    mPlane[Camera::VF_RMIN].Set(N, c);
-
-    // Compute the right plane.
-    invLength = 1.0f / sqrt(dMin2 + rMax2);
-    a0 = +rMax*invLength;  // D component
-    a1 = -dMin*invLength;  // R component
-    N = a0*D + a1*R;
-    c = -Dot(N, P);
-    mPlane[Camera::VF_RMAX].Set(N, c);
-*/
 	Matrix4x4<float> pv = Transpose(camera->GetProjectionViewMatrix());
 	mPlane[Camera::VF_DMIN].Set(Vector4<float>{
 		pv[2], pv[7], pv[11], 0.f}, pv[14]);

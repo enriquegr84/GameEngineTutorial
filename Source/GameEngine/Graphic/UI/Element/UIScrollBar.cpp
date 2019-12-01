@@ -272,11 +272,9 @@ void UIScrollBar::OnPostRender(unsigned int timeMs)
 
 		if (mDesiredPos >= mPos + mLargeStep)
 			SetPos(mPos + mLargeStep);
-		else
-		if (mDesiredPos <= mPos - mLargeStep)
+		else if (mDesiredPos <= mPos - mLargeStep)
 			SetPos(mPos - mLargeStep);
-		else
-		if (mDesiredPos >= mPos - mLargeStep && mDesiredPos <= mPos + mLargeStep)
+		else if (mDesiredPos >= mPos - mLargeStep && mDesiredPos <= mPos + mLargeStep)
 			SetPos(mDesiredPos);
 
 		if (mPos != oldPos && mParent)

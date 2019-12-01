@@ -1,6 +1,4 @@
 //========================================================================
-// HumanView.cpp - Implements the class HumanView, which provides a Human interface into the game
-//
 // Part of the GameEngine Application
 //
 // GameEngine is the sample application that encapsulates much of the source code
@@ -370,20 +368,6 @@ void BaseUI::Clear()
 
 	while (!children.empty())
 		children.back()->Remove();
-	/*
-	// delete all sprite banks
-	for (int i = 0; i < mBanks.size(); ++i)
-		if (mBanks[i].mBank)
-			delete mBanks[i].mBank;
-
-	// delete all fonts
-	for (int i = 0; i < mFonts.size(); ++i)
-		delete mFonts[i]->mFont;
-
-	// remove all factories
-	for (int i = 0; i < UIElementFactoryList.size(); ++i)
-		delete UIElementFactoryList[i];
-	*/
 }
 
 //
@@ -828,16 +812,6 @@ eastl::shared_ptr<BaseUISpriteBank> BaseUI::GetSpriteBank(const eastl::wstring& 
 	auto itBank = mBanks.find(fileName);
 	if (itBank != mBanks.end()) return mBanks[fileName];
 
-	// todo: load it!
-	/*
-	tinyxml2::XMLElement* pRoot = XmlResourceLoader::LoadAndReturnRootXMLElement(fileName.c_str());
-	// font doesn't exist, attempt to load it
-	if (!pRoot)
-	{
-		LogError(L"Failed to find resource file: " + fileName);
-		return nullptr;
-	}
-	*/
 	return nullptr;
 }
 
@@ -911,8 +885,7 @@ eastl::shared_ptr<BaseUIElement> BaseUI::GetNextElement(bool reverse, bool group
 	{
 		startOrder = startPos->GetTabOrder();
 	}
-	else
-	if (!group && mFocus && !mFocus->IsTabGroup())
+	else if (!group && mFocus && !mFocus->IsTabGroup())
 	{
 		startOrder = mFocus->GetTabOrder();
 		if (startOrder == -1)
@@ -925,7 +898,6 @@ eastl::shared_ptr<BaseUIElement> BaseUI::GetNextElement(bool reverse, bool group
 				el = el->GetParent();
 				startOrder = el->GetTabOrder();
 			}
-
 		}
 	}
 
@@ -996,18 +968,6 @@ eastl::shared_ptr<BaseUIWindow> BaseUI::AddWindow(const RectangleShape<2, int>& 
 	win->OnInit();
 	if (text)
 		win->SetText(text);
-
-	if (modal)
-	{
-		// Careful, don't just set the modal as parent above. That will mess up the focus 
-		// (and is hard to change because we have to be very careful not to get virtual function 
-		//	call, like OnEvent, in the window.
-		/*
-		eastl::shared_ptr<BaseUIModalScreen> modalScreen(new UIModalScreen(this, parent ? parent : Root, -1));
-		modalScreen->SetParent(parent ? parent : mRoot);
-		modalScreen->AddChild(win);
-		*/
-	}
 
 	return win;
 }

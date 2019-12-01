@@ -25,7 +25,7 @@ enum UIAlignment
 	UIA_SCALE
 };
 
-//! List of all basic Irrlicht GUI elements.
+//! List of all basic GUI elements.
 /** An IGUIElement returns this when calling IGUIElement::GetType(); */
 enum UIElementType
 {

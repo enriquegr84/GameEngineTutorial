@@ -84,8 +84,7 @@ protected:
 
 	// Local and world transforms.  In some situations you might need to set
 	// the world transform directly and bypass the Spatial::Update()
-	// mechanism, in which case worldTransformIsCurrent should be set to
-	// 'true'.
+	// mechanism, in which case worldTransformIsCurrent should be set to 'true'.
 	Transform mLocalTransform;
 	Transform mWorldTransform;
 

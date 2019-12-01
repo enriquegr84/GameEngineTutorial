@@ -63,13 +63,13 @@ Process::~Process(void)
 
 /*
 //---------------------------------------------------------------------------------------------------------------------
-// Attaches this process to the passed in parent.  It's perfectly valid for this process to have been run and you can
+// Attaches this process to the passed in parent. It's perfectly valid for this process to have been run and you can
 // safely call it from within this process' OnUpdate() function.
 //---------------------------------------------------------------------------------------------------------------------
 bool Process::AttachToParent(Process* pParent)
 {
-	// If the process is alive, we need to mark it to be removed from the process list without being destroyed.  If 
-	// the process is dead, kick and error and don't attach it.  If the process has already been marked for removal,
+	// If the process is alive, we need to mark it to be removed from the process list without being destroyed. If 
+	// the process is dead, kick and error and don't attach it. If the process has already been marked for removal,
 	// it means we're trying to double-attach this process, which is an error.
 	if (IsAlive())
 	{
@@ -94,7 +94,7 @@ bool Process::AttachToParent(Process* pParent)
 */
 
 //---------------------------------------------------------------------------------------------------------------------
-// Removes the child from this process.  This releases ownership of the child to the caller and completely removes it
+// Removes the child from this process. This releases ownership of the child to the caller and completely removes it
 // from the process chain.
 //---------------------------------------------------------------------------------------------------------------------
 eastl::shared_ptr<Process> Process::RemoveChild(void)

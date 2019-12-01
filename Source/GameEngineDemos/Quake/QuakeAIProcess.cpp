@@ -413,6 +413,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 			NodeState state(playerState);
 			NodeState otherState(otherPlayerState);
+
+			otherState.current = true;
 			Simulation(state, playerPathPlans[playerCluster], otherState, otherPlayerState.plan.path);
 
 			if (state.valid && otherState.valid)
@@ -432,6 +434,8 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 
 			NodeState state(playerState);
 			NodeState otherState(otherPlayerState);
+
+			state.current = true;
 			Simulation(state, playerState.plan.path, otherState, otherPlayerPathPlans[otherPlayerCluster]);
 
 			if (state.valid && otherState.valid)
@@ -448,6 +452,9 @@ void QuakeAIProcess::EvaluatePlayers(NodeState& playerState, NodeState& otherPla
 	{
 		NodeState state(playerState);
 		NodeState otherState(otherPlayerState);
+
+		state.current = true;
+		otherState.current = true;
 		Simulation(state, playerState.plan.path, otherState, otherPlayerState.plan.path);
 
 		if (state.valid && otherState.valid)
@@ -1414,6 +1421,8 @@ void QuakeAIProcess::ThreadProc( )
 						GameLogic::Get()->GetActor(player).lock());
 
 					NodeState playerState(pHumanPlayer);
+					playerState.weapon = mAIManager->GetPlayerWeapon(player);
+					playerState.weaponTarget = mAIManager->GetPlayerWeaponTarget(player);
 					mAIManager->GetPlayerPlan(player, playerState.plan);
 					for (ActorId aiPlayer : players[GV_AI])
 					{
@@ -1514,6 +1523,8 @@ void QuakeAIProcess::ThreadProc( )
 						GameLogic::Get()->GetActor(aiPlayer).lock());
 
 					NodeState aiPlayerState(pAIPlayer);
+					aiPlayerState.weapon = mAIManager->GetPlayerWeapon(aiPlayer);
+					aiPlayerState.weaponTarget = mAIManager->GetPlayerWeaponTarget(aiPlayer);
 					mAIManager->GetPlayerPlan(aiPlayer, aiPlayerState.plan);
 					for (ActorId player : players[GV_HUMAN])
 					{

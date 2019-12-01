@@ -29,8 +29,8 @@
 #define __MSXML_LIBRARY_DEFINED__
 #endif
 
-#ifndef __XMLDocument_FWD_DEFINED__
-#define __XMLDocument_FWD_DEFINED__
+#ifndef __XMLDOCUMENT_FWD_DEFINED__
+#define __XMLDOCUMENT_FWD_DEFINED__
 #endif
 
 #include <windows.h>
@@ -127,43 +127,6 @@
 #else
 	#include <assert.h> 
 #endif
-
-// Macros for memory management.  To report memory leaks and related
-// file-line information, you must enable USE_MEMORY.  This in
-// turn requires Memory::Initialize and Memory::Terminate to be called
-// in your application.  This is handled automatically if you use the
-// application layer.  If you do not, see the 'main' function
-// in the file
-//   /LibApplication/Application.cpp
-// for an example.  Also read the general documentation about start-up
-// and shut-down
-//   /Documentation/InitTerm.pdf
-//
-//#define USE_MEMORY
-#ifdef USE_MEMORY
-    // Enable an assertion when a allocation occurs before
-    // Memory::Initialize was called or when a deallocation occurs after
-    // Memory::Terminate was called.
-    #define USE_MEMORY_ASSERT_ON_PREINIT_POSTTERM_OPERATIONS
-
-    // When USE_MEMORY is enabled, the Memory functions delete0,
-    // delete1, delete2, and delete3 will fail when the incoming pointer
-    // was not allocated by the GameEngine memory manager.  Enabling the
-    // following flag tells memory manager to attempt 'delete' or 'delete[]' 
-	// under the assumption that the memory was allocated by 'new' or 'new[]'.
-    #define USE_MEMORY_ALLOW_DELETE_ON_FAILED_MAP_LOOKUP
-#endif
-
-// Flags for FileIO and BufferIO.
-#ifdef _DEBUG
-    #define FILEIO_VALIDATE_OPERATION
-    #define BUFFERIO_VALIDATE_OPERATION
-#endif
-
-// Uncomment this to turn off the logging system.  The macros LogAssert,
-// LogError, LogWarning, and LogInformation expand to nothing.  (Do this for
-// optimal performance.)
-//#define NO_LOGGER
 
 // Common standard library headers.
 #include <cstdarg>
