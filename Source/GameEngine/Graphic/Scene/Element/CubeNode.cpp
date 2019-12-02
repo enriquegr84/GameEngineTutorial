@@ -32,6 +32,7 @@ CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderCom
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);
+	mf.SetVertexBufferUsage(Resource::DYNAMIC_UPDATE);
 	mVisual = mf.CreateBox(mSize, mSize, mSize);
 
 	// Multiply the texture coordinates by a factor to enhance the wrap-around.

@@ -1617,9 +1617,7 @@ void Damage(int damage, int dflags, int mod,
 	// do the damage
 	if (take)
 	{
-		target->GetState().stats[STAT_HEALTH] =
-			target->GetState().stats[STAT_HEALTH] - take;
-
+		target->GetState().stats[STAT_HEALTH] -= take;
 		if (target->GetState().stats[STAT_HEALTH] <= 0)
 		{
 			//target->GetState().flags |= FL_NO_KNOCKBACK;

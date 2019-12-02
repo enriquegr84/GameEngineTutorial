@@ -27,9 +27,6 @@ int main(int numArguments, char* arguments[])
 #endif
 
 	// Application entry point. It is the startup function used for initialization
-	// The application layer depends on the directory structure that ships with the 
-	// libraries. You need to create the APP_PATH environment variable in order for 
-	// the applications to find various data files.
 #ifndef __APPLE__
 	Application::ApplicationPath = Environment::GetAbsolutePath("");
 #else
@@ -48,7 +45,7 @@ int main(int numArguments, char* arguments[])
 #endif
 	if (Application::ApplicationPath == "")
 	{
-		LogError("Please set the APP_PATH environment variable.\n");
+		LogError("Unknown application path");
 		return INT_MAX;
 	}
 	Application::ApplicationPath += "/";

@@ -32,6 +32,7 @@ SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRende
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);
+	mf.SetVertexBufferUsage(Resource::DYNAMIC_UPDATE);
 	mVisual = mf.CreateSphere(polyCountX, polyCountY, radius);
 
 	// Create the visual effect. The world up-direction is (0,0,1).  Choose

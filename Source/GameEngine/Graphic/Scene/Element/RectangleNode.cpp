@@ -33,6 +33,7 @@ RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater,
 
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);
+	mf.SetVertexBufferUsage(Resource::DYNAMIC_UPDATE);
 	mVisual = mf.CreateRectangle(mPolyCountX, mPolyCountY, mSizeX, mSizeY);
 
 	// Multiply the texture coordinates by a factor to enhance the wrap-around.
