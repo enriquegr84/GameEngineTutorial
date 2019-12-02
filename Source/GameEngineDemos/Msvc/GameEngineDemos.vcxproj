@@ -229,7 +229,6 @@
     <ClInclude Include="..\Quake\Quake.h" />
     <ClInclude Include="..\Quake\QuakeActorFactory.h" />
     <ClInclude Include="..\Quake\QuakeAIManager.h" />
-    <ClInclude Include="..\Quake\QuakeAIProcess.h" />
     <ClInclude Include="..\Quake\QuakeAIView.h" />
     <ClInclude Include="..\Quake\QuakeApp.h" />
     <ClInclude Include="..\Quake\QuakeCameraController.h" />
@@ -268,7 +267,6 @@
     <ClCompile Include="..\Quake\Quake.cpp" />
     <ClCompile Include="..\Quake\QuakeActorFactory.cpp" />
     <ClCompile Include="..\Quake\QuakeAIManager.cpp" />
-    <ClCompile Include="..\Quake\QuakeAIProcess.cpp" />
     <ClCompile Include="..\Quake\QuakeAIView.cpp" />
     <ClCompile Include="..\Quake\QuakeApp.cpp" />
     <ClCompile Include="..\Quake\QuakeCameraController.cpp" />

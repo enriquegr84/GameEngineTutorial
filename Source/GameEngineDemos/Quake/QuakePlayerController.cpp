@@ -48,7 +48,6 @@
 #include "Actors/TeleporterTrigger.h"
 
 #include "QuakePlayerController.h"
-#include "QuakeAIManager.h"
 #include "QuakeEvents.h"
 #include "QuakeApp.h"
 
@@ -218,18 +217,6 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		pitchRotation = Rotation<4, float>(
 			AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
 		pTransformComponent->SetRotation(yawRotation * pitchRotation);
-
-		if (mEnabled)
-		{
-			QuakeAIManager* aiManager =
-				dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-				
-			Vector3<float> currentPosition = pTransformComponent->GetPosition();
-			PathingNode* currentNode = aiManager->GetPathingGraph()->FindClosestNode(currentPosition);
-
-			NodePlan playerPlan(currentNode, PathingArcVec());
-			aiManager->SetPlayerPlan(mTarget->GetId(), playerPlan);
-		}
 	}
 
 	Vector4<float> atWorld = Vector4<float>::Zero();

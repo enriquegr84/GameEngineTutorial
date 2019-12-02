@@ -67,7 +67,6 @@ public:
 protected:
 
 	void Stationary(unsigned long deltaMs);
-	void Avoidance(unsigned long deltaMs);
 	void Smooth(unsigned long deltaMs);
 	void Cliff();
 
@@ -77,8 +76,6 @@ protected:
 
 	// Orientation Controls
 	float mYaw;
-	float mYawSmooth;
-	float mYawSmoothTime;
 	float mPitch;
 	float mPitchTarget;
 	float mPitchOnDown;
@@ -101,16 +98,6 @@ protected:
 
 private:
 
-	float mCurrentActionTime;
-	unsigned int mCurrentAction;
-
-	ActorId mCurrentActor;
-	PathingArcVec mCurrentPlan;
-	int mCurrentPlanId;
-
-	PathingNode* mGoalNode;
-	PathingArc* mCurrentArc;
-	PathingNode* mCurrentNode;
 	eastl::shared_ptr<PathingGraph> mPathingGraph;
 };
 

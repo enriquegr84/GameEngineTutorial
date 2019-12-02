@@ -11,13 +11,12 @@
 #include "Quake.h"
 #include "QuakeApp.h"
 #include "QuakeView.h"
-#include "QuakeAIProcess.h"
 #include "QuakeAIView.h"
+#include "QuakeAIManager.h"
 #include "QuakeNetwork.h"
 #include "QuakeEvents.h"
 #include "QuakeActorFactory.h"
 #include "QuakeLevelManager.h"
-#include "QuakeAIManager.h"
 
 //
 // QuakeLogic::QuakeLogic
@@ -227,12 +226,9 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 						pPlayerActor->PlayerSpawn();
 						pView->OnAttach(pView->GetId(), pPlayerActor->GetId());
 
-						if (!gameApp->mOption.mLevelMod)
-						{
-							eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
-								new EventDataNewActor(pPlayerActor->GetId(), pView->GetId()));
-							BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
-						}
+						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+							new EventDataNewActor(pPlayerActor->GetId(), pView->GetId()));
+						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
 					}
 				}
 				else if (pView->GetType() == GV_REMOTE)
@@ -268,28 +264,6 @@ void QuakeLogic::ChangeState(BaseGameState newState)
 					}
 				}
 			}
-
-			if (gameApp->mOption.mLevelMod)
-			{
-				for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
-				{
-					eastl::shared_ptr<BaseGameView> pView = *it;
-					if (pView->GetType() == GV_HUMAN)
-					{
-						eastl::shared_ptr<BaseGameView> pAiView(new QuakeAIView());
-						gameApp->AddView(pAiView);
-
-						pAiView->OnAttach(pAiView->GetId(), pView->GetActorId());
-
-						eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
-							new EventDataNewActor(pView->GetActorId(), pAiView->GetId()));
-						BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
-
-						break;
-					}
-				}
-			}
-
 			break;
 		}
 	}
@@ -448,10 +422,6 @@ void QuakeLogic::SpawnActorDelegate(BaseEventDataPtr pEventData)
 		{
 			SelectSpawnPoint(pTransformComponent->GetTransform().GetTranslation(), spawnTransform);
 			pTransformComponent->SetTransform(spawnTransform);
-
-			QuakeAIManager* aiManager =
-				dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-			aiManager->SpawnActor(pPlayerActor->GetId());
 		}
 
 		eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
@@ -937,12 +907,6 @@ eastl::shared_ptr<PlayerActor> QuakeLogic::CreatePlayerActor(const eastl::string
 
 bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 {
-	eastl::string levelPath = 
-		"ai/quake/" + eastl::string(pLevelData->Attribute("name")) + ".bin";
-	GetAIManager()->LoadPathingGraph(
-		ToWideString(FileSystem::Get()->GetPath(levelPath.c_str()).c_str()));
-	AttachProcess(eastl::shared_ptr<Process>(new QuakeAIProcess()));
-
 	for (auto actor : mActors)
 	{
 		eastl::shared_ptr<Actor> pActor = actor.second;
@@ -2842,10 +2806,6 @@ void QuakeLogic::PhysicsTriggerEnterDelegate(BaseEventDataPtr pEventData)
 
 			pHealthPickup->mRespawnTime = (float)PickupHealth(pPlayerActor, pHealthPickup);
 		}
-
-		QuakeAIManager* aiManager =
-			dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-		aiManager->DetectActor(pPlayerActor, pItemActor);
 	}
 }
 
@@ -2900,18 +2860,10 @@ void QuakeLogic::PhysicsCollisionDelegate(BaseEventDataPtr pEventData)
 			if (pItemActor->GetComponent<PushTrigger>(PushTrigger::Name).lock())
 			{
 				pPlayerActor->GetAction().triggerPush = pItemActor->GetId();
-
-				QuakeAIManager* aiManager =
-					dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-				aiManager->DetectActor(pPlayerActor, pItemActor);
 			}
 			else if (pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock())
 			{
 				pPlayerActor->GetAction().triggerTeleporter = pItemActor->GetId();
-
-				QuakeAIManager* aiManager =
-					dynamic_cast<QuakeAIManager*>(GameLogic::Get()->GetAIManager());
-				aiManager->DetectActor(pPlayerActor, pItemActor);
 			}
 		}
 		else if (pItemActor->GetType() == "Fire")
