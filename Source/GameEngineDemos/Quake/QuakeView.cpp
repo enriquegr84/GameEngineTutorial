@@ -370,8 +370,7 @@ bool QuakeMainMenuUI::OnInit()
 	settings->AddItem(L"Key D - Move right");
 	settings->AddItem(L"Key C - Move down");
 	settings->AddItem(L"Key Space - Move up");
-	settings->AddItem(L"Key 6 - Graphics wireframe");
-	settings->AddItem(L"Key 7 - Physics wireframe");
+	settings->AddItem(L"Key 7 - Graphics wireframe");
 	settings->AddItem(L"Key 8 - Control/Follow player");
 	settings->AddItem(L"Key 9 - Control camera");
 
@@ -1038,20 +1037,13 @@ bool QuakeHumanView::OnMsgProc( const Event& evt )
 			{
 				switch (evt.mKeyInput.mKey)
 				{
-					case KEY_KEY_6:
+					case KEY_KEY_7:
 					{
 						mDebugMode = mDebugMode ? DM_OFF : DM_WIREFRAME;
 						for (auto child : mScene->GetRootNode()->GetChildren())
 							child->SetDebugState(mDebugMode);
 						return true;
 					}
-
-					case KEY_KEY_7:
-					{
-						QuakeLogic* game = static_cast<QuakeLogic *>(GameLogic::Get());
-						game->ToggleRenderDiagnostics();
-						return true;
-					}	
 
 					case KEY_KEY_8:
 					{
