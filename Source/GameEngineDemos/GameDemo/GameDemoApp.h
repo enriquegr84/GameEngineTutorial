@@ -60,7 +60,7 @@ public:
 	virtual void RemoveView();
 
 	virtual eastl::wstring GetGameTitle() { return L"Game Demo"; }
-	virtual eastl::wstring GetGameAppDirectory() { return L"GameEngineDemos\\GameDemo"; }
+	virtual eastl::wstring GetGameAppDirectory() { return L"GameEngine\\GameDemo"; }
 	//virtual HICON GetIcon();
 
 protected:

@@ -60,7 +60,7 @@ public:
 	virtual void RemoveView();
 
 	virtual eastl::wstring GetGameTitle() { return L"Game Quake"; }
-	virtual eastl::wstring GetGameAppDirectory() { return L"GameEngineQuake\\Quake"; }
+	virtual eastl::wstring GetGameAppDirectory() { return L"GameEngine\\Quake"; }
 	//virtual HICON GetIcon();
 
 protected:
