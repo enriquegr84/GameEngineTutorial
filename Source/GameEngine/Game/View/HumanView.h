@@ -92,9 +92,7 @@ public:
     bool LoadGame(tinyxml2::XMLElement* pLevelData);
 
 	/*
-		list of pointers to objects that implement the BaseScreenElement interface. A screen
-		element is a strictly user interface thing and is a container for user interface controls 
-		like buttons and textboxes
+		list of pointers to objects that implement the BaseScreenElement interface.
 	*/
 	eastl::list<eastl::shared_ptr<BaseScreenElement>> mScreenElements; // a game screen entity
 																		
