@@ -45,56 +45,6 @@
 
 
 //---------------------------------------------------------------------------------------------------------------------
-// class EventDataFireWeapon
-//---------------------------------------------------------------------------------------------------------------------
-class EventDataFireWeapon : public EventData
-{
-    ActorId mId;
-
-public:
-    static const BaseEventType skEventType;
-    virtual const BaseEventType & GetEventType() const
-    {
-        return skEventType;
-    }
-
-    EventDataFireWeapon(void)
-    {
-        mId = INVALID_ACTOR_ID;
-    }
-
-    EventDataFireWeapon( ActorId id )
-	: mId( id )
-    {
-    }
-
-    virtual BaseEventDataPtr Copy() const
-    {
-        return BaseEventDataPtr(new EventDataFireWeapon(mId));
-    }
-
-    virtual void Serialize( std::ostrstream & out ) const
-    {
-        out << mId << " ";
-    }
-
-    virtual void Deserialize( std::istrstream & in )
-    {
-        in >> mId;
-    }
-
-    virtual const char* GetName(void) const
-    {
-        return "EventDataFireWeapon";
-    }
-
-	ActorId GetActorId(void) const
-    {
-        return mId;
-    }
-};
-
-//---------------------------------------------------------------------------------------------------------------------
 // EventDataJumpActor - sent when actor jumps
 //---------------------------------------------------------------------------------------------------------------------
 class EventDataJumpActor : public EventData

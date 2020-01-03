@@ -204,18 +204,17 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 		mPitchTarget = eastl::max(-85.f, eastl::min(85.f, mPitchTarget));
 		mPitch = 90 * ((mPitchTarget + 85.f) / 170.f) - 45.f;
 
-		// Calculate the new rotation matrix from the camera
-		// yaw and pitch (zrotate and xrotate).
+		// Calculate the new rotation matrix from the player
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(2), mYaw * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(YAW), mYaw * (float)GE_C_DEG_TO_RAD));
 		rotation = -yawRotation;
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), mPitch * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(ROLL), mPitch * (float)GE_C_DEG_TO_RAD));
 		mAbsoluteTransform.SetRotation(yawRotation * pitchRotation);
 
 		// update node rotation matrix
 		pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), mPitchTarget * (float)GE_C_DEG_TO_RAD));
+			AxisAngle<4, float>(Vector4<float>::Unit(ROLL), mPitchTarget * (float)GE_C_DEG_TO_RAD));
 		pTransformComponent->SetRotation(yawRotation * pitchRotation);
 	}
 
@@ -227,7 +226,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	{
 		// This will give us the "look at" vector 
 		// in world space - we'll use that to move
-		// the camera.
+		// the player.
 		atWorld = Vector4<float>::Unit(PITCH); // forward vector
 #if defined(GE_USE_MAT_VEC)
 		atWorld = rotation * atWorld;
@@ -243,7 +242,7 @@ void QuakePlayerController::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 	{
 		// This will give us the "look right" vector 
 		// in world space - we'll use that to move
-		// the camera.
+		// the player.
 		rightWorld = Vector4<float>::Unit(ROLL); // right vector
 #if defined(GE_USE_MAT_VEC)
 		rightWorld = rotation * rightWorld;

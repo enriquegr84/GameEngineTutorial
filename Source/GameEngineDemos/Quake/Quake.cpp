@@ -553,7 +553,6 @@ void QuakeLogic::EndSteerDelegate(BaseEventDataPtr pEventData)
 	}
 }
 
-
 void QuakeLogic::RegisterAllDelegates(void)
 {
 	// FUTURE WORK: Lots of these functions are ok to go into the base game logic!
@@ -853,7 +852,6 @@ void QuakeLogic::DestroyAllNetworkEventForwarders(void)
 	mNetworkEventForwarders.clear();
 }
 
-
 ActorFactory* QuakeLogic::CreateActorFactory(void)
 {
 	return new QuakeActorFactory();
@@ -872,7 +870,6 @@ AIManager* QuakeLogic::CreateAIManager(void)
 	QuakeAIManager* aiManager = new QuakeAIManager();
 	return aiManager;
 }
-
 
 eastl::shared_ptr<PlayerActor> QuakeLogic::CreatePlayerActor(const eastl::string &actorResource,
 	tinyxml2::XMLElement *overrides, const Transform *initialTransform, const ActorId serversActorId)
@@ -1020,7 +1017,7 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 											if (pTransformComponent)
 											{
 												Matrix4x4<float> yawRotation = Rotation<4, float>(
-													AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
+													AxisAngle<4, float>(Vector4<float>::Unit(YAW), angle * (float)GE_C_DEG_TO_RAD));
 												pTransformComponent->SetRotation(yawRotation);
 											}
 										}
@@ -1092,7 +1089,7 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 										if (pTransformComponent)
 										{
 											Matrix4x4<float> yawRotation = Rotation<4, float>(
-												AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
+												AxisAngle<4, float>(Vector4<float>::Unit(YAW), angle * (float)GE_C_DEG_TO_RAD));
 											pTransformComponent->SetRotation(yawRotation);
 										}
 									}
@@ -1117,7 +1114,7 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 											if (angle)
 											{
 												Matrix4x4<float> yawRotation = Rotation<4, float>(
-													AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
+													AxisAngle<4, float>(Vector4<float>::Unit(YAW), angle * (float)GE_C_DEG_TO_RAD));
 												targetTransform.SetRotation(yawRotation);
 											}
 											pTeleporterTrigger->SetTarget(targetTransform);
@@ -1138,7 +1135,7 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 											if (angle)
 											{
 												Matrix4x4<float> yawRotation = Rotation<4, float>(
-													AxisAngle<4, float>(Vector4<float>::Unit(2), angle * (float)GE_C_DEG_TO_RAD));
+													AxisAngle<4, float>(Vector4<float>::Unit(YAW), angle * (float)GE_C_DEG_TO_RAD));
 												targetTransform.SetRotation(yawRotation);
 											}
 											pPushTrigger->SetTarget(targetTransform);
@@ -1231,43 +1228,6 @@ bool QuakeLogic::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 	}
 
 	return true;
-}
-
-eastl::shared_ptr<Actor> CreateItemWeapon(WeaponType weapon, const Transform& initTransform)
-{
-	eastl::shared_ptr<Actor> pActor;
-	switch (weapon)
-	{
-		case WP_SHOTGUN:
-			pActor = GameLogic::Get()->CreateActor(
-				"actors/quake/models/weapon/shotgun.xml", nullptr, &initTransform);
-			break;
-		case WP_GRENADE_LAUNCHER:
-			pActor = GameLogic::Get()->CreateActor(
-				"actors/quake/models/weapon/grenadelauncher.xml", nullptr, &initTransform);
-			break;
-		case WP_ROCKET_LAUNCHER:
-			pActor = GameLogic::Get()->CreateActor(
-				"actors/quake/models/weapon/rocketlauncher.xml", nullptr, &initTransform);
-			break;
-		case WP_LIGHTNING:
-			pActor = GameLogic::Get()->CreateActor(
-				"actors/quake/models/weapon/lightning.xml", nullptr, &initTransform);
-			break;
-		case WP_RAILGUN:
-			pActor = GameLogic::Get()->CreateActor(
-				"actors/quake/models/weapon/railgun.xml", nullptr, &initTransform);
-			break;
-		case WP_PLASMAGUN:
-			pActor = GameLogic::Get()->CreateActor(
-				"actors/quake/models/weapon/plasmagun.xml", nullptr, &initTransform);
-			break;
-		default:
-			break;
-	}
-
-	LogError("Couldn't find item for weapon " + eastl::to_string(weapon));
-	return pActor;
 }
 
 void LookAtKiller(
@@ -2029,9 +1989,9 @@ void QuakeLogic::GrenadeLauncherFire(
 	const Vector3<float>& forward, const EulerAngles<float>& viewAngles)
 {
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
+		AxisAngle<4, float>(Vector4<float>::Unit(YAW), viewAngles.mAngle[2]));
 	Matrix4x4<float> pitchRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1] + (float)GE_C_QUARTER_PI));
+		AxisAngle<4, float>(Vector4<float>::Unit(ROLL), viewAngles.mAngle[1] + (float)GE_C_QUARTER_PI));
 
 	Transform initTransform;
 	initTransform.SetRotation(yawRotation * pitchRotation);
@@ -2081,9 +2041,9 @@ void QuakeLogic::RocketLauncherFire(
 	const Vector3<float>& forward, const EulerAngles<float>& viewAngles)
 {
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
+		AxisAngle<4, float>(Vector4<float>::Unit(YAW), viewAngles.mAngle[2]));
 	Matrix4x4<float> pitchRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
+		AxisAngle<4, float>(Vector4<float>::Unit(ROLL), viewAngles.mAngle[1]));
 
 	Transform initTransform;
 	initTransform.SetRotation(yawRotation * pitchRotation);
@@ -2135,9 +2095,9 @@ void QuakeLogic::PlasmagunFire(
 	const Vector3<float>& forward, const EulerAngles<float>& viewAngles)
 {
 	Matrix4x4<float> yawRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
+		AxisAngle<4, float>(Vector4<float>::Unit(YAW), viewAngles.mAngle[2]));
 	Matrix4x4<float> pitchRotation = Rotation<4, float>(
-		AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
+		AxisAngle<4, float>(Vector4<float>::Unit(ROLL), viewAngles.mAngle[1]));
 
 	Transform initTransform;
 	initTransform.SetRotation(yawRotation * pitchRotation);
@@ -2225,9 +2185,9 @@ void QuakeLogic::RailgunFire(const eastl::shared_ptr<PlayerActor>& player,
 		Normalize(direction);
 
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
+			AxisAngle<4, float>(Vector4<float>::Unit(YAW), atan2(direction[1], direction[0])));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
+			AxisAngle<4, float>(Vector4<float>::Unit(ROLL), -asin(direction[2])));
 
 		Transform initTransform;
 		initTransform.SetRotation(yawRotation * pitchRotation);
@@ -2304,9 +2264,9 @@ void QuakeLogic::LightningFire(const eastl::shared_ptr<PlayerActor>& player,
 		Normalize(direction);
 
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(2), atan2(direction[1], direction[0])));
+			AxisAngle<4, float>(Vector4<float>::Unit(YAW), atan2(direction[1], direction[0])));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), -asin(direction[2])));
+			AxisAngle<4, float>(Vector4<float>::Unit(ROLL), -asin(direction[2])));
 
 		Transform initTransform;
 		initTransform.SetRotation(yawRotation * pitchRotation);
@@ -2359,9 +2319,9 @@ void QuakeLogic::FireWeaponDelegate(BaseEventDataPtr pEventData)
 		pTransformComponent->GetTransform().GetRotation(viewAngles);
 		origin = pTransformComponent->GetTransform().GetTranslation();
 		Matrix4x4<float> yawRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(2), viewAngles.mAngle[2]));
+			AxisAngle<4, float>(Vector4<float>::Unit(YAW), viewAngles.mAngle[2]));
 		Matrix4x4<float> pitchRotation = Rotation<4, float>(
-			AxisAngle<4, float>(Vector4<float>::Unit(1), viewAngles.mAngle[1]));
+			AxisAngle<4, float>(Vector4<float>::Unit(ROLL), viewAngles.mAngle[1]));
 
 		rotation = yawRotation * pitchRotation;
 	}

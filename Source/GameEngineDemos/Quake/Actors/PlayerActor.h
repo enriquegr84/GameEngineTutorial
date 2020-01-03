@@ -302,7 +302,7 @@ struct PlayerState
 
 /*
 	Player Actor class. Quake player actor is a character (NPC or human) in your game world.
-	Its entiry purpose is to manage characters data and and mantain components to make them 
+	Its entire purpose is to manage characters data and mantain components to make them 
 	as flexible and reusable as possible.
 */
 class PlayerActor : public Actor

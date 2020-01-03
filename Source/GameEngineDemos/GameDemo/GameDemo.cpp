@@ -496,9 +496,6 @@ void GameDemoLogic::CreateNetworkEventForwarder(const int socketId)
 		EventDataDestroyActor::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
-		EventDataFireWeapon::skEventType);
-	pGlobalEventManager->AddListener(
-		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 		EventDataEnvironmentLoaded::skEventType);
 	pGlobalEventManager->AddListener(
 		MakeDelegate(pNetworkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
@@ -547,9 +544,6 @@ void GameDemoLogic::DestroyAllNetworkEventForwarders(void)
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataDestroyActor::skEventType);
-		eventManager->RemoveListener(
-			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
-			EventDataFireWeapon::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(networkEventForwarder, &NetworkEventForwarder::ForwardEvent), 
 			EventDataEnvironmentLoaded::skEventType);

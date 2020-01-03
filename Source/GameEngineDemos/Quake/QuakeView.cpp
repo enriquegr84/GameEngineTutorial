@@ -896,21 +896,6 @@ void QuakeStandardHUD::UpdateScores()
 		}
 	}
 
-	eastl::vector<eastl::shared_ptr<PlayerActor>>::iterator itAIPlayer;
-	for (itAIPlayer = playerViewTypes[GV_AI].begin(); itAIPlayer != playerViewTypes[GV_AI].end(); )
-	{
-		bool removeAIPlayer = false;
-		eastl::shared_ptr<PlayerActor> pAIPlayer = (*itAIPlayer);
-		for (eastl::shared_ptr<PlayerActor> pHumanPlayer : playerViewTypes[GV_HUMAN])
-			if (pHumanPlayer->GetId() == pAIPlayer->GetId())
-				removeAIPlayer = true;
-
-		if (removeAIPlayer)
-			itAIPlayer = playerViewTypes[GV_AI].erase(itAIPlayer);
-		else
-			itAIPlayer++;
-	}
-
 	for (auto playerViewType : playerViewTypes)
 	{
 		GameViewType viewType = playerViewType.first;

@@ -212,9 +212,6 @@ void GameDemoApp::CreateNetworkEventForwarder(void)
 		//	Then as events are created, they are automatically added to the right 
 		//	network forwarders. This could also detect a 
 
-	    pGlobalEventManager->AddListener(
-			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent), 
-			EventDataFireWeapon::skEventType);
 		pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataJumpActor::skEventType);
@@ -247,9 +244,6 @@ void GameDemoApp::DestroyNetworkEventForwarder(void)
     {
         BaseEventManager* eventManager = BaseEventManager::Get();
 
-        eventManager->RemoveListener(
-			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
-			EventDataFireWeapon::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			EventDataJumpActor::skEventType);
