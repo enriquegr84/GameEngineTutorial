@@ -258,6 +258,57 @@ public:
 	}
 };
 
+//---------------------------------------------------------------------------------------------------------------------
+// QuakeEventDataTeleportActor - sent when actors are teleported
+//---------------------------------------------------------------------------------------------------------------------
+class QuakeEventDataTeleportActor : public EventData
+{
+	ActorId mId;
+
+public:
+	static const BaseEventType skEventType;
+
+	virtual const BaseEventType& GetEventType(void) const
+	{
+		return skEventType;
+	}
+
+	QuakeEventDataTeleportActor(void)
+	{
+		mId = INVALID_ACTOR_ID;
+	}
+
+	QuakeEventDataTeleportActor(ActorId id)
+		: mId(id)
+	{
+		//
+	}
+
+	virtual void Serialize(std::ostrstream &out) const
+	{
+		out << mId << " ";
+	}
+
+	virtual void Deserialize(std::istrstream& in)
+	{
+		in >> mId;
+	}
+
+	virtual BaseEventDataPtr Copy() const
+	{
+		return BaseEventDataPtr(new QuakeEventDataTeleportActor(mId));
+	}
+
+	virtual const char* GetName(void) const
+	{
+		return "QuakeEventDataTeleportActor";
+	}
+
+	ActorId GetId(void) const
+	{
+		return mId;
+	}
+};
 
 //---------------------------------------------------------------------------------------------------------------------
 // QuakeEventDataSpawnActor - sent when actors are spawned

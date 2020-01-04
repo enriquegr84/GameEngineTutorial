@@ -259,6 +259,7 @@ public:
 
 	void SplashDamageDelegate(BaseEventDataPtr pEventData);
 	void FireWeaponDelegate(BaseEventDataPtr pEventData);
+	void TeleportActorDelegate(BaseEventDataPtr pEventData);
 	void SpawnActorDelegate(BaseEventDataPtr pEventData);
 	void PushActorDelegate(BaseEventDataPtr pEventData);
 	void JumpActorDelegate(BaseEventDataPtr pEventData);

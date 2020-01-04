@@ -193,6 +193,7 @@ HICON QuakeApp::VGetIcon()
 void QuakeApp::RegisterGameEvents(void)
 {
 	REGISTER_EVENT(QuakeEventDataSplashDamage);
+	REGISTER_EVENT(QuakeEventDataTeleportActor);
 	REGISTER_EVENT(QuakeEventDataSpawnActor);
 	REGISTER_EVENT(QuakeEventDataPushActor);
 	REGISTER_EVENT(QuakeEventDataJumpActor);
@@ -219,6 +220,9 @@ void QuakeApp::CreateNetworkEventForwarder(void)
 		pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataSplashDamage::skEventType);
+		pGlobalEventManager->AddListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataTeleportActor::skEventType);
 		pGlobalEventManager->AddListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataSpawnActor::skEventType);
@@ -267,6 +271,9 @@ void QuakeApp::DestroyNetworkEventForwarder(void)
 		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataSplashDamage::skEventType);
+		eventManager->RemoveListener(
+			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
+			QuakeEventDataTeleportActor::skEventType);
 		eventManager->RemoveListener(
 			MakeDelegate(mNetworkEventForwarder.get(), &NetworkEventForwarder::ForwardEvent),
 			QuakeEventDataSpawnActor::skEventType);

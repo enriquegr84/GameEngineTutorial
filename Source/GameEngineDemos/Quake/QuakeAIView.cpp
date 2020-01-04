@@ -390,25 +390,16 @@ void QuakeAIView::OnUpdate(unsigned int timeMs, unsigned long deltaMs)
 				GameLogic::Get()->GetActor(pPlayerActor->GetAction().triggerTeleporter).lock()));
 			eastl::shared_ptr<TeleporterTrigger> pTeleporterTrigger =
 				pItemActor->GetComponent<TeleporterTrigger>(TeleporterTrigger::Name).lock();
-			pPlayerActor->GetAction().triggerTeleporter = INVALID_ACTOR_ID;
 
 			EulerAngles<float> yawPitchRoll;
 			yawPitchRoll.mAxis[1] = 1;
 			yawPitchRoll.mAxis[2] = 2;
 			pTeleporterTrigger->GetTarget().GetRotation(yawPitchRoll);
-			pTransformComponent->SetTransform(pTeleporterTrigger->GetTarget());
-
 			mYaw = yawPitchRoll.mAngle[YAW] * (float)GE_C_RAD_TO_DEG;
 			mPitchTarget = -yawPitchRoll.mAngle[ROLL] * (float)GE_C_RAD_TO_DEG;
 
-			eastl::shared_ptr<PhysicComponent> pPhysicalComponent =
-				pPlayerActor->GetComponent<PhysicComponent>(PhysicComponent::Name).lock();
-			if (pPhysicalComponent)
-				pPhysicalComponent->SetTransform(pTeleporterTrigger->GetTarget());
-
-			// play teleporter sound
 			EventManager::Get()->TriggerEvent(
-				eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/teleout.ogg"));
+				eastl::make_shared<QuakeEventDataTeleportActor>(mPlayerId));
 		}
 		else
 		{
