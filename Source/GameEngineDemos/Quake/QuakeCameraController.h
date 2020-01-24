@@ -56,8 +56,6 @@ protected:
 	// Orientation Controls
 	float mYaw;
 	float mPitch;
-	float mPitchOnDown;
-	float mYawOnDown;
 
 	// Speed Controls
 	float mMaxMoveSpeed;

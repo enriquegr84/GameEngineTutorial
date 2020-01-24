@@ -78,8 +78,6 @@ protected:
 	float mYaw;
 	float mPitch;
 	float mPitchTarget;
-	float mPitchOnDown;
-	float mYawOnDown;
 
 	// Speed Controls
 	float mMaxFallSpeed;
