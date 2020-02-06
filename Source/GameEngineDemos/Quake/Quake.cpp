@@ -447,19 +447,29 @@ void QuakeLogic::TeleportActorDelegate(BaseEventDataPtr pEventData)
 		if (pPhysicalComponent)
 			pPhysicalComponent->SetTransform(pTeleporterTrigger->GetTarget());
 
-		eastl::shared_ptr<TransformComponent> pPlayerTransform(
-			pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-
 		GameApplication* gameApp = (GameApplication*)Application::App;
-		eastl::shared_ptr<CameraNode> camera = gameApp->GetHumanView()->mCamera;
-		Transform cameraTransform = camera->GetAbsoluteTransform();
-
-		// take into consideration within a certain radius
-		if (Length(cameraTransform.GetTranslation() - pPlayerTransform->GetPosition()) <= 700.f)
+		if (gameApp->GetHumanView()->mCamera->GetTarget() &&
+			gameApp->GetHumanView()->mCamera->GetTarget()->GetId() == pPlayerActor->GetId())
 		{
 			// play teleporter sound
 			EventManager::Get()->TriggerEvent(
 				eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/teleout.ogg"));
+		}
+		else
+		{
+			eastl::shared_ptr<TransformComponent> pPlayerTransform(
+				pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+
+			eastl::shared_ptr<CameraNode> camera = gameApp->GetHumanView()->mCamera;
+			Transform cameraTransform = camera->GetAbsoluteTransform();
+
+			// take into consideration within a certain radius
+			if (Length(cameraTransform.GetTranslation() - pPlayerTransform->GetPosition()) <= 700.f)
+			{
+				// play teleporter sound
+				EventManager::Get()->TriggerEvent(
+					eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/teleout.ogg"));
+			}
 		}
 	}
 }
@@ -489,19 +499,29 @@ void QuakeLogic::SpawnActorDelegate(BaseEventDataPtr pEventData)
 		if (pPhysicalComponent)
 			pPhysicalComponent->SetTransform(spawnTransform);
 
-		eastl::shared_ptr<TransformComponent> pPlayerTransform(
-			pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
-
 		GameApplication* gameApp = (GameApplication*)Application::App;
-		eastl::shared_ptr<CameraNode> camera = gameApp->GetHumanView()->mCamera;
-		Transform cameraTransform = camera->GetAbsoluteTransform();
-
-		// take into consideration within a certain radius
-		if (Length(cameraTransform.GetTranslation() - pPlayerTransform->GetPosition()) <= 700.f)
+		if (gameApp->GetHumanView()->mCamera->GetTarget() &&
+			gameApp->GetHumanView()->mCamera->GetTarget()->GetId() == pPlayerActor->GetId())
 		{
 			// play teleporter sound
 			EventManager::Get()->TriggerEvent(
 				eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/teleout.ogg"));
+		}
+		else
+		{
+			eastl::shared_ptr<TransformComponent> pPlayerTransform(
+				pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+
+			eastl::shared_ptr<CameraNode> camera = gameApp->GetHumanView()->mCamera;
+			Transform cameraTransform = camera->GetAbsoluteTransform();
+
+			// take into consideration within a certain radius
+			if (Length(cameraTransform.GetTranslation() - pPlayerTransform->GetPosition()) <= 700.f)
+			{
+				// play teleporter sound
+				EventManager::Get()->TriggerEvent(
+					eastl::make_shared<EventDataPlaySound>("audio/quake/sound/world/teleout.ogg"));
+			}
 		}
 	}
 }
