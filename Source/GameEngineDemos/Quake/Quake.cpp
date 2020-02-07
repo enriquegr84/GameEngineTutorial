@@ -407,9 +407,15 @@ void QuakeLogic::JumpActorDelegate(BaseEventDataPtr pEventData)
 			{
 				pPlayerActor->GetState().jumpTime = 200;
 
+				eastl::shared_ptr<TransformComponent> pPlayerTransform(
+					pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+
 				GameApplication* gameApp = (GameApplication*)Application::App;
-				if (gameApp->GetHumanView()->mCamera->GetTarget() &&
-					gameApp->GetHumanView()->mCamera->GetTarget()->GetId() == pPlayerActor->GetId())
+				eastl::shared_ptr<CameraNode> camera = gameApp->GetHumanView()->mCamera;
+				Transform cameraTransform = camera->GetAbsoluteTransform();
+
+				// take into consideration within a certain radius
+				if (Length(cameraTransform.GetTranslation() - pPlayerTransform->GetPosition()) <= 700.f)
 				{
 					// play jump sound
 					EventManager::Get()->TriggerEvent(
@@ -548,9 +554,15 @@ void QuakeLogic::MoveActorDelegate(BaseEventDataPtr pEventData)
 			{
 				pPlayerActor->GetState().moveTime = 400;
 
+				eastl::shared_ptr<TransformComponent> pPlayerTransform(
+					pPlayerActor->GetComponent<TransformComponent>(TransformComponent::Name).lock());
+
 				GameApplication* gameApp = (GameApplication*)Application::App;
-				if (gameApp->GetHumanView()->mCamera->GetTarget() &&
-					gameApp->GetHumanView()->mCamera->GetTarget()->GetId() == pPlayerActor->GetId())
+				eastl::shared_ptr<CameraNode> camera = gameApp->GetHumanView()->mCamera;
+				Transform cameraTransform = camera->GetAbsoluteTransform();
+
+				// take into consideration within a certain radius
+				if (Length(cameraTransform.GetTranslation() - pPlayerTransform->GetPosition()) <= 700.f)
 				{
 					// play footstep sound
 					EventManager::Get()->TriggerEvent(
