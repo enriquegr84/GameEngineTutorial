@@ -229,16 +229,12 @@ void PathingNode::GetClusters(unsigned int clusterType, PathingClusterVec& outCl
 
 void PathingNode::GetClusters(unsigned int clusterType, PathingClusterVec& outClusters)
 {
-	eastl::map<unsigned int, PathingCluster*> clusters;
 	for (PathingClusterVec::iterator it = mClusters.begin(); it != mClusters.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
 		if (pCluster->GetType() == clusterType && pCluster->GetActor() == INVALID_ACTOR_ID)
-			clusters[pCluster->GetTarget()->GetCluster()] = pCluster;
+			outClusters.push_back(pCluster);
 	}
-
-	for (eastl::map<unsigned int, PathingCluster*>::iterator it = clusters.begin(); it != clusters.end(); ++it)
-		outClusters.push_back((*it).second);
 }
 
 void PathingNode::GetClusters(PathingClusterVec& outClusters, unsigned int limit)
@@ -304,16 +300,12 @@ void PathingNode::GetClusterActors(unsigned int clusterType, PathingClusterVec& 
 
 void PathingNode::GetClusterActors(unsigned int clusterType, PathingClusterVec& outClusters)
 {
-	eastl::map<unsigned int, PathingCluster*> clusters;
 	for (PathingClusterVec::iterator it = mClusterActors.begin(); it != mClusterActors.end(); ++it)
 	{
 		PathingCluster* pCluster = *it;
 		if (pCluster->GetType() == clusterType)
-			clusters[pCluster->GetTarget()->GetCluster()] = pCluster;
+			outClusters.push_back(pCluster);
 	}
-
-	for (eastl::map<unsigned int, PathingCluster*>::iterator it = clusters.begin(); it != clusters.end(); ++it)
-		outClusters.push_back((*it).second);
 }
 
 void PathingNode::GetClusterActors(PathingClusterVec& outClusters, unsigned int limit)
@@ -332,6 +324,7 @@ void PathingNode::GetClusterActors(PathingClusterVec& outClusters, unsigned int 
 	for (eastl::map<unsigned int, PathingCluster*>::iterator it = clusters.begin(); it != clusters.end(); ++it)
 		outClusters.push_back((*it).second);
 }
+
 
 PathingCluster* PathingNode::FindCluster(PathingNode* pTargetNode)
 {
