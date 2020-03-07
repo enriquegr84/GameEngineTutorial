@@ -1,4 +1,4 @@
-# Game Engine Tutorial
+## Game Engine Tutorial
 
 Unlike most Game Engines which are made for either professional use or as hobby project, we introduce a new engine 
 for educational purpose. Despite of the traditional educational system in which a professor takes the responsibility 
@@ -36,7 +36,7 @@ videogame but research and simulation projects in diverse scientist areas such a
 As example, we show an A.I. research project which make use of this framework in the following link 
 https://github.com/enriquegr84/GameEngineAI
 
-Installation:
+# Installation:
 
 1.	Clone repository to the project folder.
 2.	Download GameEngineTutorial.rar file from the following link:
