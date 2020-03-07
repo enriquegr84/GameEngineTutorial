@@ -1,4 +1,4 @@
-## Game Engine Tutorial
+# Game Engine Tutorial
 
 Unlike most Game Engines which are made for either professional use or as hobby project, we introduce a new engine 
 for educational purpose. Despite of the traditional educational system in which a professor takes the responsibility 
