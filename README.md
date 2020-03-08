@@ -55,5 +55,7 @@ There are three initial demos in the GameEngineTutorial project which are Triang
 Only one of them can be executed by uncommenting the main function brackets and commenting the others file main function. 
 Unfortunately, we couldn’t get permission to upload the required Quake assets which means that the QuakeApp can’t be executed.
 
-![Image of Demo](https://www.dropbox.com/s/swed1gwt5b5of0g/demo2.png?dl=0)
+![demo1](https://user-images.githubusercontent.com/4594154/76159538-9d56a780-6119-11ea-9e27-be55c8e3f7ed.png)
+![demo2](https://user-images.githubusercontent.com/4594154/76159547-ad6e8700-6119-11ea-9923-f43dad3cc251.png)
+
 
