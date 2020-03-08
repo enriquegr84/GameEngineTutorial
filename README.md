@@ -54,3 +54,6 @@ in the new created directories, for example, GameEngineTutorial\bin\Win32Release
 There are three initial demos in the GameEngineTutorial project which are TriangleDemoApp.cpp, QuakeApp.cpp and GameDemoApp.cpp. 
 Only one of them can be executed by uncommenting the main function brackets and commenting the others file main function. 
 Unfortunately, we couldn’t get permission to upload the required Quake assets which means that the QuakeApp can’t be executed.
+
+![Image of Demo](https://www.dropbox.com/s/swed1gwt5b5of0g/demo2.png?dl=0)
+
