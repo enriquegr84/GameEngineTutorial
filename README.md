@@ -8,8 +8,7 @@ Our motivation is to create a game development educational network that allows a
 and lecturing in many different ways: detecting or fixing mistakes, asking or solving questions and the most important 
 individual contribution, **adding or updating content**. GitHub is the chosen framework because it fits our necessities, 
 we can use it as a code repository, create a learning documentation that we will gradually update in the wiki section and 
-contribute to the project in the issues section. The documentation is momentarily saved as pdf and can be accessed through 
-the following link https://www.dropbox.com/s/j20rgeofzclo4tw/GameEngineTutorial.pdf?dl=0
+contribute to the project in the issues section.
 
 Our educational goal places priority on clean and well-designed code over a rather complicated but efficient code in terms 
 of performance. As we know, game development is already a difficult and challenging area to work with, and that is precisely 
