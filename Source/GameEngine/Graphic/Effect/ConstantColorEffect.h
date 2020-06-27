@@ -20,41 +20,14 @@ public:
     ConstantColorEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
 		eastl::vector<eastl::string> path, Vector4<float> const& color);
 
-    // Member access.
-    inline void SetPVWMatrix(Matrix4x4<float> const& pvwMatrix);
-    inline Matrix4x4<float> const& GetPVWMatrix() const;
-
-    // Required to bind and update resources.
-    inline eastl::shared_ptr<ConstantBuffer> const& GetPVWMatrixConstant() const;
     inline eastl::shared_ptr<ConstantBuffer> const& GetColorConstant() const;
 
     void SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix);
 
 private:
-    // Vertex shader parameters.
-	eastl::shared_ptr<ConstantBuffer> mPVWMatrixConstant;
+
 	eastl::shared_ptr<ConstantBuffer> mColorConstant;
-
-    // Convenience pointers.
-    Matrix4x4<float>* mPVWMatrix;
-    Vector4<float>* mColor;
 };
-
-
-inline void ConstantColorEffect::SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
-{
-    *mPVWMatrix = pvwMatrix;
-}
-
-inline Matrix4x4<float> const& ConstantColorEffect::GetPVWMatrix() const
-{
-    return *mPVWMatrix;
-}
-
-inline eastl::shared_ptr<ConstantBuffer> const& ConstantColorEffect::GetPVWMatrixConstant() const
-{
-    return mPVWMatrixConstant;
-}
 
 inline eastl::shared_ptr<ConstantBuffer> const& ConstantColorEffect::GetColorConstant() const
 {

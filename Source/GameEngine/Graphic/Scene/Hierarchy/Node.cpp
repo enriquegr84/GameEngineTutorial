@@ -253,13 +253,6 @@ void Node::SetDebugState(unsigned int debug)
 {
 	mDebugState = debug;
 
-	// overwrite transparency
-	if (mDebugState & DM_TRANSPARENCY)
-	{
-		for (unsigned int i = 0; i < GetMaterialCount(); i++)
-			GetMaterial(i)->mType = MT_TRANSPARENT;
-	}
-
 	if (mDebugState & DM_WIREFRAME)
 	{
 		for (unsigned int i = 0; i < GetMaterialCount(); i++)

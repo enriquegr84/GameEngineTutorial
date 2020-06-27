@@ -25,7 +25,6 @@ LightingEffect::LightingEffect(eastl::shared_ptr<ProgramFactory> const& factory,
     if (mProgram)
     {
         mBufferUpdater = updater;
-        mPVWMatrixConstant = eastl::make_shared<ConstantBuffer>(sizeof(Matrix4x4<float>), true);
         mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);
     }
 }

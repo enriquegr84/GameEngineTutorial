@@ -19,37 +19,8 @@ public:
 	ColorEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
 		eastl::vector<eastl::string> const& path);
 
-	// Member access.
-	inline void SetPVWMatrix(Matrix4x4<float> const& pvwMatrix);
-	inline Matrix4x4<float> const& GetPVWMatrix() const;
-
-	// Required to bind and update resources.
-	inline eastl::shared_ptr<ConstantBuffer> const& GetPVWMatrixConstant() const;
-
 	void SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix);
 
-private:
-	// Vertex shader parameters.
-	eastl::shared_ptr<ConstantBuffer> mPVWMatrixConstant;
-
-	// Convenience pointers.
-	Matrix4x4<float>* mPVWMatrix;
 };
-
-
-inline void ColorEffect::SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
-{
-	*mPVWMatrix = pvwMatrix;
-}
-
-inline Matrix4x4<float> const& ColorEffect::GetPVWMatrix() const
-{
-	return *mPVWMatrix;
-}
-
-inline eastl::shared_ptr<ConstantBuffer> const& ColorEffect::GetPVWMatrixConstant() const
-{
-	return mPVWMatrixConstant;
-}
 
 #endif

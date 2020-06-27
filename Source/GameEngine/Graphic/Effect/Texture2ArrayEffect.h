@@ -22,12 +22,6 @@ public:
 		eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2Array> const& textures,
 		SamplerState::Filter filter, SamplerState::Mode mode0, SamplerState::Mode mode1);
 
-    // Member access.
-    inline void SetPVWMatrix(Matrix4x4<float> const& pvwMatrix);
-    inline Matrix4x4<float> const& GetPVWMatrix() const;
-
-    // Required to bind and update resources.
-    inline eastl::shared_ptr<ConstantBuffer> const& GetPVWMatrixConstant() const;
     inline eastl::shared_ptr<Texture2Array> const& GetTextures() const;
     inline eastl::shared_ptr<SamplerState> const& GetSampler() const;
 
@@ -35,32 +29,11 @@ public:
 	void SetTextures(eastl::shared_ptr<Texture2Array> const& textures);
 
 private:
-    // Vertex shader parameters.
-	eastl::shared_ptr<ConstantBuffer> mPVWMatrixConstant;
 
     // Pixel shader parameters.
 	eastl::shared_ptr<Texture2Array> mTextures;
 	eastl::shared_ptr<SamplerState> mSampler;
-
-    // Convenience pointer.
-    Matrix4x4<float>* mPVWMatrix;
 };
-
-
-inline void Texture2ArrayEffect::SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
-{
-    *mPVWMatrix = pvwMatrix;
-}
-
-inline Matrix4x4<float> const& Texture2ArrayEffect::GetPVWMatrix() const
-{
-    return *mPVWMatrix;
-}
-
-inline eastl::shared_ptr<ConstantBuffer> const& Texture2ArrayEffect::GetPVWMatrixConstant() const
-{
-    return mPVWMatrixConstant;
-}
 
 inline eastl::shared_ptr<Texture2Array> const& Texture2ArrayEffect::GetTextures() const
 {

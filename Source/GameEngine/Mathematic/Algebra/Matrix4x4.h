@@ -208,6 +208,31 @@ Real Trace(Matrix4x4<Real> const& M)
     return trace;
 }
 
+// Multiply M and V according to the user-selected convention.  If it is
+// GE_USE_MAT_VEC, the function returns M*V.  If it is GE_USE_VEC_MAT,
+// the function returns V*M.  This function is provided to hide the
+// preprocessor symbols in the GameEngine sample applications.
+template <typename Real>
+Vector4<Real> DoTransform(Matrix4x4<Real> const& M, Vector4<Real> const& V)
+{
+#if defined(GE_USE_MAT_VEC)
+	return M * V;
+#else
+	return V * M;
+#endif
+}
+
+template <typename Real>
+Matrix4x4<Real> DoTransform(Matrix4x4<Real> const& A, Matrix4x4<Real> const& B)
+{
+#if defined(GE_USE_MAT_VEC)
+	return A * B;
+#else
+	return B * A;
+#endif
+}
+
+
 template <typename Real>
 Matrix4x4<Real> MakeObliqueProjection(Vector4<Real> const& origin,
     Vector4<Real> const& normal, Vector4<Real> const& direction)

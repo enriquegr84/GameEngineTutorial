@@ -10,9 +10,6 @@
 
 ConstantColorEffect::ConstantColorEffect(eastl::shared_ptr<ProgramFactory> const& factory,
 	eastl::vector<eastl::string> path, Vector4<float> const& color)
-    :
-    mPVWMatrix(nullptr),
-    mColor(nullptr)
 {
 	eastl::string vsPath = path[0];
 	eastl::string psPath = path[1];
@@ -20,13 +17,8 @@ ConstantColorEffect::ConstantColorEffect(eastl::shared_ptr<ProgramFactory> const
 	mProgram = factory->CreateFromFiles(vsPath, psPath, gsPath);
 	if (mProgram)
 	{
-		mPVWMatrixConstant = eastl::make_shared<ConstantBuffer>(sizeof(Matrix4x4<float>), true);
-		mPVWMatrix = mPVWMatrixConstant->Get<Matrix4x4<float>>();
-		*mPVWMatrix = Matrix4x4<float>::Identity();
-
 		mColorConstant = eastl::make_shared<ConstantBuffer>(sizeof(Vector4<float>), true);
-		mColor = mColorConstant->Get<Vector4<float>>();
-		*mColor = color;
+		*mColorConstant->Get<Vector4<float>>() = color;
 
 		mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);
 		mProgram->GetVShader()->Set("ConstantColor", mColorConstant);

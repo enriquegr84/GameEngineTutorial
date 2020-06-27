@@ -808,13 +808,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\CubeNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\EmptyNode.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Element\LightNode.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\MeshNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.cpp">
@@ -1137,6 +1131,15 @@
     </ClCompile>
     <ClCompile Include="..\Core\Process\RealtimeProcess.cpp">
       <Filter>Core\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\StaticMeshNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\MeshNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Graphic\Effect\BumpMapEffect.cpp">
+      <Filter>Graphic\Effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1831,13 +1834,7 @@
     <ClInclude Include="..\Graphic\Scene\Element\CubeNode.h">
       <Filter>Graphic\Scene\Element</Filter>
     </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\EmptyNode.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\LightNode.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\MeshNode.h">
       <Filter>Graphic\Scene\Element</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.h">
@@ -1938,9 +1935,6 @@
     </ClInclude>
     <ClInclude Include="..\Mathematic\Geometric\Frustum.h">
       <Filter>Mathematic\Geometric</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\StandardMesh.h">
-      <Filter>Graphic\Scene\Element\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Hierarchy\PVWUpdater.h">
       <Filter>Graphic\Scene\Hierarchy</Filter>
@@ -2683,6 +2677,21 @@
     <ClInclude Include="..\Core\Process\RealtimeProcess.h">
       <Filter>Core\Process</Filter>
     </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\StaticMeshNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\MeshNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\NormalMesh.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\StaticMesh.h">
+      <Filter>Graphic\Scene\Element\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Effect\BumpMapEffect.h">
+      <Filter>Graphic\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Assets\Effects\AmbientLightEffectPS.glsl">
@@ -2818,6 +2827,12 @@
       <Filter>Assets\Effects</Filter>
     </None>
     <None Include="..\..\..\Assets\Effects\Texture2ArrayColorEffectVS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
+    <None Include="..\..\..\Assets\Effects\BumpMapEffectPS.glsl">
+      <Filter>Assets\Effects</Filter>
+    </None>
+    <None Include="..\..\..\Assets\Effects\BumpMapEffectVS.glsl">
       <Filter>Assets\Effects</Filter>
     </None>
   </ItemGroup>
@@ -2981,6 +2996,12 @@
       <Filter>Assets\Effects</Filter>
     </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\PointLightTextureEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\BumpMapEffectPS.hlsl">
+      <Filter>Assets\Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\BumpMapEffectVS.hlsl">
       <Filter>Assets\Effects</Filter>
     </FxCompile>
   </ItemGroup>

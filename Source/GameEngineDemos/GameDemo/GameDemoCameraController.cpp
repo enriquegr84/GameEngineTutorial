@@ -59,8 +59,8 @@ GameDemoCameraController::GameDemoCameraController(const eastl::shared_ptr<Camer
 	mYaw = (float)GE_C_RAD_TO_DEG * initialYaw;
 	mPitch = (float)GE_C_RAD_TO_DEG * -initialPitch;
 
-	mMaxMoveSpeed = 300.0f;
-	mMaxRotateSpeed = 180.0f;
+	mMaxMoveSpeed = 25.0f;
+	mMaxRotateSpeed = 120.0f;
 	mMoveSpeed = 0.0f;
 	mRotateSpeed = 0.0f;
 

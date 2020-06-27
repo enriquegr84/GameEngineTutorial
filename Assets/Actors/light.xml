@@ -1,7 +1,7 @@
 <Actor type="Light" resource="actors\light.xml">
 
 	<TransformComponent>
-		<Position x="0.0" y="0.0" z="100.0"/>
+		<Position x="0.0" y="0.0" z="10.0"/>
 		<Scale x="1.0" y="1.0" z="1.0" />
 		<YawPitchRoll x="0" y="0" z="0"/>
 	</TransformComponent>
@@ -9,7 +9,7 @@
 	<LightRenderComponent>
 		<Light>
 			<Lighting type="0" />
-			<Texture file="art\particlewhite.bmp" x="50.0" y="50.0" />
+			<Texture file="art\particlewhite.bmp" x="5.0" y="5.0" />
 			<Direction x="0.0" y="0.0" z="-1.0"/>
 			<Ambient r="1.0" g="1.0" b="1.0" a="1.0"/>
 			<Diffuse r="1.0" g="1.0" b="1.0" a="1.0"/>
@@ -18,8 +18,8 @@
 			<SpotCutoff angle="0.6" exponent="1.0" />
 		</Light>
 		<Animator>
-			<Animation type="1" radius="200.0" />
-			<Center x="0.0" y="0.0" z="100.0" />
+			<Animation type="1" radius="20.0" />
+			<Center x="0.0" y="0.0" z="10.0" />
 		</Animator>
 	</LightRenderComponent>
 

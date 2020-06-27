@@ -13,11 +13,21 @@ VisualEffect::~VisualEffect()
 
 VisualEffect::VisualEffect()
 {
+	mPVWMatrixConstant = eastl::make_shared<ConstantBuffer>(sizeof(Matrix4x4<float>), true);
+	SetPVWMatrix(Matrix4x4<float>::Identity());
 }
 
 VisualEffect::VisualEffect(eastl::shared_ptr<VisualProgram> const& program)
     :
     mProgram(program)
 {
+	mPVWMatrixConstant = eastl::make_shared<ConstantBuffer>(sizeof(Matrix4x4<float>), true);
+	SetPVWMatrix(Matrix4x4<float>::Identity());
+}
+
+void VisualEffect::SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& buffer)
+{
+	mPVWMatrixConstant = buffer;
+	SetPVWMatrix(Matrix4x4<float>::Identity());
 }
 

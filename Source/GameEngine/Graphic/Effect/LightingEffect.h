@@ -57,8 +57,6 @@ protected:
 	eastl::shared_ptr<Lighting> mLighting;
 	eastl::shared_ptr<LightCameraGeometry> mGeometry;
 
-	eastl::shared_ptr<ConstantBuffer> mPVWMatrixConstant;
-
     // The derived-class constructors are responsible for creating these
     // according to their needs.
 	eastl::shared_ptr<ConstantBuffer> mMaterialConstant;

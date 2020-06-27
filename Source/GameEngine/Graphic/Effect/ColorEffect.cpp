@@ -12,21 +12,13 @@
 ColorEffect::ColorEffect(
 	eastl::shared_ptr<ProgramFactory> const& factory, 
 	eastl::vector<eastl::string> const& path)
-	:
-	mPVWMatrix(nullptr)
 {
 	eastl::string vsPath = path[0];
 	eastl::string psPath = path[1];
 	eastl::string gsPath = "";
 	mProgram = factory->CreateFromFiles(vsPath, psPath, gsPath);
 	if (mProgram)
-	{
-		mPVWMatrixConstant = eastl::make_shared<ConstantBuffer>(sizeof(Matrix4x4<float>), true);
-		mPVWMatrix = mPVWMatrixConstant->Get<Matrix4x4<float>>();
-		*mPVWMatrix = Matrix4x4<float>::Identity();
-
 		mProgram->GetVShader()->Set("PVWMatrix", mPVWMatrixConstant);
-	}
 }
 
 void ColorEffect::SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& pvwMatrix)

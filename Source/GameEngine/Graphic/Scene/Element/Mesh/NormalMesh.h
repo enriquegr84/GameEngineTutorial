@@ -2,8 +2,8 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#ifndef STANDARDMESH_H
-#define STANDARDMESH_H
+#ifndef NORMALMESH_H
+#define NORMALMESH_H
 
 #include "GameEngineStd.h"
 
@@ -11,16 +11,16 @@
 #include "Graphic/Scene/Element/Mesh/Mesh.h"
 
 //! Simple implementation of the BaseMesh interface.
-class StandardMesh : public BaseMesh
+class NormalMesh : public BaseMesh
 {
 public:
 	//! constructor
-	StandardMesh()
+	NormalMesh()
 	{
 	}
 
 	//! destructor
-	virtual ~StandardMesh()
+	virtual ~NormalMesh()
 	{
 	}
 
@@ -64,7 +64,7 @@ public:
 	//! Returns the type of the animated mesh.
 	virtual MeshType GetMeshType() const
 	{
-		return MT_STANDARD;
+		return MT_NORMAL;
 	}
 
 	//! Adds a new meshbuffer to the mesh, access it as last one

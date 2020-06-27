@@ -2,25 +2,28 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#ifndef MESHNODE_H
-#define MESHNODE_H
+#ifndef STATICMESHSNODE_H
+#define STATICMESHSNODE_H
 
 #include "Graphic/Scene/Hierarchy/Node.h"
 
 #include "ShadowVolumeNode.h"
 
-class MeshNode : public Node
+class StaticMeshNode : public Node
 {
 public:
 
 	//! constructor
-	MeshNode(const ActorId actorId, PVWUpdater* updater,
+	StaticMeshNode(const ActorId actorId, PVWUpdater* updater, 
 		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh);
 
-	//! Renders event
+	//! destructor
+	virtual ~StaticMeshNode();
+
+	//! Render events
 	virtual bool PreRender(Scene *pScene);
 	virtual bool Render(Scene *pScene);
-
+	
 	//! Removes a child from this scene node.
 	//! Implemented here, to be able to remove the shadow properly, if there is one,
 	//! or to remove attached childs.
@@ -35,7 +38,7 @@ public:
 	//! Creates shadow volume scene node as child of this node
 	//! and returns a pointer to it.
 	eastl::shared_ptr<ShadowVolumeNode> AddShadowVolumeNode(const ActorId actorId,
-		Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh = 0, bool zfailmethod = true, float infinity = 10000.0f);
+		Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh = 0, bool zfailmethod=true, float infinity=10000.0f);
 
 	//! Returns the visual based on the zero based index i. To get the amount 
 	//! of visuals used by this scene node, use GetVisualCount(). 
@@ -76,6 +79,7 @@ public:
 
 protected:
 
+	eastl::vector<eastl::shared_ptr<Material>> mMaterials;
 	eastl::vector<eastl::shared_ptr<BlendState>> mBlendStates;
 	eastl::vector<eastl::shared_ptr<DepthStencilState>> mDepthStencilStates;
 	eastl::shared_ptr<RasterizerState> mRasterizerState;

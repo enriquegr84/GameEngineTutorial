@@ -49,31 +49,9 @@
 #include "Graphic/Scene/Hierarchy/Node.h"
 #include "Graphic/Scene/Hierarchy/Light.h"
 
-// Forward declarations
-////////////////////////////////////////////////////
-//
-// SceneActorMap Description				- Chapter 16, page Y
-//
-//   An STL map that allows fast lookup of a scene node given an ActorId.
-//
-////////////////////////////////////////////////////
-
+//  An STL map that allows fast lookup of a scene node given an ActorId.
 typedef eastl::map<ActorId, eastl::shared_ptr<Node> > SceneNodeActorMap;
 typedef eastl::vector<Node*> SceneNodeRenderList;
-
-
-////////////////////////////////////////////////////
-//
-// Scene Description						- Chapter 16, page 536
-//
-// A heirarchical container of scene nodes, which
-// are classes that implemente the SceneNode interface
-//
-////////////////////////////////////////////////////
-
-//class SkyNode;
-//class LightNode;
-//class LightManager;
 
 class BaseMesh;
 class BaseAnimatedMesh;
@@ -82,6 +60,9 @@ class RootNode;
 class CameraNode;
 class LightManager;
 
+
+// Scene Description. A heirarchical container of scene nodes, which
+// are classes that implement the SceneNode interface
 class Scene
 {
 public:
@@ -101,13 +82,13 @@ public:
 	void DestroyActorDelegate(BaseEventDataPtr pEventData);
 	void SyncActorDelegate(BaseEventDataPtr pEventData);
 
-	//! Adds an empty scene node to the scene graph.
+	//! Adds an mesh scene node to the scene graph.
 	/** Can be used for doing advanced transformations
 	or structuring the scene graph.
 	\return Pointer to the created scene node. */
-	eastl::shared_ptr<Node> AddEmptyNode(
-		WeakBaseRenderComponentPtr renderComponent, 
-		const eastl::shared_ptr<Node>& parent, int id = -1);
+	eastl::shared_ptr<Node> AddMeshNode(WeakBaseRenderComponentPtr renderComponent, 
+		const eastl::shared_ptr<Node>& parent, eastl::shared_ptr<BaseMesh> mesh,
+		int id = -1, bool alsoAddIfMeshPointerZero = false);
 
 	//! Adds a rectangle scene node
 	/** \param xSize: size of the rectangle in x-dimension.
@@ -266,7 +247,7 @@ public:
 		unsigned int horiRes, unsigned int vertRes, float texturePercentage, 
 		float spherePercentage, float radius, int id = -1);
 
-	//! Adds a scene node for rendering a static mesh.
+	//! Adds a static scene node for rendering a static mesh.
 	/** \param mesh: Pointer to the loaded static mesh to be displayed.
 	\param parent: Parent of the scene node. Can be NULL if no parent.
 	\param id: Id of the node. This id can be used to identify the scene node.
@@ -277,7 +258,7 @@ public:
 	\param alsoAddIfMeshPointerZero: Add the scene node even if a 0 pointer is passed.
 	\return Pointer to the created scene node.
 	This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-	eastl::shared_ptr<Node> AddMeshNode(WeakBaseRenderComponentPtr renderComponent, 
+	eastl::shared_ptr<Node> AddStaticMeshNode(WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<Node>& parent, eastl::shared_ptr<BaseMesh> mesh, 
 		int id = -1, bool alsoAddIfMeshPointerZero = false);
 

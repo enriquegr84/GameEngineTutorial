@@ -47,9 +47,9 @@ void XmlResourceExtraData::ParseXml(char* pRawBuffer)
 //! based on the file extension (e.g. ".xml")
 bool XmlResourceLoader::IsALoadableFileExtension(const eastl::wstring& fileName) const
 {
-	if (fileName.rfind('.') != eastl::string::npos)
+	if (fileName.find('.') != eastl::string::npos)
 	{
-		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
+		eastl::wstring fileExtension = fileName.substr(fileName.find('.') + 1);
 		return fileExtension.compare(L"xml") == 0;
 	}
 	else return false;

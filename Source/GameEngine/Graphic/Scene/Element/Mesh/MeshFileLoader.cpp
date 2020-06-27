@@ -9,7 +9,8 @@
 #include "Graphic/Image/ImageResource.h"
 #include "Graphic/Scene/Element/Mesh/MeshMD3.h"
 #include "Graphic/Scene/Element/Mesh/SkinnedMesh.h"
-#include "Graphic/Scene/Element/Mesh/StandardMesh.h"
+#include "Graphic/Scene/Element/Mesh/StaticMesh.h"
+#include "Graphic/Scene/Element/Mesh/NormalMesh.h"
 
 #include "Core/Logger/Logger.h"
 #include "Core/IO/FileSystem.h"
@@ -68,9 +69,9 @@ bool MeshFileLoader::LoadResource(void *rawBuffer, unsigned int rawSize, const e
 //! based on the file extension (e.g. ".bsp")
 bool MeshFileLoader::IsALoadableFileExtension(const eastl::wstring& fileName) const
 {
-	if (fileName.rfind('.') != eastl::string::npos)
+	if (fileName.find('.') != eastl::string::npos)
 	{
-		eastl::wstring fileExtension = fileName.substr(fileName.rfind('.') + 1);
+		eastl::wstring fileExtension = fileName.substr(fileName.find('.') + 1);
 		return fileExtension.compare(L"3d") == 0 || fileExtension.compare(L"3ds") == 0 ||
 			fileExtension.compare(L"3mf") == 0 || fileExtension.compare(L"ac") == 0 ||
 			fileExtension.compare(L"ac3d") == 0 || fileExtension.compare(L"acc") == 0 ||
@@ -85,7 +86,7 @@ bool MeshFileLoader::IsALoadableFileExtension(const eastl::wstring& fileName) co
 			fileExtension.compare(L"lxo") == 0 || fileExtension.compare(L"md2") == 0 || 
 			fileExtension.compare(L"md3") == 0 || fileExtension.compare(L"md5") == 0 || 
 			fileExtension.compare(L"mdc") == 0 || fileExtension.compare(L"mdl") == 0 || 
-			fileExtension.compare(L"mesh") == 0 || fileExtension.compare(L"mot") == 0 || 
+			fileExtension.find(L"mesh") != eastl::string::npos || fileExtension.compare(L"mot") == 0 ||
 			fileExtension.compare(L"ms3d") == 0 || fileExtension.compare(L"ndo") == 0 || 
 			fileExtension.compare(L"nff") == 0 || fileExtension.compare(L"obj") == 0 || 
 			fileExtension.compare(L"off") == 0 || fileExtension.compare(L"ogex") == 0 || 
@@ -751,8 +752,16 @@ void ReadNodeMesh(const aiScene* pScene,
 
 			if (pScene->HasMaterials())
 			{
-				bool generateMipmaps = dynamic_cast<StandardMesh*>(mesh) == NULL;
-				CreateMaterial(pScene, pScene->mMeshes[*meshIndex], meshBuffer, generateMipmaps);
+				if (fileExtension == L"pk3")
+				{
+					bool generateMipmaps = dynamic_cast<StaticMesh*>(mesh) == NULL;
+					CreateMaterial(pScene, pScene->mMeshes[*meshIndex], meshBuffer, generateMipmaps);
+				}
+				else
+				{
+					bool generateMipmaps = dynamic_cast<NormalMesh*>(mesh) == NULL;
+					CreateMaterial(pScene, pScene->mMeshes[*meshIndex], meshBuffer, generateMipmaps);
+				}
 			}
 
 			mesh->AddMeshBuffer(meshBuffer);
@@ -794,8 +803,10 @@ eastl::shared_ptr<BaseMesh> MeshFileLoader::CreateMesh(BaseReadFile* file)
 		mesh = new SkinnedMesh();
 	else if (fileExtension == L"md3")
 		mesh = new AnimateMeshMD3();
+	else if (fileExtension == L"pk3")
+		mesh = new StaticMesh();
 	else
-		mesh = new StandardMesh();
+		mesh = new NormalMesh();
 
 	ReadNodeMesh(pScene, pScene->mRootNode, mesh, fileExtension);
 

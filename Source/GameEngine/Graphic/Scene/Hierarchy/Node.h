@@ -24,14 +24,14 @@ enum GRAPHIC_ITEM DebugMode
 	//! No Debug Data ( Default )
 	DM_OFF = 0,
 
-	//! Show Bounding of SceneNode
-	DM_BOUND = 1,
+	//! Show Bounding Spheres of SceneNode
+	DM_BSPHERE = 1,
 
-	//! Overlays Wireframe
-	DM_WIREFRAME = 2,
+	//! Show Vertex Normals
+	DM_NORMALS = 2,
 
-	//! Transparent
-	DM_TRANSPARENCY = 4,
+	//! Shows Wireframe
+	DM_WIREFRAME = 4,
 
 	//! Show all debug infos
 	DM_FULL = 0xffffffff
@@ -86,9 +86,6 @@ enum GRAPHIC_ITEM NodeType
 	//! Shadow Volume Scene Node
 	NT_SHADOW_VOLUME,
 
-	//! Mesh Scene Node
-	NT_MESH,
-
 	//! Light Scene Node
 	NT_LIGHT,
 
@@ -100,6 +97,12 @@ enum GRAPHIC_ITEM NodeType
 
 	//! Billboard Scene Node
 	NT_BILLBOARD,
+
+	//! Mesh Scene Node
+	NT_MESH,
+
+	//! Static Mesh Scene Node
+	NT_STATIC_MESH,
 
 	//! Animated Mesh Scene Node
 	NT_ANIMATED_MESH,

@@ -228,20 +228,25 @@ void Scene::Clear()
 }
 
 
-//! Adds an empty scene node to the scene graph.
-/** Can be used for doing advanced transformations
-or structuring the scene graph. */
-eastl::shared_ptr<Node> Scene::AddEmptyNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, int id)
+//! adds a scene node for rendering a mesh
+//! the returned pointer must not be dropped.
+eastl::shared_ptr<Node> Scene::AddMeshNode(
+	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+	eastl::shared_ptr<BaseMesh> mesh, int id, bool alsoAddIfMeshPointerZero)
 {
-	eastl::shared_ptr<Node> node(new EmptyNode(id, &mPVWUpdater, renderComponent));
-	if (!parent) 
+	if (!alsoAddIfMeshPointerZero && !mesh)
+		return nullptr;
+
+	eastl::shared_ptr<Node> node(new MeshNode(id, &mPVWUpdater, renderComponent, mesh));
+
+	if (!parent)
 		AddSceneNode(id, node);
-	else 
+	else
 		parent->AttachChild(node);
 
 	return node;
 }
+
 
 //! adds a rectangle scene node to the scene graph.
 //! the returned pointer must not be dropped.
@@ -381,14 +386,14 @@ eastl::shared_ptr<Node> Scene::AddSkyDomeNode(
 
 //! adds a scene node for rendering a static mesh
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddMeshNode(
+eastl::shared_ptr<Node> Scene::AddStaticMeshNode(
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
 	eastl::shared_ptr<BaseMesh> mesh, int id, bool alsoAddIfMeshPointerZero)
 {
 	if (!alsoAddIfMeshPointerZero && !mesh)
 		return nullptr;
 
-	eastl::shared_ptr<Node> node(new MeshNode(id, &mPVWUpdater, renderComponent, mesh));
+	eastl::shared_ptr<Node> node(new StaticMeshNode(id, &mPVWUpdater, renderComponent, mesh));
 
 	if (!parent) 
 		AddSceneNode(id, node);

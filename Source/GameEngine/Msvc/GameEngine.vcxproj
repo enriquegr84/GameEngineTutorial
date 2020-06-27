@@ -94,6 +94,7 @@
     <ClCompile Include="..\Game\Level\Level.cpp" />
     <ClCompile Include="..\Game\Level\LevelManager.cpp" />
     <ClCompile Include="..\Game\View\HumanView.cpp" />
+    <ClCompile Include="..\Graphic\Effect\BumpMapEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\Font.cpp" />
     <ClCompile Include="..\Graphic\Effect\FontArialW400H18.cpp" />
     <ClCompile Include="..\Graphic\Effect\AmbientLightEffect.cpp" />
@@ -705,9 +706,9 @@
     <ClCompile Include="..\Graphic\Scene\Element\BoneNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\CameraNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\CubeNode.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Element\EmptyNode.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Element\LightNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\MeshNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\LightNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\StaticMeshNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\MeshMD3.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\Mesh\SkinnedMesh.cpp" />
@@ -1020,6 +1021,7 @@
     <ClInclude Include="..\Graphic\3rdParty\assimp\include\assimp\vector3.h" />
     <ClInclude Include="..\Graphic\3rdParty\assimp\include\assimp\version.h" />
     <ClInclude Include="..\Graphic\3rdParty\stb\stb_image.h" />
+    <ClInclude Include="..\Graphic\Effect\BumpMapEffect.h" />
     <ClInclude Include="..\Graphic\Effect\Font.h" />
     <ClInclude Include="..\Graphic\Effect\FontArialW400H18.h" />
     <ClInclude Include="..\Graphic\Effect\AmbientLightEffect.h" />
@@ -1662,15 +1664,16 @@
     <ClInclude Include="..\Graphic\Scene\Element\BoneNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\CameraNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\CubeNode.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\EmptyNode.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\LightNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\MeshNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\LightNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\StaticMesh.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\StaticMeshNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\Mesh.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshMD3.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\SkinnedMesh.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshLoader.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\MeshFileLoader.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\Mesh\StandardMesh.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\Mesh\NormalMesh.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ParticleAnimatedMeshNodeEmitter.h" />
     <ClInclude Include="..\Graphic\Scene\Element\ParticleSystemNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Particle\ParticleAffector.h" />
@@ -1804,6 +1807,26 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\Assets\Effects\BumpMapEffectPS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\Assets\Effects\BumpMapEffectVS.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="..\..\..\Assets\Effects\ColorEffectPS.glsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -2351,6 +2374,26 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\BumpMapEffectPS.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="..\..\..\Assets\Effects\BumpMapEffectVS.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseGL|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="..\..\..\Assets\Effects\ColorEffectPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
@@ -2697,7 +2740,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GameEngine</RootNamespace>
     <ProjectName>GameEngine</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

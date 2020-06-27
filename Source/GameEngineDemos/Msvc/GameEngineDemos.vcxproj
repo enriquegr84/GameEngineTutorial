@@ -22,7 +22,7 @@
     <ProjectGuid>{63B8049B-62EF-4FA0-BDC3-6B7FC807C03A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GameEngineDemos11</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ProjectName>GameEngineDemos</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -119,7 +119,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\;$(WindowsSDK_LibraryPath_x86)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gameengine.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;dxguid.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gameengine.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;dxguid.lib;assimp-vc141-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd.lib</IgnoreSpecificDefaultLibraries>
       <Profile>true</Profile>
     </Link>
@@ -143,7 +143,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\;$(WindowsSDK_LibraryPath_x86)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gameengine.lib;opengl32.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gameengine.lib;opengl32.lib;assimp-vc141-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd.lib</IgnoreSpecificDefaultLibraries>
       <Profile>true</Profile>
     </Link>
@@ -168,7 +168,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\;$(WindowsSDK_LibraryPath_x86)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gameengine.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;dxguid.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gameengine.lib;d3d11.lib;d3dcompiler.lib;dxgi.lib;dxguid.lib;assimp-vc141-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd.lib</IgnoreSpecificDefaultLibraries>
       <Profile>true</Profile>
     </Link>
@@ -193,7 +193,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\Lib\$(PlatformName)$(Configuration)\;$(WindowsSDK_LibraryPath_x86)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gameengine.lib;;opengl32.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gameengine.lib;;opengl32.lib;assimp-vc141-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd.lib</IgnoreSpecificDefaultLibraries>
       <Profile>true</Profile>
     </Link>

@@ -56,6 +56,8 @@
 class MeshRenderComponent : public BaseRenderComponent
 {
 	eastl::vector<eastl::string> mMeshes;
+	eastl::string mTextureResource;
+	Vector2<float> mTextureSize;
 	unsigned int mMaterialType;
 
 	int mAnimatorType;

@@ -8,6 +8,8 @@
 #ifndef VISUALEFFECT_H
 #define VISUALEFFECT_H
 
+#include "Mathematic/Algebra/Matrix4x4.h"
+
 #include "Graphic/Shader/ProgramFactory.h"
 
 class GRAPHIC_ITEM VisualEffect
@@ -18,10 +20,44 @@ public:
     VisualEffect(eastl::shared_ptr<VisualProgram> const& program);
 
     // Member access.
-    inline eastl::shared_ptr<VisualProgram> const& GetProgram() const;
-    inline eastl::shared_ptr<VertexShader> const& GetVertexShader() const;
-    inline eastl::shared_ptr<PixelShader> const& GetPixelShader() const;
-    inline eastl::shared_ptr<GeometryShader> const& GetGeometryShader() const;
+    inline eastl::shared_ptr<VisualProgram> const& GetProgram() const
+	{
+		return mProgram;
+	}
+
+    inline eastl::shared_ptr<VertexShader> const& GetVertexShader() const
+	{
+		return mProgram->GetVShader();
+	}
+
+    inline eastl::shared_ptr<PixelShader> const& GetPixelShader() const
+	{
+		return mProgram->GetPShader();
+	}
+
+    inline eastl::shared_ptr<GeometryShader> const& GetGeometryShader() const
+	{
+		return mProgram->GetGShader();
+	}
+
+	// For convenience, provide a projection-view-world constant buffer
+	// that an effect can use if so desired.
+	virtual void SetPVWMatrixConstant(eastl::shared_ptr<ConstantBuffer> const& buffer);
+
+	inline eastl::shared_ptr<ConstantBuffer> const& GetPVWMatrixConstant() const
+	{
+		return mPVWMatrixConstant;
+	}
+
+	inline void SetPVWMatrix(Matrix4x4<float> const& pvwMatrix)
+	{
+		*mPVWMatrixConstant->Get<Matrix4x4<float>>() = pvwMatrix;
+	}
+
+	inline Matrix4x4<float> const& GetPVWMatrix() const
+	{
+		return *mPVWMatrixConstant->Get<Matrix4x4<float>>();
+	}
 
 protected:
     // For derived classes to defer construction because they want to create
@@ -32,27 +68,11 @@ protected:
     BufferUpdater mBufferUpdater;
     TextureUpdater mTextureUpdater;
     TextureArrayUpdater mTextureArrayUpdater;
+
+	// The constant buffer that stores the 4x4 projection-view-world
+	// transformation for the Visual object to which this effect is
+	// attached.
+	eastl::shared_ptr<ConstantBuffer> mPVWMatrixConstant;
 };
-
-
-inline eastl::shared_ptr<VisualProgram> const& VisualEffect::GetProgram() const
-{
-    return mProgram;
-}
-
-inline eastl::shared_ptr<VertexShader> const& VisualEffect::GetVertexShader() const
-{
-    return mProgram->GetVShader();
-}
-
-inline eastl::shared_ptr<PixelShader> const& VisualEffect::GetPixelShader() const
-{
-    return mProgram->GetPShader();
-}
-
-inline eastl::shared_ptr<GeometryShader> const& VisualEffect::GetGeometryShader() const
-{
-    return mProgram->GetGShader();
-}
 
 #endif

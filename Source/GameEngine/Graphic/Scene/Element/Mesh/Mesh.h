@@ -17,7 +17,10 @@ enum GRAPHIC_ITEM MeshType
 	MT_UNKNOWN = 0,
 
 	//! generic mesh
-	MT_STANDARD,
+	MT_STATIC,
+
+	//! generic mesh
+	MT_NORMAL,
 
 	//! generic animated mesh
 	MT_ANIMATED,

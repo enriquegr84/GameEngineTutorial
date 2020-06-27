@@ -4,16 +4,16 @@
 
 #include "MeshNode.h"
 
+#include "Graphic/Scene/Hierarchy/Node.h"
+#include "Graphic/Scene/Scene.h"
+
 #include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Effect/Material.h"
 
-#include "Graphic/Scene/Scene.h"
-
-
 //! constructor
-MeshNode::MeshNode(const ActorId actorId, PVWUpdater* updater, 
+MeshNode::MeshNode(const ActorId actorId, PVWUpdater* updater,
 	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh)
-:	Node(actorId, renderComponent, NT_MESH), mMesh(0), mShadow(0), mPassCount(0)
+:	Node(actorId, renderComponent, NT_MESH)
 {
 	mPVWUpdater = updater;
 
@@ -22,14 +22,6 @@ MeshNode::MeshNode(const ActorId actorId, PVWUpdater* updater,
 	SetMesh(mesh);
 }
 
-
-//! destructor
-MeshNode::~MeshNode()
-{
-
-}
-
-
 //! Sets a new mesh
 void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 {
@@ -37,321 +29,67 @@ void MeshNode::SetMesh(const eastl::shared_ptr<BaseMesh>& mesh)
 		return; // won't set null mesh
 
 	mMesh = mesh;
+	eastl::vector<eastl::shared_ptr<BaseMeshBuffer>> meshBuffers;
+	for (unsigned int i = 0; i < mMesh->GetMeshBufferCount(); ++i)
+		meshBuffers.push_back(mMesh->GetMeshBuffer(i));
 
 	mVisuals.clear();
-
-	eastl::vector<eastl::shared_ptr<BaseMeshBuffer>> meshBuffers;
-	unsigned int meshBufferVerticeCount = 0, meshBufferPrimitiveCount = 0;
-
-	eastl::map<eastl::string, eastl::vector<eastl::shared_ptr<BaseMeshBuffer>>> 
-		meshBufferDiffuse, meshBufferTransparentDiffuse;
-	eastl::map<eastl::string, unsigned int> meshBufferVertices, meshBufferTransparentVertices;
-	eastl::map<eastl::string, unsigned int> meshBufferPrimitives, meshBufferTransparentPrimitives;
-	for (unsigned int i = 0; i < mMesh->GetMeshBufferCount(); ++i)
+	for (unsigned int i = 0; i < meshBuffers.size(); ++i)
 	{
-		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = mMesh->GetMeshBuffer(i);
+		const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = meshBuffers[i];
 		if (meshBuffer)
 		{
-			eastl::shared_ptr<Texture2> textureDiffuse = 
-				meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
+			mBlendStates.push_back(eastl::make_shared<BlendState>());
+			mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
+
+			eastl::shared_ptr<Texture2> textureDiffuse = meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
 			if (textureDiffuse)
 			{
-				eastl::string tex =
-					eastl::to_string(textureDiffuse->GetWidth()) + " " +
-					eastl::to_string(textureDiffuse->GetHeight());
-				if (meshBuffer->GetMaterial()->IsTransparent())
-				{
-					meshBufferTransparentDiffuse[tex].push_back(meshBuffer);
+				eastl::vector<eastl::string> path;
+#if defined(_OPENGL_)
+				path.push_back("Effects/Texture2EffectVS.glsl");
+				path.push_back("Effects/Texture2EffectPS.glsl");
+#else
+				path.push_back("Effects/Texture2EffectVS.hlsl");
+				path.push_back("Effects/Texture2EffectPS.hlsl");
+#endif
 
-					if (meshBufferTransparentVertices.find(tex) == meshBufferTransparentVertices.end())
-					{
-						meshBufferTransparentVertices[tex] = 0;
-						meshBufferTransparentPrimitives[tex] = 0;
-					}
-					meshBufferTransparentVertices[tex] += meshBuffer->GetVertice()->GetNumElements();
-					meshBufferTransparentPrimitives[tex] += meshBuffer->GetIndice()->GetNumPrimitives();
-				}
-				else
-				{
-					meshBufferDiffuse[tex].push_back(meshBuffer);
+				eastl::shared_ptr<Texture2Effect> effect = eastl::make_shared<Texture2Effect>(
+					ProgramFactory::Get(), path, textureDiffuse,
+					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mFilter,
+					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeU,
+					meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeV);
 
-					if (meshBufferVertices.find(tex) == meshBufferVertices.end())
-					{
-						meshBufferVertices[tex] = 0;
-						meshBufferPrimitives[tex] = 0;
-					}
-					meshBufferVertices[tex] += meshBuffer->GetVertice()->GetNumElements();
-					meshBufferPrimitives[tex] += meshBuffer->GetIndice()->GetNumPrimitives();
-				}
+				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
+					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
+				visual->UpdateModelBound();
+				mVisuals.push_back(visual);
+				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 			}
 			else
 			{
-				meshBufferVerticeCount += meshBuffer->GetVertice()->GetNumElements();
-				meshBufferPrimitiveCount += meshBuffer->GetIndice()->GetNumPrimitives();
-				meshBuffers.push_back(meshBuffer);
-			}
-		}
-	}
-
-	eastl::map<eastl::string, eastl::vector<eastl::shared_ptr<BaseMeshBuffer>>>::const_iterator it;
-	for (it = meshBufferDiffuse.begin(); it != meshBufferDiffuse.end(); it++)
-	{
-		struct Vertex
-		{
-			Vector3<float> position;
-			Vector3<float> texCoord;
-			Vector3<float> normal;
-		};
-		VertexFormat vertexFormat;
-		vertexFormat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-		vertexFormat.Bind(VA_TEXCOORD, DF_R32G32B32_FLOAT, 0);
-		vertexFormat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
-
-		eastl::shared_ptr<VertexBuffer> vBuffer = eastl::make_shared<VertexBuffer>(
-			vertexFormat, meshBufferVertices[it->first] * sizeof(Vertex));
-		Vertex* vertex = vBuffer->Get<Vertex>();
-
-		eastl::shared_ptr<IndexBuffer> iBuffer = eastl::make_shared<IndexBuffer>(
-			IP_TRIMESH, meshBufferPrimitives[it->first], sizeof(unsigned int));
-
-		size_t split = it->first.find(" ");
-		eastl::shared_ptr<Texture2Array> textureArray = 
-			eastl::make_shared<Texture2Array>(it->second.size(), DF_R8G8B8A8_UNORM, 
-			atoi(it->first.substr(0, split).c_str()), atoi(it->first.substr(split + 1).c_str()), false);
-		//textureArray->AutogenerateMipmaps();
-		unsigned char* textureData = textureArray->Get<unsigned char>();
-
-		eastl::shared_ptr<Material> material;
-		SamplerState::Filter samplerfilter;
-		SamplerState::Mode samplerModeU, samplerModeV;
-		unsigned int bufferCount = 0, vertexCount = 0, idx = 0;
-		for (unsigned int mb = 0; mb < it->second.size(); mb++)
-		{
-			const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = it->second[mb];
-			if (meshBuffer)
-			{
-				eastl::shared_ptr<Texture2> textureDiffuse =
-					meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
-				samplerfilter = meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mFilter;
-				samplerModeU = meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeU;
-				samplerModeV = meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeV;
-				material = meshBuffer->GetMaterial();
-
-				// fill vertices
-				for (unsigned int i = 0; i < meshBuffer->GetVertice()->GetNumElements(); i++)
-				{
-					vertex[vertexCount + i].position = meshBuffer->Position(i);
-					vertex[vertexCount + i].normal = meshBuffer->Normal(i);
-					vertex[vertexCount + i].texCoord = HLift(meshBuffer->TCoord(0, i), (float)bufferCount);
-				}
-
-				//fill textures
-				std::memcpy(textureData, textureDiffuse->GetData(), textureDiffuse->GetNumBytes());
-				textureData += textureDiffuse->GetNumBytes();
-
-				//fill indices
-				unsigned int* index = meshBuffer->GetIndice()->Get<unsigned int>();
-				for (unsigned int i = 0; i < meshBuffer->GetIndice()->GetNumPrimitives(); i++)
-				{
-					iBuffer->SetTriangle(idx++,
-						vertexCount + index[i * 3],
-						vertexCount + index[i * 3 + 1],
-						vertexCount + index[i * 3 + 2]);
-				}
-
-				vertexCount += meshBuffer->GetVertice()->GetNumElements();
-				bufferCount++;
-			}
-		}
-
-		mMaterials.push_back(material);
-		mBlendStates.push_back(eastl::make_shared<BlendState>());
-		mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
-
-		eastl::vector<eastl::string> path;
+				eastl::vector<eastl::string> path;
 #if defined(_OPENGL_)
-		path.push_back("Effects/Texture2ArrayEffectVS.glsl");
-		path.push_back("Effects/Texture2ArrayEffectPS.glsl");
+				path.push_back("Effects/ConstantColorEffectVS.glsl");
+				path.push_back("Effects/ConstantColorEffectPS.glsl");
 #else
-		path.push_back("Effects/Texture2ArrayEffectVS.hlsl");
-		path.push_back("Effects/Texture2ArrayEffectPS.hlsl");
+				path.push_back("Effects/ConstantColorEffectVS.hlsl");
+				path.push_back("Effects/ConstantColorEffectPS.hlsl");
 #endif
+				eastl::shared_ptr<ConstantColorEffect> effect =
+					eastl::make_shared<ConstantColorEffect>(ProgramFactory::Get(), path, Vector4<float>::Zero());
 
-		eastl::shared_ptr<Texture2ArrayEffect> effect = eastl::make_shared<Texture2ArrayEffect>(
-			ProgramFactory::Get(), path, textureArray, samplerfilter, samplerModeU, samplerModeV);
-
-		eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vBuffer, iBuffer, effect);
-		visual->UpdateModelBound();
-		mVisuals.push_back(visual);
-		mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
-	}
-
-	for (it = meshBufferTransparentDiffuse.begin(); it != meshBufferTransparentDiffuse.end(); it++)
-	{
-		struct Vertex
-		{
-			Vector3<float> position;
-			Vector3<float> texCoord;
-			Vector3<float> normal;
-		};
-		VertexFormat vertexFormat;
-		vertexFormat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-		vertexFormat.Bind(VA_TEXCOORD, DF_R32G32B32_FLOAT, 0);
-		vertexFormat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
-
-		eastl::shared_ptr<VertexBuffer> vBuffer = eastl::make_shared<VertexBuffer>(
-			vertexFormat, meshBufferTransparentVertices[it->first] * sizeof(Vertex));
-		Vertex* vertex = vBuffer->Get<Vertex>();
-
-		eastl::shared_ptr<IndexBuffer> iBuffer = eastl::make_shared<IndexBuffer>(
-			IP_TRIMESH, meshBufferTransparentPrimitives[it->first], sizeof(unsigned int));
-
-		size_t split = it->first.find(" ");
-		eastl::shared_ptr<Texture2Array> textureArray =
-			eastl::make_shared<Texture2Array>(it->second.size(), DF_R8G8B8A8_UNORM,
-				atoi(it->first.substr(0, split).c_str()), atoi(it->first.substr(split + 1).c_str()), false);
-		//textureArray->AutogenerateMipmaps();
-		unsigned char* textureData = textureArray->Get<unsigned char>();
-
-		eastl::shared_ptr<Material> material;
-		SamplerState::Filter samplerfilter;
-		SamplerState::Mode samplerModeU, samplerModeV;
-		unsigned int bufferCount = 0, vertexCount = 0, idx = 0;
-		for (unsigned int mb = 0; mb < it->second.size(); mb++)
-		{
-			const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = it->second[mb];
-			if (meshBuffer)
-			{
-				eastl::shared_ptr<Texture2> textureDiffuse =
-					meshBuffer->GetMaterial()->GetTexture(TT_DIFFUSE);
-				samplerfilter = meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mFilter;
-				samplerModeU = meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeU;
-				samplerModeV = meshBuffer->GetMaterial()->mTextureLayer[TT_DIFFUSE].mModeV;
-				material = meshBuffer->GetMaterial();
-
-				// fill vertices
-				for (unsigned int i = 0; i < meshBuffer->GetVertice()->GetNumElements(); i++)
-				{
-					vertex[vertexCount + i].position = meshBuffer->Position(i);
-					vertex[vertexCount + i].normal = meshBuffer->Normal(i);
-					vertex[vertexCount + i].texCoord = HLift(meshBuffer->TCoord(0, i), (float)bufferCount);
-				}
-
-				//fill textures
-				std::memcpy(textureData, textureDiffuse->GetData(), textureDiffuse->GetNumBytes());
-				textureData += textureDiffuse->GetNumBytes();
-
-				//fill indices
-				unsigned int* index = meshBuffer->GetIndice()->Get<unsigned int>();
-				for (unsigned int i = 0; i < meshBuffer->GetIndice()->GetNumPrimitives(); i++)
-				{
-					iBuffer->SetTriangle(idx++,
-						vertexCount + index[i * 3],
-						vertexCount + index[i * 3 + 1],
-						vertexCount + index[i * 3 + 2]);
-				}
-
-				vertexCount += meshBuffer->GetVertice()->GetNumElements();
-				bufferCount++;
+				eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(
+					meshBuffer->GetVertice(), meshBuffer->GetIndice(), effect);
+				visual->UpdateModelBound();
+				mVisuals.push_back(visual);
+				mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 			}
 		}
-
-		mMaterials.push_back(material);
-		mBlendStates.push_back(eastl::make_shared<BlendState>());
-		mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
-
-		eastl::vector<eastl::string> path;
-#if defined(_OPENGL_)
-		path.push_back("Effects/Texture2ArrayEffectVS.glsl");
-		path.push_back("Effects/Texture2ArrayEffectPS.glsl");
-#else
-		path.push_back("Effects/Texture2ArrayEffectVS.hlsl");
-		path.push_back("Effects/Texture2ArrayEffectPS.hlsl");
-#endif
-
-		eastl::shared_ptr<Texture2ArrayEffect> effect = eastl::make_shared<Texture2ArrayEffect>(
-			ProgramFactory::Get(), path, textureArray, samplerfilter, samplerModeU, samplerModeV);
-
-		eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vBuffer, iBuffer, effect);
-		visual->UpdateModelBound();
-		mVisuals.push_back(visual);
-		mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
-	}
-
-	if (meshBuffers.size() > 0)
-	{
-		struct Vertex
-		{
-			Vector3<float> position;
-			Vector4<float> color;
-			Vector3<float> normal;
-		};
-		VertexFormat vertexFormat;
-		vertexFormat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
-		vertexFormat.Bind(VA_COLOR, DF_R32G32B32A32_FLOAT, 0);
-		vertexFormat.Bind(VA_NORMAL, DF_R32G32B32_FLOAT, 0);
-
-		eastl::shared_ptr<VertexBuffer> vBuffer = eastl::make_shared<VertexBuffer>(
-			vertexFormat, meshBufferVerticeCount * sizeof(Vertex));
-		Vertex* vertex = vBuffer->Get<Vertex>();
-
-		eastl::shared_ptr<IndexBuffer> iBuffer = eastl::make_shared<IndexBuffer>(
-			IP_TRIMESH, meshBufferPrimitiveCount, sizeof(unsigned int));
-
-		eastl::shared_ptr<Material> material;
-		unsigned int vertexCount = 0, idx = 0;
-		for (unsigned int mb = 0; mb < meshBuffers.size(); mb++)
-		{
-			const eastl::shared_ptr<BaseMeshBuffer>& meshBuffer = meshBuffers[mb];
-			if (meshBuffer)
-			{
-				material = meshBuffer->GetMaterial();
-
-				// fill vertices
-				for (unsigned int i = 0; i < meshBuffer->GetVertice()->GetNumElements(); i++)
-				{
-					vertex[vertexCount + i].position = meshBuffer->Position(i);
-					vertex[vertexCount + i].normal = meshBuffer->Normal(i);
-				}
-
-				//fill indices
-				unsigned int* index = meshBuffer->GetIndice()->Get<unsigned int>();
-				for (unsigned int i = 0; i < meshBuffer->GetIndice()->GetNumPrimitives(); i++)
-				{
-					iBuffer->SetTriangle(idx++,
-						vertexCount + index[i * 3],
-						vertexCount + index[i * 3 + 1],
-						vertexCount + index[i * 3 + 2]);
-				}
-
-				vertexCount += meshBuffer->GetVertice()->GetNumElements();
-			}
-		}
-
-		mMaterials.push_back(material);
-		mBlendStates.push_back(eastl::make_shared<BlendState>());
-		mDepthStencilStates.push_back(eastl::make_shared<DepthStencilState>());
-
-		eastl::vector<eastl::string> path;
-#if defined(_OPENGL_)
-		path.push_back("Effects/ConstantColorEffectVS.glsl");
-		path.push_back("Effects/ConstantColorEffectPS.glsl");
-#else
-		path.push_back("Effects/ConstantColorEffectVS.hlsl");
-		path.push_back("Effects/ConstantColorEffectPS.hlsl");
-#endif
-		eastl::shared_ptr<ConstantColorEffect> effect =
-			eastl::make_shared<ConstantColorEffect>(ProgramFactory::Get(), path, Vector4<float>::Zero());
-
-		eastl::shared_ptr<Visual> visual = eastl::make_shared<Visual>(vBuffer, iBuffer, effect);
-		visual->UpdateModelBound();
-		mVisuals.push_back(visual);
-		mPVWUpdater->Subscribe(mWorldTransform, effect->GetPVWMatrixConstant());
 	}
 }
 
-
-//! frame
+//! prerender
 bool MeshNode::PreRender(Scene *pScene)
 {
 	if (IsVisible())
@@ -360,12 +98,9 @@ bool MeshNode::PreRender(Scene *pScene)
 		// transparent and solid material at the same time, we need to go through all
 		// materials, check of what type they are and register this node for the right
 		// render pass according to that.
-
-		mPassCount = 0;
 		int transparentCount = 0;
 		int solidCount = 0;
 
-		// count transparent and solid materials in this scene node
 		for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		{
 			if (GetMaterial(i)->IsTransparent())
@@ -386,37 +121,36 @@ bool MeshNode::PreRender(Scene *pScene)
 			if (transparentCount)
 				pScene->AddToRenderQueue(RP_TRANSPARENT, shared_from_this());
 		}
-
 	}
 
 	return Node::PreRender(pScene);
 }
 
-//! renders the node.
+//! render
 bool MeshNode::Render(Scene *pScene)
 {
 	if (!mMesh || !Renderer::Get())
 		return false;
 
-	bool isTransparentPass = 
+	bool isTransparentPass =
 		pScene->GetCurrentRenderPass() == RP_TRANSPARENT;
 	++mPassCount;
 
-	if (mShadow && mPassCount==1)
+	if (mShadow && mPassCount == 1)
 		mShadow->UpdateShadowVolumes(pScene);
 
 	for (unsigned int i = 0; i < GetVisualCount(); ++i)
 	{
 		// only render transparent buffer if this is the transparent render pass
 		// and solid only in solid pass
-		bool transparent = (mMaterials[i]->IsTransparent());
+		bool transparent = (GetMaterial(i)->IsTransparent());
 		if (transparent == isTransparentPass)
 		{
-			if (mMaterials[i]->Update(mBlendStates[i]))
+			if (GetMaterial(i)->Update(mBlendStates[i]))
 				Renderer::Get()->Unbind(mBlendStates[i]);
-			if (mMaterials[i]->Update(mDepthStencilStates[i]))
+			if (GetMaterial(i)->Update(mDepthStencilStates[i]))
 				Renderer::Get()->Unbind(mDepthStencilStates[i]);
-			if (mMaterials[i]->Update(mRasterizerState))
+			if (GetMaterial(i)->Update(mRasterizerState))
 				Renderer::Get()->Unbind(mRasterizerState);
 
 			Renderer::Get()->SetBlendState(mBlendStates[i]);
@@ -435,21 +169,6 @@ bool MeshNode::Render(Scene *pScene)
 }
 
 
-//! Removes a child from this scene node.
-//! Implemented here, to be able to remove the shadow properly, if there is one,
-//! or to remove attached childs.
-int MeshNode::DetachChild(eastl::shared_ptr<Node> const& child)
-{
-	if (child && mShadow == child)
-		mShadow = 0;
-
-	if (Node::DetachChild(child))
-		return true;
-
-	return false;
-}
-
-
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
 eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId actorId,
@@ -465,6 +184,20 @@ eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId 
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;
+}
+
+//! Removes a child from this scene node.
+//! Implemented here, to be able to remove the shadow properly, if there is one,
+//! or to remove attached childs.
+int MeshNode::DetachChild(eastl::shared_ptr<Node> const& child)
+{
+	if (child && mShadow == child)
+		mShadow = 0;
+
+	if (Node::DetachChild(child))
+		return true;
+
+	return false;
 }
 
 //! Returns the visual based on the zero based index i. To get the amount 
@@ -493,16 +226,16 @@ unsigned int MeshNode::GetVisualCount() const
 //! to directly modify the material of a scene node.
 eastl::shared_ptr<Material> const& MeshNode::GetMaterial(unsigned int i)
 {
-	if (i >= mMaterials.size())
+	if (i >= mMesh->GetMeshBufferCount())
 		return nullptr;
 
-	return mMaterials[i];
+	return mMesh->GetMeshBuffer(i)->GetMaterial();
 }
 
 //! returns amount of materials used by this scene node.
 unsigned int MeshNode::GetMaterialCount() const
 {
-	return mMaterials.size();
+	return mMesh->GetMeshBufferCount();
 }
 
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
@@ -513,7 +246,7 @@ void MeshNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<T
 	if (textureLayer >= MATERIAL_MAX_TEXTURES)
 		return;
 
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		GetMaterial(i)->SetTexture(textureLayer, texture);
 }
 
@@ -521,7 +254,7 @@ void MeshNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<T
 /** \param newType New type of material to be set. */
 void MeshNode::SetMaterialType(MaterialType newType)
 {
-	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
+	for (unsigned int i = 0; i < GetMaterialCount(); ++i)
 		GetMaterial(i)->mType = newType;
 }
 
@@ -530,7 +263,6 @@ void MeshNode::SetReadOnlyMaterials(bool readonly)
 {
 	mReadOnlyMaterials = readonly;
 }
-
 
 //! Returns if the scene node should not copy the materials of the mesh but use them in a read only style
 bool MeshNode::IsReadOnlyMaterials() const

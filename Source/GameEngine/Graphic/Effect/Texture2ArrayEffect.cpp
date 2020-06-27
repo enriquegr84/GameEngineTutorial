@@ -10,8 +10,6 @@
 Texture2ArrayEffect::Texture2ArrayEffect(eastl::shared_ptr<ProgramFactory> const& factory, 
 	eastl::vector<eastl::string> path, eastl::shared_ptr<Texture2Array> const& textures,
 	SamplerState::Filter filter, SamplerState::Mode mode0, SamplerState::Mode mode1)
-    :
-    mPVWMatrix(nullptr)
 {
 	eastl::string vsPath = path[0];
 	eastl::string psPath = path[1];
@@ -19,10 +17,6 @@ Texture2ArrayEffect::Texture2ArrayEffect(eastl::shared_ptr<ProgramFactory> const
 	mProgram = factory->CreateFromFiles(vsPath, psPath, gsPath);
     if (mProgram)
     {
-        mPVWMatrixConstant = eastl::make_shared<ConstantBuffer>(sizeof(Matrix4x4<float>), true);
-        mPVWMatrix = mPVWMatrixConstant->Get<Matrix4x4<float>>();
-        *mPVWMatrix = Matrix4x4<float>::Identity();
-
 		mSampler = eastl::make_shared<SamplerState>();
 		mSampler->mFilter = filter;
 		mSampler->mMode[0] = mode0;
