@@ -41,7 +41,7 @@ class BoneNode : public Node
 public:
 
 	//! constructor
-	BoneNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
+	BoneNode(const ActorId actorId, PVWUpdater* updater,
 			unsigned int boneIndex=0, const char* boneName=0);
 
 	//! Returns the index of the bone

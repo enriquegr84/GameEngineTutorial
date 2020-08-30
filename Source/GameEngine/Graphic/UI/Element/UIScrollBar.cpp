@@ -397,7 +397,7 @@ void UIScrollBar::SetSmallStep(int step)
 }
 
 
-//! gets the small step value
+//! gets the large step value
 int UIScrollBar::GetLargeStep() const
 {
 	return mLargeStep;

@@ -9,9 +9,9 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
+SphereNode::SphereNode(const ActorId actorId, PVWUpdater* updater, 
 	const eastl::shared_ptr<Texture2>& texture, float radius, unsigned int polyCountX, unsigned int polyCountY)
-:	Node(actorId, renderComponent, NT_SPHERE), mShadow(0),
+:	Node(actorId, NT_SPHERE), mShadow(0),
 	mRadius(radius), mPolyCountX(polyCountX), mPolyCountY(polyCountY)
 {
 	mPVWUpdater = updater;
@@ -168,7 +168,7 @@ eastl::shared_ptr<ShadowVolumeNode> SphereNode::AddShadowVolumeNode(const ActorI
 		return nullptr;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(new ShadowVolumeNode(
-		actorId, mPVWUpdater, WeakBaseRenderComponentPtr(), shadowMesh, zfailmethod, infinity));
+		actorId, mPVWUpdater, shadowMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;

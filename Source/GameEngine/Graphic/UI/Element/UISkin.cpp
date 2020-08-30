@@ -116,12 +116,16 @@ UISkin::UISkin(BaseUI* ui, UISkinThemeType type)
 	mTexts[DT_WINDOW_RESTORE] = L"Restore";
 	mTexts[DT_WINDOW_MINIMIZE] = L"Minimize";
 	mTexts[DT_WINDOW_MAXIMIZE] = L"Maximize";
+	mTexts[DT_WINDOW_COLLAPSE] = L"Collapse";
+	mTexts[DT_WINDOW_EXPAND] = L"Expand";
 
 	mIcons[DI_WINDOW_MAXIMIZE] = L"Art/UserControl/appbar.window.maximize.png";
 	mIcons[DI_WINDOW_RESTORE] = L"Art/UserControl/appbar.window.restore.png";
 	mIcons[DI_WINDOW_CLOSE] = L"Art/UserControl/appbar.close.png";
 	mIcons[DI_WINDOW_MINIMIZE] = L"Art/UserControl/appbar.window.minimize.png";
 	mIcons[DI_WINDOW_RESIZE] = L"Art/UserControl/appbar.window.restore.png";
+	mIcons[DI_WINDOW_COLLAPSE] = L"Art/UserControl/appbar.arrow.collapsed.png";
+	mIcons[DI_WINDOW_EXPAND] = L"Art/UserControl/appbar.arrow.expand.png";
 	mIcons[DI_CURSOR_UP] = L"Art/UserControl/appbar.chevron.up.png";
 	mIcons[DI_CURSOR_DOWN] = L"Art/UserControl/appbar.chevron.down.png";
 	mIcons[DI_CURSOR_LEFT] = L"Art/UserControl/appbar.chevron.left.png";
@@ -508,41 +512,43 @@ RectangleShape<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Ba
 	RectangleShape<2, int> rect = r;
 	Vector2<int> dimension(clip->mExtent / 2);
 
-	struct Vertex
+	if (visualBackground)
 	{
-		Vector3<float> position;
-		Vector4<float> color;
-	};
-	Vertex* vertex = visualBackground->GetVertexBuffer()->Get<Vertex>();
+		struct Vertex
+		{
+			Vector3<float> position;
+			Vector4<float> color;
+		};
+		Vertex* vertex = visualBackground->GetVertexBuffer()->Get<Vertex>();
 
-	const eastl::array<float, 4> c2 = GetColor(DC_3D_SHADOW);
-	const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
+		const eastl::array<float, 4> c2 = GetColor(DC_3D_SHADOW);
+		const eastl::array<float, 4> c1 = GetColor(DC_3D_FACE);
 
-	vertex[0].position = {
-		(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
-	vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
-	vertex[1].position = {
-		(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
-	vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
-	vertex[2].position = {
-		(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
-		(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
-	vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
-	vertex[3].position = {
-		(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
-		(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
-	vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[0].position = {
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
+		vertex[0].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[1].position = {
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] - (rect.mExtent[1] / 2)) / dimension[1], 0.0f };
+		vertex[1].color = { c2[0], c2[1], c2[2], 1.0f };
+		vertex[2].position = {
+			(float)(rect.mCenter[0] - dimension[0] - (rect.mExtent[0] / 2)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[2].color = { c1[0], c1[1], c1[2], 1.0f };
+		vertex[3].position = {
+			(float)(rect.mCenter[0] - dimension[0] + (int)round(rect.mExtent[0] / 2.f)) / dimension[0],
+			(float)(dimension[1] - rect.mCenter[1] + (int)round(rect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
+		vertex[3].color = { c1[0], c1[1], c1[2], 1.0f };
 
-	// Create the geometric object for drawing.
-	Renderer::Get()->Update(visualBackground->GetVertexBuffer());
-	Renderer::Get()->Draw(visualBackground);
+		// Create the geometric object for drawing.
+		Renderer::Get()->Update(visualBackground->GetVertexBuffer());
+		Renderer::Get()->Draw(visualBackground);
+	}
 
 	// title bar
 	rect = r;
 	rect.mExtent[0] -= 2;
-	rect.mCenter[1] += 1;
 	rect.mExtent[1] -= 2;
 	rect.mCenter[1] = (rect.mCenter[1] - rect.mExtent[1] / 2) + (GetSize(DS_WINDOW_BUTTON_WIDTH) + 2) / 2;
 	rect.mExtent[1] = GetSize(DS_WINDOW_BUTTON_WIDTH) + 2;
@@ -551,6 +557,11 @@ RectangleShape<2, int> UISkin::Draw3DWindowBackground(const eastl::shared_ptr<Ba
 	{
 		if (!checkClientArea)
 		{
+			struct Vertex
+			{
+				Vector3<float> position;
+				Vector4<float> color;
+			};
 			Vertex* vertex = visualTitle->GetVertexBuffer()->Get<Vertex>();
 
 			// draw title bar

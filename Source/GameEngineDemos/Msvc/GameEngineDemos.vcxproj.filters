@@ -125,6 +125,8 @@
     <ClInclude Include="..\Quake\QuakeAIManager.h">
       <Filter>Quake</Filter>
     </ClInclude>
+    <ClInclude Include="..\AreaLightsApp.h" />
+    <ClInclude Include="..\AreaLightsView.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\TriangleDemoApp.cpp" />
@@ -227,6 +229,8 @@
     <ClCompile Include="..\Quake\QuakeAIManager.cpp">
       <Filter>Quake</Filter>
     </ClCompile>
+    <ClCompile Include="..\AreaLightsApp.cpp" />
+    <ClCompile Include="..\AreaLightsView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Demo">

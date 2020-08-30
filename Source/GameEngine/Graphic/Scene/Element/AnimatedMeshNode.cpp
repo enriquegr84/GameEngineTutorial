@@ -15,8 +15,8 @@
 
 //! constructor
 AnimatedMeshNode::AnimatedMeshNode(const ActorId actorId, PVWUpdater* updater,
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
-:	Node(actorId, renderComponent, NT_ANIMATED_MESH),
+	const eastl::shared_ptr<BaseAnimatedMesh>& mesh)
+:	Node(actorId, NT_ANIMATED_MESH),
 	mMesh(0), mStartFrame(0), mEndFrame(0), mFramesPerSecond(0.025f), mCurrentFrameNr(0.f), 
 	mLastTime(0), mLooping(true), mReadOnlyMaterials(false), mRenderFromIdentity(false), 
 	mLoopCallBack(0), mPassCount(0), mShadow(0)
@@ -794,7 +794,7 @@ eastl::shared_ptr<ShadowVolumeNode> AnimatedMeshNode::AddShadowVolumeNode(const 
 		return nullptr;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
-		new ShadowVolumeNode(actorId, mPVWUpdater, WeakBaseRenderComponentPtr(), 
+		new ShadowVolumeNode(actorId, mPVWUpdater,
 			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 

@@ -11,9 +11,8 @@
 
 
 //! constructor
-StaticMeshNode::StaticMeshNode(const ActorId actorId, PVWUpdater* updater, 
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh)
-:	Node(actorId, renderComponent, NT_STATIC_MESH), mMesh(0), mShadow(0), mPassCount(0)
+StaticMeshNode::StaticMeshNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<BaseMesh>& mesh)
+:	Node(actorId, NT_STATIC_MESH), mMesh(0), mShadow(0), mPassCount(0)
 {
 	mPVWUpdater = updater;
 
@@ -460,8 +459,7 @@ eastl::shared_ptr<ShadowVolumeNode> StaticMeshNode::AddShadowVolumeNode(const Ac
 		return nullptr;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
-		new ShadowVolumeNode(actorId, mPVWUpdater, WeakBaseRenderComponentPtr(),
-			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
+		new ShadowVolumeNode(actorId, mPVWUpdater, shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;

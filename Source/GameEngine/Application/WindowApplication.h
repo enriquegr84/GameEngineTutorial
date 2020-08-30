@@ -65,10 +65,12 @@ protected:
     // The window ID is platform-specific but hidden by an 'int' opaque
     // handle.
     int mWindowID;
-	
+
 	//main services
 	eastl::shared_ptr<ProgramFactory> mProgramFactory;
+	eastl::shared_ptr<EventManager> mEventManager;
 	eastl::shared_ptr<FileSystem> mFileSystem;
+	eastl::shared_ptr<ResCache> mResCache;
 	eastl::shared_ptr<Renderer> mRenderer;
 	eastl::shared_ptr<System> mSystem;
 };

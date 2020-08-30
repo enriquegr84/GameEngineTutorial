@@ -365,6 +365,19 @@ public:
 	}
 
 
+	//! Updates visibility.
+	virtual void UpdateVisibility(bool visible)
+	{
+		mVisible = visible;
+
+		// update all children
+		eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
+		for (; it != mChildren.end(); ++it)
+		{
+			(*it)->UpdateVisibility(visible);
+		}
+	}
+
 	//! Returns the topmost UI element at the specific position.
 	/**
 	This will check this UI element and all of its descendants, so it

@@ -16,9 +16,8 @@
 //#include "Utilities/ViewFrustum.h"
 
 //! constructor
-ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* updater,
-	WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter)
-:	Node(actorId, renderComponent, NT_PARTICLE_SYSTEM),
+ParticleSystemNode::ParticleSystemNode(const ActorId actorId, PVWUpdater* updater, bool createDefaultEmitter)
+:	Node(actorId, NT_PARTICLE_SYSTEM),
 	mEmitter(0), mParticleSize(Vector2<float>{5.f, 5.f}), mLastEmitTime(0),
 	mMaxParticles(0xffff), mParticlesAreGlobal(true)
 {
@@ -418,8 +417,8 @@ ParticleAnimatedMeshNodeEmitter* ParticleSystemNode::CreateAnimatedMeshNodeEmitt
 	const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
 {
 	
-	return new ParticleAnimatedMeshNodeEmitter(actorId, mPVWUpdater, WeakBaseRenderComponentPtr(),
-		node, useNormalDirection, direction, normalDirectionModifier, mbNumber, everyMeshVertex, 
+	return new ParticleAnimatedMeshNodeEmitter(actorId, mPVWUpdater, node, 
+		useNormalDirection, direction, normalDirectionModifier, mbNumber, everyMeshVertex, 
 		minParticlesPerSecond, maxParticlesPerSecond, minStartColor, maxStartColor,
 		lifeTimeMin, lifeTimeMax, maxAngleDegrees, minStartSize, maxStartSize );
 }

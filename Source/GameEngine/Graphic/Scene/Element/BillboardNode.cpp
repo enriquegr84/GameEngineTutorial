@@ -16,10 +16,9 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-BillboardNode::BillboardNode(const ActorId actorId, 
-	PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
+BillboardNode::BillboardNode(const ActorId actorId, PVWUpdater* updater, 
 	const eastl::shared_ptr<Texture2>& texture, const Vector2<float>& size)
-	: Node(actorId, renderComponent, NT_BILLBOARD)
+	: Node(actorId, NT_BILLBOARD)
 {
 	SetSize(size);
 

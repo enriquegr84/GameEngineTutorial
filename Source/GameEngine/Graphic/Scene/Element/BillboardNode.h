@@ -20,8 +20,7 @@ public:
     // The model space of the billboard has an up vector of (0,1,0) that is
     // chosen to be the billboard's axis of rotation.
 	//! Constructor
-	BillboardNode(const ActorId actorId, 
-		PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
+	BillboardNode(const ActorId actorId, PVWUpdater* updater,
 		const eastl::shared_ptr<Texture2>& texture, const Vector2<float>& size);
 
 	//! Returns type of the scene node

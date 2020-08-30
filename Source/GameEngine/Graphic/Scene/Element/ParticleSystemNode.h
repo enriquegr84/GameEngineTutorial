@@ -38,8 +38,7 @@ class ParticleSystemNode : public Node
 public:
 
 	//! Constructor
-	ParticleSystemNode(const ActorId actorId, PVWUpdater* updater, 
-		WeakBaseRenderComponentPtr renderComponent, bool createDefaultEmitter);
+	ParticleSystemNode(const ActorId actorId, PVWUpdater* updater, bool createDefaultEmitter);
 
 	//! destructor
 	virtual ~ParticleSystemNode();

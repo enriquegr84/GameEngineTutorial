@@ -147,6 +147,26 @@ bool BaseUI::OnInit()
 		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
 	}
 
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_COLLAPSE)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_COLLAPSE));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
+	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_WINDOW_EXPAND)));
+	if (resHandle)
+	{
+		const eastl::shared_ptr<ImageResourceExtraData>& extra =
+			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+		extra->GetImage()->AutogenerateMipmaps();
+		extra->GetImage()->SetName(mCurrentSkin->GetIcon(DI_WINDOW_EXPAND));
+		mCurrentSkin->GetSpriteBank()->AddTextureAsSprite(extra->GetImage());
+	}
+
 	resHandle = ResCache::Get()->GetHandle(&BaseResource(mCurrentSkin->GetIcon(DI_CURSOR_UP)));
 	if (resHandle)
 	{

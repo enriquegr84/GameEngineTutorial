@@ -29,9 +29,8 @@ class SkyDomeNode : public Node
 public:
 
 	//! constructor
-	SkyDomeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
-			const eastl::shared_ptr<Texture2>& sky, unsigned int horiRes, unsigned int vertRes,
-			float texturePercentage, float spherePercentage, float radius);
+	SkyDomeNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<Texture2>& sky, 
+		unsigned int horiRes, unsigned int vertRes, float texturePercentage, float spherePercentage, float radius);
 
 	//! Render events
 	virtual bool PreRender(Scene *pScene);

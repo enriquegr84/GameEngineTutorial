@@ -84,7 +84,7 @@ void BumpMapEffect::ComputeLightVectors(eastl::shared_ptr<Node> const& node,
     // yet been computed.  The probability that a light vector is actually
     // (0,0,0) should be small, so the flag system should save computation
     // time overall.
-	for (int v = 0; v < node->GetVisualCount(); v++)
+	for (unsigned int v = 0; v < node->GetVisualCount(); v++)
 	{
 		auto vbuffer = node->GetVisual(v)->GetVertexBuffer();
 		unsigned int const numVertices = vbuffer->GetNumElements();

@@ -10,6 +10,8 @@
 
 #include "Core/Core.h"
 
+#include "Game/GameLogic.h"
+
 #ifdef _WINDOWS_API_
 
 #include "System/WindowsSystem.h"
@@ -35,6 +37,9 @@ WindowApplication::WindowApplication(const char* windowTitle, int xPosition,
 	mHeight(height), mClearColor(clearColor), mAllowResize(true), mWindowID(0), 
 	mFramesPerSecond(0), mTimer(0), mMaxTimer(30), mSystem(0), mRenderer(0)
 {
+	mEventManager = NULL;
+	mResCache = NULL;
+
 	mQuitRequested = false;
 	mQuitting = false;
 }
@@ -118,7 +123,64 @@ bool WindowApplication::OnInitialize()
 	mFileSystem = eastl::shared_ptr<FileSystem>(new FileSystem());
 	// Always check the application directory.
 	mFileSystem->InsertDirectory(Application::ApplicationPath);
-	mFileSystem->InsertDirectory(ApplicationPath + "../../../Assets/");
+	mFileSystem->InsertDirectory(ApplicationPath + "/../../Assets/");
+
+	/*
+		ResCache is created and initialized to 100MB and assocaited to a concreted mount point where
+		files will be taken. A resource cache can contain many different types of resources, such as
+		sounds, music, textures, and more. The resource cache needs to know how each one of these
+		files types is read and converted into something the game engine can use directly. The process
+		of registering a loader associates a specific loader class with a file type.
+	*/
+
+	BaseResourceFile *mountPointFile = new ResourceMountPointFile(L"/../../Assets");
+	mResCache = eastl::shared_ptr<ResCache>(new ResCache(200, mountPointFile));
+
+	if (!mResCache->Init())
+	{
+		LogError("Failed to initialize resource cache!\
+				 Are your paths set up correctly?");
+		return false;
+	}
+
+	extern eastl::shared_ptr<BaseResourceLoader> CreateMeshResourceLoader();
+	extern eastl::shared_ptr<BaseResourceLoader> CreateXmlResourceLoader();
+	extern eastl::shared_ptr<BaseResourceLoader> CreateImageResourceLoader();
+
+#ifdef USE_DX11
+	extern eastl::shared_ptr<BaseResourceLoader> CreateHLSLShaderResourceLoader();
+#elif _OPENGL_
+	extern eastl::shared_ptr<BaseResourceLoader> CreateGLSLShaderResourceLoader();
+#endif
+
+	//	Note - register these in order from least specific to most specific! 
+	//	They get pushed onto a list.
+	mResCache->RegisterLoader(CreateMeshResourceLoader());
+	mResCache->RegisterLoader(CreateXmlResourceLoader());
+	mResCache->RegisterLoader(CreateImageResourceLoader());
+
+
+#ifdef USE_DX11
+	mResCache->RegisterLoader(CreateHLSLShaderResourceLoader());
+#elif _OPENGL_
+	mResCache->RegisterLoader(CreateGLSLShaderResourceLoader());
+#endif
+
+	// The event manager should be created next so that subsystems can hook in as desired.
+	mEventManager = eastl::shared_ptr<EventManager>(
+		new EventManager("GameEngine EventMgr", true));
+	if (!mEventManager)
+	{
+		LogError("Failed to create EventManager.");
+		return false;
+	}
+
+	// Create the game logic
+	GameLogic* game = new GameLogic();
+	game->Init();
+
+	if (!GameLogic::mGame)
+		return false;
 
 	InitTime();
 

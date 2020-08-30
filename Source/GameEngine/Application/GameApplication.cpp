@@ -229,7 +229,6 @@ bool GameApplication::OnInitialize()
 	mOption.Init(L"Config/PlayerOptions.xml");
 
 	// The event manager should be created next so that subsystems can hook in as desired.
-	// Discussed in Chapter 5, page 144
 	mEventManager = eastl::shared_ptr<EventManager>(
 		new EventManager("GameEngine EventMgr", true));
 	if (!mEventManager)
@@ -370,7 +369,7 @@ void GameApplication::OnRender(unsigned int elapsedTime)
 	//Rendering for debug purpose
 	GameLogic::Get()->RenderDiagnostics();
 
-	mRenderer->DisplayColorBuffer(1);
+	mRenderer->DisplayColorBuffer(0);
 }
 
 

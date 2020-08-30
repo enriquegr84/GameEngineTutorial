@@ -14,8 +14,7 @@ class MeshNode : public Node
 public:
 
 	//! constructor
-	MeshNode(const ActorId actorId, PVWUpdater* updater,
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh);
+	MeshNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<BaseMesh>& mesh);
 
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);

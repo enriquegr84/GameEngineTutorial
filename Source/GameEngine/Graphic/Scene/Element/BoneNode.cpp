@@ -5,10 +5,9 @@
 #include "BoneNode.h"
 
 //! constructor
-BoneNode::BoneNode(const ActorId actorId, PVWUpdater* updater, 
-	WeakBaseRenderComponentPtr renderComponent, 
+BoneNode::BoneNode(const ActorId actorId, PVWUpdater* updater,
 	unsigned int boneIndex, const char* boneName)
-: Node(actorId, renderComponent, NT_ANIMATED_MESH),
+: Node(actorId, NT_ANIMATED_MESH),
 	mBoneIndex(boneIndex), mAnimationMode(BAM_AUTOMATIC), mSkinningSpace(BSS_LOCAL),
 	mPositionHint(-1), mScaleHint(-1), mRotationHint(-1)
 {

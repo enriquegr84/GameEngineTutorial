@@ -8,12 +8,17 @@
 
 //! constructor
 UIWindow::UIWindow(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
-	: BaseUIWindow(id, rectangle), mUI(ui), mDragging(false), mIsDraggableWindow(true),
-	mDrawBackground(true), mDrawTitlebar(true), mIsActive(false)
+	: BaseUIWindow(id, rectangle), mUI(ui), mScrollBarV(0), mScrollBarPos(0),
+	mDragging(false), mIsDraggableWindow(true), mDrawBackground(true), 
+	mDrawTitlebar(true), mIsActive(false)
 {
 	#ifdef _DEBUG
 		//SetDebugName("UIWindow");
 	#endif
+
+	eastl::shared_ptr<BaseUISkin> skin = 0;
+	if (mUI)
+		skin = mUI->GetSkin();
 
 	// Create a vertex buffer for a single triangle.
 	VertexFormat vformat;
@@ -72,19 +77,23 @@ void UIWindow::RefreshSprites()
 		mCloseButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_CLOSE, mCurrentIconColor);
 		mCloseButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_CLOSE, mCurrentIconColor);
 
+		mMinButton->SetSpriteBank(sprites);
+		mMinButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_MINIMIZE, mCurrentIconColor);
+		mMinButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_MINIMIZE, mCurrentIconColor);
+
 		mRestoreButton->SetSpriteBank(sprites);
 		mRestoreButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_RESTORE, mCurrentIconColor);
 		mRestoreButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_RESTORE, mCurrentIconColor);
 
-		mMinButton->SetSpriteBank(sprites);
-		mMinButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_MINIMIZE, mCurrentIconColor);
-		mMinButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_MINIMIZE, mCurrentIconColor);
+		mCollapseButton->SetSpriteBank(sprites);
+		mCollapseButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_COLLAPSE, mCurrentIconColor);
+		mCollapseButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_COLLAPSE, mCurrentIconColor);
 	}
 }
 
 
 //! Initialize Window
-void UIWindow::OnInit()
+void UIWindow::OnInit(bool scrollBarVertical)
 {
 	eastl::shared_ptr<BaseUISkin> skin = 0;
 	if (mUI)
@@ -94,31 +103,37 @@ void UIWindow::OnInit()
 
 	int buttonw = 15;
 	if (skin)
-	{
 		buttonw = skin->GetSize(DS_WINDOW_BUTTON_WIDTH);
-	}
-	int posx = mRelativeRect.mExtent[0] - buttonw - 4;
 	
 	RectangleShape<2, int> rect;
-	rect.mCenter[0] = posx + (int)round(buttonw / 2.f);
-	rect.mCenter[1] = 3 + (int)round(buttonw / 2.f);
+	rect.mCenter[0] = (int)(buttonw / 2.f);
+	rect.mCenter[1] = 2 + (int)(buttonw / 2.f);
 	rect.mExtent[0] = buttonw;
 	rect.mExtent[1] = buttonw;
+
+	mCollapseButton = mUI->AddButton(rect, shared_from_this(), -1,
+		L"", skin ? skin->GetDefaultText(DT_WINDOW_COLLAPSE) : L"Collapse");
+	mCollapseButton->SetPushButton(true);
+	mCollapseButton->SetSubElement(true);
+	mCollapseButton->SetTabStop(false);
+	mCollapseButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
+
+	rect.mCenter[0] = mRelativeRect.mExtent[0] - (int)round(buttonw / 2.f);
 	mCloseButton = mUI->AddButton(rect, shared_from_this(), -1,
 		L"", skin ? skin->GetDefaultText(DT_WINDOW_CLOSE) : L"Close");
 	mCloseButton->SetSubElement(true);
 	mCloseButton->SetTabStop(false);
 	mCloseButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
-	rect.mCenter[0] -= buttonw + 2;
-
+	
+	rect.mCenter[0] -= buttonw;
 	mRestoreButton = mUI->AddButton(rect, shared_from_this(), -1,
 		L"", skin ? skin->GetDefaultText(DT_WINDOW_RESTORE) : L"Restore");
 	mRestoreButton->SetVisible(false);
 	mRestoreButton->SetSubElement(true);
 	mRestoreButton->SetTabStop(false);
 	mRestoreButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
-	rect.mCenter[0] -= buttonw + 2;
-
+	
+	rect.mCenter[0] -= buttonw;
 	mMinButton = mUI->AddButton(rect, shared_from_this(), -1,
 		L"", skin ? skin->GetDefaultText(DT_WINDOW_MINIMIZE) : L"Minimize");
 	mMinButton->SetVisible(false);
@@ -126,13 +141,29 @@ void UIWindow::OnInit()
 	mMinButton->SetTabStop(false);
 	mMinButton->SetAlignment(UIA_LOWERRIGHT, UIA_LOWERRIGHT, UIA_UPPERLEFT, UIA_UPPERLEFT);
 
+	if (scrollBarVertical)
+	{
+		int scrollBarSize = skin->GetSize(DS_SCROLLBAR_SIZE);
+		int barHeight = skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 2;
+
+		rect.mCenter[0] = mRelativeRect.mExtent[0] - (scrollBarSize/2);
+		rect.mCenter[1] = barHeight + ((mRelativeRect.mExtent[1] - barHeight) / 2);
+		rect.mExtent[0] = scrollBarSize;
+		rect.mExtent[1] = mRelativeRect.mExtent[1] - barHeight - 2;
+
+		mScrollBarV.reset(new UIScrollBar(mUI, 0, rect, false));
+		mScrollBarV->SetParent(shared_from_this());
+		mScrollBarV->OnInit(false);
+		mScrollBarV->SetSubElement(true);
+		mScrollBarV->SetPos(0);
+	}
+
 	// this element is a tab group
 	SetTabGroup(true);
 	SetTabStop(true);
 	SetTabOrder(-1);
 
 	RefreshSprites();
-	UpdateClientRect();
 }
 
 //! called if an event happened.
@@ -140,10 +171,20 @@ bool UIWindow::OnEvent(const Event& ev)
 {
 	if (IsEnabled())
 	{
+		Vector2<int> p{ ev.mMouseInput.X, ev.mMouseInput.Y };
+
 		switch (ev.mEventType)
 		{
 			case ET_UI_EVENT:
-				if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUS_LOST)
+				if (ev.mUIEvent.mEventType == UIEVT_SCROLL_BAR_CHANGED)
+				{
+					if (ev.mUIEvent.mCaller == mScrollBarV.get())
+					{
+						UpdateClientRect();
+						return true;
+					}
+				}
+				else if (ev.mUIEvent.mEventType == UIEVT_ELEMENT_FOCUS_LOST)
 				{
 					mDragging = false;
 					mIsActive = false;
@@ -178,7 +219,6 @@ bool UIWindow::OnEvent(const Event& ev)
 								Remove();
 
 							return true;
-
 						}
 						else
 						{
@@ -186,15 +226,58 @@ bool UIWindow::OnEvent(const Event& ev)
 							return true;
 						}
 					}
+					else if (ev.mUIEvent.mCaller == mCollapseButton.get()) 
+					{
+						if (mCollapseButton->IsPressed())
+						{
+							mCollapseButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_EXPAND, mCurrentIconColor);
+							mCollapseButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_EXPAND, mCurrentIconColor);
+						
+							bool minState = mMinButton->IsVisible();
+							bool closeState = mCloseButton->IsVisible();
+							bool restoreState = mRestoreButton->IsVisible();
+							bool collapseState = mCollapseButton->IsVisible();
+
+							eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
+							for (; it != mChildren.end(); ++it)
+								(*it)->UpdateVisibility(false);
+
+							mMinButton->UpdateVisibility(minState);
+							mCloseButton->UpdateVisibility(closeState);
+							mRestoreButton->UpdateVisibility(restoreState);
+							mCollapseButton->UpdateVisibility(collapseState);
+						}
+						else
+						{
+							mCollapseButton->SetSprite(BS_BUTTON_UP, DI_WINDOW_COLLAPSE, mCurrentIconColor);
+							mCollapseButton->SetSprite(BS_BUTTON_DOWN, DI_WINDOW_COLLAPSE, mCurrentIconColor);
+
+							UpdateClientRect();
+						}
+						return true;
+					}
 				}
 			break;
 			case ET_MOUSE_INPUT_EVENT:
 				switch (ev.mMouseInput.mEvent)
 				{
+					case MIE_MOUSE_WHEEL:
+						if (mScrollBarV)
+						{
+							if (!mCollapseButton->IsPressed())
+							{
+								mScrollBarV->SetPos(mScrollBarV->GetPos() + (ev.mMouseInput.mWheel < 0 ? -1 : 1) * -10);
+								UpdateClientRect();
+							}
+						}
+						return true;
+						break;
+
 					case MIE_LMOUSE_PRESSED_DOWN:
 						mDragStart[0] = ev.mMouseInput.X;
 						mDragStart[1] = ev.mMouseInput.Y;
 						mDragging = mIsDraggableWindow;
+
 						if (mParent)
 							mParent->BringToFront(shared_from_this());
 						return true;
@@ -239,6 +322,8 @@ bool UIWindow::OnEvent(const Event& ev)
 void UIWindow::UpdateAbsoluteTransformation()
 {
 	BaseUIElement::UpdateAbsolutePosition();
+	UpdateScrollBarHeight();
+	UpdateClientRect();
 }
 
 
@@ -248,10 +333,6 @@ void UIWindow::Draw()
 	if (mVisible)
 	{
 		const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
-
-		// update each time because the skin is allowed to change this always.
-		UpdateClientRect();
-
 		if (mCurrentIconColor != skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL))
 			RefreshSprites();
 
@@ -260,14 +341,23 @@ void UIWindow::Draw()
 		// draw body fast
 		if (mDrawBackground)
 		{
-			rect = skin->Draw3DWindowBackground(shared_from_this(), mVisualBackground,
-				mVisualTitle, mDrawTitlebar, skin->GetColor(mIsActive ? DC_ACTIVE_BORDER : DC_INACTIVE_BORDER),
-				mAbsoluteRect, &mAbsoluteClippingRect);
+			if (mCollapseButton->IsPressed())
+			{
+				rect = skin->Draw3DWindowBackground(shared_from_this(), nullptr,
+					mVisualTitle, mDrawTitlebar, skin->GetColor(mIsActive ? DC_ACTIVE_BORDER : DC_INACTIVE_BORDER),
+					mAbsoluteRect, &mAbsoluteClippingRect);
+			}
+			else
+			{
+				rect = skin->Draw3DWindowBackground(shared_from_this(), mVisualBackground,
+					mVisualTitle, mDrawTitlebar, skin->GetColor(mIsActive ? DC_ACTIVE_BORDER : DC_INACTIVE_BORDER),
+					mAbsoluteRect, &mAbsoluteClippingRect);
+			}
 
 			if (mDrawTitlebar && mText.size())
 			{
 				rect.mCenter[0] += (int)round(skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X) / 2);
-				rect.mCenter[0] -= (skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 5 )/ 2;
+				rect.mCenter[0] += (skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 5 )/ 2;
 				rect.mCenter[1] += (int)round(skin->GetSize(DS_TITLEBARTEXT_DISTANCE_Y) / 2);
 
 				rect.mExtent[0] -= skin->GetSize(DS_TITLEBARTEXT_DISTANCE_X);
@@ -288,6 +378,30 @@ void UIWindow::Draw()
 	BaseUIElement::Draw();
 }
 
+//! Returns true if a point is within this element.
+/** Elements with a shape other than a rectangle should override this method */
+bool UIWindow::IsPointInside(const Vector2<int>& point) const
+{
+	if (mCollapseButton->IsPressed())
+	{
+		const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
+		int barHeight = skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 2;
+
+		return (
+			mAbsoluteRect.mCenter[0] - (mAbsoluteRect.mExtent[0] / 2) <= point[0] &&
+			mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2) <= point[1] &&
+			mAbsoluteRect.mCenter[0] + (int)round(mAbsoluteRect.mExtent[0] / 2.f) >= point[0] &&
+			mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2) + barHeight >= point[1]);
+	}
+	else
+	{
+		return (
+			mAbsoluteRect.mCenter[0] - (mAbsoluteRect.mExtent[0] / 2) <= point[0] &&
+			mAbsoluteRect.mCenter[1] - (mAbsoluteRect.mExtent[1] / 2) <= point[1] &&
+			mAbsoluteRect.mCenter[0] + (int)round(mAbsoluteRect.mExtent[0] / 2.f) >= point[0] &&
+			mAbsoluteRect.mCenter[1] + (int)round(mAbsoluteRect.mExtent[1] / 2.f) >= point[1]);
+	}
+}
 
 //! Returns pointer to the close button
 const eastl::shared_ptr<BaseUIButton>& UIWindow::GetCloseButton() const
@@ -309,6 +423,11 @@ const eastl::shared_ptr<BaseUIButton>& UIWindow::GetMaximizeButton() const
 	return mRestoreButton;
 }
 
+//! Returns pointer to the collapse button
+const eastl::shared_ptr<BaseUIButton>& UIWindow::GetCollapseButton() const
+{
+	return mCollapseButton;
+}
 
 //! Returns true if the window is draggable, false if not
 bool UIWindow::IsDraggable() const
@@ -357,17 +476,70 @@ bool UIWindow::GetDrawTitlebar() const
 
 void UIWindow::UpdateClientRect()
 {
-	if (!mDrawBackground)
-	{
-		mClientRect = RectangleShape<2, int>();
-		mClientRect.mCenter = mAbsoluteRect.mExtent / 2;
-		mClientRect.mExtent = mAbsoluteRect.mExtent;
-		return;
-	}
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
-	mClientRect.mCenter -= mAbsoluteRect.mCenter - (mAbsoluteRect.mExtent / 2);
+	mClientRect = mAbsoluteRect;
+	mClientRect.mCenter[1] += (skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 2) / 2;
+	mClientRect.mExtent[1] -= skin->GetSize(DS_WINDOW_BUTTON_WIDTH) + 2;
+
+	if (mScrollBarV)
+	{
+		mClientRect.mCenter[0] -= skin->GetSize(DS_SCROLLBAR_SIZE) / 2;
+		mClientRect.mExtent[0] -= skin->GetSize(DS_SCROLLBAR_SIZE);
+	}
+
+	eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
+	for (; it != mChildren.end(); ++it)
+	{
+		if ((*it) != mMinButton &&
+			(*it) != mScrollBarV &&
+			(*it) != mCloseButton && 
+			(*it) != mRestoreButton &&
+			(*it) != mCollapseButton )
+		{
+			RectangleShape<2, int> rectangle = (*it)->GetRelativePosition();
+			rectangle.mCenter[1] += (mScrollBarPos - mScrollBarV->GetPos());
+			(*it)->SetRelativePosition(rectangle);
+
+			eastl::array<Vector2<int>, 4 > vertices;
+			(*it)->GetAbsolutePosition().GetVertices(vertices);
+			if (mClientRect.IsPointInside(vertices[0]) &&
+				mClientRect.IsPointInside(vertices[1]) &&
+				mClientRect.IsPointInside(vertices[2]) &&
+				mClientRect.IsPointInside(vertices[3]))
+			{
+				(*it)->SetVisible(true);
+			}
+			else
+			{
+				(*it)->SetVisible(false);
+			}
+		}
+	}
+
+	mScrollBarPos = mScrollBarV->GetPos();
 }
 
+void UIWindow::UpdateScrollBarHeight()
+{
+	RectangleShape<2, int> rectangle = GetAbsolutePosition();
+	int parentHeight = rectangle.mCenter[1] + (int)round(rectangle.mExtent[1] / 2.f);
+	int diffHeight = 0;
+
+	eastl::list<eastl::shared_ptr<BaseUIElement>>::iterator it = mChildren.begin();
+	for (; it != mChildren.end(); ++it)
+	{
+		rectangle = (*it)->GetAbsolutePosition();
+		int childHeight = rectangle.mCenter[1] + (int)round(rectangle.mExtent[1] / 2.f);
+		if (childHeight - parentHeight > diffHeight)
+			diffHeight = childHeight - parentHeight;
+	}
+
+	if (mScrollBarV)
+	{
+		diffHeight = diffHeight ? diffHeight + 2 : diffHeight;
+		mScrollBarV->SetMax(diffHeight);
+	}
+}
 
 //! Returns the rectangle of the drawable area (without border, without titlebar and without scrollbars)
 RectangleShape<2, int> UIWindow::GetClientRect() const

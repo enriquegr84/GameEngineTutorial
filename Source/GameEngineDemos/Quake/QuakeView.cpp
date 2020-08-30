@@ -465,8 +465,6 @@ bool QuakeMainMenuUI::OnMsgProc( const Event& evt )
 //--------------------------------------------------------------------------------------
 // Handles the GUI events
 //--------------------------------------------------------------------------------------
-//    Note: pUserContext added to comply with DirectX 9c - June 2005 Update
-//
 bool QuakeMainMenuUI::OnEvent(const Event& evt)
 {
 	if (evt.mEventType == ET_UI_EVENT)

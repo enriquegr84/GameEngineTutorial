@@ -10,6 +10,7 @@
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 class BaseUIButton;
+class BaseUIScrollBar;
 
 //! Default moveable window GUI element with border, caption and close icons.
 /** \par This element can create the following events of type EGUI_EVENT_TYPE:
@@ -24,7 +25,14 @@ public:
 		: BaseUIElement(UIET_WINDOW, id, rectangle) {}
 
 	//! Initialize Window
-	virtual void OnInit() = 0;
+	virtual void OnInit(bool scrollBarVertical = true) = 0;
+
+	//! update absolute position
+	virtual void UpdateAbsoluteTransformation() = 0;
+
+	//! Returns pointer to the collapse button
+		/** You can hide the button by calling setVisible(false) on the result. */
+	virtual const eastl::shared_ptr<BaseUIButton>& GetCollapseButton() const = 0;
 
 	//! Returns pointer to the close button
 	/** You can hide the button by calling setVisible(false) on the result. */
@@ -77,7 +85,7 @@ public:
 	virtual ~UIWindow();
 
 	//! Initialize Window
-	virtual void OnInit();
+	virtual void OnInit(bool scrollBarVertical = true);
 
 	//! called if an event happened.
 	virtual bool OnEvent(const Event& event);
@@ -88,6 +96,9 @@ public:
 	//! draws the element and its children
 	virtual void Draw();
 
+	//! Returns pointer to the collapse button
+	virtual const eastl::shared_ptr<BaseUIButton>& GetCollapseButton() const;
+
 	//! Returns pointer to the close button
 	virtual const eastl::shared_ptr<BaseUIButton>& GetCloseButton() const;
 
@@ -96,6 +107,8 @@ public:
 
 	//! Returns pointer to the maximize button
 	virtual const eastl::shared_ptr<BaseUIButton>& GetMaximizeButton() const;
+
+	virtual bool IsPointInside(const Vector2<int>& point) const;
 
 	//! Returns true if the window is draggable, false if not
 	virtual bool IsDraggable() const;
@@ -121,6 +134,7 @@ public:
 
 protected:
 
+	void UpdateScrollBarHeight();
 	void UpdateClientRect();
 	void RefreshSprites();
 
@@ -129,12 +143,16 @@ protected:
 	eastl::shared_ptr<VisualEffect> mEffect;
 	eastl::shared_ptr<Visual> mVisualTitle;
 	eastl::shared_ptr<Visual> mVisualBackground;
+
+	eastl::shared_ptr<BaseUIScrollBar> mScrollBarV;
 	eastl::shared_ptr<BaseUIButton> mCloseButton;
 	eastl::shared_ptr<BaseUIButton> mMinButton;
 	eastl::shared_ptr<BaseUIButton> mRestoreButton;
+	eastl::shared_ptr<BaseUIButton> mCollapseButton;
 	RectangleShape<2, int> mClientRect;
 	eastl::array<float, 4> mCurrentIconColor;
 
+	int mScrollBarPos;
 	Vector2<int> mDragStart;
 	bool mDragging, mIsDraggableWindow;
 	bool mDrawBackground;

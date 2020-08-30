@@ -19,7 +19,6 @@ public:
 	//! constructor
 	ParticleAnimatedMeshNodeEmitter(
 		const ActorId actorId, PVWUpdater* updater,
-		WeakBaseRenderComponentPtr renderComponent, 
 		const eastl::shared_ptr<AnimatedMeshNode>& node,
 		bool useNormalDirection = true,
 		const Vector3<float>& direction = Vector3<float>{ 0.f,0.f,-1.f },

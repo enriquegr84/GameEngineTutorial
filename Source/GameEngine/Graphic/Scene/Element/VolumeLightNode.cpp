@@ -13,10 +13,9 @@
 
 //! constructor
 VolumeLightNode::VolumeLightNode(const ActorId actorId, PVWUpdater* updater, 
-	WeakBaseRenderComponentPtr renderComponent, const Vector2<float>& textureSize, 
-	const eastl::shared_ptr<Texture2>& texture, const Vector2<int>& subdivision,
-	const eastl::array<float, 4>& foot, const eastl::array<float, 4>& tail)
-:	Node(actorId, renderComponent, NT_VOLUME_LIGHT),
+	const Vector2<float>& textureSize, const eastl::shared_ptr<Texture2>& texture, 
+	const Vector2<int>& subdivision, const eastl::array<float, 4>& foot, const eastl::array<float, 4>& tail)
+:	Node(actorId, NT_VOLUME_LIGHT),
 	mLPDistance(8.0f), mSubdivideU(subdivision[0]), mSubdivideV(subdivision[1]), 
 	mFootColor(foot), mTailColor(tail), mLightDimensions(Vector3<float>{1.0f, 1.2f, 1.0f})
 {

@@ -15,7 +15,8 @@ Lighting::Lighting()
     mSpecular({ 1.0f, 1.0f, 1.0f, 1.0f }),
     mSpotCutoff({ (float)GE_C_HALF_PI, 0.0f, 1.0f, 1.0f }),
     mAttenuation({ 1.0f, 0.0f, 0.0f, 1.0f }),
-	mPosition{ 0.f, 0.f, 0.f }, mDirection{ 0.f, 0.f, 1.f },
+	mPosition{ 0.f, 0.f, 0.f }, 
+	mDirection{ 0.f, 0.f, -1.f },
 	mType(LT_POINT)
 {
 }

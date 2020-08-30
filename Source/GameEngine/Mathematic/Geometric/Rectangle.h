@@ -89,8 +89,8 @@ template <int N, typename Real>
 void RectangleShape<N, Real>::GetVertices(
 	eastl::array<Vector<N, Real>, 4>& vertex) const
 {
-    Vector<N, Real> product0 = mExtent[0] * mAxis[0];
-    Vector<N, Real> product1 = mExtent[1] * mAxis[1];
+    Vector<N, Real> product0 = (int)round(mExtent[0] / 2.f) * mAxis[0];
+    Vector<N, Real> product1 = (int)round(mExtent[1] / 2.f) * mAxis[1];
     Vector<N, Real> sum = product0 + product1;
     Vector<N, Real> dif = product0 - product1;
 

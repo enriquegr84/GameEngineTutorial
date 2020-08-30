@@ -14,7 +14,7 @@ class ShadowVolumeNode : public Node
 public:
 
 	//! constructor
-	ShadowVolumeNode( const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
+	ShadowVolumeNode( const ActorId actorId, PVWUpdater* updater,
 		const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod=true, float infinity=10000.0f );
 
 	//! destructor

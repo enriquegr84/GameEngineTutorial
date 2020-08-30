@@ -87,7 +87,8 @@ public:
 
 class GameLogic : public BaseGameLogic
 {
-	friend class GameApplication;					// This is only to gain access to the view list
+	friend class GameApplication;
+	friend class WindowApplication;
 
 
 public:

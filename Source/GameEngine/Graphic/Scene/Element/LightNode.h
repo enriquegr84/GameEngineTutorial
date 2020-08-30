@@ -19,8 +19,7 @@ class LightNode : public Node
 public:	
 
 	//! Constructor
-	LightNode(const ActorId actorId, PVWUpdater* updater, 
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Light>& light);
+	LightNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<Light>& light);
 
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);

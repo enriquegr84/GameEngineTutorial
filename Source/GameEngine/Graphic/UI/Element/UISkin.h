@@ -170,6 +170,10 @@ enum UIDefaultText
 	DT_WINDOW_MINIMIZE,
 	//! Tooltip text for window restore button
 	DT_WINDOW_RESTORE,
+	//! Tooltip text for window collapse button
+	DT_WINDOW_COLLAPSE,
+	//! Tooltip text for window expand button
+	DT_WINDOW_EXPAND,
 
 	//! this value is not used, it only specifies the number of default texts
 	DT_COUNT
@@ -189,6 +193,10 @@ enum UIDefaultIcon
 	DI_WINDOW_MINIMIZE,
 	//! resize icon for bottom right corner of a window
 	DI_WINDOW_RESIZE,
+	//! collapse window button
+	DI_WINDOW_COLLAPSE,
+	//! expand window button
+	DI_WINDOW_EXPAND,
 	//! scroll bar up button
 	DI_CURSOR_UP,
 	//! scroll bar down button

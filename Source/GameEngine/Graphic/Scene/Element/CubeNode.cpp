@@ -10,9 +10,9 @@
 //#include "Scenes/Mesh/MeshBuffer.h"
 
 //! constructor
-CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent, 
+CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
 	const eastl::shared_ptr<Texture2>& texture, float texxScale, float texyScale, float size)
-	:	Node(actorId, renderComponent, NT_CUBE), mSize(size), mShadow(0)
+	:	Node(actorId, NT_CUBE), mSize(size), mShadow(0)
 {
 	mPVWUpdater = updater;
 
@@ -179,7 +179,7 @@ eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId 
 		return nullptr;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(new ShadowVolumeNode(
-		actorId, mPVWUpdater, WeakBaseRenderComponentPtr(), shadowMesh, zfailmethod, infinity));
+		actorId, mPVWUpdater, shadowMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;

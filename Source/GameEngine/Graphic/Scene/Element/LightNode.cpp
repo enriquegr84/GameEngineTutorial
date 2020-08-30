@@ -14,9 +14,8 @@
 #include "Application/GameApplication.h"
 
 //! constructor
-LightNode::LightNode(const ActorId actorId, PVWUpdater* updater, 
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Light>& light)
-	:	Node(actorId, renderComponent, NT_LIGHT), mLight(light)
+LightNode::LightNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<Light>& light)
+	:	Node(actorId, NT_LIGHT), mLight(light)
 {
 	mPVWUpdater = updater;
 

@@ -15,8 +15,8 @@ class SphereNode : public Node
 public:
 
 	//! constructor
-	SphereNode(const ActorId actorId, PVWUpdater* updater, WeakBaseRenderComponentPtr renderComponent,
-		const eastl::shared_ptr<Texture2>& texture, float radius, unsigned int polyCountX, unsigned int polyCountY);
+	SphereNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<Texture2>& texture, 
+		float radius, unsigned int polyCountX, unsigned int polyCountY);
 
 	virtual ~SphereNode();
 

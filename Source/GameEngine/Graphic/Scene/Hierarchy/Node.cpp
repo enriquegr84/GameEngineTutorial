@@ -18,8 +18,8 @@
 // Node Implementation
 ////////////////////////////////////////////////////
 
-Node::Node(int id, WeakBaseRenderComponentPtr renderComponent, NodeType nodeType)
-	: Spatial(), mId(id), mDebugState(DM_OFF), mType(nodeType), mRenderComponent(renderComponent)
+Node::Node(int id, NodeType nodeType)
+	: Spatial(), mId(id), mDebugState(DM_OFF), mType(nodeType)
 {
 	mIsVisible = true;
 }
@@ -327,9 +327,6 @@ void Node::GetVisibleSet(Culler& culler, eastl::shared_ptr<Camera> const& camera
 //
 bool Node::OnRestore(Scene *pScene)
 {
-	//Color color = (mRenderComponent) ? mRenderComponent->GetColor() : gWhite;
-	//mMaterial.SetDiffuse(color);
-
 	// This is meant to be called from any class
 	// that inherits from SceneNode and overloads
 	// OnRestore()

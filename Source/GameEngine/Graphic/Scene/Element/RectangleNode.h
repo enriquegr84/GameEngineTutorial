@@ -15,8 +15,7 @@ class RectangleNode : public Node
 public:
 
 	//! constructor
-	RectangleNode(const ActorId actorId, PVWUpdater* updater, 
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Texture2>& texture,
+	RectangleNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<Texture2>& texture,
 		float texsScale, float texyScale, float xSize, float ySize, int xPolyCount, int yPolyCount);
 
 	virtual ~RectangleNode();

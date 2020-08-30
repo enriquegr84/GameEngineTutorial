@@ -1951,7 +1951,6 @@ void QuakeLogic::GauntletAttack(
 		if (LogAccuracyHit(target, player))
 			player->GetState().accuracyHits++;
 
-		//rotation = ((69069 * randSeed + 1) & 0x7fff) % 360;
 		Transform initTransform;
 		initTransform.SetTranslation(closestCollision);
 		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
@@ -2032,7 +2031,6 @@ void QuakeLogic::BulletFire(
 		if (LogAccuracyHit(target, player))
 			player->GetState().accuracyHits++;
 
-		//rotation = ((69069 * randSeed + 1) & 0x7fff) % 360;
 		Transform initTransform;
 		initTransform.SetTranslation(closestCollision);
 		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);
@@ -2097,7 +2095,6 @@ bool QuakeLogic::ShotgunPellet(const eastl::shared_ptr<PlayerActor>& player,
 		if (LogAccuracyHit(target, player))
 			player->GetState().accuracyHits++;
 
-		//rotation = ((69069 * randSeed + 1) & 0x7fff) % 360;
 		Transform initTransform;
 		initTransform.SetTranslation(closestCollision);
 		CreateActor("actors/quake/effects/bleed.xml", nullptr, &initTransform);

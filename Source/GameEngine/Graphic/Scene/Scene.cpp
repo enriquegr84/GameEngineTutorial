@@ -230,14 +230,13 @@ void Scene::Clear()
 
 //! adds a scene node for rendering a mesh
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddMeshNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+eastl::shared_ptr<Node> Scene::AddMeshNode(const eastl::shared_ptr<Node>& parent,
 	eastl::shared_ptr<BaseMesh> mesh, int id, bool alsoAddIfMeshPointerZero)
 {
 	if (!alsoAddIfMeshPointerZero && !mesh)
 		return nullptr;
 
-	eastl::shared_ptr<Node> node(new MeshNode(id, &mPVWUpdater, renderComponent, mesh));
+	eastl::shared_ptr<Node> node(new MeshNode(id, &mPVWUpdater, mesh));
 
 	if (!parent)
 		AddSceneNode(id, node);
@@ -250,13 +249,12 @@ eastl::shared_ptr<Node> Scene::AddMeshNode(
 
 //! adds a rectangle scene node to the scene graph.
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddRectangleNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+eastl::shared_ptr<Node> Scene::AddRectangleNode(const eastl::shared_ptr<Node>& parent,
 	const eastl::shared_ptr<Texture2>& texture, float texxScale, float texyScale, 
 	float xSize, float ySize, int xPolyCount, int yPolyCount, int id)
 {
 	eastl::shared_ptr<Node> node(new RectangleNode(
-		id, &mPVWUpdater, renderComponent, texture, texxScale, texyScale, xSize, ySize, xPolyCount, yPolyCount));
+		id, &mPVWUpdater, texture, texxScale, texyScale, xSize, ySize, xPolyCount, yPolyCount));
 	if (!parent)
 		AddSceneNode(id, node);
 	else
@@ -267,12 +265,11 @@ eastl::shared_ptr<Node> Scene::AddRectangleNode(
 
 //! adds a cube scene node to the scene graph.
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddCubeNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
+eastl::shared_ptr<Node> Scene::AddCubeNode(const eastl::shared_ptr<Node>& parent, 
 	const eastl::shared_ptr<Texture2>& texture, float texxScale, float texyScale, float size, int id)
 {
 	eastl::shared_ptr<Node> node(new CubeNode(
-		id, &mPVWUpdater, renderComponent, texture, texxScale, texyScale, size));
+		id, &mPVWUpdater, texture, texxScale, texyScale, size));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -283,12 +280,11 @@ eastl::shared_ptr<Node> Scene::AddCubeNode(
 
 
 //! Adds a sphere scene node for test purposes to the scene.
-eastl::shared_ptr<Node> Scene::AddSphereNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
+eastl::shared_ptr<Node> Scene::AddSphereNode(const eastl::shared_ptr<Node>& parent, 
 	const eastl::shared_ptr<Texture2>& texture, float radius, int polyCount, int id)
 {
 	eastl::shared_ptr<Node> node(
-		new SphereNode(id, &mPVWUpdater, renderComponent, texture, radius, polyCount, polyCount));
+		new SphereNode(id, &mPVWUpdater, texture, radius, polyCount, polyCount));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -299,14 +295,13 @@ eastl::shared_ptr<Node> Scene::AddSphereNode(
 
 //! adds Volume Lighting Scene Node.
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddVolumeLightNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+eastl::shared_ptr<Node> Scene::AddVolumeLightNode(const eastl::shared_ptr<Node>& parent,
 	const Vector2<float>& textureSize, const eastl::shared_ptr<Texture2>& texture, 
 	const Vector2<int>& subdivision, const eastl::array<float, 4>& foot, 
 	const eastl::array<float, 4>& tail, int id)
 {
 	eastl::shared_ptr<Node> node(new VolumeLightNode(
-		id, &mPVWUpdater, renderComponent, textureSize, texture, subdivision, foot, tail));
+		id, &mPVWUpdater, textureSize, texture, subdivision, foot, tail));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -335,12 +330,11 @@ eastl::shared_ptr<Node> Scene::AddCameraNode(int id, bool makeActive)
 //! Adds a billboard scene node to the scene. A billboard is like a 3d sprite: A 2d element,
 //! which always looks to the camera. It is usually used for things like explosions, fire,
 //! lensflares and things like that.
-eastl::shared_ptr<Node> Scene::AddBillboardNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+eastl::shared_ptr<Node> Scene::AddBillboardNode(const eastl::shared_ptr<Node>& parent,
 	const eastl::shared_ptr<Texture2>& texture, const Vector2<float>& size, int id)
 {
 	eastl::shared_ptr<Node> node(
-		new BillboardNode(id, &mPVWUpdater, renderComponent, texture, size));
+		new BillboardNode(id, &mPVWUpdater, texture, size));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -351,11 +345,10 @@ eastl::shared_ptr<Node> Scene::AddBillboardNode(
 }
 
 eastl::shared_ptr<Node> Scene::AddParticleSystemNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
-	int id, bool withDefaultEmitter)
+	const eastl::shared_ptr<Node>& parent, int id, bool withDefaultEmitter)
 {
 	eastl::shared_ptr<Node> node(
-		new ParticleSystemNode(id, &mPVWUpdater, renderComponent, withDefaultEmitter));
+		new ParticleSystemNode(id, &mPVWUpdater, withDefaultEmitter));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -367,13 +360,12 @@ eastl::shared_ptr<Node> Scene::AddParticleSystemNode(
 
 //! Adds a skydome scene node. A skydome is a large (half-) sphere with a
 //! panoramic texture on it and is drawn around the camera position.
-eastl::shared_ptr<Node> Scene::AddSkyDomeNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+eastl::shared_ptr<Node> Scene::AddSkyDomeNode(const eastl::shared_ptr<Node>& parent,
 	const eastl::shared_ptr<Texture2>& sky, unsigned int horiRes, unsigned int vertRes,
 	float texturePercentage, float spherePercentage, float radius, int id)
 {
 
-	eastl::shared_ptr<Node> node(new SkyDomeNode(id, &mPVWUpdater, renderComponent, 
+	eastl::shared_ptr<Node> node(new SkyDomeNode(id, &mPVWUpdater, 
 		sky, horiRes, vertRes, texturePercentage, spherePercentage, radius));
 
 	if (!parent) 
@@ -386,14 +378,13 @@ eastl::shared_ptr<Node> Scene::AddSkyDomeNode(
 
 //! adds a scene node for rendering a static mesh
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddStaticMeshNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
+eastl::shared_ptr<Node> Scene::AddStaticMeshNode(const eastl::shared_ptr<Node>& parent, 
 	eastl::shared_ptr<BaseMesh> mesh, int id, bool alsoAddIfMeshPointerZero)
 {
 	if (!alsoAddIfMeshPointerZero && !mesh)
 		return nullptr;
 
-	eastl::shared_ptr<Node> node(new StaticMeshNode(id, &mPVWUpdater, renderComponent, mesh));
+	eastl::shared_ptr<Node> node(new StaticMeshNode(id, &mPVWUpdater, mesh));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -405,15 +396,14 @@ eastl::shared_ptr<Node> Scene::AddStaticMeshNode(
 
 
 //! adds a scene node for rendering an animated mesh model
-eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent,
+eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(const eastl::shared_ptr<Node>& parent,
 	eastl::shared_ptr<BaseAnimatedMesh> mesh, int id, bool alsoAddIfMeshPointerZero)
 {
 	if (!alsoAddIfMeshPointerZero && !mesh)
 		return nullptr;
 
 	eastl::shared_ptr<Node> node(
-		new AnimatedMeshNode(id, &mPVWUpdater, renderComponent, mesh));
+		new AnimatedMeshNode(id, &mPVWUpdater, mesh));
 
 	if (!parent) 
 		AddSceneNode(id, node);
@@ -426,11 +416,10 @@ eastl::shared_ptr<Node> Scene::AddAnimatedMeshNode(
 //! Adds a dynamic light scene node. The light will cast dynamic light on all
 //! other scene nodes in the scene, which have the material flag MTF_LIGHTING
 //! turned on. (This is the default setting in most scene nodes).
-eastl::shared_ptr<Node> Scene::AddLightNode(
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Node>& parent, 
+eastl::shared_ptr<Node> Scene::AddLightNode(const eastl::shared_ptr<Node>& parent, 
 	const eastl::shared_ptr<Light>& light, int id)
 {
-	eastl::shared_ptr<Node> node(new LightNode(id, &mPVWUpdater, renderComponent, light));
+	eastl::shared_ptr<Node> node(new LightNode(id, &mPVWUpdater, light));
 
 	if (!parent) 
 		AddSceneNode(id, node);

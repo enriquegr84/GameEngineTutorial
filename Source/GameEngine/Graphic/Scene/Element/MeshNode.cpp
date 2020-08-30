@@ -11,9 +11,8 @@
 #include "Graphic/Effect/Material.h"
 
 //! constructor
-MeshNode::MeshNode(const ActorId actorId, PVWUpdater* updater,
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh)
-:	Node(actorId, renderComponent, NT_MESH)
+MeshNode::MeshNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<BaseMesh>& mesh)
+:	Node(actorId, NT_MESH)
 {
 	mPVWUpdater = updater;
 
@@ -179,7 +178,7 @@ eastl::shared_ptr<ShadowVolumeNode> MeshNode::AddShadowVolumeNode(const ActorId 
 		return nullptr;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(
-		new ShadowVolumeNode(actorId, mPVWUpdater, WeakBaseRenderComponentPtr(),
+		new ShadowVolumeNode(actorId, mPVWUpdater,
 			shadowMesh ? shadowMesh : mMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 

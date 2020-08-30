@@ -18,7 +18,7 @@
 // RootNode::RootNode					- Chapter 16, page 545
 //
 RootNode::RootNode()
-	: Node(INVALID_ACTOR_ID, WeakBaseRenderComponentPtr(), NT_ROOT)
+	: Node(INVALID_ACTOR_ID, NT_ROOT)
 {
 
 }
@@ -26,9 +26,8 @@ RootNode::RootNode()
 //
 // RootNode::RootNode					- Chapter 16, page 545
 //
-RootNode::RootNode(const ActorId actorId, PVWUpdater* updater, 
-	WeakBaseRenderComponentPtr renderComponent)
-	: Node(actorId, renderComponent, NT_ROOT)
+RootNode::RootNode(const ActorId actorId, PVWUpdater* updater)
+	: Node(actorId, NT_ROOT)
 {
 	mPVWUpdater = updater;
 }

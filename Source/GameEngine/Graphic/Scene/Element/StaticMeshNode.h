@@ -14,8 +14,7 @@ class StaticMeshNode : public Node
 public:
 
 	//! constructor
-	StaticMeshNode(const ActorId actorId, PVWUpdater* updater, 
-		WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<BaseMesh>& mesh);
+	StaticMeshNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<BaseMesh>& mesh);
 
 	//! destructor
 	virtual ~StaticMeshNode();

@@ -9,10 +9,9 @@
 #include "Graphic/Scene/Scene.h"
 
 //! constructor
-RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater, 
-	WeakBaseRenderComponentPtr renderComponent, const eastl::shared_ptr<Texture2>& texture,
+RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<Texture2>& texture,
 	float texxScale, float texyScale, float xSize, float ySize, int xPolyCount, int yPolyCount)
-:	Node(actorId, renderComponent, NT_CUBE), mShadow(0),
+:	Node(actorId, NT_CUBE), mShadow(0),
 	mSizeX(xSize), mSizeY(ySize), mPolyCountX(xPolyCount), mPolyCountY(yPolyCount)
 {
 	mPVWUpdater = updater;
@@ -180,7 +179,7 @@ eastl::shared_ptr<ShadowVolumeNode> RectangleNode::AddShadowVolumeNode(const Act
 		return nullptr;
 	*/
 	mShadow = eastl::shared_ptr<ShadowVolumeNode>(new ShadowVolumeNode(
-		actorId, mPVWUpdater, WeakBaseRenderComponentPtr(), shadowMesh, zfailmethod, infinity));
+		actorId, mPVWUpdater, shadowMesh, zfailmethod, infinity));
 	shared_from_this()->AttachChild(mShadow);
 
 	return mShadow;

@@ -131,8 +131,6 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		eastl::shared_ptr<BaseMesh> mesh;
 		for (eastl::string meshName : mMeshes)
@@ -218,7 +216,7 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 		else if (mesh->GetMeshType() == MT_STATIC)
 		{
 			// create an static mesh scene node with specified mesh.
-			meshNode = pScene->AddStaticMeshNode(wbrcp, 0, mesh, mOwner->GetId());
+			meshNode = pScene->AddStaticMeshNode(0, mesh, mOwner->GetId());
 			if (meshNode)
 			{
 				meshNode->GetRelativeTransform() = transform;
@@ -248,7 +246,7 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 			}
 
 			// create an mesh scene node with specified mesh.
-			meshNode = pScene->AddMeshNode(wbrcp, 0, mesh, mOwner->GetId());
+			meshNode = pScene->AddMeshNode(0, mesh, mOwner->GetId());
 			if (meshNode)
 			{
 				meshNode->GetRelativeTransform() = transform;
@@ -277,8 +275,8 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 			}
 
 			// create an animated mesh scene node with specified animated mesh.
-			meshNode = pScene->AddAnimatedMeshNode(
-				wbrcp, 0, eastl::dynamic_shared_pointer_cast<BaseAnimatedMesh>(mesh), mOwner->GetId());
+			meshNode = pScene->AddAnimatedMeshNode( 
+				0, eastl::dynamic_shared_pointer_cast<BaseAnimatedMesh>(mesh), mOwner->GetId());
 			if (meshNode)
 			{
 				meshNode->GetRelativeTransform() = transform;
@@ -395,8 +393,6 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		eastl::shared_ptr<ResHandle>& resHandle =
 			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
@@ -408,7 +404,7 @@ eastl::shared_ptr<Node> SphereRenderComponent::CreateSceneNode(void)
 
 			// create a sphere node with specified radius and poly count.
 			eastl::shared_ptr<Node> sphereNode =
-				pScene->AddSphereNode(wbrcp, nullptr, extra->GetImage(), mRadius, mSegments, mOwner->GetId());
+				pScene->AddSphereNode(nullptr, extra->GetImage(), mRadius, mSegments, mOwner->GetId());
 			if (sphereNode)
 			{
 				sphereNode->GetRelativeTransform() = transform;
@@ -511,8 +507,6 @@ eastl::shared_ptr<Node> CubeRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		eastl::shared_ptr<ResHandle>& resHandle =
 			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
@@ -521,9 +515,9 @@ eastl::shared_ptr<Node> CubeRenderComponent::CreateSceneNode(void)
 			const eastl::shared_ptr<ImageResourceExtraData>& extra =
 				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 			extra->GetImage()->AutogenerateMipmaps();
-
+			
 			// create an animated mesh scene node with specified mesh.
-			eastl::shared_ptr<Node> cubeNode = pScene->AddCubeNode(wbrcp, 0, 
+			eastl::shared_ptr<Node> cubeNode = pScene->AddCubeNode(0, 
 				extra->GetImage(), mTextureSize[0], mTextureSize[1], mSize, mOwner->GetId());
 
 			//To let the mesh look a little bit nicer, we change its material. We
@@ -646,8 +640,6 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		eastl::shared_ptr<ResHandle>& resHandle =
 			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextureResource.c_str())));
@@ -659,7 +651,7 @@ eastl::shared_ptr<Node> GridRenderComponent::CreateSceneNode(void)
 
 			// create an animated mesh scene node with specified mesh.
 			eastl::shared_ptr<Node> gridNode = pScene->AddRectangleNode(
-				wbrcp, 0, extra->GetImage(), mTextureSize[0], mTextureSize[1],
+				0, extra->GetImage(), mTextureSize[0], mTextureSize[1],
 				mExtent[0], mExtent[1], mSegments[0], mSegments[1], mOwner->GetId());
 
 			//To let the mesh look a little bit nicer, we change its material. We
@@ -816,8 +808,6 @@ eastl::shared_ptr<Node> BillboardRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		eastl::shared_ptr<ResHandle>& resHandle =
 			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextures.front().c_str())));
@@ -828,7 +818,7 @@ eastl::shared_ptr<Node> BillboardRenderComponent::CreateSceneNode(void)
 
 			// Add billboard
 			eastl::shared_ptr<Node> billboardNode =
-				pScene->AddBillboardNode(wbrcp, 0, extra->GetImage(), mTextureSize, mOwner->GetId());
+				pScene->AddBillboardNode(0, extra->GetImage(), mTextureSize, mOwner->GetId());
 			if (billboardNode)
 			{
 				billboardNode->GetRelativeTransform() = transform;
@@ -1044,8 +1034,6 @@ eastl::shared_ptr<Node> VolumeLightRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		eastl::shared_ptr<ResHandle>& resHandle =
 			ResCache::Get()->GetHandle(&BaseResource(ToWideString(mTextures.front().c_str())));
@@ -1055,7 +1043,7 @@ eastl::shared_ptr<Node> VolumeLightRenderComponent::CreateSceneNode(void)
 				eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 
 			// Add volumelight
-			eastl::shared_ptr<Node> volumeLightNode = pScene->AddVolumeLightNode(wbrcp, 0, 
+			eastl::shared_ptr<Node> volumeLightNode = pScene->AddVolumeLightNode(0, 
 				mTextureSize, extra->GetImage(), mSubdivision, mFootColor, mTailColor, mOwner->GetId());
 			if (volumeLightNode)
 			{
@@ -1331,12 +1319,9 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		// Add light
-		eastl::shared_ptr<Node> lightNode =
-			pScene->AddLightNode(wbrcp, 0, mLightData, mOwner->GetId());
+		eastl::shared_ptr<Node> lightNode = pScene->AddLightNode(0, mLightData, mOwner->GetId());
 		if (lightNode)
 		{
 			lightNode->GetRelativeTransform() = transform;
@@ -1360,7 +1345,7 @@ eastl::shared_ptr<Node> LightRenderComponent::CreateSceneNode(void)
 					extra->GetImage()->AutogenerateMipmaps();
 
 					eastl::shared_ptr<Node> billboardNode =
-						pScene->AddBillboardNode(wbrcp, lightNode, extra->GetImage(), mTextureSize, mOwner->GetId());
+						pScene->AddBillboardNode(lightNode, extra->GetImage(), mTextureSize, mOwner->GetId());
 					if (billboardNode)
 					{
 						for (unsigned int i = 0; i < billboardNode->GetMaterialCount(); ++i)
@@ -1649,13 +1634,9 @@ eastl::shared_ptr<Node> ParticleEffectRenderComponent::CreateSceneNode(void)
 		GameApplication* gameApp = (GameApplication*)Application::App;
 		const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
 		Transform transform = pTransformComponent->GetTransform();
-		WeakBaseRenderComponentPtr wbrcp(
-			eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 		// create a particle system
-		eastl::shared_ptr<Node> node = 
-			pScene->AddParticleSystemNode(wbrcp, 0, mOwner->GetId(), false);
-
+		eastl::shared_ptr<Node> node = pScene->AddParticleSystemNode(0, mOwner->GetId(), false);
 		if (node)
 		{
 			eastl::shared_ptr<ParticleSystemNode> particleSystem = 
@@ -1913,8 +1894,6 @@ eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 {
 	GameApplication* gameApp = (GameApplication*)Application::App;
 	const eastl::shared_ptr<ScreenElementScene>& pScene = gameApp->GetHumanView()->mScene;
-	WeakBaseRenderComponentPtr wbrcp(
-		eastl::dynamic_shared_pointer_cast<BaseRenderComponent>(shared_from_this()));
 
 	eastl::shared_ptr<Texture2> skyDome;
 	eastl::shared_ptr<ResHandle>& resHandle = ResCache::Get()->GetHandle(
@@ -1928,7 +1907,7 @@ eastl::shared_ptr<Node> SkyRenderComponent::CreateSceneNode(void)
 	}
 
 	// add skydome
-	eastl::shared_ptr<Node> sky = pScene->AddSkyDomeNode(wbrcp, 0,
+	eastl::shared_ptr<Node> sky = pScene->AddSkyDomeNode(0,
 		skyDome, mHoriRes, mVertRes, mTexturePercentage, mSpherePercentage, mRadius, mOwner->GetId());
 	return sky;
 }

@@ -1291,10 +1291,8 @@ void SkinnedMesh::AddJoints(eastl::vector<eastl::shared_ptr<BoneNode>> &jointChi
 	//Create new joints
 	for (unsigned int i=0; i<mAllJoints.size(); ++i)
 	{
-		jointChildSceneNodes.push_back(
-			eastl::make_shared<BoneNode>(
-			INVALID_ACTOR_ID, &scene->GetPVWUpdater(), 
-			WeakBaseRenderComponentPtr(), i, mAllJoints[i]->mName.c_str()));
+		jointChildSceneNodes.push_back(eastl::make_shared<BoneNode>(
+			INVALID_ACTOR_ID, &scene->GetPVWUpdater(), i, mAllJoints[i]->mName.c_str()));
 	}
 
 	//Match up parents

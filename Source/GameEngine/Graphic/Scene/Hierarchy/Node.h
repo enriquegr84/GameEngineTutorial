@@ -170,9 +170,6 @@ class Node;
 class NodeAnimator;
 class BaseRenderComponent;
 
-// FUTURE WORK - Smart pointers don't work right....going to use a naked pointer for now!
-typedef eastl::weak_ptr<BaseRenderComponent> WeakBaseRenderComponentPtr;
-
 //////////////////////////////////////////////////////////////
 //
 // SceneNodeList						- Chapter 16, page 529
@@ -196,7 +193,7 @@ class GRAPHIC_ITEM Node : public Spatial, public eastl::enable_shared_from_this<
 {
 public:
 
-	Node(int id, WeakBaseRenderComponentPtr renderComponent, NodeType nodeType);
+	Node(int id, NodeType nodeType);
 
 	virtual ~Node();
 
@@ -441,8 +438,6 @@ protected:
 
 	SceneNodeList mChildren;
 	SceneNodeAnimatorList mAnimators;
-
-	WeakBaseRenderComponentPtr mRenderComponent;
 };
 
 
