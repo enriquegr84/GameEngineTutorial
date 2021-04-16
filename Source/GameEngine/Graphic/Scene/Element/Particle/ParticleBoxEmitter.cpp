@@ -15,7 +15,7 @@
 ParticleBoxEmitter::ParticleBoxEmitter( 
 	const AlignedBox3<float>& box, const Vector3<float>& direction,
 	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, 
-	eastl::array<float, 4> minStartColor, eastl::array<float, 4> maxStartColor,
+    SColorF minStartColor, SColorF maxStartColor,
 	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, 
 	const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize)
 :	mBox(box), mDirection(direction), mMaxStartSize(maxStartSize), mMinStartSize(minStartSize),
@@ -79,7 +79,8 @@ int ParticleBoxEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall, 
 			if (mMinStartColor==mMaxStartColor)
 				particle.mColor=mMinStartColor;
 			else
-				particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
+				particle.mColor = SColorF(
+                    Function<float>::Lerp(mMinStartColor.ToArray(), mMaxStartColor.ToArray(), Randomizer::FRand()));
 
 			particle.mStartColor = particle.mColor;
 			particle.mStartVector = particle.mVector;

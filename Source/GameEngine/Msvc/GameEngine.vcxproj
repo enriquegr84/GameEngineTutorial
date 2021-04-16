@@ -64,6 +64,7 @@
     <ClCompile Include="..\Core\Process\Process.cpp" />
     <ClCompile Include="..\Core\Process\ProcessManager.cpp" />
     <ClCompile Include="..\Core\Process\RealtimeProcess.cpp" />
+    <ClCompile Include="..\Core\Utility\EnrichedString.cpp" />
     <ClCompile Include="..\Core\Utility\StringUtil.cpp" />
     <ClCompile Include="..\GameEngineStd.cpp" />
     <ClCompile Include="..\Game\Actor\Actor.cpp" />
@@ -98,6 +99,7 @@
     <ClCompile Include="..\Graphic\Effect\ColorEffect.cpp" />
     <ClCompile Include="..\Graphic\Effect\Texture2Effect.cpp" />
     <ClCompile Include="..\Graphic\Effect\VisualEffect.cpp" />
+    <ClCompile Include="..\Graphic\Image\ImageFilter.cpp" />
     <ClCompile Include="..\Graphic\Image\ImageResource.cpp" />
     <ClCompile Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugGL|Win32'">true</ExcludedFromBuild>
@@ -505,7 +507,7 @@
     <ClCompile Include="..\Graphic\Scene\Element\BillboardNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\BoneNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\CameraNode.cpp" />
-    <ClCompile Include="..\Graphic\Scene\Element\CubeNode.cpp" />
+    <ClCompile Include="..\Graphic\Scene\Element\BoxNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\MeshNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\LightNode.cpp" />
     <ClCompile Include="..\Graphic\Scene\Element\StaticMeshNode.cpp" />
@@ -761,6 +763,7 @@
     <ClInclude Include="..\Core\Process\RealtimeProcess.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeMap.h" />
     <ClInclude Include="..\Core\Threading\ThreadSafeQueue.h" />
+    <ClInclude Include="..\Core\Utility\EnrichedString.h" />
     <ClInclude Include="..\Core\Utility\LexicoArray2.h" />
     <ClInclude Include="..\Core\Utility\StringUtil.h" />
     <ClInclude Include="..\GameEngineStd.h" />
@@ -845,6 +848,7 @@
     <ClInclude Include="..\Graphic\Effect\VisualEffect.h" />
     <ClInclude Include="..\Graphic\Graphic.h" />
     <ClInclude Include="..\Graphic\GraphicStd.h" />
+    <ClInclude Include="..\Graphic\Image\ImageFilter.h" />
     <ClInclude Include="..\Graphic\Image\ImageResource.h" />
     <ClInclude Include="..\Graphic\InputLayout\InputLayoutManager.h" />
     <ClInclude Include="..\Graphic\Renderer\DirectX11\Dx11Renderer.h">
@@ -1243,6 +1247,7 @@
     <ClInclude Include="..\Graphic\Resource\Buffer\TextureBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\VertexBuffer.h" />
     <ClInclude Include="..\Graphic\Resource\Buffer\VertexFormat.h" />
+    <ClInclude Include="..\Graphic\Resource\Color.h" />
     <ClInclude Include="..\Graphic\Resource\DataFormat.h" />
     <ClInclude Include="..\Graphic\Resource\GraphicObject.h" />
     <ClInclude Include="..\Graphic\Resource\MemberLayout.h" />
@@ -1271,7 +1276,7 @@
     <ClInclude Include="..\Graphic\Scene\Element\BillboardNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\BoneNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\CameraNode.h" />
-    <ClInclude Include="..\Graphic\Scene\Element\CubeNode.h" />
+    <ClInclude Include="..\Graphic\Scene\Element\BoxNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\MeshNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\LightNode.h" />
     <ClInclude Include="..\Graphic\Scene\Element\Mesh\StaticMesh.h" />

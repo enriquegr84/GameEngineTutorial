@@ -58,15 +58,47 @@ public:
 	//! clears sprites, rectangles and textures
 	virtual void Clear() = 0;
 
-	//! Draws a sprite in 2d with position and color
-	virtual void Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& pos, 
-		const RectangleShape<2, int>* clip = 0, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
-		unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false) = 0;
+    //! Draws a sprite in 2d with position and color
+    /**
+    \param index Index of UISprite to draw
+    \param pos Target position - depending on center value either the left-top or the sprite center is used as pivot
+    \param clip Clipping rectangle, can be 0 when clipping is not wanted.
+    \param color Color with which the image is drawn.
+        Note that the alpha component is used. If alpha is other than
+        255, the image will be transparent.
+    \param starttime Tick when the first frame was drawn (only difference currenttime-starttime matters).
+    \param currenttime To calculate the frame of animated sprites
+    \param loop When true animations are looped
+    \param center When true pivot is set to the sprite-center. So it affects pos.
+    */
+    virtual void Draw2DSprite(unsigned int index, 
+        const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& pos,
+        const RectangleShape<2, int>* clip = 0, const SColorF& color = SColorF(1.f, 1.f, 1.f),
+        unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false) = 0;
+
+
+    //! Draws a sprite in 2d with destination rectangle and colors
+    /**
+        \param index Index of UISprite to draw
+        \param destRect The sprite will be scaled to fit this target rectangle
+        \param clip Clipping rectangle, can be 0 when clipping is not wanted.
+        \param colors Array of 4 colors denoting the color values of
+        the corners of the destRect
+        \param timeTicks Current frame for animated sprites
+        (same as currenttime-starttime in other draw2DSprite function)
+        \param loop When true animations are looped
+    */
+    virtual void Draw2DSprite(unsigned int index, 
+        const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& destRect,
+        const RectangleShape<2, int>* clip = 0, const SColorF* const colors = 0, 
+        unsigned int timeTicks = 0, bool loop = true) = 0;
+
 
 	//! Draws a sprite batch in 2d using an array of positions and a color
-	virtual void Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, const eastl::shared_ptr<Visual>& visual, 
-		const eastl::array<RectangleShape<2, int>>& pos, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
-		const RectangleShape<2, int>* clip = 0, unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false) = 0;
+	virtual void Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, 
+        const eastl::shared_ptr<Visual>& visual, const eastl::array<RectangleShape<2, int>>& pos, 
+        const SColorF color = SColorF(1.f, 1.f, 1.f, 1.f), const RectangleShape<2, int>* clip = 0, 
+        unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false) = 0;
 };
 
 //! Sprite bank interface.
@@ -91,17 +123,23 @@ public:
 	//! clears sprites, rectangles and textures
 	virtual void Clear();
 
-	//! Draws a sprite in 2d with position and color
-	virtual void Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& pos, 
-		const RectangleShape<2, int>* clip = 0, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
-		unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false);
+    //! Draws a sprite in 2d with position and color
+    virtual void Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& pos,
+        const RectangleShape<2, int>* clip = 0, const SColorF& color = SColorF(1.f, 1.f, 1.f),
+        unsigned int startTime = 0, unsigned int currentTime = 0, bool loop = true, bool center = false);
+
+	//! Draws a sprite in 2d with destination rectangle and color
+	virtual void Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& destRect, 
+		const RectangleShape<2, int>* clip = 0, const SColorF* const colors = 0, unsigned int timeTicks = 0, bool loop = true);
 
 	//! Draws a sprite batch in 2d using an array of positions and a color
 	virtual void Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, const eastl::shared_ptr<Visual>& visual, 
-		const eastl::array<RectangleShape<2, int>>& pos, const eastl::array<float, 4> color = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f}, 
-		const RectangleShape<2, int>* clip = 0, unsigned int starttime = 0, unsigned int currenttime = 0, bool loop = true, bool center = false);
+		const eastl::array<RectangleShape<2, int>>& pos, const SColorF& color = SColorF(1.f, 1.f, 1.f), 
+		const RectangleShape<2, int>* clip = 0, unsigned int startTime = 0, unsigned int currentTime = 0, bool loop = true, bool center = false);
 
 protected:
+
+    unsigned int GetFrameNr(unsigned int index, unsigned int time, bool loop) const;
 
 	struct DrawBatch
 	{

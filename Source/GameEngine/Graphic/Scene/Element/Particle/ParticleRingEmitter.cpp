@@ -14,8 +14,8 @@
 //! constructor
 ParticleRingEmitter::ParticleRingEmitter(
 	const Vector3<float>& center, float radius, float ringThickness, const Vector3<float>& direction, 
-	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, const eastl::array<float, 4>& minStartColor,
-	const eastl::array<float, 4>& maxStartColor, unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees,
+	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, const SColor& minStartColor,
+	const SColor& maxStartColor, unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees,
 	const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
 :	mCenter(center), mRadius(radius), mRingThickness(ringThickness), mDirection(direction),
 	mMaxStartSize(maxStartSize), mMinStartSize(minStartSize), mMinParticlesPerSecond(minParticlesPerSecond),
@@ -85,7 +85,8 @@ int ParticleRingEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 			if (mMinStartColor==mMaxStartColor)
 				particle.mColor=mMinStartColor;
 			else
-				particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
+				particle.mColor = SColorF(
+                    Function<float>::Lerp(mMinStartColor.ToArray(), mMaxStartColor.ToArray(), Randomizer::FRand()));
 
 			particle.mStartColor = particle.mColor;
 			particle.mStartVector = particle.mVector;

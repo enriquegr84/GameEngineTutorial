@@ -75,13 +75,13 @@ const eastl::shared_ptr<Texture2>& UIImage::GetImage() const
 }
 
 //! sets the color of the image
-void UIImage::SetColor(eastl::array<float, 4> color)
+void UIImage::SetColor(SColorF color)
 {
 	mColor = color;
 }
 
 //! Gets the color of the image
-eastl::array<float, 4> UIImage::GetColor() const
+SColorF UIImage::GetColor() const
 {
 	return mColor;
 }
@@ -95,7 +95,7 @@ void UIImage::Draw()
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 	if (mTexture)
 	{
-		const eastl::array<float, 4> colors[]{ mColor,mColor,mColor,mColor };
+		const SColorF colors[]{ mColor, mColor, mColor, mColor };
 		/*
 		if (!mScaleImage)
 		{

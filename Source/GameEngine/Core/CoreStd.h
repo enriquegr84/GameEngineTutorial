@@ -53,6 +53,12 @@
 // stdint.h provides on Unix platforms.
 #include <climits>
 
+#ifdef _MSC_VER
+    #include <eh.h>
+#endif
+#define NORETURN __declspec(noreturn)
+#define FUNCTION_NAME __FUNCTION__
+
 #endif
 //----------------------------------------------------------------------------
 // Macintosh OS X platform
@@ -127,6 +133,22 @@
 #else
 	#include <assert.h> 
 #endif
+
+/*
+    sanity_check()
+    Equivalent to assert() but persists in Release builds (i.e. when NDEBUG is
+    defined)
+*/
+NORETURN extern void sanity_check_fn(
+    const char *assertion, const char *file,
+    unsigned int line, const char *function);
+
+#define SANITY_CHECK(expr) \
+	((expr) \
+	? (void)(0) \
+	: sanity_check_fn(#expr, __FILE__, __LINE__, FUNCTION_NAME))
+
+#define SanityCheck(expr) SANITY_CHECK(expr)
 
 // Common standard library headers.
 #include <cstdarg>

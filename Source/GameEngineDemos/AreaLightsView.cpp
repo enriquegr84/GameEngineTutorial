@@ -116,18 +116,12 @@ bool AreaLightsHUD::OnInit()
 	const eastl::shared_ptr<BaseUIFont>& font = GetFont(L"DefaultFont");
 	if (font) GetSkin()->SetFont(font);
 
-	GetSkin()->SetColor(DC_BUTTON_TEXT,
-		eastl::array<float, 4U>{170 / 255.f, 170 / 255.f, 170 / 255.f, 240 / 255.f});
-	GetSkin()->SetColor(DC_3D_HIGH_LIGHT,
-		eastl::array<float, 4U>{34 / 255.f, 34 / 255.f, 34 / 255.f, 240 / 255.f});
-	GetSkin()->SetColor(DC_3D_FACE,
-		eastl::array<float, 4U>{68 / 255.f, 68 / 255.f, 68 / 255.f, 240 / 255.f});
-	GetSkin()->SetColor(DC_EDITABLE,
-		eastl::array<float, 4U>{68 / 255.f, 68 / 255.f, 68 / 255.f, 240 / 255.f});
-	GetSkin()->SetColor(DC_FOCUSED_EDITABLE,
-		eastl::array<float, 4U>{84 / 255.f, 84 / 255.f, 84 / 255.f, 240 / 255.f});
-	GetSkin()->SetColor(DC_WINDOW,
-		eastl::array<float, 4U>{102 / 255.f, 102 / 255.f, 102 / 255.f, 240 / 255.f});
+    GetSkin()->SetColor(DC_BUTTON_TEXT, SColor(240, 170, 170, 170));
+    GetSkin()->SetColor(DC_3D_HIGH_LIGHT, SColor(240, 34, 34, 34));
+    GetSkin()->SetColor(DC_3D_FACE, SColor(240, 68, 68, 68));
+    GetSkin()->SetColor(DC_EDITABLE, SColor(240, 68, 68, 68));
+    GetSkin()->SetColor(DC_FOCUSED_EDITABLE, SColor(240, 84, 84, 84));
+    GetSkin()->SetColor(DC_WINDOW, SColor(240, 102, 102, 102));
 
 	//gui size
 	Renderer* renderer = Renderer::Get();
@@ -282,7 +276,7 @@ bool AreaLightsHUD::OnInit()
 	lightYPosition->SetMax(40);
 	lightYPosition->SetSmallStep(1);
 	lightYPosition->SetLargeStep(1);
-	lightYPosition->SetPos(0);
+	lightYPosition->SetPos(4);
 	lightYPosition->SetToolTipText(L"Set Y position");
 
 	screenRectangle.mCenter[0] = 50;
@@ -403,7 +397,7 @@ bool AreaLightsHUD::OnInit()
 	eastl::shared_ptr<BaseUIStaticText> lightDiffuseColorResult =
 		AddStaticText(L"", screenRectangle, true, false, lightWindow, CID_LIGHT_DIFFUSE, true);
 	lightDiffuseColorResult->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
-	lightDiffuseColorResult->SetBackgroundColor(eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f});
+	lightDiffuseColorResult->SetBackgroundColor(SColorF(1.f, 1.f, 1.f));
 
 	screenRectangle.mCenter[0] = 50;
 	screenRectangle.mExtent[0] = 90;
@@ -473,7 +467,7 @@ bool AreaLightsHUD::OnInit()
 	eastl::shared_ptr<BaseUIStaticText> lightAmbientColorResult =
 		AddStaticText(L"", screenRectangle, true, false, lightWindow, CID_LIGHT_AMBIENT, true);
 	lightAmbientColorResult->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
-	lightAmbientColorResult->SetBackgroundColor(eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f});
+	lightAmbientColorResult->SetBackgroundColor(SColorF(1.f, 1.f, 1.f));
 
 	screenRectangle.mCenter[0] = 50;
 	screenRectangle.mExtent[0] = 90;
@@ -501,7 +495,7 @@ bool AreaLightsHUD::OnInit()
 	lightConstant->SetMax(1000);
 	lightConstant->SetSmallStep(1);
 	lightConstant->SetLargeStep(1);
-	lightConstant->SetPos(1);
+	lightConstant->SetPos(100);
 	lightConstant->SetToolTipText(L"Set light constant");
 
 	screenRectangle.mCenter[0] = 50;
@@ -519,10 +513,10 @@ bool AreaLightsHUD::OnInit()
 	eastl::shared_ptr<BaseUIScrollBar> lightLinear =
 		AddScrollBar(true, screenRectangle, lightWindow, CID_LIGHT_LINEAR);
 	lightLinear->SetMin(1);
-	lightLinear->SetMax(40000);
+	lightLinear->SetMax(4000);
 	lightLinear->SetSmallStep(1);
 	lightLinear->SetLargeStep(1);
-	lightLinear->SetPos(1);
+	lightLinear->SetPos(450);
 	lightLinear->SetToolTipText(L"Set light linear");
 
 	screenRectangle.mCenter[0] = 50;
@@ -540,13 +534,23 @@ bool AreaLightsHUD::OnInit()
 	eastl::shared_ptr<BaseUIScrollBar> lightQuadratic =
 		AddScrollBar(true, screenRectangle, lightWindow, CID_LIGHT_QUADRATIC);
 	lightQuadratic->SetMin(1);
-	lightQuadratic->SetMax(100000000);
+	lightQuadratic->SetMax(1000000);
 	lightQuadratic->SetSmallStep(1);
 	lightQuadratic->SetLargeStep(1);
-	lightQuadratic->SetPos(1);
+	lightQuadratic->SetPos(75000);
 	lightQuadratic->SetToolTipText(L"Set light quadratic");
 
 	lightWindow->UpdateAbsoluteTransformation();
+
+	screenRectangle = cameraWindow->GetRelativePosition();
+	screenRectangle.mCenter[0] += 100;
+	screenRectangle.mCenter[1] += 100;
+	cameraWindow->SetRelativePosition(screenRectangle);
+
+	screenRectangle = lightWindow->GetRelativePosition();
+	screenRectangle.mCenter[0] -= 100;
+	screenRectangle.mCenter[1] += 200;
+	lightWindow->SetRelativePosition(screenRectangle);
 
 	return true;
 }
@@ -674,7 +678,7 @@ bool AreaLightsHUD::OnEvent(const Event& evt)
 					if (diffuseB > 255) diffuseB = 255;
 
 					lightDiffuse->SetBackgroundColor(
-						eastl::array<float, 4>{diffuseR / 255.f, diffuseG / 255.f, diffuseB / 255.f, 1.f});
+                        SColorF(diffuseR / 255.f, diffuseG / 255.f, diffuseB / 255.f));
 
 					AreaLightsApp* areaLightsApp = (AreaLightsApp*)Application::App;
 					AreaLightsHumanView* areaLightsView = (AreaLightsHumanView*)areaLightsApp->GetHumanView();
@@ -682,7 +686,7 @@ bool AreaLightsHUD::OnEvent(const Event& evt)
 						eastl::static_shared_pointer_cast<LightNode>(
 						areaLightsView->mScene->GetSceneNode(areaLightsView->mLightID));
 					lightNode->GetLight()->mLighting->mDiffuse =
-					{ diffuseR / 255.f, diffuseG / 255.f, diffuseB / 255.f, 1.f };
+                    { diffuseR / 255.f, diffuseG / 255.f, diffuseB / 255.f, 1.f };
 				}
 				break;
 			}
@@ -709,7 +713,7 @@ bool AreaLightsHUD::OnEvent(const Event& evt)
 					if (ambientB > 255) ambientB = 255;
 
 					lightAmbient->SetBackgroundColor(
-						eastl::array<float, 4>{ambientR / 255.f, ambientG / 255.f, ambientB / 255.f, 1.f});
+						SColorF(ambientR / 255.f, ambientG / 255.f, ambientB / 255.f));
 
 					AreaLightsApp* areaLightsApp = (AreaLightsApp*)Application::App;
 					AreaLightsHumanView* areaLightsView = (AreaLightsHumanView*)areaLightsApp->GetHumanView();
@@ -742,7 +746,7 @@ bool AreaLightsHUD::OnEvent(const Event& evt)
 						eastl::static_shared_pointer_cast<LightNode>(
 						areaLightsView->mScene->GetSceneNode(areaLightsView->mLightID));
 					lightNode->GetLight()->mLighting->mAttenuation = 
-					{ lightConstant->GetPos() / 100.f, lightLinear->GetPos() / 10000.f, lightQuadratic->GetPos() / 10000000.f, 1.0f };
+					{ lightConstant->GetPos() / 1000.f, lightLinear->GetPos() / 4000.f, lightQuadratic->GetPos() / 1000000.f, 1.0f };
 				}
 				break;
 			}
@@ -880,36 +884,42 @@ bool AreaLightsHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 			eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 		extra->GetImage()->AutogenerateMipmaps();
 
-		for (auto i = 0; i < 80; i++)
+		for (auto i = 0; i < 160; i++)
 		{
 			// create an animated mesh scene node with specified mesh.
-			eastl::shared_ptr<Node> cubeNode = mScene->AddCubeNode(
-				0, extra->GetImage(), 1.0f, 1.0f, 0.1f, GameLogic::Get()->GetNewActorID());
+			float xSize = 0.1f * ((Randomizer::Rand() & 0x7fff) / (float)0x7fff);
+			float ySize = 0.1f * ((Randomizer::Rand() & 0x7fff) / (float)0x7fff);
+			float zSize = 0.1f * ((Randomizer::Rand() & 0x7fff) / (float)0x7fff);
+			xSize = xSize == 0.f ? 0.01f : xSize;
+			ySize = ySize == 0.f ? 0.01f : ySize;
+			zSize = zSize == 0.f ? 0.01f : zSize;
+			eastl::shared_ptr<Node> boxNode = mScene->AddBoxNode(
+				0, extra->GetImage(), { 1.0f, 1.0f }, { xSize, ySize, zSize }, GameLogic::Get()->GetNewActorID());
 
 			//To let the mesh look a little bit nicer, we change its material. We
 			//disable lighting because we do not have a dynamic light in here, and
 			//the mesh would be totally black otherwise. And last, we apply a
 			//texture to the mesh. Without it the mesh would be drawn using only a color.
-			if (cubeNode)
+			if (boxNode)
 			{
-				for (unsigned int i = 0; i < cubeNode->GetMaterialCount(); ++i)
-					cubeNode->GetMaterial(i)->mLighting = false;
-				cubeNode->SetMaterialTexture(0, extra->GetImage());
+				for (unsigned int i = 0; i < boxNode->GetMaterialCount(); ++i)
+					boxNode->GetMaterial(i)->mLighting = false;
+				boxNode->SetMaterialTexture(0, extra->GetImage());
 
 				AxisAngle<4, float> axisAngles;
 				GetRandomAxisAngle(axisAngles);
 				eastl::shared_ptr<NodeAnimator> anim = 0;
 				anim = mScene->CreateRotationAnimator(axisAngles.mAxis, 0.1f);
-				cubeNode->AttachAnimator(anim);
+				boxNode->AttachAnimator(anim);
 
 				GetRandomAxisAngle(axisAngles);
 				Vector3<float> direction{ axisAngles.mAxis[0], axisAngles.mAxis[1], axisAngles.mAxis[2] };
 				float start = ((Randomizer::Rand() & 0x7fff) / (float)0x7fff);
-				float radius = 2.f * ((Randomizer::Rand() & 0x7fff) / (float)0x7fff);
+				float radius = 1.f;
 				float distance = 4.f * ((Randomizer::Rand() & 0x7fff) / (float)0x7fff) + 2.f;
 				anim = mScene->CreateFlyCircleAnimator(
 					Vector3<float>::Unit(1) * distance, radius, 0.0001f, direction, start);
-				cubeNode->AttachAnimator(anim);
+				boxNode->AttachAnimator(anim);
 			}
 		}
 	}
@@ -921,6 +931,8 @@ bool AreaLightsHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 	lightData = eastl::make_shared<Light>(true, true);
 #endif
 	lightData->mLighting = eastl::make_shared<Lighting>();
+	lightData->mLighting->mAmbient = { 0.05f, 0.05f, 0.05f };
+	lightData->mLighting->mAttenuation = { 1.0f, 0.045f, 0.0075f, 1.0f };
 
 	// Add light
 	mLightID = GameLogic::Get()->GetNewActorID();
@@ -938,6 +950,8 @@ bool AreaLightsHumanView::LoadGameDelegate(tinyxml2::XMLElement* pLevelData)
 				lightNode, extra->GetImage(), Vector2<float>{1.0f, 1.0f}, GameLogic::Get()->GetNewActorID());
 			if (billboardNode)
 			{
+				billboardNode->GetRelativeTransform().SetTranslation(Vector3<float>{0.f, 4.f, 0.f});
+
 				for (unsigned int i = 0; i < billboardNode->GetMaterialCount(); ++i)
 					billboardNode->GetMaterial(i)->mLighting = false;
 				billboardNode->SetMaterialType(MT_TRANSPARENT);

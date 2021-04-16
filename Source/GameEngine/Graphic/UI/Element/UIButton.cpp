@@ -9,10 +9,16 @@
 #include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Image/ImageResource.h"
 
+// Multiply with a color to get the default corresponding hovered color
+#define COLOR_HOVERED_MOD 1.25f
+
+// Multiply with a color to get the default corresponding pressed color
+#define COLOR_PRESSED_MOD 0.85f
+
 //! constructor
 UIButton::UIButton(BaseUI* ui, int id, RectangleShape<2, int> rectangle)
 :	BaseUIButton(id, rectangle), mSpriteBank(0), mOverrideFont(0), mUI(ui),
-	mImage(0), mPressedImage(0), mClickTime(0), mHoverTime(0), mFocusTime(0), mPushButton(false), 
+    mClickTime(0), mHoverTime(0), mFocusTime(0), mPushButton(false), 
 	mPressed(false), mUseAlphaChannel(false), mDrawBorder(true), mScaleImage(false)
 {
 	eastl::shared_ptr<ResHandle>& resHandle =
@@ -73,6 +79,13 @@ void UIButton::OnInit(bool noclip)
 	// This element can be tabbed.
 	SetTabStop(true);
 	SetTabOrder(-1);
+
+    const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
+    for (size_t i = 0; i < 4; i++)
+        mColors[i] = skin->GetColor((UIDefaultColor)i);
+
+    mStaticText = mUI->AddStaticText(mText.c_str(), mAbsoluteRect, false, false, shared_from_this(), mID);
+    mStaticText->SetTextAlignment(UIA_CENTER, UIA_CENTER);
 }
 
 //! Sets if the images should be scaled to fit the button
@@ -88,6 +101,19 @@ bool UIButton::IsScalingImage() const
 	return mScaleImage;
 }
 
+void UIButton::SetColor(SColor color)
+{
+    eastl::shared_ptr<BaseUISkin> skin = mUI->GetSkin();
+
+    mBGColor = color;
+
+    float d = 0.65f;
+    for (size_t i = 0; i < 4; i++) 
+    {
+        SColor base = skin->GetColor((UIDefaultColor)i);
+        mColors[i] = base.GetInterpolated(color, d);
+    }
+}
 
 //! Sets if the button should use the skin to draw its border
 void UIButton::SetDrawBorder(bool border)
@@ -101,19 +127,40 @@ void UIButton::SetSpriteBank(const eastl::shared_ptr<BaseUISpriteBank>& sprites)
 	mSpriteBank = sprites;
 }
 
-
-void UIButton::SetSprite(UIButtonState state, int index, eastl::array<float, 4> color, bool loop)
+void UIButton::SetSprite(UIButtonState state, int index, SColor color, bool loop, bool scale)
 {
-	if (mSpriteBank)
-	{
-		mButtonSprites[(unsigned int)state].Index	= index;
-		mButtonSprites[(unsigned int)state].Color	= color;
-		mButtonSprites[(unsigned int)state].Loop	= loop;
-	}
-	else
-	{
-		mButtonSprites[(unsigned int)state].Index = -1;
-	}
+	mButtonSprites[(unsigned int)state].Index	= index;
+	mButtonSprites[(unsigned int)state].Color	= color;
+	mButtonSprites[(unsigned int)state].Loop	= loop;
+    mButtonSprites[(unsigned int)state].Scale   = scale;
+}
+
+
+//! Get the sprite-index for the given state or -1 when no sprite is set
+int UIButton::GetSpriteIndex(UIButtonState state) const
+{
+    return mButtonSprites[(unsigned int)state].Index;
+}
+
+
+//! Get the sprite color for the given state. Color is only used when a sprite is set.
+SColor UIButton::GetSpriteColor(UIButtonState state) const
+{
+    return mButtonSprites[(unsigned int)state].Color;
+}
+
+
+//! Returns if the sprite in the given state does loop
+bool UIButton::GetSpriteLoop(UIButtonState state) const
+{
+    return mButtonSprites[(unsigned int)state].Loop;
+}
+
+
+//! Returns if the sprite in the given state is scaled
+bool UIButton::GetSpriteScale(UIButtonState state) const
+{
+    return mButtonSprites[(unsigned int)state].Scale;
 }
 
 
@@ -127,8 +174,7 @@ bool UIButton::OnEvent(const Event& ev)
 	{
 		case ET_KEY_INPUT_EVENT:
 			if (ev.mKeyInput.mPressedDown &&
-				(ev.mKeyInput.mKey == KEY_RETURN || 
-				ev.mKeyInput.mKey == KEY_SPACE))
+				(ev.mKeyInput.mKey == KEY_RETURN || ev.mKeyInput.mKey == KEY_SPACE))
 			{
 				if (!mPushButton)
 					SetPressed(true);
@@ -138,23 +184,23 @@ bool UIButton::OnEvent(const Event& ev)
 				return true;
 			}
 			if (mPressed && !mPushButton && 
-				ev.mKeyInput.mPressedDown && 
-				ev.mKeyInput.mKey == KEY_ESCAPE)
+				ev.mKeyInput.mPressedDown && ev.mKeyInput.mKey == KEY_ESCAPE)
 			{
 				SetPressed(false);
 				return true;
 			}
 			else
 			if (!ev.mKeyInput.mPressedDown && mPressed &&
-				(ev.mKeyInput.mKey == KEY_RETURN || 
-				ev.mKeyInput.mKey == KEY_SPACE))
+				(ev.mKeyInput.mKey == KEY_RETURN || ev.mKeyInput.mKey == KEY_SPACE))
 			{
-
 				if (!mPushButton)
 					SetPressed(false);
 
 				if (mParent)
 				{
+                    mClickShiftState = ev.mKeyInput.mShift;
+                    mClickControlState = ev.mKeyInput.mControl;
+
 					Event newEvent;
 					newEvent.mEventType = ET_UI_EVENT;
 					newEvent.mUIEvent.mCaller = this;
@@ -221,6 +267,9 @@ bool UIButton::OnEvent(const Event& ev)
 				if ((!mPushButton && wasPressed && mParent) ||
 					(mPushButton && wasPressed != mPressed))
 				{
+                    mClickShiftState = ev.mMouseInput.mShift;
+                    mClickControlState = ev.mMouseInput.mControl;
+
 					Event newEvent;
 					newEvent.mEventType = ET_UI_EVENT;
 					newEvent.mUIEvent.mCaller = this;
@@ -250,6 +299,72 @@ void UIButton::Draw( )
 	auto effect = eastl::dynamic_pointer_cast<Texture2Effect>(mEffect);
 
 	Renderer::Get()->SetBlendState(mBlendState);
+
+    if (mDrawBorder)
+    {
+        if (!mPressed)
+        {
+            skin->Draw3DButtonPaneStandard(shared_from_this(), 
+                mVisual, mAbsoluteRect, &mAbsoluteClippingRect, mColors);
+        }
+        else
+        {
+            skin->Draw3DButtonPanePressed(shared_from_this(),
+                mVisual, mAbsoluteRect, &mAbsoluteClippingRect, mColors);
+        }
+    }
+
+    // The image changes based on the state, so we use the default every time.
+    UIButtonImageState imageState = BIS_IMAGE_UP;
+    if (mButtonImages[(unsigned int)imageState].Texture)
+    {
+        Vector2<int> pos = mAbsoluteRect.mCenter;
+        RectangleShape<2, int> sourceRect(mButtonImages[(unsigned int)imageState].SourceRect);
+        if (sourceRect.mCenter == Vector2<int>::Zero())
+        {
+            sourceRect = RectangleShape<2, int>();
+            sourceRect.mExtent[0] = mButtonImages[(unsigned int)imageState].Texture->GetWidth();
+            sourceRect.mExtent[1] = mButtonImages[(unsigned int)imageState].Texture->GetHeight();
+        }
+        
+        pos[0] -= sourceRect.mExtent[0] / 2;
+        pos[1] -= sourceRect.mExtent[1] / 2;
+
+        if (mPressed)
+        {
+            // Create a pressed-down effect by moving the image when it looks identical to the unpressed state image
+            UIButtonImageState unpressedState = GetImageState(false);
+            if (unpressedState == imageState || 
+                mButtonImages[(unsigned int)imageState] == mButtonImages[(unsigned int)unpressedState])
+            {
+                pos[0] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_X);
+                pos[1] += skin->GetSize(DS_BUTTON_PRESSED_IMAGE_OFFSET_Y);
+            }
+        }
+
+
+        effect->SetTexture(mButtonImages[(unsigned int)imageState].Texture);
+
+        SColor imageColors[] = { mBGColor, mBGColor, mBGColor, mBGColor };
+        if (mBGMiddle.GetArea() == 0) 
+        {
+            skin->Draw2DTexture(shared_from_this(), mVisual,
+                mScaleImage ? mAbsoluteRect : RectangleShape<2, int>(pos, sourceRect.mAxis, sourceRect.mExtent),
+                sourceRect, mAbsoluteClippingRect.mExtent, imageColors);
+        }
+        else 
+        {
+            core::rect<s32> middle = BgMiddle;
+            // `-x` is interpreted as `w - x`
+            if (middle.LowerRightCorner.X < 0)
+                middle.LowerRightCorner.X += texture->getOriginalSize().Width;
+            if (middle.LowerRightCorner.Y < 0)
+                middle.LowerRightCorner.Y += texture->getOriginalSize().Height;
+            draw2DImage9Slice(driver, texture,
+                ScaleImage ? AbsoluteRect : core::rect<s32>(pos, sourceRect.getSize()),
+                middle, &AbsoluteClippingRect, image_colors);
+        }
+    }
 
 	// todo: move sprite up and text down if the pressed state has a sprite
 	RectangleShape<2, int> spritePos = mAbsoluteRect;
@@ -354,6 +469,97 @@ void UIButton::Draw( )
 	BaseUIElement::Draw();
 }
 
+void UIButton::DrawSprite(UIButtonState state, unsigned int startTime, const RectangleShape<2, int>& center)
+{
+    unsigned int stateIdx = (unsigned int)state;
+
+    if (mButtonSprites[stateIdx].Index != -1)
+    {
+        if (mButtonSprites[stateIdx].Scale)
+        {
+            mSpriteBank->Draw2DSprite(mButtonSprites[stateIdx].Index, mVisual, 
+                mAbsoluteRect, &mAbsoluteClippingRect, mButtonSprites[stateIdx].Color,
+                Timer::GetTime() - startTime, mButtonSprites[stateIdx].Loop, true);
+        }
+        else
+        {
+            mSpriteBank->Draw2DSprite(mButtonSprites[stateIdx].Index, mVisual, center,
+                &mAbsoluteClippingRect, mButtonSprites[stateIdx].Color, startTime, Timer::GetTime(),
+                mButtonSprites[stateIdx].Loop, true);
+        }
+    }
+}
+
+UIButtonImageState UIButton::GetImageState(bool pressed) const
+{
+    return GetImageState(pressed, mButtonImages);
+}
+
+UIButtonImageState UIButton::GetImageState(bool pressed, const ButtonImage* images) const
+{
+    // figure state we should have
+    UIButtonImageState state = BIS_IMAGE_DISABLED;
+    bool focused = mUI->HasFocus(shared_from_this());
+    bool mouseOver = IsHovered();
+    if (IsEnabled())
+    {
+        if (pressed)
+        {
+            if (focused && mouseOver)
+                state = BIS_IMAGE_DOWN_FOCUSED_MOUSEOVER;
+            else if (focused)
+                state = BIS_IMAGE_DOWN_FOCUSED;
+            else if (mouseOver)
+                state = BIS_IMAGE_DOWN_MOUSEOVER;
+            else
+                state = BIS_IMAGE_DOWN;
+        }
+        else // !pressed
+        {
+            if (focused && mouseOver)
+                state = BIS_IMAGE_UP_FOCUSED_MOUSEOVER;
+            else if (focused)
+                state = BIS_IMAGE_UP_FOCUSED;
+            else if (mouseOver)
+                state = BIS_IMAGE_UP_MOUSEOVER;
+            else
+                state = BIS_IMAGE_UP;
+        }
+    }
+
+    // find a compatible state that has images
+    while (state != BIS_IMAGE_UP && !images[(unsigned int)state].Texture)
+    {
+        switch (state)
+        {
+        case BIS_IMAGE_UP_FOCUSED:
+            state = BIS_IMAGE_UP;
+            break;
+        case BIS_IMAGE_UP_FOCUSED_MOUSEOVER:
+            state = BIS_IMAGE_UP_FOCUSED;
+            break;
+        case BIS_IMAGE_DOWN_MOUSEOVER:
+            state = BIS_IMAGE_DOWN;
+            break;
+        case BIS_IMAGE_DOWN_FOCUSED:
+            state = BIS_IMAGE_DOWN;
+            break;
+        case BIS_IMAGE_DOWN_FOCUSED_MOUSEOVER:
+            state = BIS_IMAGE_DOWN_FOCUSED;
+            break;
+        case BIS_IMAGE_DISABLED:
+            if (pressed)
+                state = BIS_IMAGE_DOWN;
+            else
+                state = BIS_IMAGE_UP;
+            break;
+        default:
+            state = BIS_IMAGE_UP;
+        }
+    }
+
+    return state;
+}
 
 //! sets another skin independent font. if this is set to zero, the button uses the font of the skin.
 void UIButton::SetOverrideFont(const eastl::shared_ptr<BaseUIFont>& font)
@@ -379,6 +585,32 @@ eastl::shared_ptr<BaseUIFont> UIButton::GetActiveFont() const
 		return mUI->GetSkin()->GetFont();
 	return eastl::shared_ptr<BaseUIFont>();
 }
+
+
+//! Sets another color for the text.
+void UIButton::SetOverrideColor(SColor color)
+{
+    mOverrideColor = color;
+    mOverrideColorEnabled = true;
+
+    mStaticText->SetOverrideColor(color);
+}
+
+SColor UIButton::GetOverrideColor() const
+{
+    return mOverrideColor;
+}
+
+void UIButton::EnableOverrideColor(bool enable)
+{
+    mOverrideColorEnabled = enable;
+}
+
+bool UIButton::IsOverrideColorEnabled() const
+{
+    return mOverrideColorEnabled;
+}
+
 
 //! Sets an image which should be displayed on the button when it is in normal state.
 void UIButton::SetImage(const eastl::shared_ptr<Texture2>& image)
@@ -446,6 +678,13 @@ bool UIButton::IsPressed() const
 	return mPressed;
 }
 
+//! Returns if this element (or one of its direct children) is hovered
+bool UIButton::IsHovered() const
+{
+    eastl::shared_ptr<BaseUIElement> hovered = mUI->GetHovered();
+    return  hovered == shared_from_this() || 
+        (hovered != nullptr && hovered->GetParent() == shared_from_this());
+}
 
 //! Sets the pressed state of the button if this is a pushbutton
 void UIButton::SetPressed(bool pressed)

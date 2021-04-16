@@ -80,6 +80,9 @@ enum UIElementType
 	//! A static text (IGUIStaticText)
 	UIET_STATIC_TEXT,
 
+    //! An enriched static text (IGUIEnrichedStaticText)
+    UIET_ENRICHED_STATIC_TEXT,
+
 	//! A tab (IGUITab)
 	UIET_TAB,
 
@@ -103,6 +106,9 @@ enum UIElementType
 
 	//! The root of the GUI
 	UIET_ROOT,
+
+    //! Profiler
+    UIET_PROFILER,
 
 	//! Not an element, amount of elements in there
 	UIET_COUNT,

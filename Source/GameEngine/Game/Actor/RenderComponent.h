@@ -102,23 +102,23 @@ protected:
 };
 
 //---------------------------------------------------------------------------------------------------------------------
-// Cube
+// Box
 //---------------------------------------------------------------------------------------------------------------------
-class CubeRenderComponent : public BaseRenderComponent
+class BoxRenderComponent : public BaseRenderComponent
 {
 	eastl::string mTextureResource;
 	Vector2<float> mTextureSize;
 	unsigned int mMaterialType;
-	float mSize;
+	Vector3<float> mSize;
 
 public:
 	static const char *Name;
 	virtual const char *GetName() const { return Name; }
 
-	CubeRenderComponent(void);
+	BoxRenderComponent(void);
 	const char* GetTextureResource() { return mTextureResource.c_str(); }
 	const Vector2<float> GetTextureScale() { return mTextureSize; }
-	const float GetSize() { return mSize; }
+	const Vector3<float> GetSize() { return mSize; }
 
 protected:
 	virtual bool DelegateInit(tinyxml2::XMLElement* pData) override;
@@ -194,7 +194,7 @@ class VolumeLightRenderComponent : public BaseRenderComponent
 	int mMaterialType;
 
 	Vector2<int> mSubdivision;
-	eastl::array<float, 4> mFootColor, mTailColor;
+    SColorF mFootColor, mTailColor;
 
 	int mAnimatorType;
 	unsigned int mAnimationTime;
@@ -258,8 +258,8 @@ class ParticleEffectRenderComponent : public BaseRenderComponent
 	Vector3<float> mDirection;    // direction
 	unsigned int mMinParticlesPerSecond; // emit rate
 	unsigned int mMaxParticlesPerSecond; // emit rate
-	eastl::array<float, 4> mMinStartColor;       // darkest color
-	eastl::array<float, 4> mMaxStartColor;       // brightest color
+    SColorF mMinStartColor;       // darkest color
+    SColorF mMaxStartColor;       // brightest color
 	unsigned int mMinLifeTime;
 	unsigned int mMaxLifeTime;
 	int mMaxAngle;

@@ -11,7 +11,7 @@
 //! constructor
 RectangleNode::RectangleNode(const ActorId actorId, PVWUpdater* updater, const eastl::shared_ptr<Texture2>& texture,
 	float texxScale, float texyScale, float xSize, float ySize, int xPolyCount, int yPolyCount)
-:	Node(actorId, NT_CUBE), mShadow(0),
+:	Node(actorId, NT_BOX), mShadow(0),
 	mSizeX(xSize), mSizeY(ySize), mPolyCountX(xPolyCount), mPolyCountY(yPolyCount)
 {
 	mPVWUpdater = updater;

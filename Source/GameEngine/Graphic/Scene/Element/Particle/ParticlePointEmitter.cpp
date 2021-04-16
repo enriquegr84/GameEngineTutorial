@@ -15,7 +15,7 @@
 ParticlePointEmitter::ParticlePointEmitter(
 	const Vector3<float>& direction, 
 	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, 
-	eastl::array<float, 4> minStartColor, eastl::array<float, 4> maxStartColor, 
+    SColorF minStartColor, SColorF maxStartColor,
 	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees,
 	const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize)
 :	mDirection(direction), mMinStartSize(minStartSize), 
@@ -65,7 +65,8 @@ int ParticlePointEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall
 		if (mMinStartColor==mMaxStartColor)
 			mParticle.mColor=mMinStartColor;
 		else
-			mParticle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
+			mParticle.mColor = SColorF(
+                Function<float>::Lerp(mMinStartColor.ToArray(), mMaxStartColor.ToArray(), Randomizer::FRand()));
 
 		mParticle.mStartColor = mParticle.mColor;
 		mParticle.mStartVector = mParticle.mVector;

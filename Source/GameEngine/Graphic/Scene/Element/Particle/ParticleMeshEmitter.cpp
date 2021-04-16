@@ -17,8 +17,7 @@ ParticleMeshEmitter::ParticleMeshEmitter(
 	const Vector3<float>& direction, float normalDirectionModifier, 
 	int mbNumber, bool everyMeshVertex,
 	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond,
-	const eastl::array<float, 4>& minStartColor, 
-	const eastl::array<float, 4>& maxStartColor,
+	const SColor& minStartColor, const SColor& maxStartColor,
 	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees,
 	const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
 	: mParticleMesh(0), mTotalVertices(0), mMBCount(0), mMBNumber(mbNumber),
@@ -91,7 +90,8 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 						if (mMinStartColor==mMaxStartColor)
 							particle.mColor=mMinStartColor;
 						else
-							particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
+							particle.mColor = SColorF(
+                                Function<float>::Lerp(mMinStartColor.ToArray(), mMaxStartColor.ToArray(), Randomizer::FRand()));
 
 						particle.mStartColor = particle.mColor;
 						particle.mStartVector = particle.mVector;
@@ -146,7 +146,8 @@ int ParticleMeshEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCall,
 				if (mMinStartColor==mMaxStartColor)
 					particle.mColor=mMinStartColor;
 				else
-					particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
+					particle.mColor = SColorF(
+                        Function<float>::Lerp(mMinStartColor.ToArray(), mMaxStartColor.ToArray(), Randomizer::FRand()));
 
 				particle.mStartColor = particle.mColor;
 				particle.mStartVector = particle.mVector;

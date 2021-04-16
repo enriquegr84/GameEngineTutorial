@@ -74,8 +74,8 @@ enum GRAPHIC_ITEM NodeType
 	//! Root scene Node
 	NT_ROOT,
 
-	//! simple cube scene node
-	NT_CUBE,
+	//! simple box scene node
+	NT_BOX,
 
 	//! Sphere scene node
 	NT_SPHERE,

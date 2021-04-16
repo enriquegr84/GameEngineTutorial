@@ -515,8 +515,8 @@ bool HumanView::Console::OnInit( )
 
 	shared_ptr<BaseUIStaticText> consoleText(
 		AddStaticText(L">", screenRectangle, false, true, 0, 1, true));
-	consoleText->SetOverrideColor(Color(1.0f, 1.0f, 1.0f, 1.0f)); //white font
-	consoleText->SetBackgroundColor(Color(1.0f, 0.0f, 0.0f, 0.0f)); //black background
+	consoleText->SetOverrideColor(SColorF(1.0f, 1.0f, 1.0f)); //white font
+	consoleText->SetBackgroundColor(SColorF(0.0f, 0.0f, 0.0f)); //black background
 	*/
 	return true;
 }

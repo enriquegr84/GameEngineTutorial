@@ -113,23 +113,14 @@ int UISpriteBank::AddTextureAsSprite(eastl::shared_ptr<Texture2> texture)
 
 //! draws a sprite in 2d with scale and color
 void UISpriteBank::Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visual>& visual, 
-	const RectangleShape<2, int>& pos, const RectangleShape<2, int>* clip, const eastl::array<float, 4> color, 
-	unsigned int starttime, unsigned int currenttime, bool loop, bool center)
+    const RectangleShape<2, int>& pos, const RectangleShape<2, int>* clip, const SColorF& color, 
+    unsigned int startTime, unsigned int currentTime, bool loop, bool center)
 {
 	if (index >= mSprites.size() || mSprites[index].mFrames.empty() )
 		return;
 
 	// work out frame number
-	unsigned int frame = 0;
-	if (mSprites[index].mFrameTime)
-	{
-		unsigned int f = ((currenttime - starttime) / mSprites[index].mFrameTime);
-		if (loop)
-			frame = f % mSprites[index].mFrames.size();
-		else
-			frame = (f >= mSprites[index].mFrames.size()) ? mSprites[index].mFrames.size()-1 : f;
-	}
-
+    unsigned int frame = GetFrameNr(index, currentTime - startTime, loop);
 	eastl::shared_ptr<Texture2> tex = mTextures[mSprites[index].mFrames[frame].mTextureNumber];
 	if (!tex) return;
 
@@ -183,10 +174,73 @@ void UISpriteBank::Draw2DSprite(unsigned int index, const eastl::shared_ptr<Visu
 	Renderer::Get()->Draw(visual);
 }
 
+//! draws a sprite in 2d with scale and color
+void UISpriteBank::Draw2DSprite(unsigned int index,
+    const eastl::shared_ptr<Visual>& visual, const RectangleShape<2, int>& destRect,
+    const RectangleShape<2, int>* clip, const SColorF* const colors, unsigned int timeTicks, bool loop)
+{
+    if (index >= mSprites.size() || mSprites[index].mFrames.empty())
+        return;
 
-void UISpriteBank::Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, const eastl::shared_ptr<Visual>& visual, 
-	const eastl::array<RectangleShape<2, int>>& pos, const eastl::array<float, 4> color, const RectangleShape<2, int>* clip, 
-	unsigned int starttime, unsigned int currenttime, bool loop, bool center)
+    // work out frame number
+    unsigned int frame = GetFrameNr(index, timeTicks, loop);
+    eastl::shared_ptr<Texture2> tex = mTextures[mSprites[index].mFrames[frame].mTextureNumber];
+    if (!tex) return;
+
+    const unsigned int rn = mSprites[index].mFrames[frame].mRectNumber;
+    if (rn >= mRectangles.size()) return;
+
+    const RectangleShape<2, int>& sourceRect = mRectangles[rn];
+    Vector2<int> sourceSize(sourceRect.mExtent);
+
+    Vector2<int> targetPos = destRect.mCenter;
+    Vector2<int> dimension(clip->mExtent / 2);
+
+    eastl::shared_ptr<Texture2Effect> effect =
+        eastl::static_pointer_cast<Texture2Effect>(visual->GetEffect());
+    effect->SetTexture(tex);
+
+    struct Vertex
+    {
+        Vector3<float> position;
+        Vector2<float> tcoord;
+    };
+    Vertex* vertex = visual->GetVertexBuffer()->Get<Vertex>();
+    vertex[0].position = {
+        (float)(targetPos[0] - dimension[0] - (destRect.mExtent[0] / 2)) / dimension[0],
+        (float)(dimension[1] - targetPos[1] - (destRect.mExtent[1] / 2)) / dimension[1], 0.0f };
+    vertex[0].tcoord = {
+        (float)(sourceRect.mCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+        (float)(sourceRect.mCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+    vertex[1].position = {
+        (float)(targetPos[0] - dimension[0] + (int)round(destRect.mExtent[0] / 2.f)) / dimension[0],
+        (float)(dimension[1] - targetPos[1] - (destRect.mExtent[1] / 2)) / dimension[1], 0.0f };
+    vertex[1].tcoord = {
+        (float)(sourceRect.mCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+        (float)(sourceRect.mCenter[1] + (int)round(sourceSize[1] / 2.f)) / sourceSize[1] };
+    vertex[2].position = {
+        (float)(targetPos[0] - dimension[0] - (destRect.mExtent[0] / 2)) / dimension[0],
+        (float)(dimension[1] - targetPos[1] + (int)round(destRect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
+    vertex[2].tcoord = {
+        (float)(sourceRect.mCenter[0] - (sourceSize[0] / 2)) / sourceSize[0],
+        (float)(sourceRect.mCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+    vertex[3].position = {
+        (float)(targetPos[0] - dimension[0] + (int)round(destRect.mExtent[0] / 2.f)) / dimension[0],
+        (float)(dimension[1] - targetPos[1] + (int)round(destRect.mExtent[1] / 2.f)) / dimension[1], 0.0f };
+    vertex[3].tcoord = {
+        (float)(sourceRect.mCenter[0] + (int)round(sourceSize[0] / 2.f)) / sourceSize[0],
+        (float)(sourceRect.mCenter[1] - (sourceSize[1] / 2)) / sourceSize[1] };
+
+    // Create the geometric object for drawing.
+    Renderer::Get()->Update(visual->GetVertexBuffer());
+    Renderer::Get()->Draw(visual);
+}
+
+
+void UISpriteBank::Draw2DSpriteBatch(
+    const eastl::array<unsigned int>& indices, const eastl::shared_ptr<Visual>& visual,
+    const eastl::array<RectangleShape<2, int>>& pos, const SColorF& color, const RectangleShape<2, int>* clip, 
+    unsigned int starttime, unsigned int currenttime, bool loop, bool center)
 {
 	const unsigned int drawCount = eastl::min<unsigned int>(indices.size(), pos.size());
 
@@ -220,7 +274,6 @@ void UISpriteBank::Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, 
 		}
 
 		const unsigned int texNum = mSprites[index].mFrames[frame].mTextureNumber;
-
 		DrawBatch& currentBatch = drawBatches[texNum];
 
 		const unsigned int rn = mSprites[index].mFrames[frame].mRectNumber;
@@ -254,4 +307,18 @@ void UISpriteBank::Draw2DSpriteBatch(const eastl::array<unsigned int>& indices, 
 			*/
 		}
 	}
+}
+
+unsigned int UISpriteBank::GetFrameNr(unsigned int index, unsigned int time, bool loop) const
+{
+    unsigned int frame = 0;
+    if (mSprites[index].mFrameTime && mSprites[index].mFrames.size())
+    {
+        unsigned int f = (time / mSprites[index].mFrameTime);
+        if (loop)
+            frame = f % mSprites[index].mFrames.size();
+        else
+            frame = (f >= mSprites[index].mFrames.size()) ? mSprites[index].mFrames.size() - 1 : f;
+    }
+    return frame;
 }

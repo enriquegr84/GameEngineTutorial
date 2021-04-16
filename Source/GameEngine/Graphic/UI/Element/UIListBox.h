@@ -96,10 +96,10 @@ public:
 	virtual bool IsAutoScrollEnabled() const = 0;
 
 	//! set all item colors at given index to color
-	virtual void SetItemOverrideColor(unsigned int index, eastl::array<float, 4> color) = 0;
+	virtual void SetItemOverrideColor(unsigned int index, SColor color) = 0;
 
 	//! set all item colors of specified type at given index to color
-	virtual void SetItemOverrideColor(unsigned int index, UIListboxColor colorType, eastl::array<float, 4> color) = 0;
+	virtual void SetItemOverrideColor(unsigned int index, UIListboxColor colorType, SColor color) = 0;
 
 	//! clear all item colors at index
 	virtual void ClearItemOverrideColor(unsigned int index) = 0;
@@ -111,10 +111,10 @@ public:
 	virtual bool HasItemOverrideColor(unsigned int index, UIListboxColor colorType) const = 0;
 
 	//! return the overwrite color at given item index.
-	virtual eastl::array<float, 4> GetItemOverrideColor(unsigned int index, UIListboxColor colorType) const = 0;
+	virtual SColor GetItemOverrideColor(unsigned int index, UIListboxColor colorType) const = 0;
 
 	//! return the default color which is used for the given colorType
-	virtual eastl::array<float, 4> GetItemDefaultColor(UIListboxColor colorType) const = 0;
+	virtual SColor GetItemDefaultColor(UIListboxColor colorType) const = 0;
 
 	//! set the item at the given index
 	virtual void SetItem(unsigned int index, const wchar_t* text, int icon) = 0;
@@ -205,10 +205,10 @@ public:
 	virtual void UpdateAbsolutePosition();
 
 	//! set all item colors at given index to color
-	virtual void SetItemOverrideColor(unsigned int index, eastl::array<float, 4> color);
+	virtual void SetItemOverrideColor(unsigned int index, SColor color);
 
 	//! set all item colors of specified type at given index to color
-	virtual void SetItemOverrideColor(unsigned int index, UIListboxColor colorType, eastl::array<float, 4> color);
+	virtual void SetItemOverrideColor(unsigned int index, UIListboxColor colorType, SColor color);
 
 	//! clear all item colors at index
 	virtual void ClearItemOverrideColor(unsigned int index);
@@ -220,10 +220,10 @@ public:
 	virtual bool HasItemOverrideColor(unsigned int index, UIListboxColor colorType) const;
 
 	//! return the overwrite color at given item index.
-	virtual eastl::array<float, 4> GetItemOverrideColor(unsigned int index, UIListboxColor colorType) const;
+	virtual SColor GetItemOverrideColor(unsigned int index, UIListboxColor colorType) const;
 
 	//! return the default color which is used for the given colorType
-	virtual eastl::array<float, 4> GetItemDefaultColor(UIListboxColor colorType) const;
+	virtual SColor GetItemDefaultColor(UIListboxColor colorType) const;
 
 	//! set the item at the given index
 	virtual void SetItem(unsigned int index, const wchar_t* text, int icon);
@@ -257,7 +257,7 @@ private:
 		{
 			ListItemOverrideColor() : mUse(false) {}
 			bool mUse;
-			eastl::array<float, 4> mColor;
+            SColor mColor;
 		};
 		ListItemOverrideColor mOverrideColors[UI_LBC_COUNT];
 	};

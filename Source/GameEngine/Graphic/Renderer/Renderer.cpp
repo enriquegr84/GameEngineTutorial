@@ -28,7 +28,7 @@ Renderer::Renderer()
 	mGraphicObjectCreator(nullptr),
 	mWarnOnNonemptyBridges(true)
 {
-	mClearColor.fill(1.0f);
+	mClearColor.Set(1.0f, 1.0f, 1.0f, 1.0f);
 	mCreateGraphicObject.fill(nullptr);
 
 	mGOListener = eastl::make_shared<GOListener>(this);
@@ -167,7 +167,7 @@ uint64_t Renderer::Draw(eastl::vector<eastl::shared_ptr<Visual>> const& visuals)
 	return numPixelsDrawn;
 }
 
-uint64_t Renderer::Draw(int x, int y, eastl::array<float, 4> const& color, eastl::wstring const& message)
+uint64_t Renderer::Draw(int x, int y, SColorF const& color, eastl::wstring const& message)
 {
 	uint64_t numPixelsDrawn;
 
@@ -175,7 +175,7 @@ uint64_t Renderer::Draw(int x, int y, eastl::array<float, 4> const& color, eastl
 	{
 		int vx, vy, vw, vh;
 		GetViewport(vx, vy, vw, vh);
-		mActiveFont->Typeset(vw, vh, x, y, color, message);
+		mActiveFont->Typeset(vw, vh, x, y, color.ToArray(), message);
 
 		Update(mActiveFont->GetTextEffect()->GetTranslate());
 		Update(mActiveFont->GetTextEffect()->GetColor());

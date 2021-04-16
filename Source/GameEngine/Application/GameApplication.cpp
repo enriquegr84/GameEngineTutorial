@@ -44,7 +44,7 @@
 
 //----------------------------------------------------------------------------
 GameApplication::GameApplication(const char* windowTitle, int xPosition,
-    int yPosition, int width, int height, const eastl::array<float, 4>& clearColor)
+    int yPosition, int width, int height, const SColorF& clearColor)
 :	mTitle(windowTitle), mXOrigin(xPosition), mYOrigin(yPosition), mWidth(width), 
 	mHeight(height), mClearColor(clearColor), mAllowResize(true), mWindowID(0), 
 	mFramesPerSecond(0), mTimer(0), mSystem(0), mRenderer(0)

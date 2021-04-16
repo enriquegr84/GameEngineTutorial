@@ -111,8 +111,10 @@ public:
 		float texxScale = 1.f, float texyScale = 1.f, float xSize = 5.f, float ySize = 5.f, 
 		int xPolyCount = 16, int yPolyCount = 16, int id = -1);
 
-	//! Adds a cube scene node
-	/** \param size: Size of the cube, uniformly in each dimension.
+	//! Adds a box scene node
+	/** \param sizeX: Size of the box, X dimension.
+	/** \param sizeY: Size of the box, Y dimension.
+	/** \param sizez: Size of the box, Z dimension.
 	\param parent: Parent of the scene node. Can be 0 if no parent.
 	\param id: Id of the node. This id can be used to identify the scene node.
 	\param position: Position of the space relative to its parent
@@ -122,9 +124,9 @@ public:
 	\return Pointer to the created test scene node. This
 	pointer should not be dropped. See IReferenceCounted::drop()
 	for more information. */
-	eastl::shared_ptr<Node> AddCubeNode(
-		const eastl::shared_ptr<Node>& parent, const eastl::shared_ptr<Texture2>& texture, 
-		float texxScale, float texyScale, float size = 10.0f, int id = -1);
+	eastl::shared_ptr<Node> AddBoxNode(const eastl::shared_ptr<Node>& parent, 
+		const eastl::shared_ptr<Texture2>& texture, Vector2<float> texScale, 
+		Vector3<float> size = { 10.0f, 10.0f, 10.0f }, int id = -1);
 
 	//! Adds a sphere scene node of the given radius and detail
 	/** \param radius: Radius of the sphere.
@@ -162,8 +164,8 @@ public:
 	eastl::shared_ptr<Node> AddVolumeLightNode(const eastl::shared_ptr<Node>& parent,
 		const Vector2<float>& textureSize, const eastl::shared_ptr<Texture2>& texture,
 		const Vector2<int>& subdivision = Vector2<int>{32, 32},
-		const eastl::array<float, 4>& foot = eastl::array<float, 4>{51/255.f, 0/255.f, 230/255.f, 180/255.f},
-		const eastl::array<float, 4>& tail = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f}, int id = -1);
+		const SColorF& foot = SColorF(51/255.f, 0/255.f, 230/255.f, 180/255.f),
+		const SColorF& tail = SColorF(0.f, 0.f, 0.f, 0.f), int id = -1);
 
 	//! Adds a camera scene node to the scene graph and sets it as active camera.
 	/** This camera does not react on user input like for example the one created with
@@ -427,16 +429,16 @@ public:
 	void SetCurrentRenderPass(RenderPass currentRenderPass) { mCurrentRenderPass = currentRenderPass; }
 
 	//! Sets ambient color of the scene
-	void SetAmbientLight(const eastl::array<float, 4>& ambientColor) { mAmbientLight = ambientColor; }
+	void SetAmbientLight(const SColorF& ambientColor) { mAmbientLight = ambientColor; }
 
 	//! Returns ambient color of the scene
-	const eastl::array<float, 4>& GetAmbientLight() const { return mAmbientLight; }
+	const SColorF& GetAmbientLight() const { return mAmbientLight; }
 
 	//! Sets the color of stencil buffers shadows drawn by the scene manager.
-	void SetShadowColor(eastl::array<float, 4> color) { mShadowColor = color; }
+	void SetShadowColor(SColorF color) { mShadowColor = color; }
 
 	//! Returns the current color of shadows.
-	eastl::array<float, 4> GetShadowColor() const { return mShadowColor; }
+    SColorF GetShadowColor() const { return mShadowColor; }
 
 	SceneNodeRenderList& GetDeletionList() { return mDeletionList; }
 	SceneNodeRenderList& GetRenderList(unsigned int pass) { return mRenderList[pass]; }
@@ -465,8 +467,7 @@ protected:
 	SceneNodeActorMap mSceneNodeActors;
 	RenderPass mCurrentRenderPass;
 
-	eastl::array<float, 4> mShadowColor;
-	eastl::array<float, 4> mAmbientLight;
+    SColorF mShadowColor, mAmbientLight;
 
 	//! scene node lists
 	SceneNodeRenderList mDeletionList;

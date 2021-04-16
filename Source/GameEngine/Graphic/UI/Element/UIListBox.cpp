@@ -729,7 +729,7 @@ void UIListBox::SwapItems(unsigned int index1, unsigned int index2)
 }
 
 
-void UIListBox::SetItemOverrideColor(unsigned int index, eastl::array<float, 4> color)
+void UIListBox::SetItemOverrideColor(unsigned int index, SColor color)
 {
 	for ( unsigned int c=0; c < UI_LBC_COUNT; ++c )
 	{
@@ -739,7 +739,7 @@ void UIListBox::SetItemOverrideColor(unsigned int index, eastl::array<float, 4> 
 }
 
 
-void UIListBox::SetItemOverrideColor(unsigned int index, UIListboxColor colorType, eastl::array<float, 4> color)
+void UIListBox::SetItemOverrideColor(unsigned int index, UIListboxColor colorType, SColor color)
 {
 	if ( index >= mItems.size() || colorType < 0 || colorType >= UI_LBC_COUNT )
 		return;
@@ -776,20 +776,20 @@ bool UIListBox::HasItemOverrideColor(unsigned int index, UIListboxColor colorTyp
 }
 
 
-eastl::array<float, 4> UIListBox::GetItemOverrideColor(unsigned int index, UIListboxColor colorType) const
+SColor UIListBox::GetItemOverrideColor(unsigned int index, UIListboxColor colorType) const
 {
 	if ( (unsigned int)index >= mItems.size() || colorType < 0 || colorType >= UI_LBC_COUNT )
-		return eastl::array<float, 4>();
+		return SColor();
 
 	return mItems[index].mOverrideColors[colorType].mColor;
 }
 
 
-eastl::array<float, 4> UIListBox::GetItemDefaultColor(UIListboxColor colorType) const
+SColor UIListBox::GetItemDefaultColor(UIListboxColor colorType) const
 {
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 	if ( !skin )
-		return eastl::array<float, 4>();
+		return SColor();
 
 	switch ( colorType )
 	{
@@ -802,7 +802,7 @@ eastl::array<float, 4> UIListBox::GetItemDefaultColor(UIListboxColor colorType) 
 		case UI_LBC_ICON_HIGHLIGHT:
 			return skin->GetColor(DC_ICON_HIGH_LIGHT);
 		default:
-			return eastl::array<float, 4>();
+			return SColor();
 	}
 }
 

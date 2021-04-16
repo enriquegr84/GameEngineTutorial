@@ -300,7 +300,7 @@ void UIScrollBar::Draw()
 	if (!skin)
 		return;
 
-	eastl::array<float, 4> iconColor = skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL);
+    SColorF iconColor = skin->GetColor(IsEnabled() ? DC_WINDOW_SYMBOL : DC_GRAY_WINDOW_SYMBOL);
 	if ( iconColor != mCurrentIconColor )
 	{
 		RefreshControls();
@@ -465,7 +465,7 @@ int UIScrollBar::GetPos() const
 //! refreshes the position and text on child buttons
 void UIScrollBar::RefreshControls()
 {
-	mCurrentIconColor = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f};
+	mCurrentIconColor = SColorF(1.f, 1.f, 1.f);
 
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 	eastl::shared_ptr<BaseUISpriteBank> sprites = 0;
