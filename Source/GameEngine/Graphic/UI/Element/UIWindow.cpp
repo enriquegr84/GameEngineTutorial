@@ -99,7 +99,7 @@ void UIWindow::OnInit(bool scrollBarVertical)
 	if (mUI)
 		skin = mUI->GetSkin();
 
-	mCurrentIconColor = SColorF(1.f, 1.f, 1.f);
+	mCurrentIconColor = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f};
 
 	int buttonw = 15;
 	if (skin)

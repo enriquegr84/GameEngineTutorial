@@ -20,7 +20,7 @@ class WindowApplication : public Application, public EventListener
 protected:
     // Abstract base class.
     WindowApplication (const char* windowTitle, int xPosition,
-        int yPosition, int width, int height, const SColorF& clearColor);
+        int yPosition, int width, int height, const eastl::array<float, 4>& clearColor);
 public:
     virtual ~WindowApplication ();
 	
@@ -53,7 +53,7 @@ protected:
     eastl::wstring mTitle;
     int mXOrigin, mYOrigin, mWidth, mHeight;
 
-    SColorF mClearColor;
+	eastl::array<float, 4> mClearColor;
     bool mAllowResize;
 
 	//HINSTANCE mHInstance;	//	the module instance

@@ -8,7 +8,7 @@
 
 //! constructor
 ParticleFadeOutAffector::ParticleFadeOutAffector(
-	const SColorF& targetColor, unsigned int fadeOutTime)
+	const eastl::array<float, 4>& targetColor, unsigned int fadeOutTime)
 : BaseParticleAffector(), mTargetColor(targetColor)
 {
 	mFadeOutTime = fadeOutTime ? static_cast<float>(fadeOutTime) : 1.0f;
@@ -28,8 +28,7 @@ void ParticleFadeOutAffector::Affect(unsigned int now, Particle* particlearray, 
 		if (particlearray[i].mEndTime - now < mFadeOutTime)
 		{
 			d = (particlearray[i].mEndTime - now) / mFadeOutTime;	// FadeOutTime probably float to save casts here (just guessing)
-			particlearray[i].mColor = SColorF(
-                Function<float>::Lerp(particlearray[i].mStartColor.ToArray(), mTargetColor.ToArray(), d));
+			particlearray[i].mColor = Function<float>::Lerp(particlearray[i].mStartColor, mTargetColor, d);
 		}
 	}
 }

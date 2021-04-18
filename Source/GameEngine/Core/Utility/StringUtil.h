@@ -41,88 +41,11 @@
 
 #include "Core/CoreStd.h"
 
-#include "Graphic/Resource/Color.h"
-
-static const char HexChars[] = "0123456789abcdef";
-
-static inline eastl::string HexEncode(const char *data, unsigned int dataSize)
-{
-    eastl::string ret;
-    ret.reserve(dataSize * 2);
-
-    char buf2[3];
-    buf2[2] = '\0';
-
-    for (unsigned int i = 0; i < dataSize; i++) {
-        unsigned char c = (unsigned char)data[i];
-        buf2[0] = HexChars[(c & 0xf0) >> 4];
-        buf2[1] = HexChars[c & 0x0f];
-        ret.append(buf2);
-    }
-
-    return ret;
-}
-
-static inline eastl::string HexEncode(const eastl::string &data)
-{
-    return HexEncode(data.c_str(), data.size());
-}
-
-static inline bool HexDigitDecode(char hexdigit, unsigned char &value)
-{
-    if (hexdigit >= '0' && hexdigit <= '9')
-        value = hexdigit - '0';
-    else if (hexdigit >= 'A' && hexdigit <= 'F')
-        value = hexdigit - 'A' + 10;
-    else if (hexdigit >= 'a' && hexdigit <= 'f')
-        value = hexdigit - 'a' + 10;
-    else
-        return false;
-    return true;
-}
-
-inline eastl::string ToString(const wchar_t *str)
-{
-    std::wstring strSource(str);
-    std::string strTarget(strSource.begin(), strSource.end());
-
-    return eastl::string(strTarget.c_str());
-}
-
-inline eastl::wstring ToWideString(const char *str)
-{
-    std::string strSource(str);
-    std::wstring strTarget(strSource.begin(), strSource.end());
-
-    return eastl::wstring(strTarget.c_str());
-}
-
-/**
- * @param str
- * @return A copy of \p str converted to all lowercase characters.
- */
-inline eastl::string lowercase(const eastl::string &str)
-{
-    eastl::string s2;
-
-    s2.reserve(str.size());
-    for (char i : str)
-        s2 += tolower(i);
-
-    return s2;
-}
-
-template <typename T>
-eastl::vector<eastl::basic_string<T> > Split(const eastl::basic_string<T> &s, T delim);
-
-static bool ParseColorString(
-    const eastl::string &value, SColorF &color, bool quiet, unsigned char defaultAlpha = 0xff);
-static bool ParseHexColorString(const eastl::string &value, SColorF &color, unsigned char defaultAlpha = 0xff);
-static bool ParseNamedColorString(const eastl::string &value, SColorF &color);
-
-
 // Does a classic * & ? pattern match on a file name - this is case sensitive!
 bool WildcardMatch(const wchar_t *pat, const wchar_t *str);
+
+eastl::string ToString(const wchar_t *str);
+eastl::wstring ToWideString(const char *str);
 
 //	A hashed string.  It retains the initial (ANSI) string in 
 //	addition to the hash value for easy reference.

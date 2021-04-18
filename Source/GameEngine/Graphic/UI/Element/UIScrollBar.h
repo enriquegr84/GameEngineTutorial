@@ -145,7 +145,7 @@ private:
 	int mLargeStep;
 	int mDesiredPos;
 	unsigned int mLastChange;
-    SColorF mCurrentIconColor;
+	eastl::array<float, 4> mCurrentIconColor;
 
 	float range () const { return (float) ( mMax - mMin ); }
 };

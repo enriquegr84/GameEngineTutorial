@@ -46,7 +46,7 @@ public:
 	\param clip: Optional pointer to a rectangle against which the text will be clipped.
 	If the pointer is null, no clipping will be done. */
 	virtual void Draw(const eastl::wstring& text, const RectangleShape<2, int>& position,
-        SColorF const& color, bool hcenter=false, bool vcenter=false,
+		eastl::array<float, 4> const& color, bool hcenter=false, bool vcenter=false, 
 		const RectangleShape<2, int>* clip=0) = 0;
 
 	// Font widht and height info
@@ -85,7 +85,7 @@ public:
 
 	//! draws an text and clips it to the specified rectangle if wanted
 	virtual void Draw(const eastl::wstring& text, const RectangleShape<2, int>& position,
-        SColorF const& color, bool hcenter = false, bool vcenter = false,
+		eastl::array<float, 4> const& color, bool hcenter = false, bool vcenter = false, 
 		const RectangleShape<2, int>* clip = 0);
 
 	//! returns the parsed Symbol Information

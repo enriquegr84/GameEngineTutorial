@@ -16,8 +16,8 @@ public:
 	//! constructor
 	VolumeLightNode(const ActorId actorId, PVWUpdater* updater, const Vector2<float>& textureSize,
 		const eastl::shared_ptr<Texture2>& texture, const Vector2<int>& subdivision = Vector2<int>{32, 32},
-		const SColorF& foot = SColorF(51 / 255.f, 0.f, 230 / 255.f, 180 / 255.f),
-		const SColorF& tail = SColorF(0.f, 0.f, 0.f, 0.f));
+		const eastl::array<float, 4>& foot = eastl::array<float, 4>{51.f, 0.f, 230.f, 180.f},
+		const eastl::array<float, 4>& tail = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f});
 
 	virtual ~VolumeLightNode();
 
@@ -41,16 +41,16 @@ public:
 	unsigned int GetSubDivideV() const { return mSubdivideV; }
 
 	//! Sets the color of the base of the light
-	void SetFootColor(const SColorF inColor);
+	void SetFootColor(const eastl::array<float, 4> inColor);
 
 	//! Sets the color of the tip of the light
-	void SetTailColor(const SColorF inColor);
+	void SetTailColor(const eastl::array<float, 4> inColor);
 
 	//! Returns the color of the base of the light
-    SColorF GetFootColor() const { return mFootColor; }
+	eastl::array<float, 4> GetFootColor() const { return mFootColor; }
 
 	//! Returns the color of the tip of the light
-    SColorF GetTailColor() const { return mTailColor; }
+	eastl::array<float, 4> GetTailColor() const { return mTailColor; }
 
 	//! returns the material based on the zero based index i. To get the amount
 	//! of materials used by this scene node, use GetMaterialCount().
@@ -82,8 +82,8 @@ private:
 		Vector2<float> tcoord;
 		Vector4<float> color;
 	};
-	void AddToBuffer(
-        Vector3<float>& position, SColorF& color, Vector2<float>& tcoord,
+	void AddToBuffer(Vector3<float>& position,
+		eastl::array<float, 4U>& color, Vector2<float>& tcoord,
 		Vertex* vertex, unsigned int& vtx, unsigned int* index, unsigned int& idx);
 
 	eastl::shared_ptr<BlendState> mBlendState;
@@ -102,8 +102,8 @@ private:
 	// NOTE : Total number of polygons = 2 + ((SubdivideU + 1) + (SubdivideV + 1)) * 2
 	// Each slice being a quad plus the rectangular plane at the bottom.
 
-    SColorF mFootColor;	// Color at the source
-    SColorF mTailColor;	// Color at the end.
+	eastl::array<float, 4> mFootColor;	// Color at the source
+	eastl::array<float, 4> mTailColor;	// Color at the end.
 
 	// LightDimensions.Y Distance of shooting -- Length of beams
 	// LightDimensions.X and LightDimensions.Z determine the

@@ -139,7 +139,7 @@ public:
 	uint64_t Draw(eastl::vector<eastl::shared_ptr<Visual>> const& visuals);
 
 	// Draw 2D text
-	uint64_t Draw(int x, int y, SColorF const& color, eastl::wstring const& message);
+	uint64_t Draw(int x, int y, eastl::array<float, 4> const& color, eastl::wstring const& message);
 
 	// Set the warning to 'true' if you want the DX11Engine destructor to
 	// report that the bridge maps are nonempty.  If they are, the application
@@ -150,10 +150,10 @@ public:
 	inline const Vector2<unsigned int>& GetScreenSize() const;
 
 	// Support for clearing the color, depth, and stencil back buffers.
-	inline void SetClearColor(SColorF const& clearColor);
+	inline void SetClearColor(eastl::array<float, 4> const& clearColor);
 	inline void SetClearDepth(float clearDepth);
 	inline void SetClearStencil(unsigned int clearStencil);
-	inline SColorF const& GetClearColor() const;
+	inline eastl::array<float, 4> const& GetClearColor() const;
 	inline float GetClearDepth() const;
 	inline unsigned int GetClearStencil() const;
 	virtual void DisplayColorBuffer(unsigned int syncInterval) = 0;
@@ -284,7 +284,7 @@ protected:
     int mNumMultisamples;
 
     // Framebuffer clearing.
-	SColorF mClearColor;
+	eastl::array<float, 4> mClearColor;
     float mClearDepth;
     unsigned int mClearStencil;
 
@@ -317,7 +317,7 @@ inline void Renderer::SetClearStencil(unsigned int clearStencil)
 	mClearStencil = clearStencil;
 }
 //----------------------------------------------------------------------------
-inline void Renderer::SetClearColor(SColorF const& clearColor)
+inline void Renderer::SetClearColor(eastl::array<float, 4> const& clearColor)
 {
 	mClearColor = clearColor;
 }
@@ -327,7 +327,7 @@ inline void Renderer::SetClearDepth(float clearDepth)
 	mClearDepth = clearDepth;
 }
 //----------------------------------------------------------------------------
-inline SColorF const& Renderer::GetClearColor() const
+inline eastl::array<float, 4> const& Renderer::GetClearColor() const
 {
 	return mClearColor;
 }

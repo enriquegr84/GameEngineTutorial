@@ -127,12 +127,18 @@ bool QuakeMainMenuUI::OnInit()
 	const eastl::shared_ptr<BaseUIFont>& font = GetFont(L"DefaultFont");
 	if (font) GetSkin()->SetFont(font);
 
-    GetSkin()->SetColor(DC_BUTTON_TEXT, SColor(240, 170, 170, 170));
-    GetSkin()->SetColor(DC_3D_HIGH_LIGHT, SColor(240, 34, 34, 34));
-    GetSkin()->SetColor(DC_3D_FACE, SColor(240, 68, 68, 68));
-    GetSkin()->SetColor(DC_EDITABLE, SColor(240, 68, 68, 68));
-    GetSkin()->SetColor(DC_FOCUSED_EDITABLE, SColor(240, 84, 84, 84));
-    GetSkin()->SetColor(DC_WINDOW, SColor(240, 102, 102, 102));
+	GetSkin()->SetColor(DC_BUTTON_TEXT, 
+		eastl::array<float, 4U>{170 / 255.f, 170 / 255.f, 170 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_3D_HIGH_LIGHT, 
+		eastl::array<float, 4U>{34 / 255.f, 34 / 255.f, 34 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_3D_FACE, 
+		eastl::array<float, 4U>{68 / 255.f, 68 / 255.f, 68 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_EDITABLE, 
+		eastl::array<float, 4U>{68 / 255.f, 68 / 255.f, 68 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_FOCUSED_EDITABLE, 
+		eastl::array<float, 4U>{84 / 255.f, 84 / 255.f, 84 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_WINDOW, 
+		eastl::array<float, 4U>{102 / 255.f, 102 / 255.f, 102 / 255.f, 240 / 255.f});
 
 	//gui size
 	Renderer* renderer = Renderer::Get();
@@ -655,15 +661,15 @@ QuakeStandardHUD::QuakeStandardHUD(const eastl::shared_ptr<QuakeHumanView>& view
 	rectangle.mExtent[1] = CHAR_WIDTH;
 	eastl::shared_ptr<BaseUIStaticText> score =
 		AddStaticText(L"0", rectangle, false, false, 0, -1, true);
-	score->SetBackgroundColor(SColorF(0.f, 0.f, 1.f));
-	score->SetOverrideColor(SColorF(1.f, 1.f, 1.f));
+	score->SetBackgroundColor(eastl::array<float, 4U>{0.f, 0.f, 1.f, 1.f});
+	score->SetOverrideColor(eastl::array<float, 4U>{1.f, 1.f, 1.f, 1.f});
 	score->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 	mScore.push_back(score);
 
 	rectangle.mCenter[0] += CHAR_WIDTH;
 	score = AddStaticText(L"0", rectangle, false, false, 0, -1, true);
-	score->SetBackgroundColor(SColorF(1.f, 0.f, 0.f));
-	score->SetOverrideColor(SColorF(1.f, 1.f, 1.f));
+	score->SetBackgroundColor(eastl::array<float, 4U>{1.f, 0.f, 0.f, 1.f});
+	score->SetOverrideColor(eastl::array<float, 4U>{1.f, 1.f, 1.f, 1.f});
 	score->SetTextAlignment(UIA_UPPERLEFT, UIA_CENTER);
 	mScore.push_back(score);
 
@@ -1244,7 +1250,7 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 			mWeaponMedia[weapon].loopFireSound = false;
 
-			mWeaponMedia[weapon].flashDlightColor = SColorF(0.6f, 0.6f, 1.0f);
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 0.6f, 0.6f, 1.0f, 1.0f};
 			mWeaponMedia[weapon].firingSound = eastl::wstring(L"audio/quake/sound/weapons/melee/fstrun.ogg");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].firingSound));
 			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/melee/fstatck.ogg");
@@ -1284,7 +1290,7 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			mMedia.lightningExplosionModel = eastl::wstring(L"art/quake/models/weaphits/crackle.md3");
 			ResCache::Get()->GetHandle(&BaseResource(mMedia.lightningExplosionModel));
 
-			mWeaponMedia[weapon].flashDlightColor = SColorF(0.6f, 0.6f, 1.0f);
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 0.6f, 0.6f, 1.0f, 1.0f};
 			mWeaponMedia[weapon].readySound = eastl::wstring(L"audio/quake/sound/weapons/melee/fsthum.ogg");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].readySound));
 			mWeaponMedia[weapon].firingSound = eastl::wstring(L"audio/quake/sound/weapons/lightning/lg_hum.ogg");
@@ -1342,7 +1348,7 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 			resData->GetImage()->AutogenerateMipmaps();
 
-			mWeaponMedia[weapon].flashDlightColor = SColorF(1.f, 1.f, 0.f);
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 1.f, 0.f, 1.f};
 			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/machinegun/machgf1b.ogg");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
 			mWeaponMedia[weapon].flashSound[1] = eastl::wstring(L"audio/quake/sound/weapons/machinegun/machgf2b.ogg");
@@ -1375,7 +1381,10 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 				FileSystem::Get()->GetPath("art/quake/models/weapons2/shotgun/shotgun_hand.md3").c_str()));
 
 			mWeaponMedia[weapon].loopFireSound = false;
-			mWeaponMedia[weapon].flashDlightColor = SColorF(1.f, 1.f, 0.f);
+
+			//mWeaponMedia[weapon].ejectBrassFunc = CG_ShotgunEjectBrass;
+
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 1.f, 0.f, 1.f};
 			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/shotgun/sshotf1b.ogg");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
 			break;
@@ -1444,8 +1453,8 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			mWeaponMedia[weapon].wiTrailTime = 2000;
 			mWeaponMedia[weapon].trailRadius = 64;
 
-			mWeaponMedia[weapon].missileDlightColor = SColorF(1.f, 0.75f, 0.f);
-			mWeaponMedia[weapon].flashDlightColor = SColorF(1.f, 0.75f, 0.f);
+			mWeaponMedia[weapon].missileDlightColor = eastl::array<float, 4U>{ 1.f, 0.75f, 0.f, 1.f};
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 0.75f, 0.f, 1.f};
 			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/rocket/rocklf1a.ogg");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
 			break;
@@ -1496,7 +1505,7 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			mWeaponMedia[weapon].wiTrailTime = 700;
 			mWeaponMedia[weapon].trailRadius = 32;
 
-			mWeaponMedia[weapon].flashDlightColor = SColorF(1.f, 0.7f, 0.f);
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 0.7f, 0.f, 1.f};
 			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/grenade/grenlf1a.ogg");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
 			break;
@@ -1534,7 +1543,7 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 
 			//weaponInfo->missileModel = cgs.media.invulnerabilityPowerupModel;
 			//mWeaponMedia[weapon].missileTrailFunc = CG_PlasmaTrail;
-			mWeaponMedia[weapon].flashDlightColor = SColorF(1.f, 0.6f, 0.6f);
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 0.6f, 0.6f, 1.f};
 			mWeaponMedia[weapon].missileSound = eastl::wstring(L"audio/quake/sound/weapons/plasma/lasfly.ogg");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].missileSound));
 			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/plasma/hyprbf1a.ogg");
@@ -1602,7 +1611,7 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			resData = eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
 			resData->GetImage()->AutogenerateMipmaps();
 
-			mWeaponMedia[weapon].flashDlightColor = SColorF(1.f, 0.5f, 0.f);
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 0.5f, 0.f, 1.f};
 			mWeaponMedia[weapon].readySound = eastl::wstring(L"audio/quake/sound/weapons/railgun/rg_hum.ogg");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].readySound));
 			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/railgun/railgf1a.ogg");
@@ -1610,7 +1619,7 @@ void QuakeHumanView::RegisterWeapon(unsigned int weapon)
 			break;
 
 		default:
-			mWeaponMedia[weapon].flashDlightColor = SColorF(1.f, 1.f, 1.f);
+			mWeaponMedia[weapon].flashDlightColor = eastl::array<float, 4U>{ 1.f, 1.f, 1.f, 1.f};
 			mWeaponMedia[weapon].flashSound[0] = eastl::wstring(L"audio/quake/sound/weapons/rocket/rocklf1a.ogg");
 			ResCache::Get()->GetHandle(&BaseResource(mWeaponMedia[weapon].flashSound[0]));
 			break;

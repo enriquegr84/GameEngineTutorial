@@ -117,8 +117,8 @@ public:
 		bool useNormalDirection = true, const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		float normalDirectionModifier = 100.0f, int mbNumber = -1, bool everyMeshVertex = false, 
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
-		const SColorF& minStartColor = SColorF(0.f, 0.f, 0.f),
-		const SColorF& maxStartColor = SColorF(1.f, 1.f, 1.f),
+		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{1.f, 0.f, 0.f, 0.f},
+		const eastl::array<float, 4>& maxStartColor = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f},
 		unsigned int lifeTimeMin = 2000, unsigned int lifeTimeMax = 4000, int maxAngleDegrees = 0,
 		const Vector2<float>& minStartSize = Vector2<float>{ 5.f, 5.f },
 		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f, 5.f });
@@ -128,8 +128,8 @@ public:
 		const AlignedBox3<float>& box = AlignedBox3<float>(),//{ -10.f,0.f,-10.f,5.f,30.f,10.f },
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
-		const SColorF& minStartColor = SColorF(0.f, 0.f, 0.f),
-		const SColorF& maxStartColor = SColorF(1.f, 1.f, 1.f),
+		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{1.f, 0.f, 0.f, 0.f},
+		const eastl::array<float, 4>& maxStartColor = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f},
 		unsigned int lifeTimeMin = 2000, unsigned int lifeTimeMax = 4000, int maxAngleDegrees = 0,
 		const Vector2<float>& minStartSize = Vector2<float>{ 5.f, 5.f },
 		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f, 5.f });
@@ -139,8 +139,8 @@ public:
 		const Vector3<float>& center, float radius, const Vector3<float>& normal, float length,
 		bool outlineOnly = false, const Vector3<float>& direction = Vector3<float>{ 0.f, 0.5f, 0.f },
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
-		const SColorF& minStartColor = SColorF(0.f, 0.f, 0.f),
-		const SColorF& maxStartColor = SColorF(1.f, 1.f, 1.f),
+		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{1.f, 0.f, 0.f, 0.f},
+		const eastl::array<float, 4>& maxStartColor = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f},
 		unsigned int lifeTimeMin = 2000, unsigned int lifeTimeMax = 4000, int maxAngleDegrees = 0,
 		const Vector2<float>& minStartSize = Vector2<float>{ 5.f, 5.f },
 		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f, 5.f });
@@ -151,8 +151,8 @@ public:
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		float normalDirectionModifier = 100.0f, int mbNumber = -1, bool everyMeshVertex = false,
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
-		const SColorF& minStartColor = SColorF(0.f, 0.f, 0.f),
-		const SColorF& maxStartColor = SColorF(1.f, 1.f, 1.f),
+		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{1.f, 0.f, 0.f, 0.f},
+		const eastl::array<float, 4>& maxStartColor = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f},
 		unsigned int lifeTimeMin = 2000, unsigned int lifeTimeMax = 4000, int maxAngleDegrees = 0,
 		const Vector2<float>& minStartSize = Vector2<float>{ 5.f, 5.f },
 		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f, 5.f });
@@ -161,8 +161,8 @@ public:
 	ParticlePointEmitter* CreatePointEmitter(
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
-		const SColorF& minStartColor = SColorF(0.f, 0.f, 0.f),
-		const SColorF& maxStartColor = SColorF(1.f, 1.f, 1.f),
+		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{1.f, 0.f, 0.f, 0.f},
+		const eastl::array<float, 4>& maxStartColor = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f},
 		unsigned int lifeTimeMin=2000, unsigned int lifeTimeMax=4000, int maxAngleDegrees=0,
 		const Vector2<float>& minStartSize = Vector2<float>{ 5.f, 5.f },
 		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f, 5.f });
@@ -172,8 +172,8 @@ public:
 		const Vector3<float>& center, float radius, float ringThickness,
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
-		const SColorF& minStartColor = SColorF(0.f, 0.f, 0.f),
-		const SColorF& maxStartColor = SColorF(1.f, 1.f, 1.f),
+		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{1.f, 0.f, 0.f, 0.f},
+		const eastl::array<float, 4>& maxStartColor = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f},
 		unsigned int lifeTimeMin=2000, unsigned int lifeTimeMax=4000, int maxAngleDegrees=0,
 		const Vector2<float>& minStartSize = Vector2<float>{ 5.f, 5.f },
 		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f, 5.f });
@@ -183,8 +183,8 @@ public:
 		const Vector3<float>& center, float radius,
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.03f, 0.f },
 		unsigned int minParticlesPerSecond = 5, unsigned int maxParticlesPerSecond = 10,
-		const SColorF& minStartColor = SColorF(0.f, 0.f, 0.f),
-		const SColorF& maxStartColor = SColorF(1.f, 1.f, 1.f),
+		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{1.f, 0.f, 0.f, 0.f},
+		const eastl::array<float, 4>& maxStartColor = eastl::array<float, 4>{1.f, 1.f, 1.f, 1.f},
 		unsigned int lifeTimeMin=2000, unsigned int lifeTimeMax=4000, int maxAngleDegrees=0,
 		const Vector2<float>& minStartSize = Vector2<float>{ 5.f, 5.f },
 		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f, 5.f });
@@ -202,7 +202,7 @@ public:
 
 	//! Creates a fade out particle affector.
 	ParticleFadeOutAffector* CreateFadeOutParticleAffector(
-		const SColorF& targetColor = SColorF(0.f, 0.f, 0.f, 0.f),
+		const eastl::array<float, 4>& targetColor = eastl::array<float, 4>{0.f, 0.f, 0.f, 0.f},
 		unsigned int timeNeededToFadeOut = 1000);
 
 	//! Creates a gravity affector.

@@ -51,10 +51,10 @@ public:
 	If you set a color, and you want the text displayed with the color
 	of the skin again, call IGUIEditBox::enableOverrideColor(false);
 	\param color: New color of the text. */
-	virtual void SetOverrideColor(SColor color) = 0;
+	virtual void SetOverrideColor(eastl::array<float, 4> color) = 0;
 
 	//! Gets the override color
-	virtual SColor GetOverrideColor() const = 0;
+	virtual eastl::array<float, 4> GetOverrideColor() const = 0;
 
 	//! Sets if the text should use the override color or the color in the gui skin.
 	/** \param enable: If set to true, the override color, which can be set
@@ -151,10 +151,10 @@ public:
 	virtual const eastl::shared_ptr<BaseUIFont>& GetActiveFont() const;
 
 	//! Sets another color for the text.
-	virtual void SetOverrideColor(SColor color);
+	virtual void SetOverrideColor(eastl::array<float, 4> color);
 
 	//! Gets the override color
-	virtual SColor GetOverrideColor() const;
+	virtual eastl::array<float, 4> GetOverrideColor() const;
 
 	//! Sets if the text should use the override color or the color in the gui skin.
 	virtual void EnableOverrideColor(bool enable);
@@ -245,7 +245,7 @@ protected:
 	int mMarkBegin;
 	int mMarkEnd;
 
-    SColor mOverrideColor;
+	eastl::array<float, 4> mOverrideColor;
 	eastl::shared_ptr<BaseUIFont> mOverrideFont, mLastBreakFont;
 
 	unsigned int mBlinkStartTime;

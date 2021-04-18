@@ -117,12 +117,18 @@ bool MainMenuUI::OnInit()
 	const eastl::shared_ptr<BaseUIFont>& font = GetFont(L"DefaultFont");
 	if (font) GetSkin()->SetFont(font);
 
-	GetSkin()->SetColor(DC_BUTTON_TEXT, SColor(240, 170, 170, 170));
-	GetSkin()->SetColor(DC_3D_HIGH_LIGHT, SColor(240, 34, 34, 34));
-	GetSkin()->SetColor(DC_3D_FACE, SColor(240, 68, 68, 68));
-	GetSkin()->SetColor(DC_EDITABLE, SColor(240, 68, 68, 68));
-	GetSkin()->SetColor(DC_FOCUSED_EDITABLE, SColor(240, 84, 84, 84));
-	GetSkin()->SetColor(DC_WINDOW, SColor(240, 102, 102, 102));
+	GetSkin()->SetColor(DC_BUTTON_TEXT, 
+		eastl::array<float, 4U>{170 / 255.f, 170 / 255.f, 170 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_3D_HIGH_LIGHT, 
+		eastl::array<float, 4U>{34 / 255.f, 34 / 255.f, 34 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_3D_FACE, 
+		eastl::array<float, 4U>{68 / 255.f, 68 / 255.f, 68 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_EDITABLE, 
+		eastl::array<float, 4U>{68 / 255.f, 68 / 255.f, 68 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_FOCUSED_EDITABLE, 
+		eastl::array<float, 4U>{84 / 255.f, 84 / 255.f, 84 / 255.f, 240 / 255.f});
+	GetSkin()->SetColor(DC_WINDOW, 
+		eastl::array<float, 4U>{102 / 255.f, 102 / 255.f, 102 / 255.f, 240 / 255.f});
 
 	//gui size
 	Renderer* renderer = Renderer::Get();

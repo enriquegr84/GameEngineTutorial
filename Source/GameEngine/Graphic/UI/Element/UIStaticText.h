@@ -7,8 +7,6 @@
 
 #include "UIElement.h"
 
-#include "Core/Utility/EnrichedString.h"
-
 #include "Graphic/Scene/Hierarchy/Visual.h"
 
 class BaseUIFont;
@@ -44,11 +42,11 @@ public:
 	If you set a color, and you want the text displayed with the color
 	of the skin again, call IGUIStaticText::enableOverrideColor(false);
 	\param color: New color of the text. */
-	virtual void SetOverrideColor(SColor color) = 0;
+	virtual void SetOverrideColor(eastl::array<float, 4> color) = 0;
 
 	//! Gets the override color
 	/** \return: The override color */
-	virtual SColor GetOverrideColor(void) const = 0;
+	virtual eastl::array<float, 4> GetOverrideColor(void) const = 0;
 
 	//! Sets if the static text should use the overide color or the color in the gui skin.
 	/** \param enable: If set to true, the override color, which can be set
@@ -61,7 +59,7 @@ public:
 	virtual bool IsOverrideColorEnabled(void) const = 0;
 
 	//! Sets another color for the background.
-	virtual void SetBackgroundColor(SColor color) = 0;
+	virtual void SetBackgroundColor(eastl::array<float, 4> color) = 0;
 
 	//! Sets whether to draw the background
 	virtual void SetDrawBackground(bool draw) = 0;
@@ -72,7 +70,7 @@ public:
 
 	//! Gets the background color
 	/** \return: The background color */
-	virtual SColor GetBackgroundColor() const = 0;
+	virtual eastl::array<float, 4> GetBackgroundColor() const = 0;
 
 	//! Sets whether to draw the border
 	virtual void SetDrawBorder(bool draw) = 0;
@@ -131,7 +129,7 @@ class UIStaticText : public BaseUIStaticText
 public:
 
 	//! constructor
-	UIStaticText(BaseUI* ui, int id, const wchar_t* text,
+	UIStaticText(BaseUI* ui, int id, const wchar_t* text, 
 		bool border, const RectangleShape<2, int>& rectangle, bool background = false);
 
 	//! destructor
@@ -150,16 +148,16 @@ public:
 	virtual eastl::shared_ptr<BaseUIFont> GetActiveFont() const;
 
 	//! Sets another color for the text.
-	virtual void SetOverrideColor(SColor color);
+	virtual void SetOverrideColor(eastl::array<float, 4> color);
 
 	//! Sets another color for the background.
-	virtual void SetBackgroundColor(SColor color);
+	virtual void SetBackgroundColor(eastl::array<float, 4> color);
 
 	//! Sets whether to draw the background
 	virtual void SetDrawBackground(bool draw);
 
 	//! Gets the background color
-	virtual SColor GetBackgroundColor() const;
+	virtual eastl::array<float, 4> GetBackgroundColor() const;
 
 	//! Checks if background drawing is enabled
 	virtual bool IsDrawBackgroundEnabled() const;
@@ -174,7 +172,7 @@ public:
 	virtual void SetTextAlignment(UIAlignment horizontal, UIAlignment vertical);
 
 	//! Gets the override color
-	virtual SColor GetOverrideColor() const;
+	virtual eastl::array<float, 4> GetOverrideColor() const;
 
 	//! Sets if the static text should use the overide color or the
 	//! color in the gui skin.
@@ -196,8 +194,8 @@ public:
 	//! Checks if word wrap is enabled
 	virtual bool IsWordWrapEnabled() const;
 
-    //! Sets the new caption of this element.
-    virtual void SetText(const wchar_t* text);
+	//! Sets the new caption of this element.
+	virtual void SetText(const wchar_t* text);
 
 	//! Returns the height of the text in pixels when it is drawn.
 	virtual int GetTextHeight() const;
@@ -221,8 +219,8 @@ public:
 
 private:
 
-	//! Update the single text line.
-	void UpdateText();
+	//! Breaks the single text line.
+	void BreakText();
 
 	UIAlignment mHAlign, mVAlign;
 	bool mBorder;
@@ -233,7 +231,7 @@ private:
 	bool mRestrainTextInside;
 	bool mRightToLeft;
 
-	SColor mOverrideColor, mBGColor;
+	eastl::array<float, 4> mOverrideColor, mBGColor;
 	eastl::shared_ptr<Visual> mVisual;
 	eastl::shared_ptr<VisualEffect> mEffect;
 	eastl::shared_ptr<BaseUIFont> mOverrideFont;
@@ -241,7 +239,7 @@ private:
 
 	BaseUI* mUI;
 
-	eastl::vector<EnrichedString> mBrokenText;
+	eastl::vector< eastl::wstring > mBrokenText;
 };
 
 #endif

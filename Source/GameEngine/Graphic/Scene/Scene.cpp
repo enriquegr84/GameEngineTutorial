@@ -263,12 +263,13 @@ eastl::shared_ptr<Node> Scene::AddRectangleNode(const eastl::shared_ptr<Node>& p
 	return node;
 }
 
-//! adds a box scene node to the scene graph.
+//! adds a cube scene node to the scene graph.
 //! the returned pointer must not be dropped.
-eastl::shared_ptr<Node> Scene::AddBoxNode(const eastl::shared_ptr<Node>& parent, 
-	const eastl::shared_ptr<Texture2>& texture, Vector2<float> texScale, Vector3<float> size, int id)
+eastl::shared_ptr<Node> Scene::AddCubeNode(const eastl::shared_ptr<Node>& parent, 
+	const eastl::shared_ptr<Texture2>& texture, float texxScale, float texyScale, float size, int id)
 {
-	eastl::shared_ptr<Node> node(new BoxNode(id, &mPVWUpdater, texture, texScale, size));
+	eastl::shared_ptr<Node> node(new CubeNode(
+		id, &mPVWUpdater, texture, texxScale, texyScale, size));
 	if (!parent) 
 		AddSceneNode(id, node);
 	else 
@@ -296,8 +297,8 @@ eastl::shared_ptr<Node> Scene::AddSphereNode(const eastl::shared_ptr<Node>& pare
 //! the returned pointer must not be dropped.
 eastl::shared_ptr<Node> Scene::AddVolumeLightNode(const eastl::shared_ptr<Node>& parent,
 	const Vector2<float>& textureSize, const eastl::shared_ptr<Texture2>& texture, 
-	const Vector2<int>& subdivision, const SColorF& foot, 
-	const SColorF& tail, int id)
+	const Vector2<int>& subdivision, const eastl::array<float, 4>& foot, 
+	const eastl::array<float, 4>& tail, int id)
 {
 	eastl::shared_ptr<Node> node(new VolumeLightNode(
 		id, &mPVWUpdater, textureSize, texture, subdivision, foot, tail));

@@ -42,7 +42,6 @@
 #include "Image/ImageResource.h"
 
 // Resources
-#include "Resource/Color.h"
 #include "Resource/DataFormat.h"
 #include "Resource/GraphicObject.h"
 #include "Resource/MemberLayout.h"
@@ -116,7 +115,7 @@
 #include "Scene/Element/BoneNode.h"
 #include "Scene/Element/CameraNode.h"
 #include "Scene/Element/RectangleNode.h"
-#include "Scene/Element/BoxNode.h"
+#include "Scene/Element/CubeNode.h"
 #include "Scene/Element/MeshNode.h"
 #include "Scene/Element/LightNode.h"
 #include "Scene/Element/StaticMeshNode.h"

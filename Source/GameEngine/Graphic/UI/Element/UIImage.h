@@ -26,7 +26,7 @@ public:
 	virtual const eastl::shared_ptr<Texture2>& GetImage() const = 0;
 
 	//! Sets the color of the image
-	virtual void SetColor(SColorF color) = 0;
+	virtual void SetColor(eastl::array<float, 4> color) = 0;
 
 	//! Sets if the image should scale to fit the element
 	virtual void SetScaleImage(bool scale) = 0;
@@ -35,7 +35,7 @@ public:
 	virtual void SetUseAlphaChannel(bool use) = 0;
 
 	//! Gets the color of the image
-	virtual SColorF GetColor() const = 0;
+	virtual eastl::array<float, 4> GetColor() const = 0;
 
 	//! Returns true if the image is scaled to fit, false if not
 	virtual bool IsImageScaled() const = 0;
@@ -61,7 +61,7 @@ public:
 	virtual const eastl::shared_ptr<Texture2>& GetImage() const;
 
 	//! Sets the color of the image
-	virtual void SetColor(SColorF color);
+	virtual void SetColor(eastl::array<float, 4> color);
 
 	//! Sets if the image should scale to fit the element
 	virtual void SetScaleImage(bool scale);
@@ -70,7 +70,7 @@ public:
 	virtual void SetUseAlphaChannel(bool use);
 
 	//! Gets the color of the image
-	virtual SColorF GetColor() const;
+	virtual eastl::array<float, 4> GetColor() const;
 
 	//! Returns true if the image is scaled to fit, false if not
 	virtual bool IsImageScaled() const;
@@ -90,7 +90,7 @@ private:
 	eastl::shared_ptr<BlendState> mBlendState;
 
 	eastl::shared_ptr<Texture2> mTexture;
-    SColorF mColor;
+	eastl::array<float, 4> mColor;
 	bool mUseAlphaChannel;
 	bool mScaleImage;
 

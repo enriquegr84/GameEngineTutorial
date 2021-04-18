@@ -14,7 +14,7 @@
 //! constructor
 VolumeLightNode::VolumeLightNode(const ActorId actorId, PVWUpdater* updater, 
 	const Vector2<float>& textureSize, const eastl::shared_ptr<Texture2>& texture, 
-	const Vector2<int>& subdivision, const SColorF& foot, const SColorF& tail)
+	const Vector2<int>& subdivision, const eastl::array<float, 4>& foot, const eastl::array<float, 4>& tail)
 :	Node(actorId, NT_VOLUME_LIGHT),
 	mLPDistance(8.0f), mSubdivideU(subdivision[0]), mSubdivideV(subdivision[1]), 
 	mFootColor(foot), mTailColor(tail), mLightDimensions(Vector3<float>{1.0f, 1.2f, 1.0f})
@@ -35,15 +35,15 @@ VolumeLightNode::~VolumeLightNode()
 
 }
 
-void VolumeLightNode::AddToBuffer(
-    Vector3<float>& position, SColorF& color, Vector2<float>& tcoord, 
+void VolumeLightNode::AddToBuffer(Vector3<float>& position,
+	eastl::array<float, 4U>& color, Vector2<float>& tcoord, 
 	Vertex* vertex, unsigned int& vtx, unsigned int* index, unsigned int& idx)
 {
 
 	Vertex vertice;
 	vertice.position = position;
 	vertice.tcoord = tcoord;
-	vertice.color = color.ToArray();
+	vertice.color = color;
 	index[idx++] = vtx;
 	vertex[vtx++] = vertice;
 }
@@ -266,7 +266,7 @@ void VolumeLightNode::SetSubDivideV (const unsigned int inV)
 }
 
 
-void VolumeLightNode::SetFootColor(const SColorF inColor)
+void VolumeLightNode::SetFootColor(const eastl::array<float, 4> inColor)
 {
 	if (inColor != mFootColor)
 	{
@@ -276,7 +276,7 @@ void VolumeLightNode::SetFootColor(const SColorF inColor)
 }
 
 
-void VolumeLightNode::SetTailColor(const SColorF inColor)
+void VolumeLightNode::SetTailColor(const eastl::array<float, 4> inColor)
 {
 	if (inColor != mTailColor)
 	{

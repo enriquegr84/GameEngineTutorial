@@ -28,7 +28,7 @@ class GameApplication : public Application, public EventListener
 protected:
     // Abstract base class.
     GameApplication (const char* windowTitle, int xPosition, int yPosition, 
-		int width, int height, const SColorF& clearColor);
+		int width, int height, const eastl::array<float, 4>& clearColor);
 public:
     virtual ~GameApplication ();
 	
@@ -135,7 +135,7 @@ protected:
     eastl::wstring mTitle;
     int mXOrigin, mYOrigin, mWidth, mHeight;
 
-    SColorF mClearColor;
+	eastl::array<float, 4> mClearColor;
     bool mAllowResize;
 	bool mWindowedMode;			//	true if the app is windowed, false if fullscreen
 	bool mIsRunning;			//	true if everything is initialized and the game is in the main loop

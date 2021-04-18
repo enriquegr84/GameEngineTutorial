@@ -2,7 +2,7 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#include "BoxNode.h"
+#include "CubeNode.h"
 
 #include "Graphic/Renderer/Renderer.h"
 #include "Graphic/Scene/Scene.h"
@@ -10,9 +10,9 @@
 //#include "Scenes/Mesh/MeshBuffer.h"
 
 //! constructor
-BoxNode::BoxNode(const ActorId actorId, PVWUpdater* updater,
-	const eastl::shared_ptr<Texture2>& texture, Vector2<float> texScale, Vector3<float> size)
-	:	Node(actorId, NT_BOX), mSize(size), mShadow(0)
+CubeNode::CubeNode(const ActorId actorId, PVWUpdater* updater,
+	const eastl::shared_ptr<Texture2>& texture, float texxScale, float texyScale, float size)
+	:	Node(actorId, NT_CUBE), mSize(size), mShadow(0)
 {
 	mPVWUpdater = updater;
 
@@ -33,7 +33,7 @@ BoxNode::BoxNode(const ActorId actorId, PVWUpdater* updater,
 	MeshFactory mf;
 	mf.SetVertexFormat(vformat);
 	mf.SetVertexBufferUsage(Resource::DYNAMIC_UPDATE);
-	mVisual = mf.CreateBox(mSize[0], mSize[1], mSize[2]);
+	mVisual = mf.CreateBox(mSize, mSize, mSize);
 
 	// Multiply the texture coordinates by a factor to enhance the wrap-around.
 	eastl::shared_ptr<VertexBuffer> vbuffer = mVisual->GetVertexBuffer();
@@ -41,8 +41,8 @@ BoxNode::BoxNode(const ActorId actorId, PVWUpdater* updater,
 	Vertex* vertex = vbuffer->Get<Vertex>();
 	for (unsigned int i = 0; i < numVertices; ++i)
 	{
-		vertex[i].tcoord[0] *= texScale[0];
-		vertex[i].tcoord[1] *= texScale[1];
+		vertex[i].tcoord[0] *= texxScale;
+		vertex[i].tcoord[1] *= texyScale;
 	}
 
 	// Create the visual effect. The world up-direction is (0,0,1).  Choose
@@ -73,13 +73,13 @@ BoxNode::BoxNode(const ActorId actorId, PVWUpdater* updater,
 }
 
 
-BoxNode::~BoxNode()
+CubeNode::~CubeNode()
 {
 
 }
 
 //! prerender
-bool BoxNode::PreRender(Scene *pScene)
+bool CubeNode::PreRender(Scene *pScene)
 {
 	if (IsVisible())
 	{
@@ -118,9 +118,9 @@ bool BoxNode::PreRender(Scene *pScene)
 }
 
 //
-// BoxSceneNode::Render					- Chapter 16, page 550
+// CubeSceneNode::Render					- Chapter 16, page 550
 //
-bool BoxNode::Render(Scene *pScene)
+bool CubeNode::Render(Scene *pScene)
 {
 	if (!Renderer::Get())
 		return false;
@@ -157,7 +157,7 @@ bool BoxNode::Render(Scene *pScene)
 //! Removes a child from this scene node.
 //! Implemented here, to be able to remove the shadow properly, if there is one,
 //! or to remove attached childs.
-int BoxNode::DetachChild(eastl::shared_ptr<Node> const& child)
+int CubeNode::DetachChild(eastl::shared_ptr<Node> const& child)
 {
 	if (child && mShadow == child)
 		mShadow = 0;
@@ -171,7 +171,7 @@ int BoxNode::DetachChild(eastl::shared_ptr<Node> const& child)
 
 //! Creates shadow volume scene node as child of this node
 //! and returns a pointer to it.
-eastl::shared_ptr<ShadowVolumeNode> BoxNode::AddShadowVolumeNode(const ActorId actorId,
+eastl::shared_ptr<ShadowVolumeNode> CubeNode::AddShadowVolumeNode(const ActorId actorId,
 	Scene* pScene, const eastl::shared_ptr<BaseMesh>& shadowMesh, bool zfailmethod, float infinity)
 {
 	/*
@@ -190,13 +190,13 @@ eastl::shared_ptr<ShadowVolumeNode> BoxNode::AddShadowVolumeNode(const ActorId a
 //! This function is needed for inserting the node into the scene hierarchy 
 //! at an optimal position for minimizing renderstate changes, but can also 
 //! be used to directly modify the visual of a scene node.
-eastl::shared_ptr<Visual> const& BoxNode::GetVisual(unsigned int i)
+eastl::shared_ptr<Visual> const& CubeNode::GetVisual(unsigned int i)
 {
 	return mVisual;
 }
 
 //! return amount of visuals of this scene node.
-unsigned int BoxNode::GetVisualCount() const
+unsigned int CubeNode::GetVisualCount() const
 {
 	return 1;
 }
@@ -206,13 +206,13 @@ unsigned int BoxNode::GetVisualCount() const
 //! This function is needed for inserting the node into the scene hirachy on a
 //! optimal position for minimizing renderstate changes, but can also be used
 //! to directly modify the material of a scene node.
-eastl::shared_ptr<Material> const& BoxNode::GetMaterial(unsigned int i)
+eastl::shared_ptr<Material> const& CubeNode::GetMaterial(unsigned int i)
 {
 	return mMaterial;
 }
 
 //! returns amount of materials used by this scene node.
-unsigned int BoxNode::GetMaterialCount() const
+unsigned int CubeNode::GetMaterialCount() const
 {
 	return 1;
 }
@@ -220,7 +220,7 @@ unsigned int BoxNode::GetMaterialCount() const
 //! Sets the texture of the specified layer in all materials of this scene node to the new texture.
 /** \param textureLayer Layer of texture to be set. Must be a value smaller than MATERIAL_MAX_TEXTURES.
 \param texture New texture to be used. */
-void BoxNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Texture2> texture)
+void CubeNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Texture2> texture)
 {
 	if (textureLayer >= MATERIAL_MAX_TEXTURES)
 		return;
@@ -243,7 +243,7 @@ void BoxNode::SetMaterialTexture(unsigned int textureLayer, eastl::shared_ptr<Te
 
 //! Sets the material type of all materials in this scene node to a new material type.
 /** \param newType New type of material to be set. */
-void BoxNode::SetMaterialType(MaterialType newType)
+void CubeNode::SetMaterialType(MaterialType newType)
 {
 	for (unsigned int i = 0; i<GetMaterialCount(); ++i)
 		GetMaterial(i)->mType = newType;

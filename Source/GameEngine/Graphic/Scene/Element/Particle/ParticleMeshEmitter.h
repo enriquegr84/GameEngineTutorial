@@ -21,8 +21,8 @@ public:
 		const Vector3<float>& direction = Vector3<float>{ 0.f, 0.f, 0.f },
 		float normalDirectionModifier = 100.0f,  int mbNumber = -1, bool everyMeshVertex = false,
 		unsigned int minParticlesPerSecond = 20, unsigned int maxParticlesPerSecond = 40,
-		const SColor& minStartColor = SColor(255, 0, 0, 0),
-		const SColor& maxStartColor = SColor(255, 255, 255, 255),
+		const eastl::array<float, 4>& minStartColor = eastl::array<float, 4>{255.f, 0.f, 0.f, 0.f},
+		const eastl::array<float, 4>& maxStartColor = eastl::array<float, 4>{255.f, 255.f, 255.f, 255.f},
 		unsigned int lifeTimeMin = 2000, unsigned int lifeTimeMax = 4000, int maxAngleDegrees = 0,
 		const Vector2<float>& minStartSize = Vector2<float>{ 5.f, 5.f },
 		const Vector2<float>& maxStartSize = Vector2<float>{ 5.f, 5.f }
@@ -55,10 +55,10 @@ public:
 	virtual void SetMaxParticlesPerSecond( unsigned int maxPPS ) { mMaxParticlesPerSecond = maxPPS; }
 
 	//! Set minimum starting color for particles
-	virtual void SetMinStartColor( const SColorF& color ) { mMinStartColor = color; }
+	virtual void SetMinStartColor( const eastl::array<float, 4>& color ) { mMinStartColor = color; }
 
 	//! Set maximum starting color for particles
-	virtual void SetMaxStartColor( const SColorF& color ) { mMaxStartColor = color; }
+	virtual void SetMaxStartColor( const eastl::array<float, 4>& color ) { mMaxStartColor = color; }
 
 	//! Set the maximum starting size for particles
 	virtual void SetMaxStartSize( const Vector2<float>& size ) { mMaxStartSize = size; }
@@ -98,10 +98,10 @@ public:
 	virtual unsigned int GetMaxParticlesPerSecond() const { return mMaxParticlesPerSecond; }
 
 	//! Get the minimum starting color for particles
-	virtual const SColorF& GetMinStartColor() const { return mMinStartColor; }
+	virtual const eastl::array<float, 4>& GetMinStartColor() const { return mMinStartColor; }
 
 	//! Get the maximum starting color for particles
-	virtual const SColorF& GetMaxStartColor() const { return mMaxStartColor; }
+	virtual const eastl::array<float, 4>& GetMaxStartColor() const { return mMaxStartColor; }
 
 	//! Gets the maximum starting size for particles
 	virtual const Vector2<float>& GetMaxStartSize() const { return mMaxStartSize; }
@@ -131,7 +131,7 @@ private:
 	Vector3<float> mDirection;
 	Vector2<float> mMaxStartSize, mMinStartSize;
 	unsigned int mMinParticlesPerSecond, mMaxParticlesPerSecond;
-    SColorF mMinStartColor, mMaxStartColor;
+	eastl::array<float, 4> mMinStartColor, mMaxStartColor;
 	unsigned int mMinLifeTime, mMaxLifeTime;
 
 	unsigned int mTime;

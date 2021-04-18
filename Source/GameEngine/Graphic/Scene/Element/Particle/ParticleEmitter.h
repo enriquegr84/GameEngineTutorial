@@ -45,10 +45,10 @@ public:
 	virtual void SetMaxParticlesPerSecond( unsigned int maxPPS ) = 0;
 
 	//! Set minimum starting color for particles
-	virtual void SetMinStartColor( const SColorF& color ) = 0;
+	virtual void SetMinStartColor( const eastl::array<float, 4>& color ) = 0;
 
 	//! Set maximum starting color for particles
-	virtual void SetMaxStartColor( const SColorF& color ) = 0;
+	virtual void SetMaxStartColor( const eastl::array<float, 4>& color ) = 0;
 
 	//! Set the maximum starting size for particles
 	virtual void SetMaxStartSize( const Vector2<float>& size ) = 0;
@@ -75,10 +75,10 @@ public:
 	virtual unsigned int GetMaxParticlesPerSecond() const = 0;
 
 	//! Get the minimum starting color for particles
-	virtual const SColorF& GetMinStartColor() const = 0;
+	virtual const eastl::array<float, 4>& GetMinStartColor() const = 0;
 
 	//! Get the maximum starting color for particles
-	virtual const SColorF& GetMaxStartColor() const = 0;
+	virtual const eastl::array<float, 4>& GetMaxStartColor() const = 0;
 
 	//! Get the maximum starting size for particles
 	virtual const Vector2<float>& GetMaxStartSize() const = 0;

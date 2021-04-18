@@ -127,7 +127,7 @@ struct WeaponResource
 
 	float flashDlight;
 	eastl::wstring flashSound[4];		// fast firing weapons randomly choose
-    SColorF flashDlightColor;
+	eastl::array<float, 4U> flashDlightColor;
 
 	eastl::wstring weaponIcon;
 	eastl::wstring weaponModel;
@@ -139,7 +139,7 @@ struct WeaponResource
 
 	float missileDlight;
 	int missileRenderfx;
-    SColorF missileDlightColor;
+	eastl::array<float, 4U>	missileDlightColor;
 
 	float trailRadius;
 	float wiTrailTime;

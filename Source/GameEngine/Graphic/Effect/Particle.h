@@ -8,8 +8,6 @@
 #include "Core/CoreStd.h"
 #include "Graphic/GraphicStd.h"
 
-#include "Graphic/Resource/Color.h"
-
 #include "Mathematic/Algebra/Vector3.h"
 #include "Mathematic/Algebra/Vector2.h"
 
@@ -29,11 +27,11 @@ struct GRAPHIC_ITEM Particle
 	unsigned int mEndTime;
 
 	//! Current color of the particle
-    SColorF mColor;
+	eastl::array<float, 4> mColor;
 
 	//! Original color of the particle.
 	/** That's the color of the particle it had when it was emitted. */
-    SColorF mStartColor;
+	eastl::array<float, 4> mStartColor;
 
 	//! Original direction and speed of the particle.
 	/** The direction and speed the particle had when it was emitted. */

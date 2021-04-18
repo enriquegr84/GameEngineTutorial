@@ -25,7 +25,7 @@ public:
 	virtual bool Render(Scene *pScene);
 
 	//! Returns type of the scene node
-	virtual NodeType GetType() const { return NT_BOX; }
+	virtual NodeType GetType() const { return NT_CUBE; }
 
 	//! Creates shadow volume scene node as child of this node
 	//! and returns a pointer to it.

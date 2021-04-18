@@ -34,9 +34,6 @@ public:
     // where sign[d] = 2*b[d] - 1.
     void GetVertices(eastl::array<Vector<N, Real>, 4>& vertex) const;
 
-    //! Returns size of rectangle
-    Real GetArea() const { return mExtent[0] * mExtent[1]; }
-
     Vector<N, Real> mCenter;
 	eastl::array<Vector<N, Real>, 2> mAxis;
     Vector<2, Real> mExtent;

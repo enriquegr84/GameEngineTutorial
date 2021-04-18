@@ -805,6 +805,9 @@
     <ClCompile Include="..\Graphic\Scene\Element\CameraNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
+    <ClCompile Include="..\Graphic\Scene\Element\CubeNode.cpp">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClCompile>
     <ClCompile Include="..\Graphic\Scene\Element\LightNode.cpp">
       <Filter>Graphic\Scene\Element</Filter>
     </ClCompile>
@@ -1137,15 +1140,6 @@
     </ClCompile>
     <ClCompile Include="..\Graphic\Effect\BumpMapEffect.cpp">
       <Filter>Graphic\Effect</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Scene\Element\BoxNode.cpp">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Core\Utility\EnrichedString.cpp">
-      <Filter>Core\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Graphic\Image\ImageFilter.cpp">
-      <Filter>Graphic\Image</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1835,6 +1829,9 @@
       <Filter>Graphic\Scene\Element</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\CameraNode.h">
+      <Filter>Graphic\Scene\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Graphic\Scene\Element\CubeNode.h">
       <Filter>Graphic\Scene\Element</Filter>
     </ClInclude>
     <ClInclude Include="..\Graphic\Scene\Element\LightNode.h">
@@ -2694,18 +2691,6 @@
     </ClInclude>
     <ClInclude Include="..\Graphic\Effect\BumpMapEffect.h">
       <Filter>Graphic\Effect</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Scene\Element\BoxNode.h">
-      <Filter>Graphic\Scene\Element</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Resource\Color.h">
-      <Filter>Graphic\Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Core\Utility\EnrichedString.h">
-      <Filter>Core\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Graphic\Image\ImageFilter.h">
-      <Filter>Graphic\Image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

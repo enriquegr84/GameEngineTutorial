@@ -50,7 +50,7 @@
 
 const char* MeshRenderComponent::Name = "MeshRenderComponent";
 const char* SphereRenderComponent::Name = "SphereRenderComponent";
-const char* BoxRenderComponent::Name = "BoxRenderComponent";
+const char* CubeRenderComponent::Name = "CubeRenderComponent";
 const char* GridRenderComponent::Name = "GridRenderComponent";
 const char* BillboardRenderComponent::Name = "BillboardRenderComponent";
 const char* VolumeLightRenderComponent::Name = "VolumeLightRenderComponent";
@@ -459,27 +459,22 @@ void SphereRenderComponent::CreateInheritedXMLElements(
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-// BoxRenderComponent
+// CubeRenderComponent
 //---------------------------------------------------------------------------------------------------------------------
-BoxRenderComponent::BoxRenderComponent(void)
+CubeRenderComponent::CubeRenderComponent(void)
 {
 	mTextureResource = "";
 	mMaterialType = 0;
 	mSize = 0;
 }
 
-bool BoxRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
+bool CubeRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 {
-	tinyxml2::XMLElement* pBox = pData->FirstChildElement("Box");
-	if (pBox)
+	tinyxml2::XMLElement* pCube = pData->FirstChildElement("Cube");
+	if (pCube)
 	{
-		float x = 1.f;
-		float y = 1.f;
-		float z = 1.f;
-		x = pBox->FloatAttribute("x", x);
-		y = pBox->FloatAttribute("y", y);
-		z = pBox->FloatAttribute("z", z);
-		mSize = Vector3<float>{ x, y, z };
+		mSize = 1.f;
+		mSize = pCube->FloatAttribute("size", mSize);
 	}
 
 	tinyxml2::XMLElement* pTexture = pData->FirstChildElement("Texture");
@@ -503,7 +498,7 @@ bool BoxRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 	return true;
 }
 
-eastl::shared_ptr<Node> BoxRenderComponent::CreateSceneNode(void)
+eastl::shared_ptr<Node> CubeRenderComponent::CreateSceneNode(void)
 {
 	const eastl::shared_ptr<TransformComponent>& pTransformComponent(
 		mOwner->GetComponent<TransformComponent>(TransformComponent::Name).lock());
@@ -522,23 +517,23 @@ eastl::shared_ptr<Node> BoxRenderComponent::CreateSceneNode(void)
 			extra->GetImage()->AutogenerateMipmaps();
 			
 			// create an animated mesh scene node with specified mesh.
-			eastl::shared_ptr<Node> boxNode = pScene->AddBoxNode(0, 
-				extra->GetImage(), mTextureSize, mSize, mOwner->GetId());
+			eastl::shared_ptr<Node> cubeNode = pScene->AddCubeNode(0, 
+				extra->GetImage(), mTextureSize[0], mTextureSize[1], mSize, mOwner->GetId());
 
 			//To let the mesh look a little bit nicer, we change its material. We
 			//disable lighting because we do not have a dynamic light in here, and
 			//the mesh would be totally black otherwise. And last, we apply a
 			//texture to the mesh. Without it the mesh would be drawn using only a
 			//color.
-			if (boxNode)
+			if (cubeNode)
 			{
-				boxNode->GetRelativeTransform() = transform;
+				cubeNode->GetRelativeTransform() = transform;
 
 				if (mMaterialType == MaterialType::MT_TRANSPARENT)
 				{
-					for (unsigned int i = 0; i<boxNode->GetMaterialCount(); ++i)
+					for (unsigned int i = 0; i<cubeNode->GetMaterialCount(); ++i)
 					{
-						eastl::shared_ptr<Material> material = boxNode->GetMaterial(i);
+						eastl::shared_ptr<Material> material = cubeNode->GetMaterial(i);
 						material->mBlendTarget.enable = true;
 						material->mBlendTarget.srcColor = BlendState::BM_ONE;
 						material->mBlendTarget.dstColor = BlendState::BM_INV_SRC_COLOR;
@@ -553,27 +548,25 @@ eastl::shared_ptr<Node> BoxRenderComponent::CreateSceneNode(void)
 					}
 				}
 
-				for (unsigned int i = 0; i<boxNode->GetMaterialCount(); ++i)
-					boxNode->GetMaterial(i)->mLighting = false;
-				boxNode->SetMaterialTexture(0, extra->GetImage());
-				boxNode->SetMaterialType((MaterialType)mMaterialType);
+				for (unsigned int i = 0; i<cubeNode->GetMaterialCount(); ++i)
+					cubeNode->GetMaterial(i)->mLighting = false;
+				cubeNode->SetMaterialTexture(0, extra->GetImage());
+				cubeNode->SetMaterialType((MaterialType)mMaterialType);
 			}
 
-			return boxNode;
+			return cubeNode;
 		}
 	}
 
 	return eastl::shared_ptr<Node>();
 }
 
-void BoxRenderComponent::CreateInheritedXMLElements(
+void CubeRenderComponent::CreateInheritedXMLElements(
 	tinyxml2::XMLDocument doc, tinyxml2::XMLElement *pBaseElement)
 {
-	tinyxml2::XMLElement* pBox = doc.NewElement("Box");
-	pBox->SetAttribute("x", eastl::to_string(mSize[0]).c_str());
-	pBox->SetAttribute("y", eastl::to_string(mSize[1]).c_str());
-	pBox->SetAttribute("z", eastl::to_string(mSize[2]).c_str());
-	pBaseElement->LinkEndChild(pBox);
+	tinyxml2::XMLElement* pCube = doc.NewElement("Cube");
+	pCube->SetAttribute("size", eastl::to_string(mSize).c_str());
+	pBaseElement->LinkEndChild(pCube);
 
 	tinyxml2::XMLElement* pTexture = doc.NewElement("Texture");
 	pTexture->SetAttribute("file", mTextureResource.c_str());
@@ -931,6 +924,8 @@ VolumeLightRenderComponent::VolumeLightRenderComponent(void)
 	mAnimationTime = 0;
 
 	mSubdivision = Vector2<int>::Zero();
+	mFootColor = eastl::array<float, 4>();
+	mTailColor = eastl::array<float, 4>();
 }
 
 bool VolumeLightRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
@@ -960,16 +955,16 @@ bool VolumeLightRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 		float temp = 0;
 
 		temp = pFootColor->FloatAttribute("r", temp);
-		mFootColor.SetColorComponentValue(0, temp);
+		mFootColor[0] = temp;
 
 		temp = pFootColor->FloatAttribute("g", temp);
-		mFootColor.SetColorComponentValue(1, temp);
+		mFootColor[1] = temp;
 
 		temp = pFootColor->FloatAttribute("b", temp);
-		mFootColor.SetColorComponentValue(2, temp);
+		mFootColor[2] = temp;
 
 		temp = pFootColor->FloatAttribute("a", temp);
-		mFootColor.SetColorComponentValue(3, temp);
+		mFootColor[3] = temp;
 	}
 
 	tinyxml2::XMLElement* pTailColor = pData->FirstChildElement("TailColor");
@@ -978,16 +973,16 @@ bool VolumeLightRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 		float temp = 0;
 
 		temp = pTailColor->FloatAttribute("r", temp);
-		mTailColor.SetColorComponentValue(0, temp);
+		mTailColor[0] = temp;
 
 		temp = pTailColor->FloatAttribute("g", temp);
-		mTailColor.SetColorComponentValue(1, temp);
+		mTailColor[1] = temp;
 
 		temp = pTailColor->FloatAttribute("b", temp);
-		mTailColor.SetColorComponentValue(2, temp);
+		mTailColor[2] = temp;
 
 		temp = pTailColor->FloatAttribute("a", temp);
-		mTailColor.SetColorComponentValue(3, temp);
+		mTailColor[3] = temp;
 	}
 
 	tinyxml2::XMLElement* pAnimator = pData->FirstChildElement("Animator");
@@ -1122,17 +1117,17 @@ void VolumeLightRenderComponent::CreateInheritedXMLElements(
 	pBaseElement->LinkEndChild(pSubdivision);
 
 	tinyxml2::XMLElement* pFootColor = doc.NewElement("FootColor");
-	pFootColor->SetAttribute("r", eastl::to_string(mFootColor.GetRed()).c_str());
-	pFootColor->SetAttribute("g", eastl::to_string(mFootColor.GetGreen()).c_str());
-	pFootColor->SetAttribute("b", eastl::to_string(mFootColor.GetBlue()).c_str());
-	pFootColor->SetAttribute("a", eastl::to_string(mFootColor.GetAlpha()).c_str());
+	pFootColor->SetAttribute("r", eastl::to_string(mFootColor[0]).c_str());
+	pFootColor->SetAttribute("g", eastl::to_string(mFootColor[1]).c_str());
+	pFootColor->SetAttribute("b", eastl::to_string(mFootColor[2]).c_str());
+	pFootColor->SetAttribute("a", eastl::to_string(mFootColor[3]).c_str());
 	pBaseElement->LinkEndChild(pFootColor);
 
 	tinyxml2::XMLElement* pTailColor = doc.NewElement("FootColor");
-	pTailColor->SetAttribute("r", eastl::to_string(mTailColor.GetRed()).c_str());
-	pTailColor->SetAttribute("g", eastl::to_string(mTailColor.GetGreen()).c_str());
-	pTailColor->SetAttribute("b", eastl::to_string(mTailColor.GetBlue()).c_str());
-	pTailColor->SetAttribute("a", eastl::to_string(mTailColor.GetAlpha()).c_str());
+	pTailColor->SetAttribute("r", eastl::to_string(mTailColor[0]).c_str());
+	pTailColor->SetAttribute("g", eastl::to_string(mTailColor[1]).c_str());
+	pTailColor->SetAttribute("b", eastl::to_string(mTailColor[2]).c_str());
+	pTailColor->SetAttribute("a", eastl::to_string(mTailColor[3]).c_str());
 	pBaseElement->LinkEndChild(pTailColor);
 
 	// animation
@@ -1554,16 +1549,16 @@ bool ParticleEffectRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 		float temp = 0;
 
 		temp = pColorMinimum->FloatAttribute("r", temp);
-		mMinStartColor.SetColorComponentValue(0, temp);
+		mMinStartColor[0] = temp;
 
 		temp = pColorMinimum->FloatAttribute("g", temp);
-		mMinStartColor.SetColorComponentValue(1, temp);
+		mMinStartColor[1] = temp;
 
 		temp = pColorMinimum->FloatAttribute("b", temp);
-		mMinStartColor.SetColorComponentValue(2, temp);
+		mMinStartColor[2] = temp;
 
 		temp = pColorMinimum->FloatAttribute("a", temp);
-		mMinStartColor.SetColorComponentValue(3, temp);
+		mMinStartColor[3] = temp;
 	}
 
 	tinyxml2::XMLElement* pColorMaximum = pData->FirstChildElement("ColorMaximum");
@@ -1572,16 +1567,16 @@ bool ParticleEffectRenderComponent::DelegateInit(tinyxml2::XMLElement* pData)
 		float temp = 0;
 
 		temp = pColorMaximum->FloatAttribute("r", temp);
-		mMaxStartColor.SetColorComponentValue(0, temp);
+		mMaxStartColor[0] = temp;
 
 		temp = pColorMaximum->FloatAttribute("g", temp);
-		mMaxStartColor.SetColorComponentValue(1, temp);
+		mMaxStartColor[1] = temp;
 
 		temp = pColorMaximum->FloatAttribute("b", temp);
-		mMaxStartColor.SetColorComponentValue(2, temp);
+		mMaxStartColor[2] = temp;
 
 		temp = pColorMaximum->FloatAttribute("a", temp);
-		mMaxStartColor.SetColorComponentValue(3, temp);
+		mMaxStartColor[3] = temp;
 	}
 
 	tinyxml2::XMLElement* pLifeTime = pData->FirstChildElement("LifeTime");
@@ -1822,17 +1817,17 @@ void ParticleEffectRenderComponent::CreateInheritedXMLElements(
 	pBaseElement->LinkEndChild(pEmitRate);
 
 	tinyxml2::XMLElement* pColorMinimum = doc.NewElement("ColorMinimum");
-	pColorMinimum->SetAttribute("r", eastl::to_string(mMinStartColor.GetRed()).c_str());
-	pColorMinimum->SetAttribute("g", eastl::to_string(mMinStartColor.GetGreen()).c_str());
-	pColorMinimum->SetAttribute("b", eastl::to_string(mMinStartColor.GetBlue()).c_str());
-	pColorMinimum->SetAttribute("a", eastl::to_string(mMinStartColor.GetAlpha()).c_str());
+	pColorMinimum->SetAttribute("r", eastl::to_string(mMinStartColor[0]).c_str());
+	pColorMinimum->SetAttribute("g", eastl::to_string(mMinStartColor[1]).c_str());
+	pColorMinimum->SetAttribute("b", eastl::to_string(mMinStartColor[2]).c_str());
+	pColorMinimum->SetAttribute("a", eastl::to_string(mMinStartColor[3]).c_str());
 	pBaseElement->LinkEndChild(pColorMinimum);
 
 	tinyxml2::XMLElement* pColorMaximum = doc.NewElement("ColorMaximum");
-	pColorMaximum->SetAttribute("r", eastl::to_string(mMaxStartColor.GetRed()).c_str());
-	pColorMaximum->SetAttribute("g", eastl::to_string(mMaxStartColor.GetGreen()).c_str());
-	pColorMaximum->SetAttribute("b", eastl::to_string(mMaxStartColor.GetBlue()).c_str());
-	pColorMaximum->SetAttribute("a", eastl::to_string(mMaxStartColor.GetAlpha()).c_str());
+	pColorMaximum->SetAttribute("r", eastl::to_string(mMaxStartColor[0]).c_str());
+	pColorMaximum->SetAttribute("g", eastl::to_string(mMaxStartColor[1]).c_str());
+	pColorMaximum->SetAttribute("b", eastl::to_string(mMaxStartColor[2]).c_str());
+	pColorMaximum->SetAttribute("a", eastl::to_string(mMaxStartColor[3]).c_str());
 	pBaseElement->LinkEndChild(pColorMaximum);
 
 	tinyxml2::XMLElement* pLifeTime = doc.NewElement("LifeTime");

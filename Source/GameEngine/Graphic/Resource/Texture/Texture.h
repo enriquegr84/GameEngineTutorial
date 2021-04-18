@@ -19,7 +19,8 @@ protected:
     // Abstract base class.  All items in the array have the same format,
     // number of dimensions, dimension values, and mipmap status.
     Texture(unsigned int numItems, DFType format, unsigned int numDimensions,
-        unsigned int dim0, unsigned int dim1, unsigned int dim2, bool hasMipmaps, bool createStorage);
+        unsigned int dim0, unsigned int dim1, unsigned int dim2,
+        bool hasMipmaps, bool createStorage);
 
 public:
     // Member access.

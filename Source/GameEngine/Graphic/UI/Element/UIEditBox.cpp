@@ -11,11 +11,13 @@
 
 //! constructor
 UIEditBox::UIEditBox(const wchar_t* text, bool border, BaseUI* ui, int id, RectangleShape<2, int> rectangle)
-	: BaseUIEditBox(ui, id, rectangle), mUI(ui), mMouseMarking(false), mBorder(border), mBackground(true), 
-    mOverrideColorEnabled(false), mMarkBegin(0), mMarkEnd(0), mOverrideColor(SColor(101, 255, 255, 255)), 
-    mOverrideFont(0), mLastBreakFont(0), mBlinkStartTime(0), mCursorPos(0), mHScrollPos(0), mVScrollPos(0), 
-    mMax(0), mWordWrap(false), mMultiLine(false), mAutoScroll(true), mPasswordBox(false), mPasswordChar(L'*'), 
-    mHAlign(UIA_UPPERLEFT), mVAlign(UIA_CENTER), mFrameRect(rectangle)
+	: BaseUIEditBox(ui, id, rectangle), mUI(ui), mMouseMarking(false),
+	mBorder(border), mBackground(true), mOverrideColorEnabled(false), mMarkBegin(0), mMarkEnd(0),
+	mOverrideColor(eastl::array<float, 4>{255 / 255.f, 255 / 255.f, 255 / 255.f, 101 / 255.f}),
+	mOverrideFont(0), mLastBreakFont(0), mBlinkStartTime(0), mCursorPos(0), mHScrollPos(0), 
+	mVScrollPos(0), mMax(0), mWordWrap(false), mMultiLine(false), mAutoScroll(true), 
+	mPasswordBox(false), mPasswordChar(L'*'), mHAlign(UIA_UPPERLEFT), mVAlign(UIA_CENTER), 
+	mFrameRect(rectangle)
 {
 	mText = text;
 
@@ -127,14 +129,14 @@ const eastl::shared_ptr<BaseUIFont>& UIEditBox::GetActiveFont() const
 }
 
 //! Sets another color for the text.
-void UIEditBox::SetOverrideColor(SColor color)
+void UIEditBox::SetOverrideColor(eastl::array<float, 4> color)
 {
 	mOverrideColor = color;
 	mOverrideColorEnabled = true;
 }
 
 
-SColor UIEditBox::GetOverrideColor() const
+eastl::array<float, 4> UIEditBox::GetOverrideColor() const
 {
 	return mOverrideColor;
 }
@@ -825,7 +827,7 @@ void UIEditBox::Draw()
 		// Save the override color information.
 		// Then, alter it if the edit box is disabled.
 		const bool prevOver = mOverrideColorEnabled;
-		const SColor prevColor = mOverrideColor;
+		const eastl::array<float, 4> prevColor = mOverrideColor;
 
 		if (mText.size())
 		{

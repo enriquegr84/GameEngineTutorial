@@ -283,13 +283,13 @@ void ParticleSystemNode::DoParticleBuffers(Scene *pScene)
 			const Vector4<float> vertical = cameraNode->Get()->GetUVector() * f;
 
 			mMeshBuffer->Position(0 + idx) = particle.mPos + HProject(horizontal + vertical);
-			mMeshBuffer->Color(0, 0 + idx) = particle.mColor.ToArray();
+			mMeshBuffer->Color(0, 0 + idx) = particle.mColor;
 			mMeshBuffer->Position(1 + idx) = particle.mPos + HProject(horizontal - vertical);
-			mMeshBuffer->Color(0, 1 + idx) = particle.mColor.ToArray();
+			mMeshBuffer->Color(0, 1 + idx) = particle.mColor;
 			mMeshBuffer->Position(2 + idx) = particle.mPos + HProject(-horizontal - vertical);
-			mMeshBuffer->Color(0, 2 + idx) = particle.mColor.ToArray();
+			mMeshBuffer->Color(0, 2 + idx) = particle.mColor;
 			mMeshBuffer->Position(3 + idx) = particle.mPos + HProject(-horizontal + vertical);
-			mMeshBuffer->Color(0, 3 + idx) = particle.mColor.ToArray();
+			mMeshBuffer->Color(0, 3 + idx) = particle.mColor;
 
 			idx += 4;
 		}
@@ -412,7 +412,7 @@ void ParticleSystemNode::SetMaterialType(MaterialType newType)
 ParticleAnimatedMeshNodeEmitter* ParticleSystemNode::CreateAnimatedMeshNodeEmitter(const ActorId actorId,
 	const eastl::shared_ptr<AnimatedMeshNode>& node, bool useNormalDirection, const Vector3<float>& direction, 
 	float normalDirectionModifier, int mbNumber, bool everyMeshVertex, unsigned int minParticlesPerSecond, 
-	unsigned int maxParticlesPerSecond, const SColorF& minStartColor, const SColorF& maxStartColor,
+	unsigned int maxParticlesPerSecond, const eastl::array<float, 4>& minStartColor, const eastl::array<float, 4>& maxStartColor, 
 	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, 
 	const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
 {
@@ -427,7 +427,7 @@ ParticleAnimatedMeshNodeEmitter* ParticleSystemNode::CreateAnimatedMeshNodeEmitt
 //! Creates a box particle emitter.
 ParticleBoxEmitter* ParticleSystemNode::CreateBoxEmitter(const AlignedBox3<float>& box,
 	const Vector3<float>& direction, unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, 
-	const SColorF& minStartColor, const SColorF& maxStartColor, unsigned int lifeTimeMin,
+	const eastl::array<float, 4>& minStartColor, const eastl::array<float, 4>& maxStartColor, unsigned int lifeTimeMin, 
 	unsigned int lifeTimeMax, int maxAngleDegrees, const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
 {
 	return new ParticleBoxEmitter(box, direction, minParticlesPerSecond, maxParticlesPerSecond, 
@@ -439,7 +439,7 @@ ParticleBoxEmitter* ParticleSystemNode::CreateBoxEmitter(const AlignedBox3<float
 ParticleCylinderEmitter* ParticleSystemNode::CreateCylinderEmitter(
 	const Vector3<float>& center, float radius, const Vector3<float>& normal, float length, bool outlineOnly, 
 	const Vector3<float>& direction, unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond,
-	const SColorF& minStartColor, const SColorF& maxStartColor, unsigned int lifeTimeMin,
+	const eastl::array<float, 4>& minStartColor, const eastl::array<float, 4>& maxStartColor, unsigned int lifeTimeMin, 
 	unsigned int lifeTimeMax, int maxAngleDegrees, const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
 {
 	return new ParticleCylinderEmitter( center, radius, normal, length, outlineOnly, direction, minParticlesPerSecond, 
@@ -451,7 +451,7 @@ ParticleCylinderEmitter* ParticleSystemNode::CreateCylinderEmitter(
 ParticleMeshEmitter* ParticleSystemNode::CreateMeshEmitter(
 	const eastl::shared_ptr<BaseMesh>& mesh, bool useNormalDirection, const Vector3<float>& direction, 
 	float normalDirectionModifier, int mbNumber, bool everyMeshVertex, unsigned int minParticlesPerSecond, 
-	unsigned int maxParticlesPerSecond, const SColorF& minStartColor, const SColorF& maxStartColor,
+	unsigned int maxParticlesPerSecond, const eastl::array<float, 4>& minStartColor, const eastl::array<float, 4>& maxStartColor, 
 	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize)
 {
 	return new ParticleMeshEmitter( mesh, useNormalDirection, direction, normalDirectionModifier, mbNumber, everyMeshVertex, 
@@ -463,7 +463,7 @@ ParticleMeshEmitter* ParticleSystemNode::CreateMeshEmitter(
 //! Creates a point particle emitter.
 ParticlePointEmitter* ParticleSystemNode::CreatePointEmitter(
 	const Vector3<float>& direction, unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond,
-	const SColorF& minStartColor, const SColorF& maxStartColor, unsigned int lifeTimeMin,
+	const eastl::array<float, 4>& minStartColor, const eastl::array<float, 4>& maxStartColor, unsigned int lifeTimeMin, 
 	unsigned int lifeTimeMax, int maxAngleDegrees, const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
 {
 	return new ParticlePointEmitter(direction, minParticlesPerSecond, maxParticlesPerSecond, 
@@ -474,8 +474,8 @@ ParticlePointEmitter* ParticleSystemNode::CreatePointEmitter(
 //! Creates a ring particle emitter.
 ParticleRingEmitter* ParticleSystemNode::CreateRingEmitter(
 	const Vector3<float>& center, float radius, float ringThickness, const Vector3<float>& direction,
-	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, const SColorF& minStartColor,
-	const SColorF& maxStartColor, unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees,
+	unsigned int minParticlesPerSecond, unsigned int maxParticlesPerSecond, const eastl::array<float, 4>& minStartColor, 
+	const eastl::array<float, 4>& maxStartColor, unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, 
 	const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
 {
 	return new ParticleRingEmitter(center, radius, ringThickness, direction, minParticlesPerSecond, maxParticlesPerSecond, 
@@ -486,7 +486,7 @@ ParticleRingEmitter* ParticleSystemNode::CreateRingEmitter(
 //! Creates a sphere particle emitter.
 ParticleSphereEmitter* ParticleSystemNode::CreateSphereEmitter(
 	const Vector3<float>& center, float radius, const Vector3<float>& direction, unsigned int minParticlesPerSecond, 
-	unsigned int maxParticlesPerSecond, const SColorF& minStartColor, const SColorF& maxStartColor,
+	unsigned int maxParticlesPerSecond, const eastl::array<float, 4>& minStartColor, const eastl::array<float, 4>& maxStartColor,
 	unsigned int lifeTimeMin, unsigned int lifeTimeMax, int maxAngleDegrees, const Vector2<float>& minStartSize,
 	const Vector2<float>& maxStartSize )
 {
@@ -512,7 +512,7 @@ BaseParticleAffector* ParticleSystemNode::CreateScaleParticleAffector(const Vect
 
 //! Creates a fade out particle affector.
 ParticleFadeOutAffector* ParticleSystemNode::CreateFadeOutParticleAffector(
-	const SColorF& targetColor, unsigned int timeNeededToFadeOut)
+	const eastl::array<float, 4>& targetColor, unsigned int timeNeededToFadeOut)
 {
 	return new ParticleFadeOutAffector(targetColor, timeNeededToFadeOut);
 }

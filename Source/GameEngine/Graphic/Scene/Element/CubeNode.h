@@ -10,22 +10,23 @@
 
 #include "ShadowVolumeNode.h"
 
-class BoxNode : public Node
+class CubeNode : public Node
 {
 public:
 
 	//! constructor
-	BoxNode(const ActorId actorId, PVWUpdater* updater, 
-		const eastl::shared_ptr<Texture2>& texture, Vector2<float> texxScale, Vector3<float> size);
+	CubeNode(const ActorId actorId, PVWUpdater* updater,
+		const eastl::shared_ptr<Texture2>& texture, 
+		float texxScale, float texyScale, float size);
 
-	virtual ~BoxNode();
+	virtual ~CubeNode();
 
 	//! Renders event
 	virtual bool PreRender(Scene *pScene);
 	virtual bool Render(Scene *pScene);
 
 	//! Returns type of the scene node
-	virtual NodeType GetType() const { return NT_BOX; }
+	virtual NodeType GetType() const { return NT_CUBE; }
 
 	//! Creates shadow volume scene node as child of this node
 	//! and returns a pointer to it.
@@ -76,7 +77,7 @@ private:
 	eastl::shared_ptr<LightingEffect> mEffect;
 	eastl::shared_ptr<Material> mMaterial;
 	eastl::shared_ptr<ShadowVolumeNode> mShadow;
-	Vector3<float> mSize;
+	float mSize;
 };
 
 #endif

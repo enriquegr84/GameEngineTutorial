@@ -15,8 +15,8 @@
 ParticleSphereEmitter::ParticleSphereEmitter(
 	const Vector3<float>& center, float radius,
 	const Vector3<float>& direction, unsigned int minParticlesPerSecond,
-	unsigned int maxParticlesPerSecond, const SColor& minStartColor,
-	const SColor& maxStartColor, unsigned int lifeTimeMin, unsigned int lifeTimeMax,
+	unsigned int maxParticlesPerSecond, const eastl::array<float, 4>& minStartColor,
+	const eastl::array<float, 4>& maxStartColor, unsigned int lifeTimeMin, unsigned int lifeTimeMax,
 	int maxAngleDegrees, const Vector2<float>& minStartSize, const Vector2<float>& maxStartSize )
 :	mCenter(center), mRadius(radius), mDirection(direction),
 	mMinStartSize(minStartSize), mMaxStartSize(maxStartSize),
@@ -90,8 +90,7 @@ int ParticleSphereEmitter::Emitt(unsigned int now, unsigned int timeSinceLastCal
 			if (mMinStartColor==mMaxStartColor)
 				particle.mColor=mMinStartColor;
 			else
-				particle.mColor = SColorF(
-                    Function<float>::Lerp(mMinStartColor.ToArray(), mMaxStartColor.ToArray(), Randomizer::FRand()));
+				particle.mColor = Function<float>::Lerp(mMinStartColor, mMaxStartColor, Randomizer::FRand());
 
 			particle.mStartColor = particle.mColor;
 			particle.mStartVector = particle.mVector;

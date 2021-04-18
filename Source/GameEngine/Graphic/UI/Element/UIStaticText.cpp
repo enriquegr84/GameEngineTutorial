@@ -7,12 +7,19 @@
 #include "Graphic/Renderer/Renderer.h"
 
 //! constructor
-UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text,
+UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text, 
 	bool border, const RectangleShape<2, int>& rectangle, bool background)
-:	BaseUIStaticText(id, rectangle), mHAlign(UIA_UPPERLEFT), mVAlign(UIA_UPPERLEFT), mUI(ui), mBorder(border),
-    mWordWrap(false), mBackground(background), mRestrainTextInside(true), mRightToLeft(false), 
+:	BaseUIStaticText(id, rectangle), mHAlign(UIA_UPPERLEFT), mVAlign(UIA_UPPERLEFT), 
+	mUI(ui), mBorder(border), mOverrideColorEnabled(false), mOverrideBGColorEnabled(false), 
+	mWordWrap(false), mBackground(background), mRestrainTextInside(true), mRightToLeft(false), 
+	mOverrideColor(eastl::array<float, 4>{255 / 255.f, 255 / 255.f, 255 / 255.f, 101 / 255.f}),
+	mBGColor(eastl::array<float, 4>{210 / 255.f, 210 / 255.f, 210 / 255.f, 101 / 255.f}),
 	mOverrideFont(0), mLastBreakFont(0)
 {
+	mText = text;
+	if (mUI && mUI->GetSkin())
+		mBGColor = mUI->GetSkin()->GetColor(DC_3D_FACE);
+
 	// Create a vertex buffer for a single triangle.
 	VertexFormat vformat;
 	vformat.Bind(VA_POSITION, DF_R32G32B32_FLOAT, 0);
@@ -34,8 +41,6 @@ UIStaticText::UIStaticText(BaseUI* ui, int id, const wchar_t* text,
 
 	// Create the geometric object for drawing.
 	mVisual = eastl::make_shared<Visual>(vbuffer, ibuffer, mEffect);
-
-    SetText(text);
 }
 
 
@@ -59,36 +64,42 @@ void UIStaticText::Draw( )
 
 	// draw background
 	if (mBackground)
-		skin->Draw2DRectangle(shared_from_this(), GetBackgroundColor(), mVisual, frameRect, &mAbsoluteClippingRect);
+	{
+		if ( !mOverrideBGColorEnabled )	// skin-colors can change
+			mBGColor = skin->GetColor(DC_3D_FACE);
 
-    // draw border
-    if (mBorder)
-    {
-        skin->Draw3DSunkenPane(shared_from_this(), SColorF(), true, false, mVisual, frameRect, &mAbsoluteClippingRect);
-        frameRect.mCenter[0] += (int)round(skin->GetSize(DS_TEXT_DISTANCE_X) / 2);
-        frameRect.mExtent[0] -= skin->GetSize(DS_TEXT_DISTANCE_X);
-    }
+		skin->Draw2DRectangle(shared_from_this(), mBGColor, mVisual, frameRect, &mAbsoluteClippingRect);
+	}
 
 	// draw the text
-	if (mBrokenText.size())
+	if (mText.size())
 	{
 		const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
 
 		if (font)
 		{
-            if (font != mLastBreakFont)
-                UpdateText();
+			if (!mWordWrap)
+			{
+				font->Draw(mText.c_str(), frameRect,
+					mOverrideColorEnabled ? mOverrideColor : skin->GetColor(IsEnabled() ? DC_BUTTON_TEXT : DC_GRAY_TEXT),
+					mHAlign == UIA_CENTER, mVAlign == UIA_CENTER, (mRestrainTextInside ? &mAbsoluteClippingRect : NULL));
+			}
+			else
+			{
+				if (font != mLastBreakFont)
+					BreakText();
 
-            int heightLine = font->GetDimension(L"A")[1];
-            frameRect.mCenter[1] -= (mBrokenText.size() - 1) * heightLine;
-            for (const EnrichedString &str : mBrokenText)
-            {
-                font->Draw(str.C_Str(), frameRect,
-                    str.GetDefaultColor(), // TODO: Implement colorization
-                    mHAlign == UIA_CENTER, mVAlign == UIA_CENTER, (mRestrainTextInside ? &mAbsoluteClippingRect : NULL));
+				int height = font->GetDimension(L"A")[1];
+				frameRect.mCenter[1] -= (mBrokenText.size() - 1) * height;
+				for (unsigned int i=0; i<mBrokenText.size(); ++i)
+				{
+					font->Draw(mBrokenText[i].c_str(), frameRect,
+						mOverrideColorEnabled ? mOverrideColor : skin->GetColor(IsEnabled() ? DC_BUTTON_TEXT : DC_GRAY_TEXT),
+						mHAlign == UIA_CENTER, mVAlign == UIA_CENTER, (mRestrainTextInside ? &mAbsoluteClippingRect : NULL));
 
-                frameRect.mCenter[1] += heightLine;
-            }
+					frameRect.mCenter[1] += height;
+				}
+			}
 		}
 	}
 
@@ -104,7 +115,7 @@ void UIStaticText::SetOverrideFont(const eastl::shared_ptr<BaseUIFont>& font)
 
 	mOverrideFont = font;
 
-	UpdateText();
+	BreakText();
 }
 
 //! Gets the override font (if any)
@@ -124,19 +135,18 @@ eastl::shared_ptr<BaseUIFont> UIStaticText::GetActiveFont() const
 }
 
 //! Sets another color for the text.
-void UIStaticText::SetOverrideColor(SColor color)
+void UIStaticText::SetOverrideColor(eastl::array<float, 4> color)
 {
-    mOverrideColor = color;
-    mOverrideColorEnabled = true;
-    UpdateText();
+	mOverrideColor = color;
+	mOverrideColorEnabled = true;
 }
 
 
 //! Sets another color for the text.
-void UIStaticText::SetBackgroundColor(SColor color)
+void UIStaticText::SetBackgroundColor(eastl::array<float, 4> color)
 {
-    mBGColor = color;
-    mOverrideBGColorEnabled = true;
+	mBGColor = color;
+	mOverrideBGColorEnabled = true;
 	mBackground = true;
 }
 
@@ -149,9 +159,9 @@ void UIStaticText::SetDrawBackground(bool draw)
 
 
 //! Gets the background color
-SColor UIStaticText::GetBackgroundColor() const
+eastl::array<float, 4> UIStaticText::GetBackgroundColor() const
 {
-    return mBGColor;
+	return mBGColor;
 }
 
 
@@ -195,7 +205,7 @@ void UIStaticText::SetTextAlignment(UIAlignment horizontal, UIAlignment vertical
 }
 
 
-SColor UIStaticText::GetOverrideColor() const
+eastl::array<float, 4> UIStaticText::GetOverrideColor() const
 {
 	return mOverrideColor;
 }
@@ -205,13 +215,13 @@ SColor UIStaticText::GetOverrideColor() const
 //! color in the gui skin.
 void UIStaticText::EnableOverrideColor(bool enable)
 {
-    mOverrideColorEnabled = enable;
+	mOverrideColorEnabled = enable;
 }
 
 
 bool UIStaticText::IsOverrideColorEnabled() const
 {
-    return mOverrideColorEnabled;
+	return mOverrideColorEnabled;
 }
 
 
@@ -220,7 +230,7 @@ bool UIStaticText::IsOverrideColorEnabled() const
 void UIStaticText::SetWordWrap(bool enable)
 {
 	mWordWrap = enable;
-	UpdateText();
+	BreakText();
 }
 
 
@@ -235,7 +245,7 @@ void UIStaticText::SetRightToLeft(bool rtl)
 	if (mRightToLeft != rtl)
 	{
 		mRightToLeft = rtl;
-		UpdateText();
+		BreakText();
 	}
 }
 
@@ -246,16 +256,13 @@ bool UIStaticText::IsRightToLeft() const
 }
 
 
-//! Update the single text line.
-void UIStaticText::UpdateText()
+//! Breaks the single text line.
+void UIStaticText::BreakText()
 {
-	mBrokenText.clear();
+	if (!mWordWrap)
+		return;
 
-    if (!mWordWrap)
-    {
-        mBrokenText.push_back(EnrichedString(mText, mOverrideColor));
-        return;
-    }
+	mBrokenText.clear();
 
 	const eastl::shared_ptr<BaseUISkin>& skin = mUI->GetSkin();
 	const eastl::shared_ptr<BaseUIFont>& font = GetActiveFont();
@@ -264,9 +271,9 @@ void UIStaticText::UpdateText()
 
 	mLastBreakFont = font;
 
-    eastl::wstring line;
-    eastl::wstring word;
-    eastl::wstring whitespace;
+	eastl::wstring line;
+	eastl::wstring word;
+	eastl::wstring whitespace;
 	int size = mText.size();
 	int length = 0;
 	int elWidth = mRelativeRect.mExtent[0];
@@ -288,11 +295,11 @@ void UIStaticText::UpdateText()
 			if (c == L'\r') // Mac or Windows breaks
 			{
 				lineBreak = true;
-                if (mText[i + 1] == L'\n') // Windows breaks
-                {
-                    mText.erase(i + 1);
-                    --size;
-                }
+				if (mText[i+1] == L'\n') // Windows breaks
+				{
+					mText.erase(i+1);
+					--size;
+				}
 				c = '\0';
 			}
 			else if (c == L'\n') // Unix breaks
@@ -305,7 +312,7 @@ void UIStaticText::UpdateText()
 			if ( !isWhitespace )
 			{
 				// part of a word
-                word += c;
+				word += c;
 			}
 
 			if ( isWhitespace || i == (size-1))
@@ -322,12 +329,12 @@ void UIStaticText::UpdateText()
 						// This word is too long to fit in the available space, look for
 						// the Unicode Soft HYphen (SHY / 00AD) character for a place to
 						// break the word at
-						int where = eastl::wstring(word.c_str()).find_first_of(wchar_t(0x00AD));
+						int where = word.find_first_of(wchar_t(0x00AD));
 						if (where != -1)
 						{
-                            eastl::wstring first = word.substr(0, where);
-                            eastl::wstring second = word.substr(where, word.size() - where);
-							mBrokenText.push_back(EnrichedString(line + first + L"-", mOverrideColor));
+							eastl::wstring first = word.substr(0, where);
+							eastl::wstring second = word.substr(where, word.size() - where);
+							mBrokenText.push_back(line + first + L"-");
 							const int secondLength = font->GetDimension(second.c_str())[0];
 
 							length = secondLength;
@@ -338,7 +345,7 @@ void UIStaticText::UpdateText()
 							// No soft hyphen found, so there's nothing more we can do
 							// break to next line
 							if (length)
-								mBrokenText.push_back(EnrichedString(line, mOverrideColor));
+								mBrokenText.push_back(line);
 							length = wordlgth;
 							line = word;
 						}
@@ -346,7 +353,7 @@ void UIStaticText::UpdateText()
 					else if (length && (length + wordlgth + whitelgth > elWidth))
 					{
 						// break to next line
-						mBrokenText.push_back(EnrichedString(line, mOverrideColor));
+						mBrokenText.push_back(line);
 						length = wordlgth;
 						line = word;
 					}
@@ -362,15 +369,17 @@ void UIStaticText::UpdateText()
 					whitespace = L"";
 				}
 
-                if (isWhitespace)
-                    whitespace += c;
+				if ( isWhitespace )
+				{
+					whitespace += c;
+				}
 
 				// compute line break
 				if (lineBreak)
 				{
 					line += whitespace;
 					line += word;
-					mBrokenText.push_back(EnrichedString(line, mOverrideColor));
+					mBrokenText.push_back(line);
 					line = L"";
 					word = L"";
 					whitespace = L"";
@@ -381,7 +390,7 @@ void UIStaticText::UpdateText()
 
 		line += whitespace;
 		line += word;
-		mBrokenText.push_back(EnrichedString(line, mOverrideColor));
+		mBrokenText.push_back(line);
 	}
 	else
 	{
@@ -409,32 +418,6 @@ void UIStaticText::UpdateText()
 
 			if (c==L' ' || c==0 || i==0)
 			{
-                if (word.size())
-                {
-                    // here comes the next whitespace, look if
-                    // we must break the last word to the next line.
-                    const int whitelgth = font->GetDimension(whitespace.c_str())[0];
-                    const int wordlgth = font->GetDimension(word.c_str())[0];
-
-                    if (length && (length + wordlgth + whitelgth > elWidth))
-                    {
-                        // break to next line
-                        mBrokenText.push_back(EnrichedString(line, mOverrideColor));
-                        length = wordlgth;
-                        line = word;
-                    }
-                    else
-                    {
-                        // add word to line
-                        line = whitespace + line;
-                        line = word + line;
-                        length += whitelgth + wordlgth;
-                    }
-
-                    word.clear();
-                    whitespace.clear();
-                }
-
 				if (c != 0)
 					whitespace = eastl::wstring(&c, 1) + whitespace;
 
@@ -443,7 +426,7 @@ void UIStaticText::UpdateText()
 				{
 					line = whitespace + line;
 					line = word + line;
-					mBrokenText.push_back(EnrichedString(line, mOverrideColor));
+					mBrokenText.push_back(line);
 					line = L"";
 					word = L"";
 					whitespace = L"";
@@ -459,22 +442,23 @@ void UIStaticText::UpdateText()
 
 		line = whitespace + line;
 		line = word + line;
-		mBrokenText.push_back(EnrichedString(line, mOverrideColor));
+		mBrokenText.push_back(line);
 	}
 }
+
 
 //! Sets the new caption of this element.
 void UIStaticText::SetText(const wchar_t* text)
 {
-    BaseUIElement::SetText(text);
-    UpdateText();
+	BaseUIElement::SetText(text);
+	BreakText();
 }
 
 
 void UIStaticText::UpdateAbsoluteTransformation()
 {
 	BaseUIElement::UpdateAbsolutePosition();
-	UpdateText();
+	BreakText();
 }
 
 

@@ -77,7 +77,7 @@ bool UIFont::Load(const eastl::wstring& filename)
 
 //! draws some text and clips it to the specified rectangle if wanted
 void UIFont::Draw(const eastl::wstring& text, const RectangleShape<2, int>& position,
-    SColorF const& color, bool hcenter, bool vcenter, const RectangleShape<2, int>* clip)
+	eastl::array<float, 4> const& color, bool hcenter, bool vcenter, const RectangleShape<2, int>* clip)
 {
 	if (!Renderer::Get())
 		return;

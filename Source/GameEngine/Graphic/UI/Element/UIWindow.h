@@ -150,7 +150,7 @@ protected:
 	eastl::shared_ptr<BaseUIButton> mRestoreButton;
 	eastl::shared_ptr<BaseUIButton> mCollapseButton;
 	RectangleShape<2, int> mClientRect;
-	SColorF mCurrentIconColor;
+	eastl::array<float, 4> mCurrentIconColor;
 
 	int mScrollBarPos;
 	Vector2<int> mDragStart;
