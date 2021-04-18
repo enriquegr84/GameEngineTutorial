@@ -412,7 +412,6 @@ eastl::string FileSystem::GetPath(const eastl::string& fileName)
 //! determines if a directory exists and would be able to be opened.
 bool FileSystem::ExistDirectory(const eastl::wstring& dirname)
 {
-
 	eastl::string dirName = ToString(dirname.c_str());
 
 	eastl::vector<eastl::string>::iterator iter = msDirectories.begin();

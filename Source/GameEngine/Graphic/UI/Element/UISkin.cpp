@@ -4,6 +4,7 @@
 
 #include "UISkin.h"
 
+#include "Graphic/Image/ImageFilter.h"
 #include "Graphic/Renderer/Renderer.h"
 
 
@@ -1002,6 +1003,81 @@ void UISkin::Draw2DTexture(
     Renderer::Get()->Update(visual->GetVertexBuffer());
     Renderer::Get()->Draw(visual);
 }
+
+
+/* 
+    Replacement for Draw2DTexture that uses the high-quality pre-scaled texture, if configured.
+ */
+void UISkin::Draw2DImageFilterScaled(
+    const eastl::shared_ptr<BaseUIElement>& element, const eastl::shared_ptr<Visual>& visual,
+    const RectangleShape<2, int>& targetRect, const RectangleShape<2, int>& sourceRect,
+    const Vector2<int>& dimension, const SColor* colors)
+{
+    auto effect = eastl::dynamic_pointer_cast<Texture2Effect>(visual->GetEffect());
+    eastl::shared_ptr<Texture2> srcTexture = effect->GetTexture();
+
+    // Attempt to pre-scale image in software in high quality.
+    /*
+    if (!g_settings->getBool("gui_scaling_filter"))
+        return src;
+    */
+    // Calculate scaled texture name.
+    wchar_t rectstr[200];
+    swprintf(rectstr, L"%d:%d:%d:%d:%d:%d",
+        sourceRect.mCenter[0], sourceRect.mCenter[1],
+        sourceRect.mExtent[0], sourceRect.mExtent[1],
+        targetRect.mExtent[0], targetRect.mExtent[1]);
+    eastl::wstring scaleName = srcTexture->GetName() + L"@guiScalingFilter:" + rectstr;
+
+    // Search for existing scaled texture.
+    eastl::shared_ptr<Texture2> scaled = mScaledTextures[scaleName];
+    if (!scaled)
+    {
+        // Try to find the texture converted to an image in the cache.
+        // If the image was not found, try to extract it from the texture.
+        eastl::shared_ptr<Texture2> imageSource;
+        eastl::shared_ptr<ResHandle>& resHandle = ResCache::Get()->GetHandle(&BaseResource(srcTexture->GetName()));
+        if (!resHandle)
+        {
+            /*
+            if (!g_settings->getBool("gui_scaling_filter_txr2img"))
+                return src;
+            */
+            // Create the 2D texture and compute the stride and image size.
+            imageSource = eastl::make_shared<Texture2>(
+                srcTexture->GetFormat(), srcTexture->GetWidth(), srcTexture->GetHeight(), srcTexture->HasMipmaps());
+
+            // Copy the pixels from the decoder to the texture.
+            std::memcpy(imageSource->Get<BYTE>(), srcTexture->GetData(), imageSource->GetNumBytes());
+        }
+        else
+        {
+            const eastl::shared_ptr<ImageResourceExtraData>& extra =
+                eastl::static_pointer_cast<ImageResourceExtraData>(resHandle->GetExtra());
+            imageSource = extra->GetImage();
+        }
+
+        // Create a new destination image and scale the source into it.
+        ImageFilter::ImageCleanTransparent(imageSource, 0);
+        eastl::shared_ptr<Texture2> imageDest = eastl::make_shared<Texture2>(
+            srcTexture->GetFormat(), targetRect.mExtent[0], targetRect.mExtent[1], srcTexture->HasMipmaps());
+        ImageFilter::ImageScaleNNAA(imageSource, sourceRect, imageDest);
+
+        // Convert the scaled image back into a texture.
+        scaled = imageDest;
+        mScaledTextures[scaleName] = scaled;
+    }
+
+    // Correct source rect based on scaled image.
+    effect->SetTexture(scaled);
+    const core::rect<s32> mysrcrect = (scaled != txr)
+        ? core::rect<s32>(0, 0, destrect.getWidth(), destrect.getHeight())
+        : srcrect;
+
+    Draw2DTexture(
+    driver->draw2DImage(scaled, destrect, mysrcrect, cliprect, colors, usealpha);
+}
+
 
 //! draws a 2d rectangle.
 void UISkin::Draw2DRectangle(const eastl::shared_ptr<BaseUIElement>& element,

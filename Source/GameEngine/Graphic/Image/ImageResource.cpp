@@ -109,12 +109,9 @@ eastl::shared_ptr<Texture2> ImageResourceLoader::Load(eastl::wstring const& file
 	// Create the 2D texture and compute the stride and image size.
 	eastl::shared_ptr<Texture2> texture = 
 		eastl::make_shared<Texture2>(gtformat, width, height, wantMipMaps);
-
-	UINT const stride = width * texture->GetElementSize();
-	UINT const imageSize = stride * height;
-
+   
 	// Copy the pixels from the decoder to the texture.
-	std::memcpy(texture->Get<BYTE>(), imageData, imageSize);
+	std::memcpy(texture->Get<BYTE>(), imageData, texture->GetNumBytes());
 	stbi_image_free(imageData);
 
 	return texture;

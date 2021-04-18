@@ -342,27 +342,33 @@ void UIButton::Draw( )
             }
         }
 
-
         effect->SetTexture(mButtonImages[(unsigned int)imageState].Texture);
 
         SColor imageColors[] = { mBGColor, mBGColor, mBGColor, mBGColor };
-        if (mBGMiddle.GetArea() == 0) 
+        if (mBGMiddle.GetArea()) 
+        {
+            RectangleShape<2, int > middle = mBGMiddle;
+            // `-x` is interpreted as `w - x`
+            if (middle.mExtent[0] < 0)
+            {
+                middle.mExtent[0] += effect->GetTexture()->GetDimension(0);
+                middle.mCenter[0] += effect->GetTexture()->GetDimension(0) / 2;
+            }
+            if (middle.mExtent[1] < 0)
+            {
+                middle.mExtent[1] += effect->GetTexture()->GetDimension(1);
+                middle.mCenter[1] += effect->GetTexture()->GetDimension(1) / 2;
+            }
+
+            skin->Draw2DTexture9Slice(shared_from_this(), mVisual,
+                mScaleImage ? mAbsoluteRect : RectangleShape<2, int>(pos, sourceRect.mAxis, sourceRect.mExtent),
+                middle, mAbsoluteClippingRect.mExtent, imageColors);
+        }
+        else
         {
             skin->Draw2DTexture(shared_from_this(), mVisual,
                 mScaleImage ? mAbsoluteRect : RectangleShape<2, int>(pos, sourceRect.mAxis, sourceRect.mExtent),
                 sourceRect, mAbsoluteClippingRect.mExtent, imageColors);
-        }
-        else 
-        {
-            core::rect<s32> middle = BgMiddle;
-            // `-x` is interpreted as `w - x`
-            if (middle.LowerRightCorner.X < 0)
-                middle.LowerRightCorner.X += texture->getOriginalSize().Width;
-            if (middle.LowerRightCorner.Y < 0)
-                middle.LowerRightCorner.Y += texture->getOriginalSize().Height;
-            draw2DImage9Slice(driver, texture,
-                ScaleImage ? AbsoluteRect : core::rect<s32>(pos, sourceRect.getSize()),
-                middle, &AbsoluteClippingRect, image_colors);
         }
     }
 

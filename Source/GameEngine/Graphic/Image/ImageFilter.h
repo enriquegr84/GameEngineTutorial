@@ -41,7 +41,7 @@ public:
      * transparent.  Should be 127 for 3d where alpha is threshold, but 0 for
      * 2d where alpha is blended.
      */
-    void ImageCleanTransparent(eastl::shared_ptr<Texture2> const& src, unsigned int threshold);
+    static void ImageCleanTransparent(eastl::shared_ptr<Texture2> const& src, unsigned int threshold);
 
     /* Scale a region of an image into another image, using nearest-neighbor with
      * anti-aliasing; treat pixels as crisp rectangles, but blend them at boundaries
@@ -50,7 +50,7 @@ public:
      * filter is designed to produce the most accurate results for both upscaling
      * and downscaling.
      */
-    void ImageScaleNNAA(eastl::shared_ptr<Texture2> const& src, 
+    static void ImageScaleNNAA(eastl::shared_ptr<Texture2> const& src, 
         const RectangleShape<2, int>& srcRect, eastl::shared_ptr<Texture2> const& dest);
 };
 

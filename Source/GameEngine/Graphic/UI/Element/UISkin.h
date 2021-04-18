@@ -719,6 +719,9 @@ private:
 
 	BaseUI* mUI;
 
+    // Maintain a static cache of all pre-scaled textures.
+    eastl::map<eastl::wstring, eastl::shared_ptr<Texture2>> mScaledTextures;
+
 	SColor mColors[DC_COUNT];
 	eastl::shared_ptr<BaseUIFont> mFonts[DF_COUNT];
 	eastl::shared_ptr<BaseUISpriteBank> mSpriteBank;
