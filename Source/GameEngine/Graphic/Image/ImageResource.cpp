@@ -105,14 +105,19 @@ eastl::shared_ptr<Texture2> ImageResourceLoader::Load(eastl::wstring const& file
 
 	// R8G8B8A8 format with texels converted from the source format.
 	DFType gtformat = DF_R8G8B8A8_UNORM;
-	
-	// Create the 2D texture and compute the stride and image size.
-	eastl::shared_ptr<Texture2> texture = 
-		eastl::make_shared<Texture2>(gtformat, width, height, wantMipMaps);
-   
-	// Copy the pixels from the decoder to the texture.
-	std::memcpy(texture->Get<BYTE>(), imageData, texture->GetNumBytes());
-	stbi_image_free(imageData);
+
+    // Create the 2D texture and compute the stride and image size.
+    eastl::shared_ptr<Texture2> texture =
+        eastl::make_shared<Texture2>(gtformat, width, height, wantMipMaps);
+
+    UINT const stride = width * texture->GetElementSize();
+    UINT const imageSize = stride * height;
+
+    // Copy the pixels from the decoder to the texture.
+    std::memcpy(texture->Get<BYTE>(), imageData, imageSize);
+    stbi_image_free(imageData);
+
+    return texture;
 
 	return texture;
 }
