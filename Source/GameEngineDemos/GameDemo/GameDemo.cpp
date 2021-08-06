@@ -130,6 +130,56 @@ void GameDemoLogic::ChangeState(BaseGameState newState)
 				return;
 			}
 
+            const GameViewList& gameViews = gameApp->GetGameViews();
+            for (auto it = gameViews.begin(); it != gameViews.end(); ++it)
+            {
+                eastl::shared_ptr<BaseGameView> pView = *it;
+                if (pView->GetType() == GV_HUMAN)
+                {
+                    eastl::shared_ptr<Actor> pActor = CreateActor("actors\\player.xml", NULL);
+                    if (pActor)
+                    {
+                        pView->OnAttach(pView->GetId(), pActor->GetId());
+
+                        eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+                            new EventDataNewActor(pActor->GetId(), pView->GetId()));
+
+                        // [rez] This needs to happen asap because the constructor function for Lua 
+                        // (which is called in through CreateActor()) queues an event that expects 
+                        // this event to have been handled
+                        BaseEventManager::Get()->TriggerEvent(pNewActorEvent);
+                    }
+                }
+                else if (pView->GetType() == GV_REMOTE)
+                {
+                    eastl::shared_ptr<NetworkGameView> pNetworkGameView =
+                        eastl::static_pointer_cast<NetworkGameView, BaseGameView>(pView);
+                    eastl::shared_ptr<Actor> pActor = CreateActor("actors\\remote_player.xml", NULL);
+                    if (pActor)
+                    {
+                        pView->OnAttach(pView->GetId(), pActor->GetId());
+
+                        eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+                            new EventDataNewActor(pActor->GetId(), pNetworkGameView->GetId()));
+                        BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+                    }
+                }
+                else if (pView->GetType() == GV_AI)
+                {
+                    eastl::shared_ptr<AIPlayerView> pAiView =
+                        eastl::static_pointer_cast<AIPlayerView, BaseGameView>(pView);
+                    eastl::shared_ptr<Actor> pActor = CreateActor("actors\\ai_player.xml", NULL);
+                    if (pActor)
+                    {
+                        pView->OnAttach(pView->GetId(), pActor->GetId());
+
+                        eastl::shared_ptr<EventDataNewActor> pNewActorEvent(
+                            new EventDataNewActor(pActor->GetId(), pAiView->GetId()));
+                        BaseEventManager::Get()->QueueEvent(pNewActorEvent);
+                    }
+                }
+            }
+
 			break;
 		}
 	}

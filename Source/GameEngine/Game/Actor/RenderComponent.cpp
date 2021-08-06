@@ -253,7 +253,7 @@ eastl::shared_ptr<Node> MeshRenderComponent::CreateSceneNode(void)
 				meshNode->SetMaterialType((MaterialType)mMaterialType);
 			}
 		}
-		else if (mesh->GetMeshType() == MT_ANIMATED)
+		else if (mesh->GetMeshType() == MT_SKINNED || mesh->GetMeshType() == MT_ANIMATED)
 		{
 			if (!mTextureResource.empty())
 			{

@@ -14,7 +14,7 @@
 
 #include "AreaLightsApp.h"
 #include "AreaLightsView.h"
-
+/*
 //----------------------------------------------------------------------------
 int main(int numArguments, char* arguments[])
 {
@@ -76,7 +76,7 @@ int main(int numArguments, char* arguments[])
 
 	return exitCode;
 }
-
+*/
 //----------------------------------------------------------------------------
 AreaLightsApp::AreaLightsApp()
 :	WindowApplication("AreaLights", 0, 0, 800, 600, { 0.392f, 0.584f, 0.929f, 1.0f })
