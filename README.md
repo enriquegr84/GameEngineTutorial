@@ -33,7 +33,7 @@ the development following our educational philosophy.
 The Game Engine is a source code template meant to assist anyone for creating any educational project they like, not only for 
 videogame but research and simulation projects in diverse scientist areas such as A.I, Audio, Networking, Graphics and Physics. 
 As example, we show an A.I. research project which make use of this framework in the following link 
-https://github.com/enriquegr84/GameEngineAI
+https://github.com/enriquegr84/QuakeAI
 
 **Installation:**
 
